@@ -25,7 +25,6 @@ import "./BridgeProtocols.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
-import "./mixins/MixinClipper.sol";
 import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
@@ -51,7 +50,6 @@ contract BridgeAdapter is
     MixinBalancer,
     MixinBalancerV2,
     MixinBancor,
-    MixinClipper,
     MixinCoFiX,
     MixinCurve,
     MixinCurveV2,
@@ -77,7 +75,6 @@ contract BridgeAdapter is
         MixinBalancer()
         MixinBalancerV2()
         MixinBancor(weth)
-        MixinClipper(weth)
         MixinCoFiX()
         MixinCurve(weth)
         MixinCurveV2()
@@ -243,13 +240,6 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.LIDO) {
             boughtAmount = _tradeLido(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.CLIPPER) {
-            boughtAmount = _tradeClipper(
                 sellToken,
                 buyToken,
                 sellAmount,

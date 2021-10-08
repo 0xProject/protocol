@@ -3,6 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
+import { ethToOutputAmount } from './fills';
 import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
@@ -25,12 +26,14 @@ export interface PathPenaltyOpts {
     outputAmountPerEth: BigNumber;
     inputAmountPerEth: BigNumber;
     exchangeProxyOverhead: ExchangeProxyOverhead;
+    gasPrice: BigNumber;
 }
 
 export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
     outputAmountPerEth: ZERO_AMOUNT,
     inputAmountPerEth: ZERO_AMOUNT,
     exchangeProxyOverhead: () => ZERO_AMOUNT,
+    gasPrice: ZERO_AMOUNT,
 };
 
 export class Path {
@@ -143,9 +146,13 @@ export class Path {
         const { input, output } = this._adjustedSize;
         const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth } = this.pathPenaltyOpts;
         const gasOverhead = exchangeProxyOverhead(this.sourceFlags);
-        const pathPenalty = !outputAmountPerEth.isZero()
-            ? outputAmountPerEth.times(gasOverhead)
-            : inputAmountPerEth.times(gasOverhead).times(output.dividedToIntegerBy(input));
+        const pathPenalty = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: gasOverhead,
+        });
         return {
             input,
             output: this.side === MarketOperation.Sell ? output.minus(pathPenalty) : output.plus(pathPenalty),

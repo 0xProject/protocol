@@ -363,6 +363,7 @@ export class SwapQuoter {
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
+            gasPrice,
             feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
                 gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
             ),

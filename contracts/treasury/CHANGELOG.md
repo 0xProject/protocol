@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.4.2 - _October 4, 2021_
+
+    * Dependencies updated
+
+## v1.4.1 - _September 29, 2021_
+
+    * Dependencies updated
+
 ## v1.4.0 - _September 15, 2021_
 
     * Support cast vote by signature in Treasury

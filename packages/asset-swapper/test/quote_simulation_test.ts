@@ -744,7 +744,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             if (side === MarketOperation.Sell) {
                 expect(result.totalMakerAssetAmount).to.be.bignumber.eq(fillableOutput);
@@ -769,10 +769,10 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             expect(result.gas).to.eq(countCollapsedFills(orders));
-            expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
+            expect(result.protocolFeeAmount).to.bignumber.eq(orders.length);
             expect(result.takerFeeTakerAssetAmount).to.bignumber.eq(0);
             expect(result.takerFeeMakerAssetAmount).to.bignumber.eq(0);
             expect(result.makerAssetAmount).to.bignumber.eq(result.totalMakerAssetAmount);
@@ -801,7 +801,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -835,7 +835,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: totalFillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
 
             assertRoughlyEquals(result.takerAssetAmount, fillableInput);
@@ -865,7 +865,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -893,10 +893,10 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             expect(result.gas).to.eq(countCollapsedFills(orders));
-            expect(result.protocolFeeAmount).to.bignumber.gt(orders.length);
+            expect(result.protocolFeeAmount).to.bignumber.eq(orders.length);
 
             assertRoughlyEquals(result.makerAssetAmount, fillableInput);
             assertRoughlyEquals(result.totalMakerAssetAmount, fillableInput);
@@ -923,7 +923,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: inputFillAmount,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             expect(result.gas).to.gt(0);
             expect(result.protocolFeeAmount).to.bignumber.gt(0);
@@ -951,7 +951,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE, slippage },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE, slippage },
             });
             if (side === MarketOperation.Sell) {
                 const slippedOutput = fillableOutput.times(1 - slippage).integerValue();
@@ -982,7 +982,7 @@ describe('quote_simulation tests', async () => {
                 side,
                 fillAmount: fillableInput,
                 gasPrice: ONE,
-                opts: { gasSchedule: GAS_SCHEDULE },
+                opts: { gasSchedule: GAS_SCHEDULE, protocolFeeMultiplier: ONE },
             });
             const worstCase = simulateWorstCaseFill({
                 orders,

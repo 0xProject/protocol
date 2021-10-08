@@ -1,5 +1,53 @@
 [
     {
+        "version": "16.29.2",
+        "changes": [
+            {
+                "note": "Check MAX_IN_RATIO in sampleBuysFromBalancer",
+                "pr": 338
+            }
+        ]
+    },
+    {
+        "version": "16.29.1",
+        "changes": [
+            {
+                "note": "Remove `Clipper` as a custom liquidity source",
+                "pr": 335
+            }
+        ],
+        "timestamp": 1633374058
+    },
+    {
+        "version": "16.29.0",
+        "changes": [
+            {
+                "note": "Initial integration of neon-router (behind feature flag)",
+                "pr": 295
+            }
+        ],
+        "timestamp": 1633350101
+    },
+    {
+        "version": "16.28.0",
+        "changes": [
+            {
+                "note": "Update ExchangeProxySwapQuoteConsumer for Multiplex V2 and friends",
+                "pr": 282
+            }
+        ],
+        "timestamp": 1632957537
+    },
+    {
+        "version": "16.27.5",
+        "changes": [
+            {
+                "note": "Remove protocol fees by setting `PROTOCOL_FEE_MULTIPLIER` to 0",
+                "pr": 333
+            }
+        ]
+    },
+    {
         "timestamp": 1631710679,
         "version": "16.27.4",
         "changes": [
