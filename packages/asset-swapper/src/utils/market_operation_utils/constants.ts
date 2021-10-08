@@ -450,12 +450,12 @@ export const AVALANCHE_TOKENS = {
 
 export const FANTOM_TOKENS = {
     WFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
-    WETH: '0x74b23882a30290451A17c44f4F05243b6b58C76d',
-    USDC: '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75',
+    WETH: '0x74b23882a30290451a17c44f4f05243b6b58c76d',
+    USDC: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
     DAI: '0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e',
     fUSDT: '0x049d68029688eabf473097a2fc38ef61633a3c7a',
-    WBTC: '0x321162Cd933E2Be498Cd2267a90534A804051b11',
-    renBTC: '0xDBf31dF14B66535aF65AaC99C32e9eA844e14501',
+    WBTC: '0x321162cd933e2be498cd2267a90534a804051b11',
+    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
 };
 
 export const CURVE_POOLS = {
@@ -1002,19 +1002,19 @@ export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
 // TODO: modify gasSchedule
 export const CURVE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_FANTOM_POOLS.ren]: createCurveExchangePool({
-        tokens: [FANTOM_TOKENS.renBTC, FANTOM_TOKENS.WBTC],
+        tokens: [FANTOM_TOKENS.WBTC, FANTOM_TOKENS.renBTC],
         pool: CURVE_FANTOM_POOLS.ren,
         gasSchedule: 171e3,
     }),
-    [CURVE_FANTOM_POOLS.twoPool]: createCurveExchangeUnderlyingPool({
+    [CURVE_FANTOM_POOLS.twoPool]: createCurveExchangePool({
         tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
         pool: CURVE_FANTOM_POOLS.twoPool,
-        gasSchedule: 587e3,
-    }),
-    [CURVE_FANTOM_POOLS.fUSDT]: createCurveExchangePool({
-        tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT],
-        pool: CURVE_FANTOM_POOLS.fUSDT,
         gasSchedule: 176e3,
+    }),
+    [CURVE_FANTOM_POOLS.fUSDT]: createCurveExchangeUnderlyingPool({
+        tokens: [FANTOM_TOKENS.fUSDT, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
+        pool: CURVE_FANTOM_POOLS.fUSDT,
+        gasSchedule: 587e3,
     }),
 }
 
