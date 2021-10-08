@@ -4,8 +4,10 @@
     "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
     "files": [
         "generated-artifacts/DefaultPoolOperator.json",
+        "generated-artifacts/ISablier.json",
         "generated-artifacts/ZrxTreasury.json",
         "test/generated-artifacts/DefaultPoolOperator.json",
+        "test/generated-artifacts/ISablier.json",
         "test/generated-artifacts/IStaking.json",
         "test/generated-artifacts/IZrxTreasury.json",
         "test/generated-artifacts/ZrxTreasury.json"

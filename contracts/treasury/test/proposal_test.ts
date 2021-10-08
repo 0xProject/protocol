@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import { proposals } from '../src/proposals';
 
 import { artifacts } from './artifacts';
-import { ZrxTreasuryContract, ZrxTreasuryEvents } from './wrappers';
+import { ISablierEvents, ZrxTreasuryContract, ZrxTreasuryEvents } from './wrappers';
 
 const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/mzhu25/zeroex-staking';
 const STAKING_PROXY_ADDRESS = '0xa26e80e7dea86279c6d778d702cc413e6cffa777';
@@ -15,9 +15,11 @@ const TREASURY_ADDRESS = '0x0bb1810061c2f5b2088054ee184e6c79e1591101';
 const PROPOSER = process.env.PROPOSER || constants.NULL_ADDRESS;
 const VOTER = '0xba4f44e774158408e2dc6c5cb65bc995f0a89180';
 const VOTER_OPERATED_POOLS = ['0x0000000000000000000000000000000000000000000000000000000000000017'];
+const VOTER_2 = '0x9a4eb1101c0c053505bd71d2ffa27ed902dead85';
+const VOTER_2_OPERATED_POOLS = ['0x0000000000000000000000000000000000000000000000000000000000000029'];
 blockchainTests.configure({
     fork: {
-        unlockedAccounts: [PROPOSER, VOTER],
+        unlockedAccounts: [PROPOSER, VOTER, VOTER_2],
     },
 });
 
@@ -216,6 +218,82 @@ blockchainTests.fork.skip('Treasury proposal mainnet fork tests', env => {
                     },
                 ],
                 ERC20TokenEvents.Transfer,
+            );
+        });
+    });
+    describe('Proposal 2', () => {
+        it('works', async () => {
+            const proposal = proposals[2];
+            let executionEpoch: BigNumber;
+            if (proposal.executionEpoch) {
+                executionEpoch = proposal.executionEpoch;
+            } else {
+                const currentEpoch = await staking.currentEpoch().callAsync();
+                executionEpoch = currentEpoch.plus(2);
+            }
+            const pools = await querySubgraphAsync(PROPOSER);
+            const proposeTx = treasury.propose(proposal.actions, executionEpoch, proposal.description, pools);
+
+            const calldata = proposeTx.getABIEncodedTransactionData();
+            logUtils.log('ZrxTreasury.propose calldata:');
+            logUtils.log(calldata);
+
+            const proposalId = await proposeTx.callAsync({ from: PROPOSER });
+            const receipt = await proposeTx.awaitTransactionSuccessAsync({ from: PROPOSER });
+            verifyEventsFromLogs(
+                receipt.logs,
+                [
+                    {
+                        ...proposal,
+                        proposalId,
+                        executionEpoch,
+                        proposer: PROPOSER,
+                        operatedPoolIds: pools,
+                    },
+                ],
+                ZrxTreasuryEvents.ProposalCreated,
+            );
+            await fastForwardToNextEpochAsync();
+            await fastForwardToNextEpochAsync();
+            await treasury
+                .castVote(proposalId, true, VOTER_OPERATED_POOLS)
+                .awaitTransactionSuccessAsync({ from: VOTER });
+            await treasury
+                .castVote(proposalId, true, VOTER_2_OPERATED_POOLS)
+                .awaitTransactionSuccessAsync({ from: VOTER_2 });
+            await env.web3Wrapper.increaseTimeAsync(votingPeriod.plus(1).toNumber());
+            await env.web3Wrapper.mineBlockAsync();
+            const executeTx = await treasury.execute(proposalId, proposal.actions).awaitTransactionSuccessAsync();
+
+            verifyEventsFromLogs(
+                executeTx.logs,
+                [
+                    {
+                        proposalId,
+                    },
+                ],
+                ZrxTreasuryEvents.ProposalExecuted,
+            );
+
+            verifyEventsFromLogs(
+                executeTx.logs,
+                [
+                    {
+                        recipient: '0x976378445D31D81b15576811450A7b9797206807',
+                        deposit: new BigNumber('485392999999999970448000'),
+                        tokenAddress: '0xe41d2489571d322189246dafa5ebde1f4699f498',
+                        startTime: new BigNumber(1635188400),
+                        stopTime: new BigNumber(1666724400),
+                    },
+                    {
+                        recipient: '0x976378445D31D81b15576811450A7b9797206807',
+                        deposit: new BigNumber('378035999999999992944000'),
+                        tokenAddress: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
+                        startTime: new BigNumber(1635188400),
+                        stopTime: new BigNumber(1666724400),
+                    },
+                ],
+                ISablierEvents.CreateStream,
             );
         });
     });

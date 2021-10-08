@@ -4,6 +4,7 @@
  * -----------------------------------------------------------------------------
  */
 export * from '../test/generated-wrappers/default_pool_operator';
+export * from '../test/generated-wrappers/i_sablier';
 export * from '../test/generated-wrappers/i_staking';
 export * from '../test/generated-wrappers/i_zrx_treasury';
 export * from '../test/generated-wrappers/zrx_treasury';
