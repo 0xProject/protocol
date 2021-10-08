@@ -406,17 +406,17 @@
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
         "exchangeProxyGovernor": "0xca7bab1b2d1ec7d81710b7f9e2ab4e6788930588",
-        "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
-        "exchangeProxyTransformerDeployer": "0xa60b57833dce6260f4f2411c811755dd980bc0a7",
+        "exchangeProxy": "0xDEf1520C89538d9e43Aa273b7803a16F871d21e3",
+        "exchangeProxyTransformerDeployer": "0x47F01db18a38261E4cB153bAe6db7d3743AcB33c",
         "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
-        "exchangeProxyLiquidityProviderSandbox": "0x8953c63d0858d286cc407cd6f8e26b9cbd02a511",
+        "exchangeProxyLiquidityProviderSandbox": "0xcA64D4225804F2Ae069760CB5fF2F1D8BaC1C2f9",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x9b8b52391071d71cd4ad1e61d7f273268fa34c6c",
-            "payTakerTransformer": "0x898c6fde239d646c73f0a57e3570b6f86a3d62a3",
-            "affiliateFeeTransformer": "0x34617b855411e52fbc05899435f44cbd0503022c",
-            "fillQuoteTransformer": "0x8a5417dd7ffde61ec61e11b45797e16686e1d6b9",
-            "positiveSlippageFeeTransformer": "0x470ba89da18a6db6e8a0567b3c9214b960861857"
+            "wethTransformer": "0x9b6aA8f26A92108e7d1F66373d757Bb955112703",
+            "payTakerTransformer": "0x32dF54951D33D7460e15Fa59B1fCc262183ce4C2",
+            "affiliateFeeTransformer": "0x67EfA679a4b56C38713d478e649C88247F4F8E88",
+            "fillQuoteTransformer": "0xa21ab090bE8BDE78dAB8FA47988aBbEDF361327A",
+            "positiveSlippageFeeTransformer": "0xe87D69b285005CC82b53B844322652C49ED64600"
         }
     }
 }
