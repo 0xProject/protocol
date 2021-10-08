@@ -88,10 +88,7 @@ if (require.main === module) {
 
         // Run the worker
         await runRfqmWorkerAsync(rfqmService, workerAddress);
-    })().catch((error) => {
-        logger.error(error.stack);
-        process.exit(1);
-    });
+    })(); // tslint:disable-line no-floating-promises
 }
 
 /**
