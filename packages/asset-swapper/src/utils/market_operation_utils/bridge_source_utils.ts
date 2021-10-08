@@ -395,9 +395,14 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.ACryptos,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
+    console.log("Inside 2", source);
     switch (source) {
         case ERC20BridgeSource.Curve:
             pools = getCurveInfosForPair(chainId, takerToken, makerToken);
+            console.log("Inside 2 chainId", chainId);
+            console.log("Inside 2 pools", pools);
+            console.log("Inside 2 takerToken", takerToken);
+            console.log("Inside 2 makerToken", makerToken);
             break;
         case ERC20BridgeSource.CurveV2:
             pools = getCurveV2InfosForPair(chainId, takerToken, makerToken);
