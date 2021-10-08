@@ -1085,6 +1085,7 @@ export class SamplerOperations {
         return this._createBatch(
             subOps,
             (samples: BigNumber[][]) => {
+                console.log("Median", samples);
                 if (samples.length === 0) {
                     return ZERO_AMOUNT;
                 }
@@ -1109,9 +1110,13 @@ export class SamplerOperations {
         takerFillAmounts: BigNumber[],
     ): BatchedOperation<DexSample[][]> {
         const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, takerFillAmounts);
+        console.log(sources);
+        console.log(takerFillAmounts);
+        console.log("subOps", subOps);
         return this._createBatch(
             subOps,
             (samples: BigNumber[][]) => {
+                console.log("Sell", samples);
                 return subOps.map((op, i) => {
                     return samples[i].map((output, j) => ({
                         source: op.source,
@@ -1167,6 +1172,7 @@ export class SamplerOperations {
                 if (isBadTokenForSource(makerToken, source) || isBadTokenForSource(takerToken, source)) {
                     return [];
                 }
+                console.log("Inside", source);
                 switch (source) {
                     case ERC20BridgeSource.Eth2Dai:
                         return [];
