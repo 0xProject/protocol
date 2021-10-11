@@ -8,8 +8,8 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
-import { QuoteRequestor } from '../../utils/quote_requestor';
-import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
+import { PriceComparisonsReport, QuoteReport, ExtendedQuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
@@ -481,6 +481,7 @@ export interface OptimizerResult {
 
 export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
+    extendedQuoteReport?: ExtendedQuoteReport;
     priceComparisonsReport?: PriceComparisonsReport;
 }
 
@@ -509,7 +510,7 @@ export interface MarketSideLiquidity {
 
 export interface RawQuotes {
     nativeOrders: NativeOrderWithFillableAmounts[];
-    rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
+    rfqtIndicativeQuotes: V4RFQIndicativeQuoteMM[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     dexQuotes: Array<Array<DexSample<FillData>>>;
 }

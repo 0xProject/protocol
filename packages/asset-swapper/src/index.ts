@@ -166,6 +166,8 @@ export {
     NativeRfqOrderQuoteReportEntry,
     QuoteReport,
     QuoteReportEntry,
+    ExtendedQuoteReport,
+    ExtendedQuoteReportEntry,
     PriceComparisonsReport,
 } from './utils/quote_report_generator';
 export { QuoteRequestor } from './utils/quote_requestor';

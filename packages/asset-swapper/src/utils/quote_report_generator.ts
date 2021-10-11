@@ -14,8 +14,9 @@ import {
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
+    RawQuotes,
 } from './market_operation_utils/types';
-import { QuoteRequestor } from './quote_requestor';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from './quote_requestor';
 
 export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
@@ -49,14 +50,34 @@ export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     comparisonPrice?: number;
 }
 
+export interface IndicativeRfqOrderQuoteReportEntry extends Omit<QuoteReportEntryBase, 'fillData'> {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillableTakerAmount: BigNumber;
+    isRfqt: true;
+    makerUri: string;
+    comparisonPrice?: number;
+}
+
 export type QuoteReportEntry =
     | BridgeQuoteReportEntry
     | MultiHopQuoteReportEntry
     | NativeLimitOrderQuoteReportEntry
     | NativeRfqOrderQuoteReportEntry;
 
+export type ExtendedQuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry
+    | IndicativeRfqOrderQuoteReportEntry;
+
 export interface QuoteReport {
     sourcesConsidered: QuoteReportEntry[];
+    sourcesDelivered: QuoteReportEntry[];
+}
+
+export interface ExtendedQuoteReport {
+    sourcesConsidered: ExtendedQuoteReportEntry[];
     sourcesDelivered: QuoteReportEntry[];
 }
 
@@ -87,6 +108,82 @@ export function generateQuoteReport(
         // create easy way to look up fillable amounts
         const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
             nativeOrders.map(o => {
+                return [_nativeDataToId(o), o.fillableTakerAmount];
+            }),
+        );
+        // map sources delivered
+        sourcesDelivered = liquidityDelivered.map(collapsedFill => {
+            if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
+                return nativeOrderToReportEntry(
+                    collapsedFill.type,
+                    collapsedFill.fillData,
+                    nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
+                    comparisonPrice,
+                    quoteRequestor,
+                );
+            } else {
+                return dexSampleToReportSource(collapsedFill, marketOperation);
+            }
+        });
+    } else {
+        sourcesDelivered = [
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+        ];
+    }
+    return {
+        sourcesConsidered,
+        sourcesDelivered,
+    };
+}
+
+/**
+ * Generates a report of sources considered while computing the optimized swap quote, the sources ultimately included in the computed quote, and all considered quotes.
+ */
+export function generateExtendedQuoteReport(
+    marketOperation: MarketOperation,
+    quotes: RawQuotes,
+    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    comparisonPrice?: BigNumber | undefined,
+    quoteRequestor?: QuoteRequestor,
+): ExtendedQuoteReport {
+    let sourcesConsidered: ExtendedQuoteReportEntry[] = [];
+
+    // NativeOrders
+    sourcesConsidered.push(
+        ...quotes.nativeOrders.map(order =>
+            nativeOrderToReportEntry(
+                order.type,
+                order as any,
+                order.fillableTakerAmount,
+                comparisonPrice,
+                quoteRequestor,
+            ),
+        ),
+    );
+
+    // IndicativeQuotes
+    sourcesConsidered.push(
+        ...quotes.rfqtIndicativeQuotes.map(order => indicativeQuoteToReportEntry(order, comparisonPrice)),
+    );
+
+    // MultiHop
+    sourcesConsidered.push(
+        ...quotes.twoHopQuotes.map(quote =>
+            multiHopSampleToReportSource(quote as DexSample<MultiHopFillData>, marketOperation),
+        ),
+    );
+
+    // Dex Quotes
+    sourcesConsidered.push(
+        ..._.flatten(quotes.dexQuotes.map(dex => dex.map(quote => dexSampleToReportSource(quote, marketOperation)))),
+    );
+
+    let sourcesDelivered;
+    if (Array.isArray(liquidityDelivered)) {
+        // create easy way to look up fillable amounts
+        const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
+            quotes.nativeOrders.map(o => {
                 return [_nativeDataToId(o), o.fillableTakerAmount];
             }),
         );
@@ -233,4 +330,28 @@ export function nativeOrderToReportEntry(
             fillData,
         };
     }
+}
+
+/**
+ * Generates a report entry for an indicative RFQ Quote
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function indicativeQuoteToReportEntry(
+    order: V4RFQIndicativeQuoteMM,
+    comparisonPrice?: BigNumber | undefined,
+): IndicativeRfqOrderQuoteReportEntry {
+    const nativeOrderBase = {
+        makerAmount: order.makerAmount,
+        takerAmount: order.takerAmount,
+        fillableTakerAmount: order.takerAmount,
+    };
+
+    // tslint:disable-next-line: no-object-literal-type-assertion
+    return {
+        liquiditySource: ERC20BridgeSource.Native,
+        ...nativeOrderBase,
+        isRfqt: true,
+        makerUri: order.makerUri,
+        ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+    };
 }

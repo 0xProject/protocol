@@ -155,7 +155,11 @@ describe('MarketOperationUtils tests', () => {
         } else {
             requestor
                 .setup(r => r.requestRfqtIndicativeQuotesAsync(...args))
-                .returns(async () => results.map(r => r.order))
+                .returns(async () =>
+                    results.map(r => {
+                        return { ...r.order, makerUri: 'https://foo.bar/' };
+                    }),
+                )
                 .verifiable(verifiable);
         }
         return requestor;
