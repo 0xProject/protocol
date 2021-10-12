@@ -16,6 +16,7 @@ import {
 import { ChainId } from '@0x/contract-addresses';
 import { nativeWrappedTokenSymbol, TokenMetadatasForChains } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
+import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
 
@@ -83,7 +84,7 @@ export type IntegratorsAcl = Integrator[];
 export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
     let integrators: IntegratorsAcl;
     try {
-        integrators = JSON.parse(process.env.INTEGRATORS_ACL || '[]');
+        integrators = resolveEnvVar<IntegratorsAcl>('INTEGRATORS_ACL', EnvVarType.JsonStringList, []);
         schemaUtils.validateSchema(integrators, schemas.integratorsAclSchema);
     } catch (e) {
         throw new Error(`INTEGRATORS_ACL was defined but is not valid JSON per the schema: ${e}`);
@@ -235,9 +236,11 @@ export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(
           EnvVarType.LiquidityProviderRegistry,
       );
 
-export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGISTRY_PASSWORDS)
-    ? []
-    : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
+export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
+    'RFQT_REGISTRY_PASSWORDS',
+    EnvVarType.JsonStringList,
+    [],
+);
 
 export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
@@ -247,15 +250,11 @@ export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegrators
 
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
-export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
-    ? new Set()
-    : new Set(
-          assertEnvVarType(
-              'RFQT_TX_ORIGIN_BLACKLIST',
-              process.env.RFQT_TX_ORIGIN_BLACKLIST,
-              EnvVarType.JsonStringList,
-          ).map((addr: string) => addr.toLowerCase()),
-      );
+export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
+    resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
+        addr.toLowerCase(),
+    ),
+);
 
 export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
     ? undefined
@@ -267,21 +266,17 @@ export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
-export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
-    ? {}
-    : assertEnvVarType(
-          'RFQT_MAKER_ASSET_OFFERINGS',
-          process.env.RFQT_MAKER_ASSET_OFFERINGS,
-          EnvVarType.RfqMakerAssetOfferings,
-      );
+export const RFQT_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
+    'RFQT_MAKER_ASSET_OFFERINGS',
+    EnvVarType.RfqMakerAssetOfferings,
+    {},
+);
 
-export const RFQM_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQM_MAKER_ASSET_OFFERINGS)
-    ? {}
-    : assertEnvVarType(
-          'RFQM_MAKER_ASSET_OFFERINGS',
-          process.env.RFQM_MAKER_ASSET_OFFERINGS,
-          EnvVarType.RfqMakerAssetOfferings,
-      );
+export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
+    'RFQM_MAKER_ASSET_OFFERINGS',
+    EnvVarType.RfqMakerAssetOfferings,
+    {},
+);
 
 export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
     ? undefined
@@ -621,6 +616,31 @@ function transformIntegratorsAcl(
         });
     });
     return result;
+}
+
+/**
+ * Resolves a config of type T for an Enviornment Variable. Checks:
+ *  - If the env variable is undefined, use the hardcoded fallback
+ *  - If the env variable points to a filepath, resolve it
+ *  - Otherwise, just use the env variable
+ *
+ * @param envVar - the name of the Environment Variable
+ * @param envVarType - the type
+ * @param fallback  - A hardcoded fallback value
+ * @returns The config
+ */
+function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): T {
+    const rawEnvVar = process.env[envVar];
+    if (rawEnvVar === undefined || _.isEmpty(rawEnvVar)) {
+        return fallback;
+    }
+
+    // If the enviornment variable points to a file
+    if (fs.existsSync(rawEnvVar)) {
+        return JSON.parse(fs.readFileSync(rawEnvVar, 'utf8'));
+    }
+
+    return assertEnvVarType(envVar, process.env[envVar], envVarType);
 }
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
