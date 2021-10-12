@@ -55,12 +55,12 @@ export class SqsConsumer {
             try {
                 beforeCheck = await this._beforeHandle();
             } catch (e) {
-                logger.warn({ id: this._id, error: e }, 'Error encountered in the preHandle check');
+                logger.error({ id: this._id, errorMessage: e.message }, 'Error encountered in the preHandle check');
                 return;
             }
 
             if (!beforeCheck) {
-                logger.warn({ id: this._id }, 'before validation failed');
+                logger.warn({ id: this._id }, 'Before validation failed');
                 await delay(ONE_SECOND_MS);
                 return;
             }
@@ -80,7 +80,10 @@ export class SqsConsumer {
             await this._handleMessage(message);
         } catch (err) {
             error = err;
-            logger.error({ error, message, id: this._id }, 'Encountered error while handling message');
+            logger.error(
+                { errorMessage: err.message, message, id: this._id },
+                'Encountered error while handling message',
+            );
 
             if (err instanceof SqsRetryableError) {
                 logger.info({ message, id: this._id }, 'Retrying message');
