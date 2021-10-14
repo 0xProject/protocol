@@ -631,12 +631,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
         ],
-        [ChainId.Fantom]: [
-            FANTOM_TOKENS.WFTM,
-            FANTOM_TOKENS.WETH,
-            FANTOM_TOKENS.DAI,
-            FANTOM_TOKENS.USDC,
-        ],
+        [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
     },
     [],
 );
