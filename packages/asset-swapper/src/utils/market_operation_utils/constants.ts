@@ -1020,7 +1020,7 @@ export const CURVE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_FANTOM_POOLS.fUSDT,
         gasSchedule: 587e3,
     }),
-}
+};
 
 export const CURVE_V2_FANTOM_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_FANTOM_POOLS.tricrypto]: createCurveExchangeV2Pool({

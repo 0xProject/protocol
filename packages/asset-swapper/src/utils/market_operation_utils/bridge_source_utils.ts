@@ -11,9 +11,9 @@ import {
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
+    CURVE_FANTOM_INFOS,
     CURVE_MAINNET_INFOS,
     CURVE_POLYGON_INFOS,
-    CURVE_FANTOM_INFOS,
     CURVE_V2_MAINNET_INFOS,
     CURVE_V2_POLYGON_INFOS,
     CURVE_V2_FANTOM_INFOS,
@@ -394,14 +394,9 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.ACryptos,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
-    console.log("Inside 2", source);
     switch (source) {
         case ERC20BridgeSource.Curve:
             pools = getCurveInfosForPair(chainId, takerToken, makerToken);
-            console.log("Inside 2 chainId", chainId);
-            console.log("Inside 2 pools", pools);
-            console.log("Inside 2 takerToken", takerToken);
-            console.log("Inside 2 makerToken", makerToken);
             break;
         case ERC20BridgeSource.CurveV2:
             pools = getCurveV2InfosForPair(chainId, takerToken, makerToken);
