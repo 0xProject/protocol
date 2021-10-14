@@ -167,6 +167,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.SpiritSwap,
+            ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -278,6 +280,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.SpiritSwap,
+            ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
         ]),
     },
@@ -299,7 +303,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
-        [ChainId.Fantom]: [ERC20BridgeSource.SushiSwap],
+        [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -1702,6 +1706,20 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const SPIRITSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0x16327e3fbdaca3bcf7e38f5af2599d2ddc33ae52',
+    },
+    NULL_ADDRESS,
+);
+
+export const SPOOKYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0xf491e7b69e4244ad4002bc14e878a34207e38c29',
+    },
+    NULL_ADDRESS,
+);
+
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
         [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
@@ -1852,6 +1870,12 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
+
+    //
+    // Fantom
+    //
+    [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

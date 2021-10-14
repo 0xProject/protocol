@@ -406,7 +406,7 @@
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
         "exchangeProxyGovernor": "0xca7bab1b2d1ec7d81710b7f9e2ab4e6788930588",
-        "exchangeProxy": "0xDEf1520C89538d9e43Aa273b7803a16F871d21e3",
+        "exchangeProxy": "0xDEF189DeAEF76E379df891899eb5A00a94cBC250",
         "exchangeProxyTransformerDeployer": "0x47F01db18a38261E4cB153bAe6db7d3743AcB33c",
         "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0xcA64D4225804F2Ae069760CB5fF2F1D8BaC1C2f9",
@@ -415,7 +415,7 @@
             "wethTransformer": "0x9b6aA8f26A92108e7d1F66373d757Bb955112703",
             "payTakerTransformer": "0x32dF54951D33D7460e15Fa59B1fCc262183ce4C2",
             "affiliateFeeTransformer": "0x67EfA679a4b56C38713d478e649C88247F4F8E88",
-            "fillQuoteTransformer": "0xa21ab090bE8BDE78dAB8FA47988aBbEDF361327A",
+            "fillQuoteTransformer": "0x71de60a1B160094a3f6C7E1b883FF9337d639131",
             "positiveSlippageFeeTransformer": "0xe87D69b285005CC82b53B844322652C49ED64600"
         }
     }
