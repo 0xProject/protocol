@@ -1259,17 +1259,17 @@ export class SamplerOperations {
                             this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts, source),
                         );
                     case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(	
-                            this.liquidityProviderRegistry,	
-                            takerToken,	
-                            makerToken,	
-                        ).map(({ providerAddress, gasCost }) =>	
-                            this.getLiquidityProviderSellQuotes(	
-                                providerAddress,	
-                                makerToken,	
-                                takerToken,	
-                                takerFillAmounts,	
-                                gasCost,	
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(({ providerAddress, gasCost }) =>
+                            this.getLiquidityProviderSellQuotes(
+                                providerAddress,
+                                makerToken,
+                                takerToken,
+                                takerFillAmounts,
+                                gasCost,
                             ),
                         );
                     case ERC20BridgeSource.MStable:
@@ -1530,17 +1530,17 @@ export class SamplerOperations {
                             this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts, source),
                         );
                     case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(	
-                            this.liquidityProviderRegistry,	
-                            takerToken,	
-                            makerToken,	
-                        ).map(({ providerAddress, gasCost }) =>	
-                            this.getLiquidityProviderBuyQuotes(	
-                                providerAddress,	
-                                makerToken,	
-                                takerToken,	
-                                makerFillAmounts,	
-                                gasCost,	
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(({ providerAddress, gasCost }) =>
+                            this.getLiquidityProviderBuyQuotes(
+                                providerAddress,
+                                makerToken,
+                                takerToken,
+                                makerFillAmounts,
+                                gasCost,
                             ),
                         );
                     case ERC20BridgeSource.MStable:
