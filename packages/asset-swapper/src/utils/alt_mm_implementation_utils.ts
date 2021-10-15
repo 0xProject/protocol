@@ -222,8 +222,8 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             timeout: maxResponseTimeMs,
             cancelToken,
         })
-        .catch(err => {
-            warningLogger(err, `Alt RFQ MM request failed`);
+        .catch(error => {
+            warningLogger(error.message, `Alt RFQ MM request failed`);
             throw new Error(`Alt RFQ MM request failed`);
         });
 
