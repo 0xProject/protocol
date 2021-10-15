@@ -167,8 +167,6 @@ export class RfqmHandlers {
     }
 
     public async getStatusAsync(req: express.Request, res: express.Response): Promise<void> {
-        this._validateApiKey(req.header('0x-api-key'));
-
         const { orderHash } = req.params;
 
         const status = await this._rfqmService.getOrderStatusAsync(orderHash);
