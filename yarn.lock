@@ -61,21 +61,21 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.29.1":
-  version "16.29.1"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.29.1.tgz#00ce2c22d151ec2714293d1ec8860377ef4a56a4"
-  integrity sha512-0lW/fETwHTWGdpTYiOt9Tf5s69CNK75Xy7EM2+pLGj+lN+CKo0Y54R2tfsXxf6baq98YTYKri25HRIKAtmUVnQ==
+"@0x/asset-swapper@^16.29.2":
+  version "16.29.2"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.29.2.tgz#4731daba202df3d159334cd8367c0b984e4e24fa"
+  integrity sha512-pIUD4kMlrFUR6JYaCD/XudM4iQvcrFSGjsCKVqZ9LKmKyvNgLik3rWLVbdRv222woT19VkruuHxqhDCdP1JiKA==
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
     "@0x/contract-addresses" "^6.7.0"
     "@0x/contract-wrappers" "^13.18.0"
     "@0x/contracts-erc20" "^3.3.20"
-    "@0x/contracts-zero-ex" "^0.29.0"
+    "@0x/contracts-zero-ex" "^0.29.1"
     "@0x/dev-utils" "^4.2.9"
     "@0x/json-schemas" "^6.3.0"
     "@0x/neon-router" "^0.1.3"
-    "@0x/protocol-utils" "^1.9.1"
+    "@0x/protocol-utils" "^1.9.2"
     "@0x/quote-server" "^6.0.6"
     "@0x/types" "^3.3.4"
     "@0x/typescript-typings" "^5.2.1"
@@ -415,13 +415,13 @@
     bn.js "^4.11.8"
     ethereum-types "^3.6.0"
 
-"@0x/contracts-zero-ex@^0.29.0":
-  version "0.29.0"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.29.0.tgz#efca4ba9c4b9714b1e83b100efbdbca598727aab"
-  integrity sha512-hFvqH1FxjHRPYEtjQxwJ3doUQzmPomW0GKd3bXFP+Cer+1Mcd3zMUdeCiCLyczOdXuA3oui5rph+n/EPT6c1jQ==
+"@0x/contracts-zero-ex@^0.29.1":
+  version "0.29.1"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.29.1.tgz#283cdac885411afdc90e540476b0886099627f7e"
+  integrity sha512-+K5Ky6bd2WwhZeutnHuWaQ/AP1mwuuWzdDXByxwwunSil0G7zugDvQIrerE7CaIRiI/eCU0BO/S5ToM5icAchA==
   dependencies:
     "@0x/base-contract" "^6.4.2"
-    "@0x/protocol-utils" "^1.9.1"
+    "@0x/protocol-utils" "^1.9.2"
     "@0x/subproviders" "^6.6.0"
     "@0x/types" "^3.3.4"
     "@0x/typescript-typings" "^5.2.1"
@@ -531,10 +531,10 @@
     ajv "^6.12.5"
     lodash.values "^4.3.0"
 
-"@0x/migrations@^8.1.7":
-  version "8.1.7"
-  resolved "https://registry.yarnpkg.com/@0x/migrations/-/migrations-8.1.7.tgz#62f431adf4035a57e85bf6e6aa76a03e5fe8afe6"
-  integrity sha512-iW8aI+OfdFca7MYEe/gu1JVos0Q47/HKgsa8utNKUqsQuwgOLtdt/3C5u7VYS2EUWrei/rIpYN5Pe+j/+PuKQA==
+"@0x/migrations@^8.1.8":
+  version "8.1.8"
+  resolved "https://registry.yarnpkg.com/@0x/migrations/-/migrations-8.1.8.tgz#0b2afc973c3b9926950c569b2b886da632ac1531"
+  integrity sha512-+IPmeOimOJjSJSOg+SHGcTK4r6cM8Gn9y0IopLjvG3bbgmfkV5/PvD3oNywUuMOb/iAuqEPsuWMy1huJv701bQ==
   dependencies:
     "@0x/base-contract" "^6.4.2"
     "@0x/contract-addresses" "^6.7.0"
@@ -550,7 +550,7 @@
     "@0x/contracts-multisig" "^4.1.38"
     "@0x/contracts-staking" "^2.0.45"
     "@0x/contracts-utils" "^4.8.1"
-    "@0x/contracts-zero-ex" "^0.29.0"
+    "@0x/contracts-zero-ex" "^0.29.1"
     "@0x/sol-compiler" "^4.7.5"
     "@0x/subproviders" "^6.6.0"
     "@0x/typescript-typings" "^5.2.1"
@@ -604,10 +604,10 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.9.1.tgz#cfe1771748a64380ba1c7f6909ddb36d0055cb6b"
-  integrity sha512-l5lVn9Rw2GZsA44a4lIM1TR+M6dCze/SVqD6j/ArkKZTbAb7XYXw43ihpp3AvBz7tKNsYFA35vXVtM3H/SkHuA==
+"@0x/protocol-utils@^1.9.2":
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.9.2.tgz#744bd565eac4dccd008c1901a9addf2496228946"
+  integrity sha512-vduhRW1WgQmH4HkqZp88BH/qV/crLjmBMVPo35dC25sq1EJ6FG4AIWwZ1KfUCuHYdzAK8a/rWJkLMt6H+m7U6A==
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/contract-addresses" "^6.7.0"
