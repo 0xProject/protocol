@@ -12,6 +12,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import * as redis from 'redis';
 import * as rax from 'retry-axios';
 import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
@@ -24,6 +25,7 @@ import {
     ETH_GAS_STATION_API_URL,
     META_TX_WORKER_MNEMONIC,
     META_TX_WORKER_REGISTRY,
+    REDIS_URI,
     RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_META_TX_SQS_URL,
     RFQM_WORKER_INDEX,
@@ -45,6 +47,7 @@ import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
 import { RfqmService } from '../services/rfqm_service';
 import { HttpServiceConfig } from '../types';
+import { CacheClient } from '../utils/cache_client';
 import { ConfigManager } from '../utils/config_manager';
 import { METRICS_PROXY } from '../utils/metrics_service';
 import { providerUtils } from '../utils/provider_utils';
@@ -146,6 +149,9 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
+    const redisClient = redis.createClient({ url: REDIS_URI });
+    const cacheClient = new CacheClient(redisClient);
+
     return new RfqmService(
         quoteRequestor,
         protocolFeeUtils,
@@ -156,6 +162,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         sqsProducer,
         quoteServerClient,
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+        cacheClient,
     );
 }
 

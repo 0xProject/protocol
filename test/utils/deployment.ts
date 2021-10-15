@@ -2,7 +2,9 @@ import { logUtils as log } from '@0x/utils';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as redis from 'redis';
 
+import { REDIS_URI } from '../../src/config';
 import { getDBConnectionAsync } from '../../src/db_connection';
 
 // depends on a `docker-compose-test.yml` existing in the api root directory
@@ -51,6 +53,7 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
     await waitForDependencyStartupAsync(up);
     await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
     await confirmPostgresConnectivityAsync();
+    await confirmRedisConnectivityAsync();
 }
 
 /**
@@ -147,6 +150,32 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
     } catch (e) {
         if (maxTries > 0) {
             await confirmPostgresConnectivityAsync(maxTries - 1);
+        } else {
+            throw e;
+        }
+    }
+}
+async function confirmRedisConnectivityAsync(maxTries: number = 5): Promise<void> {
+    try {
+        await Promise.all([
+            // delay before retrying
+            new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
+            async () => {
+                const redisClient = redis.createClient({ url: REDIS_URI });
+                return new Promise((resolve, reject) => {
+                    redisClient.ping((err, reply) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(reply);
+                    });
+                });
+            },
+        ]);
+        return;
+    } catch (e) {
+        if (maxTries > 0) {
+            await confirmRedisConnectivityAsync(maxTries - 1);
         } else {
             throw e;
         }

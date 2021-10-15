@@ -24,6 +24,7 @@ import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entiti
 import { RfqmJobStatus, RfqmOrderTypes } from '../../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../../src/entities/RfqmTransactionSubmissionEntity';
 import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmService, RfqmTypes } from '../../src/services/rfqm_service';
+import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -51,6 +52,7 @@ const buildRfqmServiceForUnitTest = (
         dbUtils?: RfqmDbUtils;
         producer?: Producer;
         quoteServerClient?: QuoteServerClient;
+        cacheClient?: CacheClient;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -87,6 +89,8 @@ const buildRfqmServiceForUnitTest = (
     when(sqsMock.queueSize()).thenResolve(0);
     const quoteServerClientMock = mock(QuoteServerClient);
 
+    const cacheClientMock = mock(CacheClient);
+
     return new RfqmService(
         overrides.quoteRequestor || quoteRequestorInstance,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
@@ -97,6 +101,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+        overrides.cacheClient || cacheClientMock,
     );
 };
 

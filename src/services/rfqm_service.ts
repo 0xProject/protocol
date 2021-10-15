@@ -24,6 +24,7 @@ import {
     NULL_ADDRESS,
     ONE_SECOND_MS,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
+    RFQM_NUM_BUCKETS,
     RFQM_TX_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
@@ -31,6 +32,7 @@ import { RfqmJobStatus, RfqmOrderTypes } from '../entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
+import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
@@ -307,6 +309,7 @@ export class RfqmService {
         private readonly _sqsProducer: Producer,
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _transactionWatcherSleepTimeMs: number,
+        private readonly _cacheClient: CacheClient,
     ) {}
 
     /**
@@ -424,6 +427,10 @@ export class RfqmService {
             token: this._contractAddresses.etherToken,
             type: 'fixed',
         };
+
+        // Fetch the current bucket
+        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync()) % RFQM_NUM_BUCKETS;
+        logger.info({ currentBucket }, 'TODO: implement usage of currentBucket');
 
         // Fetch quotes
         const opts: RfqmRequestOptions = {
