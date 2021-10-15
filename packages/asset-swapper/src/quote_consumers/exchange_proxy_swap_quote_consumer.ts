@@ -1,6 +1,5 @@
 import { ChainId, ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
-import { TransformERC20FeatureContract } from '@0x/contracts-zero-ex';
 import {
     encodeAffiliateFeeTransformerData,
     encodeCurveLiquidityProviderData,
@@ -95,7 +94,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     };
 
     private readonly _exchangeProxy: IZeroExContract;
-    private readonly _transformERC20Feature: TransformERC20FeatureContract;
 
     constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
         const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
@@ -103,7 +101,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
         this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
-        this._transformERC20Feature = new TransformERC20FeatureContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
         this.transformerNonces = {
             wethTransformer: findTransformerNonce(
                 contractAddresses.transformers.wethTransformer,
@@ -495,8 +492,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 amounts: [],
             }),
         });
-        const calldataHexString = this._transformERC20Feature
-            .transformERC20Staging(
+        const calldataHexString = this._exchangeProxy
+            .transformERC20(
                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
                 shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
