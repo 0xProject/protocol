@@ -37,7 +37,7 @@ These are services that handle HTTP requests and responses.
 | --------------------------------------------------- | ------------------- | ------------------------------------------ | ------------------------------------ | ----------------------------- |
 | All HTTP Services                                   | `/*`                | `yarn start:service:http`                  | Yes                                  | Yes                           |
 | [Swap](https://0x.org/docs/api#swap)                | `/swap`             | `yarn start:service:swap_http`             | Yes                                  | Yes                           |
-| [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`              | `yarn start:service:sra_http`              | No                                   | Yes                           |
+| [Orderbook](https://0x.org/docs/api#orderbook) | `/orderbook`              | `yarn start:service:sra_http`              | No                                   | Yes                           |
 | Meta Transaction Service                            | `/meta_transaction` | `yarn start:service:meta_transaction_http` | Yes                                  | Yes                           |
 
 ### Data Services
