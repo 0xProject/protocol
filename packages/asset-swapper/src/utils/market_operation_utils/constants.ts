@@ -523,13 +523,13 @@ export const CURVE_V2_POLYGON_POOLS = {
 };
 
 export const CURVE_FANTOM_POOLS = {
-    fUSDT: '0x92D5ebF3593a92888C25C0AbEF126583d4b5312E',
-    twoPool: '0x27E611FD27b276ACbd5Ffd632E5eAEBEC9761E40',
-    ren: '0x3eF6A01A0f81D6046290f3e2A8c5b843e738E604',
+    fUSDT: '0x92d5ebf3593a92888c25c0abef126583d4b5312e',
+    twoPool: '0x27e611fd27b276acbd5ffd632e5eaebec9761e40',
+    ren: '0x3ef6a01a0f81d6046290f3e2a8c5b843e738e604',
 };
 
 export const CURVE_V2_FANTOM_POOLS = {
-    tricrypto: '0x3a1659Ddcf2339Be3aeA159cA010979FB49155FF',
+    tricrypto: '0x3a1659ddcf2339be3aea159ca010979fb49155ff',
 };
 
 export const SWERVE_POOLS = {
@@ -1317,7 +1317,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
-        [ChainId.Fantom]: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
+        [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
     NULL_ADDRESS,
 );
