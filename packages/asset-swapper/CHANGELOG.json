@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.29.3",
+        "changes": [
+            {
+                "note": "Update neon-router version and address breaking changes",
+                "pr": 344
+            }
+        ]
+    },
+    {
         "version": "16.29.2",
         "changes": [
             {
