@@ -34,11 +34,25 @@ contract ZrxTreasury is
     using LibRichErrorsV06 for bytes;
     using LibBytesV06 for bytes;
 
+    /// Contract name
+    string private constant CONTRACT_NAME = "Zrx Treasury";
+
+    /// Contract version
+    string private constant CONTRACT_VERSION = "1.0.0";
+
+    /// The EIP-712 typehash for the contract's domain
+    bytes32 private constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+
+    /// The EIP-712 typehash for the vote struct
+    bytes32 private constant VOTE_TYPEHASH = keccak256("TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
+
     // Immutables
     IStaking public immutable override stakingProxy;
     DefaultPoolOperator public immutable override defaultPoolOperator;
     bytes32 public immutable override defaultPoolId;
     uint256 public immutable override votingPeriod;
+    bytes32 immutable domainSeparator;
+
     uint256 public override proposalThreshold;
     uint256 public override quorumThreshold;
 
@@ -67,6 +81,15 @@ contract ZrxTreasury is
         defaultPoolId = params.defaultPoolId;
         IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
         defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
+        domainSeparator = keccak256(
+            abi.encode(
+                DOMAIN_TYPEHASH,
+                keccak256(bytes(CONTRACT_NAME)),
+                _getChainId(),
+                keccak256(bytes(CONTRACT_VERSION)),
+                address(this)
+            )
+        );
     }
 
     // solhint-disable
@@ -105,7 +128,7 @@ contract ZrxTreasury is
     ///        be executed if it passes. Must be at least two epochs
     ///        from the current epoch.
     /// @param description A text description for the proposal.
-    /// @param operatedPoolIds The pools operated by `msg.sender`. The
+    /// @param operatedPoolIds The pools operated by the signer. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @return proposalId The ID of the newly created proposal.
@@ -150,8 +173,9 @@ contract ZrxTreasury is
     }
 
     /// @dev Casts a vote for the given proposal. Only callable
-    ///      during the voting period for that proposal. See
-    ///      `getVotingPower` for how voting power is computed.
+    ///      during the voting period for that proposal.
+    ///      One address can only vote once.
+    ///      See `getVotingPower` for how voting power is computed.
     /// @param proposalId The ID of the proposal to vote on.
     /// @param support Whether to support the proposal or not.
     /// @param operatedPoolIds The pools operated by `msg.sender`. The
@@ -165,43 +189,39 @@ contract ZrxTreasury is
         public
         override
     {
-        if (proposalId >= proposalCount()) {
-            revert("castVote/INVALID_PROPOSAL_ID");
-        }
-        if (hasVoted[proposalId][msg.sender]) {
-            revert("castVote/ALREADY_VOTED");
-        }
+        return _castVote(msg.sender, proposalId, support, operatedPoolIds);
+    }
 
-        Proposal memory proposal = proposals[proposalId];
-        if (
-            proposal.voteEpoch != stakingProxy.currentEpoch() ||
-            _hasVoteEnded(proposal.voteEpoch)
-        ) {
-            revert("castVote/VOTING_IS_CLOSED");
-        }
-
-        uint256 votingPower = getVotingPower(msg.sender, operatedPoolIds);
-        if (votingPower == 0) {
-            revert("castVote/NO_VOTING_POWER");
-        }
-
-        if (support) {
-            proposals[proposalId].votesFor = proposals[proposalId].votesFor
-                .safeAdd(votingPower);
-            hasVoted[proposalId][msg.sender] = true;
-        } else {
-            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
-                .safeAdd(votingPower);
-            hasVoted[proposalId][msg.sender] = true;
-        }
-
-        emit VoteCast(
-            msg.sender,
-            operatedPoolIds,
-            proposalId,
-            support,
-            votingPower
+    /// @dev Casts a vote for the given proposal, by signature.
+    ///      Only callable during the voting period for that proposal.
+    ///      One address/voter can only vote once.
+    ///      See `getVotingPower` for how voting power is computed.
+    /// @param proposalId The ID of the proposal to vote on.
+    /// @param support Whether to support the proposal or not.
+    /// @param operatedPoolIds The pools operated by voter. The
+    ///        ZRX currently delegated to those pools will be accounted
+    ///        for in the voting power.
+    /// @param v the v field of the signature
+    /// @param r the r field of the signature
+    /// @param s the s field of the signature
+    function castVoteBySignature(
+        uint256 proposalId,
+        bool support,
+        bytes32[] memory operatedPoolIds,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        public
+        override
+    {
+        bytes32 structHash = keccak256(
+            abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds)))
         );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        address signatory = ecrecover(digest, v, r, s);
+
+        return _castVote(signatory, proposalId, support, operatedPoolIds);
     }
 
     /// @dev Executes a proposal that has passed and is
@@ -372,5 +392,61 @@ contract ZrxTreasury is
             .currentEpochStartTimeInSeconds()
             .safeAdd(votingPeriod);
         return block.timestamp > voteEndTime;
+    }
+
+    /// @dev Casts a vote for the given proposal. Only callable
+    ///      during the voting period for that proposal. See
+    ///      `getVotingPower` for how voting power is computed.
+    function _castVote(
+        address voter,
+        uint256 proposalId,
+        bool support,
+        bytes32[] memory operatedPoolIds
+    )
+        private
+    {
+        if (proposalId >= proposalCount()) {
+            revert("_castVote/INVALID_PROPOSAL_ID");
+        }
+        if (hasVoted[proposalId][voter]) {
+            revert("_castVote/ALREADY_VOTED");
+        }
+
+        Proposal memory proposal = proposals[proposalId];
+        if (
+            proposal.voteEpoch != stakingProxy.currentEpoch() ||
+            _hasVoteEnded(proposal.voteEpoch)
+        ) {
+            revert("_castVote/VOTING_IS_CLOSED");
+        }
+
+        uint256 votingPower = getVotingPower(voter, operatedPoolIds);
+        if (votingPower == 0) {
+            revert("_castVote/NO_VOTING_POWER");
+        }
+
+        if (support) {
+            proposals[proposalId].votesFor = proposals[proposalId].votesFor
+                .safeAdd(votingPower);
+        } else {
+            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
+                .safeAdd(votingPower);
+        }
+        hasVoted[proposalId][voter] = true;
+
+        emit VoteCast(
+            voter,
+            operatedPoolIds,
+            proposalId,
+            support,
+            votingPower
+        );
+    }
+
+    /// @dev Gets the Ethereum chain id
+    function _getChainId() private pure returns (uint256) {
+        uint256 chainId;
+        assembly { chainId := chainid() }
+        return chainId;
     }
 }

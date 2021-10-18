@@ -46,12 +46,12 @@
         "test:generate_docs:circleci": "for i in ${npm_package_config_packagesWithDocPages}; do yarn generate_doc --package $i || break -1; done;",
         "bundlewatch": "bundlewatch",
         "lint": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
-        "upgrade_org_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x|ethereum-types'",
+        "upgrade_org_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/|ethereum-types'",
         "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
     },
     "config": {
-        "contractsPackages": "@0x/contracts-erc20  @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
+        "contractsPackages": "@0x/contracts-erc20 @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
         "nonContractPackages": "@0x/migrations @0x/contract-wrappers @0x/contract-addresses @0x/contract-artifacts @0x/contract-wrappers-test @0x/asset-swapper",
         "ignoreTestsForPackages": "",
         "mnemonic": "concert load couple harbor equip island argue ramp clarify fence smart topic",
@@ -60,7 +60,7 @@
         "ignoreDependencyVersionsForPackage": "contract-wrappers"
     },
     "devDependencies": {
-        "@0x/monorepo-scripts": "^3.1.7",
+        "@0x/monorepo-scripts": "^3.2.0",
         "@0x-lerna-fork/lerna": "3.16.10",
         "@0xproject/npm-cli-login": "^0.0.11",
         "async-child-process": "^1.1.1",

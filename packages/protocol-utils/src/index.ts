@@ -9,3 +9,4 @@ export * from './signature_utils';
 export * from './transformer_utils';
 export * from './constants';
 export * from './vip_utils';
+export * from './treasury_votes';

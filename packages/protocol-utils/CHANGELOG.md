@@ -5,6 +5,22 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.9.2 - _October 4, 2021_
+
+    * Dependencies updated
+
+## v1.9.1 - _September 29, 2021_
+
+    * Dependencies updated
+
+## v1.9.0 - _September 15, 2021_
+
+    * Add 'TreasuryVote' class
+
+## v1.8.4 - _September 1, 2021_
+
+    * Dependencies updated
+
 ## v1.8.3 - _August 19, 2021_
 
     * Dependencies updated

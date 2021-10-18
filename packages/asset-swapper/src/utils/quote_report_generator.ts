@@ -37,23 +37,23 @@ export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
-    isRfqt: false;
+    isRFQ: false;
 }
 
 export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
-    isRfqt: true;
+    isRFQ: true;
     nativeOrder: RfqOrderFields;
     makerUri: string;
     comparisonPrice?: number;
 }
 
-export interface IndicativeRfqOrderQuoteReportEntry extends Omit<QuoteReportEntryBase, 'fillData'> {
+export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillableTakerAmount: BigNumber;
-    isRfqt: true;
+    isRFQ: true;
     makerUri: string;
     comparisonPrice?: number;
 }
@@ -101,7 +101,7 @@ export function generateQuoteReport(
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
         nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
-    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
+    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRFQ)];
 
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
@@ -305,17 +305,17 @@ export function nativeOrderToReportEntry(
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
+    const isRFQ = type === FillQuoteTransformerOrderType.Rfq;
     const rfqtMakerUri =
-        isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
+        isRFQ && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
 
-    if (isRfqt) {
+    if (isRFQ) {
         const nativeOrder = fillData.order as RfqOrderFields;
         // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
-            isRfqt: true,
+            isRFQ: true,
             makerUri: rfqtMakerUri || '',
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
             nativeOrder,
@@ -326,7 +326,7 @@ export function nativeOrderToReportEntry(
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
-            isRfqt: false,
+            isRFQ: false,
             fillData,
         };
     }
@@ -350,8 +350,9 @@ export function indicativeQuoteToReportEntry(
     return {
         liquiditySource: ERC20BridgeSource.Native,
         ...nativeOrderBase,
-        isRfqt: true,
+        isRFQ: true,
         makerUri: order.makerUri,
+        fillData: {},
         ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
     };
 }

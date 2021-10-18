@@ -5,6 +5,46 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.29.1 - _October 4, 2021_
+
+    * Remove `Clipper` as a custom liquidity source (#335)
+
+## v16.29.0 - _October 4, 2021_
+
+    * Initial integration of neon-router (behind feature flag) (#295)
+
+## v16.28.0 - _September 29, 2021_
+
+    * Update ExchangeProxySwapQuoteConsumer for Multiplex V2 and friends (#282)
+
+## v16.27.5 - _Invalid date_
+
+    * Remove protocol fees by setting `PROTOCOL_FEE_MULTIPLIER` to 0 (#333)
+
+## v16.27.4 - _September 15, 2021_
+
+    * Dependencies updated
+
+## v16.27.3 - _September 14, 2021_
+
+    * Dependencies updated
+
+## v16.27.2 - _September 14, 2021_
+
+    * Dependencies updated
+
+## v16.27.1 - _September 8, 2021_
+
+    * Fix ApproximateBuys sampler to terminate if the buy amount is not met (#319)
+
+## v16.27.0 - _September 1, 2021_
+
+    * Avalanche deployment (#312)
+
+## v16.26.2 - _August 31, 2021_
+
+    * chore: Curve new pools (CVX-CRX, MIM, atricrypto3)
+
 ## v16.26.1 - _August 19, 2021_
 
     * Dependencies updated

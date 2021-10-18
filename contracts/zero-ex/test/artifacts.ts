@@ -21,6 +21,7 @@ import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentran
 import * as FixinTokenSpender from '../test/generated-artifacts/FixinTokenSpender.json';
 import * as FlashWallet from '../test/generated-artifacts/FlashWallet.json';
 import * as FullMigration from '../test/generated-artifacts/FullMigration.json';
+import * as FundRecoveryFeature from '../test/generated-artifacts/FundRecoveryFeature.json';
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
@@ -28,6 +29,7 @@ import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
 import * as IFlashWallet from '../test/generated-artifacts/IFlashWallet.json';
+import * as IFundRecoveryFeature from '../test/generated-artifacts/IFundRecoveryFeature.json';
 import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as ILiquidityProviderFeature from '../test/generated-artifacts/ILiquidityProviderFeature.json';
 import * as ILiquidityProviderSandbox from '../test/generated-artifacts/ILiquidityProviderSandbox.json';
@@ -82,7 +84,6 @@ import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransa
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2 from '../test/generated-artifacts/MixinBalancerV2.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
-import * as MixinClipper from '../test/generated-artifacts/MixinClipper.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
@@ -198,6 +199,7 @@ export const artifacts = {
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
+    FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
     NativeOrdersFeature: NativeOrdersFeature as ContractArtifact,
@@ -211,6 +213,7 @@ export const artifacts = {
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
+    IFundRecoveryFeature: IFundRecoveryFeature as ContractArtifact,
     ILiquidityProviderFeature: ILiquidityProviderFeature as ContractArtifact,
     IMetaTransactionsFeature: IMetaTransactionsFeature as ContractArtifact,
     IMultiplexFeature: IMultiplexFeature as ContractArtifact,
@@ -272,7 +275,6 @@ export const artifacts = {
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBalancerV2: MixinBalancerV2 as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
-    MixinClipper: MixinClipper as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,

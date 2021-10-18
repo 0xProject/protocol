@@ -1,5 +1,50 @@
 [
     {
+        "timestamp": 1633374058,
+        "version": "1.4.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1632957537,
+        "version": "1.4.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "1.4.0",
+        "changes": [
+            {
+                "note": "Support cast vote by signature in Treasury"
+            }
+        ],
+        "timestamp": 1631710679
+    },
+    {
+        "timestamp": 1631120757,
+        "version": "1.3.5",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1630459879,
+        "version": "1.3.4",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1629353596,
         "version": "1.3.3",
         "changes": [

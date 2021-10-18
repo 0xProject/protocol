@@ -38,7 +38,7 @@ const DEFAULT_ORDER_PRUNER_OPTS: OrderPrunerOpts = {
 
 // 6 seconds polling interval
 const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
-const PROTOCOL_FEE_MULTIPLIER = new BigNumber(70000);
+const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
@@ -50,7 +50,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     samplerGasLimit: 500e6,
     ethGasStationUrl: ETH_GAS_STATION_API_URL,
     rfqt: {
-        takerApiKeyWhitelist: [],
+        integratorsWhitelist: [],
         makerAssetOfferings: {},
         txOriginBlacklist: new Set(),
     },

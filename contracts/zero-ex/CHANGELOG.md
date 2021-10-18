@@ -5,6 +5,26 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.29.1 - _October 4, 2021_
+
+    * Dependencies updated
+
+## v0.29.0 - _September 29, 2021_
+
+    * Export TransformERC20FeatureContract (#282)
+
+## v0.28.5 - _September 15, 2021_
+
+    * Dependencies updated
+
+## v0.28.4 - _September 8, 2021_
+
+    * Dependencies updated
+
+## v0.28.3 - _September 1, 2021_
+
+    * Dependencies updated
+
 ## v0.28.2 - _August 19, 2021_
 
     * Add ethers as an explicit dependency (#310)

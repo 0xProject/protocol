@@ -77,6 +77,7 @@ contract ApproximateBuys {
         }
 
         for (uint256 i = 0; i < makerTokenAmounts.length; i++) {
+            uint256 eps = 0;
             for (uint256 iter = 0; iter < APPROXIMATE_BUY_MAX_ITERATIONS; iter++) {
                 // adjustedSellAmount = previousSellAmount * (target/actual) * JUMP_MULTIPLIER
                 sellAmount = _safeGetPartialAmountCeil(
@@ -108,13 +109,16 @@ contract ApproximateBuys {
                 buyAmount = _buyAmount;
                 // If we've reached our goal, exit early
                 if (buyAmount >= makerTokenAmounts[i]) {
-                    uint256 eps =
+                    eps =
                         (buyAmount - makerTokenAmounts[i]) * ONE_HUNDED_PERCENT_BPS /
                         makerTokenAmounts[i];
                     if (eps <= APPROXIMATE_BUY_TARGET_EPSILON_BPS) {
                         break;
                     }
                 }
+            }
+            if (eps == 0 || eps > APPROXIMATE_BUY_TARGET_EPSILON_BPS) {
+                break;
             }
             // We do our best to close in on the requested amount, but we can either over buy or under buy and exit
             // if we hit a max iteration limit

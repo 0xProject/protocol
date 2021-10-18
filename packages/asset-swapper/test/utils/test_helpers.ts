@@ -48,7 +48,11 @@ export const testHelpers = {
             // Mock out Standard RFQ-T/M responses
             for (const mockedResponse of standardMockedResponses) {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
-                const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
+                const requestHeaders = {
+                    Accept: 'application/json, text/plain, */*',
+                    '0x-api-key': requestApiKey,
+                    '0x-integrator-id': requestApiKey,
+                };
                 if (mockedResponse.callback !== undefined) {
                     mockedAxios
                         .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)

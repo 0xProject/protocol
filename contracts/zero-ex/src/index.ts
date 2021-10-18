@@ -47,6 +47,7 @@ export {
     MultiplexFeatureContract,
     PayTakerTransformerContract,
     PositiveSlippageFeeTransformerContract,
+    TransformERC20FeatureContract,
     WethTransformerContract,
     ZeroExContract,
 } from './wrappers';

@@ -1,5 +1,41 @@
 [
     {
+        "timestamp": 1633374058,
+        "version": "1.9.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1632957537,
+        "version": "1.9.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "1.9.0",
+        "changes": [
+            {
+                "note": "Add 'TreasuryVote' class"
+            }
+        ],
+        "timestamp": 1631710679
+    },
+    {
+        "timestamp": 1630459879,
+        "version": "1.8.4",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1629353596,
         "version": "1.8.3",
         "changes": [

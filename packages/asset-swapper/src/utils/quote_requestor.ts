@@ -14,6 +14,7 @@ import { constants } from '../constants';
 import {
     AltQuoteModel,
     AltRfqMakerAssetOfferings,
+    Integrator,
     LogFunction,
     MarketOperation,
     RfqMakerAssetOfferings,
@@ -25,6 +26,7 @@ import {
 } from '../types';
 
 import { returnQuoteFromAltMMAsync } from './alt_mm_implementation_utils';
+import { ONE_SECOND_MS } from './market_operation_utils/constants';
 import { RfqMakerBlacklist } from './rfq_maker_blacklist';
 
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
@@ -64,6 +66,31 @@ export interface MetricsProxy {
      * @param expirationTimeSeconds the expiration time in seconds
      */
     incrementFillRatioWarningCounter(isLastLook: boolean, maker: string): void;
+
+    /**
+     * Logs the outcome of a network (HTTP) interaction with a market maker.
+     *
+     * @param interaction.isLastLook true if the request is RFQM
+     * @param interaction.integrator the integrator that is requesting the RFQ quote
+     * @param interaction.url the URL of the market maker
+     * @param interaction.quoteType indicative or firm quote
+     * @param interaction.statusCode the statusCode returned by a market maker
+     * @param interaction.latencyMs the latency of the HTTP request (in ms)
+     * @param interaction.included if a firm quote that was returned got included in the next step of processing.
+     *                             NOTE: this does not mean that the request returned a valid fillable order. It just
+     *                             means that the network response was successful.
+     */
+    logRfqMakerNetworkInteraction(interaction: {
+        isLastLook: boolean;
+        integrator: Integrator;
+        url: string;
+        quoteType: 'firm' | 'indicative';
+        statusCode: number | undefined;
+        latencyMs: number;
+        included: boolean;
+        sellTokenAddress: string;
+        buyTokenAddress: string;
+    }): void;
 }
 
 /**
@@ -179,6 +206,48 @@ export class QuoteRequestor {
         } else {
             throw new Error('Neither "buyAmountBaseUnits" or "sellAmountBaseUnits" were defined');
         }
+    }
+
+    /**
+     * Gets both standard RFQ makers and "alternative" RFQ makers and combines them together
+     * in a single configuration map. If an integration key whitelist is present, it will be used
+     * to filter a specific makers.
+     *
+     * @param options the RfqmRequestOptions passed in
+     * @param assetOfferings the RFQM or RFQT maker offerings
+     * @returns a list of TypedMakerUrl instances
+     */
+    public static getTypedMakerUrlsAndWhitelist(
+        options: Pick<RfqmRequestOptions, 'integrator' | 'altRfqAssetOfferings'>,
+        assetOfferings: RfqMakerAssetOfferings,
+    ): TypedMakerUrl[] {
+        const standardUrls = Object.keys(assetOfferings).map(
+            (mm: string): TypedMakerUrl => {
+                return { pairType: RfqPairType.Standard, url: mm };
+            },
+        );
+        const altUrls = options.altRfqAssetOfferings
+            ? Object.keys(options.altRfqAssetOfferings).map(
+                  (mm: string): TypedMakerUrl => {
+                      return { pairType: RfqPairType.Alt, url: mm };
+                  },
+              )
+            : [];
+
+        let typedMakerUrls = standardUrls.concat(altUrls);
+
+        // If there is a whitelist, only allow approved maker URLs
+        if (options.integrator.whitelistIntegratorUrls !== undefined) {
+            const whitelist = new Set(options.integrator.whitelistIntegratorUrls.map(key => key.toLowerCase()));
+            typedMakerUrls = typedMakerUrls.filter(makerUrl => whitelist.has(makerUrl.url.toLowerCase()));
+        }
+        return typedMakerUrls;
+    }
+
+    public static getDurationUntilExpirationMs(expirationTimeSeconds: BigNumber): BigNumber {
+        const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
+        const currentTimeMs = new BigNumber(Date.now());
+        return BigNumber.max(expirationTimeMs.minus(currentTimeMs), 0);
     }
 
     private static _makerSupportsPair(
@@ -365,12 +434,6 @@ export class QuoteRequestor {
         return true;
     }
 
-    private _isExpirationTooSoon(expirationTimeSeconds: BigNumber): boolean {
-        const expirationTimeMs = expirationTimeSeconds.times(constants.ONE_SECOND_MS);
-        const currentTimeMs = new BigNumber(Date.now());
-        return expirationTimeMs.isLessThan(currentTimeMs.plus(this._expiryBufferMs));
-    }
-
     private async _getQuotesAsync<ResponseT>(
         makerToken: string,
         takerToken: string,
@@ -404,21 +467,6 @@ export class QuoteRequestor {
             }
         })();
 
-        const standardUrls = Object.keys(assetOfferings).map(
-            (mm: string): TypedMakerUrl => {
-                return { pairType: RfqPairType.Standard, url: mm };
-            },
-        );
-        const altUrls = options.altRfqAssetOfferings
-            ? Object.keys(options.altRfqAssetOfferings).map(
-                  (mm: string): TypedMakerUrl => {
-                      return { pairType: RfqPairType.Alt, url: mm };
-                  },
-              )
-            : [];
-
-        const typedMakerUrls = standardUrls.concat(altUrls);
-
         const timeoutMs =
             options.makerEndpointMaxResponseTimeMs ||
             constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!;
@@ -430,11 +478,25 @@ export class QuoteRequestor {
             cancelTokenSource.cancel('timeout via cancel token');
         }, timeoutMs + bufferMs);
 
+        const typedMakerUrls = QuoteRequestor.getTypedMakerUrlsAndWhitelist(options, assetOfferings);
         const quotePromises = typedMakerUrls.map(async typedMakerUrl => {
             // filter out requests to skip
             const isBlacklisted = rfqMakerBlacklist.isMakerBlacklisted(typedMakerUrl.url);
             const partialLogEntry = { url: typedMakerUrl.url, quoteType, requestParams, isBlacklisted };
+            const { isLastLook, integrator } = options;
+            const { sellTokenAddress, buyTokenAddress } = requestParams;
             if (isBlacklisted) {
+                this._metrics?.logRfqMakerNetworkInteraction({
+                    isLastLook: false,
+                    url: typedMakerUrl.url,
+                    quoteType,
+                    statusCode: undefined,
+                    sellTokenAddress,
+                    buyTokenAddress,
+                    latencyMs: 0,
+                    included: false,
+                    integrator,
+                });
                 this._infoLogger({ rfqtMakerInteraction: { ...partialLogEntry } });
                 return;
             } else if (
@@ -453,18 +515,32 @@ export class QuoteRequestor {
                 try {
                     if (typedMakerUrl.pairType === RfqPairType.Standard) {
                         const response = await this._quoteRequestorHttpClient.get(`${typedMakerUrl.url}/${quotePath}`, {
-                            headers: { '0x-api-key': options.apiKey },
+                            headers: {
+                                '0x-api-key': options.integrator.integratorId,
+                                '0x-integrator-id': options.integrator.integratorId,
+                            },
                             params: requestParams,
                             timeout: timeoutMs,
                             cancelToken: cancelTokenSource.token,
                         });
                         const latencyMs = Date.now() - timeBeforeAwait;
+                        this._metrics?.logRfqMakerNetworkInteraction({
+                            isLastLook: isLastLook || false,
+                            url: typedMakerUrl.url,
+                            quoteType,
+                            statusCode: response.status,
+                            sellTokenAddress,
+                            buyTokenAddress,
+                            latencyMs,
+                            included: true,
+                            integrator,
+                        });
                         this._infoLogger({
                             rfqtMakerInteraction: {
                                 ...partialLogEntry,
                                 response: {
                                     included: true,
-                                    apiKey: options.apiKey,
+                                    apiKey: options.integrator.integratorId,
                                     takerAddress: requestParams.takerAddress,
                                     txOrigin: requestParams.txOrigin,
                                     statusCode: response.status,
@@ -485,7 +561,7 @@ export class QuoteRequestor {
                             typedMakerUrl.url,
                             this._altRfqCreds.altRfqApiKey,
                             this._altRfqCreds.altRfqProfile,
-                            options.apiKey,
+                            options.integrator.integratorId,
                             quoteType === 'firm' ? AltQuoteModel.Firm : AltQuoteModel.Indicative,
                             makerToken,
                             takerToken,
@@ -498,12 +574,23 @@ export class QuoteRequestor {
                         );
 
                         const latencyMs = Date.now() - timeBeforeAwait;
+                        this._metrics?.logRfqMakerNetworkInteraction({
+                            isLastLook: isLastLook || false,
+                            url: typedMakerUrl.url,
+                            quoteType,
+                            statusCode: quote.status,
+                            sellTokenAddress,
+                            buyTokenAddress,
+                            latencyMs,
+                            included: true,
+                            integrator,
+                        });
                         this._infoLogger({
                             rfqtMakerInteraction: {
                                 ...partialLogEntry,
                                 response: {
                                     included: true,
-                                    apiKey: options.apiKey,
+                                    apiKey: options.integrator.integratorId,
                                     takerAddress: requestParams.takerAddress,
                                     txOrigin: requestParams.txOrigin,
                                     statusCode: quote.status,
@@ -517,12 +604,23 @@ export class QuoteRequestor {
                 } catch (err) {
                     // log error if any
                     const latencyMs = Date.now() - timeBeforeAwait;
+                    this._metrics?.logRfqMakerNetworkInteraction({
+                        isLastLook: isLastLook || false,
+                        url: typedMakerUrl.url,
+                        quoteType,
+                        statusCode: err.response?.status,
+                        sellTokenAddress,
+                        buyTokenAddress,
+                        latencyMs,
+                        included: false,
+                        integrator,
+                    });
                     this._infoLogger({
                         rfqtMakerInteraction: {
                             ...partialLogEntry,
                             response: {
                                 included: false,
-                                apiKey: options.apiKey,
+                                apiKey: options.integrator.integratorId,
                                 takerAddress: requestParams.takerAddress,
                                 txOrigin: requestParams.txOrigin,
                                 statusCode: err.response ? err.response.status : undefined,
@@ -533,7 +631,7 @@ export class QuoteRequestor {
                     rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
                     this._warningLogger(
                         convertIfAxiosError(err),
-                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for API key ${options.apiKey} for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
+                        `Failed to get RFQ-T ${quoteType} quote from market maker endpoint ${typedMakerUrl.url} for integrator ${options.integrator.integratorId} (${options.integrator.label}) for taker address ${options.takerAddress} and tx origin ${options.txOrigin}`,
                     );
                     return;
                 }
@@ -594,12 +692,15 @@ export class QuoteRequestor {
                 return false;
             }
             const isLastLook = Boolean(options.isLastLook);
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+            const msRemainingUntilExpiration = QuoteRequestor.getDurationUntilExpirationMs(new BigNumber(order.expiry));
+            const isExpirationTooSoon = msRemainingUntilExpiration.lt(this._expiryBufferMs);
+            if (isExpirationTooSoon) {
                 this._warningLogger(order, 'Expiry too soon in RFQ-T firm quote, filtering out');
                 this._metrics?.incrementExpirationToSoonCounter(isLastLook, order.maker);
                 return false;
             } else {
-                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, order.expiry);
+                const secondsRemaining = msRemainingUntilExpiration.div(ONE_SECOND_MS);
+                this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, secondsRemaining);
                 const takerAmount = new BigNumber(order.takerAmount);
                 const fillRatio = takerAmount.div(assetFillAmount);
                 if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
@@ -679,7 +780,9 @@ export class QuoteRequestor {
                 this._warningLogger(order, 'Unexpected token or taker address in RFQ order, filtering out');
                 return false;
             }
-            if (this._isExpirationTooSoon(new BigNumber(order.expiry))) {
+            const msRemainingUntilExpiration = QuoteRequestor.getDurationUntilExpirationMs(new BigNumber(order.expiry));
+            const isExpirationTooSoon = msRemainingUntilExpiration.lt(this._expiryBufferMs);
+            if (isExpirationTooSoon) {
                 this._warningLogger(order, 'Expiry too soon in RFQ indicative quote, filtering out');
                 return false;
             } else {

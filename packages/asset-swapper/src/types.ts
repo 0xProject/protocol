@@ -244,7 +244,7 @@ export interface RfqmRequestOptions extends RfqRequestOpts {
 export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
-    apiKey: string;
+    integrator: Integrator;
     intentOnFilling: boolean;
     isIndicative?: boolean;
     makerEndpointMaxResponseTimeMs?: number;
@@ -257,7 +257,7 @@ export interface RfqRequestOpts {
 /**
  * gasPrice: gas price to determine protocolFee amount, default to ethGasStation fast amount
  */
-export interface SwapQuoteRequestOpts extends GetMarketOrdersOpts {
+export interface SwapQuoteRequestOpts extends Omit<GetMarketOrdersOpts, 'gasPrice'> {
     gasPrice?: BigNumber;
     rfqt?: RfqRequestOpts;
 }
@@ -294,8 +294,14 @@ export interface RfqFirmQuoteValidator {
     getRfqtTakerFillableAmountsAsync(quotes: RfqOrder[]): Promise<BigNumber[]>;
 }
 
+export interface Integrator {
+    integratorId: string;
+    label: string;
+    whitelistIntegratorUrls?: string[];
+}
+
 export interface SwapQuoterRfqOpts {
-    takerApiKeyWhitelist: string[];
+    integratorsWhitelist: Integrator[];
     makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
     altRfqCreds?: {

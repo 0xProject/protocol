@@ -69,7 +69,6 @@ export enum ERC20BridgeSource {
     CurveV2 = 'Curve_V2',
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
-    Clipper = 'Clipper',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -91,6 +90,9 @@ export enum ERC20BridgeSource {
     FirebirdOneSwap = 'FirebirdOneSwap',
     JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
+    // Avalanche
+    Pangolin = 'Pangolin',
+    TraderJoe = 'TraderJoe',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
@@ -452,6 +454,11 @@ export interface GetMarketOrdersOpts {
      * hopping to. E.g DAI->USDC via an adjacent token WETH
      */
     tokenAdjacencyGraph: TokenAdjacencyGraph;
+
+    /**
+     * Gas price to use for quote
+     */
+    gasPrice: BigNumber;
 }
 
 /**
@@ -532,10 +539,11 @@ export interface GenerateOptimizedOrdersOpts {
     bridgeSlippage?: number;
     maxFallbackSlippage?: number;
     excludedSources?: ERC20BridgeSource[];
-    feeSchedule?: FeeSchedule;
+    feeSchedule: FeeSchedule;
     exchangeProxyOverhead?: ExchangeProxyOverhead;
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
+    gasPrice: BigNumber;
 }
 
 export interface ComparisonPrice {

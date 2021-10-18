@@ -1,2 +1,3 @@
 six
+sphinx==3.5.4
 sphinx-markdown-tables

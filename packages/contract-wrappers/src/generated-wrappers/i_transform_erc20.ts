@@ -269,12 +269,12 @@ export class ITransformERC20Contract extends BaseContract {
                                 ],
                             },
                             {
-                                name: 'callDataHash',
-                                type: 'bytes32',
+                                name: 'useSelfBalance',
+                                type: 'bool',
                             },
                             {
-                                name: 'callDataSignature',
-                                type: 'bytes',
+                                name: 'recipient',
+                                type: 'address',
                             },
                         ],
                     },
@@ -497,13 +497,13 @@ export class ITransformERC20Contract extends BaseContract {
         inputTokenAmount: BigNumber;
         minOutputTokenAmount: BigNumber;
         transformations: Array<{ deploymentNonce: number | BigNumber; data: string }>;
-        callDataHash: string;
-        callDataSignature: string;
+        useSelfBalance: boolean;
+        recipient: string;
     }): ContractTxFunctionObj<BigNumber> {
         const self = (this as any) as ITransformERC20Contract;
 
         const functionSignature =
-            '_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bytes32,bytes))';
+            '_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bool,address))';
 
         return {
             async sendTransactionAsync(

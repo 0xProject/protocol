@@ -28,7 +28,11 @@ export const rfqtMocker = {
             // Mock out RFQT responses
             for (const mockedResponse of mockedResponses) {
                 const { endpoint, requestApiKey, requestParams, responseData, responseCode } = mockedResponse;
-                const requestHeaders = { Accept: 'application/json, text/plain, */*', '0x-api-key': requestApiKey };
+                const requestHeaders = {
+                    Accept: 'application/json, text/plain, */*',
+                    '0x-api-key': requestApiKey,
+                    '0x-integrator-id': requestApiKey,
+                };
                 mockedAxios
                     .onGet(`${endpoint}/${quoteType}`, { params: requestParams }, requestHeaders)
                     .replyOnce(responseCode, responseData);
