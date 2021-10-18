@@ -1,5 +1,29 @@
 [
     {
+        "version": "16.29.3",
+        "changes": [
+            {
+                "note": "Update neon-router version and address breaking changes",
+                "pr": 344
+            }
+        ],
+        "timestamp": 1634553393
+    },
+    {
+        "version": "16.29.2",
+        "changes": [
+            {
+                "note": "Check MAX_IN_RATIO in sampleBuysFromBalancer",
+                "pr": 338
+            },
+            {
+                "note": "Go back to using transformERC20 (instead of transformERC20Staging)",
+                "pr": 343
+            }
+        ],
+        "timestamp": 1634147078
+    },
+    {
         "version": "16.29.1",
         "changes": [
             {

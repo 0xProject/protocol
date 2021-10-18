@@ -186,7 +186,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         );
     }
 
-    const transformERC20Encoder = AbiEncoder.createMethod('transformERC20Staging', [
+    const transformERC20Encoder = AbiEncoder.createMethod('transformERC20', [
         { type: 'address', name: 'inputToken' },
         { type: 'address', name: 'outputToken' },
         { type: 'uint256', name: 'inputTokenAmount' },
