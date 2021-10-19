@@ -165,6 +165,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
         ]),
         [ChainId.Fantom]: new SourceFilters([
+            ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SpiritSwap,
@@ -278,6 +279,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
         ]),
         [ChainId.Fantom]: new SourceFilters([
+            ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SpiritSwap,
