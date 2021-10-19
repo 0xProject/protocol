@@ -408,7 +408,7 @@
         "exchangeProxyGovernor": "0xca7bab1b2d1ec7d81710b7f9e2ab4e6788930588",
         "exchangeProxy": "0xdef189deaef76e379df891899eb5a00a94cbc250",
         "exchangeProxyTransformerDeployer": "0x47f01db18a38261e4cb153bae6db7d3743acb33c",
-        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
+        "exchangeProxyFlashWallet": "0xb4d961671cadfed687e040b076eee29840c142e5",
         "exchangeProxyLiquidityProviderSandbox": "0xca64d4225804f2ae069760cb5ff2f1d8bac1c2f9",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
