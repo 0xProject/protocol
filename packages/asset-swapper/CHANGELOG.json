@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.30.0",
+        "changes": [
+            {
+                "note": "Fantom deployment",
+                "pr": 347
+            }
+        ]
+    },
+    {
         "version": "16.29.3",
         "changes": [
             {
