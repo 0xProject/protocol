@@ -1,4 +1,5 @@
 // tslint:disable custom-no-magic-numbers
+// tslint:disable await-promise
 import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
@@ -50,7 +51,7 @@ describe(SUITE_NAME, () => {
     let sigForUnfillableOrder: Signature;
 
     before(async () => {
-        await setupDependenciesAsync(SUITE_NAME);
+        await setupDependenciesAsync(SUITE_NAME, true);
         provider = getProvider();
         web3Wrapper = new Web3Wrapper(provider);
 

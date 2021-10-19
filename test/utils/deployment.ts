@@ -10,6 +10,7 @@ import { getDBConnectionAsync } from '../../src/db_connection';
 // depends on a `docker-compose-test.yml` existing in the api root directory
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
 const dockerComposeFilename = 'docker-compose-test.yml';
+const dockerComposeNoGanacheFilename = 'docker-compose-test-no-ganache.yml';
 
 export enum LogType {
     Console,
@@ -33,17 +34,24 @@ let didTearDown = false;
  * Sets up 0x-api's dependencies.
  * @param suiteName The name of the test suite that is using this function. This
  *        helps to make the logs more intelligible.
+ * @param includeGanache Whether the test suite needs Ganache as a dependency
  * @param logType Indicates where logs should be directed.
  */
-export async function setupDependenciesAsync(suiteName: string, logType?: LogType): Promise<void> {
+export async function setupDependenciesAsync(
+    suiteName: string,
+    includeGanache: boolean = false,
+    logType?: LogType,
+): Promise<void> {
     // Tear down any existing dependencies or lingering data if a tear-down has
     // not been called yet.
     if (!didTearDown) {
         await teardownDependenciesAsync(suiteName, logType);
     }
 
+    const file = includeGanache ? dockerComposeFilename : dockerComposeNoGanacheFilename;
+
     // Spin up the 0x-api dependencies
-    const up = spawn('docker-compose', ['-f', dockerComposeFilename, 'up'], {
+    const up = spawn('docker-compose', ['-f', file, 'up'], {
         cwd: apiRootDir,
     });
     directLogs(up, suiteName, 'up', logType);
@@ -51,7 +59,10 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
 
     // Wait for the dependencies to boot up.
     await waitForDependencyStartupAsync(up);
-    await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
+    if (includeGanache) {
+        // Wait for Ganache
+        await sleepAsync(8); // tslint:disable-line:custom-no-magic-numbers
+    }
     await confirmPostgresConnectivityAsync();
     await confirmRedisConnectivityAsync();
 }

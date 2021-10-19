@@ -25,7 +25,7 @@
         "dev:service:rfqm_http": "nodemon -r dotenv/config src/runners/http_rfqm_service_runner.ts | pino-pretty",
         "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
         "dev:service:transaction_watcher": "nodemon -r dotenv/config src/runners/transaction_watcher_signer_service_runner.ts | pino-pretty",
-        "watch": "tsc -w",
+        "watch": "tsc -w -p tsconfig.json",
         "fix": "tslint --project . --format stylish --fix && yarn prettier",
         "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
         "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",

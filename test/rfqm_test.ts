@@ -159,7 +159,7 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         // docker-compose up
-        await setupDependenciesAsync(SUITE_NAME);
+        await setupDependenciesAsync(SUITE_NAME, true);
 
         // Create a Provider
         const provider = getProvider();
