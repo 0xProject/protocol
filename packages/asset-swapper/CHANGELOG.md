@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.30.0 - _October 19, 2021_
+
+    * Fantom deployment (#347)
+
 ## v16.29.3 - _October 18, 2021_
 
     * Update neon-router version and address breaking changes (#344)
