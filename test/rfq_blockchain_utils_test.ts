@@ -23,7 +23,7 @@ import {
     WORKER_TEST_ADDRESS,
     WORKER_TEST_PRIVATE_KEY,
 } from './constants';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
 const SUITE_NAME = 'RFQ Blockchain Utils Test';
 

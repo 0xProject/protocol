@@ -17,7 +17,7 @@ import {
 import { MetaTransactionComposableLimiter } from '../src/utils/rate-limiters/meta_transaction_composable_rate_limiter';
 import { MetaTransactionRollingValueLimiter } from '../src/utils/rate-limiters/meta_transaction_value_limiter';
 
-import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
 const SUITE_NAME = 'Rate Limiter Tests';
 const TEST_API_KEY = 'test-key';

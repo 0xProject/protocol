@@ -5,8 +5,7 @@ import { Connection } from 'typeorm';
 import { getDBConnectionAsync } from '../../src/db_connection';
 import { BlockedAddressEntity } from '../../src/entities/BlockedAddressEntity';
 import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_utils';
-
-import { setupDependenciesAsync, teardownDependenciesAsync } from './deployment';
+import { setupDependenciesAsync, teardownDependenciesAsync } from '../test_utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../../src/app')];

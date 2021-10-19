@@ -49,7 +49,7 @@ import {
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];

@@ -12,7 +12,7 @@ import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransaction
 import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { MATCHA_AFFILIATE_ADDRESS } from './constants';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
+import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
