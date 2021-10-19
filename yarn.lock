@@ -431,22 +431,6 @@
     ethereumjs-util "^7.0.10"
     ethers "~4.0.4"
 
-"@0x/contracts-zero-ex@^0.29.1":
-  version "0.29.1"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.29.1.tgz#283cdac885411afdc90e540476b0886099627f7e"
-  integrity sha512-+K5Ky6bd2WwhZeutnHuWaQ/AP1mwuuWzdDXByxwwunSil0G7zugDvQIrerE7CaIRiI/eCU0BO/S5ToM5icAchA==
-  dependencies:
-    "@0x/base-contract" "^6.4.2"
-    "@0x/protocol-utils" "^1.9.2"
-    "@0x/subproviders" "^6.6.0"
-    "@0x/types" "^3.3.4"
-    "@0x/typescript-typings" "^5.2.1"
-    "@0x/utils" "^6.4.4"
-    "@0x/web3-wrapper" "^7.6.0"
-    ethereum-types "^3.6.0"
-    ethereumjs-util "^7.0.10"
-    ethers "~4.0.4"
-
 "@0x/dev-utils@^4.2.10":
   version "4.2.10"
   resolved "https://registry.yarnpkg.com/@0x/dev-utils/-/dev-utils-4.2.10.tgz#8b64881a4fdd2462f7371b3dd8ecb88ce407c46f"
@@ -620,24 +604,7 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^1.9.2":
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.9.2.tgz#744bd565eac4dccd008c1901a9addf2496228946"
-  integrity sha512-vduhRW1WgQmH4HkqZp88BH/qV/crLjmBMVPo35dC25sq1EJ6FG4AIWwZ1KfUCuHYdzAK8a/rWJkLMt6H+m7U6A==
-  dependencies:
-    "@0x/assert" "^3.0.29"
-    "@0x/contract-addresses" "^6.7.0"
-    "@0x/contract-wrappers" "^13.18.0"
-    "@0x/json-schemas" "^6.3.0"
-    "@0x/subproviders" "^6.6.0"
-    "@0x/utils" "^6.4.4"
-    "@0x/web3-wrapper" "^7.6.0"
-    chai "^4.0.1"
-    ethereumjs-util "^7.0.10"
-    ethers "~4.0.4"
-    lodash "^4.17.11"
-
-"@0x/protocol-utils@^1.9.2":
+"@0x/protocol-utils@^1.9.0", "@0x/protocol-utils@^1.9.2":
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.9.2.tgz#744bd565eac4dccd008c1901a9addf2496228946"
   integrity sha512-vduhRW1WgQmH4HkqZp88BH/qV/crLjmBMVPo35dC25sq1EJ6FG4AIWwZ1KfUCuHYdzAK8a/rWJkLMt6H+m7U6A==
@@ -662,6 +629,20 @@
     "@0x/json-schemas" "^6.0.1"
     "@0x/order-utils" "^10.2.4"
     "@0x/protocol-utils" "^1.0.1"
+    "@0x/utils" "^5.4.1"
+    "@types/express" "^4.17.3"
+    express "^4.17.1"
+    express-async-handler "^1.1.4"
+    http-status-codes "^1.4.0"
+
+"@0x/quote-server@^7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-7.0.2.tgz#fa4cff5f0d9070bdf6f73f8375d51754efe7ca47"
+  integrity sha512-sivvlKWrHVv1b/nXnBT96UCks/+gTwFzYG+hyoU3NJhxyqPGxGWBkkXyW/n07NjFAQeuRZL2a0fKXX26izb/bQ==
+  dependencies:
+    "@0x/json-schemas" "^6.4.0"
+    "@0x/order-utils" "^10.2.4"
+    "@0x/protocol-utils" "^1.9.0"
     "@0x/utils" "^5.4.1"
     "@types/express" "^4.17.3"
     express "^4.17.1"

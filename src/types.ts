@@ -11,6 +11,7 @@ import {
     SupportedProvider,
 } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
+import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -31,6 +32,12 @@ export {
     MetaTransactionRollingValueLimiterConfig,
     RollingLimiterIntervalUnit,
 } from './utils/rate-limiters/types';
+
+export interface FirmQuote {
+    order: RfqOrder | OtcOrder;
+    signature?: Signature;
+    makerUri: string;
+}
 
 export enum OrderWatcherLifeCycleEvents {
     Added,

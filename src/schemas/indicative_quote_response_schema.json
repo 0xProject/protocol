@@ -1,0 +1,22 @@
+{
+    "id": "/IndicativeQuoteResponseSchema",
+    "properties": {
+        "makerToken": {
+            "$ref": "/addressSchema"
+        },
+        "takerToken": {
+            "$ref": "/addressSchema"
+        },
+        "makerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "takerAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "expiry": {
+            "$ref": "/wholeNumberSchema"
+        }
+    },
+    "required": ["makerToken", "takerToken", "makerAmount", "takerAmount", "expiry"],
+    "type": "object"
+}
