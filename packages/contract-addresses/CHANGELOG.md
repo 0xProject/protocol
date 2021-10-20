@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.8.0 - _October 19, 2021_
+
+    * Fantom deployment (#347)
+
 ## v6.7.0 - _September 1, 2021_
 
     * Avalanche deployment (#312)
