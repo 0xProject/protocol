@@ -19,7 +19,7 @@ import { Integrator, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
-import { FirmQuote } from '../types';
+import { FirmOtcQuote } from '../types';
 
 import { METRICS_PROXY } from './metrics_service';
 
@@ -207,7 +207,7 @@ export class QuoteServerClient {
         makerUri: string,
         integrator: Integrator,
         parameters: TakerRequestQueryParamsUnnested,
-    ): Promise<FirmQuote | undefined> {
+    ): Promise<FirmOtcQuote | undefined> {
         const startTime = Date.now();
         const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/quote`, {
             timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -245,7 +245,8 @@ export class QuoteServerClient {
                 takerAmount: new BigNumber(order.takerAmount),
                 chainId: parseInt(order.chainId, 10),
             }),
-            signature: response.data.signature ? response.data.signature : undefined,
+            kind: 'otc',
+            makerSignature: response.data.signature ? response.data.signature : undefined,
             makerUri,
         };
     }

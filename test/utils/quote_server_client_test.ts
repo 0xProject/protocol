@@ -89,7 +89,7 @@ describe('QuoteServerClient', () => {
         const takerSignature = await signAsync(takerSigner, orderHash);
         const makerSignature = await signAsync(makerSigner, orderHash);
 
-        describe('getPriceV2Async', async () => {
+        describe('getPriceV2Async', () => {
             it('should return a valid indicative quote', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);
@@ -160,7 +160,7 @@ describe('QuoteServerClient', () => {
             });
         });
 
-        describe('getQuoteV2Async', async () => {
+        describe('getQuoteV2Async', () => {
             it('should return a valid OtcOrder quote', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);
@@ -235,7 +235,7 @@ describe('QuoteServerClient', () => {
             });
         });
 
-        describe('signV2Async', async () => {
+        describe('signV2Async', () => {
             it('should return a signature for valid response', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);

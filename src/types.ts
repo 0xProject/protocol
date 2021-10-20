@@ -33,11 +33,34 @@ export {
     RollingLimiterIntervalUnit,
 } from './utils/rate-limiters/types';
 
-export interface FirmQuote {
-    order: RfqOrder | OtcOrder;
-    signature?: Signature;
+/**
+ * FirmRfqQuote is a quote for an RfqOrder.
+ */
+export interface FirmRfqQuote {
+    kind: 'rfq';
     makerUri: string;
+    order: RfqOrder;
+    makerSignature: Signature;
 }
+
+/**
+ * FirmOtcQuote is a quote for an OtcOrder. The makerSignature may not be present if the maker gets
+ * the "last look" (RFQm).
+ */
+export interface FirmOtcQuote {
+    kind: 'otc';
+    makerUri: string;
+    order: OtcOrder;
+    makerSignature?: Signature;
+}
+
+/**
+ * FirmQuote is a union type of all the different Firm quotes.
+ *
+ * NOTE: because makerSignature is optional for FirmOtcQuote, users of the FirmQuote type
+ * cannot assume the presence of a makerSignature, even if dealing only with FirmRfqQuotes
+ */
+export type FirmQuote = FirmRfqQuote | FirmOtcQuote;
 
 export enum OrderWatcherLifeCycleEvents {
     Added,

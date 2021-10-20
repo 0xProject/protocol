@@ -1,11 +1,19 @@
-import { BigNumber, SignedNativeOrder, V4RFQIndicativeQuote } from '@0x/asset-swapper';
+import { BigNumber, V4RFQIndicativeQuote } from '@0x/asset-swapper';
 
 import { ONE_SECOND_MS } from '../constants';
+import { FirmQuote } from '../types';
 
 /**
  * Selects the best quote from an array of quotes.
+ *
+ * Ignores quotes that:
+ *  - are for the wrong pair
+ *  - cannot fill 100% of the requested amount
+ *  - expire in less than the validity window
+ *
+ * And selects the one with the best price
  */
-export function getBestQuote<T extends V4RFQIndicativeQuote | SignedNativeOrder>(
+export function getBestQuote<T extends V4RFQIndicativeQuote | FirmQuote>(
     quotes: T[],
     isSelling: boolean,
     takerToken: string,
@@ -13,21 +21,14 @@ export function getBestQuote<T extends V4RFQIndicativeQuote | SignedNativeOrder>
     assetFillAmount: BigNumber,
     validityWindowMs: number,
 ): T | null {
-    // Filter out quotes that:
-    // - are for the wrong pair
-    // - cannot fill 100 % of the requested amount
-    // - expire in less than the validity window
-    //
-    // And sort by best price
-    const now = new BigNumber(Date.now());
-    const expirationCutoff = now.plus(validityWindowMs).div(ONE_SECOND_MS);
+    const validityWindowSeconds = validityWindowMs / ONE_SECOND_MS;
     const sortedQuotes = quotes
         .filter((q) => getTakerToken(q) === takerToken && getMakerToken(q) === makerToken)
         .filter((q) => {
             const requestedAmount = isSelling ? getTakerAmount(q) : getMakerAmount(q);
             return requestedAmount.gte(assetFillAmount);
         })
-        .filter((q) => getExpiry(q).gte(expirationCutoff))
+        .filter((q) => !willQuoteExpireIn(q, validityWindowSeconds))
         .sort((a, b) => {
             // Want the most amount of maker tokens for each taker token
             const aPrice = getMakerAmount(a).div(getTakerAmount(a));
@@ -46,46 +47,33 @@ export function getBestQuote<T extends V4RFQIndicativeQuote | SignedNativeOrder>
 
 /// Private getter functions
 
-const getTakerToken = (quote: V4RFQIndicativeQuote | SignedNativeOrder): string => {
-    if (isSignedNativeOrder(quote)) {
-        return quote.order.takerToken;
-    }
-
-    return quote.takerToken;
+const getTakerToken = (quote: V4RFQIndicativeQuote | FirmQuote): string => {
+    return isFirmQuote(quote) ? quote.order.takerToken : quote.takerToken;
 };
 
-const getMakerToken = (quote: V4RFQIndicativeQuote | SignedNativeOrder): string => {
-    if (isSignedNativeOrder(quote)) {
-        return quote.order.makerToken;
-    }
-
-    return quote.makerToken;
+const getMakerToken = (quote: V4RFQIndicativeQuote | FirmQuote): string => {
+    return isFirmQuote(quote) ? quote.order.makerToken : quote.makerToken;
 };
 
-const getTakerAmount = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNumber => {
-    if (isSignedNativeOrder(quote)) {
-        return quote.order.takerAmount;
-    }
-
-    return quote.takerAmount;
+const getTakerAmount = (quote: V4RFQIndicativeQuote | FirmQuote): BigNumber => {
+    return isFirmQuote(quote) ? quote.order.takerAmount : quote.takerAmount;
 };
 
-const getMakerAmount = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNumber => {
-    if (isSignedNativeOrder(quote)) {
-        return quote.order.makerAmount;
-    }
-
-    return quote.makerAmount;
+const getMakerAmount = (quote: V4RFQIndicativeQuote | FirmQuote): BigNumber => {
+    return isFirmQuote(quote) ? quote.order.makerAmount : quote.makerAmount;
 };
 
-const getExpiry = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNumber => {
-    if (isSignedNativeOrder(quote)) {
-        return quote.order.expiry;
+const willQuoteExpireIn = (quote: V4RFQIndicativeQuote | FirmQuote, secondsFromNow: number): boolean => {
+    if (isFirmQuote(quote)) {
+        return quote.order.willExpire(secondsFromNow);
     }
 
-    return quote.expiry;
+    // Handle indicative quote
+    const nowSeconds = new BigNumber(Date.now()).div(ONE_SECOND_MS);
+    const expirationCutoff = nowSeconds.plus(secondsFromNow);
+    return quote.expiry.lt(expirationCutoff);
 };
 
-const isSignedNativeOrder = (quote: V4RFQIndicativeQuote | SignedNativeOrder): quote is SignedNativeOrder => {
-    return (quote as SignedNativeOrder).order !== undefined;
+const isFirmQuote = (quote: V4RFQIndicativeQuote | FirmQuote): quote is FirmQuote => {
+    return (quote as FirmQuote).order !== undefined;
 };

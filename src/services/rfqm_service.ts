@@ -32,6 +32,7 @@ import { RfqmJobStatus, RfqmOrderTypes } from '../entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
+import { FirmRfqQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
@@ -443,7 +444,7 @@ export class RfqmService {
             isLastLook: true,
             fee,
         };
-        const firmQuotes = await this._quoteRequestor.requestRfqmFirmQuotesAsync(
+        const responses = await this._quoteRequestor.requestRfqmFirmQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -452,7 +453,16 @@ export class RfqmService {
             opts,
         );
 
-        const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
+        const firmRfqOrderQuotes: FirmRfqQuote[] = responses.map((r) => {
+            return {
+                order: new RfqOrder(r.order),
+                kind: 'rfq',
+                makerSignature: r.signature,
+                makerUri: this._quoteRequestor.getMakerUriForSignature(r.signature)!,
+            };
+        });
+
+        const firmQuotesWithCorrectChainId = firmRfqOrderQuotes.filter((quote) => {
             if (quote.order.chainId !== CHAIN_ID) {
                 logger.error({ quote }, 'Received a quote with incorrect chain id');
                 return false;
@@ -476,8 +486,9 @@ export class RfqmService {
         }
 
         // Get the makerUri
-        const makerUri = this._quoteRequestor.getMakerUriForSignature(bestQuote.signature);
+        const makerUri = bestQuote.makerUri;
         if (makerUri === undefined) {
+            logger.error({ makerAddress: bestQuote.order.maker }, 'makerUri unknown for maker address');
             throw new Error(`makerUri unknown for maker address ${bestQuote.order.maker}`);
         }
 
@@ -513,7 +524,7 @@ export class RfqmService {
         // Generate the Meta Transaction and its hash
         const metaTransaction = this._blockchainUtils.generateMetaTransaction(
             rfqOrder,
-            bestQuote.signature,
+            bestQuote.makerSignature,
             takerAddress,
             takerAmount,
             CHAIN_ID,
