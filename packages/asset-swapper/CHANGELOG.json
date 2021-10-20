@@ -1,5 +1,25 @@
 [
     {
+        "version": "16.30.0",
+        "changes": [
+            {
+                "note": "Fantom deployment",
+                "pr": 347
+            }
+        ],
+        "timestamp": 1634668033
+    },
+    {
+        "version": "16.29.3",
+        "changes": [
+            {
+                "note": "Update neon-router version and address breaking changes",
+                "pr": 344
+            }
+        ],
+        "timestamp": 1634553393
+    },
+    {
         "version": "16.29.2",
         "changes": [
             {
