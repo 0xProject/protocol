@@ -12,6 +12,7 @@ import {
     IZeroExContract,
     MetaTransactionsFeatureContract,
     NativeOrdersFeatureContract,
+    OtcOrdersFeatureContract,
     OwnableFeatureContract,
     SimpleFunctionRegistryFeatureContract,
     TransformERC20FeatureContract,
@@ -113,6 +114,7 @@ export interface FullFeatures extends BootstrapFeatures {
     transformERC20: string;
     metaTransactions: string;
     nativeOrders: string;
+    otcOrders: string;
 }
 
 /**
@@ -123,6 +125,7 @@ export interface FullFeatureArtifacts extends BootstrapFeatureArtifacts {
     metaTransactions: SimpleContractArtifact;
     nativeOrders: SimpleContractArtifact;
     feeCollectorController: SimpleContractArtifact;
+    otcOrders: SimpleContractArtifact;
 }
 
 /**
@@ -155,6 +158,7 @@ const DEFAULT_FULL_FEATURES_ARTIFACTS = {
     metaTransactions: artifacts.MetaTransactionsFeature,
     nativeOrders: artifacts.NativeOrdersFeature,
     feeCollectorController: artifacts.FeeCollectorController,
+    otcOrders: artifacts.OtcOrdersFeature,
 };
 
 /**
@@ -220,6 +224,18 @@ export async function deployFullFeaturesAsync(
                     _config.stakingAddress,
                     _config.feeCollectorController,
                     _config.protocolFeeMultiplier,
+                )
+            ).address,
+        otcOrders:
+            features.otcOrders ||
+            (
+                await OtcOrdersFeatureContract.deployFrom0xArtifactAsync(
+                    _featureArtifacts.otcOrders,
+                    provider,
+                    txDefaults,
+                    artifacts,
+                    _config.zeroExAddress,
+                    _config.wethAddress,
                 )
             ).address,
     };
