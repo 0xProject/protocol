@@ -113,6 +113,44 @@ export const getIntegratorIdFromLabel = (label: string): string | undefined => {
     }
 };
 
+/**
+ * The JSON config indicating which 0x order types a given Market Maker supports
+ */
+export interface RfqMakerConfig {
+    label: string;
+    rfqmMakerUri: string;
+    rfqmOrderTypes: ('rfq' | 'otc')[];
+    rfqtMakerUri: string;
+    rfqtOrderTypes: ('rfq' | 'otc')[];
+}
+
+/**
+ * Generate a set of Maker Uris that support a given order type for a given workflow
+ */
+export const getMakerUriSetForOrderType = (orderType: 'rfq' | 'otc', workflow: 'rfqt' | 'rfqm'): Set<string> => {
+    const typesField = workflow === 'rfqt' ? 'rfqtOrderTypes' : 'rfqmOrderTypes';
+    const uriField = workflow === 'rfqt' ? 'rfqtMakerUri' : 'rfqmMakerUri';
+    return RFQ_MAKER_CONFIGS.reduce((acc, curr) => {
+        if (curr[typesField].includes(orderType)) {
+            acc.add(curr[uriField]);
+        }
+        return acc;
+    }, new Set<string>());
+};
+
+/**
+ * A list of type RfqMakerConfig, read from the RFQ_MAKER_CONFIGS env variable
+ */
+export const RFQ_MAKER_CONFIGS: RfqMakerConfig[] = (() => {
+    try {
+        const makerConfigs = resolveEnvVar<RfqMakerConfig[]>('RFQ_MAKER_CONFIGS', EnvVarType.JsonStringList, []);
+        schemaUtils.validateSchema(makerConfigs, schemas.rfqMakerConfigListSchema);
+        return makerConfigs;
+    } catch (e) {
+        throw new Error(`RFQ_MAKER_CONFIGS was defined but is not valid JSON per the schema: ${e}`);
+    }
+})();
+
 // Log level for pino.js
 export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
     ? 'info'
@@ -250,6 +288,11 @@ export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfq
 export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
 export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('plp');
+
+export const RFQM_MAKER_SET_FOR_RFQ_ORDER: Set<string> = getMakerUriSetForOrderType('rfq', 'rfqm');
+export const RFQM_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderType('otc', 'rfqm');
+export const RFQT_MAKER_SET_FOR_RFQ_ORDER: Set<string> = getMakerUriSetForOrderType('rfq', 'rfqt');
+export const RFQT_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderType('otc', 'rfqt');
 
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 

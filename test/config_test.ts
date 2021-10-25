@@ -1,3 +1,4 @@
+// tslint:disable custom-no-magic-numbers
 import { expect } from '@0x/contracts-test-utils';
 import 'mocha';
 
@@ -5,6 +6,7 @@ import {
     getApiKeyWhitelistFromIntegratorsAcl,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
+    getMakerUriSetForOrderType,
     RFQT_INTEGRATOR_IDS,
 } from '../src/config';
 
@@ -62,6 +64,46 @@ describe('Config', () => {
         it('creates the RFQt Integrator ID list (used in swap/rfq/registry)', () => {
             expect(RFQT_INTEGRATOR_IDS.length).to.equal(1);
             expect(RFQT_INTEGRATOR_IDS[0]).to.equal('test-integrator-id-1');
+        });
+    });
+    describe('getMakerUriSetForOrderType', () => {
+        describe('generates a correct set of valid makerUris', () => {
+            it('(rfq, rfqt)', () => {
+                const rfqtMakersForRfqOrder = getMakerUriSetForOrderType('rfq', 'rfqt');
+                expect([...rfqtMakersForRfqOrder]).to.deep.eq([
+                    'https://degen.abc',
+                    'https://tradfi.rfqt',
+                    'https://rfq.abc',
+                    'https://norfqm.abc',
+                ]);
+            });
+            it('(rfq, rfqm)', () => {
+                const rfqmMakersForRfqOrder = getMakerUriSetForOrderType('rfq', 'rfqm');
+                expect([...rfqmMakersForRfqOrder]).to.deep.eq([
+                    'https://degen.abc',
+                    'https://tradfi.rfqm', // tradfi uses a different endpoint for rfqm
+                    'https://rfq.abc',
+                    // 'https://norfqm.abc',
+                ]);
+            });
+            it('(otc, rfqt)', () => {
+                const rfqtMakersForOtcOrder = getMakerUriSetForOrderType('otc', 'rfqt');
+                expect([...rfqtMakersForOtcOrder]).to.deep.eq([
+                    'https://degen.abc',
+                    'https://tradfi.rfqt',
+                    // 'https://rfq.abc',
+                    // 'https://norfqm.abc',
+                ]);
+            });
+            it('(otc, rfqm)', () => {
+                const rfqmMakersForOtcOrder = getMakerUriSetForOrderType('otc', 'rfqm');
+                expect([...rfqmMakersForOtcOrder]).to.deep.eq([
+                    'https://degen.abc',
+                    // 'https://tradfi.rfqm',
+                    // 'https://rfq.abc',
+                    // 'https://norfqm.abc',
+                ]);
+            });
         });
     });
 });
