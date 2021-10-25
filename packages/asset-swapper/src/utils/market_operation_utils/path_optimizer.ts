@@ -214,7 +214,8 @@ function findRoutesAndCreateOptimalPath(
 
     const before = performance.now();
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
-    route(rustArgs, allSourcesRustRoute, RUST_ROUTER_NUM_SAMPLES);
+    const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
+    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES);
     DEFAULT_INFO_LOGGER(
         { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
         'Rust router real routing performance',
@@ -224,14 +225,21 @@ function findRoutesAndCreateOptimalPath(
         rustArgs.pathsIn.length === allSourcesRustRoute.length,
         'different number of sources in the Router output than the input',
     );
+    assert.assert(
+        rustArgs.pathsIn.length === strategySourcesOutputAmounts.length,
+        'different number of sources in the Router output amounts results than the input',
+    );
 
-    const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
-
+    const routesAndSamplesAndOutputs = _.zip(
+        allSourcesRustRoute,
+        samplesAndNativeOrdersWithResults,
+        strategySourcesOutputAmounts,
+    );
     const adjustedFills: Fill[] = [];
     const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
 
     const scale = input.dividedBy(totalRoutedAmount);
-    for (const [routeInput, routeSamplesAndNativeOrders] of routesAndSamples) {
+    for (const [routeInput, routeSamplesAndNativeOrders, outputAmount] of routesAndSamplesAndOutputs) {
         if (!routeInput || !routeSamplesAndNativeOrders) {
             continue;
         }
@@ -270,31 +278,34 @@ function findRoutesAndCreateOptimalPath(
                 fill = createFill(routeSamples[0]);
             }
             if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
-                // Between here and the previous fill
-                // HACK: Use the midpoint between the two
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
-                    // Approximate how much output we get for the input with the surrounding samples
-                    const interpolatedOutput = interpolateOutputFromSamples(
-                        left,
-                        right,
-                        rustInputAdjusted,
-                    ).decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+                    // NOTE: If the amount is outside of the sampled range the Rust router can return either
+                    // 0 (sells) or Infinity (buys) as the expected output amount. In those cases we need to
+                    // fall back to interpolating the samples
+                    const output =
+                        outputAmount !== undefined && Number.isFinite(outputAmount) && outputAmount > 0
+                            ? new BigNumber(outputAmount)
+                            : interpolateOutputFromSamples(left, right, rustInputAdjusted).decimalPlaces(
+                                  0,
+                                  side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL,
+                              );
 
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInputAdjusted,
-                        output: interpolatedOutput,
+                        output,
                     });
                 } else {
-                    assert.assert(Boolean(left || right), 'No valid sample to use');
-                    fill = createFill(left || right);
+                    assert.assert(Boolean(left), 'No valid sample to use');
+                    fill = createFill(left);
                 }
                 break;
             }
         }
 
+        // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the the Rust router
         const scaleOutput = (output: BigNumber) =>
             output
                 .dividedBy(fill.input)
