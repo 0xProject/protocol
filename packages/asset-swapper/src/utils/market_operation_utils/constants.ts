@@ -1897,7 +1897,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //Celo
     //
     [ERC20BridgeSource.UbeSwap]: uniswapV2CloneGasSchedule,
-    
+
     //
     // Fantom
     //

@@ -467,7 +467,7 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.JetSwap
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
-        | ERC20BridgeSource.UbeSwap,
+        | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.SpookySwap
         | ERC20BridgeSource.SpiritSwap,
 ): string {

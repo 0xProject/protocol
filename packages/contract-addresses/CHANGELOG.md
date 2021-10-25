@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.8.0 - _October 20, 2021_
+
+    * Celo deployment (#348)
+
 ## v6.8.0 - _October 19, 2021_
 
     * Fantom deployment (#347)
