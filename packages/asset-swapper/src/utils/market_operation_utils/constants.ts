@@ -1894,7 +1894,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
 
     //
-    //Celo
+    // Celo
     //
     [ERC20BridgeSource.UbeSwap]: uniswapV2CloneGasSchedule,
 
