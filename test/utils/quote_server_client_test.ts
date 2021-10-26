@@ -45,50 +45,57 @@ const integrator: Integrator = {
     rfqm: true,
     rfqt: true,
 };
+
+// Maker
+const makerAddress = '0xFDbEf5C1Ad7d173D191D565c14E28eBd5b50470e';
+const makerPrivateKey = 'f4559ca5152145f5e0b9762f12213c2e74020a4481953fb940413273051a89d3';
+const makerSigner = new ethers.Wallet(makerPrivateKey);
+
+// Taker
+const takerAddress = '0xdA9AC423442169588DE6b4305f4E820D708d0cE5';
+const takerPrivateKey = '653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
+const takerSigner = new ethers.Wallet(takerPrivateKey);
+
+// Some tokens and amounts
+const takerToken = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const makerToken = '0x6b175474e89094c44da98b954eedeac495271d0f';
+const takerAmount = new BigNumber(100);
+const makerAmount = new BigNumber(100_000);
+
+// An OtcOrder
+const order = new OtcOrder({
+    maker: makerAddress,
+    taker: takerAddress,
+    makerAmount,
+    takerAmount,
+    makerToken,
+    takerToken,
+    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+        new BigNumber(2634330177),
+        new BigNumber(1),
+        new BigNumber(1634330177),
+    ),
+});
+const orderHash = order.getHash();
+
+// Signatures, to be set in the before()
+let takerSignature: Signature;
+let makerSignature: Signature;
+
 describe('QuoteServerClient', () => {
     const axiosInstance = Axios.create();
     const axiosMock = new AxiosMockAdapter(axiosInstance);
 
+    before(async () => {
+        // Prepare the signatures
+        takerSignature = await signAsync(takerSigner, orderHash);
+        makerSignature = await signAsync(makerSigner, orderHash);
+    });
+
     afterEach(() => {
         axiosMock.reset();
     });
-    describe('OtcOrder', async () => {
-        // Create a maker
-        const makerAddress = '0xFDbEf5C1Ad7d173D191D565c14E28eBd5b50470e';
-        const makerPrivateKey = 'f4559ca5152145f5e0b9762f12213c2e74020a4481953fb940413273051a89d3';
-        const makerSigner = new ethers.Wallet(makerPrivateKey);
-
-        // Create a taker
-        const takerAddress = '0xdA9AC423442169588DE6b4305f4E820D708d0cE5';
-        const takerPrivateKey = '653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
-        const takerSigner = new ethers.Wallet(takerPrivateKey);
-
-        // Some tokens and amounts
-        const takerToken = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-        const makerToken = '0x6b175474e89094c44da98b954eedeac495271d0f';
-        const takerAmount = new BigNumber(100);
-        const makerAmount = new BigNumber(100_000);
-
-        // Create an OtcOrder
-        const order = new OtcOrder({
-            maker: makerAddress,
-            taker: takerAddress,
-            makerAmount,
-            takerAmount,
-            makerToken,
-            takerToken,
-            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                new BigNumber(2634330177),
-                new BigNumber(1),
-                new BigNumber(1634330177),
-            ),
-        });
-        const orderHash = order.getHash();
-
-        // Prepare the signatures
-        const takerSignature = await signAsync(takerSigner, orderHash);
-        const makerSignature = await signAsync(makerSigner, orderHash);
-
+    describe('OtcOrder', () => {
         describe('getPriceV2Async', () => {
             it('should return a valid indicative quote', async () => {
                 // Given
@@ -408,9 +415,9 @@ describe('QuoteServerClient', () => {
         it('should reject last look if invalid takerTokenFillableAmount passed', async () => {
             // Given
             const client = new QuoteServerClient(axiosInstance);
-            const order = new RfqOrder();
+            const rfqOrder = new RfqOrder();
             const request: SubmitRequest = {
-                order,
+                order: rfqOrder,
                 orderHash: 'someOrderHash',
                 takerTokenFillAmount: new BigNumber('1225'),
                 fee: {
@@ -445,9 +452,9 @@ describe('QuoteServerClient', () => {
         it('should reject last look if valid negative response', async () => {
             // Given
             const client = new QuoteServerClient(axiosInstance);
-            const order = new RfqOrder();
+            const rfqOrder = new RfqOrder();
             const request: SubmitRequest = {
-                order,
+                order: rfqOrder,
                 orderHash: 'someOrderHash',
                 takerTokenFillAmount: new BigNumber('1225'),
                 fee: {
@@ -482,9 +489,9 @@ describe('QuoteServerClient', () => {
         it('should confirm last look if valid positive response', async () => {
             // Given
             const client = new QuoteServerClient(axiosInstance);
-            const order = new RfqOrder();
+            const rfqOrder = new RfqOrder();
             const request: SubmitRequest = {
-                order,
+                order: rfqOrder,
                 takerTokenFillAmount: new BigNumber('1225'),
                 orderHash: 'someOrderHash',
                 fee: {
@@ -519,9 +526,9 @@ describe('QuoteServerClient', () => {
         it('should reject last look if invalid response', async () => {
             // Given
             const client = new QuoteServerClient(axiosInstance);
-            const order = new RfqOrder();
+            const rfqOrder = new RfqOrder();
             const request: SubmitRequest = {
-                order,
+                order: rfqOrder,
                 takerTokenFillAmount: new BigNumber('1225'),
                 orderHash: 'someOrderHash',
                 fee: {
@@ -556,9 +563,9 @@ describe('QuoteServerClient', () => {
         it(`should reject last look if fee doesn't match`, async () => {
             // Given
             const client = new QuoteServerClient(axiosInstance);
-            const order = new RfqOrder();
+            const rfqOrder = new RfqOrder();
             const request: SubmitRequest = {
-                order,
+                order: rfqOrder,
                 takerTokenFillAmount: new BigNumber('1225'),
                 orderHash: 'someOrderHash',
                 fee: {
