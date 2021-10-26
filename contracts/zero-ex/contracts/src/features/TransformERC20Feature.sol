@@ -75,7 +75,7 @@ contract TransformERC20Feature is
         _registerFeatureFunction(this.setTransformerDeployer.selector);
         _registerFeatureFunction(this.setQuoteSigner.selector);
         _registerFeatureFunction(this.getQuoteSigner.selector);
-        _registerFeatureFunction(this.transformERC20Staging.selector);
+        _registerFeatureFunction(this.transformERC20.selector);
         _registerFeatureFunction(this._transformERC20.selector);
         if (this.getTransformWallet() == IFlashWallet(address(0))) {
             // Create the transform wallet if it doesn't exist.
@@ -143,44 +143,6 @@ contract TransformERC20Feature is
     {
         wallet = new FlashWallet();
         LibTransformERC20Storage.getStorage().wallet = wallet;
-    }
-
-    /// @dev Wrapper for `transformERC20`. This selector will be temporarily
-    ///      registered to the Exchange Proxy so that we can migrate 0x API
-    ///      with no downtime. Once 0x API has been updated to point to this
-    ///      function, we can safely re-register `transformERC20`, point 
-    ///      0x API back to `transformERC20`, and deregister this function.
-    /// @param inputToken The token being provided by the sender.
-    ///        If `0xeee...`, ETH is implied and should be provided with the call.`
-    /// @param outputToken The token to be acquired by the sender.
-    ///        `0xeee...` implies ETH.
-    /// @param inputTokenAmount The amount of `inputToken` to take from the sender.
-    ///        If set to `uint256(-1)`, the entire spendable balance of the taker
-    ///        will be solt.
-    /// @param minOutputTokenAmount The minimum amount of `outputToken` the sender
-    ///        must receive for the entire transformation to succeed. If set to zero,
-    ///        the minimum output token transfer will not be asserted.
-    /// @param transformations The transformations to execute on the token balance(s)
-    ///        in sequence.
-    /// @return outputTokenAmount The amount of `outputToken` received by the sender.
-    function transformERC20Staging(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
-        uint256 inputTokenAmount,
-        uint256 minOutputTokenAmount,
-        Transformation[] memory transformations
-    )
-        public
-        payable
-        returns (uint256 outputTokenAmount)
-    {
-        return transformERC20(
-            inputToken, 
-            outputToken, 
-            inputTokenAmount, 
-            minOutputTokenAmount, 
-            transformations
-        );
     }
 
     /// @dev Executes a series of transformations to convert an ERC20 `inputToken`
@@ -283,8 +245,8 @@ contract TransformERC20Feature is
             }
             // Transfer output tokens from wallet to recipient
             outputTokenAmount = _executeOutputTokenTransfer(
-                args.outputToken, 
-                state.wallet, 
+                args.outputToken,
+                state.wallet,
                 args.recipient
             );
         }
