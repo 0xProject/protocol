@@ -1,5 +1,14 @@
 // tslint:disable: prefer-function-over-method
-import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey, Integrator, RFQM_API_KEY_WHITELIST } from '../config';
+import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
+
+import {
+    getIntegratorByIdOrThrow,
+    getIntegratorIdForApiKey,
+    Integrator,
+    RFQM_API_KEY_WHITELIST,
+    RFQM_MAKER_ASSET_OFFERINGS,
+    RFQT_MAKER_ASSET_OFFERINGS,
+} from '../config';
 
 /**
  * ConfigManager is a simple wrapper around configs.
@@ -9,6 +18,14 @@ import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey, Integrator, RFQM_AP
 export class ConfigManager {
     public getRfqmApiKeyWhitelist(): Set<string> {
         return RFQM_API_KEY_WHITELIST;
+    }
+
+    public getRfqmAssetOfferings(): RfqMakerAssetOfferings {
+        return RFQM_MAKER_ASSET_OFFERINGS;
+    }
+
+    public getRfqtAssetOfferings(): RfqMakerAssetOfferings {
+        return RFQT_MAKER_ASSET_OFFERINGS;
     }
 
     public getIntegratorByIdOrThrow(integratorId: string): Integrator {
