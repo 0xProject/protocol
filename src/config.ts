@@ -419,6 +419,8 @@ const EXCLUDED_SOURCES = (() => {
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Avalanche:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
+        case ChainId.Fantom:
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
             return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
     }
