@@ -23,7 +23,7 @@ spec:
         app: rfqm-api
     spec:
       containers:
-        - image: 0x-rfq:latest
+        - image: 0x-rfq-api:latest
           name: rfqm-api
           resources:
             limits:

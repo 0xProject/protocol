@@ -19,7 +19,7 @@ spec:
         app: rfqm-worker
     spec:
       containers:
-      - image: 0x-rfq:latest
+      - image: 0x-rfq-api:latest
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/sh"
