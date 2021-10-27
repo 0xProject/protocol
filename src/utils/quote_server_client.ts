@@ -195,6 +195,36 @@ export class QuoteServerClient {
     }
 
     /**
+     * Fetch a batch of prices. Ignores all quotes that return errors
+     *
+     * @param makerUris - a list of maker URIs
+     * @param integrator - the integrator
+     * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
+     * @returns - a Promise containing a list of indicative quotes
+     */
+    public async batchGetPriceV2Async(
+        makerUris: string[],
+        integrator: Integrator,
+        parameters: TakerRequestQueryParamsUnnested,
+    ): Promise<V4RFQIndicativeQuote[]> {
+        return Promise.all(
+            makerUris.map(async (uri) => {
+                return this.getPriceV2Async(uri, integrator, parameters).catch((err) => {
+                    logger.error(
+                        {
+                            errorMessage: err?.message,
+                            makerUri: uri,
+                            status: err?.isAxiosError ? err.response.status : undefined,
+                        },
+                        'Encountered an error requesting an indicative quote',
+                    );
+                    return undefined;
+                });
+            }),
+        ).then((arr) => arr.filter((result): result is V4RFQIndicativeQuote => result !== undefined));
+    }
+
+    /**
      * Fetch a quote (firm quote)
      *
      * @param makerUri - the maker URI
@@ -249,6 +279,36 @@ export class QuoteServerClient {
             makerSignature: response.data.signature ? response.data.signature : undefined,
             makerUri,
         };
+    }
+
+    /**
+     * Fetch a batch of quotes. Ignores all quotes that return errors
+     *
+     * @param makerUris - a list of maker URIs
+     * @param integrator - the integrator
+     * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
+     * @returns - a Promise containing a list of firm quotes
+     */
+    public async batchGetQuoteV2Async(
+        makerUris: string[],
+        integrator: Integrator,
+        parameters: TakerRequestQueryParamsUnnested,
+    ): Promise<FirmOtcQuote[]> {
+        return Promise.all(
+            makerUris.map(async (uri) => {
+                return this.getQuoteV2Async(uri, integrator, parameters).catch((err) => {
+                    logger.error(
+                        {
+                            errorMessage: err?.message,
+                            makerUri: uri,
+                            status: err?.isAxiosError ? err.response.status : undefined,
+                        },
+                        'Encountered an error requesting a firm quote',
+                    );
+                    return undefined;
+                });
+            }),
+        ).then((arr) => arr.filter((result): result is FirmOtcQuote => result !== undefined));
     }
 
     /**

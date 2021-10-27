@@ -7,6 +7,7 @@ import {
     Integrator,
     RFQM_API_KEY_WHITELIST,
     RFQM_MAKER_ASSET_OFFERINGS,
+    RFQM_MAKER_SET_FOR_OTC_ORDER,
     RFQT_MAKER_ASSET_OFFERINGS,
 } from '../config';
 
@@ -26,6 +27,10 @@ export class ConfigManager {
 
     public getRfqtAssetOfferings(): RfqMakerAssetOfferings {
         return RFQT_MAKER_ASSET_OFFERINGS;
+    }
+
+    public getRfqmMakerSetForOtcOrder(): Set<string> {
+        return RFQM_MAKER_SET_FOR_OTC_ORDER;
     }
 
     public getIntegratorByIdOrThrow(integratorId: string): Integrator {

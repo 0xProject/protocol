@@ -97,12 +97,33 @@ describe('PairsManager', () => {
             const pairsManager = new PairsManager(configManager);
 
             // When
-            const rfqmMakerUris = pairsManager.getRfqtMakerUrisForPair(tokenA, tokenB);
+            const rfqmMakerUris = pairsManager.getRfqmMakerUrisForPair(tokenA, tokenB);
             const rfqtMakerUris = pairsManager.getRfqtMakerUrisForPair(tokenA, tokenC);
 
             // Then
             expect(rfqtMakerUris).to.deep.eq(['https://maker3.asdf', 'https://maker4.asdf']);
             expect(rfqtMakerUris).to.not.deep.eq(rfqmMakerUris);
+        });
+    });
+
+    describe('getRfqmMakerUrisForPairOnOtcOrder', () => {
+        it('should filter for only those uris that offer OtcOrder', () => {
+            // Given
+            const rfqmOfferings: RfqMakerAssetOfferings = {
+                'https://maker1.asdf': [[tokenA, tokenB]],
+                'https://maker2.asdf': [[tokenA, tokenB]],
+            };
+            const configManagerMock = mock(ConfigManager);
+            when(configManagerMock.getRfqmAssetOfferings()).thenReturn(rfqmOfferings);
+            when(configManagerMock.getRfqmMakerSetForOtcOrder()).thenReturn(new Set(['https://maker2.asdf']));
+            const configManager = instance(configManagerMock);
+            const pairsManager = new PairsManager(configManager);
+
+            // When
+            const uris = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
+
+            // Then
+            expect(uris).to.deep.eq(['https://maker2.asdf']);
         });
     });
 });

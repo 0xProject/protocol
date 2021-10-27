@@ -51,7 +51,7 @@ export class PairsManager {
     private readonly _rfqmPairToMakerUris: PairsToUris;
     private readonly _rfqtPairToMakerUris: PairsToUris;
 
-    constructor(_configManager: ConfigManager) {
+    constructor(private readonly _configManager: ConfigManager) {
         const rfqmOfferings = _configManager.getRfqmAssetOfferings();
         const rfqtOfferings = _configManager.getRfqtAssetOfferings();
         this._rfqmPairToMakerUris = generatePairToMakerUriMap(rfqmOfferings);
@@ -70,5 +70,13 @@ export class PairsManager {
      */
     public getRfqmMakerUrisForPair(makerToken: string, takerToken: string): string[] {
         return this._rfqmPairToMakerUris[toKey(makerToken, takerToken)];
+    }
+
+    /**
+     * Get a list of RFQm Maker Uris that support this pair on OtcOrder
+     */
+    public getRfqmMakerUrisForPairOnOtcOrder(makerToken: string, takerToken: string): string[] {
+        const makerSet = this._configManager.getRfqmMakerSetForOtcOrder();
+        return this.getRfqmMakerUrisForPair(makerToken, takerToken).filter((makerUri) => makerSet.has(makerUri));
     }
 }

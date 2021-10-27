@@ -167,6 +167,53 @@ describe('QuoteServerClient', () => {
             });
         });
 
+        describe('batchGetPriceV2Async', () => {
+            it('should return the valid indicative qutoes and filter out errors', async () => {
+                // Given
+                const makerUri1 = 'https://some-market-maker1.xyz';
+                const makerUri2 = 'https://some-market-maker2.xyz';
+                const makerUri3 = 'https://some-market-maker3.xyz';
+                const client = new QuoteServerClient(axiosInstance);
+                const request: TakerRequestQueryParamsUnnested = {
+                    sellTokenAddress: takerToken,
+                    buyTokenAddress: makerToken,
+                    takerAddress,
+                    sellAmountBaseUnits: takerAmount.toString(),
+                    protocolVersion: '4',
+                    txOrigin: takerAddress,
+                    isLastLook: 'true',
+                    feeAmount: '100',
+                    feeType: 'fixed',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    nonce: '1634322835',
+                    nonceBucket: '1',
+                };
+
+                const response: V4RFQIndicativeQuote = {
+                    makerAmount,
+                    takerAmount,
+                    makerToken,
+                    takerToken,
+                    expiry: new BigNumber(9934322972),
+                };
+
+                axiosMock.onGet(`${makerUri1}/rfqm/v2/price`).replyOnce(HttpStatus.OK, response);
+                axiosMock.onGet(`${makerUri2}/rfqm/v2/price`).replyOnce(HttpStatus.NO_CONTENT, {});
+                axiosMock.onGet(`${makerUri3}/rfqm/v2/price`).replyOnce(HttpStatus.BAD_GATEWAY, {});
+
+                // When
+                const indicativeQuotes = await client.batchGetPriceV2Async(
+                    [makerUri1, makerUri2, makerUri3],
+                    integrator,
+                    request,
+                );
+
+                // Then
+                expect(indicativeQuotes!.length).to.eq(1);
+                expect(indicativeQuotes[0].makerAmount.toNumber()).to.eq(response.makerAmount.toNumber());
+            });
+        });
+
         describe('getQuoteV2Async', () => {
             it('should return a valid OtcOrder quote', async () => {
                 // Given
@@ -239,6 +286,53 @@ describe('QuoteServerClient', () => {
                     // Then
                     expect(err).to.not.be.undefined();
                 }
+            });
+        });
+
+        describe('batchGetQuoteV2Async', () => {
+            it('should return the valid OtcOrder firm quotes and filter out errors', async () => {
+                // Given
+                const makerUri1 = 'https://some-market-maker1.xyz';
+                const makerUri2 = 'https://some-market-maker2.xyz';
+                const makerUri3 = 'https://some-market-maker3.xyz';
+                const client = new QuoteServerClient(axiosInstance);
+                const request: TakerRequestQueryParamsUnnested = {
+                    sellTokenAddress: takerToken,
+                    buyTokenAddress: makerToken,
+                    takerAddress,
+                    sellAmountBaseUnits: takerAmount.toString(),
+                    protocolVersion: '4',
+                    txOrigin: takerAddress,
+                    isLastLook: 'true',
+                    feeAmount: '100',
+                    feeType: 'fixed',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    nonce: '1634322835',
+                    nonceBucket: '1',
+                };
+
+                const expiryAndNonce = `0x${order.expiryAndNonce.toString(16)}`;
+                const response = {
+                    order: {
+                        ...order,
+                        expiryAndNonce,
+                    },
+                };
+
+                axiosMock.onGet(`${makerUri1}/rfqm/v2/quote`).replyOnce(HttpStatus.OK, response);
+                axiosMock.onGet(`${makerUri2}/rfqm/v2/quote`).replyOnce(HttpStatus.NO_CONTENT, {});
+                axiosMock.onGet(`${makerUri3}/rfqm/v2/quote`).replyOnce(HttpStatus.BAD_GATEWAY, {});
+
+                // When
+                const firmQuotes = await client.batchGetQuoteV2Async(
+                    [makerUri1, makerUri2, makerUri3],
+                    integrator,
+                    request,
+                );
+
+                // Then
+                expect(firmQuotes!.length).to.eq(1);
+                expect(firmQuotes[0].makerUri).to.eq(makerUri1);
             });
         });
 
