@@ -18,6 +18,7 @@ spec:
       labels:
         app: rfqm-worker
     spec:
+      serviceName: rfqm-worker
       containers:
       - image: 0x-rfq-api:latest
         imagePullPolicy: IfNotPresent
@@ -83,10 +84,11 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      nodeSelector:
-        purpose: 0x-api-node
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 100m
+            memory: 512Mi
       restartPolicy: Always
