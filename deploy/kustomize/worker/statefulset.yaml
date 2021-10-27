@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: rfqm-worker
+  name: rfqm-worker
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rfqm-worker
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: rfqm-worker
+    spec:
+      containers:
+      - image: 0x-rfq:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/sh"
+        - "-c"
+        args:
+        - RFQM_WORKER_INDEX=${HOSTNAME##*-} yarn start:service:rfqm_worker
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: HTTP_PORT
+          value: "3000"
+        - name: LOGGER_INCLUDE_TIMESTAMP
+          value: "false"
+        - name: AWS_REGION
+          value: us-east-1
+        - name: META_TX_WORKER_MNEMONIC
+        - name: POSTGRES_URI
+        - name: REDIS_URI
+        - name: ETHEREUM_RPC_URL
+        - name: CHAIN_ID
+          value: "1"
+        - name: ETH_GAS_STATION_API_URL
+        - name: ENABLE_PROMETHEUS_METRICS
+          value: "true"
+        - name: PROMETHEUS_PORT
+          value: "8080"
+        - name: RFQM_META_TX_SQS_URL
+        - name: RFQM_META_TX_SQS_REGION
+          value: us-east-1
+        - name: META_TX_WORKER_REGISTRY
+        - name: MESH_WEBSOCKET_URI
+        - name: MESH_HTTP_URI
+        - name: RFQM_MAKER_ASSET_OFFERINGS
+        - name: RFQT_TX_ORIGIN_BLACKLIST
+        - name: RFQ_PROXY_ADDRESS
+        - name: RFQ_PROXY_PORT
+          value: "8080"
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: prom
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: rfqm-worker
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: prom
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: prom
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        purpose: 0x-api-node
+      restartPolicy: Always
