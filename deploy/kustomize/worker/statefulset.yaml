@@ -6,6 +6,7 @@ metadata:
   name: rfqm-worker
 spec:
   podManagementPolicy: Parallel
+  serviceName: rfqm-worker
   replicas: 1
   selector:
     matchLabels:
@@ -18,7 +19,6 @@ spec:
       labels:
         app: rfqm-worker
     spec:
-      serviceName: rfqm-worker
       containers:
       - image: 0x-rfq-api:latest
         imagePullPolicy: IfNotPresent
