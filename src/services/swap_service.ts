@@ -40,6 +40,10 @@ import {
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
+    UNWRAP_QUOTE_GAS,
+    UNWRAP_WETH_GAS,
+    WRAP_ETH_GAS,
+    WRAP_QUOTE_GAS,
 } from '../config';
 import {
     DEFAULT_VALIDATION_GAS_LIMIT,
@@ -48,10 +52,6 @@ import {
     NULL_BYTES,
     ONE,
     ONE_MINUTE_MS,
-    UNWRAP_QUOTE_GAS,
-    UNWRAP_WETH_GAS,
-    WRAP_ETH_GAS,
-    WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
 import { GasEstimationError, InsufficientFundsError } from '../errors';

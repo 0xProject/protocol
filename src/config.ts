@@ -14,7 +14,7 @@ import {
     SwapQuoterRfqOpts,
 } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
-import { nativeWrappedTokenSymbol, TokenMetadatasForChains } from '@0x/token-metadata';
+import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -391,6 +391,18 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
+
+const UNWRAP_GAS_BY_CHAIN_ID = valueByChainId<BigNumber>(
+    {
+        // NOTE: FTM uses a different WFTM implementation than WETH which uses more gas
+        [ChainId.Fantom]: new BigNumber(37000),
+    },
+    new BigNumber(25000),
+);
+export const UNWRAP_WETH_GAS = UNWRAP_GAS_BY_CHAIN_ID[CHAIN_ID];
+export const WRAP_ETH_GAS = UNWRAP_WETH_GAS;
+export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
+export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 
 const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
