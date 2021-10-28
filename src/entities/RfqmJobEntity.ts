@@ -1,4 +1,4 @@
-import { BigNumber } from '@0x/asset-swapper';
+import { BigNumber, RfqOrderFields } from '@0x/asset-swapper';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { BigNumberTransformer } from './transformers';
@@ -62,20 +62,7 @@ export interface V4RfqStoredOrder {
 
 export type StoredOrder = V4RfqStoredOrder;
 
-export interface V4StringRfqOrderFields {
-    txOrigin: string;
-    maker: string;
-    taker: string;
-    makerToken: string;
-    takerToken: string;
-    makerAmount: string;
-    takerAmount: string;
-    pool: string;
-    expiry: string;
-    salt: string;
-    chainId: string;
-    verifyingContract: string;
-}
+export type V4StringRfqOrderFields = Record<keyof RfqOrderFields, string>;
 
 export type RfqmJobConstructorOpts = Pick<RfqmJobEntity, 'calldata' | 'chainId' | 'expiry' | 'makerUri' | 'orderHash'> &
     Partial<RfqmJobEntity>;
