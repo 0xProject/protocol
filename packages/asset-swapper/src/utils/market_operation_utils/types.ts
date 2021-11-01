@@ -93,6 +93,9 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    // Fantom
+    SpiritSwap = 'SpiritSwap',
+    SpookySwap = 'SpookySwap',
 }
 export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
 
