@@ -22,12 +22,13 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/WETH9.sol";
 import "../migrations/LibMigrate.sol";
 import "../fixins/FixinCommon.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IPancakeSwapFeature.sol";
-import "@uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol";
+import "./interfaces/IUniswapV2ForkPair.sol";
 
 /// @dev VIP UniswapV2Fork  fill functions.
 contract UniswapV2ForkFeature is
@@ -40,6 +41,9 @@ contract UniswapV2ForkFeature is
     string public constant override FEATURE_NAME = "UniswapV2ForkFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+
+    address private constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address private constant WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
     // TODO: complete the list
     // address of the SushiSwapV2 factory contract.
@@ -57,6 +61,17 @@ contract UniswapV2ForkFeature is
         returns (uint256 buyAmount)
     {
         require(tokens.length > 1, 'UniswapV2ForkFeature/INVALID_TOKENS_LENGTH');
+
+        if (tokens[0] == ETH_ADDRESS) {
+            WETH9(WETH_ADDRESS).deposit{value:msg.value}();
+            tokens[0] = WETH_ADDRESS;
+        }
+
+        bool unwrapWeth = tokens[tokens.length - 1] == ETH_ADDRESS;
+        if (unwrapWeth) {
+            tokens[tokens.length - 1] = WETH_ADDRESS;
+        }
+
         address factory = _getFactory(fork);
         amounts = _getAmountsOut(factory, sellAmount, tokens);
         buyAmount = amounts[amounts.length - 1];
@@ -68,6 +83,10 @@ contract UniswapV2ForkFeature is
             amounts[0]
         );
         _swap(amounts, path, to);
+
+        if (unwrapWeth) {
+            WETH9(WETH_ADDRESS).withdraw(buyAmount);
+        }
     }
 
     function _getAmountsOut(
@@ -98,7 +117,7 @@ contract UniswapV2ForkFeature is
         returns (uint reserveA, uint reserveB)
     {
         (address token0,) = _sortTokens(tokenA, tokenB);
-        (uint reserve0, uint reserve1,) = IUniswapV2Pair(_pairFor(factory, tokenA, tokenB)).getReserves(); // TODO(cece)
+        (uint reserve0, uint reserve1,) = IUniswapV2ForkPair(_pairFor(factory, tokenA, tokenB)).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
@@ -141,7 +160,6 @@ contract UniswapV2ForkFeature is
         }
     }
 
-    // calculates the CREATE2 address for a pair without making any external calls
     function _pairFor(
         address factory,
         address tokenA,
@@ -156,7 +174,7 @@ contract UniswapV2ForkFeature is
             hex'ff',
             factory,
             keccak256(abi.encodePacked(token0, token1)),
-            hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash
+            hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash TODO(Cece): how can I find the init code for each fork
         ))));
     }
 
@@ -164,11 +182,11 @@ contract UniswapV2ForkFeature is
     function _swap(uint[] memory amounts, address[] memory path, address _to) internal {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = UniswapV2Library.sortTokens(input, output);
+            (address token0,) = _sortTokens(input, output);
             uint amountOut = amounts[i + 1];
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
-            address to = i < path.length - 2 ? UniswapV2Library.pairFor(factory, output, path[i + 2]) : _to;
-            IUniswapV2Pair(UniswapV2Library.pairFor(factory, input, output)).swap(
+            address to = i < path.length - 2 ? _pairFor(factory, output, path[i + 2]) : _to;
+            IUniswapV2ForkPair(_pairFor(factory, input, output)).swap(
                 amount0Out, amount1Out, to, new bytes(0)
             );
         }
