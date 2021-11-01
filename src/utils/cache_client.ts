@@ -25,8 +25,9 @@ export class CacheClient {
             this._redisClient.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY, (err, valueAfterIncr) => {
                 if (err) {
                     reject(err);
+                } else {
+                    resolve(valueAfterIncr);
                 }
-                resolve(valueAfterIncr);
             });
         });
     }
