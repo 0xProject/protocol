@@ -1338,32 +1338,20 @@ export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
 export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityProviderRegistry>(
     {
         [ChainId.Mainnet]: {
-            // ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
-            //     tokens: [
-            //         MAINNET_TOKENS.WETH,
-            //         MAINNET_TOKENS.USDC,
-            //         MAINNET_TOKENS.USDT,
-            //         MAINNET_TOKENS.WBTC,
-            //         MAINNET_TOKENS.PAX,
-            //         MAINNET_TOKENS.LINK,
-            //         MAINNET_TOKENS.KNC,
-            //         MAINNET_TOKENS.MANA,
-            //         MAINNET_TOKENS.DAI,
-            //         MAINNET_TOKENS.BUSD,
-            //         MAINNET_TOKENS.AAVE,
-            //         MAINNET_TOKENS.HT,
-            //     ],
-            //     gasCost: (takerToken: string, makerToken: string) =>
-            //         [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
-            // },
-            ['0xe82906b6b1b04f631d126c974af57a3a7b6a99d9']: {
+            ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
                 tokens: [
-                    // MAINNET_TOKENS.WETH, // technically ETH but our sampler and mixin handle this
-                    MAINNET_TOKENS.ETH,
-                    MAINNET_TOKENS.WBTC,
+                    MAINNET_TOKENS.WETH,
                     MAINNET_TOKENS.USDC,
                     MAINNET_TOKENS.USDT,
+                    MAINNET_TOKENS.WBTC,
+                    MAINNET_TOKENS.PAX,
+                    MAINNET_TOKENS.LINK,
+                    MAINNET_TOKENS.KNC,
+                    MAINNET_TOKENS.MANA,
                     MAINNET_TOKENS.DAI,
+                    MAINNET_TOKENS.BUSD,
+                    MAINNET_TOKENS.AAVE,
+                    MAINNET_TOKENS.HT,
                 ],
                 gasCost: (takerToken: string, makerToken: string) =>
                     [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
