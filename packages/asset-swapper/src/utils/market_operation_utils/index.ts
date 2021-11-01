@@ -84,12 +84,13 @@ export class MarketOperationUtils {
     private static _computeExtendedQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
+        amount: BigNumber,
         optimizerResult: OptimizerResult,
         comparisonPrice?: BigNumber | undefined,
     ): ExtendedQuoteReport {
         const { side, quotes } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
-        return generateExtendedQuoteReport(side, quotes, liquidityDelivered, comparisonPrice, quoteRequestor);
+        return generateExtendedQuoteReport(side, quotes, liquidityDelivered, amount, comparisonPrice, quoteRequestor);
     }
 
     private static _computePriceComparisonsReport(
@@ -721,6 +722,7 @@ export class MarketOperationUtils {
         extendedQuoteReport = MarketOperationUtils._computeExtendedQuoteReport(
             _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
             marketSideLiquidity,
+            amount,
             optimizerResult,
             wholeOrderPrice,
         );

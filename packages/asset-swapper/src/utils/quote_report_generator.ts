@@ -144,6 +144,7 @@ export function generateExtendedQuoteReport(
     marketOperation: MarketOperation,
     quotes: RawQuotes,
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    amount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): ExtendedQuoteReport {
@@ -176,7 +177,13 @@ export function generateExtendedQuoteReport(
 
     // Dex Quotes
     sourcesConsidered.push(
-        ..._.flatten(quotes.dexQuotes.map(dex => dex.map(quote => dexSampleToReportSource(quote, marketOperation)))),
+        ..._.flatten(
+            quotes.dexQuotes.map(dex =>
+                dex
+                    .filter(quote => isDexSampleForTotalAmount(quote, marketOperation, amount))
+                    .map(quote => dexSampleToReportSource(quote, marketOperation)),
+            ),
+        ),
     );
 
     let sourcesDelivered;
@@ -245,6 +252,22 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
             liquiditySource,
             fillData: ds.fillData,
         };
+    } else {
+        throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    }
+}
+
+/**
+ * Checks if a DEX sample is the one that represents the whole amount requested by taker
+ * NOTE: this is used for the QuoteReport to filter samples
+ */
+function isDexSampleForTotalAmount(ds: DexSample, marketOperation: MarketOperation, amount: BigNumber): Boolean {
+    // input and output map to different values
+    // based on the market operation
+    if (marketOperation === MarketOperation.Buy) {
+        return ds.input === amount;
+    } else if (marketOperation === MarketOperation.Sell) {
+        return ds.output === amount;
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
     }
