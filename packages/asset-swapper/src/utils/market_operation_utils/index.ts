@@ -18,13 +18,13 @@ import {
 
 import {
     dexSampleToReportSource,
-    generateQuoteReport,
+    ExtendedQuoteReport,
     generateExtendedQuoteReport,
+    generateQuoteReport,
     multiHopSampleToReportSource,
     nativeOrderToReportEntry,
     PriceComparisonsReport,
     QuoteReport,
-    ExtendedQuoteReport,
 } from './../quote_report_generator';
 
 import { getComparisonPrices } from './comparison_price';

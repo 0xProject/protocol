@@ -148,7 +148,7 @@ export function generateExtendedQuoteReport(
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): ExtendedQuoteReport {
-    let sourcesConsidered: ExtendedQuoteReportEntry[] = [];
+    const sourcesConsidered: ExtendedQuoteReportEntry[] = [];
 
     // NativeOrders
     sourcesConsidered.push(
@@ -169,11 +169,7 @@ export function generateExtendedQuoteReport(
     );
 
     // MultiHop
-    sourcesConsidered.push(
-        ...quotes.twoHopQuotes.map(quote =>
-            multiHopSampleToReportSource(quote as DexSample<MultiHopFillData>, marketOperation),
-        ),
-    );
+    sourcesConsidered.push(...quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, marketOperation)));
 
     // Dex Quotes
     sourcesConsidered.push(
@@ -261,7 +257,7 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * Checks if a DEX sample is the one that represents the whole amount requested by taker
  * NOTE: this is used for the QuoteReport to filter samples
  */
-function isDexSampleForTotalAmount(ds: DexSample, marketOperation: MarketOperation, amount: BigNumber): Boolean {
+function isDexSampleForTotalAmount(ds: DexSample, marketOperation: MarketOperation, amount: BigNumber): boolean {
     // input and output map to different values
     // based on the market operation
     if (marketOperation === MarketOperation.Buy) {

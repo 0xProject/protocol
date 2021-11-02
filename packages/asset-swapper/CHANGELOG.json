@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.31.0",
+        "changes": [
+            {
+                "note": "Extended Quote Report",
+                "pr": 361
+            }
+        ],
+        "timestamp": 1634668033
+    }, {
         "version": "16.30.0",
         "changes": [
             {
