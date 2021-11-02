@@ -1,8 +1,11 @@
 [
     {
-        "timestamp": 1635894422,
         "version": "0.29.3",
         "changes": [
+            {
+                "note": "Register transformERC20() and remove transformERC20Staging()",
+                "pr": 355
+            },
             {
                 "note": "Add OtcOrders to FullMigration",
                 "pr": 350
