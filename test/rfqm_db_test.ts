@@ -7,8 +7,7 @@ import { Connection } from 'typeorm';
 
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
-import { RfqmJobStatus } from '../src/entities/RfqmJobEntity';
-import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../src/entities/types';
 import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { MATCHA_AFFILIATE_ADDRESS } from './constants';

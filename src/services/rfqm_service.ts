@@ -28,8 +28,7 @@ import {
     RFQM_TX_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
-import { RfqmJobStatus, RfqmOrderTypes } from '../entities/RfqmJobEntity';
-import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
+import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { FirmRfqQuote } from '../types';

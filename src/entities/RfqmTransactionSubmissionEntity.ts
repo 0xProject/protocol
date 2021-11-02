@@ -2,16 +2,7 @@ import { BigNumber } from '@0x/asset-swapper';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
-
-export enum RfqmTransactionSubmissionStatus {
-    DroppedAndReplaced = 'dropped_and_replaced',
-    Presubmit = 'presubmit', // Transaction created but not yet broadcast
-    RevertedConfirmed = 'reverted_confirmed',
-    RevertedUnconfirmed = 'reverted_unconfirmed',
-    Submitted = 'submitted',
-    SucceededConfirmed = 'succeeded_confirmed',
-    SucceededUnconfirmed = 'succeeded_unconfirmed',
-}
+import { RfqmTransactionSubmissionStatus } from './types';
 
 @Entity({ name: 'rfqm_transaction_submissions' })
 export class RfqmTransactionSubmissionEntity {

@@ -5,15 +5,10 @@ import { In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
-import {
-    RfqmJobConstructorOpts,
-    RfqmJobStatus,
-    RfqmOrderTypes,
-    StoredFee,
-    StoredOrder,
-} from '../entities/RfqmJobEntity';
+import { RfqmJobConstructorOpts, StoredOrder } from '../entities/RfqmJobEntity';
 import { RfqmQuoteConstructorOpts } from '../entities/RfqmQuoteEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../entities/types';
 
 export type RfqmOrder = RfqOrder;
 

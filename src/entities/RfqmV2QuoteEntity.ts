@@ -1,18 +1,18 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-import { StoredOrder } from './RfqmJobEntity';
+import { StoredOtcOrder } from './RfqmV2JobEntity';
 import { StoredFee } from './types';
 
-export type RfqmQuoteConstructorOpts = Pick<RfqmQuoteEntity, 'chainId' | 'makerUri' | 'orderHash'> &
-    Partial<RfqmQuoteEntity>;
+export type RfqmV2QuoteConstructorOpts = Pick<
+    RfqmV2QuoteEntity,
+    'chainId' | 'fee' | 'makerUri' | 'orderHash' | 'order'
+> &
+    Partial<RfqmV2QuoteEntity>;
 
-@Entity({ name: 'rfqm_quotes' })
-export class RfqmQuoteEntity {
+@Entity({ name: 'rfqm_v2_quotes' })
+export class RfqmV2QuoteEntity {
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
-
-    @Column({ name: 'metatransaction_hash', type: 'varchar', nullable: true, unique: true })
-    public metaTransactionHash: string | null;
 
     @Index()
     @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
@@ -27,29 +27,34 @@ export class RfqmQuoteEntity {
     @Column({ name: 'maker_uri', type: 'varchar' })
     public makerUri: string;
 
-    @Column({ name: 'fee', type: 'jsonb', nullable: true })
-    public fee: StoredFee | null;
+    @Column({ name: 'fee', type: 'jsonb' })
+    public fee: StoredFee;
 
-    @Column({ name: 'order', type: 'jsonb', nullable: true })
-    public order: StoredOrder | null;
+    @Column({ name: 'order', type: 'jsonb' })
+    public order: StoredOtcOrder;
+
+    // Whether the maker wrapped native token will be unwrapped to the native token
+    // when passed to the taker
+    @Column({ name: 'is_unwrap', type: 'boolean' })
+    public isUnwrap: boolean;
 
     @Column({ name: 'affiliate_address', type: 'varchar', nullable: true })
     public affiliateAddress: string | null;
 
     // tslint:disable-next-line no-object-literal-type-assertion
-    constructor(opts: RfqmQuoteConstructorOpts = {} as RfqmQuoteConstructorOpts) {
+    constructor(opts: RfqmV2QuoteConstructorOpts = {} as RfqmV2QuoteConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;
         }
 
-        this.affiliateAddress = opts.affiliateAddress || null;
+        this.affiliateAddress = opts.affiliateAddress ?? null;
         this.chainId = opts.chainId;
-        this.fee = opts.fee || null;
-        this.integratorId = opts.integratorId || null;
+        this.fee = opts.fee;
+        this.integratorId = opts.integratorId ?? null;
+        this.isUnwrap = opts.isUnwrap ?? false;
         this.makerUri = opts.makerUri;
-        this.metaTransactionHash = opts.metaTransactionHash || null;
-        this.order = opts.order || null;
+        this.order = opts.order;
         this.orderHash = opts.orderHash;
     }
 }
