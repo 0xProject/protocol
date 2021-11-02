@@ -1,5 +1,15 @@
 [
     {
+        "timestamp": 1635894422,
+        "version": "0.29.3",
+        "changes": [
+            {
+                "note": "Add OtcOrders to FullMigration",
+                "pr": 350
+            }
+        ]
+    },
+    {
         "timestamp": 1634668033,
         "version": "0.29.2",
         "changes": [
