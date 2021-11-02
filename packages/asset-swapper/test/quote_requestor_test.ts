@@ -800,7 +800,7 @@ describe('QuoteRequestor', async () => {
                             makerEndpointMaxResponseTimeMs: maxTimeoutMs,
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1].sort()); // notice only one result, despite two requests made
+                    expect(resp.sort()).to.eql([{ ...successfulQuote1, makerUri: 'https://1337.0.0.1' }].sort()); // notice only one result, despite two requests made
                 },
                 quoteRequestorHttpClient,
             );
@@ -863,7 +863,7 @@ describe('QuoteRequestor', async () => {
                             intentOnFilling: true,
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1].sort());
+                    expect(resp.sort()).to.eql([{ ...successfulQuote1, makerUri: 'https://1337.0.0.1' }].sort());
                 },
                 quoteRequestorHttpClient,
             );
