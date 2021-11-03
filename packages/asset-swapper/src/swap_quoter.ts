@@ -1,4 +1,4 @@
-import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
@@ -26,9 +26,8 @@ import {
 } from './types';
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
-import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
-import { DexOrderSampler } from './utils/market_operation_utils/sampler';
+import { SamplerClient } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
     ERC20BridgeSource,
@@ -85,20 +84,15 @@ export class SwapQuoter {
      *
      * @return  An instance of SwapQuoter
      */
-    constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: Partial<SwapQuoterOpts> = {}) {
+    constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: SwapQuoterOpts) {
         const {
             chainId,
             expiryBufferMs,
             permittedOrderFeeTypes,
-            samplerGasLimit,
             rfqt,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
+        } = options;
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
-        assert.isNumber('chainId', chainId);
-        assert.isNumber('expiryBufferMs', expiryBufferMs);
         this.chainId = chainId;
         this.provider = provider;
         this.orderbook = orderbook;
@@ -113,45 +107,11 @@ export class SwapQuoter {
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
             options.ethGasStationUrl,
         );
-        // Allow the sampler bytecode to be overwritten using geths override functionality
-        const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
-        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
-        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
-        const defaultCodeOverrides = samplerBytecode
-            ? {
-                  [samplerAddress]: { code: samplerBytecode },
-              }
-            : {};
-        const samplerOverrides = _.assign(
-            { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
-            options.samplerOverrides,
-        );
-        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
-        const samplerContract = new ERC20BridgeSamplerContract(
-            samplerAddress,
-            this.provider,
-            {
-                gas: samplerGasLimit,
-            },
-            {},
-            undefined,
-            {
-                encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-                decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
-            },
-        );
 
         this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(
+            SamplerClient.createFromChainIdAndEndpoint(
                 this.chainId,
-                samplerContract,
-                samplerOverrides,
-                undefined, // pools caches for balancer and cream
-                tokenAdjacencyGraph,
-                liquidityProviderRegistry,
-                this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
-                    ? async () => BancorService.createAsync(provider)
-                    : async () => undefined,
+                options.samplerServiceUrl,
             ),
             this._contractAddresses,
             {
@@ -243,49 +203,50 @@ export class SwapQuoter {
         takerAssetAmount: BigNumber,
         options: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketDepth> {
-        assert.isString('makerToken', makerToken);
-        assert.isString('takerToken', takerToken);
-        const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
-
-        let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
-            ? [[], []]
-            : await Promise.all([
-                  this.orderbook.getOrdersAsync(makerToken, takerToken),
-                  this.orderbook.getOrdersAsync(takerToken, makerToken),
-              ]);
-        if (!sellOrders || sellOrders.length === 0) {
-            sellOrders = [createDummyOrder(makerToken, takerToken)];
-        }
-        if (!buyOrders || buyOrders.length === 0) {
-            buyOrders = [createDummyOrder(takerToken, makerToken)];
-        }
-
-        const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
-            const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
-            const { side } = marketSideLiquidity;
-
-            return [
-                ...dexQuotes,
-                nativeOrders.map(o => {
-                    return {
-                        input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
-                        output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
-                        fillData: o,
-                        source: ERC20BridgeSource.Native,
-                    };
-                }),
-            ];
-        };
-        const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
-        ]);
-        return {
-            bids: getMarketDepthSide(bids),
-            asks: getMarketDepthSide(asks),
-            makerTokenDecimals: asks.makerTokenDecimals,
-            takerTokenDecimals: asks.takerTokenDecimals,
-        };
+        throw new Error(`Not implemented`);
+        // assert.isString('makerToken', makerToken);
+        // assert.isString('takerToken', takerToken);
+        // const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
+        //
+        // let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
+        //     ? [[], []]
+        //     : await Promise.all([
+        //           this.orderbook.getOrdersAsync(makerToken, takerToken),
+        //           this.orderbook.getOrdersAsync(takerToken, makerToken),
+        //       ]);
+        // if (!sellOrders || sellOrders.length === 0) {
+        //     sellOrders = [createDummyOrder(makerToken, takerToken)];
+        // }
+        // if (!buyOrders || buyOrders.length === 0) {
+        //     buyOrders = [createDummyOrder(takerToken, makerToken)];
+        // }
+        //
+        // const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
+        //     const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
+        //     const { side } = marketSideLiquidity;
+        //
+        //     return [
+        //         ...dexQuotes,
+        //         nativeOrders.map(o => {
+        //             return {
+        //                 input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
+        //                 output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
+        //                 fillData: o,
+        //                 source: ERC20BridgeSource.Native,
+        //             };
+        //         }),
+        //     ];
+        // };
+        // const [bids, asks] = await Promise.all([
+        //     this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
+        //     this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
+        // ]);
+        // return {
+        //     bids: getMarketDepthSide(bids),
+        //     asks: getMarketDepthSide(asks),
+        //     makerTokenDecimals: asks.makerTokenDecimals,
+        //     takerTokenDecimals: asks.takerTokenDecimals,
+        // };
     }
 
     /**

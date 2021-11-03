@@ -45,8 +45,8 @@ function calculateOuputFee(
     fees: FeeSchedule,
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
-        const { input, output, source, fillData } = sampleOrNativeOrder;
-        const fee = fees[source]?.(fillData) || 0;
+        const { input, output, source, encodedFillData } = sampleOrNativeOrder;
+        const fee = fees[source]?.(encodedFillData) || 0;
         const outputFee = ethToOutputAmount({
             input,
             output,
@@ -259,7 +259,7 @@ function findRoutesAndCreateOptimalPath(
 
         // NOTE: For DexSamples only
         let fill = createFill(current);
-        const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
+        const routeSamples = routeSamplesAndNativeOrders as Array<DexSample>;
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
         // gas used

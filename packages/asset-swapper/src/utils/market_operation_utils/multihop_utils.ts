@@ -38,41 +38,42 @@ export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
-): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
-    const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
-    const { twoHopQuotes } = quotes;
-    // Ensure the expected data we require exists. In the case where all hops reverted
-    // or there were no sources included that allowed for multi hop,
-    // we can end up with empty, but not undefined, fill data
-    const filteredQuotes = twoHopQuotes.filter(
-        quote =>
-            quote &&
-            quote.fillData &&
-            quote.fillData.firstHopSource &&
-            quote.fillData.secondHopSource &&
-            quote.output.isGreaterThan(ZERO_AMOUNT),
-    );
-    if (filteredQuotes.length === 0) {
-        return { quote: undefined, adjustedRate: ZERO_AMOUNT };
-    }
-    const best = filteredQuotes
-        .map(quote =>
-            getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, feeSchedule, exchangeProxyOverhead),
-        )
-        .reduce(
-            (prev, curr, i) =>
-                curr.isGreaterThan(prev.adjustedRate) ? { adjustedRate: curr, quote: filteredQuotes[i] } : prev,
-            {
-                adjustedRate: getTwoHopAdjustedRate(
-                    side,
-                    filteredQuotes[0],
-                    inputAmount,
-                    outputAmountPerEth,
-                    feeSchedule,
-                    exchangeProxyOverhead,
-                ),
-                quote: filteredQuotes[0],
-            },
-        );
-    return best;
+): { quote: DexSample | undefined; adjustedRate: BigNumber } {
+    throw new Error(`No implementado`);
+    // const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
+    // const { twoHopQuotes } = quotes;
+    // // Ensure the expected data we require exists. In the case where all hops reverted
+    // // or there were no sources included that allowed for multi hop,
+    // // we can end up with empty, but not undefined, fill data
+    // const filteredQuotes = twoHopQuotes.filter(
+    //     quote =>
+    //         quote &&
+    //         quote.fillData &&
+    //         quote.fillData.firstHopSource &&
+    //         quote.fillData.secondHopSource &&
+    //         quote.output.isGreaterThan(ZERO_AMOUNT),
+    // );
+    // if (filteredQuotes.length === 0) {
+    //     return { quote: undefined, adjustedRate: ZERO_AMOUNT };
+    // }
+    // const best = filteredQuotes
+    //     .map(quote =>
+    //         getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, feeSchedule, exchangeProxyOverhead),
+    //     )
+    //     .reduce(
+    //         (prev, curr, i) =>
+    //             curr.isGreaterThan(prev.adjustedRate) ? { adjustedRate: curr, quote: filteredQuotes[i] } : prev,
+    //         {
+    //             adjustedRate: getTwoHopAdjustedRate(
+    //                 side,
+    //                 filteredQuotes[0],
+    //                 inputAmount,
+    //                 outputAmountPerEth,
+    //                 feeSchedule,
+    //                 exchangeProxyOverhead,
+    //             ),
+    //             quote: filteredQuotes[0],
+    //         },
+    //     );
+    // return best;
 }

@@ -22,6 +22,9 @@ import {
 import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { MetricsProxy } from './utils/quote_requestor';
 
+export type Address = string;
+export type Bytes = string;
+
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
  * permittedOrderFeeTypes: A set of all the takerFee types that OrderPruner will filter for
@@ -326,15 +329,16 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     chainId: ChainId;
     orderRefreshIntervalMs: number;
     expiryBufferMs: number;
-    ethereumRpcUrl?: string;
+    // ethereumRpcUrl?: string;
     contractAddresses?: AssetSwapperContractAddresses;
     samplerGasLimit?: number;
-    multiBridgeAddress?: string;
+    // multiBridgeAddress?: string;
     ethGasStationUrl?: string;
     rfqt?: SwapQuoterRfqOpts;
-    samplerOverrides?: SamplerOverrides;
-    tokenAdjacencyGraph?: TokenAdjacencyGraph;
-    liquidityProviderRegistry?: LiquidityProviderRegistry;
+    // samplerOverrides?: SamplerOverrides;
+    // tokenAdjacencyGraph?: TokenAdjacencyGraph;
+    // liquidityProviderRegistry?: LiquidityProviderRegistry;
+    samplerServiceUrl: string;
 }
 
 /**

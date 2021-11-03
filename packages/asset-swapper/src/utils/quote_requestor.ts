@@ -282,7 +282,7 @@ export class QuoteRequestor {
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
-        private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _expiryBufferMs: number = 120e3,
         private readonly _metrics?: MetricsProxy,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;

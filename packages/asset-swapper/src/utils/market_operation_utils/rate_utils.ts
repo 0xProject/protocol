@@ -13,25 +13,26 @@ import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, Multi
  */
 export function getTwoHopAdjustedRate(
     side: MarketOperation,
-    twoHopQuote: DexSample<MultiHopFillData>,
+    twoHopQuote: DexSample,
     targetInput: BigNumber,
     outputAmountPerEth: BigNumber,
     fees: FeeSchedule = {},
     exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
 ): BigNumber {
-    const { output, input, fillData } = twoHopQuote;
-    if (input.isLessThan(targetInput) || output.isZero()) {
-        return ZERO_AMOUNT;
-    }
-    const penalty = outputAmountPerEth.times(
-        exchangeProxyOverhead(
-            SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[fillData.firstHopSource.source] |
-                SOURCE_FLAGS[fillData.secondHopSource.source],
-        ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
-    );
-    const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
-    return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
+    throw new Error(`Not implemented`);
+    // const { output, input, fillData } = twoHopQuote;
+    // if (input.isLessThan(targetInput) || output.isZero()) {
+    //     return ZERO_AMOUNT;
+    // }
+    // const penalty = outputAmountPerEth.times(
+    //     exchangeProxyOverhead(
+    //         SOURCE_FLAGS.MultiHop |
+    //             SOURCE_FLAGS[fillData.firstHopSource.source] |
+    //             SOURCE_FLAGS[fillData.secondHopSource.source],
+    //     ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
+    // );
+    // const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
+    // return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
 }
 
 /**

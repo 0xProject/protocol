@@ -80,6 +80,7 @@
         "@ethersproject/contracts": "^5.0.1",
         "@ethersproject/providers": "^5.0.4",
         "@ethersproject/strings": "^5.0.10",
+        "@open-rpc/client-js": "^1.7.1",
         "axios": "^0.21.1",
         "axios-mock-adapter": "^1.19.0",
         "cream-sor": "^0.3.3",

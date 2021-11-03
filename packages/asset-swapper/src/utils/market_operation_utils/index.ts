@@ -40,7 +40,7 @@ import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
 import { fillsToSortedPaths, findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
-import { DexOrderSampler, getSampleAmounts } from './sampler';
+import { Sampler } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
     AggregationError,
@@ -65,7 +65,6 @@ export class MarketOperationUtils {
     private readonly _buySources: SourceFilters;
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
-    private readonly _nativeFeeTokenAmount: BigNumber;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -73,9 +72,10 @@ export class MarketOperationUtils {
         optimizerResult: OptimizerResult,
         comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
-        const { side, quotes } = marketSideLiquidity;
-        const { liquidityDelivered } = optimizerResult;
-        return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
+        throw new Error(`Not implemented`);
+        // const { side, quotes } = marketSideLiquidity;
+        // const { liquidityDelivered } = optimizerResult;
+        // return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
     }
 
     private static _computePriceComparisonsReport(
@@ -83,24 +83,25 @@ export class MarketOperationUtils {
         marketSideLiquidity: MarketSideLiquidity,
         comparisonPrice?: BigNumber | undefined,
     ): PriceComparisonsReport {
-        const { side, quotes } = marketSideLiquidity;
-        const dexSources = _.flatten(quotes.dexQuotes).map(quote => dexSampleToReportSource(quote, side));
-        const multiHopSources = quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, side));
-        const nativeSources = quotes.nativeOrders.map(order =>
-            nativeOrderToReportEntry(
-                order.type,
-                order as any,
-                order.fillableTakerAmount,
-                comparisonPrice,
-                quoteRequestor,
-            ),
-        );
-
-        return { dexSources, multiHopSources, nativeSources };
+        throw new Error(`Not implemented`);
+        // const { side, quotes } = marketSideLiquidity;
+        // const dexSources = _.flatten(quotes.dexQuotes).map(quote => dexSampleToReportSource(quote, side));
+        // const multiHopSources = quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, side));
+        // const nativeSources = quotes.nativeOrders.map(order =>
+        //     nativeOrderToReportEntry(
+        //         order.type,
+        //         order as any,
+        //         order.fillableTakerAmount,
+        //         comparisonPrice,
+        //         quoteRequestor,
+        //     ),
+        // );
+        //
+        // return { dexSources, multiHopSources, nativeSources };
     }
 
     constructor(
-        private readonly _sampler: DexOrderSampler,
+        private readonly _sampler: Sampler,
         private readonly contractAddresses: AssetSwapperContractAddresses,
         private readonly _orderDomain: OrderDomain,
     ) {
@@ -108,7 +109,6 @@ export class MarketOperationUtils {
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
         this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId]);
         this._nativeFeeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[_sampler.chainId];
-        this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[_sampler.chainId];
     }
 
     /**
@@ -125,87 +125,53 @@ export class MarketOperationUtils {
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const { makerToken, takerToken } = nativeOrders[0].order;
-        const sampleAmounts = getSampleAmounts(takerAmount, _opts.numSamples, _opts.sampleDistributionBase);
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        // Used to determine whether the tx origin is an EOA or a contract
-        const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
-
-        // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
-            // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get sell quotes for taker -> maker.
-            this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
-            this._sampler.getTwoHopSellQuotes(
-                quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-                makerToken,
-                takerToken,
-                takerAmount,
-            ),
-            this._sampler.isAddressContract(txOrigin),
-        );
-
-        // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
-
         const [
-            [
-                tokenDecimals,
-                orderFillableTakerAmounts,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-            ],
-        ] = await Promise.all([samplerPromise]);
+            tokenInfos,
+            [makerTokenToEthPrice, takerTokenToEthPrice],
+            dexQuotes,
+        ] = await Promise.all([
+            this._sampler.getTokenInfosAsync(
+                [makerToken, takerToken],
+            ),
+            this._sampler.getPricesAsync(
+                [
+                    [makerToken, this._nativeFeeToken],
+                    [takerToken, this._nativeFeeToken],
+                ],
+                feeSourceFilters.sources,
+            ),
+            this._sampler.getSellLiquidityAsync(
+                [makerToken, takerToken],
+                takerAmount,
+                quoteSourceFilters.sources,
+            ),
+        ]);
 
-        // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
-        );
+        const [makerTokenInfo, takerTokenInfo] = tokenInfos;
+        const makerTokenDecimals = makerTokenInfo.decimals;
+        const takerTokenDecimals = takerTokenInfo.decimals;
 
-        const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
-
-        const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
-        const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
-            ...order,
-            ...getNativeAdjustedFillableAmountsFromTakerAmount(order, orderFillableTakerAmounts[i]),
-        }));
+        const isRfqSupported = !!_opts.rfqt;
 
         return {
             side: MarketOperation.Sell,
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            outputAmountPerEth,
-            inputAmountPerEth,
+            outputAmountPerEth: makerTokenToEthPrice,
+            inputAmountPerEth: takerTokenToEthPrice,
             quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals.toNumber(),
-            takerTokenDecimals: takerTokenDecimals.toNumber(),
+            makerTokenDecimals: makerTokenDecimals,
+            takerTokenDecimals: takerTokenDecimals,
             quotes: {
-                nativeOrders: limitOrdersWithFillableAmounts,
+                nativeOrders: [],
                 rfqtIndicativeQuotes: [],
-                twoHopQuotes,
+                // twoHopQuotes: [],
                 dexQuotes,
             },
             isRfqSupported,
@@ -224,93 +190,94 @@ export class MarketOperationUtils {
         makerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
-        const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
-        const { makerToken, takerToken } = nativeOrders[0].order;
-        const sampleAmounts = getSampleAmounts(makerAmount, _opts.numSamples, _opts.sampleDistributionBase);
-
-        const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
-        const quoteSourceFilters = this._buySources.merge(requestFilters);
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
-
-        // Used to determine whether the tx origin is an EOA or a contract
-        const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
-
-        // Call the sampler contract.
-        const samplerPromise = this._sampler.executeAsync(
-            this._sampler.getTokenDecimals([makerToken, takerToken]),
-            // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
-            // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                makerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
-                feeSourceFilters.sources,
-                takerToken,
-                this._nativeFeeToken,
-                this._nativeFeeTokenAmount,
-            ),
-            // Get buy quotes for taker -> maker.
-            this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
-            this._sampler.getTwoHopBuyQuotes(
-                quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
-                makerToken,
-                takerToken,
-                makerAmount,
-            ),
-            this._sampler.isAddressContract(txOrigin),
-        );
-
-        // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
-
-        const [
-            [
-                tokenDecimals,
-                orderFillableMakerAmounts,
-                ethToMakerAssetRate,
-                ethToTakerAssetRate,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-            ],
-        ] = await Promise.all([samplerPromise]);
-
-        // Filter out any invalid two hop quotes where we couldn't find a route
-        const twoHopQuotes = rawTwoHopQuotes.filter(
-            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
-        );
-
-        const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
-        const isRfqSupported = !isTxOriginContract;
-
-        const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
-            ...order,
-            ...getNativeAdjustedFillableAmountsFromMakerAmount(order, orderFillableMakerAmounts[i]),
-        }));
-
-        return {
-            side: MarketOperation.Buy,
-            inputAmount: makerAmount,
-            inputToken: makerToken,
-            outputToken: takerToken,
-            outputAmountPerEth: ethToTakerAssetRate,
-            inputAmountPerEth: ethToMakerAssetRate,
-            quoteSourceFilters,
-            makerTokenDecimals: makerTokenDecimals.toNumber(),
-            takerTokenDecimals: takerTokenDecimals.toNumber(),
-            quotes: {
-                nativeOrders: limitOrdersWithFillableAmounts,
-                rfqtIndicativeQuotes: [],
-                twoHopQuotes,
-                dexQuotes,
-            },
-            isRfqSupported,
-        };
+        throw new Error(`Not implemented`);
+        // const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        // const { makerToken, takerToken } = nativeOrders[0].order;
+        // const sampleAmounts = getSampleAmounts(makerAmount, _opts.numSamples, _opts.sampleDistributionBase);
+        //
+        // const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
+        // const quoteSourceFilters = this._buySources.merge(requestFilters);
+        // const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
+        //
+        // // Used to determine whether the tx origin is an EOA or a contract
+        // const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
+        //
+        // // Call the sampler contract.
+        // const samplerPromise = this._sampler.executeAsync(
+        //     this._sampler.getTokenDecimals([makerToken, takerToken]),
+        //     // Get native order fillable amounts.
+        //     this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+        //     // Get ETH -> makerToken token price.
+        //     this._sampler.getMedianSellRate(
+        //         feeSourceFilters.sources,
+        //         makerToken,
+        //         this._nativeFeeToken,
+        //         this._nativeFeeTokenAmount,
+        //     ),
+        //     // Get ETH -> taker token price.
+        //     this._sampler.getMedianSellRate(
+        //         feeSourceFilters.sources,
+        //         takerToken,
+        //         this._nativeFeeToken,
+        //         this._nativeFeeTokenAmount,
+        //     ),
+        //     // Get buy quotes for taker -> maker.
+        //     this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+        //     this._sampler.getTwoHopBuyQuotes(
+        //         quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
+        //         makerToken,
+        //         takerToken,
+        //         makerAmount,
+        //     ),
+        //     this._sampler.isAddressContract(txOrigin),
+        // );
+        //
+        // // Refresh the cached pools asynchronously if required
+        // void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+        //
+        // const [
+        //     [
+        //         tokenDecimals,
+        //         orderFillableMakerAmounts,
+        //         ethToMakerAssetRate,
+        //         ethToTakerAssetRate,
+        //         dexQuotes,
+        //         rawTwoHopQuotes,
+        //         isTxOriginContract,
+        //     ],
+        // ] = await Promise.all([samplerPromise]);
+        //
+        // // Filter out any invalid two hop quotes where we couldn't find a route
+        // const twoHopQuotes = rawTwoHopQuotes.filter(
+        //     q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+        // );
+        //
+        // const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+        // const isRfqSupported = !isTxOriginContract;
+        //
+        // const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
+        //     ...order,
+        //     ...getNativeAdjustedFillableAmountsFromMakerAmount(order, orderFillableMakerAmounts[i]),
+        // }));
+        //
+        // return {
+        //     side: MarketOperation.Buy,
+        //     inputAmount: makerAmount,
+        //     inputToken: makerToken,
+        //     outputToken: takerToken,
+        //     outputAmountPerEth: ethToTakerAssetRate,
+        //     inputAmountPerEth: ethToMakerAssetRate,
+        //     quoteSourceFilters,
+        //     makerTokenDecimals: makerTokenDecimals.toNumber(),
+        //     takerTokenDecimals: takerTokenDecimals.toNumber(),
+        //     quotes: {
+        //         nativeOrders: limitOrdersWithFillableAmounts,
+        //         rfqtIndicativeQuotes: [],
+        //         twoHopQuotes,
+        //         dexQuotes,
+        //     },
+        //     isRfqSupported,
+        // };
     }
 
     /**
@@ -329,98 +296,99 @@ export class MarketOperationUtils {
         makerAmounts: BigNumber[],
         opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
     ): Promise<Array<OptimizerResult | undefined>> {
-        if (batchNativeOrders.length === 0) {
-            throw new Error(AggregationError.EmptyOrders);
-        }
-        const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
-
-        const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
-        const quoteSourceFilters = this._buySources.merge(requestFilters);
-
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
-
-        const ops = [
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
-            ),
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getMedianSellRate(
-                    feeSourceFilters.sources,
-                    orders[0].order.takerToken,
-                    this._nativeFeeToken,
-                    this._nativeFeeTokenAmount,
-                ),
-            ),
-            ...batchNativeOrders.map((orders, i) =>
-                this._sampler.getBuyQuotes(
-                    quoteSourceFilters.sources,
-                    orders[0].order.makerToken,
-                    orders[0].order.takerToken,
-                    [makerAmounts[i]],
-                ),
-            ),
-            ...batchNativeOrders.map(orders =>
-                this._sampler.getTokenDecimals([orders[0].order.makerToken, orders[0].order.takerToken]),
-            ),
-        ];
-
-        const executeResults = await this._sampler.executeBatchAsync(ops);
-        const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
-        const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
-        const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
-        const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
-        const inputAmountPerEth = ZERO_AMOUNT;
-
-        return Promise.all(
-            batchNativeOrders.map(async (nativeOrders, i) => {
-                if (nativeOrders.length === 0) {
-                    throw new Error(AggregationError.EmptyOrders);
-                }
-                const { makerToken, takerToken } = nativeOrders[0].order;
-                const orderFillableMakerAmounts = batchOrderFillableMakerAmounts[i];
-                const outputAmountPerEth = batchEthToTakerAssetRate[i];
-                const dexQuotes = batchDexQuotes[i];
-                const makerAmount = makerAmounts[i];
-                try {
-                    const optimizerResult = await this._generateOptimizedOrdersAsync(
-                        {
-                            side: MarketOperation.Buy,
-                            inputToken: makerToken,
-                            outputToken: takerToken,
-                            inputAmount: makerAmount,
-                            outputAmountPerEth,
-                            inputAmountPerEth,
-                            quoteSourceFilters,
-                            makerTokenDecimals: batchTokenDecimals[i][0],
-                            takerTokenDecimals: batchTokenDecimals[i][1],
-                            quotes: {
-                                nativeOrders: nativeOrders.map((o, k) => ({
-                                    ...o,
-                                    ...getNativeAdjustedFillableAmountsFromMakerAmount(o, orderFillableMakerAmounts[k]),
-                                })),
-                                dexQuotes,
-                                rfqtIndicativeQuotes: [],
-                                twoHopQuotes: [],
-                            },
-                            isRfqSupported: false,
-                        },
-                        {
-                            bridgeSlippage: _opts.bridgeSlippage,
-                            maxFallbackSlippage: _opts.maxFallbackSlippage,
-                            excludedSources: _opts.excludedSources,
-                            feeSchedule: _opts.feeSchedule,
-                            allowFallback: _opts.allowFallback,
-                            gasPrice: _opts.gasPrice,
-                        },
-                    );
-                    return optimizerResult;
-                } catch (e) {
-                    // It's possible for one of the pairs to have no path
-                    // rather than throw NO_OPTIMAL_PATH we return undefined
-                    return undefined;
-                }
-            }),
-        );
+        throw new Error(`Not implemented`);
+        // if (batchNativeOrders.length === 0) {
+        //     throw new Error(AggregationError.EmptyOrders);
+        // }
+        // const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+        //
+        // const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
+        // const quoteSourceFilters = this._buySources.merge(requestFilters);
+        //
+        // const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
+        //
+        // const ops = [
+        //     ...batchNativeOrders.map(orders =>
+        //         this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
+        //     ),
+        //     ...batchNativeOrders.map(orders =>
+        //         this._sampler.getMedianSellRate(
+        //             feeSourceFilters.sources,
+        //             orders[0].order.takerToken,
+        //             this._nativeFeeToken,
+        //             this._nativeFeeTokenAmount,
+        //         ),
+        //     ),
+        //     ...batchNativeOrders.map((orders, i) =>
+        //         this._sampler.getBuyQuotes(
+        //             quoteSourceFilters.sources,
+        //             orders[0].order.makerToken,
+        //             orders[0].order.takerToken,
+        //             [makerAmounts[i]],
+        //         ),
+        //     ),
+        //     ...batchNativeOrders.map(orders =>
+        //         this._sampler.getTokenDecimals([orders[0].order.makerToken, orders[0].order.takerToken]),
+        //     ),
+        // ];
+        //
+        // const executeResults = await this._sampler.executeBatchAsync(ops);
+        // const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
+        // const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
+        // const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
+        // const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
+        // const inputAmountPerEth = ZERO_AMOUNT;
+        //
+        // return Promise.all(
+        //     batchNativeOrders.map(async (nativeOrders, i) => {
+        //         if (nativeOrders.length === 0) {
+        //             throw new Error(AggregationError.EmptyOrders);
+        //         }
+        //         const { makerToken, takerToken } = nativeOrders[0].order;
+        //         const orderFillableMakerAmounts = batchOrderFillableMakerAmounts[i];
+        //         const outputAmountPerEth = batchEthToTakerAssetRate[i];
+        //         const dexQuotes = batchDexQuotes[i];
+        //         const makerAmount = makerAmounts[i];
+        //         try {
+        //             const optimizerResult = await this._generateOptimizedOrdersAsync(
+        //                 {
+        //                     side: MarketOperation.Buy,
+        //                     inputToken: makerToken,
+        //                     outputToken: takerToken,
+        //                     inputAmount: makerAmount,
+        //                     outputAmountPerEth,
+        //                     inputAmountPerEth,
+        //                     quoteSourceFilters,
+        //                     makerTokenDecimals: batchTokenDecimals[i][0],
+        //                     takerTokenDecimals: batchTokenDecimals[i][1],
+        //                     quotes: {
+        //                         nativeOrders: nativeOrders.map((o, k) => ({
+        //                             ...o,
+        //                             ...getNativeAdjustedFillableAmountsFromMakerAmount(o, orderFillableMakerAmounts[k]),
+        //                         })),
+        //                         dexQuotes,
+        //                         rfqtIndicativeQuotes: [],
+        //                         twoHopQuotes: [],
+        //                     },
+        //                     isRfqSupported: false,
+        //                 },
+        //                 {
+        //                     bridgeSlippage: _opts.bridgeSlippage,
+        //                     maxFallbackSlippage: _opts.maxFallbackSlippage,
+        //                     excludedSources: _opts.excludedSources,
+        //                     feeSchedule: _opts.feeSchedule,
+        //                     allowFallback: _opts.allowFallback,
+        //                     gasPrice: _opts.gasPrice,
+        //                 },
+        //             );
+        //             return optimizerResult;
+        //         } catch (e) {
+        //             // It's possible for one of the pairs to have no path
+        //             // rather than throw NO_OPTIMAL_PATH we return undefined
+        //             return undefined;
+        //         }
+        //     }),
+        // );
     }
 
     public async _generateOptimizedOrdersAsync(
@@ -515,7 +483,7 @@ export class MarketOperationUtils {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {
                 optimizedOrders: twoHopOrders,
-                liquidityDelivered: bestTwoHopQuote,
+                // liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
@@ -536,7 +504,7 @@ export class MarketOperationUtils {
 
         return {
             optimizedOrders: collapsedPath.orders,
-            liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
+            // liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
@@ -711,17 +679,6 @@ export class MarketOperationUtils {
             );
         }
         return { ...optimizerResult, quoteReport, priceComparisonsReport };
-    }
-
-    private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
-        void Promise.all(
-            Object.values(this._sampler.poolsCaches).map(async cache => {
-                if (cache.isFresh(takerToken, makerToken)) {
-                    return Promise.resolve([]);
-                }
-                return cache.getFreshPoolsForPairAsync(takerToken, makerToken);
-            }),
-        );
     }
 
     // tslint:disable-next-line: prefer-function-over-method

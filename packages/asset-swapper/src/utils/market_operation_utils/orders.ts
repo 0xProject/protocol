@@ -48,33 +48,34 @@ export interface CreateOrderFromPathOpts {
 }
 
 export function createOrdersFromTwoHopSample(
-    sample: DexSample<MultiHopFillData>,
+    sample: DexSample,
     opts: CreateOrderFromPathOpts,
 ): OptimizedMarketOrder[] {
-    const [makerToken, takerToken] = getMakerTakerTokens(opts);
-    const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
-    const firstHopFill: CollapsedFill = {
-        sourcePathId: '',
-        source: firstHopSource.source,
-        type: FillQuoteTransformerOrderType.Bridge,
-        input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
-        output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
-        subFills: [],
-        fillData: firstHopSource.fillData,
-    };
-    const secondHopFill: CollapsedFill = {
-        sourcePathId: '',
-        source: secondHopSource.source,
-        type: FillQuoteTransformerOrderType.Bridge,
-        input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
-        output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
-        subFills: [],
-        fillData: secondHopSource.fillData,
-    };
-    return [
-        createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
-        createBridgeOrder(secondHopFill, makerToken, intermediateToken, opts.side),
-    ];
+    throw new Error(`Not implemented`);
+    // const [makerToken, takerToken] = getMakerTakerTokens(opts);
+    // const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
+    // const firstHopFill: CollapsedFill = {
+    //     sourcePathId: '',
+    //     source: firstHopSource.source,
+    //     type: FillQuoteTransformerOrderType.Bridge,
+    //     input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
+    //     output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
+    //     subFills: [],
+    //     fillData: firstHopSource.fillData,
+    // };
+    // const secondHopFill: CollapsedFill = {
+    //     sourcePathId: '',
+    //     source: secondHopSource.source,
+    //     type: FillQuoteTransformerOrderType.Bridge,
+    //     input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
+    //     output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
+    //     subFills: [],
+    //     fillData: secondHopSource.fillData,
+    // };
+    // return [
+    //     createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
+    //     createBridgeOrder(secondHopFill, makerToken, intermediateToken, opts.side),
+    // ];
 }
 
 export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): string {
@@ -348,42 +349,12 @@ export function createBridgeOrder(
         takerToken,
         makerAmount,
         takerAmount,
-        fillData: createFinalBridgeOrderFillDataFromCollapsedFill(fill),
+        fillData: fill.encodedFillData,
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
     };
-}
-
-function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): FillData {
-    switch (fill.source) {
-        case ERC20BridgeSource.UniswapV3: {
-            const fd = fill.fillData as UniswapV3FillData;
-            return {
-                router: fd.router,
-                tokenAddressPath: fd.tokenAddressPath,
-                uniswapPath: getBestUniswapV3PathForInputAmount(fd, fill.input),
-            };
-        }
-        default:
-            break;
-    }
-    return fill.fillData;
-}
-
-function getBestUniswapV3PathForInputAmount(fillData: UniswapV3FillData, inputAmount: BigNumber): string {
-    if (fillData.pathAmounts.length === 0) {
-        throw new Error(`No Uniswap V3 paths`);
-    }
-    // Find the best path that can satisfy `inputAmount`.
-    // Assumes `fillData.pathAmounts` is sorted ascending.
-    for (const { inputAmount: pathInputAmount, uniswapPath } of fillData.pathAmounts) {
-        if (pathInputAmount.gte(inputAmount)) {
-            return uniswapPath;
-        }
-    }
-    return fillData.pathAmounts[fillData.pathAmounts.length - 1].uniswapPath;
 }
 
 export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {
@@ -506,19 +477,20 @@ export function createNativeOptimizedOrder(
     fill: NativeCollapsedFill,
     side: MarketOperation,
 ): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
-    const fillData = fill.fillData;
-    const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
-    const base = {
-        type: fill.type,
-        source: ERC20BridgeSource.Native,
-        makerToken: fillData.order.makerToken,
-        takerToken: fillData.order.takerToken,
-        makerAmount,
-        takerAmount,
-        fills: [fill],
-        fillData,
-    };
-    return fill.type === FillQuoteTransformerOrderType.Rfq
-        ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
-        : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
+    throw new Error(`No implementado`);
+    // const fillData = fill.fillData;
+    // const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
+    // const base = {
+    //     type: fill.type,
+    //     source: ERC20BridgeSource.Native,
+    //     makerToken: fillData.order.makerToken,
+    //     takerToken: fillData.order.takerToken,
+    //     makerAmount,
+    //     takerAmount,
+    //     fills: [fill],
+    //     fillData,
+    // };
+    // return fill.type === FillQuoteTransformerOrderType.Rfq
+    //     ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
+    //     : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
 }

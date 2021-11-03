@@ -1722,13 +1722,14 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
 );
 
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
-    // TODO: Different base cost if to/from ETH.
-    let gas = 90e3;
-    const path = (fillData as UniswapV2FillData).tokenAddressPath;
-    if (path.length > 2) {
-        gas += (path.length - 2) * 60e3; // +60k for each hop.
-    }
-    return gas;
+    return 90e3;
+    // // TODO: Different base cost if to/from ETH.
+    // let gas = 90e3;
+    // const path = (fillData as UniswapV2FillData).tokenAddressPath;
+    // if (path.length > 2) {
+    //     gas += (path.length - 2) * 60e3; // +60k for each hop.
+    // }
+    // return gas;
 };
 
 /**
@@ -1777,21 +1778,23 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
-        const psmFillData = fillData as MakerPsmFillData;
-        return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;
+        return 210e3;
+        // const psmFillData = fillData as MakerPsmFillData;
+        // return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;
     },
     [ERC20BridgeSource.Mooniswap]: () => 130e3,
     [ERC20BridgeSource.Shell]: () => 170e3,
     [ERC20BridgeSource.Component]: () => 188e3,
     [ERC20BridgeSource.MultiHop]: (fillData?: FillData) => {
-        const firstHop = (fillData as MultiHopFillData).firstHopSource;
-        const secondHop = (fillData as MultiHopFillData).secondHopSource;
-        const firstHopGas = DEFAULT_GAS_SCHEDULE[firstHop.source](firstHop.fillData);
-        const secondHopGas = DEFAULT_GAS_SCHEDULE[secondHop.source](secondHop.fillData);
-        return new BigNumber(firstHopGas)
-            .plus(secondHopGas)
-            .plus(30e3)
-            .toNumber();
+        return 0;
+        // const firstHop = (fillData as MultiHopFillData).firstHopSource;
+        // const secondHop = (fillData as MultiHopFillData).secondHopSource;
+        // const firstHopGas = DEFAULT_GAS_SCHEDULE[firstHop.source](firstHop.fillData);
+        // const secondHopGas = DEFAULT_GAS_SCHEDULE[secondHop.source](secondHop.fillData);
+        // return new BigNumber(firstHopGas)
+        //     .plus(secondHopGas)
+        //     .plus(30e3)
+        //     .toNumber();
     },
     [ERC20BridgeSource.Dodo]: (fillData?: FillData) => {
         const isSellBase = (fillData as DODOFillData).isSellBase;
@@ -1801,29 +1804,32 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.DodoV2]: (_fillData?: FillData) => 100e3,
     [ERC20BridgeSource.Bancor]: (fillData?: FillData) => {
-        let gas = 200e3;
-        const path = (fillData as BancorFillData).path;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 60e3; // +60k for each hop.
-        }
-        return gas;
+        return 200e3;
+        // let gas = 200e3;
+        // const path = (fillData as BancorFillData).path;
+        // if (path.length > 2) {
+        //     gas += (path.length - 2) * 60e3; // +60k for each hop.
+        // }
+        // return gas;
     },
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
+        return 95e3;
         // TODO: Different base cost if to/from ETH.
-        let gas = 95e3;
-        const path = (fillData as UniswapV2FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 65e3; // +65k for each hop.
-        }
-        return gas;
+        // let gas = 95e3;
+        // const path = (fillData as UniswapV2FillData).tokenAddressPath;
+        // if (path.length > 2) {
+        //     gas += (path.length - 2) * 65e3; // +65k for each hop.
+        // }
+        // return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 100e3;
-        const path = (fillData as UniswapV3FillData).tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 32e3; // +32k for each hop.
-        }
-        return gas;
+        return 100e3;
+        // let gas = 100e3;
+        // const path = (fillData as UniswapV3FillData).tokenAddressPath;
+        // if (path.length > 2) {
+        //     gas += (path.length - 2) * 32e3; // +32k for each hop.
+        // }
+        // return gas;
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
 

@@ -1,7 +1,7 @@
 {
     "extends": "../../tsconfig",
-    "compilerOptions": { "outDir": "lib", "rootDir": ".", "resolveJsonModule": true },
-    "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
+    "compilerOptions": { "outDir": "lib", "rootDir": ".", "resolveJsonModule": true, "lib": ["es2019"] },
+    "include": ["./src/**/*", "./generated-wrappers/**/*"],
     "files": [
         "generated-artifacts/BalanceChecker.json",
         "generated-artifacts/ERC20BridgeSampler.json",

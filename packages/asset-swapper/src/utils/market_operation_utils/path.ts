@@ -257,7 +257,7 @@ export class Path {
                 if (prevFill.sourcePathId === fill.sourcePathId) {
                     prevFill.input = prevFill.input.plus(fill.input);
                     prevFill.output = prevFill.output.plus(fill.output);
-                    prevFill.fillData = fill.fillData;
+                    prevFill.encodedFillData = fill.encodedFillData;
                     prevFill.subFills.push(fill);
                     continue;
                 }
@@ -266,7 +266,7 @@ export class Path {
                 sourcePathId: fill.sourcePathId,
                 source: fill.source,
                 type: fill.type,
-                fillData: fill.fillData,
+                encodedFillData: fill.encodedFillData,
                 input: fill.input,
                 output: fill.output,
                 subFills: [fill],

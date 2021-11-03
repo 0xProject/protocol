@@ -95,9 +95,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
     private readonly _exchangeProxy: IZeroExContract;
 
-    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
-        const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
-        assert.isNumber('chainId', chainId);
+    constructor(public readonly contractAddresses: ContractAddresses, options: SwapQuoteConsumerOpts) {
+        const { chainId } = options;
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
         this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
@@ -276,62 +275,62 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
-            // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
-            // into WETH prior/post the trade.
-            // ETH buy/sell is supported
-            ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
-        ) {
-            const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
-            return {
-                calldataHexString: this._exchangeProxy
-                    .sellToLiquidityProvider(
-                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
-                        NULL_ADDRESS,
-                        sellAmount,
-                        minBuyAmount,
-                        encodeCurveLiquidityProviderData({
-                            curveAddress: fillData.pool.poolAddress,
-                            exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
-                            fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
-                            toCoinIdx: new BigNumber(fillData.toTokenIdx),
-                        }),
-                    )
-                    .getABIEncodedTransactionData(),
-                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
-                gasOverhead: ZERO_AMOUNT,
-            };
-        }
+        // if (
+        //     this.chainId === ChainId.Mainnet &&
+        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
+        //     // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
+        //     // into WETH prior/post the trade.
+        //     // ETH buy/sell is supported
+        //     ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
+        // ) {
+        //     const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
+        //     return {
+        //         calldataHexString: this._exchangeProxy
+        //             .sellToLiquidityProvider(
+        //                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+        //                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+        //                 CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+        //                 NULL_ADDRESS,
+        //                 sellAmount,
+        //                 minBuyAmount,
+        //                 encodeCurveLiquidityProviderData({
+        //                     curveAddress: fillData.pool.poolAddress,
+        //                     exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
+        //                     fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
+        //                     toCoinIdx: new BigNumber(fillData.toTokenIdx),
+        //                 }),
+        //             )
+        //             .getABIEncodedTransactionData(),
+        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+        //         toAddress: this._exchangeProxy.address,
+        //         allowanceTarget: this._exchangeProxy.address,
+        //         gasOverhead: ZERO_AMOUNT,
+        //     };
+        // }
 
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
-        ) {
-            const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
-            return {
-                calldataHexString: this._exchangeProxy
-                    .sellToLiquidityProvider(
-                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
-                        NULL_ADDRESS,
-                        sellAmount,
-                        minBuyAmount,
-                        poolEncoder.encode([fillData.poolAddress]),
-                    )
-                    .getABIEncodedTransactionData(),
-                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this.contractAddresses.exchangeProxy,
-                gasOverhead: ZERO_AMOUNT,
-            };
-        }
+        // if (
+        //     this.chainId === ChainId.Mainnet &&
+        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
+        // ) {
+        //     const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
+        //     return {
+        //         calldataHexString: this._exchangeProxy
+        //             .sellToLiquidityProvider(
+        //                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+        //                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+        //                 MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+        //                 NULL_ADDRESS,
+        //                 sellAmount,
+        //                 minBuyAmount,
+        //                 poolEncoder.encode([fillData.poolAddress]),
+        //             )
+        //             .getABIEncodedTransactionData(),
+        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+        //         toAddress: this._exchangeProxy.address,
+        //         allowanceTarget: this.contractAddresses.exchangeProxy,
+        //         gasOverhead: ZERO_AMOUNT,
+        //     };
+        // }
 
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {

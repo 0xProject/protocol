@@ -73,47 +73,48 @@ export interface PriceComparisonsReport {
 export function generateQuoteReport(
     marketOperation: MarketOperation,
     nativeOrders: NativeOrderWithFillableAmounts[],
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    // liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
-    const nativeOrderSourcesConsidered = nativeOrders.map(order =>
-        nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
-    );
-    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
-
-    let sourcesDelivered;
-    if (Array.isArray(liquidityDelivered)) {
-        // create easy way to look up fillable amounts
-        const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
-            nativeOrders.map(o => {
-                return [_nativeDataToId(o), o.fillableTakerAmount];
-            }),
-        );
-        // map sources delivered
-        sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-            if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
-                return nativeOrderToReportEntry(
-                    collapsedFill.type,
-                    collapsedFill.fillData,
-                    nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
-                    comparisonPrice,
-                    quoteRequestor,
-                );
-            } else {
-                return dexSampleToReportSource(collapsedFill, marketOperation);
-            }
-        });
-    } else {
-        sourcesDelivered = [
-            // tslint:disable-next-line: no-unnecessary-type-assertion
-            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
-        ];
-    }
-    return {
-        sourcesConsidered,
-        sourcesDelivered,
-    };
+    throw new Error(`Not implemented`);
+    // const nativeOrderSourcesConsidered = nativeOrders.map(order =>
+    //     nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
+    // );
+    // const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
+    //
+    // let sourcesDelivered;
+    // if (Array.isArray(liquidityDelivered)) {
+    //     // create easy way to look up fillable amounts
+    //     const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
+    //         nativeOrders.map(o => {
+    //             return [_nativeDataToId(o), o.fillableTakerAmount];
+    //         }),
+    //     );
+    //     // map sources delivered
+    //     sourcesDelivered = liquidityDelivered.map(collapsedFill => {
+    //         if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
+    //             return nativeOrderToReportEntry(
+    //                 collapsedFill.type,
+    //                 collapsedFill.fillData,
+    //                 nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
+    //                 comparisonPrice,
+    //                 quoteRequestor,
+    //             );
+    //         } else {
+    //             return dexSampleToReportSource(collapsedFill, marketOperation);
+    //         }
+    //     });
+    // } else {
+    //     sourcesDelivered = [
+    //         // tslint:disable-next-line: no-unnecessary-type-assertion
+    //         multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+    //     ];
+    // }
+    // return {
+    //     sourcesConsidered,
+    //     sourcesDelivered,
+    // };
 }
 
 function _nativeDataToId(data: { signature: Signature }): string {
@@ -126,31 +127,32 @@ function _nativeDataToId(data: { signature: Signature }): string {
  * NOTE: this is used for the QuoteReport and quote price comparison data
  */
 export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
-    const liquiditySource = ds.source;
-
-    if (liquiditySource === ERC20BridgeSource.Native) {
-        throw new Error(`Unexpected liquidity source Native`);
-    }
-
-    // input and output map to different values
-    // based on the market operation
-    if (marketOperation === MarketOperation.Buy) {
-        return {
-            makerAmount: ds.input,
-            takerAmount: ds.output,
-            liquiditySource,
-            fillData: ds.fillData,
-        };
-    } else if (marketOperation === MarketOperation.Sell) {
-        return {
-            makerAmount: ds.output,
-            takerAmount: ds.input,
-            liquiditySource,
-            fillData: ds.fillData,
-        };
-    } else {
-        throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    }
+    throw new Error(`Not implemented`);
+    // const liquiditySource = ds.source;
+    //
+    // if (liquiditySource === ERC20BridgeSource.Native) {
+    //     throw new Error(`Unexpected liquidity source Native`);
+    // }
+    //
+    // // input and output map to different values
+    // // based on the market operation
+    // if (marketOperation === MarketOperation.Buy) {
+    //     return {
+    //         makerAmount: ds.input,
+    //         takerAmount: ds.output,
+    //         liquiditySource,
+    //         fillData: ds.fillData,
+    //     };
+    // } else if (marketOperation === MarketOperation.Sell) {
+    //     return {
+    //         makerAmount: ds.output,
+    //         takerAmount: ds.input,
+    //         liquiditySource,
+    //         fillData: ds.fillData,
+    //     };
+    // } else {
+    //     throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    // }
 }
 
 /**
@@ -158,31 +160,32 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * NOTE: this is used for the QuoteReport and quote price comparison data
  */
 export function multiHopSampleToReportSource(
-    ds: DexSample<MultiHopFillData>,
+    ds: DexSample,
     marketOperation: MarketOperation,
 ): MultiHopQuoteReportEntry {
-    const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
-    // input and output map to different values
-    // based on the market operation
-    if (marketOperation === MarketOperation.Buy) {
-        return {
-            liquiditySource: ERC20BridgeSource.MultiHop,
-            makerAmount: ds.input,
-            takerAmount: ds.output,
-            fillData: ds.fillData,
-            hopSources: [firstHop.source, secondHop.source],
-        };
-    } else if (marketOperation === MarketOperation.Sell) {
-        return {
-            liquiditySource: ERC20BridgeSource.MultiHop,
-            makerAmount: ds.output,
-            takerAmount: ds.input,
-            fillData: ds.fillData,
-            hopSources: [firstHop.source, secondHop.source],
-        };
-    } else {
-        throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    }
+    throw new Error(`Not implemented`);
+    // const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
+    // // input and output map to different values
+    // // based on the market operation
+    // if (marketOperation === MarketOperation.Buy) {
+    //     return {
+    //         liquiditySource: ERC20BridgeSource.MultiHop,
+    //         makerAmount: ds.input,
+    //         takerAmount: ds.output,
+    //         fillData: ds.fillData,
+    //         hopSources: [firstHop.source, secondHop.source],
+    //     };
+    // } else if (marketOperation === MarketOperation.Sell) {
+    //     return {
+    //         liquiditySource: ERC20BridgeSource.MultiHop,
+    //         makerAmount: ds.output,
+    //         takerAmount: ds.input,
+    //         fillData: ds.fillData,
+    //         hopSources: [firstHop.source, secondHop.source],
+    //     };
+    // } else {
+    //     throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    // }
 }
 
 function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {

@@ -7,7 +7,7 @@ import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
+import { Bytes, NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
@@ -172,12 +172,14 @@ export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
 export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
 
 // Represents an individual DEX sample from the sampler contract
-export interface DexSample<TFillData extends FillData = FillData> {
+export interface DexSample {
     source: ERC20BridgeSource;
-    fillData: TFillData;
+    encodedFillData: Bytes;
     input: BigNumber;
     output: BigNumber;
+    gasCost: number;
 }
+
 export interface CurveFillData extends FillData {
     fromTokenIdx: number;
     toTokenIdx: number;
@@ -273,12 +275,12 @@ export interface LidoFillData extends FillData {
 /**
  * Represents a node on a fill path.
  */
-export interface Fill<TFillData extends FillData = FillData> {
+export interface Fill {
     // basic data for every fill
     source: ERC20BridgeSource;
     // TODO jacob people seem to agree  that orderType here is more readable
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData: TFillData;
+    encodedFillData: Bytes;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -300,10 +302,10 @@ export interface Fill<TFillData extends FillData = FillData> {
 /**
  * Represents continguous fills on a path that have been merged together.
  */
-export interface CollapsedFill<TFillData extends FillData = FillData> {
+export interface CollapsedFill {
     source: ERC20BridgeSource;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData: TFillData;
+    encodedFillData: Bytes;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -328,7 +330,7 @@ export interface CollapsedFill<TFillData extends FillData = FillData> {
 /**
  * A `CollapsedFill` wrapping a native order.
  */
-export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
+export interface NativeCollapsedFill extends CollapsedFill {}
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
@@ -481,7 +483,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
-    liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    // liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
     unoptimizedPath?: CollapsedPath;
@@ -494,7 +496,7 @@ export interface OptimizerResultWithReport extends OptimizerResult {
     priceComparisonsReport?: PriceComparisonsReport;
 }
 
-export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
+export type MarketDepthSide = Array<Array<DexSample>>;
 
 export interface MarketDepth {
     bids: MarketDepthSide;
@@ -520,8 +522,8 @@ export interface MarketSideLiquidity {
 export interface RawQuotes {
     nativeOrders: NativeOrderWithFillableAmounts[];
     rfqtIndicativeQuotes: V4RFQIndicativeQuote[];
-    twoHopQuotes: Array<DexSample<MultiHopFillData>>;
-    dexQuotes: Array<Array<DexSample<FillData>>>;
+    // twoHopQuotes: Array<DexSample<MultiHopFillData>>;
+    dexQuotes: Array<Array<DexSample>>;
 }
 
 export interface TokenAdjacencyGraph {

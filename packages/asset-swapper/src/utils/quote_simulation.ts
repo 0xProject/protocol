@@ -155,8 +155,8 @@ export function fillQuoteOrders(
             if (remainingInput.lte(0)) {
                 break;
             }
-            const { source, fillData } = fill;
-            const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
+            const { source, encodedFillData } = fill;
+            const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(encodedFillData);
             result.gas += new BigNumber(gas).toNumber();
             result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
 
