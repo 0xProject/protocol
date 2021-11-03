@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 /// @dev VIP UniswapV2 (and forks) fill functions.
-interface IUniswapV2Feature {
+interface IUniswapV2ForkFeature {
 
     enum ProtocolFork {
         PancakeSwap,
@@ -37,16 +37,16 @@ interface IUniswapV2Feature {
     }
 
     /// @dev Efficiently sell directly to UniswapV2 (and forks).
+    /// @param fork The protocol fork to use.
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.
     /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
-    /// @param fork The protocol fork to use.
     /// @return buyAmount Amount of `tokens[-1]` bought.
-    function sellToUniswapV2(
+    function sellToUniswapV2Fork(
+        ProtocolFork fork,
         IERC20TokenV06[] calldata tokens,
         uint256 sellAmount,
-        uint256 minBuyAmount,
-        ProtocolFork fork
+        uint256 minBuyAmount
     )
         external
         payable
