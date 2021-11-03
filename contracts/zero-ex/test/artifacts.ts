@@ -48,6 +48,8 @@ import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts
 import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
 import * as IUniswapFeature from '../test/generated-artifacts/IUniswapFeature.json';
+import * as IUniswapV2ForkFeature from '../test/generated-artifacts/IUniswapV2ForkFeature.json';
+import * as IUniswapV2ForkPair from '../test/generated-artifacts/IUniswapV2ForkPair.json';
 import * as IUniswapV2Pair from '../test/generated-artifacts/IUniswapV2Pair.json';
 import * as IUniswapV3Feature from '../test/generated-artifacts/IUniswapV3Feature.json';
 import * as IUniswapV3Pool from '../test/generated-artifacts/IUniswapV3Pool.json';
@@ -172,6 +174,7 @@ import * as Transformer from '../test/generated-artifacts/Transformer.json';
 import * as TransformERC20Feature from '../test/generated-artifacts/TransformERC20Feature.json';
 import * as TransformerDeployer from '../test/generated-artifacts/TransformerDeployer.json';
 import * as UniswapFeature from '../test/generated-artifacts/UniswapFeature.json';
+import * as UniswapV2ForkFeature from '../test/generated-artifacts/UniswapV2ForkFeature.json';
 import * as UniswapV3Feature from '../test/generated-artifacts/UniswapV3Feature.json';
 import * as WethTransformer from '../test/generated-artifacts/WethTransformer.json';
 import * as ZeroEx from '../test/generated-artifacts/ZeroEx.json';
@@ -211,6 +214,7 @@ export const artifacts = {
     SimpleFunctionRegistryFeature: SimpleFunctionRegistryFeature as ContractArtifact,
     TransformERC20Feature: TransformERC20Feature as ContractArtifact,
     UniswapFeature: UniswapFeature as ContractArtifact,
+    UniswapV2ForkFeature: UniswapV2ForkFeature as ContractArtifact,
     UniswapV3Feature: UniswapV3Feature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
@@ -228,6 +232,8 @@ export const artifacts = {
     ITokenSpenderFeature: ITokenSpenderFeature as ContractArtifact,
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
+    IUniswapV2ForkFeature: IUniswapV2ForkFeature as ContractArtifact,
+    IUniswapV2ForkPair: IUniswapV2ForkPair as ContractArtifact,
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
