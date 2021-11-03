@@ -10,7 +10,7 @@ import {
     SignatureType,
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { expect, randomAddress } from '@0x/contracts-test-utils';
+import { expect } from '@0x/contracts-test-utils';
 import { MetaTransaction, MetaTransactionFields, RfqOrder } from '@0x/protocol-utils';
 import { generatePseudoRandom256BitNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -1128,24 +1128,30 @@ describe(SUITE_NAME, () => {
         });
     });
     describe('processJobAsync', async () => {
-        const feeAddress = randomAddress();
+        const feeAddress = '0xB974AB7E99C15587f182aEb749b584a3B8f14716';
         const mockStoredFee: StoredFee = {
             token: feeAddress,
             amount: '1000',
             type: 'fixed',
         };
 
+        const txOrigin = '0x064Ef480A8a9892A28F027Db7Df331330948801c';
+        const maker = '0x753faAbC50bEEb9C8A7635aE670863FfB5AE216B';
+        const taker = '0xCa667eA8E6F60933Faaa5a017104b4DE5db5f77c';
+        const makerToken = '0x404207B9e5c75B35d9E43f0338CB93E455C11a01';
+        const takerToken = '0x7e238128219511Ab74c296442cf58D15d5aFE243';
+
         const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
         const order = new RfqOrder({
-            txOrigin: randomAddress(),
+            txOrigin,
             chainId: CHAIN_ID,
             expiry: new BigNumber(new Date().getTime()).plus(60 * 5),
-            maker: randomAddress(),
+            maker,
             taker: NULL_ADDRESS,
             makerAmount: new BigNumber(1),
             takerAmount: EXPECTED_FILL_AMOUNT,
-            makerToken: randomAddress(),
-            takerToken: randomAddress(),
+            makerToken,
+            takerToken,
             pool: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
             salt: new BigNumber(1),
             verifyingContract: contractAddresses.exchangeProxy,
@@ -1153,12 +1159,12 @@ describe(SUITE_NAME, () => {
         const metaTransaction = blockchainUtils.generateMetaTransaction(
             order,
             VALID_SIGNATURE,
-            randomAddress(),
+            taker,
             new BigNumber(1),
             CHAIN_ID,
         );
         const orderHash = order.getHash();
-        const workerAddress = randomAddress();
+        const workerAddress = '0x14fF8F10C610403442D037A165dbbB55DF1DF677';
 
         const mockQuote = new RfqmQuoteEntity({
             orderHash,
