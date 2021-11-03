@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.29.3 - _November 3, 2021_
+
+    * Register transformERC20() and remove transformERC20Staging() (#355)
+    * Add OtcOrders to FullMigration (#350)
+
 ## v0.29.2 - _October 19, 2021_
 
     * Dependencies updated
