@@ -21,7 +21,7 @@ import {
     RfqmRequestOptions,
     RfqPairType,
     RfqRequestOpts,
-    SignedNativeOrder,
+    SignedRfqOrder,
     TypedMakerUrl,
 } from '../types';
 
@@ -286,7 +286,7 @@ export class QuoteRequestor {
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _warningLogger: LogFunction = constants.DEFAULT_WARNING_LOGGER,
         private readonly _infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
-        private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _expiryBufferMs: number = 120e3,
         private readonly _metrics?: MetricsProxy,
     ) {
         rfqMakerBlacklist.infoLogger = this._infoLogger;
@@ -299,7 +299,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqmRequestOptions,
-    ): Promise<SignedNativeOrder[]> {
+    ): Promise<SignedRfqOrder[]> {
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
@@ -323,7 +323,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
-    ): Promise<SignedNativeOrder[]> {
+    ): Promise<SignedRfqOrder[]> {
         const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         if (!_opts.txOrigin || [undefined, '', '0x', NULL_ADDRESS].includes(_opts.txOrigin)) {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
@@ -649,7 +649,7 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
         assetOfferings: RfqMakerAssetOfferings,
-    ): Promise<SignedNativeOrder[]> {
+    ): Promise<SignedRfqOrder[]> {
         const quotesRaw = await this._getQuotesAsync<V4RFQFirmQuote>(
             makerToken,
             takerToken,
@@ -725,7 +725,7 @@ export class QuoteRequestor {
         // Save the maker URI for later and return just the order
         const rfqQuotes = validQuotes.map(result => {
             const { signature, ...rest } = result.response;
-            const order: SignedNativeOrder = {
+            const order: SignedRfqOrder = {
                 order: {
                     ...rest,
                     makerAmount: new BigNumber(result.response.makerAmount),

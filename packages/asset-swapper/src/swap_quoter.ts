@@ -1,16 +1,15 @@
-import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
-import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
-import { FastABI } from 'fast-abi';
+import { SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
-import { artifacts } from './artifacts';
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
 import {
+    Address,
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
     MarketOperation,
@@ -19,6 +18,10 @@ import {
     SignedNativeOrder,
     SwapQuote,
     SwapQuoteInfo,
+    SwapQuoteHop,
+    SwapQuoteOrder,
+    SwapQuoteGenericBridgeOrder,
+    SwapQuoteNativeOrder,
     SwapQuoteOrdersBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -26,25 +29,26 @@ import {
 } from './types';
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
-import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
-import { DexOrderSampler } from './utils/market_operation_utils/sampler';
+import { ZERO_AMOUNT } from './utils/market_operation_utils/constants';
+import { SamplerClient } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
     ERC20BridgeSource,
-    FeeSchedule,
-    FillData,
     GetMarketOrdersOpts,
     MarketDepth,
     MarketDepthSide,
     MarketSideLiquidity,
-    OptimizedMarketOrder,
+    OptimizedHop,
+    OptimizedOrder,
+    OptimizedBridgeOrder,
+    OptimizedLimitOrder,
+    OptimizedRfqOrder,
+    OptimizedGenericBridgeOrder,
     OptimizerResultWithReport,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
-import { ERC20BridgeSamplerContract } from './wrappers';
 
 export abstract class Orderbook {
     public abstract getOrdersAsync(
@@ -85,20 +89,15 @@ export class SwapQuoter {
      *
      * @return  An instance of SwapQuoter
      */
-    constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: Partial<SwapQuoterOpts> = {}) {
+    constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: SwapQuoterOpts) {
         const {
             chainId,
             expiryBufferMs,
             permittedOrderFeeTypes,
-            samplerGasLimit,
             rfqt,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
+        } = options;
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
-        assert.isNumber('chainId', chainId);
-        assert.isNumber('expiryBufferMs', expiryBufferMs);
         this.chainId = chainId;
         this.provider = provider;
         this.orderbook = orderbook;
@@ -113,45 +112,11 @@ export class SwapQuoter {
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
             options.ethGasStationUrl,
         );
-        // Allow the sampler bytecode to be overwritten using geths override functionality
-        const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
-        // Allow address of the Sampler to be overridden, i.e in Ganache where overrides do not work
-        const samplerAddress = (options.samplerOverrides && options.samplerOverrides.to) || SAMPLER_ADDRESS;
-        const defaultCodeOverrides = samplerBytecode
-            ? {
-                  [samplerAddress]: { code: samplerBytecode },
-              }
-            : {};
-        const samplerOverrides = _.assign(
-            { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
-            options.samplerOverrides,
-        );
-        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
-        const samplerContract = new ERC20BridgeSamplerContract(
-            samplerAddress,
-            this.provider,
-            {
-                gas: samplerGasLimit,
-            },
-            {},
-            undefined,
-            {
-                encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-                decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
-            },
-        );
 
         this._marketOperationUtils = new MarketOperationUtils(
-            new DexOrderSampler(
+            SamplerClient.createFromChainIdAndEndpoint(
                 this.chainId,
-                samplerContract,
-                samplerOverrides,
-                undefined, // pools caches for balancer and cream
-                tokenAdjacencyGraph,
-                liquidityProviderRegistry,
-                this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
-                    ? async () => BancorService.createAsync(provider)
-                    : async () => undefined,
+                options.samplerServiceUrl,
             ),
             this._contractAddresses,
             {
@@ -216,7 +181,6 @@ export class SwapQuoter {
                         MarketOperation.Buy,
                         makerTokenBuyAmounts[i],
                         gasPrice,
-                        opts.gasSchedule,
                         opts.bridgeSlippage,
                     );
                 } else {
@@ -243,49 +207,50 @@ export class SwapQuoter {
         takerAssetAmount: BigNumber,
         options: Partial<SwapQuoteRequestOpts> = {},
     ): Promise<MarketDepth> {
-        assert.isString('makerToken', makerToken);
-        assert.isString('takerToken', takerToken);
-        const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
-
-        let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
-            ? [[], []]
-            : await Promise.all([
-                  this.orderbook.getOrdersAsync(makerToken, takerToken),
-                  this.orderbook.getOrdersAsync(takerToken, makerToken),
-              ]);
-        if (!sellOrders || sellOrders.length === 0) {
-            sellOrders = [createDummyOrder(makerToken, takerToken)];
-        }
-        if (!buyOrders || buyOrders.length === 0) {
-            buyOrders = [createDummyOrder(takerToken, makerToken)];
-        }
-
-        const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
-            const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
-            const { side } = marketSideLiquidity;
-
-            return [
-                ...dexQuotes,
-                nativeOrders.map(o => {
-                    return {
-                        input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
-                        output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
-                        fillData: o,
-                        source: ERC20BridgeSource.Native,
-                    };
-                }),
-            ];
-        };
-        const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
-        ]);
-        return {
-            bids: getMarketDepthSide(bids),
-            asks: getMarketDepthSide(asks),
-            makerTokenDecimals: asks.makerTokenDecimals,
-            takerTokenDecimals: asks.takerTokenDecimals,
-        };
+        throw new Error(`Not implemented`);
+        // assert.isString('makerToken', makerToken);
+        // assert.isString('takerToken', takerToken);
+        // const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
+        //
+        // let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
+        //     ? [[], []]
+        //     : await Promise.all([
+        //           this.orderbook.getOrdersAsync(makerToken, takerToken),
+        //           this.orderbook.getOrdersAsync(takerToken, makerToken),
+        //       ]);
+        // if (!sellOrders || sellOrders.length === 0) {
+        //     sellOrders = [createDummyOrder(makerToken, takerToken)];
+        // }
+        // if (!buyOrders || buyOrders.length === 0) {
+        //     buyOrders = [createDummyOrder(takerToken, makerToken)];
+        // }
+        //
+        // const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
+        //     const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
+        //     const { side } = marketSideLiquidity;
+        //
+        //     return [
+        //         ...dexQuotes,
+        //         nativeOrders.map(o => {
+        //             return {
+        //                 input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
+        //                 output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
+        //                 fillData: o,
+        //                 source: ERC20BridgeSource.Native,
+        //             };
+        //         }),
+        //     ];
+        // };
+        // const [bids, asks] = await Promise.all([
+        //     this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
+        //     this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
+        // ]);
+        // return {
+        //     bids: getMarketDepthSide(bids),
+        //     asks: getMarketDepthSide(asks),
+        //     makerTokenDecimals: asks.makerTokenDecimals,
+        //     takerTokenDecimals: asks.takerTokenDecimals,
+        // };
     }
 
     /**
@@ -364,9 +329,6 @@ export class SwapQuoter {
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
         // pass the QuoteRequestor on if rfqt enabled
@@ -397,12 +359,13 @@ export class SwapQuoter {
             marketOperation,
             assetFillAmount,
             gasPrice,
-            opts.gasSchedule,
             opts.bridgeSlippage,
         );
 
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.sourceFlags).toNumber();
+        const exchangeProxyOverhead = BigNumber.sum(
+            ...result.hops.map(h => opts.exchangeProxyOverhead(h.sourceFlags)),
+        ).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 
@@ -496,27 +459,23 @@ function createSwapQuote(
     optimizerResult: OptimizerResultWithReport,
     makerToken: string,
     takerToken: string,
-    operation: MarketOperation,
+    side: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): SwapQuote {
     const {
-        optimizedOrders,
+        hops,
         quoteReport,
         extendedQuoteReportSources,
-        sourceFlags,
         takerAmountPerEth,
         makerAmountPerEth,
         priceComparisonsReport,
     } = optimizerResult;
-    const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
-    // Calculate quote info
-    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
-        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
-        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
+    const quoteHops = hops.map(hop => toSwapQuoteHop(hop, side, slippage));
+    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } =
+        calculateQuoteInfo(quoteHops, side, assetFillAmount, gasPrice, slippage);
 
     // Put together the swap quote
     const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
@@ -524,7 +483,6 @@ function createSwapQuote(
         makerToken,
         takerToken,
         gasPrice,
-        orders: optimizedOrders,
         bestCaseQuoteInfo,
         worstCaseQuoteInfo,
         sourceBreakdown,
@@ -534,120 +492,225 @@ function createSwapQuote(
         makerAmountPerEth,
         quoteReport,
         extendedQuoteReportSources,
-        isTwoHop,
         priceComparisonsReport,
     };
 
-    if (operation === MarketOperation.Buy) {
+    if (side === MarketOperation.Buy) {
         return {
             ...swapQuote,
             type: MarketOperation.Buy,
             makerTokenFillAmount: assetFillAmount,
+            maxSlippage: slippage,
+            hops: quoteHops,
         };
     } else {
         return {
             ...swapQuote,
             type: MarketOperation.Sell,
             takerTokenFillAmount: assetFillAmount,
+            maxSlippage: slippage,
+            hops: quoteHops,
         };
     }
 }
 
+function toSwapQuoteHop(hop: OptimizedHop, side: MarketOperation, slippage: number): SwapQuoteHop {
+    const orders = hop.orders.map(o => toSwapQuoteOrder(o, side, slippage));
+    const takerAmount = side === MarketOperation.Sell ? hop.inputAmount : hop.outputAmount;
+    const makerAmount = side === MarketOperation.Sell ? hop.outputAmount : hop.inputAmount;
+    return {
+        orders,
+        makerAmount: roundMakerAmount(side, makerAmount),
+        takerAmount: roundTakerAmount(side, takerAmount),
+        makerToken: side === MarketOperation.Sell ? hop.outputToken : hop.inputToken,
+        takerToken: side === MarketOperation.Sell ? hop.inputToken : hop.outputToken,
+        minMakerAmount: slipMakerAmount(side, makerAmount, slippage),
+        maxTakerAmount: slipTakerAmount(side, takerAmount, slippage),
+        sourceFlags: hop.sourceFlags,
+    };
+}
+
+function roundMakerAmount(side: MarketOperation, makerAmount: BigNumber): BigNumber {
+    const rm = side === MarketOperation.Sell ? BigNumber.ROUND_DOWN : BigNumber.ROUND_UP;
+    return makerAmount.integerValue(rm);
+}
+
+function roundTakerAmount(side: MarketOperation, takerAmount: BigNumber): BigNumber {
+    const rm = side === MarketOperation.Sell ? BigNumber.ROUND_UP : BigNumber.ROUND_UP;
+    return takerAmount.integerValue(rm);
+}
+
+function slipMakerAmount(side: MarketOperation, makerAmount: BigNumber, slippage: number): BigNumber {
+    return roundMakerAmount(
+        side,
+        side === MarketOperation.Sell ? makerAmount.times(1 - slippage) : makerAmount,
+    );
+}
+
+function slipTakerAmount(side: MarketOperation, takerAmount: BigNumber, slippage: number): BigNumber {
+    return roundTakerAmount(
+        side,
+        side === MarketOperation.Sell ? takerAmount : takerAmount.times(1 + slippage),
+    );
+}
+
+function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage: number): SwapQuoteGenericBridgeOrder | SwapQuoteNativeOrder {
+    const { inputToken, outputToken, inputAmount, outputAmount, ...rest } = order;
+    const common = {
+        ...rest,
+        takerToken: side === MarketOperation.Sell ? inputToken : outputToken,
+        makerToken: side === MarketOperation.Sell ? outputToken : inputToken,
+        takerAmount: side === MarketOperation.Sell ? inputAmount : outputAmount,
+        makerAmount: side === MarketOperation.Sell ? outputAmount : inputAmount,
+    };
+    if (isBridgeOrder(order)) {
+        return {
+            ...common,
+            minMakerAmount: slipMakerAmount(
+                side,
+                side === MarketOperation.Sell
+                    ? order.outputAmount
+                    : order.inputAmount,
+                slippage,
+            ),
+            maxTakerAmount: slipTakerAmount(
+                side,
+                side === MarketOperation.Sell
+                    ? order.inputAmount
+                    : order.outputAmount,
+                slippage,
+            ),
+        };
+    }
+    return common as SwapQuoteNativeOrder;
+}
+
+function isBridgeOrder(order: OptimizedOrder): order is OptimizedGenericBridgeOrder {
+    return order.type === FillQuoteTransformerOrderType.Bridge;
+}
+
 function calculateQuoteInfo(
-    optimizedOrders: OptimizedMarketOrder[],
-    operation: MarketOperation,
-    assetFillAmount: BigNumber,
+    hops: SwapQuoteHop[],
+    side: MarketOperation,
+    fillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
-    const bestCaseFillResult = simulateBestCaseFill({
-        gasPrice,
-        orders: optimizedOrders,
-        side: operation,
-        fillAmount: assetFillAmount,
-        opts: { gasSchedule },
-    });
-
-    const worstCaseFillResult = simulateWorstCaseFill({
-        gasPrice,
-        orders: optimizedOrders,
-        side: operation,
-        fillAmount: assetFillAmount,
-        opts: { gasSchedule, slippage },
-    });
-
-    return {
-        bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult, 0),
-        worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult, slippage),
-        sourceBreakdown: getSwapQuoteOrdersBreakdown(bestCaseFillResult.fillAmountBySource),
-    };
-}
-
-function calculateTwoHopQuoteInfo(
-    optimizedOrders: OptimizedMarketOrder[],
-    operation: MarketOperation,
-    gasSchedule: FeeSchedule,
-    slippage: number,
-): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
-    const [firstHopOrder, secondHopOrder] = optimizedOrders;
-    const [firstHopFill] = firstHopOrder.fills;
-    const [secondHopFill] = secondHopOrder.fills;
-    const gas = new BigNumber(
-        gasSchedule[ERC20BridgeSource.MultiHop]!({
-            firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
-            secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
-        }),
-    ).toNumber();
-    const isSell = operation === MarketOperation.Sell;
-
-    return {
-        bestCaseQuoteInfo: {
-            makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
-            takerAmount: isSell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAmount: isSell ? firstHopFill.input : firstHopFill.output,
-            feeTakerTokenAmount: constants.ZERO_AMOUNT,
-            protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
-            gas,
-            slippage: 0,
-        },
-        // TODO jacob consolidate this with quote simulation worstCase
-        worstCaseQuoteInfo: {
-            makerAmount: isSell
-                ? secondHopOrder.makerAmount.times(1 - slippage).integerValue()
-                : secondHopOrder.makerAmount,
-            takerAmount: isSell
-                ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
-            totalTakerAmount: isSell
-                ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
-            feeTakerTokenAmount: constants.ZERO_AMOUNT,
-            protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
-            gas,
-            slippage,
-        },
-        sourceBreakdown: {
-            [ERC20BridgeSource.MultiHop]: {
-                proportion: new BigNumber(1),
-                intermediateToken: secondHopOrder.takerToken,
-                hops: [firstHopFill.source, secondHopFill.source],
-            },
-        },
-    };
-}
-
-function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: BigNumber }): SwapQuoteOrdersBreakdown {
-    const totalFillAmount = BigNumber.sum(...Object.values(fillAmountBySource));
-    const breakdown: SwapQuoteOrdersBreakdown = {};
-    Object.entries(fillAmountBySource).forEach(([s, fillAmount]) => {
-        const source = s as keyof SwapQuoteOrdersBreakdown;
-        if (source === ERC20BridgeSource.MultiHop) {
-            // TODO jacob has a different breakdown
-        } else {
-            breakdown[source] = fillAmount.div(totalFillAmount);
+    const getNextFillAmount = (fillResults: QuoteFillResult[]) => {
+        if (fillResults.length === 0) {
+            return fillAmount;
         }
+        const lastFillResult = fillResults[fillResults.length - 1];
+        const { totalTakerAssetAmount, makerAssetAmount } =  lastFillResult;
+        return side === MarketOperation.Sell
+            ? makerAssetAmount : totalTakerAssetAmount;
+    };
+
+    const bestCaseFillResults = [];
+    const worstCaseFillResults = [];
+    const tokenPath = [];
+    for (const [i, hop] of hops.entries()) {
+        if (i === 0 || i < hops.length - 1) {
+            if (side == MarketOperation.Sell) {
+                tokenPath.push(hop.takerToken);
+            } else {
+                tokenPath.unshift(hop.makerToken);
+            }
+        }
+        if (i === tokenPath.length - 1) {
+            if (side === MarketOperation.Sell) {
+                tokenPath.push(hop.makerToken);
+            } else {
+                tokenPath.unshift(hop.takerToken);
+            }
+        }
+        const bestCaseFillResult = simulateBestCaseFill({
+            gasPrice,
+            side,
+            orders: hop.orders,
+            fillAmount: getNextFillAmount(bestCaseFillResults),
+            opts: {},
+        });
+        bestCaseFillResults.push(bestCaseFillResult);
+
+        const worstCaseFillResult = simulateWorstCaseFill({
+            gasPrice,
+            side,
+            orders: hop.orders,
+            fillAmount: getNextFillAmount(worstCaseFillResults),
+            opts: { slippage },
+        });
+        worstCaseFillResults.push(worstCaseFillResult);
+    }
+
+    const combinedBestCaseFillResult = combineQuoteFillResults(side, bestCaseFillResults);
+    const combinedWorstCaseFillResult = combineQuoteFillResults(side, worstCaseFillResults);
+    const sourceBreakdown = getSwapQuoteOrdersBreakdown(side, tokenPath, bestCaseFillResults);
+    return {
+        sourceBreakdown,
+        bestCaseQuoteInfo: fillResultsToQuoteInfo(combinedBestCaseFillResult),
+        worstCaseQuoteInfo: fillResultsToQuoteInfo(combinedWorstCaseFillResult),
+    };
+}
+
+function combineQuoteFillResults(side: MarketOperation, fillResults: QuoteFillResult[]): QuoteFillResult {
+    if (fillResults.length === 0) {
+        throw new Error(`Empty fillResults array`);
+    }
+    const orderedFillResults = side === MarketOperation.Sell ? fillResults : fillResults.slice().reverse();
+    const lastResult = orderedFillResults[orderedFillResults.length - 1];
+    const r = {
+        ...orderedFillResults[0],
+       makerAssetAmount: lastResult.makerAssetAmount,
+       totalMakerAssetAmount: lastResult.totalMakerAssetAmount,
+   };
+    for (const fr of orderedFillResults.slice(1)) {
+        r.gas += fr.gas + 30e3;
+        r.protocolFeeAmount = r.protocolFeeAmount.plus(fr.protocolFeeAmount);
+    }
+    return r;
+}
+
+function getSwapQuoteOrdersBreakdown(side: MarketOperation, tokenPath: Address[], hopFillResults: QuoteFillResult[]): SwapQuoteOrdersBreakdown {
+    const cumulativeFillRatioBySource: Partial<{ [key in ERC20BridgeSource]: number }> = {};
+    for (const hop of hopFillResults) {
+        const hopTotalFillAmount = side === MarketOperation.Sell
+            ? hop.totalTakerAssetAmount
+            : hop.totalMakerAssetAmount;
+        for (const [source, sourceFillAmount] of Object.entries(hop.fillAmountBySource)) {
+            cumulativeFillRatioBySource[source as ERC20BridgeSource] =
+                (cumulativeFillRatioBySource[source as ERC20BridgeSource] || 0)
+                + sourceFillAmount.div(hopTotalFillAmount).toNumber();
+        }
+    }
+    const globalFillRatiosSum = Object.values(cumulativeFillRatioBySource).reduce((a, v) => a! + v!, 0);
+    if (!globalFillRatiosSum) {
+        return {};
+    }
+    const breakdown: SwapQuoteOrdersBreakdown = {};
+    for (const [source, fillRatio] of Object.entries(cumulativeFillRatioBySource)) {
+        (breakdown as any)[source] = fillRatio! / globalFillRatiosSum;
+    }
+    const hopBreakdowns = hopFillResults.map(hop => {
+        const hopTotalFillAmount = side === MarketOperation.Sell
+            ? hop.totalTakerAssetAmount
+            : hop.totalMakerAssetAmount;
+        return Object.assign(
+            {},
+            ...Object.entries(hop.fillAmountBySource).map(([source, sourceFillAmount]) => ({
+                [source as ERC20BridgeSource]: sourceFillAmount.div(hopTotalFillAmount).toNumber(),
+            })),
+        );
     });
+    if (hopFillResults.length > 1) {
+        return {
+            [ERC20BridgeSource.MultiHop]: {
+                proportion: 1,
+                tokenPath: tokenPath,
+                breakdowns: side === MarketOperation.Sell ? hopBreakdowns : hopBreakdowns.reverse(),
+            },
+        };
+    }
     return breakdown;
 }
 

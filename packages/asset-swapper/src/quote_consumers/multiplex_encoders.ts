@@ -12,6 +12,7 @@ export enum MultiplexSubcall {
     BatchSell,
     MultiHopSell,
 }
+
 export const multiplexTransformERC20Encoder = AbiEncoder.create([
     {
         name: 'transformations',
@@ -22,15 +23,30 @@ export const multiplexTransformERC20Encoder = AbiEncoder.create([
         ],
     },
 ]);
+
 export const multiplexRfqEncoder = AbiEncoder.create([
     { name: 'order', type: 'tuple', components: RfqOrder.STRUCT_ABI },
     { name: 'signature', type: 'tuple', components: SIGNATURE_ABI },
 ]);
+
 export const multiplexUniswapEncoder = AbiEncoder.create([
     { name: 'tokens', type: 'address[]' },
     { name: 'isSushi', type: 'bool' },
 ]);
+
 export const multiplexPlpEncoder = AbiEncoder.create([
     { name: 'provider', type: 'address' },
     { name: 'auxiliaryData', type: 'bytes' },
+]);
+
+export const multiplexBatchSellEncoder = AbiEncoder.create([
+    {
+        name: 'subcalls',
+        type: 'tuple[]',
+        components: [
+            { name: 'id', type: 'uint8' },
+            { name: 'sellAmount', type: 'uint256' },
+            { name: 'data', type: 'bytes' },
+        ],
+    },
 ]);
