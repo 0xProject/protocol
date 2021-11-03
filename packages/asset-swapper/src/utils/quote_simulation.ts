@@ -1,11 +1,8 @@
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
-import { MarketOperation } from '../types';
-
-import { FeeSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
-import { getNativeAdjustedTakerFeeAmount } from './utils';
+import { MarketOperation, SwapQuoteLimitOrder, SwapQuoteOrder } from '../types';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -64,7 +61,7 @@ const EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT = {
 };
 
 export interface QuoteFillInfo {
-    orders: OptimizedMarketOrder[];
+    orders: SwapQuoteOrder[];
     fillAmount: BigNumber;
     gasPrice: BigNumber;
     side: MarketOperation;
@@ -72,19 +69,17 @@ export interface QuoteFillInfo {
 }
 
 export interface QuoteFillInfoOpts {
-    gasSchedule: FeeSchedule;
     protocolFeeMultiplier: BigNumber;
     slippage: number;
 }
 
 const DEFAULT_SIMULATED_FILL_QUOTE_INFO_OPTS: QuoteFillInfoOpts = {
-    gasSchedule: {},
     protocolFeeMultiplier: PROTOCOL_FEE_MULTIPLIER,
     slippage: 0,
 };
 
 export interface QuoteFillOrderCall {
-    order: OptimizedMarketOrder;
+    order: SwapQuoteOrder;
     // Total input amount defined in the order.
     totalOrderInput: BigNumber;
     // Total output amount defined in the order.
@@ -108,7 +103,6 @@ export function simulateBestCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult 
         createBestCaseFillOrderCalls(quoteInfo),
         quoteInfo.fillAmount,
         protocolFeePerFillOrder,
-        opts.gasSchedule,
     );
     return fromIntermediateQuoteFillResult(result, quoteInfo);
 }
@@ -122,9 +116,9 @@ export function simulateWorstCaseFill(quoteInfo: QuoteFillInfo): QuoteFillResult
     const protocolFeePerFillOrder = quoteInfo.gasPrice.times(opts.protocolFeeMultiplier);
     const bestCase = createBestCaseFillOrderCalls(quoteInfo);
     const result = {
-        ...fillQuoteOrders(bestCase, quoteInfo.fillAmount, protocolFeePerFillOrder, opts.gasSchedule),
+        ...fillQuoteOrders(bestCase, quoteInfo.fillAmount, protocolFeePerFillOrder),
         // Worst case gas and protocol fee is hitting all orders.
-        gas: getTotalGasUsedByFills(quoteInfo.orders, opts.gasSchedule),
+        gas: getTotalGasUsedByFills(quoteInfo.orders),
         protocolFee: protocolFeePerFillOrder.times(quoteInfo.orders.filter(o => hasProtocolFee(o)).length),
     };
     // Adjust the output by 1-slippage for the worst case if it is a sell
@@ -140,7 +134,6 @@ export function fillQuoteOrders(
     fillOrders: QuoteFillOrderCall[],
     inputAmount: BigNumber,
     protocolFeePerFillOrder: BigNumber,
-    gasSchedule: FeeSchedule,
 ): IntermediateQuoteFillResult {
     const result: IntermediateQuoteFillResult = {
         ...EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT,
@@ -151,39 +144,27 @@ export function fillQuoteOrders(
         if (remainingInput.lte(0)) {
             break;
         }
-        for (const fill of fo.order.fills) {
-            if (remainingInput.lte(0)) {
-                break;
-            }
-            const { source, fillData } = fill;
-            const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
-            result.gas += new BigNumber(gas).toNumber();
-            result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
+        const { source } = fo.order;
+        result.gas += fo.order.gasCost;
+        result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
 
-            // Actual rates are rarely linear, so fill subfills individually to
-            // get a better approximation of fill size.
-            for (const subFill of fill.subFills) {
-                if (remainingInput.lte(0)) {
-                    break;
-                }
-                const filledInput = solveForInputFillAmount(
-                    remainingInput,
-                    subFill.input,
-                    fo.totalOrderInput,
-                    fo.totalOrderInputFee,
-                );
-                const filledOutput = subFill.output.times(filledInput.div(subFill.input));
-                const filledInputFee = filledInput.div(fo.totalOrderInput).times(fo.totalOrderInputFee);
-                const filledOutputFee = filledOutput.div(fo.totalOrderOutput).times(fo.totalOrderOutputFee);
+        const filledInput = solveForInputFillAmount(
+            remainingInput,
+            fo.totalOrderInput,
+            fo.totalOrderInput,
+            fo.totalOrderInputFee,
+        );
+        const filledOutput = fo.totalOrderOutput.times(filledInput.div(fo.totalOrderInput));
+        const filledInputFee = filledInput.div(fo.totalOrderInput).times(fo.totalOrderInputFee);
+        const filledOutputFee = filledOutput.div(fo.totalOrderOutput).times(fo.totalOrderOutputFee);
 
-                result.inputBySource[source] = result.inputBySource[source].plus(filledInput);
-                result.input = result.input.plus(filledInput);
-                result.output = result.output.plus(filledOutput);
-                result.inputFee = result.inputFee.plus(filledInputFee);
-                result.outputFee = result.outputFee.plus(filledOutputFee);
-                remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
-            }
-        }
+        result.inputBySource[source] = result.inputBySource[source].plus(filledInput);
+        result.input = result.input.plus(filledInput);
+        result.output = result.output.plus(filledOutput);
+        result.inputFee = result.inputFee.plus(filledInputFee);
+        result.outputFee = result.outputFee.plus(filledOutputFee);
+        remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
+
         // NOTE: V4 Limit orders have Protocol fees
         const protocolFee = hasProtocolFee(fo.order) ? protocolFeePerFillOrder : ZERO_AMOUNT;
         result.protocolFee = result.protocolFee.plus(protocolFee);
@@ -191,7 +172,7 @@ export function fillQuoteOrders(
     return result;
 }
 
-function hasProtocolFee(o: OptimizedMarketOrder): boolean {
+function hasProtocolFee(o: SwapQuoteOrder): boolean {
     return o.type === FillQuoteTransformerOrderType.Limit;
 }
 
@@ -234,13 +215,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
             ? {
                   totalOrderInput: o.takerAmount,
                   totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee:
-                      o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeAdjustedTakerFeeAmount(
-                                (o.fillData as NativeLimitOrderFillData).order,
-                                o.takerAmount,
-                            )
-                          : ZERO_AMOUNT,
+                  totalOrderInputFee: ZERO_AMOUNT, // Limit orders not supported atm
                   totalOrderOutputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (sell output)
               }
             : // Buy
@@ -248,13 +223,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderInput: o.makerAmount,
                   totalOrderOutput: o.takerAmount,
                   totalOrderInputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (buy input)
-                  totalOrderOutputFee:
-                      o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeAdjustedTakerFeeAmount(
-                                (o.fillData as NativeLimitOrderFillData).order,
-                                o.takerAmount,
-                            )
-                          : ZERO_AMOUNT,
+                  totalOrderOutputFee: ZERO_AMOUNT, // Limit orders not supported atm
               }),
     }));
 }
@@ -314,11 +283,10 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
+function getTotalGasUsedByFills(fills: SwapQuoteOrder[]): number {
     let gasUsed = 0;
     for (const f of fills) {
-        const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);
-        gasUsed += new BigNumber(fee).toNumber();
+        gasUsed += f.gasCost;
     }
     return gasUsed;
 }

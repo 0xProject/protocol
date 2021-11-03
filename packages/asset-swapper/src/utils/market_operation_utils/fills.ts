@@ -1,10 +1,11 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
+import { NativeOrderWithFillableAmounts } from '../native_orders';
+import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import { DexSample, ERC20BridgeSource, Fill, GenericBridgeFill, NativeOrderFill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -18,12 +19,9 @@ export function createFills(opts: {
     targetInput?: BigNumber;
     outputAmountPerEth?: BigNumber;
     inputAmountPerEth?: BigNumber;
-    excludedSources?: ERC20BridgeSource[];
-    feeSchedule?: FeeSchedule;
+    gasPrice: BigNumber;
 }): Fill[][] {
     const { side } = opts;
-    const excludedSources = opts.excludedSources || [];
-    const feeSchedule = opts.feeSchedule || {};
     const orders = opts.orders || [];
     const dexQuotes = opts.dexQuotes || [];
     const outputAmountPerEth = opts.outputAmountPerEth || ZERO_AMOUNT;
@@ -35,15 +33,15 @@ export function createFills(opts: {
         opts.targetInput,
         outputAmountPerEth,
         inputAmountPerEth,
-        feeSchedule,
+        opts.gasPrice,
     );
     // Create DEX fills.
     const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, feeSchedule),
+        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, opts.gasPrice),
     );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
-        .filter(fills => hasLiquidity(fills) && !excludedSources.includes(fills[0].source));
+        .filter(fills => hasLiquidity(fills));
 }
 
 function clipFillsToInput(fills: Fill[], targetInput: BigNumber = POSITIVE_INF): Fill[] {
@@ -95,25 +93,35 @@ export function nativeOrdersToFills(
     targetInput: BigNumber = POSITIVE_INF,
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
     filterNegativeAdjustedRateOrders: boolean = true,
-): Fill[] {
+): NativeOrderFill[] {
+    if (orders.length === 0) {
+        return [];
+    }
     const sourcePathId = hexUtils.random();
     // Create a single path from all orders.
-    let fills: Array<Fill & { adjustedRate: BigNumber }> = [];
+    let fills: Array<NativeOrderFill & { adjustedRate: BigNumber }> = [];
     for (const o of orders) {
-        const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount, type } = o;
-        const makerAmount = fillableMakerAmount;
-        const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
-        const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
-        const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-        const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
+        const { fillableTakerAmount, fillableMakerAmount, type } = o;
+        // TODO(lawrence): handle taker fees.
+        if (o.fillableTakerFeeAmount.gt(0)) {
+            continue;
+        }
+        let input, output;
+        if (side === MarketOperation.Sell) {
+            input = fillableTakerAmount;
+            output = fillableMakerAmount;
+        } else {
+            input = fillableMakerAmount;
+            output = fillableTakerAmount;
+        }
         const outputPenalty = ethToOutputAmount({
             input,
             output,
             inputAmountPerEth,
             outputAmountPerEth,
-            ethAmount: fee,
+            ethAmount: gasPrice.times(o.gasCost),
         });
         // targetInput can be less than the order size
         // whilst the penalty is constant, it affects the adjusted output
@@ -132,17 +140,22 @@ export function nativeOrdersToFills(
             continue;
         }
         fills.push({
+            type,
             sourcePathId,
-            adjustedRate,
             adjustedOutput,
+            adjustedRate,
             input: clippedInput,
             output: clippedOutput,
             flags: SOURCE_FLAGS[type === FillQuoteTransformerOrderType.Rfq ? 'RfqOrder' : 'LimitOrder'],
             index: 0, // TBD
             parent: undefined, // TBD
             source: ERC20BridgeSource.Native,
-            type,
-            fillData: { ...o },
+            gasCost: o.gasCost,
+            data: {
+                order: o.order,
+                signature: o.signature,
+                fillableTakerAmount: o.fillableTakerAmount,
+            },
         });
     }
     // Sort by descending adjusted rate.
@@ -160,10 +173,10 @@ export function dexSamplesToFills(
     samples: DexSample[],
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
-): Fill[] {
+    gasPrice: BigNumber,
+): GenericBridgeFill[] {
     const sourcePathId = hexUtils.random();
-    const fills: Fill[] = [];
+    const fills: GenericBridgeFill[] = [];
     // Drop any non-zero entries. This can occur if the any fills on Kyber were UniswapReserves
     // We need not worry about Kyber fills going to UniswapReserve as the input amount
     // we fill is the same as we sampled. I.e we received [0,20,30] output from [1,2,3] input
@@ -172,10 +185,10 @@ export function dexSamplesToFills(
     for (let i = 0; i < nonzeroSamples.length; i++) {
         const sample = nonzeroSamples[i];
         const prevSample = i === 0 ? undefined : nonzeroSamples[i - 1];
-        const { source, fillData } = sample;
+        const { source, encodedFillData, metadata } = sample;
         const input = sample.input.minus(prevSample ? prevSample.input : 0);
         const output = sample.output.minus(prevSample ? prevSample.output : 0);
-        const fee = fees[source] === undefined ? 0 : fees[source]!(sample.fillData) || 0;
+        const fee = gasPrice.times(sample.gasCost);
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
@@ -195,11 +208,15 @@ export function dexSamplesToFills(
             output,
             adjustedOutput,
             source,
-            fillData,
             type: FillQuoteTransformerOrderType.Bridge,
+            gasCost: sample.gasCost,
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],
+            data: {
+                ...metadata,
+                encodedFillData,
+            },
         });
     }
     return fills;

@@ -1,5 +1,6 @@
 import { BigNumber } from '@0x/utils';
 import * as heartbeats from 'heartbeats';
+import fetch from 'axios';
 
 import { constants } from '../constants';
 import { SwapQuoterError } from '../types';
@@ -61,7 +62,7 @@ export class ProtocolFeeUtils {
     private async _getGasPriceFromGasStationOrThrowAsync(): Promise<BigNumber> {
         try {
             const res = await fetch(this._ethGasStationUrl);
-            const gasInfo = await res.json();
+            const gasInfo = res.data;
             // Eth Gas Station result is gwei * 10
             // tslint:disable-next-line:custom-no-magic-numbers
             const BASE_TEN = 10;

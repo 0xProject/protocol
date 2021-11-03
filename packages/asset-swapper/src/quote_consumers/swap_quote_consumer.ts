@@ -20,13 +20,12 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _exchangeProxyConsumer: ExchangeProxySwapQuoteConsumer;
 
-    public static getSwapQuoteConsumer(options: Partial<SwapQuoteConsumerOpts> = {}): SwapQuoteConsumer {
+    public static getSwapQuoteConsumer(options: SwapQuoteConsumerOpts): SwapQuoteConsumer {
         return new SwapQuoteConsumer(options);
     }
 
-    constructor(options: Partial<SwapQuoteConsumerOpts> = {}) {
-        const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
-        assert.isNumber('chainId', chainId);
+    constructor(options: SwapQuoteConsumerOpts) {
+        const { chainId } = options;
 
         this.chainId = chainId;
         this._contractAddresses = options.contractAddresses || getContractAddressesForChainOrThrow(chainId);
