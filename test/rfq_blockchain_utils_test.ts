@@ -181,7 +181,13 @@ describe(SUITE_NAME, () => {
         const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL);
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
 
-        rfqBlockchainUtils = new RfqBlockchainUtils(provider, zeroEx.address, balanceChecker, ethersWallet);
+        rfqBlockchainUtils = new RfqBlockchainUtils(
+            provider,
+            zeroEx.address,
+            balanceChecker,
+            ethersProvider,
+            ethersWallet,
+        );
     });
 
     after(async () => {

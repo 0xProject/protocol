@@ -17,6 +17,7 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { TransactionReceiptStatus } from 'ethereum-types';
+import { providers } from 'ethers';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
@@ -1136,14 +1137,20 @@ describe(SUITE_NAME, () => {
             type: 'fixed',
         };
 
-        const provider = getProvider();
-        const balanceChecker = new BalanceChecker(provider);
-        const blockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy, balanceChecker);
         const txOrigin = '0x064Ef480A8a9892A28F027Db7Df331330948801c';
         const maker = '0x753faAbC50bEEb9C8A7635aE670863FfB5AE216B';
         const taker = '0xCa667eA8E6F60933Faaa5a017104b4DE5db5f77c';
         const makerToken = '0x404207B9e5c75B35d9E43f0338CB93E455C11a01';
         const takerToken = '0x7e238128219511Ab74c296442cf58D15d5aFE243';
+
+        const provider = getProvider();
+        const balanceChecker = new BalanceChecker(provider);
+        const blockchainUtils = new RfqBlockchainUtils(
+            provider,
+            contractAddresses.exchangeProxy,
+            balanceChecker,
+            instance(mock(providers.Provider)),
+        );
 
         const order = new RfqOrder({
             txOrigin,

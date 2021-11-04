@@ -145,6 +145,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         provider,
         contractAddresses.exchangeProxy,
         balanceChecker,
+        ethersProvider,
         ethersWallet,
     );
 

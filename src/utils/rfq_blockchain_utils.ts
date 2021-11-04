@@ -61,6 +61,9 @@ export class RfqBlockchainUtils {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _abiDecoder: AbiDecoder;
+    // @ts-ignore
+    // An ethers.js provider.
+    private readonly _ethersProvider: providers.Provider;
     // An ethers.js Wallet. Must be populated for RfqBlockchainUtils instances used by RFQM Workers.
     private readonly _ethersWallet: Wallet | undefined;
 
@@ -101,12 +104,14 @@ export class RfqBlockchainUtils {
         provider: SupportedProvider,
         private readonly _exchangeProxyAddress: string,
         private readonly _balanceChecker: BalanceChecker,
+        ethersProvider: providers.Provider,
         ethersWallet?: Wallet,
     ) {
+        this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
+        this._ethersProvider = ethersProvider;
+        this._ethersWallet = ethersWallet;
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
         this._web3Wrapper = new Web3Wrapper(provider);
-        this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
-        this._ethersWallet = ethersWallet;
     }
 
     /**
