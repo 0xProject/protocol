@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.31.0 - _November 3, 2021_
+
+    * Added `Curve`, `Curve_V2` and `KyberDmm` to Avalanche (#363)
+
 ## v16.30.1 - _November 3, 2021_
 
     * Dependencies updated
