@@ -138,7 +138,9 @@ export function generateQuoteReport(
 }
 
 /**
- * Generates a report of sources considered while computing the optimized swap quote, the sources ultimately included in the computed quote, and all considered quotes.
+ * Generates a report of sources considered while computing the optimized
+ * swap quote, the sources ultimately included in the computed quote. This
+ * extende version incudes all considered quotes, not only native liquidity.
  */
 export function generateExtendedQuoteReport(
     marketOperation: MarketOperation,
