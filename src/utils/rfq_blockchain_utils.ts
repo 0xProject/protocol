@@ -267,7 +267,7 @@ export class RfqBlockchainUtils {
     }
 
     public async getNonceAsync(workerAddress: string): Promise<number> {
-        return this._web3Wrapper.getAccountNonceAsync(workerAddress);
+        return this._ethersProvider.getTransactionCount(workerAddress);
     }
 
     public getExchangeProxyAddress(): string {
