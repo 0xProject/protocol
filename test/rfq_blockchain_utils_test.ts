@@ -1,17 +1,19 @@
 // tslint:disable custom-no-magic-numbers
 // tslint:disable await-promise
+// tslint:disable max-file-line-count
 import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
 import { Web3ProviderEngine } from '@0x/dev-utils';
-import { RfqOrder, Signature } from '@0x/protocol-utils';
+import { ethSignHashWithProviderAsync, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { providers, Wallet } from 'ethers';
 import 'mocha';
 
 import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
+import { ZERO } from '../src/constants';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {
@@ -45,10 +47,13 @@ describe(SUITE_NAME, () => {
     let txOrigin: string;
     let zeroEx: IZeroExContract;
     let rfqOrder: RfqOrder;
+    let otcOrder: OtcOrder;
     let unfillableRfqOrder: RfqOrder;
     let rfqBlockchainUtils: RfqBlockchainUtils;
     let orderSig: Signature;
     let sigForUnfillableOrder: Signature;
+    let makerOtcOrderSig: Signature;
+    let takerOtcOrderSig: Signature;
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME, true);
@@ -57,6 +62,7 @@ describe(SUITE_NAME, () => {
 
         [owner, maker, taker, txOrigin] = await web3Wrapper.getAvailableAddressesAsync();
 
+        // Deploy dummy tokens
         makerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
             erc20Artifacts.DummyERC20Token,
             provider,
@@ -81,8 +87,9 @@ describe(SUITE_NAME, () => {
 
         makerAmount = new BigNumber(100);
         takerAmount = new BigNumber(50);
-        invalidTakerAmount = new BigNumber(100);
+        invalidTakerAmount = new BigNumber(10000000);
 
+        // Deploy ZeroEx to Ganache
         zeroEx = await fullMigrateAsync(
             owner,
             provider,
@@ -95,6 +102,7 @@ describe(SUITE_NAME, () => {
             },
         );
 
+        // Prepare an RfqOrder
         rfqOrder = new RfqOrder({
             makerToken: makerToken.address,
             takerToken: takerToken.address,
@@ -110,6 +118,7 @@ describe(SUITE_NAME, () => {
         });
         orderSig = await rfqOrder.getSignatureWithProviderAsync(provider);
 
+        // Prepare an Unfillable RfqOrder
         unfillableRfqOrder = new RfqOrder({
             makerToken: makerToken.address,
             takerToken: takerToken.address,
@@ -125,10 +134,36 @@ describe(SUITE_NAME, () => {
         });
         sigForUnfillableOrder = await unfillableRfqOrder.getSignatureWithProviderAsync(provider);
 
-        await makerToken.mint(makerAmount).awaitTransactionSuccessAsync({ from: maker });
-        await makerToken.approve(zeroEx.address, makerAmount).awaitTransactionSuccessAsync({ from: maker });
-        await takerToken.mint(takerAmount).awaitTransactionSuccessAsync({ from: taker });
-        await takerToken.approve(zeroEx.address, takerAmount).awaitTransactionSuccessAsync({ from: taker });
+        // Prepare an OtcOrder and valid signatures
+        otcOrder = new OtcOrder({
+            maker,
+            taker,
+            makerAmount,
+            takerAmount,
+            makerToken: makerToken.address,
+            takerToken: takerToken.address,
+            txOrigin,
+            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                new BigNumber(VALID_EXPIRY),
+                ZERO,
+                new BigNumber(VALID_EXPIRY),
+            ),
+            chainId: CHAIN_ID,
+            verifyingContract: zeroEx.address,
+        });
+        const orderHash = otcOrder.getHash();
+        makerOtcOrderSig = await ethSignHashWithProviderAsync(orderHash, maker, provider);
+        takerOtcOrderSig = await ethSignHashWithProviderAsync(orderHash, taker, provider);
+
+        // Mint enough tokens for a few trades
+        const numTrades = 2;
+        const makerBalance = makerAmount.times(numTrades);
+        const takerBalance = takerAmount.times(numTrades);
+
+        await makerToken.mint(makerBalance).awaitTransactionSuccessAsync({ from: maker });
+        await makerToken.approve(zeroEx.address, makerBalance).awaitTransactionSuccessAsync({ from: maker });
+        await takerToken.mint(takerBalance).awaitTransactionSuccessAsync({ from: taker });
+        await takerToken.approve(zeroEx.address, takerBalance).awaitTransactionSuccessAsync({ from: taker });
 
         const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL);
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
@@ -138,6 +173,76 @@ describe(SUITE_NAME, () => {
 
     after(async () => {
         await teardownDependenciesAsync(SUITE_NAME);
+    });
+
+    describe('OtcOrder', async () => {
+        describe('estimateGasForFillTakerSignedOtcOrderAsync', async () => {
+            it('does not throw an error on valid order', async () => {
+                try {
+                    const gasEstimate = await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                        otcOrder,
+                        makerOtcOrderSig,
+                        takerOtcOrderSig,
+                        txOrigin,
+                        false,
+                    );
+                    expect(gasEstimate).to.be.greaterThan(0);
+                } catch (err) {
+                    expect.fail('should not throw');
+                }
+            });
+
+            it('throws an error if order is invalid', async () => {
+                const invalidOtcOrder = new OtcOrder({
+                    maker,
+                    taker,
+                    makerAmount,
+                    takerAmount,
+                    makerToken: makerToken.address,
+                    takerToken: takerToken.address,
+                    txOrigin,
+                    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                        ZERO, // expired
+                        ZERO,
+                        VALID_EXPIRY,
+                    ),
+                    chainId: CHAIN_ID,
+                    verifyingContract: zeroEx.address,
+                });
+                const orderHash = invalidOtcOrder.getHash();
+
+                const makerSig = await ethSignHashWithProviderAsync(orderHash, maker, provider);
+                const takerSig = await ethSignHashWithProviderAsync(orderHash, taker, provider);
+
+                try {
+                    await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                        invalidOtcOrder, // invalid order, should be expired
+                        makerSig,
+                        takerSig,
+                        txOrigin,
+                        false,
+                    );
+                    expect.fail('should throw');
+                } catch (err) {
+                    expect(err.message).to.contain('revert');
+                }
+            });
+
+            it('throws an error if signatures invalid', async () => {
+                try {
+                    await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                        otcOrder,
+                        makerOtcOrderSig,
+                        makerOtcOrderSig, // wrong signature
+                        txOrigin,
+                        false,
+                    );
+                    expect.fail('should throw');
+                } catch (err) {
+                    expect(err.message).to.contain('revert');
+                }
+            });
+        });
     });
 
     describe('validateMetaTransaction', () => {
@@ -279,6 +384,30 @@ describe(SUITE_NAME, () => {
             });
 
             expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
+        });
+
+        it('submits an OtcOrder and decodes the OtcOrderFilled Event', async () => {
+            const callData = rfqBlockchainUtils.generateTakerSignedOtcOrderCallData(
+                otcOrder,
+                makerOtcOrderSig,
+                takerOtcOrderSig,
+                false,
+            );
+
+            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
+                gasPrice: 1e9,
+                gas: 200000,
+                value: 0,
+            });
+
+            await web3Wrapper.awaitTransactionMinedAsync(txHash);
+
+            const receipt = await rfqBlockchainUtils.getTransactionReceiptIfExistsAsync(txHash);
+
+            const decodedEvent = rfqBlockchainUtils.getDecodedOtcOrderFillEventLogFromLogs(receipt!.logs);
+
+            expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
+            expect(decodedEvent.args.orderHash).to.eq(otcOrder.getHash());
         });
     });
     describe('transformTxDataToTransactionRequest', () => {

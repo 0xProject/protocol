@@ -1,7 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
-import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
+import { IZeroExOtcOrderFilledEventArgs, IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
-import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -23,7 +23,8 @@ const MIN_GAS_PRICE = new BigNumber(0);
 const MAX_GAS_PRICE = new BigNumber(1e13);
 const GAS_ESTIMATE_BUFFER = 0.5;
 const RFQ_ORDER_FILLED_EVENT_TOPIC0 = '0x829fa99d94dc4636925b38632e625736a614c154d55006b7ab6bea979c210c32';
-const RFQ_ORDER_FILLED_EVENT_ABI = [
+const OTC_ORDER_FILLED_EVENT_TOPIC0 = '0xac75f773e3a92f1a02b12134d65e1f47f8a14eabe4eaf1e24624918e6a8b269f';
+const ZERO_EX_FILL_EVENT_ABI = [
     {
         anonymous: false,
         inputs: [
@@ -37,6 +38,20 @@ const RFQ_ORDER_FILLED_EVENT_ABI = [
             { indexed: false, internalType: 'bytes32', name: 'pool', type: 'bytes32' },
         ],
         name: 'RfqOrderFilled',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            { indexed: false, internalType: 'bytes32', name: 'orderHash', type: 'bytes32' },
+            { indexed: false, internalType: 'address', name: 'maker', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'taker', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'makerToken', type: 'address' },
+            { indexed: false, internalType: 'address', name: 'takerToken', type: 'address' },
+            { indexed: false, internalType: 'uint128', name: 'makerTokenFilledAmount', type: 'uint128' },
+            { indexed: false, internalType: 'uint128', name: 'takerTokenFilledAmount', type: 'uint128' },
+        ],
+        name: 'OtcOrderFilled',
         type: 'event',
     },
 ];
@@ -84,7 +99,7 @@ export class RfqBlockchainUtils {
     constructor(provider: SupportedProvider, private readonly _exchangeProxyAddress: string, ethersWallet?: Wallet) {
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
         this._web3Wrapper = new Web3Wrapper(provider);
-        this._abiDecoder = new AbiDecoder([RFQ_ORDER_FILLED_EVENT_ABI]);
+        this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
         this._ethersWallet = ethersWallet;
     }
 
@@ -131,6 +146,12 @@ export class RfqBlockchainUtils {
         return (this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTxInput[0].callData) as any)[2];
     }
 
+    /**
+     * Validates a metatransaction and its signature for a given sender
+     *
+     * @returns a Promise of [takerTokenFilledAmount, makerTokenFilledAmount]
+     * @throws an error if the metatransaction is not valid
+     */
     public async validateMetaTransactionOrThrowAsync(
         metaTx: MetaTransaction,
         metaTxSig: Signature,
@@ -149,13 +170,73 @@ export class RfqBlockchainUtils {
                 results,
             );
             if (decodedResults[0].isLessThan(takerTokenFillAmount)) {
+                logger.error('validation failed because filled amount is less than requested fill amount');
                 throw new Error(`filled amount is less than requested fill amount`);
             }
-            // returns [takerTokenFilledAmount, makerTokenFilledAmount]
             return decodedResults;
         } catch (err) {
+            logger.error({ errorMessage: err?.message }, 'eth_call validation failed for executeMetaTransaction');
             throw new Error(err);
         }
+    }
+
+    /**
+     * Estimate the gas for fillTakerSignedOtcOrder and fillTakerSignedOtcOrderForEth
+     * NOTE: can also be used for validation
+     *
+     * @returns a Promise of the gas estimate
+     * @throws an error if transaction will revert
+     */
+    public async estimateGasForFillTakerSignedOtcOrderAsync(
+        order: OtcOrder,
+        makerSignature: Signature,
+        takerSignature: Signature,
+        sender: string,
+        isUnwrap: boolean,
+    ): Promise<number> {
+        try {
+            if (isUnwrap) {
+                return await this._exchangeProxy
+                    .fillTakerSignedOtcOrderForEth(order, makerSignature, takerSignature)
+                    .estimateGasAsync({ from: sender });
+            } else {
+                return await this._exchangeProxy
+                    .fillTakerSignedOtcOrder(order, makerSignature, takerSignature)
+                    .estimateGasAsync({ from: sender });
+            }
+        } catch (err) {
+            logger.error(
+                {
+                    orderHash: order.getHash(),
+                    maker: order.maker,
+                    taker: order.taker,
+                    isUnwrap,
+                    errorMessage: err?.message,
+                },
+                'validation failed for taker signed OtcOrder',
+            );
+            throw err;
+        }
+    }
+
+    /**
+     * Generates calldata for Taker Signed OtcOrder settlement
+     */
+    public generateTakerSignedOtcOrderCallData(
+        order: OtcOrder,
+        makerSignature: Signature,
+        takerSignature: Signature,
+        isUnwrap: boolean,
+        affiliateAddress?: string,
+    ): string {
+        const callData = isUnwrap
+            ? this._exchangeProxy
+                  .fillTakerSignedOtcOrderForEth(order, makerSignature, takerSignature)
+                  .getABIEncodedTransactionData()
+            : this._exchangeProxy
+                  .fillTakerSignedOtcOrder(order, makerSignature, takerSignature)
+                  .getABIEncodedTransactionData();
+        return serviceUtils.attributeCallData(callData, affiliateAddress).affiliatedData;
     }
 
     public generateMetaTransactionCallData(
@@ -176,10 +257,11 @@ export class RfqBlockchainUtils {
     }
 
     public async getTransactionReceiptIfExistsAsync(transactionHash: string): Promise<TransactionReceipt | undefined> {
+        // TODO(phil/david) - remove the try catch and let the caller handle the logging of the error
         try {
             return await this._web3Wrapper.getTransactionReceiptIfExistsAsync(transactionHash);
         } catch (err) {
-            logger.warn({ transactionHash, error: err }, `failed to get transaction receipt`);
+            logger.warn({ transactionHash, errorMessage: err?.message }, `failed to get transaction receipt`);
             return undefined;
         }
     }
@@ -211,6 +293,22 @@ export class RfqBlockchainUtils {
         }
         throw new Error(
             `no RfqOrderFilledEvent logs among the logs passed into getDecodedRfqOrderFillEventLogFromLogs`,
+        );
+    }
+
+    /**
+     * Decode the OtcOrder Filled Event
+     */
+    public getDecodedOtcOrderFillEventLogFromLogs(
+        logs: LogEntry[],
+    ): LogWithDecodedArgs<IZeroExOtcOrderFilledEventArgs> {
+        for (const log of logs) {
+            if (log.topics[0] === OTC_ORDER_FILLED_EVENT_TOPIC0) {
+                return this._abiDecoder.tryToDecodeLogOrNoop(log) as LogWithDecodedArgs<IZeroExRfqOrderFilledEventArgs>;
+            }
+        }
+        throw new Error(
+            `no OtcOrderFilledEvent logs among the logs passed into getDecodedOtcOrderFillEventLogFromLogs`,
         );
     }
 
