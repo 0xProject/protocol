@@ -61,7 +61,6 @@ export class RfqBlockchainUtils {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _abiDecoder: AbiDecoder;
-    // @ts-ignore
     // An ethers.js provider.
     private readonly _ethersProvider: providers.Provider;
     // An ethers.js Wallet. Must be populated for RfqBlockchainUtils instances used by RFQM Workers.
