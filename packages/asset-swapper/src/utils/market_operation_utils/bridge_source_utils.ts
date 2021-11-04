@@ -11,11 +11,11 @@ import {
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
-    CURVE_ARBITRUM_INFOS,
+    CURVE_AVALANCHE_INFOS,
     CURVE_FANTOM_INFOS,
     CURVE_MAINNET_INFOS,
     CURVE_POLYGON_INFOS,
-    CURVE_V2_ARBITRUM_INFOS,
+    CURVE_V2_AVALANCHE_INFOS,
     CURVE_V2_FANTOM_INFOS,
     CURVE_V2_MAINNET_INFOS,
     CURVE_V2_POLYGON_INFOS,
@@ -52,6 +52,7 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    CURVE_V2_ARBITRUM_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -148,8 +149,17 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                             [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
+        case ChainId.Avalanche:
+            return Object.values(CURVE_AVALANCHE_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
         case ChainId.Arbitrum:
-            return Object.values(CURVE_ARBITRUM_INFOS).filter(c =>
+            return Object.values(CURVE_V2_ARBITRUM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -185,6 +195,15 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
             );
         case ChainId.Fantom:
             return Object.values(CURVE_V2_FANTOM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Avalanche:
+            return Object.values(CURVE_V2_AVALANCHE_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
