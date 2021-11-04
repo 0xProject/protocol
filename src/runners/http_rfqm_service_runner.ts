@@ -47,6 +47,7 @@ import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
 import { RfqmService } from '../services/rfqm_service';
 import { HttpServiceConfig } from '../types';
+import { BalanceChecker } from '../utils/balance_checker';
 import { CacheClient } from '../utils/cache_client';
 import { ConfigManager } from '../utils/config_manager';
 import { METRICS_PROXY } from '../utils/metrics_service';
@@ -139,7 +140,13 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         throw new Error('META_TX_WORKER_REGISTRY must be set!');
     }
 
-    const rfqBlockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy, ethersWallet);
+    const balanceChecker = new BalanceChecker(provider);
+    const rfqBlockchainUtils = new RfqBlockchainUtils(
+        provider,
+        contractAddresses.exchangeProxy,
+        balanceChecker,
+        ethersWallet,
+    );
 
     const dbUtils = new RfqmDbUtils(connection);
 

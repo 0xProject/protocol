@@ -13,6 +13,7 @@ import { resolveProperties } from 'ethers/lib/utils';
 import { NULL_ADDRESS, ZERO } from '../constants';
 import { logger } from '../logger';
 
+import { BalanceChecker } from './balance_checker';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
@@ -96,11 +97,23 @@ export class RfqBlockchainUtils {
         return `m/44'/60'/0'/0/`.concat(String(index));
     }
 
-    constructor(provider: SupportedProvider, private readonly _exchangeProxyAddress: string, ethersWallet?: Wallet) {
+    constructor(
+        provider: SupportedProvider,
+        private readonly _exchangeProxyAddress: string,
+        private readonly _balanceChecker: BalanceChecker,
+        ethersWallet?: Wallet,
+    ) {
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
         this._web3Wrapper = new Web3Wrapper(provider);
         this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
         this._ethersWallet = ethersWallet;
+    }
+
+    /**
+     * Fetches the token balances for a given list of addresses and tokens
+     */
+    public async getTokenBalancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
+        return this._balanceChecker.getTokenBalancesAsync(addresses, tokens, this._exchangeProxyAddress);
     }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker

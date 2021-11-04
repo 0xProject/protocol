@@ -34,6 +34,7 @@ import { StoredOrder } from '../src/entities/RfqmJobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus, StoredFee } from '../src/entities/types';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
+import { BalanceChecker } from '../src/utils/balance_checker';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
@@ -1135,13 +1136,15 @@ describe(SUITE_NAME, () => {
             type: 'fixed',
         };
 
+        const provider = getProvider();
+        const balanceChecker = new BalanceChecker(provider);
+        const blockchainUtils = new RfqBlockchainUtils(provider, contractAddresses.exchangeProxy, balanceChecker);
         const txOrigin = '0x064Ef480A8a9892A28F027Db7Df331330948801c';
         const maker = '0x753faAbC50bEEb9C8A7635aE670863FfB5AE216B';
         const taker = '0xCa667eA8E6F60933Faaa5a017104b4DE5db5f77c';
         const makerToken = '0x404207B9e5c75B35d9E43f0338CB93E455C11a01';
         const takerToken = '0x7e238128219511Ab74c296442cf58D15d5aFE243';
 
-        const blockchainUtils = new RfqBlockchainUtils(getProvider(), contractAddresses.exchangeProxy);
         const order = new RfqOrder({
             txOrigin,
             chainId: CHAIN_ID,

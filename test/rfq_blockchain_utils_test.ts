@@ -1,6 +1,7 @@
 // tslint:disable custom-no-magic-numbers
 // tslint:disable await-promise
 // tslint:disable max-file-line-count
+import { artifacts as assetSwapperArtifacts, BalanceCheckerContract } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
@@ -14,6 +15,7 @@ import 'mocha';
 
 import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
 import { ZERO } from '../src/constants';
+import { BalanceChecker } from '../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {
@@ -37,9 +39,11 @@ describe(SUITE_NAME, () => {
     let provider: Web3ProviderEngine;
     let makerToken: DummyERC20TokenContract;
     let takerToken: DummyERC20TokenContract;
+    let makerAmount: BigNumber;
     let takerAmount: BigNumber;
     let invalidTakerAmount: BigNumber;
-    let makerAmount: BigNumber;
+    let makerBalance: BigNumber;
+    let takerBalance: BigNumber;
     let web3Wrapper: Web3Wrapper;
     let owner: string;
     let maker: string;
@@ -84,6 +88,15 @@ describe(SUITE_NAME, () => {
             new BigNumber(18),
             new BigNumber(1000000),
         );
+
+        // Deploy Balance Checker (only necessary for Ganache because ganache doesn't have overrides)
+        const balanceCheckerContract = await BalanceCheckerContract.deployFrom0xArtifactAsync(
+            assetSwapperArtifacts.BalanceChecker,
+            provider,
+            { from: owner, gas: 10000000 },
+            {},
+        );
+        const balanceChecker = new BalanceChecker(provider, balanceCheckerContract);
 
         makerAmount = new BigNumber(100);
         takerAmount = new BigNumber(50);
@@ -157,8 +170,8 @@ describe(SUITE_NAME, () => {
 
         // Mint enough tokens for a few trades
         const numTrades = 2;
-        const makerBalance = makerAmount.times(numTrades);
-        const takerBalance = takerAmount.times(numTrades);
+        makerBalance = makerAmount.times(numTrades);
+        takerBalance = takerAmount.times(numTrades);
 
         await makerToken.mint(makerBalance).awaitTransactionSuccessAsync({ from: maker });
         await makerToken.approve(zeroEx.address, makerBalance).awaitTransactionSuccessAsync({ from: maker });
@@ -168,11 +181,20 @@ describe(SUITE_NAME, () => {
         const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL);
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
 
-        rfqBlockchainUtils = new RfqBlockchainUtils(provider, zeroEx.address, ethersWallet);
+        rfqBlockchainUtils = new RfqBlockchainUtils(provider, zeroEx.address, balanceChecker, ethersWallet);
     });
 
     after(async () => {
         await teardownDependenciesAsync(SUITE_NAME);
+    });
+
+    describe('getTokenBalancesAsync', () => {
+        it('should fetch initial token balances', async () => {
+            const addresses = [maker, maker, taker, taker];
+            const tokens = [makerToken.address, takerToken.address, makerToken.address, takerToken.address];
+            const res = await rfqBlockchainUtils.getTokenBalancesAsync(addresses, tokens);
+            expect(res).to.deep.eq([makerBalance, ZERO, ZERO, takerBalance]);
+        });
     });
 
     describe('OtcOrder', async () => {
