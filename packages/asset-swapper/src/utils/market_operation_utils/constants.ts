@@ -167,6 +167,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
+            ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
         ]),
         [ChainId.Fantom]: new SourceFilters([
@@ -286,6 +287,9 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
+            ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.SushiSwap,
+
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -467,8 +471,12 @@ export const CELO_TOKENS = {
     cUSD: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
     cEUR: '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73',
     CELO: '0x471EcE3750Da237f93B8E339c536989b8978a438',
+    WCELO: '0x471EcE3750Da237f93B8E339c536989b8978a438',
     cETH: '0x2DEf4285787d58a2f811AF24755A8150622f4361',
     cBTC: '0xD629eb00dEced2a080B7EC630eF6aC117e614f1b',
+    mCUSD: '0x64dEFa3544c695db8c535D289d843a189aa26b98',
+    mCEUR: '0x2DEf4285787d58a2f811AF24755A8150622f4361',
+    UBE: '0x00be915b9dcf56a3cbe739d9b9c202ca692409ec',
 };
 
 export const FANTOM_TOKENS = {
@@ -656,6 +664,10 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             CELO_TOKENS.CELO,
             CELO_TOKENS.cETH,
             CELO_TOKENS.cBTC,
+            CELO_TOKENS.mCUSD,
+            CELO_TOKENS.mCEUR,
+            CELO_TOKENS.UBE,
+
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
     },
@@ -1723,7 +1735,7 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const UBESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Celo]: '0xE3D8bd6Aed4F159bc8000a9cD47CffDb95F96121',
+        [ChainId.Celo]: '0x56d0Ae52f33f7C2e38E92F6D20b8ccfD7Dc318Ce',
     },
     NULL_ADDRESS,
 );

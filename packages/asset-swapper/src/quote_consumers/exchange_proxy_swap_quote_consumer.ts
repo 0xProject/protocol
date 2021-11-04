@@ -362,13 +362,19 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const transforms = [];
         if (isFromETH) {
             // Create a WETH wrapper if coming from ETH.
-            transforms.push({
-                deploymentNonce: this.transformerNonces.wethTransformer,
-                data: encodeWethTransformerData({
-                    token: ETH_TOKEN_ADDRESS,
-                    amount: shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                }),
-            });
+            switch(this.chainId){
+                case 42220:
+                    break;
+                default:
+                    transforms.push({
+                        deploymentNonce: this.transformerNonces.wethTransformer,
+                        data: encodeWethTransformerData({
+                            token: ETH_TOKEN_ADDRESS,
+                            amount: shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
+                        }),
+                    });
+            }
+
         }
 
         // If it's two hop we have an intermediate token this is needed to encode the individual FQT
@@ -416,13 +422,20 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (isToETH) {
             // Create a WETH unwrapper if going to ETH.
-            transforms.push({
-                deploymentNonce: this.transformerNonces.wethTransformer,
-                data: encodeWethTransformerData({
-                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
-                    amount: MAX_UINT256,
-                }),
-            });
+
+            switch(this.chainId){
+                case 42220:
+                    break;
+                default:
+                    transforms.push({
+                        deploymentNonce: this.transformerNonces.wethTransformer,
+                        data: encodeWethTransformerData({
+                            token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
+                            amount: MAX_UINT256,
+                        }),
+                    });
+            }
+
         }
 
         const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
