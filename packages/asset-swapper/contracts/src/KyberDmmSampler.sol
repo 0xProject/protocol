@@ -159,8 +159,11 @@ contract KyberDmmSampler
                     (path[i], path[i + 1])
                 returns (address[] memory allPools)
             {
+                if (allPools.length == 0) {
+                    return new address[](0);
+                }
+
                 uint256 maxSupply = 0;
-                require(allPools.length >= 1, "KyberDMMSampler/NO_POOLS_FOUND");
                 for (uint256 j = 0; j < allPools.length; j++) {
                     uint256 totalSupply = IKyberDmmPool(allPools[j]).totalSupply();
                     if (totalSupply > maxSupply) {
