@@ -2,7 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: rfqm-api
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: api
   name: rfqm-api
 spec:
   strategy:
@@ -13,14 +14,16 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rfqm-api
+      app.kubernetes.io/name: rfqm
+      app.kubernetes.io/component: api
   template:
     metadata:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
       labels:
-        app: rfqm-api
+        app.kubernetes.io/name: rfqm
+        app.kubernetes.io/component: api
     spec:
       containers:
         - image: 0x-rfq-api:latest

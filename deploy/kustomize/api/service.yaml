@@ -3,11 +3,13 @@ kind: Service
 metadata:
   name: rfqm-api
   labels:
-    app: rfqm-api
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: api
 spec:
   type: ClusterIP
   selector:
-    app: rfqm-api
+    app.kubernetes.io/name: rfqm
+    app.kubernetes.io/component: api
   ports:
     - protocol: TCP
       name: http
