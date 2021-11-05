@@ -167,6 +167,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
+            ERC20BridgeSource.UbeSwapMoola,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
         ]),
@@ -287,6 +288,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
+            ERC20BridgeSource.UbeSwapMoola,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
 
@@ -318,7 +320,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
-        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
+        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UbeSwapMoola],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
     },
     [],
@@ -660,12 +662,12 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         [ChainId.Celo]: [
             CELO_TOKENS.cUSD,
             CELO_TOKENS.cEUR,
-            CELO_TOKENS.CELO,
             CELO_TOKENS.cETH,
             CELO_TOKENS.cBTC,
             CELO_TOKENS.mCUSD,
             CELO_TOKENS.mCEUR,
             CELO_TOKENS.UBE,
+            CELO_TOKENS.WCELO,
 
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
@@ -1734,6 +1736,13 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const UBESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
+        [ChainId.Celo]: '0xE3D8bd6Aed4F159bc8000a9cD47CffDb95F96121',
+    },
+    NULL_ADDRESS,
+);
+
+export const UBESWAP_MOOLA_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
         [ChainId.Celo]: '0x56d0Ae52f33f7C2e38E92F6D20b8ccfD7Dc318Ce',
     },
     NULL_ADDRESS,
@@ -1908,6 +1917,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     // Celo
     //
     [ERC20BridgeSource.UbeSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.UbeSwapMoola]: uniswapV2CloneGasSchedule,
 
     //
     // Fantom

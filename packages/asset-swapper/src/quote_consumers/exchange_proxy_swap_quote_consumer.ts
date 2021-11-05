@@ -362,7 +362,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const transforms = [];
         if (isFromETH) {
             // Create a WETH wrapper if coming from ETH.
-            switch(this.chainId){
+            switch (this.chainId) {
                 case 42220:
                     break;
                 default:
@@ -423,7 +423,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isToETH) {
             // Create a WETH unwrapper if going to ETH.
 
-            switch(this.chainId){
+            switch (this.chainId) {
                 case 42220:
                     break;
                 default:
@@ -505,15 +505,32 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 amounts: [],
             }),
         });
-        const calldataHexString = this._exchangeProxy
-            .transformERC20(
-                isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                minBuyAmount,
-                transforms,
-            )
-            .getABIEncodedTransactionData();
+        let calldataHexString;
+        switch (this.chainId) {
+
+            case 42220:
+                calldataHexString = this._exchangeProxy
+                .transformERC20(
+                    isFromETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : sellToken,
+                    isToETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : buyToken,
+                    shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
+                    minBuyAmount,
+                    transforms,
+                )
+                .getABIEncodedTransactionData();
+                break;
+            default:
+            calldataHexString = this._exchangeProxy
+                .transformERC20(
+                    isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                    isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                    shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
+                    minBuyAmount,
+                    transforms,
+                )
+                .getABIEncodedTransactionData();
+            break;
+        }
 
         return {
             calldataHexString,
