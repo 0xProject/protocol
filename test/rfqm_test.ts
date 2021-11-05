@@ -12,7 +12,6 @@ import {
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
 import { MetaTransaction, MetaTransactionFields, RfqOrder } from '@0x/protocol-utils';
-import { generatePseudoRandom256BitNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -1142,6 +1141,9 @@ describe(SUITE_NAME, () => {
         const taker = '0xCa667eA8E6F60933Faaa5a017104b4DE5db5f77c';
         const makerToken = '0x404207B9e5c75B35d9E43f0338CB93E455C11a01';
         const takerToken = '0x7e238128219511Ab74c296442cf58D15d5aFE243';
+        const pool = `0x${new BigNumber(
+            '11857151820888047027103111127198028299842265359943718838117637388213023887461',
+        ).toString(16)}`;
 
         const provider = getProvider();
         const balanceChecker = new BalanceChecker(provider);
@@ -1162,7 +1164,7 @@ describe(SUITE_NAME, () => {
             takerAmount: EXPECTED_FILL_AMOUNT,
             makerToken,
             takerToken,
-            pool: `0x${generatePseudoRandom256BitNumber().toString(16)}`,
+            pool,
             salt: new BigNumber(1),
             verifyingContract: contractAddresses.exchangeProxy,
         });
