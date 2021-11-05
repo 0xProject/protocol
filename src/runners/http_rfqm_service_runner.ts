@@ -51,6 +51,7 @@ import { BalanceChecker } from '../utils/balance_checker';
 import { CacheClient } from '../utils/cache_client';
 import { ConfigManager } from '../utils/config_manager';
 import { METRICS_PROXY } from '../utils/metrics_service';
+import { PairsManager } from '../utils/pairs_manager';
 import { providerUtils } from '../utils/provider_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
@@ -74,8 +75,8 @@ if (require.main === module) {
             ...defaultHttpServiceWithRateLimiterConfig,
         };
         const connection = await getDBConnectionAsync();
-        const rfqmService = await buildRfqmServiceAsync(connection, false);
         const configManager = new ConfigManager();
+        const rfqmService = await buildRfqmServiceAsync(connection, /* asWorker = */ false, configManager);
         await runHttpRfqmServiceAsync(rfqmService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
 }
@@ -83,7 +84,11 @@ if (require.main === module) {
 /**
  * Builds an instance of RfqmService
  */
-export async function buildRfqmServiceAsync(connection: Connection, asWorker: boolean): Promise<RfqmService> {
+export async function buildRfqmServiceAsync(
+    connection: Connection,
+    asWorker: boolean,
+    configManager: ConfigManager = new ConfigManager(),
+): Promise<RfqmService> {
     let provider: SupportedProvider;
 
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
@@ -160,6 +165,8 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
     const redisClient = redis.createClient({ url: REDIS_URI });
     const cacheClient = new CacheClient(redisClient);
 
+    const pairsManager = new PairsManager(configManager);
+
     return new RfqmService(
         quoteRequestor,
         protocolFeeUtils,
@@ -171,6 +178,7 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
         quoteServerClient,
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
+        pairsManager,
     );
 }
 

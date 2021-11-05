@@ -1,8 +1,14 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+import {
+    AssetSwapperContractAddresses,
+    MarketOperation,
+    ProtocolFeeUtils,
+    QuoteRequestor,
+    V4RFQIndicativeQuote,
+} from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
-import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -26,13 +32,15 @@ import {
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
     RFQM_TX_GAS_ESTIMATE,
+    RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { FirmRfqQuote } from '../types';
+import { FirmQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
+import { PairsManager } from '../utils/pairs_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
@@ -51,6 +59,7 @@ const MIN_GAS_PRICE_INCREASE = 0.1;
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
+    OtcOrder = 'otc',
 }
 
 export interface FetchIndicativeQuoteParams {
@@ -117,6 +126,12 @@ export interface MetaTransactionRfqmQuoteResponse extends BaseRfqmQuoteResponse 
     orderHash: string;
 }
 
+export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
+    type: RfqmTypes.OtcOrder;
+    order: OtcOrder;
+    orderHash: string;
+}
+
 export interface SubmissionsMapStatus {
     isTxMined: boolean;
     isTxConfirmed: boolean;
@@ -134,7 +149,7 @@ export interface SubmissionContext {
     gasPrice: BigNumber;
 }
 
-export type FetchFirmQuoteResponse = MetaTransactionRfqmQuoteResponse;
+export type FetchFirmQuoteResponse = MetaTransactionRfqmQuoteResponse | OtcOrderRfqmQuoteResponse;
 export type SubmitRfqmSignedQuoteParams = MetaTransactionSubmitRfqmSignedQuoteParams;
 export type SubmitRfqmSignedQuoteResponse = MetaTransactionSubmitRfqmSignedQuoteResponse;
 
@@ -310,6 +325,7 @@ export class RfqmService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _transactionWatcherSleepTimeMs: number,
         private readonly _cacheClient: CacheClient,
+        private readonly _pairsManager: PairsManager,
     ) {}
 
     /**
@@ -318,7 +334,6 @@ export class RfqmService {
     public async fetchIndicativeQuoteAsync(
         params: FetchIndicativeQuoteParams,
     ): Promise<FetchIndicativeQuoteResponse | null> {
-        // Extract params
         const {
             sellAmount,
             buyAmount,
@@ -326,40 +341,17 @@ export class RfqmService {
             buyToken: makerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
-            integrator,
         } = params;
 
-        // Quote Requestor specific params
+        // Get desired fill amount
         const isSelling = sellAmount !== undefined;
-        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Prepare gas estimate and fee
+        // Get the gas price
         const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        const feeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
 
-        // Fetch quotes
-        const opts: RfqmRequestOptions = {
-            ...RFQM_DEFAULT_OPTS,
-            txOrigin: this._registryAddress,
-            integrator,
-            intentOnFilling: false,
-            isIndicative: true,
-            isLastLook: true,
-            fee: {
-                amount: feeAmount,
-                token: this._contractAddresses.etherToken,
-                type: 'fixed',
-            },
-        };
-        const indicativeQuotes = await this._quoteRequestor.requestRfqmIndicativeQuotesAsync(
-            makerToken,
-            takerToken,
-            assetFillAmount,
-            marketOperation,
-            undefined,
-            opts,
-        );
+        // Fetch all indicative quotes
+        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -415,63 +407,17 @@ export class RfqmService {
 
         // Quote Requestor specific params
         const isSelling = sellAmount !== undefined;
-        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Prepare gas estimate and fee
+        // Fetch the current gas price
         const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        const gasEstimate = calculateGasEstimate(makerToken, takerToken);
-        const feeAmount = gasPrice.times(gasEstimate);
-        const fee: Fee = {
-            amount: feeAmount,
-            token: this._contractAddresses.etherToken,
-            type: 'fixed',
-        };
 
-        // Fetch the current bucket
-        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync()) % RFQM_NUM_BUCKETS;
-        logger.info({ currentBucket }, 'TODO: implement usage of currentBucket');
-
-        // Fetch quotes
-        const opts: RfqmRequestOptions = {
-            ...RFQM_DEFAULT_OPTS,
-            takerAddress,
-            txOrigin: this._registryAddress,
-            integrator,
-            intentOnFilling: true,
-            isIndicative: false,
-            isLastLook: true,
-            fee,
-        };
-        const responses = await this._quoteRequestor.requestRfqmFirmQuotesAsync(
-            makerToken,
-            takerToken,
-            assetFillAmount,
-            marketOperation,
-            undefined,
-            opts,
-        );
-
-        const firmRfqOrderQuotes: FirmRfqQuote[] = responses.map((r) => {
-            return {
-                order: new RfqOrder(r.order),
-                kind: 'rfq',
-                makerSignature: r.signature,
-                makerUri: this._quoteRequestor.getMakerUriForSignature(r.signature)!,
-            };
-        });
-
-        const firmQuotesWithCorrectChainId = firmRfqOrderQuotes.filter((quote) => {
-            if (quote.order.chainId !== CHAIN_ID) {
-                logger.error({ quote }, 'Received a quote with incorrect chain id');
-                return false;
-            }
-            return true;
-        });
+        // Fetch all firm quotes and fee
+        const { quotes: firmQuotes, otcOrderFee, rfqOrderFee } = await this._fetchFirmQuotesAsync(params, gasPrice);
 
         // Get the best quote
         const bestQuote = getBestQuote(
-            firmQuotesWithCorrectChainId,
+            firmQuotes,
             isSelling,
             takerToken,
             makerToken,
@@ -483,6 +429,9 @@ export class RfqmService {
         if (bestQuote === null) {
             return null;
         }
+
+        // Get the fee
+        const fee = bestQuote.kind === 'rfq' ? rfqOrderFee : otcOrderFee;
 
         // Get the makerUri
         const makerUri = bestQuote.makerUri;
@@ -520,34 +469,53 @@ export class RfqmService {
         const rfqOrder = new RfqOrder(bestQuote.order);
         const orderHash = rfqOrder.getHash();
 
-        // Generate the Meta Transaction and its hash
-        const metaTransaction = this._blockchainUtils.generateMetaTransaction(
-            rfqOrder,
-            bestQuote.makerSignature,
-            takerAddress,
-            takerAmount,
-            CHAIN_ID,
-        );
-        const metaTransactionHash = metaTransaction.getHash();
+        // Handle Metatransaction flow
+        if (bestQuote.kind === 'rfq') {
+            // Generate the Meta Transaction and its hash
+            const metaTransaction = this._blockchainUtils.generateMetaTransaction(
+                rfqOrder,
+                bestQuote.makerSignature,
+                takerAddress,
+                takerAmount,
+                CHAIN_ID,
+            );
+            const metaTransactionHash = metaTransaction.getHash();
 
-        // TODO: Save the integratorId
-        // Save the RfqmQuote
-        await this._dbUtils.writeRfqmQuoteToDbAsync(
-            new RfqmQuoteEntity({
-                orderHash,
+            // Save the RfqmQuote
+            await this._dbUtils.writeRfqmQuoteToDbAsync(
+                new RfqmQuoteEntity({
+                    orderHash,
+                    metaTransactionHash,
+                    chainId: CHAIN_ID,
+                    fee: feeToStoredFee(fee),
+                    order: v4RfqOrderToStoredOrder(rfqOrder),
+                    makerUri,
+                    affiliateAddress,
+                    integratorId: integrator.integratorId,
+                }),
+            );
+            RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
+
+            // Prepare response
+            return {
+                type: RfqmTypes.MetaTransaction,
+                price: roundedPrice,
+                gas: gasPrice,
+                buyAmount: makerAmount,
+                buyTokenAddress: bestQuote.order.makerToken,
+                sellAmount: takerAmount,
+                sellTokenAddress: bestQuote.order.takerToken,
+                allowanceTarget: this._contractAddresses.exchangeProxy,
+                metaTransaction,
                 metaTransactionHash,
-                chainId: CHAIN_ID,
-                fee: feeToStoredFee(fee),
-                order: v4RfqOrderToStoredOrder(rfqOrder),
-                makerUri,
-                affiliateAddress,
-            }),
-        );
-        RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
+                orderHash,
+            };
+        }
 
-        // Prepare response
+        // Otherwise, OtcOrder flow
+        // TODO: save OtcOrder to new tables
         return {
-            type: RfqmTypes.MetaTransaction,
+            type: RfqmTypes.OtcOrder,
             price: roundedPrice,
             gas: gasPrice,
             buyAmount: makerAmount,
@@ -555,8 +523,7 @@ export class RfqmService {
             sellAmount: takerAmount,
             sellTokenAddress: bestQuote.order.takerToken,
             allowanceTarget: this._contractAddresses.exchangeProxy,
-            metaTransaction,
-            metaTransactionHash,
+            order: bestQuote.order,
             orderHash,
         };
     }
@@ -1001,6 +968,178 @@ export class RfqmService {
             }
         }
         return submissionsMap;
+    }
+
+    /**
+     * Internal method to fetch indicative quotes. Handles fetching both Rfq and Otc quotes
+     */
+    private async _fetchIndicativeQuotesAsync(
+        params: FetchIndicativeQuoteParams,
+        gasPrice: BigNumber,
+    ): Promise<V4RFQIndicativeQuote[]> {
+        // Extract params
+        const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
+
+        // Quote Requestor specific params
+        const isSelling = sellAmount !== undefined;
+        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
+        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
+
+        // Prepare gas estimate and fee
+        const rfqOrderFeeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
+        const otcOrderFeeAmount = gasPrice.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE);
+
+        // Create Rfq Order request options
+        const rfqOrderOpts: RfqmRequestOptions = {
+            ...RFQM_DEFAULT_OPTS,
+            txOrigin: this._registryAddress,
+            integrator,
+            intentOnFilling: false,
+            isIndicative: true,
+            isLastLook: true,
+            fee: {
+                amount: rfqOrderFeeAmount,
+                token: this._contractAddresses.etherToken,
+                type: 'fixed',
+            },
+        };
+
+        // Create Otc Order request options
+        const otcOrderParams = QuoteServerClient.makeQueryParameters({
+            txOrigin: this._registryAddress,
+            takerAddress: NULL_ADDRESS,
+            marketOperation,
+            buyTokenAddress: makerToken,
+            sellTokenAddress: takerToken,
+            assetFillAmount,
+            isLastLook: true,
+            fee: {
+                amount: otcOrderFeeAmount,
+                token: this._contractAddresses.etherToken,
+                type: 'fixed',
+            },
+        });
+        const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+
+        // Fetch quotes
+        const [rfqOrderQuotes, otcOrderQuotes] = await Promise.all([
+            this._quoteRequestor.requestRfqmIndicativeQuotesAsync(
+                makerToken,
+                takerToken,
+                assetFillAmount,
+                marketOperation,
+                undefined,
+                rfqOrderOpts,
+            ),
+            otcOrderMakerUris.length > 0
+                ? this._quoteServerClient.batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
+                : Promise.resolve([]),
+        ]);
+        const indicativeQuotes = rfqOrderQuotes.concat(otcOrderQuotes);
+        return indicativeQuotes;
+    }
+
+    /**
+     * Internal method to fetch firm quotes. Handles fetching both Rfq and Otc quotes
+     */
+    private async _fetchFirmQuotesAsync(
+        params: FetchFirmQuoteParams,
+        gasPrice: BigNumber,
+    ): Promise<{
+        quotes: FirmQuote[];
+        otcOrderFee: Fee;
+        rfqOrderFee: Fee;
+    }> {
+        // Extract params
+        const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator, takerAddress } = params;
+
+        // Quote Requestor specific params
+        const isSelling = sellAmount !== undefined;
+        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
+        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
+
+        // Prepare gas estimate and fee
+        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq');
+        const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
+        const rfqOrderFee: Fee = {
+            amount: rfqOrderFeeAmount,
+            token: this._contractAddresses.etherToken,
+            type: 'fixed',
+        };
+
+        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc');
+        const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
+        const otcOrderFee: Fee = {
+            amount: otcOrderFeeAmount,
+            token: this._contractAddresses.etherToken,
+            type: 'fixed',
+        };
+
+        // Fetch the current bucket
+        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync()) % RFQM_NUM_BUCKETS;
+
+        // Create RfqOrder request options
+        const opts: RfqmRequestOptions = {
+            ...RFQM_DEFAULT_OPTS,
+            takerAddress,
+            txOrigin: this._registryAddress,
+            integrator,
+            intentOnFilling: true,
+            isIndicative: false,
+            isLastLook: true,
+            fee: rfqOrderFee,
+        };
+
+        // Create Otc Order request options
+        const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
+        const otcOrderParams = QuoteServerClient.makeQueryParameters({
+            txOrigin: this._registryAddress,
+            takerAddress,
+            marketOperation,
+            buyTokenAddress: makerToken,
+            sellTokenAddress: takerToken,
+            assetFillAmount,
+            isLastLook: true,
+            fee: otcOrderFee,
+            nonce: nowSeconds,
+            nonceBucket: currentBucket,
+        });
+        const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+
+        // Fetch quotes
+        const [rfqQuotes, otcQuotes] = await Promise.all([
+            this._quoteRequestor
+                .requestRfqmFirmQuotesAsync(makerToken, takerToken, assetFillAmount, marketOperation, undefined, opts)
+                .then((quotes) =>
+                    quotes.map((q): FirmQuote => {
+                        return {
+                            order: new RfqOrder(q.order),
+                            kind: 'rfq',
+                            makerSignature: q.signature,
+                            makerUri: this._quoteRequestor.getMakerUriForSignature(q.signature)!,
+                        };
+                    }),
+                ),
+            otcOrderMakerUris.length > 0
+                ? this._quoteServerClient.batchGetQuoteV2Async(otcOrderMakerUris, integrator, otcOrderParams)
+                : Promise.resolve([]),
+        ]);
+
+        const firmQuotes: FirmQuote[] = rfqQuotes.concat(otcQuotes);
+
+        const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
+            if (quote.order.chainId !== CHAIN_ID) {
+                logger.error({ quote }, 'Received a quote with incorrect chain id');
+                return false;
+            }
+            return true;
+        });
+
+        return {
+            quotes: firmQuotesWithCorrectChainId,
+            otcOrderFee,
+            rfqOrderFee,
+        };
     }
 
     /**

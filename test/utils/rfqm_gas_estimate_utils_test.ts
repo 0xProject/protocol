@@ -12,7 +12,7 @@ describe('RFQM Gas Estimate utils', () => {
             const makerToken = '';
             const takerToken = '';
 
-            const result = calculateGasEstimate(makerToken, takerToken);
+            const result = calculateGasEstimate(makerToken, takerToken, 'rfq');
 
             expect(result).to.eq(RFQM_TX_GAS_ESTIMATE);
         });
@@ -21,7 +21,7 @@ describe('RFQM Gas Estimate utils', () => {
             const makerToken = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
             const takerToken = '';
 
-            const result = calculateGasEstimate(makerToken, takerToken);
+            const result = calculateGasEstimate(makerToken, takerToken, 'rfq');
 
             expect(result).to.be.greaterThan(RFQM_TX_GAS_ESTIMATE);
         });
@@ -30,7 +30,7 @@ describe('RFQM Gas Estimate utils', () => {
             const makerToken = '';
             const takerToken = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 
-            const result = calculateGasEstimate(makerToken, takerToken);
+            const result = calculateGasEstimate(makerToken, takerToken, 'rfq');
 
             expect(result).to.be.greaterThan(RFQM_TX_GAS_ESTIMATE);
         });
@@ -40,8 +40,8 @@ describe('RFQM Gas Estimate utils', () => {
             const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
             const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
-            const result1 = calculateGasEstimate(USDC, unknown);
-            const result2 = calculateGasEstimate(USDC, USDT);
+            const result1 = calculateGasEstimate(USDC, unknown, 'rfq');
+            const result2 = calculateGasEstimate(USDC, USDT, 'rfq');
 
             expect(result2).to.be.greaterThan(result1);
         });
@@ -51,9 +51,9 @@ describe('RFQM Gas Estimate utils', () => {
             const USDC_uppercase = '0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48';
             const USDT_uppercase = '0xDAC17F958D2EE523A2206206994597C13D831EC7';
 
-            const result0 = calculateGasEstimate(unknown, unknown);
-            const result1 = calculateGasEstimate(USDC_uppercase, unknown);
-            const result2 = calculateGasEstimate(USDC_uppercase, USDT_uppercase);
+            const result0 = calculateGasEstimate(unknown, unknown, 'rfq');
+            const result1 = calculateGasEstimate(USDC_uppercase, unknown, 'rfq');
+            const result2 = calculateGasEstimate(USDC_uppercase, USDT_uppercase, 'rfq');
 
             expect(result1).to.be.greaterThan(result0);
             expect(result2).to.be.greaterThan(result1);

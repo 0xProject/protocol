@@ -11,7 +11,7 @@ import {
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, MetaTransactionFields, RfqOrder } from '@0x/protocol-utils';
+import { MetaTransaction, MetaTransactionFields, OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -27,7 +27,7 @@ import { anyString, anything, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, RFQM_PATH } from '../src/constants';
+import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
@@ -37,6 +37,7 @@ import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/service
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
+import { PairsManager } from '../src/utils/pairs_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOrderToRfqmOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
@@ -65,6 +66,8 @@ const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 // RFQM Market Maker request specific constants
 const MARKET_MAKER_1 = 'https://mock-rfqt1.club';
 const MARKET_MAKER_2 = 'https://mock-rfqt2.club';
+const MARKET_MAKER_3 = 'https://mock-rfqt3.club';
+const GAS_PRICE = new BigNumber(100);
 const BASE_RFQM_REQUEST_PARAMS = {
     txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
     takerAddress: NULL_ADDRESS,
@@ -72,7 +75,17 @@ const BASE_RFQM_REQUEST_PARAMS = {
     comparisonPrice: undefined,
     isLastLook: 'true',
     feeToken: contractAddresses.etherToken,
-    feeAmount: '16500000',
+    feeAmount: GAS_PRICE.times(RFQM_TX_GAS_ESTIMATE).toString(),
+    feeType: 'fixed',
+};
+const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
+    txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
+    takerAddress: NULL_ADDRESS,
+    protocolVersion: '4',
+    comparisonPrice: undefined,
+    isLastLook: 'true',
+    feeToken: contractAddresses.etherToken,
+    feeAmount: GAS_PRICE.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE).toString(),
     feeType: 'fixed',
 };
 const MOCK_META_TX_CALL_DATA = '0x123';
@@ -84,7 +97,6 @@ const WORKER_ADDRESS = '0xaWorkerAddress';
 const FIRST_TRANSACTION_HASH = '0xfirstTxHash';
 const FIRST_SIGNED_TRANSACTION = '0xfirstSignedTransaction';
 const TX_STATUS: TransactionReceiptStatus = 1;
-const GAS_PRICE = new BigNumber(100);
 // it's over 9K
 const MINED_BLOCK = 9001;
 // the tx should be finalized
@@ -157,6 +169,7 @@ describe(SUITE_NAME, () => {
     let rfqmService: RfqmService;
     let dbUtils: RfqmDbUtils;
     let cacheClient: CacheClient;
+    let mockAxios: AxiosMockAdapter;
 
     before(async () => {
         // docker-compose up
@@ -186,19 +199,26 @@ describe(SUITE_NAME, () => {
             plp: false,
             rfqt: false,
         });
+        when(configManagerMock.getRfqmAssetOfferings()).thenReturn({
+            [MARKET_MAKER_1]: [[contractAddresses.etherToken, contractAddresses.zrxToken]],
+            [MARKET_MAKER_2]: [[contractAddresses.etherToken, contractAddresses.zrxToken]],
+            [MARKET_MAKER_3]: [[contractAddresses.etherToken, contractAddresses.zrxToken]],
+        });
+        when(configManagerMock.getRfqmMakerSetForOtcOrder()).thenReturn(new Set([MARKET_MAKER_2, MARKET_MAKER_3]));
         const configManager = instance(configManagerMock);
 
-        // Create Axios client
+        // Create Axios client and mock
         axiosClient = Axios.create();
+        mockAxios = new AxiosMockAdapter(axiosClient);
 
-        // Mock config for the asset offerings in this test
-        const mockAssetOfferings: RfqMakerAssetOfferings = {
+        // Mock config for the RfqOrder asset offerings in this test (not OtcOrder)
+        const rfqOrderAssetOfferings: RfqMakerAssetOfferings = {
             [MARKET_MAKER_1]: [[contractAddresses.zrxToken, contractAddresses.etherToken]],
             [MARKET_MAKER_2]: [[contractAddresses.zrxToken, contractAddresses.etherToken]],
         };
 
-        // Build QuoteRequestor, note that Axios client it accessible outside of this scope
-        const quoteRequestor = new QuoteRequestor({}, mockAssetOfferings, axiosClient);
+        // Build QuoteRequestor, note that Axios client is accessible outside of this scope
+        const quoteRequestor = new QuoteRequestor({}, rfqOrderAssetOfferings, axiosClient);
 
         // Create the mock rfqBlockchainUtils
         const validationResponse: [BigNumber, BigNumber] = [new BigNumber(1), new BigNumber(1)];
@@ -278,6 +298,9 @@ describe(SUITE_NAME, () => {
         });
         cacheClient = new CacheClient(redisClient);
 
+        // Create the PairsManager
+        const pairsManager = new PairsManager(configManager);
+
         rfqmService = new RfqmService(
             quoteRequestor,
             protocolFeeUtils,
@@ -289,6 +312,7 @@ describe(SUITE_NAME, () => {
             quoteServerClient,
             TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
+            pairsManager,
         );
 
         // Start the server
@@ -306,6 +330,10 @@ describe(SUITE_NAME, () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+    });
+
+    afterEach(async () => {
+        mockAxios.reset();
     });
 
     after(async () => {
@@ -540,6 +568,82 @@ describe(SUITE_NAME, () => {
                 },
                 axiosClient,
             );
+        });
+
+        it('should return a 200 OK with an indicative quote when OtcOrder pricing is available for sells', async () => {
+            // Given
+            const sellAmount = 100000000000000000;
+            const winningQuote = 200000000000000000;
+            const losingQuote = 150000000000000000;
+            const zeroExApiParams = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+                intentOnFilling: 'false',
+                skipValidation: 'true',
+            });
+
+            // Prepare Axios
+            const rfqOrderParams = {
+                ...BASE_RFQM_REQUEST_PARAMS,
+                sellAmountBaseUnits: sellAmount.toString(),
+                buyTokenAddress: contractAddresses.zrxToken,
+                sellTokenAddress: contractAddresses.etherToken,
+            };
+            const otcOrderParams = {
+                ...BASE_RFQM_OTC_ORDER_REQUEST_PARAMS,
+                sellAmountBaseUnits: sellAmount.toString(),
+                buyTokenAddress: contractAddresses.zrxToken,
+                sellTokenAddress: contractAddresses.etherToken,
+            };
+            const headers = {
+                Accept: 'application/json, text/plain, */*',
+                '0x-api-key': INTEGRATOR_ID,
+                '0x-integrator-id': INTEGRATOR_ID,
+            };
+            const baseResponse = {
+                takerAmount: sellAmount.toString(),
+                makerToken: contractAddresses.zrxToken,
+                takerToken: contractAddresses.etherToken,
+                expiry: '1903620548', // in the year 2030
+            };
+
+            // RfqOrder requests
+            mockAxios.onGet(`${MARKET_MAKER_1}/price`, { headers, params: rfqOrderParams }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: losingQuote.toString(),
+            });
+            mockAxios.onGet(`${MARKET_MAKER_2}/price`, { headers, params: rfqOrderParams }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: losingQuote.toString(),
+            });
+
+            // OtcOrder requests
+            mockAxios
+                .onGet(`${MARKET_MAKER_2}/rfqm/v2/price`, { headers, params: otcOrderParams })
+                .replyOnce(HttpStatus.OK, {
+                    ...baseResponse,
+                    makerAmount: winningQuote.toString(),
+                });
+            mockAxios
+                .onGet(`${MARKET_MAKER_3}/rfqm/v2/price`, { headers, params: otcOrderParams })
+                .replyOnce(HttpStatus.OK, {
+                    ...baseResponse,
+                    makerAmount: losingQuote.toString(),
+                });
+
+            // When
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/price?${zeroExApiParams.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            // Then
+            const expectedPrice = '2';
+            expect(appResponse.body.liquidityAvailable).to.equal(true);
+            expect(appResponse.body.price).to.equal(expectedPrice);
         });
 
         it('should return a 400 BAD REQUEST if API Key is not permitted access', async () => {
@@ -894,6 +998,110 @@ describe(SUITE_NAME, () => {
             );
         });
 
+        it('should return a 200 OK with a firm quote when OtcOrder pricing is available for sells', async () => {
+            // Given
+            const sellAmount = 100000000000000000;
+            const winningQuote = 200000000000000000;
+            const losingQuote = 150000000000000000;
+            const zeroExApiParams = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+                intentOnFilling: 'false',
+                skipValidation: 'true',
+            });
+
+            // Prepare Axios
+            const rfqOrderParams = {
+                ...BASE_RFQM_REQUEST_PARAMS,
+                takerAddress,
+                sellAmountBaseUnits: sellAmount.toString(),
+                buyTokenAddress: contractAddresses.zrxToken,
+                sellTokenAddress: contractAddresses.etherToken,
+            };
+            const headers = {
+                Accept: 'application/json, text/plain, */*',
+                '0x-api-key': INTEGRATOR_ID,
+                '0x-integrator-id': INTEGRATOR_ID,
+            };
+            const baseRfqOrder = {
+                maker: makerAddress,
+                taker: takerAddress,
+                makerToken: contractAddresses.zrxToken,
+                takerToken: contractAddresses.etherToken,
+                takerAmount: sellAmount,
+                pool: '0x1234',
+                salt: '0',
+                chainId: 1337,
+                verifyingContract: '0xd209925defc99488e3afff1174e48b4fa628302a',
+                txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
+                expiry: new BigNumber('1903620548'),
+            };
+            const baseOtcOrder = {
+                maker: makerAddress,
+                taker: takerAddress,
+                makerToken: contractAddresses.zrxToken,
+                takerToken: contractAddresses.etherToken,
+                takerAmount: sellAmount,
+                chainId: 1337,
+                verifyingContract: '0xd209925defc99488e3afff1174e48b4fa628302a',
+                txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
+                expiryAndNonce: `0x${OtcOrder.encodeExpiryAndNonce(
+                    new BigNumber('1903620548'),
+                    ZERO,
+                    new BigNumber('1903620548'),
+                ).toString(16)}`,
+            };
+
+            // RfqOrder requests
+            mockAxios.onGet(`${MARKET_MAKER_1}/quote`, { headers, params: rfqOrderParams }).replyOnce(HttpStatus.OK, {
+                signedOrder: {
+                    ...baseRfqOrder,
+                    makerAmount: losingQuote,
+                    signature: {
+                        ...VALID_SIGNATURE,
+                    },
+                },
+            });
+            mockAxios.onGet(`${MARKET_MAKER_2}/quote`, { headers, params: rfqOrderParams }).replyOnce(HttpStatus.OK, {
+                signedOrder: {
+                    ...baseRfqOrder,
+                    makerAmount: losingQuote,
+                    signature: {
+                        ...VALID_SIGNATURE,
+                    },
+                },
+            });
+
+            // OtcOrder requests
+            mockAxios.onGet(`${MARKET_MAKER_2}/rfqm/v2/quote`, { headers }).replyOnce(HttpStatus.OK, {
+                order: {
+                    ...baseOtcOrder,
+                    makerAmount: winningQuote.toString(),
+                },
+            });
+            mockAxios.onGet(`${MARKET_MAKER_3}/rfqm/v2/quote`, { headers }).replyOnce(HttpStatus.OK, {
+                order: {
+                    ...baseOtcOrder,
+                    makerAmount: losingQuote.toString(),
+                },
+            });
+
+            // When
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${zeroExApiParams.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            // Then
+            const expectedPrice = '2';
+            expect(appResponse.body.price).to.equal(expectedPrice);
+            expect(appResponse.body.type).to.eq(RfqmTypes.OtcOrder);
+            expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+        });
+
         it('should return a 400 BAD REQUEST if api key is missing', async () => {
             const sellAmount = 100000000000000000;
             const params = new URLSearchParams({
@@ -1217,7 +1425,6 @@ describe(SUITE_NAME, () => {
         };
 
         it('should sucessfully resolve when the job is processed', async () => {
-            const mockAxios = new AxiosMockAdapter(axiosClient);
             mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, mmResponse);
             // write a corresponding quote entity to validate against
             await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
@@ -1236,12 +1443,9 @@ describe(SUITE_NAME, () => {
 
             const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
             expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
-
-            mockAxios.reset();
         });
 
         it('should clear out calldata if market maker rejects last look', async () => {
-            const mockAxios = new AxiosMockAdapter(axiosClient);
             const lastLookResponse = {
                 fee: mockStoredFee,
                 proceedWithFill: false,
@@ -1265,8 +1469,6 @@ describe(SUITE_NAME, () => {
             const job = await dbUtils.findJobByOrderHashAsync(orderHash);
             expect(job?.status).to.eq(RfqmJobStatus.FailedLastLookDeclined);
             expect(job?.calldata).to.eq('');
-
-            mockAxios.reset();
         });
 
         it('should sucessfully resolve when there is a retry after last look is accepted', async () => {

@@ -271,10 +271,10 @@ describe(SUITE_NAME, () => {
         it('returns successful filled amounts for a valid metatransaction', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
+            const res = await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin);
 
-            expect(
-                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin),
-            ).to.deep.eq([takerAmount, makerAmount]);
+            expect(res[0].eq(takerAmount)).to.be.true();
+            expect(res[1].eq(makerAmount)).to.be.true();
         });
 
         it('throws for a metatransaction with an invalid signature', async () => {
@@ -310,9 +310,10 @@ describe(SUITE_NAME, () => {
                 metaTxSig,
                 MATCHA_AFFILIATE_ADDRESS,
             );
-            expect(
-                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin),
-            ).to.deep.eq([takerAmount, makerAmount]);
+            const res = await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
+
+            expect(res[0].eq(takerAmount)).to.be.true();
+            expect(res[1].eq(makerAmount)).to.be.true();
         });
         it('throws for a metatransaction with an invalid signature when validating calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -501,7 +502,7 @@ describe(SUITE_NAME, () => {
             );
 
             const expectedTakerTokenFillAmount = rfqBlockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(callData);
-            expect(expectedTakerTokenFillAmount).to.deep.eq(takerAmount);
+            expect(expectedTakerTokenFillAmount.eq(takerAmount)).to.be.true();
         });
     });
 

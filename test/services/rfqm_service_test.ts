@@ -24,6 +24,7 @@ import { RfqmJobEntity, RfqmTransactionSubmissionEntity } from '../../src/entiti
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
 import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmService, RfqmTypes } from '../../src/services/rfqm_service';
 import { CacheClient } from '../../src/utils/cache_client';
+import { PairsManager } from '../../src/utils/pairs_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -52,6 +53,7 @@ const buildRfqmServiceForUnitTest = (
         producer?: Producer;
         quoteServerClient?: QuoteServerClient;
         cacheClient?: CacheClient;
+        pairsManager?: PairsManager;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -89,6 +91,7 @@ const buildRfqmServiceForUnitTest = (
     const quoteServerClientMock = mock(QuoteServerClient);
 
     const cacheClientMock = mock(CacheClient);
+    const pairsManagerMock = mock(PairsManager);
 
     return new RfqmService(
         overrides.quoteRequestor || quoteRequestorInstance,
@@ -101,6 +104,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
+        overrides.pairsManager || pairsManagerMock,
     );
 };
 
@@ -877,6 +881,10 @@ describe('RfqmService', () => {
                     expect.fail('res is null, but not expected to be null');
                     return;
                 }
+                if (res.type === RfqmTypes.OtcOrder) {
+                    expect.fail('res is type "otc", but expected "metatransaction"');
+                    return;
+                }
                 expect(res.sellAmount).to.eq(sellAmount);
                 expect(res.price.toNumber()).to.equal(1.01);
                 expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
@@ -953,6 +961,10 @@ describe('RfqmService', () => {
                 // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
+                    return;
+                }
+                if (res.type === RfqmTypes.OtcOrder) {
+                    expect.fail('res is type "otc", but expected "metatransaction"');
                     return;
                 }
                 expect(res.sellAmount).to.eq(sellAmount);
@@ -1114,6 +1126,10 @@ describe('RfqmService', () => {
                     return;
                 }
 
+                if (res.type === RfqmTypes.OtcOrder) {
+                    expect.fail('res is type "otc", but expected "metatransaction"');
+                    return;
+                }
                 expect(res.buyAmount.toNumber()).to.eq(buyAmount.toNumber());
                 expect(res.price.toNumber()).to.equal(0.8);
                 expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
@@ -1193,6 +1209,10 @@ describe('RfqmService', () => {
                     return;
                 }
 
+                if (res.type === RfqmTypes.OtcOrder) {
+                    expect.fail('res is type "otc", but expected "metatransaction"');
+                    return;
+                }
                 expect(res.buyAmount.toNumber()).to.eq(buyAmount.toNumber());
                 expect(res.sellAmount.toNumber()).to.eq(80); // result is scaled
                 expect(res.price.toNumber()).to.equal(0.8);
