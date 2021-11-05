@@ -54,7 +54,7 @@ export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase
     liquiditySource: ERC20BridgeSource.Native;
     fillableTakerAmount: BigNumber;
     isRFQ: true;
-    makerUri: string;
+    makerUri?: string;
     comparisonPrice?: number;
 }
 
@@ -71,15 +71,42 @@ export type ExtendedQuoteReportEntry =
     | NativeRfqOrderQuoteReportEntry
     | IndicativeRfqOrderQuoteReportEntry;
 
+export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
+    quoteEntryIndex: number;
+    isDelivered: boolean;
+};
+
+export type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
+    fillData?: string;
+};
+
 export interface QuoteReport {
     sourcesConsidered: QuoteReportEntry[];
     sourcesDelivered: QuoteReportEntry[];
 }
 
-export interface ExtendedQuoteReport {
-    sourcesConsidered: ExtendedQuoteReportEntry[];
-    sourcesDelivered: QuoteReportEntry[];
+export interface ExtendedQuoteReportSources {
+    sourcesConsidered: ExtendedQuoteReportIndexedEntry[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
 }
+
+export type ExtendedQuoteReport = {
+    quoteId?: string;
+    taker?: string;
+    timestamp: number;
+    firmQuoteReport: boolean;
+    submissionBy: 'taker' | 'metaTxn' | 'rfqm';
+    buyAmount?: string;
+    sellAmount?: string;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    integratorId?: string;
+    slippageBips?: number;
+    zeroExTransactionHash?: string;
+    decodedUniqueId?: string;
+    sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
+};
 
 export interface PriceComparisonsReport {
     dexSources: BridgeQuoteReportEntry[];
@@ -142,14 +169,14 @@ export function generateQuoteReport(
  * swap quote, the sources ultimately included in the computed quote. This
  * extende version incudes all considered quotes, not only native liquidity.
  */
-export function generateExtendedQuoteReport(
+export function generateExtendedQuoteReportSources(
     marketOperation: MarketOperation,
     quotes: RawQuotes,
     liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
     amount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
-): ExtendedQuoteReport {
+): ExtendedQuoteReportSources {
     const sourcesConsidered: ExtendedQuoteReportEntry[] = [];
 
     // NativeOrders
@@ -183,7 +210,15 @@ export function generateExtendedQuoteReport(
             ),
         ),
     );
-
+    const sourcesConsideredIndexed = sourcesConsidered.map(
+        (quote, index): ExtendedQuoteReportIndexedEntry => {
+            return {
+                ...quote,
+                quoteEntryIndex: index,
+                isDelivered: false,
+            };
+        },
+    );
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
         // create easy way to look up fillable amounts
@@ -212,9 +247,19 @@ export function generateExtendedQuoteReport(
             multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
         ];
     }
+    const sourcesDeliveredIndexed = sourcesDelivered.map(
+        (quote, index): ExtendedQuoteReportIndexedEntry => {
+            return {
+                ...quote,
+                quoteEntryIndex: index,
+                isDelivered: false,
+            };
+        },
+    );
+
     return {
-        sourcesConsidered,
-        sourcesDelivered,
+        sourcesConsidered: sourcesConsideredIndexed,
+        sourcesDelivered: sourcesConsideredIndexed,
     };
 }
 
@@ -375,5 +420,21 @@ export function indicativeQuoteToReportEntry(
         makerUri: order.makerUri,
         fillData: {},
         ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+    };
+}
+
+/**
+ * For the extended quote report, we output the filldata as JSON
+ */
+export function jsonifyFillData(source: ExtendedQuoteReportIndexedEntry): ExtendedQuoteReportIndexedEntryOutbound {
+    return {
+        ...source,
+        fillData: JSON.stringify(source.fillData, (key: string, value: any) => {
+            if (key === '_samplerContract') {
+                return {};
+            } else {
+                return value;
+            }
+        }),
     };
 }

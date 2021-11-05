@@ -162,13 +162,17 @@ export {
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,
+    jsonifyFillData,
     MultiHopQuoteReportEntry,
     NativeLimitOrderQuoteReportEntry,
     NativeRfqOrderQuoteReportEntry,
     QuoteReport,
     QuoteReportEntry,
     ExtendedQuoteReport,
+    ExtendedQuoteReportSources,
     ExtendedQuoteReportEntry,
+    ExtendedQuoteReportIndexedEntry,
+    ExtendedQuoteReportIndexedEntryOutbound,
     PriceComparisonsReport,
 } from './utils/quote_report_generator';
 export { QuoteRequestor, V4RFQIndicativeQuoteMM } from './utils/quote_requestor';

@@ -19,7 +19,7 @@ import {
     OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
-import { ExtendedQuoteReport, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
+import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { MetricsProxy } from './utils/quote_requestor';
 
 /**
@@ -171,7 +171,7 @@ export interface SwapQuoteBase {
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
-    extendedQuoteReport?: ExtendedQuoteReport;
+    extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
     isTwoHop: boolean;
     makerTokenDecimals: number;

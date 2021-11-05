@@ -8,7 +8,7 @@ import { BigNumber } from '@0x/utils';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
-import { ExtendedQuoteReport, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
+import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
@@ -490,7 +490,7 @@ export interface OptimizerResult {
 
 export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
-    extendedQuoteReport?: ExtendedQuoteReport;
+    extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
 }
 

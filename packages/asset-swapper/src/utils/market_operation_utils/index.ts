@@ -18,8 +18,8 @@ import {
 
 import {
     dexSampleToReportSource,
-    ExtendedQuoteReport,
-    generateExtendedQuoteReport,
+    ExtendedQuoteReportSources,
+    generateExtendedQuoteReportSources,
     generateQuoteReport,
     multiHopSampleToReportSource,
     nativeOrderToReportEntry,
@@ -81,16 +81,23 @@ export class MarketOperationUtils {
         return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
     }
 
-    private static _computeExtendedQuoteReport(
+    private static _computeExtendedQuoteReportSources(
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
         amount: BigNumber,
         optimizerResult: OptimizerResult,
         comparisonPrice?: BigNumber | undefined,
-    ): ExtendedQuoteReport {
+    ): ExtendedQuoteReportSources {
         const { side, quotes } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
-        return generateExtendedQuoteReport(side, quotes, liquidityDelivered, amount, comparisonPrice, quoteRequestor);
+        return generateExtendedQuoteReportSources(
+            side,
+            quotes,
+            liquidityDelivered,
+            amount,
+            comparisonPrice,
+            quoteRequestor,
+        );
     }
 
     private static _computePriceComparisonsReport(
@@ -718,8 +725,8 @@ export class MarketOperationUtils {
         }
 
         // Always compute the Extended Quote Report
-        let extendedQuoteReport: ExtendedQuoteReport | undefined;
-        extendedQuoteReport = MarketOperationUtils._computeExtendedQuoteReport(
+        let extendedQuoteReportSources: ExtendedQuoteReportSources | undefined;
+        extendedQuoteReportSources = MarketOperationUtils._computeExtendedQuoteReportSources(
             _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
             marketSideLiquidity,
             amount,
@@ -735,7 +742,7 @@ export class MarketOperationUtils {
                 wholeOrderPrice,
             );
         }
-        return { ...optimizerResult, quoteReport, extendedQuoteReport, priceComparisonsReport };
+        return { ...optimizerResult, quoteReport, extendedQuoteReportSources, priceComparisonsReport };
     }
 
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
