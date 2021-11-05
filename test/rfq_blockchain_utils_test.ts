@@ -242,33 +242,27 @@ describe(SUITE_NAME, () => {
                 const makerSig = await ethSignHashWithProviderAsync(orderHash, maker, provider);
                 const takerSig = await ethSignHashWithProviderAsync(orderHash, taker, provider);
 
-                try {
-                    await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                expect(
+                    rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
                         invalidOtcOrder, // invalid order, should be expired
                         makerSig,
                         takerSig,
                         txOrigin,
                         false,
-                    );
-                    expect.fail('should throw');
-                } catch (err) {
-                    expect(err.message).to.contain('revert');
-                }
+                    ),
+                ).to.eventually.be.rejectedWith(/revert/);
             });
 
             it('throws an error if signatures invalid', async () => {
-                try {
-                    await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                expect(
+                    rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
                         otcOrder,
                         makerOtcOrderSig,
                         makerOtcOrderSig, // wrong signature
                         txOrigin,
                         false,
-                    );
-                    expect.fail('should throw');
-                } catch (err) {
-                    expect(err.message).to.contain('revert');
-                }
+                    ),
+                ).to.eventually.be.rejectedWith('revert');
             });
         });
     });
@@ -282,17 +276,16 @@ describe(SUITE_NAME, () => {
                 await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin),
             ).to.deep.eq([takerAmount, makerAmount]);
         });
+
         it('throws for a metatransaction with an invalid signature', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const invalidMetaTxSig = orderSig;
 
-            try {
-                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, invalidMetaTxSig, txOrigin);
-                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the signature is invalid`);
-            } catch (err) {
-                expect(String(err)).to.contain('SignatureValidationError');
-            }
+            expect(
+                rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, invalidMetaTxSig, txOrigin),
+            ).to.eventually.be.rejectedWith('SignatureValidationError');
         });
+
         it('throws for a metatransaction with an unfillable order', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(
                 unfillableRfqOrder,
@@ -303,13 +296,11 @@ describe(SUITE_NAME, () => {
             );
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
 
-            try {
-                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin);
-                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the order is unfillable`);
-            } catch (err) {
-                expect(String(err)).to.contain('MetaTransactionCallFailedError');
-            }
+            expect(
+                rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin),
+            ).to.eventually.be.rejectedWith('MetaTransactionCallFailedError');
         });
+
         it('returns successful filled amounts for a valid metatransaction when validating calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
@@ -333,13 +324,11 @@ describe(SUITE_NAME, () => {
                 MATCHA_AFFILIATE_ADDRESS,
             );
 
-            try {
-                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
-                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the signature is invalid`);
-            } catch (err) {
-                expect(String(err)).to.contain('SignatureValidationError');
-            }
+            expect(
+                rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin),
+            ).to.eventually.be.rejectedWith('SignatureValidationError');
         });
+
         it('throws for a metatransaction with an unfillable order when validating calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(
                 unfillableRfqOrder,
@@ -356,13 +345,11 @@ describe(SUITE_NAME, () => {
                 MATCHA_AFFILIATE_ADDRESS,
             );
 
-            try {
-                await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
-                expect.fail(`validateMetaTransactionOrThrowAsync should throw an error when the order is unfillable`);
-            } catch (err) {
-                expect(String(err)).to.contain('MetaTransactionCallFailedError');
-            }
+            expect(
+                rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin),
+            ).to.eventually.be.rejectedWith('MetaTransactionCallFailedError');
         });
+
         it('should throw for a partially filled order', async () => {
             const metaTx1 = rfqBlockchainUtils.generateMetaTransaction(
                 rfqOrder,
@@ -384,16 +371,12 @@ describe(SUITE_NAME, () => {
             );
             const metaTxSig2 = await metaTx2.getSignatureWithProviderAsync(provider);
 
-            try {
-                await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx2, metaTxSig2, txOrigin);
-                expect.fail(
-                    `validateMetaTransactionOrThrowAsync should throw an error when not filling the entire amount`,
-                );
-            } catch (err) {
-                expect(String(err)).to.contain(`filled amount is less than requested fill amount`);
-            }
+            expect(
+                rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx2, metaTxSig2, txOrigin),
+            ).to.eventually.be.rejectedWith('filled amount is less than requested fill amount');
         });
     });
+
     describe('submitCallDataToExchangeProxyAsync', () => {
         it('passes submit validation and returns a transaction hash for a valid meta tx', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -438,6 +421,7 @@ describe(SUITE_NAME, () => {
             expect(decodedEvent.args.orderHash).to.eq(otcOrder.getHash());
         });
     });
+
     describe('transformTxDataToTransactionRequest', () => {
         it('creates a TransactionRequest', () => {
             const txOptions: TxData = {
@@ -462,6 +446,7 @@ describe(SUITE_NAME, () => {
             expect(result.to).to.equal('0xtoaddress');
             expect(result.value).to.equal(0);
         });
+
         it("uses the proxy address if no 'to' address is provided", () => {
             const txOptions: TxData = { from: '0xfromaddress' };
 
@@ -470,6 +455,7 @@ describe(SUITE_NAME, () => {
             expect(result.to).to.equal(zeroEx.address);
         });
     });
+
     describe('signTransactionRequestAsync', () => {
         it('matches the transaction hash from web3wrapper', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -502,6 +488,7 @@ describe(SUITE_NAME, () => {
             expect(preSubmitHash).to.equal(web3SubmitHash);
         });
     });
+
     describe('getTakerTokenFillAmountFromMetaTxCallData', () => {
         it('returns the correct taker token fill amount from calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -517,6 +504,7 @@ describe(SUITE_NAME, () => {
             expect(expectedTakerTokenFillAmount).to.deep.eq(takerAmount);
         });
     });
+
     describe('getDecodedRfqOrderFillEventLogFromLogs', () => {
         it('correctly parses an RfqOrderFillEvent from logs', async () => {
             const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([
