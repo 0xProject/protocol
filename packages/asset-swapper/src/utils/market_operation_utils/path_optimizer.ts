@@ -42,11 +42,11 @@ function calculateOuputFee(
     sampleOrNativeOrder: DexSample | NativeOrderWithFillableAmounts,
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
         const { input, output, source, encodedFillData } = sampleOrNativeOrder;
-        const fee = fees[source]?.(encodedFillData) || 0;
+        const fee = gasPrice.times(sampleOrNativeOrder.gasCost);
         const outputFee = ethToOutputAmount({
             input,
             output,
@@ -56,16 +56,16 @@ function calculateOuputFee(
         });
         return outputFee;
     } else {
-        const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
-        const fee = fees[ERC20BridgeSource.Native]?.(sampleOrNativeOrder) || 0;
-        const outputFee = ethToOutputAmount({
-            input,
-            output,
-            inputAmountPerEth,
-            outputAmountPerEth,
-            ethAmount: fee,
-        });
-        return outputFee;
+        throw new Error(`No implementado`);
+        // const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
+        // const outputFee = ethToOutputAmount({
+        //     input,
+        //     output,
+        //     inputAmountPerEth,
+        //     outputAmountPerEth,
+        //     ethAmount: fee,
+        // });
+        // return outputFee;
     }
 }
 
@@ -90,10 +90,10 @@ function findRoutesAndCreateOptimalPath(
     nativeOrders: NativeOrderWithFillableAmounts[],
     input: BigNumber,
     opts: PathPenaltyOpts,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): Path | undefined {
     const createFill = (sample: DexSample) =>
-        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
+        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)[0];
     // Track sample id's to integers (required by rust router)
     const sampleIdLookup: { [key: string]: number } = {};
     let sampleIdCounter = 0;
@@ -135,7 +135,7 @@ function findRoutesAndCreateOptimalPath(
                 memo.inputs.push(sample.input.integerValue().toNumber());
                 memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(
-                    calculateOuputFee(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+                    calculateOuputFee(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)
                         .integerValue()
                         .toNumber(),
                 );
@@ -183,7 +183,7 @@ function findRoutesAndCreateOptimalPath(
             normalizedOrderOutput.integerValue().toNumber(),
         ];
         // NOTE: same fee no matter if full or partial fill
-        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)
             .integerValue()
             .toNumber();
         const outputFees = [fee, fee, fee];
@@ -250,7 +250,7 @@ function findRoutesAndCreateOptimalPath(
                 rustInputAdjusted,
                 opts.outputAmountPerEth,
                 opts.inputAmountPerEth,
-                fees,
+               gasPrice,
             )[0];
             // NOTE: For Limit/RFQ orders we are done here. No need to scale output
             adjustedFills.push(nativeFill);
@@ -321,7 +321,7 @@ export function findOptimalRustPathFromSamples(
     nativeOrders: NativeOrderWithFillableAmounts[],
     input: BigNumber,
     opts: PathPenaltyOpts,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
     chainId: ChainId,
 ): Path | undefined {
     const before = performance.now();
@@ -331,7 +331,7 @@ export function findOptimalRustPathFromSamples(
             'Rust router total routing performance',
         );
 
-    const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, fees);
+    const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, gasPrice);
     if (!allSourcesPath) {
         return undefined;
     }
@@ -345,7 +345,7 @@ export function findOptimalRustPathFromSamples(
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
 
         if (vipSourcesSamples.length > 0) {
-            const vipSourcesPath = findRoutesAndCreateOptimalPath(side, vipSourcesSamples, [], input, opts, fees);
+            const vipSourcesPath = findRoutesAndCreateOptimalPath(side, vipSourcesSamples, [], input, opts, gasPrice);
 
             const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
             // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
@@ -385,6 +385,10 @@ export async function findOptimalPathJSAsync(
     if (sortedPaths.length === 0) {
         return undefined;
     }
+    console.log(sortedPaths.map(p => p.fills.map(f => ({
+        rate: f.output.div(f.input),
+        source: f.source,
+    }))[p.fills.length - 1]));
     const rates = rateBySourcePathId(sortedPaths);
     let optimalPath = sortedPaths[0];
     for (const [i, path] of sortedPaths.slice(1).entries()) {

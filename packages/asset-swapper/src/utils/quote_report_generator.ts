@@ -9,7 +9,6 @@ import {
     DexSample,
     ERC20BridgeSource,
     FillData,
-    MultiHopFillData,
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,

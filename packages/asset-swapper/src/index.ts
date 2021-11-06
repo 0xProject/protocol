@@ -116,18 +116,11 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-    DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
-export {
-    Parameters,
-    SamplerContractCall,
-    SamplerContractOperation,
-} from './utils/market_operation_utils/sampler_contract_operation';
 export {
     BalancerFillData,
     BancorFillData,
@@ -149,13 +142,11 @@ export {
     MarketDepth,
     MarketDepthSide,
     MooniswapFillData,
-    MultiHopFillData,
     NativeCollapsedFill,
     NativeRfqOrderFillData,
     NativeLimitOrderFillData,
     NativeFillData,
     OptimizedMarketOrder,
-    SourceQuoteOperation,
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';

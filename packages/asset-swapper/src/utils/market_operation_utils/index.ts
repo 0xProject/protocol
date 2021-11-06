@@ -29,7 +29,6 @@ import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     DEFAULT_GET_MARKET_ORDERS_OPTS,
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
-    NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
@@ -121,10 +120,11 @@ export class MarketOperationUtils {
     public async getMarketSellLiquidityAsync(
         nativeOrders: SignedNativeOrder[],
         takerAmount: BigNumber,
-        opts?: Partial<GetMarketOrdersOpts>,
+        opts: GetMarketOrdersOpts,
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const { makerToken, takerToken } = nativeOrders[0].order;
+        nativeOrders = nativeOrders.filter(o => o.order.makerAmount.gt(0));
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
@@ -140,13 +140,13 @@ export class MarketOperationUtils {
             ),
             this._sampler.getPricesAsync(
                 [
-                    [makerToken, this._nativeFeeToken],
-                    [takerToken, this._nativeFeeToken],
+                    [this._nativeFeeToken, makerToken],
+                    [this._nativeFeeToken, takerToken],
                 ],
                 feeSourceFilters.sources,
             ),
             this._sampler.getSellLiquidityAsync(
-                [makerToken, takerToken],
+                [takerToken, makerToken],
                 takerAmount,
                 quoteSourceFilters.sources,
             ),
@@ -168,6 +168,7 @@ export class MarketOperationUtils {
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals,
             takerTokenDecimals: takerTokenDecimals,
+            gasPrice: opts.gasPrice,
             quotes: {
                 nativeOrders: [],
                 rfqtIndicativeQuotes: [],
@@ -193,6 +194,7 @@ export class MarketOperationUtils {
         throw new Error(`Not implemented`);
         // const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         // const { makerToken, takerToken } = nativeOrders[0].order;
+        // nativeOrders = nativeOrders.filter(o => o.order.makerAmount.gt(0));
         // const sampleAmounts = getSampleAmounts(makerAmount, _opts.numSamples, _opts.sampleDistributionBase);
         //
         // const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
@@ -437,7 +439,7 @@ export class MarketOperationUtils {
             outputAmountPerEth,
             inputAmountPerEth,
             excludedSources: opts.excludedSources,
-            feeSchedule: opts.feeSchedule,
+            gasPrice: opts.gasPrice,
         });
 
         // Find the optimal path.
@@ -465,7 +467,7 @@ export class MarketOperationUtils {
                 [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
                 inputAmount,
                 penaltyOpts,
-                opts.feeSchedule,
+                opts.gasPrice,
                 this._sampler.chainId,
             );
         } else {
@@ -474,24 +476,24 @@ export class MarketOperationUtils {
 
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
-        const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
-            marketSideLiquidity,
-            opts.feeSchedule,
-            opts.exchangeProxyOverhead,
-        );
-        if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
-            const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
-            return {
-                optimizedOrders: twoHopOrders,
-                // liquidityDelivered: bestTwoHopQuote,
-                sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
-                marketSideLiquidity,
-                adjustedRate: bestTwoHopRate,
-                unoptimizedPath,
-                takerAmountPerEth,
-                makerAmountPerEth,
-            };
-        }
+        // const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
+        //     marketSideLiquidity,
+        //     opts.feeSchedule,
+        //     opts.exchangeProxyOverhead,
+        // );
+        // if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
+        //     const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
+        //     return {
+        //         optimizedOrders: twoHopOrders,
+        //         // liquidityDelivered: bestTwoHopQuote,
+        //         sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
+        //         marketSideLiquidity,
+        //         adjustedRate: bestTwoHopRate,
+        //         unoptimizedPath,
+        //         takerAmountPerEth,
+        //         makerAmountPerEth,
+        //     };
+        // }
 
         // If there is no optimal path AND we didn't return a MultiHop quote, then throw
         if (optimalPath === undefined) {
@@ -528,7 +530,6 @@ export class MarketOperationUtils {
             bridgeSlippage: _opts.bridgeSlippage,
             maxFallbackSlippage: _opts.maxFallbackSlippage,
             excludedSources: _opts.excludedSources,
-            feeSchedule: _opts.feeSchedule,
             allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
@@ -564,8 +565,7 @@ export class MarketOperationUtils {
                 optimizerResult.adjustedRate,
                 amount,
                 marketSideLiquidity,
-                _opts.feeSchedule,
-                _opts.exchangeProxyOverhead,
+                opts.gasPrice,
             ).wholeOrder;
         }
 
@@ -662,12 +662,12 @@ export class MarketOperationUtils {
         // Compute Quote Report and return the results.
         let quoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
-            quoteReport = MarketOperationUtils._computeQuoteReport(
-                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-                marketSideLiquidity,
-                optimizerResult,
-                wholeOrderPrice,
-            );
+            // quoteReport = MarketOperationUtils._computeQuoteReport(
+            //     _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+            //     marketSideLiquidity,
+            //     optimizerResult,
+            //     wholeOrderPrice,
+            // );
         }
 
         let priceComparisonsReport: PriceComparisonsReport | undefined;
@@ -719,7 +719,7 @@ export class MarketOperationUtils {
                     [],
                     inputAmount,
                     sturdyPenaltyOpts,
-                    opts.feeSchedule,
+                    opts.gasPrice,
                     this._sampler.chainId,
                 );
             } else {

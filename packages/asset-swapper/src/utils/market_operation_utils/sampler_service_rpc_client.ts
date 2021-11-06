@@ -60,6 +60,10 @@ export class SamplerServiceRpcClient {
 
     public constructor(url: string) {
         const transport = new HTTPTransport(url);
+        // HACK(dorothy-zbornak): One of AS/API's deps globally registers a version of
+        // isometric-fetch that doesn't work with open-rpc. It seems to disagree on
+        // the type of 'headers'.
+        (transport as any).headers = {'content-type': 'application/json'};
         this._rpcClient = new OpenRpcClient(new RequestManager([transport]));
     }
 

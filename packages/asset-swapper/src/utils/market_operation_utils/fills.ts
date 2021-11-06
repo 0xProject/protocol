@@ -19,11 +19,10 @@ export function createFills(opts: {
     outputAmountPerEth?: BigNumber;
     inputAmountPerEth?: BigNumber;
     excludedSources?: ERC20BridgeSource[];
-    feeSchedule?: FeeSchedule;
+    gasPrice: BigNumber;
 }): Fill[][] {
     const { side } = opts;
     const excludedSources = opts.excludedSources || [];
-    const feeSchedule = opts.feeSchedule || {};
     const orders = opts.orders || [];
     const dexQuotes = opts.dexQuotes || [];
     const outputAmountPerEth = opts.outputAmountPerEth || ZERO_AMOUNT;
@@ -35,11 +34,11 @@ export function createFills(opts: {
         opts.targetInput,
         outputAmountPerEth,
         inputAmountPerEth,
-        feeSchedule,
+        opts.gasPrice,
     );
     // Create DEX fills.
     const dexFills = dexQuotes.map(singleSourceSamples =>
-        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, feeSchedule),
+        dexSamplesToFills(side, singleSourceSamples, outputAmountPerEth, inputAmountPerEth, opts.gasPrice),
     );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
@@ -95,8 +94,11 @@ export function nativeOrdersToFills(
     targetInput: BigNumber = POSITIVE_INF,
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): Fill[] {
+    if (orders.length === 0) {
+        return [];
+    }
     throw new Error(`Not implemented`);
     // const sourcePathId = hexUtils.random();
     // // Create a single path from all orders.
@@ -160,7 +162,7 @@ export function dexSamplesToFills(
     samples: DexSample[],
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
-    fees: FeeSchedule,
+    gasPrice: BigNumber,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
     const fills: Fill[] = [];
@@ -175,7 +177,7 @@ export function dexSamplesToFills(
         const { source, encodedFillData } = sample;
         const input = sample.input.minus(prevSample ? prevSample.input : 0);
         const output = sample.output.minus(prevSample ? prevSample.output : 0);
-        const fee = fees[source] === undefined ? 0 : fees[source]!(sample.encodedFillData) || 0;
+        const fee = gasPrice.times(sample.gasCost);
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
             // Only the first fill in a DEX path incurs a penalty.
@@ -197,6 +199,7 @@ export function dexSamplesToFills(
             source,
             encodedFillData,
             type: FillQuoteTransformerOrderType.Bridge,
+            gasCost: sample.gasCost,
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],

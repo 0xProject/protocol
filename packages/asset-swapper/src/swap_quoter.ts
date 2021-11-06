@@ -176,7 +176,6 @@ export class SwapQuoter {
                         MarketOperation.Buy,
                         makerTokenBuyAmounts[i],
                         gasPrice,
-                        opts.gasSchedule,
                         opts.bridgeSlippage,
                     );
                 } else {
@@ -325,9 +324,6 @@ export class SwapQuoter {
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
         // pass the QuoteRequestor on if rfqt enabled
@@ -358,7 +354,6 @@ export class SwapQuoter {
             marketOperation,
             assetFillAmount,
             gasPrice,
-            opts.gasSchedule,
             opts.bridgeSlippage,
         );
 
@@ -460,7 +455,6 @@ function createSwapQuote(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): SwapQuote {
     const {
@@ -474,9 +468,12 @@ function createSwapQuote(
     const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
 
     // Calculate quote info
-    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
-        ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
-        : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
+    // const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
+    //     ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
+    //     : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, slippage);
+
+    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } =
+        calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, slippage);
 
     // Put together the swap quote
     const { makerTokenDecimals, takerTokenDecimals } = optimizerResult.marketSideLiquidity;
@@ -517,7 +514,6 @@ function calculateQuoteInfo(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
@@ -525,7 +521,7 @@ function calculateQuoteInfo(
         orders: optimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
-        opts: { gasSchedule },
+        opts: {},
     });
 
     const worstCaseFillResult = simulateWorstCaseFill({
@@ -533,7 +529,7 @@ function calculateQuoteInfo(
         orders: optimizedOrders,
         side: operation,
         fillAmount: assetFillAmount,
-        opts: { gasSchedule, slippage },
+        opts: { slippage },
     });
 
     return {

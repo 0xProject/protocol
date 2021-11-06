@@ -29,35 +29,10 @@ export function getComparisonPrices(
     adjustedRate: BigNumber,
     amount: BigNumber,
     marketSideLiquidity: MarketSideLiquidity,
-    feeSchedule: FeeSchedule,
-    exchangeProxyOverhead: ExchangeProxyOverhead,
+    gasPrice: BigNumber,
 ): ComparisonPrice {
     let wholeOrder: BigNumber | undefined;
-    let feeInEth: BigNumber | number;
-
-    // HACK: get the fee penalty of a single 0x native order
-    // The FeeSchedule function takes in a `FillData` object and returns a fee estimate in ETH
-    // We don't have fill data here, we just want the cost of a single native order, so we pass in undefined
-    // This works because the feeSchedule returns a constant for Native orders, this will need
-    // to be tweaked if the feeSchedule for native orders uses the fillData passed in
-    // 2 potential issues: there is no native fee schedule or the fee schedule depends on fill data
-    if (feeSchedule[ERC20BridgeSource.Native] === undefined) {
-        logUtils.warn('ComparisonPrice function did not find native order fee schedule');
-
-        return { wholeOrder };
-    } else {
-        try {
-            const fillFeeInEth = new BigNumber(
-                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
-            );
-            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
-            feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);
-        } catch {
-            logUtils.warn('Native order fee schedule requires fill data');
-
-            return { wholeOrder };
-        }
-    }
+    let feeInEth = gasPrice.times(100e3);
 
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
     const feePenalty = !marketSideLiquidity.outputAmountPerEth.isZero()

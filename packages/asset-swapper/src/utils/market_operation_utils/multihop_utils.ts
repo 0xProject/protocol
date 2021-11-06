@@ -10,7 +10,6 @@ import {
     ExchangeProxyOverhead,
     FeeSchedule,
     MarketSideLiquidity,
-    MultiHopFillData,
     TokenAdjacencyGraph,
 } from './types';
 
@@ -39,7 +38,7 @@ export function getBestTwoHopQuote(
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
 ): { quote: DexSample | undefined; adjustedRate: BigNumber } {
-    throw new Error(`No implementado`);
+    return { quote: undefined, adjustedRate: ZERO_AMOUNT };
     // const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
     // const { twoHopQuotes } = quotes;
     // // Ensure the expected data we require exists. In the case where all hops reverted

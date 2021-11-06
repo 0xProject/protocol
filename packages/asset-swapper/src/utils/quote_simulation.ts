@@ -234,13 +234,14 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
             ? {
                   totalOrderInput: o.takerAmount,
                   totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee:
-                      o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeAdjustedTakerFeeAmount(
-                                (o.fillData as NativeLimitOrderFillData).order,
-                                o.takerAmount,
-                            )
-                          : ZERO_AMOUNT,
+                  // totalOrderInputFee:
+                  //     o.type === FillQuoteTransformerOrderType.Limit
+                  //         ? getNativeAdjustedTakerFeeAmount(
+                  //               (o.fillData as NativeLimitOrderFillData).order,
+                  //               o.takerAmount,
+                  //           )
+                  //         : ZERO_AMOUNT,
+                  totalOrderInputFee: ZERO_AMOUNT,
                   totalOrderOutputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (sell output)
               }
             : // Buy
@@ -248,13 +249,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderInput: o.makerAmount,
                   totalOrderOutput: o.takerAmount,
                   totalOrderInputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (buy input)
-                  totalOrderOutputFee:
-                      o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeAdjustedTakerFeeAmount(
-                                (o.fillData as NativeLimitOrderFillData).order,
-                                o.takerAmount,
-                            )
-                          : ZERO_AMOUNT,
+                  totalOrderOutputFee: ZERO_AMOUNT,
               }),
     }));
 }
@@ -317,7 +312,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
 function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
-        const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);
+        const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.encodedFillData);
         gasUsed += new BigNumber(fee).toNumber();
     }
     return gasUsed;

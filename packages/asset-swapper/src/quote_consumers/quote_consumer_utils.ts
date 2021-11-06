@@ -2,7 +2,6 @@ import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/pro
 
 import { ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
-    createBridgeDataForBridgeOrder,
     getErc20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
 import {
@@ -99,13 +98,13 @@ function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBr
     return x.type === FillQuoteTransformerOrderType.Bridge;
 }
 
-function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
-    return x.type === FillQuoteTransformerOrderType.Limit;
-}
-
-function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
-    return x.type === FillQuoteTransformerOrderType.Rfq;
-}
+// function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+//     return x.type === FillQuoteTransformerOrderType.Limit;
+// }
+//
+// function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+//     return x.type === FillQuoteTransformerOrderType.Rfq;
+// }
 
 /**
  * Converts the given `OptimizedMarketOrder`s into bridge, limit, and RFQ orders for
@@ -124,23 +123,23 @@ export function getFQTTransformerDataFromOptimizedOrders(
     for (const order of orders) {
         if (isOptimizedBridgeOrder(order)) {
             fqtData.bridgeOrders.push({
-                bridgeData: createBridgeDataForBridgeOrder(order),
+                bridgeData: order.encodedFillData,
                 makerTokenAmount: order.makerAmount,
                 takerTokenAmount: order.takerAmount,
                 source: getErc20BridgeSourceToBridgeSource(order.source),
             });
-        } else if (isOptimizedLimitOrder(order)) {
-            fqtData.limitOrders.push({
-                order: order.fillData.order,
-                signature: order.fillData.signature,
-                maxTakerTokenFillAmount: order.takerAmount,
-            });
-        } else if (isOptimizedRfqOrder(order)) {
-            fqtData.rfqOrders.push({
-                order: order.fillData.order,
-                signature: order.fillData.signature,
-                maxTakerTokenFillAmount: order.takerAmount,
-            });
+        // } else if (isOptimizedLimitOrder(order)) {
+        //     fqtData.limitOrders.push({
+        //         order: order.fillData.order,
+        //         signature: order.fillData.signature,
+        //         maxTakerTokenFillAmount: order.takerAmount,
+        //     });
+        // } else if (isOptimizedRfqOrder(order)) {
+        //     fqtData.rfqOrders.push({
+        //         order: order.fillData.order,
+        //         signature: order.fillData.signature,
+        //         maxTakerTokenFillAmount: order.takerAmount,
+        //     });
         } else {
             // Should never happen
             throw new Error('Unknown Order type');

@@ -13,7 +13,6 @@ import {
 } from './types';
 import {
     DEFAULT_GET_MARKET_ORDERS_OPTS,
-    DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
 
 const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
@@ -74,8 +73,6 @@ export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
 
-export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_operation_utils/constants';
-
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 
 // tslint:disable-next-line: custom-no-magic-numbers
@@ -94,7 +91,6 @@ export const constants = {
     ONE_AMOUNT: new BigNumber(1),
     ONE_SECOND_MS,
     ONE_MINUTE_MS,
-    DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
     DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS,
     DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,

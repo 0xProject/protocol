@@ -234,11 +234,11 @@ export interface GenericRouterFillData extends FillData {
     router: string;
 }
 
-export interface MultiHopFillData extends FillData {
-    firstHopSource: SourceQuoteOperation;
-    secondHopSource: SourceQuoteOperation;
-    intermediateToken: string;
-}
+// export interface MultiHopFillData extends FillData {
+//     firstHopSource: SourceQuoteOperation;
+//     secondHopSource: SourceQuoteOperation;
+//     intermediateToken: string;
+// }
 
 export interface MakerPsmExtendedData {
     isSellOperation: boolean;
@@ -297,6 +297,8 @@ export interface Fill {
     parent?: Fill;
     // The index of the fill in the original path.
     index: number;
+    // Cumulative gas cost associated with swapping against this source/pool.
+    gasCost: number;
 }
 
 /**
@@ -332,9 +334,9 @@ export interface CollapsedFill {
  */
 export interface NativeCollapsedFill extends CollapsedFill {}
 
-export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
+export interface OptimizedMarketOrderBase {
     source: ERC20BridgeSource;
-    fillData: TFillData;
+    encodedFillData: Bytes;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     makerToken: string;
     takerToken: string;
@@ -343,19 +345,18 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     fills: CollapsedFill[];
 }
 
-export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
-    extends OptimizedMarketOrderBase<TFillData> {
+export interface OptimizedMarketBridgeOrder
+    extends OptimizedMarketOrderBase {
     type: FillQuoteTransformerOrderType.Bridge;
-    fillData: TFillData;
     sourcePathId: string;
 }
 
-export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+export interface OptimizedLimitOrder {
     type: FillQuoteTransformerOrderType.Limit;
     fillData: NativeLimitOrderFillData;
 }
 
-export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+export interface OptimizedRfqOrder {
     type: FillQuoteTransformerOrderType.Rfq;
     fillData: NativeRfqOrderFillData;
 }
@@ -364,9 +365,9 @@ export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrd
  * Optimized orders to fill.
  */
 export type OptimizedMarketOrder =
-    | OptimizedMarketBridgeOrder<FillData>
-    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
+    | OptimizedMarketBridgeOrder
+    | OptimizedMarketOrderBase
+    | OptimizedMarketOrderBase;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     quoteRequestor?: QuoteRequestor;
@@ -415,26 +416,6 @@ export interface GetMarketOrdersOpts {
      * percentage, no fallback quote will be provided.
      */
     maxFallbackSlippage: number;
-    /**
-     * Number of samples to take for each DEX quote.
-     */
-    numSamples: number;
-    /**
-     * The exponential sampling distribution base.
-     * A value of 1 will result in evenly spaced samples.
-     * > 1 will result in more samples at lower sizes.
-     * < 1 will result in more samples at higher sizes.
-     * Default: 1.25.
-     */
-    sampleDistributionBase: number;
-    /**
-     * Fees for each liquidity source, expressed in gas.
-     */
-    feeSchedule: FeeSchedule;
-    /**
-     * Estimated gas consumed by each liquidity source.
-     */
-    gasSchedule: FeeSchedule;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different
@@ -475,11 +456,6 @@ export interface BatchedOperation<TResult> {
     handleRevert(callResults: string): TResult;
 }
 
-export interface SourceQuoteOperation<TFillData extends FillData = FillData> extends BatchedOperation<BigNumber[]> {
-    readonly source: ERC20BridgeSource;
-    fillData: TFillData;
-}
-
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
@@ -517,6 +493,7 @@ export interface MarketSideLiquidity {
     takerTokenDecimals: number;
     quotes: RawQuotes;
     isRfqSupported: boolean;
+    gasPrice: BigNumber;
 }
 
 export interface RawQuotes {
@@ -543,7 +520,6 @@ export interface GenerateOptimizedOrdersOpts {
     bridgeSlippage?: number;
     maxFallbackSlippage?: number;
     excludedSources?: ERC20BridgeSource[];
-    feeSchedule: FeeSchedule;
     exchangeProxyOverhead?: ExchangeProxyOverhead;
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
