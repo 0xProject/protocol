@@ -152,9 +152,7 @@ export class MarketOperationUtils {
             ),
         ]);
 
-        const [makerTokenInfo, takerTokenInfo] = tokenInfos;
-        const makerTokenDecimals = makerTokenInfo.decimals;
-        const takerTokenDecimals = takerTokenInfo.decimals;
+        const [{ decimals: makerTokenDecimals }, { decimals: takerTokenDecimals }] = tokenInfos;
 
         const isRfqSupported = !!_opts.rfqt;
 
