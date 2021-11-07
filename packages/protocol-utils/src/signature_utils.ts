@@ -86,6 +86,37 @@ export async function eip712SignTypedDataWithProviderAsync(
 }
 
 /**
+ * Sign a hash with the EthSign signature type using a compatible signature function
+ */
+export async function ethSignHashWithSignatureFnAsync(
+    hash: string,
+    signer: string,
+    signMessageAsync: (hash: string, signer: string) => Promise<string>,
+): Promise<Signature> {
+    const rpcSig = await signMessageAsync(hash, signer);
+    return {
+        ...parseRpcSignature(rpcSig),
+        signatureType: SignatureType.EthSign,
+    };
+}
+
+/**
+ * Sign a typed data object with the EIP712 signature type using a compatible signature function
+ */
+export async function eip712SignTypedDataWithSignatureFnAsync(
+    data: EIP712TypedData,
+    signer: string,
+    signTypedDataAsync: (typedData: EIP712TypedData, signer: string) => Promise<string>,
+): Promise<Signature> {
+    const rpcSig = await signTypedDataAsync(data, signer);
+
+    return {
+        ...parseRpcSignature(rpcSig),
+        signatureType: SignatureType.EIP712,
+    };
+}
+
+/**
  * Sign a typed data object with the EIP712 signature type, given a private key.
  */
 export function eip712SignTypedDataWithKey(typedData: EIP712TypedData, key: string): Signature {

@@ -13,8 +13,10 @@ import {
 import {
     eip712SignTypedDataWithKey,
     eip712SignTypedDataWithProviderAsync,
+    eip712SignTypedDataWithSignatureFnAsync,
     ethSignHashWithKey,
     ethSignHashWithProviderAsync,
+    ethSignHashWithSignatureFnAsync,
     Signature,
     SignatureType,
 } from './signature_utils';
@@ -124,6 +126,22 @@ export abstract class OrderBase {
                 return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), signer, provider);
             case SignatureType.EthSign:
                 return ethSignHashWithProviderAsync(this.getHash(), signer, provider);
+            default:
+                throw new Error(`Cannot sign with signature type: ${type}`);
+        }
+    }
+
+    public async _getSignatureWithSignFunctionAsync(
+        // TODO: fix typing here
+        signFn: (data: any, signer: string) => Promise<string>,
+        type: SignatureType,
+        signer: string = this.maker,
+    ): Promise<Signature> {
+        switch (type) {
+            case SignatureType.EIP712:
+                return eip712SignTypedDataWithSignatureFnAsync(this.getEIP712TypedData(), signer, signFn);
+            case SignatureType.EthSign:
+                return ethSignHashWithSignatureFnAsync(this.getHash(), signer, signFn);
             default:
                 throw new Error(`Cannot sign with signature type: ${type}`);
         }
