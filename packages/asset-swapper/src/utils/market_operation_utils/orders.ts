@@ -210,6 +210,7 @@ export function createBridgeOrder(
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
+        gasCost: fill.gasCost,
     };
 }
 

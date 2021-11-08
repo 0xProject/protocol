@@ -259,6 +259,7 @@ export class Path {
                     prevFill.output = prevFill.output.plus(fill.output);
                     prevFill.encodedFillData = fill.encodedFillData;
                     prevFill.subFills.push(fill);
+                    prevFill.gasCost;
                     continue;
                 }
             }
@@ -270,6 +271,7 @@ export class Path {
                 input: fill.input,
                 output: fill.output,
                 subFills: [fill],
+                gasCost: fill.gasCost,
             });
         }
         return this.collapsedFills;

@@ -327,6 +327,7 @@ export interface CollapsedFill {
         input: BigNumber;
         output: BigNumber;
     }>;
+    gasCost: number;
 }
 
 /**
@@ -340,6 +341,7 @@ export interface OptimizedMarketOrderBase {
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     makerToken: string;
     takerToken: string;
+    gasCost: number;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
     fills: CollapsedFill[];

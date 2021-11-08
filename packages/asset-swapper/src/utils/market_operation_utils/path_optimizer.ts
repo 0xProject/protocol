@@ -385,10 +385,6 @@ export async function findOptimalPathJSAsync(
     if (sortedPaths.length === 0) {
         return undefined;
     }
-    console.log(sortedPaths.map(p => p.fills.map(f => ({
-        rate: f.output.div(f.input),
-        source: f.source,
-    }))[p.fills.length - 1]));
     const rates = rateBySourcePathId(sortedPaths);
     let optimalPath = sortedPaths[0];
     for (const [i, path] of sortedPaths.slice(1).entries()) {
