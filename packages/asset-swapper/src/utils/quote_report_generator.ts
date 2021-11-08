@@ -90,7 +90,7 @@ export interface ExtendedQuoteReportSources {
     sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
 }
 
-export type ExtendedQuoteReport = {
+export interface ExtendedQuoteReport {
     quoteId?: string;
     taker?: string;
     timestamp: number;
@@ -106,7 +106,7 @@ export type ExtendedQuoteReport = {
     decodedUniqueId?: string;
     sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
-};
+}
 
 export interface PriceComparisonsReport {
     dexSources: BridgeQuoteReportEntry[];
@@ -259,7 +259,7 @@ export function generateExtendedQuoteReportSources(
 
     return {
         sourcesConsidered: sourcesConsideredIndexed,
-        sourcesDelivered: sourcesConsideredIndexed,
+        sourcesDelivered: sourcesDeliveredIndexed,
     };
 }
 
