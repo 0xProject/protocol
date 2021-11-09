@@ -78,7 +78,7 @@ contract MetaTransactionsFeature is
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "MetaTransactions";
     /// @dev Version of this feature.
-    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 2, 0);
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 2, 1);
     /// @dev EIP712 typehash of the `MetaTransactionData` struct.
     bytes32 public immutable MTX_EIP712_TYPEHASH = keccak256(
         "MetaTransactionData("
@@ -103,6 +103,17 @@ contract MetaTransactionsFeature is
         if (remainingBalance > 0) {
             msg.sender.transfer(remainingBalance);
         }
+    }
+
+    /// @dev Ensures that the ETH balance of `this` does not go below the
+    ///      initial ETH balance before the call (excluding ETH attached to the call).
+    modifier doesNotReduceEthBalance() {
+        uint256 initialBalance = address(this).balance - msg.value;
+        _;
+        require(
+            initialBalance <= address(this).balance,
+            "MetaTransactionsFeature/ETH_LEAK"
+        );
     }
 
     constructor(address zeroExAddress)
@@ -140,6 +151,7 @@ contract MetaTransactionsFeature is
         payable
         override
         nonReentrant(REENTRANCY_MTX)
+        doesNotReduceEthBalance
         refundsAttachedEth
         returns (bytes memory returnResult)
     {
@@ -164,6 +176,7 @@ contract MetaTransactionsFeature is
         payable
         override
         nonReentrant(REENTRANCY_MTX)
+        doesNotReduceEthBalance
         refundsAttachedEth
         returns (bytes[] memory returnResults)
     {

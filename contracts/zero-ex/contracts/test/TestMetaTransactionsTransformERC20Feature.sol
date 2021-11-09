@@ -46,6 +46,10 @@ contract TestMetaTransactionsTransformERC20Feature is
         payable
         returns (uint256 outputTokenAmount)
     {
+        if (msg.value == 555) {
+            tx.origin.transfer(1);
+        }
+
         if (msg.value == 666) {
             revert('FAIL');
         }
