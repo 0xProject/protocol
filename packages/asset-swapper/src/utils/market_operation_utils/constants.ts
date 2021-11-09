@@ -167,7 +167,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
-            ERC20BridgeSource.UbeSwapMoola,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
         ]),
@@ -288,7 +287,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
-            ERC20BridgeSource.UbeSwapMoola,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
 
@@ -320,7 +318,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
-        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UbeSwapMoola],
+        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
     },
     [],
@@ -1736,14 +1734,14 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const UBESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Celo]: '0xE3D8bd6Aed4F159bc8000a9cD47CffDb95F96121',
+        [ChainId.Celo]: '0x7D28570135A2B1930F331c507F65039D4937f66c',
     },
     NULL_ADDRESS,
 );
 
 export const UBESWAP_MOOLA_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Celo]: '0x56d0Ae52f33f7C2e38E92F6D20b8ccfD7Dc318Ce',
+        [ChainId.Celo]: '0x7D28570135A2B1930F331c507F65039D4937f66c',
     },
     NULL_ADDRESS,
 );

@@ -514,8 +514,8 @@ export function uniswapV2LikeRouterAddress(
             return TRADER_JOE_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.UbeSwap:
             return UBESWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.UbeSwapMoola:
-            return UBESWAP_MOOLA_ROUTER_BY_CHAIN_ID[chainId];
+        // case ERC20BridgeSource.UbeSwapMoola:
+        //     return UBESWAP_MOOLA_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpookySwap:
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
