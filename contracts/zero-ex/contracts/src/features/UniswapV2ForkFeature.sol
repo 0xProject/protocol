@@ -62,8 +62,12 @@ contract UniswapV2ForkFeature is
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
     }
 
+    /// @dev Efficiently sell directly to UniswapV2 (and forks).
+    /// @param tokens Sell path.
+    /// @param sellAmount of `tokens[0]` Amount to sell.
+    /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
+    /// @return buyAmount Amount of `tokens[-1]` bought.
     function sellToUniswapV2Fork(
-        ProtocolFork fork,
         IERC20TokenV06[] memory tokens,
         uint256 sellAmount,
         uint256 minBuyAmount
