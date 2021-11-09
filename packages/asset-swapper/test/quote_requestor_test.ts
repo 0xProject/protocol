@@ -494,15 +494,18 @@ describe('QuoteRequestor', async () => {
                 expiry: makeThreeMinuteExpiry(),
             };
 
+            const goodMMUri1 = 'https://1337.0.0.1';
+            const goodMMUri2 = 'https://37.0.0.1';
+
             mockedRequests.push({
                 ...mockedDefaults,
-                endpoint: 'https://1337.0.0.1',
+                endpoint: goodMMUri1,
                 responseData: successfulQuote1,
             });
             // [GOOD] Another Successful response
             mockedRequests.push({
                 ...mockedDefaults,
-                endpoint: 'https://37.0.0.1',
+                endpoint: goodMMUri2,
                 responseData: successfulQuote1,
             });
 
@@ -532,6 +535,16 @@ describe('QuoteRequestor', async () => {
                 responseData: { ...successfulQuote1, takerToken: otherToken1 },
             });
 
+            const assetOfferings: { [k: string]: [[string, string]] } = {
+                'https://420.0.0.1': [[makerToken, takerToken]],
+                'https://421.0.0.1': [[makerToken, takerToken]],
+                'https://422.0.0.1': [[makerToken, takerToken]],
+                'https://423.0.0.1': [[makerToken, takerToken]],
+                'https://424.0.0.1': [[makerToken, takerToken]],
+            };
+            assetOfferings[goodMMUri1] = [[makerToken, takerToken]];
+            assetOfferings[goodMMUri2] = [[makerToken, takerToken]];
+
             return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 [],
@@ -539,15 +552,7 @@ describe('QuoteRequestor', async () => {
                 async () => {
                     const qr = new QuoteRequestor(
                         {}, // No RFQ-T asset offerings
-                        {
-                            'https://1337.0.0.1': [[makerToken, takerToken]],
-                            'https://37.0.0.1': [[makerToken, takerToken]],
-                            'https://420.0.0.1': [[makerToken, takerToken]],
-                            'https://421.0.0.1': [[makerToken, takerToken]],
-                            'https://422.0.0.1': [[makerToken, takerToken]],
-                            'https://423.0.0.1': [[makerToken, takerToken]],
-                            'https://424.0.0.1': [[makerToken, takerToken]],
-                        },
+                        assetOfferings,
                         quoteRequestorHttpClient,
                     );
                     const resp = await qr.requestRfqmIndicativeQuotesAsync(
@@ -572,7 +577,12 @@ describe('QuoteRequestor', async () => {
                             },
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());
+                    expect(resp.sort()).to.eql(
+                        [
+                            { ...successfulQuote1, makerUri: goodMMUri1 },
+                            { ...successfulQuote1, makerUri: goodMMUri2 },
+                        ].sort(),
+                    );
                 },
                 quoteRequestorHttpClient,
             );
@@ -622,9 +632,12 @@ describe('QuoteRequestor', async () => {
                 expiry: makeThreeMinuteExpiry(),
             };
 
+            const goodMMUri1 = 'https://1337.0.0.1';
+            const goodMMUri2 = 'https://37.0.0.1';
+
             mockedRequests.push({
                 ...mockedDefaults,
-                endpoint: 'https://1337.0.0.1',
+                endpoint: goodMMUri1,
                 responseData: successfulQuote1,
             });
             // Test out a bad response code, ensure it doesnt cause throw
@@ -655,28 +668,26 @@ describe('QuoteRequestor', async () => {
             // Another Successful response
             mockedRequests.push({
                 ...mockedDefaults,
-                endpoint: 'https://37.0.0.1',
+                endpoint: goodMMUri2,
                 responseData: successfulQuote1,
             });
+
+            const assetOfferings: { [k: string]: [[string, string]] } = {
+                'https://420.0.0.1': [[makerToken, takerToken]],
+                'https://421.0.0.1': [[makerToken, takerToken]],
+                'https://422.0.0.1': [[makerToken, takerToken]],
+                'https://423.0.0.1': [[makerToken, takerToken]],
+                'https://424.0.0.1': [[makerToken, takerToken]],
+            };
+            assetOfferings[goodMMUri1] = [[makerToken, takerToken]];
+            assetOfferings[goodMMUri2] = [[makerToken, takerToken]];
 
             return testHelpers.withMockedRfqQuotes(
                 mockedRequests,
                 [],
                 RfqQuoteEndpoint.Indicative,
                 async () => {
-                    const qr = new QuoteRequestor(
-                        {
-                            'https://1337.0.0.1': [[makerToken, takerToken]],
-                            'https://420.0.0.1': [[makerToken, takerToken]],
-                            'https://421.0.0.1': [[makerToken, takerToken]],
-                            'https://422.0.0.1': [[makerToken, takerToken]],
-                            'https://423.0.0.1': [[makerToken, takerToken]],
-                            'https://424.0.0.1': [[makerToken, takerToken]],
-                            'https://37.0.0.1': [[makerToken, takerToken]],
-                        },
-                        {},
-                        quoteRequestorHttpClient,
-                    );
+                    const qr = new QuoteRequestor(assetOfferings, {}, quoteRequestorHttpClient);
                     const resp = await qr.requestRfqtIndicativeQuotesAsync(
                         makerToken,
                         takerToken,
@@ -693,7 +704,12 @@ describe('QuoteRequestor', async () => {
                             intentOnFilling: true,
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1, successfulQuote1].sort());
+                    expect(resp.sort()).to.eql(
+                        [
+                            { ...successfulQuote1, makerUri: goodMMUri1 },
+                            { ...successfulQuote1, makerUri: goodMMUri2 },
+                        ].sort(),
+                    );
                 },
                 quoteRequestorHttpClient,
             );
@@ -784,7 +800,7 @@ describe('QuoteRequestor', async () => {
                             makerEndpointMaxResponseTimeMs: maxTimeoutMs,
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1].sort()); // notice only one result, despite two requests made
+                    expect(resp.sort()).to.eql([{ ...successfulQuote1, makerUri: 'https://1337.0.0.1' }].sort()); // notice only one result, despite two requests made
                 },
                 quoteRequestorHttpClient,
             );
@@ -847,7 +863,7 @@ describe('QuoteRequestor', async () => {
                             intentOnFilling: true,
                         },
                     );
-                    expect(resp.sort()).to.eql([successfulQuote1].sort());
+                    expect(resp.sort()).to.eql([{ ...successfulQuote1, makerUri: 'https://1337.0.0.1' }].sort());
                 },
                 quoteRequestorHttpClient,
             );
