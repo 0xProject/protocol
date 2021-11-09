@@ -1,6 +1,6 @@
 {
     "name": "@0x/asset-swapper",
-    "version": "16.31.0",
+    "version": "16.32.0",
     "engines": {
         "node": ">=6.12"
     },
