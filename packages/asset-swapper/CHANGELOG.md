@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.32.0 - _November 9, 2021_
+
+    * Extended Quote Report (#361)
+
 ## v16.31.0 - _November 3, 2021_
 
     * Added `Curve`, `Curve_V2` and `KyberDmm` to Avalanche (#363)
