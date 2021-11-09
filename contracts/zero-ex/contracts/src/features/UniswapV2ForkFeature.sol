@@ -43,86 +43,65 @@ contract UniswapV2ForkFeature is
     string public constant override FEATURE_NAME = "UniswapV2ForkFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+    /// @dev WETH contract.
+    IEtherTokenV06 private immutable WETH;
+    /// @dev UniswapV2Fork Factory contract address.
+    address private immutable UNI_FACTORY_ADDRESS;
+    /// @dev UniswapV2Fork init code of the factory.
+    bytes32 private immutable UNI_POOL_INIT_CODE_HASH;
 
     address private constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address private constant WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
-    // TODO: complete the list
-    // address of the SushiSwapV2 factory contract.
-    address constant private SUSHISWAPV2_FACTORY = address(0xc35DADB65012eC5796536bD9864eD8773aBc74C4);
+    constructor(
+        IEtherTokenV06 weth,
+        address uniV2ForkFactory,
+        bytes32 poolInitCodeHash
+    ) public {
+        WETH = weth;
+        UNI_FACTORY_ADDRESS = uniV2ForkFactory;
+        UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
+    }
 
     function sellToUniswapV2Fork(
         ProtocolFork fork,
-        IERC20TokenV06[] calldata tokens,
+        IERC20TokenV06[] memory tokens,
         uint256 sellAmount,
         uint256 minBuyAmount
     )
-        external
+        public
         payable
         override
         returns (uint256 buyAmount)
     {
         require(tokens.length > 1, 'UniswapV2ForkFeature/INVALID_TOKENS_LENGTH');
 
-        IERC20TokenV06[] memory path = tokens;
         if (address(tokens[0]) == ETH_ADDRESS) {
-            IEtherTokenV06(WETH_ADDRESS).deposit{value:msg.value}();
-            path[0] = IERC20TokenV06(WETH_ADDRESS);
+            require(msg.value == sellAmount, "UniswapV2ForkFeature/INVALID_SELL_AMOUNT");
+            IEtherTokenV06(WETH).deposit{value:msg.value}();
+            tokens[0] = IERC20TokenV06(WETH);
         }
 
         bool unwrapWeth = address(tokens[tokens.length - 1]) == ETH_ADDRESS;
         if (unwrapWeth) {
-            path[path.length - 1] = IERC20TokenV06(WETH_ADDRESS);
+            tokens[tokens.length - 1] = IERC20TokenV06(WETH);
         }
 
-        address factory = _getFactory(fork);
-        uint[] memory amounts = _getAmountsOut(factory, sellAmount, path);
+        _transferERC20TokensFrom(
+            tokens[0],
+            msg.sender,
+            address(_pairFor(tokens[0], tokens[1])),
+            sellAmount
+        );
+        address recipient = unwrapWeth ? address(this) : msg.sender;
+        uint[] memory amounts = _swap(tokens, sellAmount, recipient);
         buyAmount = amounts[amounts.length - 1];
         require(buyAmount >= minBuyAmount, 'UniswapV2ForkFeature/INSUFFICIENT_OUTPUT_AMOUNT');
-        _transferERC20TokensFrom(
-            path[0],
-            msg.sender,
-            _pairFor(factory, path[0], path[1]),
-            amounts[0]
-        );
-        _swap(amounts, path, path[path.length - 1], factory);
 
         if (unwrapWeth) {
-            IEtherTokenV06(WETH_ADDRESS).withdraw(buyAmount);
+            IEtherTokenV06(WETH).withdraw(buyAmount);
+            (bool sent, bytes memory data) = msg.sender.call{value: buyAmount}("");
+            require(sent, "UniswapV2ForkFeature/FAILED_TO_SEND_ETHER");
         }
-    }
-
-    function _getAmountsOut(
-        address factory,
-        uint amountIn,
-        IERC20TokenV06[] memory tokens
-    )
-        internal
-        view
-        returns (uint[] memory amounts)
-    {
-        require(tokens.length >= 2, 'UniswapV2ForkFeature/INVALID_PATH');
-
-        amounts = new uint[](tokens.length);
-        amounts[0] = amountIn;
-        for (uint i; i < tokens.length - 1; i++) {
-            (uint reserveIn, uint reserveOut) = _getReserves(factory, tokens[i], tokens[i + 1]);
-            amounts[i + 1] = _getAmountOut(amounts[i], reserveIn, reserveOut);
-        }
-    }
-
-    function _getReserves(
-        address factory,
-        IERC20TokenV06 tokenA,
-        IERC20TokenV06 tokenB
-    )
-        internal
-        view
-        returns (uint reserveA, uint reserveB)
-    {
-        (IERC20TokenV06 token0,) = _sortTokens(tokenA, tokenB);
-        (uint reserve0, uint reserve1,) = IUniswapV2ForkPair(_pairFor(factory, tokenA, tokenB)).getReserves();
-        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
     function _sortTokens(
@@ -155,51 +134,63 @@ contract UniswapV2ForkFeature is
         amountOut = numerator / denominator;
     }
 
-    function _getFactory(ProtocolFork fork) private view returns (address) {
-        // TODO: complete the list
-        if (fork == ProtocolFork.SushiSwap) {
-            return SUSHISWAPV2_FACTORY;
-        } else {
-            revert('UniswapV2ForkFeature/UNSUPPORTED_FORK');
-        }
-    }
-
     function _pairFor(
-        address factory,
         IERC20TokenV06 tokenA,
         IERC20TokenV06 tokenB
     )
         internal
-        pure
-        returns (address pair)
+        view
+        returns (IUniswapV2ForkPair)
     {
         (IERC20TokenV06 token0, IERC20TokenV06 token1) = _sortTokens(tokenA, tokenB);
-        pair = address(uint(keccak256(abi.encodePacked(
+        return IUniswapV2ForkPair(address(uint(keccak256(abi.encodePacked(
             hex'ff',
-            factory,
+            UNI_FACTORY_ADDRESS,
             keccak256(abi.encodePacked(address(token0), address(token1))),
-            hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash TODO(Cece): how can I find the init code for each fork
-        ))));
+            UNI_POOL_INIT_CODE_HASH
+        )))));
     }
 
-    // requires the initial amount to have already been sent to the first pair
     function _swap(
-        uint[] memory amounts,
-        IERC20TokenV06[] memory path,
-        IERC20TokenV06 _to,
-        address factory
+        IERC20TokenV06[] memory tokens,
+        uint256 sellAmount,
+        address _to
     )
         internal
+        returns (uint[] memory amounts)
     {
-        for (uint i; i < path.length - 1; i++) {
-            (IERC20TokenV06 input, IERC20TokenV06 output) = (path[i], path[i + 1]);
-            (IERC20TokenV06 token0,) = _sortTokens(input, output);
-            uint amountOut = amounts[i + 1];
-            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
-            address to = i < path.length - 2 ? _pairFor(factory, output, path[i + 2]) : address(_to);
-            IUniswapV2ForkPair(_pairFor(factory, input, output)).swap(
-                amount0Out, amount1Out, to, new bytes(0)
-            );
+        require(tokens.length >= 2, 'UniswapV2ForkFeature/INVALID_PATH');
+
+        amounts = new uint[](tokens.length);
+        amounts[0] = sellAmount;
+
+        for (uint i; i < tokens.length - 1; i++) {
+            (IERC20TokenV06 tokenA, IERC20TokenV06 tokenB, IERC20TokenV06 tokenC) =
+                (tokens[i], tokens[i + 1], tokens[i + 2]);
+
+            address to = i < tokens.length - 2 ? address(_pairFor(tokenB, tokenC)) : _to;
+            amounts[i + 1] = _swapInternal(amounts[i], tokenA, tokenB, to);
         }
+    }
+
+    function _swapInternal(
+        uint256 amountIn,
+        IERC20TokenV06 tokenA,
+        IERC20TokenV06 tokenB,
+        address to
+    )
+        internal
+        returns (uint amountOut)
+    {
+        IUniswapV2ForkPair pairCurrent = _pairFor(tokenA, tokenB);
+
+        (IERC20TokenV06 token0,) = _sortTokens(tokenA, tokenB);
+        (uint reserve0, uint reserve1,) = pairCurrent.getReserves();
+        (uint reserveIn, uint reserveOut) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+
+        amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
+        (uint amount0Out, uint amount1Out) = tokenA == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+
+        pairCurrent.swap(amount0Out, amount1Out, to, new bytes(0));
     }
 }
