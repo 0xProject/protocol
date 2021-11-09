@@ -505,6 +505,7 @@ function createSwapQuote(
     const {
         optimizedOrders,
         quoteReport,
+        extendedQuoteReportSources,
         sourceFlags,
         takerAmountPerEth,
         makerAmountPerEth,
@@ -532,6 +533,7 @@ function createSwapQuote(
         takerAmountPerEth,
         makerAmountPerEth,
         quoteReport,
+        extendedQuoteReportSources,
         isTwoHop,
         priceComparisonsReport,
     };

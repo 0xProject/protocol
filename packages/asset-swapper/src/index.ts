@@ -162,14 +162,20 @@ export {
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,
+    jsonifyFillData,
     MultiHopQuoteReportEntry,
     NativeLimitOrderQuoteReportEntry,
     NativeRfqOrderQuoteReportEntry,
     QuoteReport,
     QuoteReportEntry,
+    ExtendedQuoteReport,
+    ExtendedQuoteReportSources,
+    ExtendedQuoteReportEntry,
+    ExtendedQuoteReportIndexedEntry,
+    ExtendedQuoteReportIndexedEntryOutbound,
     PriceComparisonsReport,
 } from './utils/quote_report_generator';
-export { QuoteRequestor } from './utils/quote_requestor';
+export { QuoteRequestor, V4RFQIndicativeQuoteMM } from './utils/quote_requestor';
 export { ERC20BridgeSamplerContract, BalanceCheckerContract, FakeTakerContract } from './wrappers';
 import { ERC20BridgeSource } from './utils/market_operation_utils/types';
 export type Native = ERC20BridgeSource.Native;

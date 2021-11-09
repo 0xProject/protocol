@@ -14,8 +14,9 @@ import {
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
+    RawQuotes,
 } from './market_operation_utils/types';
-import { QuoteRequestor } from './quote_requestor';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from './quote_requestor';
 
 export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
@@ -36,16 +37,24 @@ export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
-    isRfqt: false;
+    isRFQ: false;
 }
 
 export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillData: NativeFillData;
     fillableTakerAmount: BigNumber;
-    isRfqt: true;
+    isRFQ: true;
     nativeOrder: RfqOrderFields;
     makerUri: string;
+    comparisonPrice?: number;
+}
+
+export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillableTakerAmount: BigNumber;
+    isRFQ: true;
+    makerUri?: string;
     comparisonPrice?: number;
 }
 
@@ -55,9 +64,48 @@ export type QuoteReportEntry =
     | NativeLimitOrderQuoteReportEntry
     | NativeRfqOrderQuoteReportEntry;
 
+export type ExtendedQuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry
+    | IndicativeRfqOrderQuoteReportEntry;
+
+export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
+    quoteEntryIndex: number;
+    isDelivered: boolean;
+};
+
+export type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
+    fillData?: string;
+};
+
 export interface QuoteReport {
     sourcesConsidered: QuoteReportEntry[];
     sourcesDelivered: QuoteReportEntry[];
+}
+
+export interface ExtendedQuoteReportSources {
+    sourcesConsidered: ExtendedQuoteReportIndexedEntry[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
+}
+
+export interface ExtendedQuoteReport {
+    quoteId?: string;
+    taker?: string;
+    timestamp: number;
+    firmQuoteReport: boolean;
+    submissionBy: 'taker' | 'metaTxn' | 'rfqm';
+    buyAmount?: string;
+    sellAmount?: string;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    integratorId?: string;
+    slippageBips?: number;
+    zeroExTransactionHash?: string;
+    decodedUniqueId?: string;
+    sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
 }
 
 export interface PriceComparisonsReport {
@@ -80,7 +128,7 @@ export function generateQuoteReport(
     const nativeOrderSourcesConsidered = nativeOrders.map(order =>
         nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
     );
-    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
+    const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRFQ)];
 
     let sourcesDelivered;
     if (Array.isArray(liquidityDelivered)) {
@@ -116,6 +164,105 @@ export function generateQuoteReport(
     };
 }
 
+/**
+ * Generates a report of sources considered while computing the optimized
+ * swap quote, the sources ultimately included in the computed quote. This
+ * extende version incudes all considered quotes, not only native liquidity.
+ */
+export function generateExtendedQuoteReportSources(
+    marketOperation: MarketOperation,
+    quotes: RawQuotes,
+    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    amount: BigNumber,
+    comparisonPrice?: BigNumber | undefined,
+    quoteRequestor?: QuoteRequestor,
+): ExtendedQuoteReportSources {
+    const sourcesConsidered: ExtendedQuoteReportEntry[] = [];
+
+    // NativeOrders
+    sourcesConsidered.push(
+        ...quotes.nativeOrders.map(order =>
+            nativeOrderToReportEntry(
+                order.type,
+                order as any,
+                order.fillableTakerAmount,
+                comparisonPrice,
+                quoteRequestor,
+            ),
+        ),
+    );
+
+    // IndicativeQuotes
+    sourcesConsidered.push(
+        ...quotes.rfqtIndicativeQuotes.map(order => indicativeQuoteToReportEntry(order, comparisonPrice)),
+    );
+
+    // MultiHop
+    sourcesConsidered.push(...quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, marketOperation)));
+
+    // Dex Quotes
+    sourcesConsidered.push(
+        ..._.flatten(
+            quotes.dexQuotes.map(dex =>
+                dex
+                    .filter(quote => isDexSampleForTotalAmount(quote, marketOperation, amount))
+                    .map(quote => dexSampleToReportSource(quote, marketOperation)),
+            ),
+        ),
+    );
+    const sourcesConsideredIndexed = sourcesConsidered.map(
+        (quote, index): ExtendedQuoteReportIndexedEntry => {
+            return {
+                ...quote,
+                quoteEntryIndex: index,
+                isDelivered: false,
+            };
+        },
+    );
+    let sourcesDelivered;
+    if (Array.isArray(liquidityDelivered)) {
+        // create easy way to look up fillable amounts
+        const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
+            quotes.nativeOrders.map(o => {
+                return [_nativeDataToId(o), o.fillableTakerAmount];
+            }),
+        );
+        // map sources delivered
+        sourcesDelivered = liquidityDelivered.map(collapsedFill => {
+            if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
+                return nativeOrderToReportEntry(
+                    collapsedFill.type,
+                    collapsedFill.fillData,
+                    nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
+                    comparisonPrice,
+                    quoteRequestor,
+                );
+            } else {
+                return dexSampleToReportSource(collapsedFill, marketOperation);
+            }
+        });
+    } else {
+        sourcesDelivered = [
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+        ];
+    }
+    const sourcesDeliveredIndexed = sourcesDelivered.map(
+        (quote, index): ExtendedQuoteReportIndexedEntry => {
+            return {
+                ...quote,
+                quoteEntryIndex: index,
+                isDelivered: false,
+            };
+        },
+    );
+
+    return {
+        sourcesConsidered: sourcesConsideredIndexed,
+        sourcesDelivered: sourcesDeliveredIndexed,
+    };
+}
+
 function _nativeDataToId(data: { signature: Signature }): string {
     const { v, r, s } = data.signature;
     return `${v}${r}${s}`;
@@ -148,6 +295,22 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
             liquiditySource,
             fillData: ds.fillData,
         };
+    } else {
+        throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    }
+}
+
+/**
+ * Checks if a DEX sample is the one that represents the whole amount requested by taker
+ * NOTE: this is used for the QuoteReport to filter samples
+ */
+function isDexSampleForTotalAmount(ds: DexSample, marketOperation: MarketOperation, amount: BigNumber): boolean {
+    // input and output map to different values
+    // based on the market operation
+    if (marketOperation === MarketOperation.Buy) {
+        return ds.input === amount;
+    } else if (marketOperation === MarketOperation.Sell) {
+        return ds.output === amount;
     } else {
         throw new Error(`Unexpected marketOperation ${marketOperation}`);
     }
@@ -208,17 +371,17 @@ export function nativeOrderToReportEntry(
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
+    const isRFQ = type === FillQuoteTransformerOrderType.Rfq;
     const rfqtMakerUri =
-        isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
+        isRFQ && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
 
-    if (isRfqt) {
+    if (isRFQ) {
         const nativeOrder = fillData.order as RfqOrderFields;
         // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
-            isRfqt: true,
+            isRFQ: true,
             makerUri: rfqtMakerUri || '',
             ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
             nativeOrder,
@@ -229,8 +392,49 @@ export function nativeOrderToReportEntry(
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
-            isRfqt: false,
+            isRFQ: false,
             fillData,
         };
     }
+}
+
+/**
+ * Generates a report entry for an indicative RFQ Quote
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function indicativeQuoteToReportEntry(
+    order: V4RFQIndicativeQuoteMM,
+    comparisonPrice?: BigNumber | undefined,
+): IndicativeRfqOrderQuoteReportEntry {
+    const nativeOrderBase = {
+        makerAmount: order.makerAmount,
+        takerAmount: order.takerAmount,
+        fillableTakerAmount: order.takerAmount,
+    };
+
+    // tslint:disable-next-line: no-object-literal-type-assertion
+    return {
+        liquiditySource: ERC20BridgeSource.Native,
+        ...nativeOrderBase,
+        isRFQ: true,
+        makerUri: order.makerUri,
+        fillData: {},
+        ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+    };
+}
+
+/**
+ * For the extended quote report, we output the filldata as JSON
+ */
+export function jsonifyFillData(source: ExtendedQuoteReportIndexedEntry): ExtendedQuoteReportIndexedEntryOutbound {
+    return {
+        ...source,
+        fillData: JSON.stringify(source.fillData, (key: string, value: any) => {
+            if (key === '_samplerContract') {
+                return {};
+            } else {
+                return value;
+            }
+        }),
+    };
 }
