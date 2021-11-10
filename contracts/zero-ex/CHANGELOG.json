@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.29.4",
+        "changes": [
+            {
+                "note": "Prevent EP ETH balance from reducing when executin mtxs",
+                "pr": 365
+            }
+        ]
+    },
+    {
         "version": "0.29.3",
         "changes": [
             {
