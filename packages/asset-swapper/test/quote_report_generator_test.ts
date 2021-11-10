@@ -155,7 +155,7 @@ describe('generateQuoteReport', async () => {
             makerAmount: rfqtOrder1.order.makerAmount,
             takerAmount: rfqtOrder1.order.takerAmount,
             fillableTakerAmount: rfqtOrder1.fillableTakerAmount,
-            isRfqt: true,
+            isRFQ: true,
             makerUri: 'https://rfqt1.provider.club',
             nativeOrder: rfqtOrder1.order,
             fillData: {
@@ -167,7 +167,7 @@ describe('generateQuoteReport', async () => {
             makerAmount: rfqtOrder2.order.makerAmount,
             takerAmount: rfqtOrder2.order.takerAmount,
             fillableTakerAmount: rfqtOrder2.fillableTakerAmount,
-            isRfqt: true,
+            isRFQ: true,
             makerUri: 'https://rfqt2.provider.club',
             nativeOrder: rfqtOrder2.order,
             fillData: {
@@ -179,7 +179,7 @@ describe('generateQuoteReport', async () => {
             makerAmount: orderbookOrder2.order.makerAmount,
             takerAmount: orderbookOrder2.order.takerAmount,
             fillableTakerAmount: orderbookOrder2.fillableTakerAmount,
-            isRfqt: false,
+            isRFQ: false,
             fillData: {
                 order: orderbookOrder2.order,
             } as NativeLimitOrderFillData,
@@ -263,7 +263,7 @@ describe('generateQuoteReport', async () => {
             makerAmount: orderbookOrder1.order.makerAmount,
             takerAmount: orderbookOrder1.order.takerAmount,
             fillableTakerAmount: orderbookOrder1.fillableTakerAmount,
-            isRfqt: false,
+            isRFQ: false,
             fillData: {
                 order: orderbookOrder1.order,
             } as NativeLimitOrderFillData,

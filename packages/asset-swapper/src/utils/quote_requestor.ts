@@ -39,6 +39,10 @@ interface RfqQuote<T> {
     makerUri: string;
 }
 
+export interface V4RFQIndicativeQuoteMM extends V4RFQIndicativeQuote {
+    makerUri: string;
+}
+
 export interface MetricsProxy {
     /**
      * Increments a counter that is tracking valid Firm Quotes that are dropped due to low expiration.
@@ -343,7 +347,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqmRequestOptions,
-    ): Promise<V4RFQIndicativeQuote[]> {
+    ): Promise<V4RFQIndicativeQuoteMM[]> {
         const _opts: RfqRequestOpts = {
             ...constants.DEFAULT_RFQT_REQUEST_OPTS,
             ...options,
@@ -367,7 +371,7 @@ export class QuoteRequestor {
         marketOperation: MarketOperation,
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
-    ): Promise<V4RFQIndicativeQuote[]> {
+    ): Promise<V4RFQIndicativeQuoteMM[]> {
         const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
         // Originally a takerAddress was required for indicative quotes, but
         // now we've eliminated that requirement.  @0x/quote-server, however,
@@ -398,8 +402,8 @@ export class QuoteRequestor {
         return this._orderSignatureToMakerUri[nativeDataToId({ signature })];
     }
 
-    private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuote): boolean {
-        const requiredKeys: Array<keyof V4RFQIndicativeQuote> = [
+    private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuoteMM): boolean {
+        const requiredKeys: Array<keyof V4RFQIndicativeQuoteMM> = [
             'makerAmount',
             'takerAmount',
             'makerToken',
@@ -545,7 +549,10 @@ export class QuoteRequestor {
                             },
                         });
                         rfqMakerBlacklist.logTimeoutOrLackThereof(typedMakerUrl.url, latencyMs >= timeoutMs);
-                        return { response: response.data, makerUri: typedMakerUrl.url };
+                        return {
+                            response: { ...response.data, makerUri: typedMakerUrl.url },
+                            makerUri: typedMakerUrl.url,
+                        };
                     } else {
                         if (this._altRfqCreds === undefined) {
                             throw new Error(`don't have credentials for alt MM`);
@@ -694,7 +701,6 @@ export class QuoteRequestor {
             } else {
                 const secondsRemaining = msRemainingUntilExpiration.div(ONE_SECOND_MS);
                 this._metrics?.measureExpirationForValidOrder(isLastLook, order.maker, secondsRemaining);
-
                 const takerAmount = new BigNumber(order.takerAmount);
                 const fillRatio = takerAmount.div(assetFillAmount);
                 if (fillRatio.lt(1) && fillRatio.gte(FILL_RATIO_WARNING_LEVEL)) {
@@ -744,9 +750,9 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
         assetOfferings: RfqMakerAssetOfferings,
-    ): Promise<V4RFQIndicativeQuote[]> {
+    ): Promise<V4RFQIndicativeQuoteMM[]> {
         // fetch quotes
-        const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuote>(
+        const rawQuotes = await this._getQuotesAsync<V4RFQIndicativeQuoteMM>(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -758,7 +764,7 @@ export class QuoteRequestor {
         );
 
         // validate
-        const validationFunction = (o: V4RFQIndicativeQuote) => this._isValidRfqtIndicativeQuoteResponse(o);
+        const validationFunction = (o: V4RFQIndicativeQuoteMM) => this._isValidRfqtIndicativeQuoteResponse(o);
         const validQuotes = rawQuotes.filter(result => {
             const order = result.response;
             if (!validationFunction(order)) {

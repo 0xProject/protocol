@@ -1,5 +1,15 @@
 [
     {
+        "version": "8.1.10",
+        "changes": [
+            {
+                "note": "Add OtcOrders to fullMigrateAsync",
+                "pr": 350
+            }
+        ],
+        "timestamp": 1635903615
+    },
+    {
         "timestamp": 1634668033,
         "version": "8.1.9",
         "changes": [

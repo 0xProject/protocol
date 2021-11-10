@@ -25,6 +25,7 @@ import "../features/interfaces/IOwnableFeature.sol";
 import "../features/TransformERC20Feature.sol";
 import "../features/MetaTransactionsFeature.sol";
 import "../features/NativeOrdersFeature.sol";
+import "../features/OtcOrdersFeature.sol";
 import "./InitialMigration.sol";
 
 
@@ -40,6 +41,7 @@ contract FullMigration {
         TransformERC20Feature transformERC20;
         MetaTransactionsFeature metaTransactions;
         NativeOrdersFeature nativeOrders;
+        OtcOrdersFeature otcOrders;
     }
 
     /// @dev Parameters needed to initialize features.
@@ -169,6 +171,17 @@ contract FullMigration {
                 address(features.nativeOrders),
                 abi.encodeWithSelector(
                     NativeOrdersFeature.migrate.selector
+                ),
+                address(this)
+            );
+        }
+        // OtcOrdersFeature
+        {
+            // Register the feature.
+            ownable.migrate(
+                address(features.otcOrders),
+                abi.encodeWithSelector(
+                    OtcOrdersFeature.migrate.selector
                 ),
                 address(this)
             );

@@ -1,12 +1,26 @@
 [
     {
+        "version": "0.29.4",
+        "changes": [
+            {
+                "note": "Prevent EP ETH balance from reducing when executin mtxs",
+                "pr": 365
+            }
+        ]
+    },
+    {
         "version": "0.29.3",
         "changes": [
             {
                 "note": "Register transformERC20() and remove transformERC20Staging()",
                 "pr": 355
+            },
+            {
+                "note": "Add OtcOrders to FullMigration",
+                "pr": 350
             }
-        ]
+        ],
+        "timestamp": 1635903615
     },
     {
         "timestamp": 1634668033,
