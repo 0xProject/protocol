@@ -44,7 +44,7 @@ export function getBestQuote<T extends V4RFQIndicativeQuote | SignedNativeOrder>
     return sortedQuotes[0];
 }
 
-/// Private getter functions
+/// Private Getter functions
 
 const getTakerToken = (quote: V4RFQIndicativeQuote | SignedNativeOrder): string => {
     if (isSignedNativeOrder(quote)) {

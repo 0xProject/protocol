@@ -383,6 +383,10 @@ export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROX
     ? undefined
     : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
 
+export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPIC_QUOTE_REPORT)
+    ? undefined
+    : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision

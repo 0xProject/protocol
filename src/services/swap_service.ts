@@ -282,7 +282,8 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport } = swapQuote;
+        const { gasPrice, sourceBreakdown, quoteReport, extendedQuoteReportSources, priceComparisonsReport } =
+            swapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
@@ -390,6 +391,7 @@ export class SwapService {
             sellTokenToEthRate,
             buyTokenToEthRate,
             quoteReport,
+            extendedQuoteReportSources,
             priceComparisonsReport,
         };
         return apiSwapQuote;

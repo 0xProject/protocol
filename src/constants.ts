@@ -38,6 +38,7 @@ export const TX_BASE_GAS = new BigNumber(21000);
 export const AFFILIATE_FEE_TRANSFORMER_GAS = new BigNumber(15000);
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 export const ONE_GWEI = new BigNumber(1000000000);
+export const AFFILIATE_DATA_SELECTOR = '869584cd';
 
 // RFQM Service
 export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
