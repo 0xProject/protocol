@@ -30,7 +30,7 @@ import "./interfaces/IFeature.sol";
 import "./interfaces/IUniswapV2ForkFeature.sol";
 import "./interfaces/IUniswapV2ForkPair.sol";
 
-/// @dev VIP UniswapV2Fork  fill functions.
+/// @dev VIP UniswapV2Fork fill functions.
 contract UniswapV2ForkFeature is
     IFeature,
     IUniswapV2ForkFeature,
@@ -103,7 +103,7 @@ contract UniswapV2ForkFeature is
 
         if (unwrapWeth) {
             IEtherTokenV06(WETH).withdraw(buyAmount);
-            (bool sent, bytes memory data) = msg.sender.call{value: buyAmount}("");
+            (bool sent, ) = msg.sender.call{value: buyAmount}("");
             require(sent, "UniswapV2ForkFeature/FAILED_TO_SEND_ETHER");
         }
     }
