@@ -1644,22 +1644,22 @@ describe('RfqmService', () => {
     });
     describe('shouldResubmitTransaction', () => {
         it('should say no if new gas price < 10% greater than previous', async () => {
-            const oldGasPrice = new BigNumber(10);
-            const newGasPrice = oldGasPrice.multipliedBy(1.09);
+            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
+            const newGasPrice = new BigNumber(105);
 
-            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(false);
+            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(false);
         });
         it('should say yes if new gas price is 10% greater than previous', async () => {
-            const oldGasPrice = new BigNumber(10);
-            const newGasPrice = oldGasPrice.multipliedBy(1.1);
+            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
+            const newGasPrice = new BigNumber(110);
 
-            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(true);
+            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
         });
         it('should say yes if new gas price > 10% greater than previous', async () => {
-            const oldGasPrice = new BigNumber(10);
-            const newGasPrice = oldGasPrice.multipliedBy(1.11);
+            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
+            const newGasPrice = new BigNumber(120);
 
-            expect(RfqmService.shouldResubmitTransaction(oldGasPrice, newGasPrice)).to.equal(true);
+            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
         });
     });
     describe('isBlockConfirmed', () => {

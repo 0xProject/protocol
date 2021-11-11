@@ -383,8 +383,14 @@ export class RfqBlockchainUtils {
             from: txOptions.from,
             // web3wrappers "gas" field -> ethers "gasLimit" field
             gasLimit: txOptions.gas instanceof BigNumber ? BigInt(txOptions.gas.toString()) : txOptions.gas,
-            gasPrice:
-                txOptions.gasPrice instanceof BigNumber ? BigInt(txOptions.gasPrice.toString()) : txOptions.gasPrice,
+            maxFeePerGas:
+                txOptions.maxFeePerGas instanceof BigNumber
+                    ? BigInt(txOptions.maxFeePerGas.toString())
+                    : txOptions.maxFeePerGas,
+            maxPriorityFeePerGas:
+                txOptions.maxPriorityFeePerGas instanceof BigNumber
+                    ? BigInt(txOptions.maxPriorityFeePerGas.toString())
+                    : txOptions.maxPriorityFeePerGas,
             nonce: txOptions.nonce,
             to: txOptions.to || this._exchangeProxy.address,
             value: txOptions.value instanceof BigNumber ? txOptions.value.toString() : txOptions.value,
