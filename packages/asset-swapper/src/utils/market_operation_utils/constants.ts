@@ -171,6 +171,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.BeethovenX,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SpiritSwap,
@@ -294,6 +295,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.BeethovenX,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.SpiritSwap,
@@ -1631,6 +1633,13 @@ export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0x20dd72ed959b6147912c2e529f0a0c651c33c9ce',
+    },
+    NULL_ADDRESS,
+);
+
 export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     {
         [ChainId.Mainnet]: {
@@ -1653,6 +1662,13 @@ export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
     },
     'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+);
+
+export const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: 'https://graph-node.beets-ftm-node.com/subgraphs/name/beethovenx-v4',
+    },
+    'https://graph-node.beets-ftm-node.com/subgraphs/name/beethovenx-v4',
 );
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
@@ -1965,6 +1981,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.BeethovenX]: () => 100e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

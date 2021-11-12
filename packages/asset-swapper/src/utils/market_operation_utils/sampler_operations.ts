@@ -19,6 +19,7 @@ import {
 } from './bridge_source_utils';
 import {
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
+    BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
@@ -41,7 +42,7 @@ import {
 } from './constants';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, BeethovenXPoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
@@ -122,6 +123,7 @@ export class SamplerOperations {
             ? poolsCaches
             : {
                   [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(chainId),
+                  [ERC20BridgeSource.BeethovenX]: new BeethovenXPoolsCache(chainId),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
               };
@@ -1301,13 +1303,14 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2:
+                    case ERC20BridgeSource.BeethovenX:
                         const poolIds =
-                            this.poolsCaches[ERC20BridgeSource.BalancerV2].getCachedPoolAddressesForPair(
+                            this.poolsCaches[source].getCachedPoolAddressesForPair(
                                 takerToken,
                                 makerToken,
                             ) || [];
 
-                        const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = source === ERC20BridgeSource.BalancerV2? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1317,10 +1320,9 @@ export class SamplerOperations {
                                 makerToken,
                                 takerToken,
                                 takerFillAmounts,
-                                ERC20BridgeSource.BalancerV2,
+                                source,
                             ),
                         );
-
                     case ERC20BridgeSource.Cream:
                         return (
                             this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
@@ -1573,13 +1575,14 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2:
+                    case ERC20BridgeSource.BeethovenX:
                         const poolIds =
-                            this.poolsCaches[ERC20BridgeSource.BalancerV2].getCachedPoolAddressesForPair(
+                            this.poolsCaches[source].getCachedPoolAddressesForPair(
                                 takerToken,
                                 makerToken,
                             ) || [];
 
-                        const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = source === ERC20BridgeSource.BalancerV2? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1589,7 +1592,7 @@ export class SamplerOperations {
                                 makerToken,
                                 takerToken,
                                 makerFillAmounts,
-                                ERC20BridgeSource.BalancerV2,
+                                source,
                             ),
                         );
                     case ERC20BridgeSource.Cream:
