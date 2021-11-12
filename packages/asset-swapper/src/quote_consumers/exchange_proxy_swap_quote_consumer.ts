@@ -507,11 +507,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         });
         let calldataHexString;
         switch (this.chainId) {
-
+            // tslint:disable-next-line: custom-no-magic-numbers
             case 42220:
                 calldataHexString = this._exchangeProxy
                 .transformERC20(
-                    isFromETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : sellToken,
+                    isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                     isToETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : buyToken,
                     shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
                     minBuyAmount,
@@ -520,7 +520,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 .getABIEncodedTransactionData();
                 break;
             default:
-            calldataHexString = this._exchangeProxy
+                calldataHexString = this._exchangeProxy
                 .transformERC20(
                     isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                     isToETH ? ETH_TOKEN_ADDRESS : buyToken,
@@ -529,7 +529,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     transforms,
                 )
                 .getABIEncodedTransactionData();
-            break;
         }
 
         return {

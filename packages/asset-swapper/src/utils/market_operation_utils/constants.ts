@@ -476,6 +476,7 @@ export const CELO_TOKENS = {
     mCUSD: '0x64dEFa3544c695db8c535D289d843a189aa26b98',
     mCEUR: '0x2DEf4285787d58a2f811AF24755A8150622f4361',
     UBE: '0x00be915b9dcf56a3cbe739d9b9c202ca692409ec',
+    mCELO: '0x7037F7296B2fc7908de7b57a89efaa8319f0C500',
 };
 
 export const FANTOM_TOKENS = {
@@ -666,6 +667,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             CELO_TOKENS.mCEUR,
             CELO_TOKENS.UBE,
             CELO_TOKENS.WCELO,
+            CELO_TOKENS.mCELO,
 
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
@@ -1739,13 +1741,6 @@ export const UBESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const UBESWAP_MOOLA_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Celo]: '0x7D28570135A2B1930F331c507F65039D4937f66c',
-    },
-    NULL_ADDRESS,
-);
-
 export const SPIRITSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Fantom]: '0x16327e3fbdaca3bcf7e38f5af2599d2ddc33ae52',
@@ -1915,7 +1910,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     // Celo
     //
     [ERC20BridgeSource.UbeSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.UbeSwapMoola]: uniswapV2CloneGasSchedule,
 
     //
     // Fantom
