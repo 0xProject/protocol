@@ -38,6 +38,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
     let nativeOrdersFeature: TestMetaTransactionsNativeOrdersFeatureContract;
 
     const MAX_FEE_AMOUNT = new BigNumber('1e18');
+    const TRANSFORM_ERC20_ONE_WEI_VALUE = new BigNumber(555);
     const TRANSFORM_ERC20_FAILING_VALUE = new BigNumber(666);
     const TRANSFORM_ERC20_REENTER_VALUE = new BigNumber(777);
     const TRANSFORM_ERC20_BATCH_REENTER_VALUE = new BigNumber(888);
@@ -597,7 +598,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
             );
         });
 
-        it('cannot reenter `executeMetaTransaction()`', async () => {
+        it('cannot reduce initial ETH balance', async () => {
             const args = getRandomTransformERC20Args();
             const mtx = getRandomMetaTransaction({
                 callData: transformERC20Feature
@@ -609,58 +610,23 @@ blockchainTests.resets('MetaTransactions feature', env => {
                         args.transformations,
                     )
                     .getABIEncodedTransactionData(),
-                value: TRANSFORM_ERC20_REENTER_VALUE,
+                value: TRANSFORM_ERC20_ONE_WEI_VALUE,
             });
-            const mtxHash = mtx.getHash();
             const signature = await mtx.getSignatureWithProviderAsync(env.provider);
             const callOpts = {
                 gasPrice: mtx.maxGasPrice,
                 value: mtx.value,
             };
-            const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
-            return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
-                    mtxHash,
-                    undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
-                        feature.getSelector('executeMetaTransaction'),
-                        REENTRANCY_FLAG_MTX,
-                    ).encode(),
-                ),
+            // Send pre-existing ETH to the EP.
+            await env.web3Wrapper.awaitTransactionSuccessAsync(
+                await env.web3Wrapper.sendTransactionAsync({
+                    from: owner,
+                    to: zeroEx.address,
+                    value: new BigNumber(1),
+                }),
             );
-        });
-
-        it('cannot reenter `batchExecuteMetaTransactions()`', async () => {
-            const args = getRandomTransformERC20Args();
-            const mtx = getRandomMetaTransaction({
-                callData: transformERC20Feature
-                    .transformERC20(
-                        args.inputToken,
-                        args.outputToken,
-                        args.inputTokenAmount,
-                        args.minOutputTokenAmount,
-                        args.transformations,
-                    )
-                    .getABIEncodedTransactionData(),
-                value: TRANSFORM_ERC20_BATCH_REENTER_VALUE,
-            });
-            const mtxHash = mtx.getHash();
-            const signature = await mtx.getSignatureWithProviderAsync(env.provider);
-            const callOpts = {
-                gasPrice: mtx.maxGasPrice,
-                value: mtx.value,
-            };
             const tx = feature.executeMetaTransaction(mtx, signature).awaitTransactionSuccessAsync(callOpts);
-            return expect(tx).to.revertWith(
-                new ZeroExRevertErrors.MetaTransactions.MetaTransactionCallFailedError(
-                    mtxHash,
-                    undefined,
-                    new ZeroExRevertErrors.Common.IllegalReentrancyError(
-                        feature.getSelector('batchExecuteMetaTransactions'),
-                        REENTRANCY_FLAG_MTX,
-                    ).encode(),
-                ),
-            );
+            return expect(tx).to.revertWith('MetaTransactionsFeature/ETH_LEAK');
         });
     });
 
@@ -816,6 +782,37 @@ blockchainTests.resets('MetaTransactions feature', env => {
                     ).encode(),
                 ),
             );
+        });
+
+        it('cannot reduce initial ETH balance', async () => {
+            const args = getRandomTransformERC20Args();
+            const mtx = getRandomMetaTransaction({
+                callData: transformERC20Feature
+                    .transformERC20(
+                        args.inputToken,
+                        args.outputToken,
+                        args.inputTokenAmount,
+                        args.minOutputTokenAmount,
+                        args.transformations,
+                    )
+                    .getABIEncodedTransactionData(),
+                value: TRANSFORM_ERC20_ONE_WEI_VALUE,
+            });
+            const signature = await mtx.getSignatureWithProviderAsync(env.provider);
+            const callOpts = {
+                gasPrice: mtx.maxGasPrice,
+                value: mtx.value,
+            };
+            // Send pre-existing ETH to the EP.
+            await env.web3Wrapper.awaitTransactionSuccessAsync(
+                await env.web3Wrapper.sendTransactionAsync({
+                    from: owner,
+                    to: zeroEx.address,
+                    value: new BigNumber(1),
+                }),
+            );
+            const tx = feature.batchExecuteMetaTransactions([mtx], [signature]).awaitTransactionSuccessAsync(callOpts);
+            return expect(tx).to.revertWith('MetaTransactionsFeature/ETH_LEAK');
         });
     });
 

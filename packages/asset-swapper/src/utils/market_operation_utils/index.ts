@@ -18,12 +18,15 @@ import {
 
 import {
     dexSampleToReportSource,
+    ExtendedQuoteReportSources,
+    generateExtendedQuoteReportSources,
     generateQuoteReport,
     multiHopSampleToReportSource,
     nativeOrderToReportEntry,
     PriceComparisonsReport,
     QuoteReport,
 } from './../quote_report_generator';
+
 import { getComparisonPrices } from './comparison_price';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -76,6 +79,25 @@ export class MarketOperationUtils {
         const { side, quotes } = marketSideLiquidity;
         const { liquidityDelivered } = optimizerResult;
         return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
+    }
+
+    private static _computeExtendedQuoteReportSources(
+        quoteRequestor: QuoteRequestor | undefined,
+        marketSideLiquidity: MarketSideLiquidity,
+        amount: BigNumber,
+        optimizerResult: OptimizerResult,
+        comparisonPrice?: BigNumber | undefined,
+    ): ExtendedQuoteReportSources {
+        const { side, quotes } = marketSideLiquidity;
+        const { liquidityDelivered } = optimizerResult;
+        return generateExtendedQuoteReportSources(
+            side,
+            quotes,
+            liquidityDelivered,
+            amount,
+            comparisonPrice,
+            quoteRequestor,
+        );
     }
 
     private static _computePriceComparisonsReport(
@@ -702,6 +724,16 @@ export class MarketOperationUtils {
             );
         }
 
+        // Always compute the Extended Quote Report
+        let extendedQuoteReportSources: ExtendedQuoteReportSources | undefined;
+        extendedQuoteReportSources = MarketOperationUtils._computeExtendedQuoteReportSources(
+            _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+            marketSideLiquidity,
+            amount,
+            optimizerResult,
+            wholeOrderPrice,
+        );
+
         let priceComparisonsReport: PriceComparisonsReport | undefined;
         if (_opts.shouldIncludePriceComparisonsReport) {
             priceComparisonsReport = MarketOperationUtils._computePriceComparisonsReport(
@@ -710,7 +742,7 @@ export class MarketOperationUtils {
                 wholeOrderPrice,
             );
         }
-        return { ...optimizerResult, quoteReport, priceComparisonsReport };
+        return { ...optimizerResult, quoteReport, extendedQuoteReportSources, priceComparisonsReport };
     }
 
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {

@@ -137,6 +137,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
+            ERC20BridgeSource.KyberDmm,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -164,6 +165,9 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Pangolin,
             ERC20BridgeSource.TraderJoe,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.KyberDmm,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -256,6 +260,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
+            ERC20BridgeSource.KyberDmm,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -283,6 +288,9 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Pangolin,
             ERC20BridgeSource.TraderJoe,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.KyberDmm,
         ]),
 
         [ChainId.Celo]: new SourceFilters([
@@ -462,8 +470,13 @@ export const POLYGON_TOKENS = {
 export const AVALANCHE_TOKENS = {
     WAVAX: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
     WETH: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
-    USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
+    WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218',
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    USDC: '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664',
+    USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
+    aDAI: '0x47afa96cdc9fab46904a55a6ad4bf6660b53c38a',
+    aUSDC: '0x46a51127c3ce23fb7ab1de06226147f446e4a857',
+    aUSDT: '0x532e6537fea298397212f09a61e03311686f548e',
 };
 
 export const CELO_TOKENS = {
@@ -547,6 +560,14 @@ export const CURVE_POLYGON_POOLS = {
 export const CURVE_V2_POLYGON_POOLS = {
     atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
     atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
+};
+
+export const CURVE_AVALANCHE_POOLS = {
+    aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
+};
+
+export const CURVE_V2_AVALANCHE_POOLS = {
+    atricrypto: '0x58e57ca18b7a47112b877e31929798cd3d703b0f',
 };
 
 export const CURVE_FANTOM_POOLS = {
@@ -656,6 +677,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.WETH,
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
+            AVALANCHE_TOKENS.USDC,
         ],
         [ChainId.Celo]: [
             CELO_TOKENS.cUSD,
@@ -1038,6 +1060,37 @@ export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
         gasSchedule: 300e3,
     }),
+};
+
+export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
+    ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
+        tokens: [AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
+        pool: CURVE_AVALANCHE_POOLS.aave,
+        gasSchedule: 850e3,
+    }),
+    ['aave_exchange']: createCurveExchangePool({
+        tokens: [AVALANCHE_TOKENS.aDAI, AVALANCHE_TOKENS.aUSDC, AVALANCHE_TOKENS.aUSDT],
+        pool: CURVE_AVALANCHE_POOLS.aave,
+        gasSchedule: 150e3,
+    }),
+};
+
+export const CURVE_V2_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_AVALANCHE_POOLS.atricrypto]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_v2,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying_v2,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        tokens: [
+            AVALANCHE_TOKENS.DAI,
+            AVALANCHE_TOKENS.USDC,
+            AVALANCHE_TOKENS.USDT,
+            AVALANCHE_TOKENS.WBTC,
+            AVALANCHE_TOKENS.WETH,
+        ],
+        metaTokens: undefined,
+        poolAddress: CURVE_V2_AVALANCHE_POOLS.atricrypto,
+        gasSchedule: 1300e3,
+    },
 };
 
 // TODO: modify gasSchedule
@@ -1431,6 +1484,9 @@ export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',
         [ChainId.Polygon]: '0x546c79662e028b661dfb4767664d0273184e4dd1',
+        [ChainId.BSC]: '0x78df70615ffc8066cc0887917f2cd72092c86409',
+        [ChainId.Avalanche]: '0x8efa5a9ad6d594cf76830267077b78ce0bc5a5f8',
+        [ChainId.Fantom]: '0x5d5a5a0a465129848c2549669e12cdc2f8de039a',
     },
     NULL_ADDRESS,
 );
