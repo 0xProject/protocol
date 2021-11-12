@@ -65,6 +65,7 @@ import {
 // tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const CELO_CHAIN_ID = 42220;
 
 // use the same order in IPancakeSwapFeature.sol
 const PANCAKE_SWAP_FORKS = [
@@ -363,7 +364,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isFromETH) {
             // Create a WETH wrapper if coming from ETH.
             switch (this.chainId) {
-                case 42220:
+                case CELO_CHAIN_ID:
                     break;
                 default:
                     transforms.push({
@@ -424,7 +425,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // Create a WETH unwrapper if going to ETH.
 
             switch (this.chainId) {
-                case 42220:
+                case CELO_CHAIN_ID:
                     break;
                 default:
                     transforms.push({
@@ -508,7 +509,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         let calldataHexString;
         switch (this.chainId) {
             // tslint:disable-next-line: custom-no-magic-numbers
-            case 42220:
+            case CELO_CHAIN_ID:
                 calldataHexString = this._exchangeProxy
                 .transformERC20(
                     isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
