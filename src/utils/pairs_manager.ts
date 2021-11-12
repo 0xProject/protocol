@@ -63,14 +63,14 @@ export class PairsManager {
      * Get a list of RFQt Maker Uris that support this pair
      */
     public getRfqtMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqtPairToMakerUris[toKey(makerToken, takerToken)];
+        return this._rfqtPairToMakerUris[toKey(makerToken, takerToken)] || [];
     }
 
     /**
      * Get a list of RFQm Maker Uris that support this pair
      */
     public getRfqmMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqmPairToMakerUris[toKey(makerToken, takerToken)];
+        return this._rfqmPairToMakerUris[toKey(makerToken, takerToken)] || [];
     }
 
     /**

@@ -125,5 +125,24 @@ describe('PairsManager', () => {
             // Then
             expect(uris).to.deep.eq(['https://maker2.asdf']);
         });
+
+        it('should return [] if no maker uris are providing liquidity', () => {
+            // Given
+            const rfqmOfferings: RfqMakerAssetOfferings = {
+                'https://maker1.asdf': [[tokenA, tokenB]],
+                'https://maker2.asdf': [[tokenA, tokenB]],
+            };
+            const configManagerMock = mock(ConfigManager);
+            when(configManagerMock.getRfqmAssetOfferings()).thenReturn(rfqmOfferings);
+            when(configManagerMock.getRfqmMakerSetForOtcOrder()).thenReturn(new Set(['https://maker2.asdf']));
+            const configManager = instance(configManagerMock);
+            const pairsManager = new PairsManager(configManager);
+
+            // When
+            const uris = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenC);
+
+            // Then
+            expect(uris).to.deep.eq([]);
+        });
     });
 });
