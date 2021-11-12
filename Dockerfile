@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock ./
 RUN apk update && \
     apk upgrade && \
-    apk add --no-cache --virtual build-dependencies bash git openssh python make g++ libc6-compat && \
+    apk add --no-cache --virtual build-dependencies bash git openssh python3 make g++ libc6-compat && \
     yarn --frozen-lockfile --no-cache && \
     apk del build-dependencies && \
     yarn cache clean

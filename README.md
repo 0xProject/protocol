@@ -37,7 +37,7 @@ These are services that handle HTTP requests and responses.
 | --------------------------------------------------- | ------------------- | ------------------------------------------ | ------------------------------------ | ----------------------------- |
 | All HTTP Services                                   | `/*`                | `yarn start:service:http`                  | Yes                                  | Yes                           |
 | [Swap](https://0x.org/docs/api#swap)                | `/swap`             | `yarn start:service:swap_http`             | Yes                                  | Yes                           |
-| [Standard Relayer API](https://0x.org/docs/api#sra) | `/sra`              | `yarn start:service:sra_http`              | No                                   | Yes                           |
+| [Orderbook](https://0x.org/docs/api#orderbook) | `/orderbook`              | `yarn start:service:sra_http`              | No                                   | Yes                           |
 | Meta Transaction Service                            | `/meta_transaction` | `yarn start:service:meta_transaction_http` | Yes                                  | Yes                           |
 
 ### Data Services
@@ -85,6 +85,8 @@ To get a local development version of `0x-api` running:
 | `META_TXN_RELAY_EXPECTED_MINED_SEC`    | Default: `120`                                                  | The expected time for a meta-txn to be included in a block.                                                                                                                            |
 | `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                         |
 | `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                               |
+| `KAFKA_BROKERS`                        | Optional. No default.                                           | A comma separated list of Kafka broker servers                                                                                                                                         |
+| `KAFKA_TOPIC_QUOTE_REPORT`             | Optional. No default                                            | The name of the Kafka topic to publish quote reports on. Setting this and `KAFKA_BROKERS` enable publirhing.                                                                           |
 
 3. Install the dependencies:
 

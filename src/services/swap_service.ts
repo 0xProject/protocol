@@ -40,6 +40,10 @@ import {
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
+    UNWRAP_QUOTE_GAS,
+    UNWRAP_WETH_GAS,
+    WRAP_ETH_GAS,
+    WRAP_QUOTE_GAS,
 } from '../config';
 import {
     DEFAULT_VALIDATION_GAS_LIMIT,
@@ -48,10 +52,6 @@ import {
     NULL_BYTES,
     ONE,
     ONE_MINUTE_MS,
-    UNWRAP_QUOTE_GAS,
-    UNWRAP_WETH_GAS,
-    WRAP_ETH_GAS,
-    WRAP_QUOTE_GAS,
     ZERO,
 } from '../constants';
 import { GasEstimationError, InsufficientFundsError } from '../errors';
@@ -282,7 +282,8 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport } = swapQuote;
+        const { gasPrice, sourceBreakdown, quoteReport, extendedQuoteReportSources, priceComparisonsReport } =
+            swapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
@@ -364,7 +365,6 @@ export class SwapService {
         const buyTokenToEthRate = makerTokenToEthRate
             .times(new BigNumber(10).pow(wethToken.decimals - makerTokenDecimals))
             .decimalPlaces(makerTokenDecimals);
-
         let apiSwapQuote: GetSwapQuoteResponse;
         switch(CHAIN_ID){
             case 42220:
@@ -397,33 +397,33 @@ export class SwapService {
                 };
                 break;
             default:
-            apiSwapQuote = {
-                chainId: CHAIN_ID,
-                price,
-                guaranteedPrice,
-                to,
-                data,
-                value: adjustedValue,
-                gas: worstCaseGasEstimate,
-                estimatedGas: conservativeBestCaseGasEstimate,
-                from: takerAddress,
-                gasPrice,
-                protocolFee,
-                minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
-                // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-                buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
-                sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
-                buyAmount: makerAmount.minus(buyTokenFeeAmount),
-                sellAmount: totalTakerAmount,
-                sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-                orders: swapQuote.orders,
-                allowanceTarget,
-                decodedUniqueId,
-                sellTokenToEthRate,
-                buyTokenToEthRate,
-                quoteReport,
-                priceComparisonsReport,
-            };
+              apiSwapQuote = {
+                  chainId: CHAIN_ID,
+                  price,
+                  guaranteedPrice,
+                  to,
+                  data,
+                  value: adjustedValue,
+                  gas: worstCaseGasEstimate,
+                  estimatedGas: conservativeBestCaseGasEstimate,
+                  from: takerAddress,
+                  gasPrice,
+                  protocolFee,
+                  minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
+                  // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+                  buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
+                  sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
+                  buyAmount: makerAmount.minus(buyTokenFeeAmount),
+                  sellAmount: totalTakerAmount,
+                  sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
+                  orders: swapQuote.orders,
+                  allowanceTarget,
+                  decodedUniqueId,
+                  sellTokenToEthRate,
+                  buyTokenToEthRate,
+                  quoteReport,
+                  priceComparisonsReport,
+              };
         }
         return apiSwapQuote;
     }

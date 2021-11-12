@@ -20,6 +20,7 @@ import { TransactionReceiptStatus } from 'ethereum-types';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
+import * as redis from 'redis';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
 import { anyString, anything, instance, mock, when } from 'ts-mockito';
@@ -33,6 +34,7 @@ import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOrder } from '../src/en
 import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
+import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOrderToRfqmOrder } from '../src/utils/rfqm_db_utils';
@@ -153,6 +155,7 @@ describe(SUITE_NAME, () => {
     let connection: Connection;
     let rfqmService: RfqmService;
     let dbUtils: RfqmDbUtils;
+    let cacheClient: CacheClient;
 
     before(async () => {
         // docker-compose up
@@ -268,6 +271,12 @@ describe(SUITE_NAME, () => {
         // Create the quote server client
         const quoteServerClient = new QuoteServerClient(axiosClient);
 
+        // Create the CacheClient
+        const redisClient = redis.createClient({
+            url: config.REDIS_URI,
+        });
+        cacheClient = new CacheClient(redisClient);
+
         rfqmService = new RfqmService(
             quoteRequestor,
             protocolFeeUtils,
@@ -278,6 +287,7 @@ describe(SUITE_NAME, () => {
             sqsProducer,
             quoteServerClient,
             TEST_TRANSACTION_WATCHER_SLEEP_MS,
+            cacheClient,
         );
 
         // Start the server
@@ -309,6 +319,7 @@ describe(SUITE_NAME, () => {
                 resolve();
             });
         });
+        await cacheClient.closeAsync();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 

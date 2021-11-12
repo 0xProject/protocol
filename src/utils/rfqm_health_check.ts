@@ -1,9 +1,9 @@
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
-import { Counter } from 'prom-client';
+import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { ETH_DECIMALS } from '../constants';
+import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmWorkerHeartbeatEntity } from '../entities';
 
 const SQS_QUEUE_SIZE_DEGRADED_THRESHOLD = 10; // More messages sitting in queue than this will cause a DEGRADED issue
@@ -20,10 +20,15 @@ const MS_IN_MINUTE = 60000;
 const BALANCE_DEGRADED_THRESHOLD_WEI = new BigNumber(BALANCE_DEGRADED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 
-const RFQM_HEALTH_CHECK_ISSUE_COUNTER = new Counter({
-    name: 'rfqm_health_check_issue',
-    labelNames: ['status' /* :HealthCheckStatus, except for Operational */, 'label' /* :HealthCheckLabel */],
-    help: 'RFQM health system has detected a problem with the system',
+const RFQM_HEALTH_CHECK_ISSUE_GAUGE = new Gauge({
+    name: 'rfqm_health_check_issue_gauge',
+    labelNames: ['label' /* :HealthCheckLabel */],
+    help: 'Gauge indicating the current status for each label. Value corresponds to the `statusSeverity`',
+});
+
+const RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE = new Gauge({
+    name: 'rfqm_total_system_trade_capacity',
+    help: 'Total amount of ETH in the worker pool divided by the current expected gas of a trade',
 });
 
 export enum HealthCheckStatus {
@@ -81,6 +86,7 @@ export async function computeHealthCheckAsync(
     offerings: RfqMakerAssetOfferings,
     producer: Producer,
     heartbeats: RfqmWorkerHeartbeatEntity[],
+    gasPrice?: BigNumber,
 ): Promise<HealthCheckResult> {
     const pairs = transformPairs(offerings);
 
@@ -93,9 +99,28 @@ export async function computeHealthCheckAsync(
     const workersStatus = getWorstStatus(workersIssues.map((issue) => issue.status));
 
     // Prometheus counters
-    [...httpIssues, ...workersIssues].forEach((issue) =>
-        RFQM_HEALTH_CHECK_ISSUE_COUNTER.labels(issue.status, issue.label).inc(),
+    const severityByLabel: Record<HealthCheckLabel, number> = {
+        'registry balance': statusSeverity(HealthCheckStatus.Operational),
+        'RFQM_MAINTENANCE_MODE config `true`': statusSeverity(HealthCheckStatus.Operational),
+        'queue size': statusSeverity(HealthCheckStatus.Operational),
+        'worker balance': statusSeverity(HealthCheckStatus.Operational),
+        'worker heartbeat': statusSeverity(HealthCheckStatus.Operational),
+    };
+    [...httpIssues, ...workersIssues].forEach(
+        (issue) =>
+            (severityByLabel[issue.label] = Math.max(severityByLabel[issue.label], statusSeverity(issue.status))),
     );
+    Object.entries(severityByLabel).forEach(([label, severity]) => {
+        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(label).set(severity);
+    });
+
+    if (gasPrice) {
+        // Note that this gauge is an estimation of the total number of trades, since two workers could have
+        // 50% of the amount for one trade and the gauge would show 1 but the actual capacity would be 0.
+        const totalWorkerBalance = heartbeats.reduce((total, { balance }) => total.plus(balance), new BigNumber(0));
+        const totalSystemTradeCapacity = totalWorkerBalance.div(gasPrice.times(RFQM_TX_GAS_ESTIMATE));
+        RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE.set(totalSystemTradeCapacity.toNumber());
+    }
 
     return {
         status: getWorstStatus([httpStatus, workersStatus]),
