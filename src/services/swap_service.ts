@@ -365,66 +365,33 @@ export class SwapService {
             .times(new BigNumber(10).pow(wethToken.decimals - makerTokenDecimals))
             .decimalPlaces(makerTokenDecimals);
 
-        let apiSwapQuote: GetSwapQuoteResponse;
-        switch(CHAIN_ID){
-            case 42220:
-                apiSwapQuote = {
-                    chainId: CHAIN_ID,
-                    price,
-                    guaranteedPrice,
-                    to,
-                    data,
-                    value: adjustedValue,
-                    gas: worstCaseGasEstimate,
-                    estimatedGas: conservativeBestCaseGasEstimate,
-                    from: takerAddress,
-                    gasPrice,
-                    protocolFee,
-                    minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
-                    // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-                    buyTokenAddress: isETHBuy ? '0x471ece3750da237f93b8e339c536989b8978a438' : buyToken,
-                    sellTokenAddress: isETHSell ? '0x471ece3750da237f93b8e339c536989b8978a438' : sellToken,
-                    buyAmount: makerAmount.minus(buyTokenFeeAmount),
-                    sellAmount: totalTakerAmount,
-                    sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-                    orders: swapQuote.orders,
-                    allowanceTarget,
-                    decodedUniqueId,
-                    sellTokenToEthRate,
-                    buyTokenToEthRate,
-                    quoteReport,
-                    priceComparisonsReport,
-                };
-                break;
-            default:
-            apiSwapQuote = {
-                chainId: CHAIN_ID,
-                price,
-                guaranteedPrice,
-                to,
-                data,
-                value: adjustedValue,
-                gas: worstCaseGasEstimate,
-                estimatedGas: conservativeBestCaseGasEstimate,
-                from: takerAddress,
-                gasPrice,
-                protocolFee,
-                minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
-                // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-                buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
-                sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
-                buyAmount: makerAmount.minus(buyTokenFeeAmount),
-                sellAmount: totalTakerAmount,
-                sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-                orders: swapQuote.orders,
-                allowanceTarget,
-                decodedUniqueId,
-                sellTokenToEthRate,
-                buyTokenToEthRate,
-                quoteReport,
-                priceComparisonsReport,
-            };
-        }
+        const apiSwapQuote: GetSwapQuoteResponse = {
+            chainId: CHAIN_ID,
+            price,
+            guaranteedPrice,
+            to,
+            data,
+            value: adjustedValue,
+            gas: worstCaseGasEstimate,
+            estimatedGas: conservativeBestCaseGasEstimate,
+            from: takerAddress,
+            gasPrice,
+            protocolFee,
+            minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
+            // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+            buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
+            sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
+            buyAmount: makerAmount.minus(buyTokenFeeAmount),
+            sellAmount: totalTakerAmount,
+            sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
+            orders: swapQuote.orders,
+            allowanceTarget,
+            decodedUniqueId,
+            sellTokenToEthRate,
+            buyTokenToEthRate,
+            quoteReport,
+            priceComparisonsReport,
+        };
         return apiSwapQuote;
     }
 
