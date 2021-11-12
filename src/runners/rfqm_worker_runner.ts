@@ -1,7 +1,7 @@
 /**
  * Runs the RFQM MetaTransaction Consumer
  */
-import { createMetricsRouter, MetricsService } from '@0x/api-utils';
+import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
 import { SQS } from 'aws-sdk';
 import * as express from 'express';
 import { Counter, Summary } from 'prom-client';
@@ -47,15 +47,29 @@ const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     labelNames: ['address'],
 });
 
-process.on('uncaughtException', (err) => {
-    logger.error(err);
-    process.exit(1);
-});
+process.on(
+    'uncaughtException',
+    // see https://github.com/pinojs/pino/blob/master/docs/help.md#exit-logging
+    pino.final(logger, (error, finalLogger) => {
+        finalLogger.error(
+            { errorMessage: error.message, workerIndex: RFQM_WORKER_INDEX },
+            'RFQM worker exiting due to uncaught exception',
+        );
+        process.exit(1);
+    }),
+);
 
-process.on('unhandledRejection', (err) => {
-    if (err) {
-        logger.error(err);
+process.on('unhandledRejection', (reason, promise) => {
+    const finalLogger = pino.final(logger);
+    let errorMessage = '';
+    if (reason instanceof Error) {
+        errorMessage = reason.message;
     }
+    finalLogger.error(
+        { errorMessage, promise, workerIndex: RFQM_WORKER_INDEX },
+        'RFQM worker exiting due to unhandled rejection',
+    );
+    process.exit(1);
 });
 
 if (require.main === module) {
@@ -80,17 +94,16 @@ if (require.main === module) {
         const rfqmService = await buildRfqmServiceAsync(connection, true);
 
         // Run the worker
-        await runRfqmWorkerAsync(rfqmService, workerAddress);
-    })().catch((error) => {
-        logger.error(error.stack);
-        process.exit(1);
-    });
+        const worker = createRfqmWorker(rfqmService, workerAddress);
+        logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Starting RFQM worker');
+        await worker.consumeAsync();
+    })(); // tslint:disable-line no-floating-promises
 }
 
 /**
- * Runs the Rfqm Consumer
+ * Create an RFQM Worker
  */
-export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress: string): Promise<SqsConsumer> {
+export function createRfqmWorker(rfqmService: RfqmService, workerAddress: string): SqsConsumer {
     // Build the Sqs consumer
     const sqsClient = new SqsClient(new SQS({ apiVersion: '2012-11-05' }), RFQM_META_TX_SQS_URL!);
     const consumer = new SqsConsumer({
@@ -102,29 +115,24 @@ export async function runRfqmWorkerAsync(rfqmService: RfqmService, workerAddress
             const { orderHash } = JSON.parse(message.Body!);
             logger.info({ workerAddress, orderHash }, 'about to process job');
             const stopTimer = RFQM_JOB_PROCESSING_TIME.labels(workerAddress).startTimer();
-            const outcome = await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-            stopTimer();
-            return outcome;
+            try {
+                await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
+            } finally {
+                stopTimer();
+            }
         },
         afterHandle: async (message, error) => {
             const orderHash = message.Body!;
             if (error !== undefined) {
                 RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
-                logger.warn({ workerAddress, orderHash, error }, 'job completed with error');
-                return;
+                logger.error({ workerAddress, orderHash, errorMessage: error.message }, 'Job completed with error');
+            } else {
+                logger.info({ workerAddress, orderHash }, 'Job completed without errors');
+                RFQM_JOB_COMPLETED.labels(workerAddress).inc();
             }
-
-            logger.info({ workerAddress, orderHash }, 'job completed without errors');
-            RFQM_JOB_COMPLETED.labels(workerAddress).inc();
         },
     });
 
-    // Start the consumer - aka the worker
-    consumer.consumeAsync().catch((e) => {
-        logger.error({ error: e }, 'Unexpected error encountered in consume loop');
-        process.exit(1);
-    });
-    logger.info('Rfqm Consumer running');
     return consumer;
 }
 

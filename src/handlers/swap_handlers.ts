@@ -16,6 +16,7 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
 
@@ -23,6 +24,7 @@ import {
     CHAIN_ID,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
+    KAFKA_BROKERS,
     MATCHA_INTEGRATOR_ID,
     NATIVE_WRAPPED_TOKEN_SYMBOL,
     PLP_API_KEY_WHITELIST,
@@ -31,6 +33,7 @@ import {
     RFQT_REGISTRY_PASSWORDS,
 } from '../config';
 import {
+    AFFILIATE_DATA_SELECTOR,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     MARKET_DEPTH_DEFAULT_DISTRIBUTION,
     MARKET_DEPTH_MAX_SAMPLES,
@@ -55,6 +58,17 @@ import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
+
+let kafkaProducer: Producer | undefined;
+if (KAFKA_BROKERS !== undefined) {
+    const kafka = new Kafka({
+        clientId: '0x-api',
+        brokers: KAFKA_BROKERS,
+    });
+
+    kafkaProducer = kafka.producer();
+    kafkaProducer.connect();
+}
 
 const BEARER_REGEX = /^Bearer\s(.{36})$/;
 const REGISTRY_SET: Set<string> = new Set(RFQT_REGISTRY_PASSWORDS);
@@ -163,9 +177,31 @@ export class SwapHandlers {
                         sellTokenAddress: quote.sellTokenAddress,
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
-                        apiKey: params.integrator?.integratorId, // TODO (rhinodavid): update to align apiKey/integratorId
+                        integratorId: params.integrator?.integratorId,
+                        slippage: undefined,
                     },
                     req.log,
+                );
+            }
+
+            if (quote.extendedQuoteReportSources && kafkaProducer) {
+                const quoteId = getQuoteIdFromSwapQuote(quote);
+                quoteReportUtils.publishQuoteReport(
+                    {
+                        quoteId,
+                        taker: params.takerAddress,
+                        quoteReportSources: quote.extendedQuoteReportSources,
+                        submissionBy: 'taker',
+                        decodedUniqueId: quote.decodedUniqueId,
+                        buyTokenAddress: quote.buyTokenAddress,
+                        sellTokenAddress: quote.sellTokenAddress,
+                        buyAmount: params.buyAmount,
+                        sellAmount: params.sellAmount,
+                        integratorId: params.integrator?.integratorId,
+                        slippage: params.slippagePercentage,
+                    },
+                    true,
+                    kafkaProducer,
                 );
             }
         }
@@ -175,6 +211,7 @@ export class SwapHandlers {
                 orders: quote.orders.map((o: any) => _.omit(o, 'fills')),
             },
             'quoteReport',
+            'extendedQuoteReportSources',
             'priceComparisonsReport',
             'decodedUniqueId',
         );
@@ -233,6 +270,28 @@ export class SwapHandlers {
                 .getPriceComparisonFromQuote(CHAIN_ID, marketSide, quote)
                 ?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
+
+        if (quote.extendedQuoteReportSources && kafkaProducer) {
+            const quoteId = getQuoteIdFromSwapQuote(quote);
+            quoteReportUtils.publishQuoteReport(
+                {
+                    quoteId,
+                    taker: params.takerAddress,
+                    quoteReportSources: quote.extendedQuoteReportSources,
+                    submissionBy: 'taker',
+                    decodedUniqueId: quote.decodedUniqueId,
+                    buyTokenAddress: quote.buyTokenAddress,
+                    sellTokenAddress: quote.sellTokenAddress,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integrator?.integratorId,
+                    slippage: params.slippagePercentage,
+                },
+                false,
+                kafkaProducer,
+            );
+        }
+
         res.status(HttpStatus.OK).send(response);
     }
 
@@ -504,3 +563,14 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         isWrap,
     };
 };
+
+/*
+ * Extract the quote ID from the quote filldata
+ */
+function getQuoteIdFromSwapQuote(quote: GetSwapQuoteResponse): string {
+    const bytesPos = quote.data.indexOf(AFFILIATE_DATA_SELECTOR);
+    const quoteIdOffset = 118; // Offset of quoteId from Affiliate data selector
+    const startingIndex = bytesPos + quoteIdOffset;
+    const quoteId = quote.data.slice(startingIndex, startingIndex + 10);
+    return quoteId;
+}

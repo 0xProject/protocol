@@ -24,6 +24,7 @@ import {
     NULL_ADDRESS,
     ONE_SECOND_MS,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
+    RFQM_NUM_BUCKETS,
     RFQM_TX_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
@@ -31,6 +32,7 @@ import { RfqmJobStatus, RfqmOrderTypes } from '../entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../entities/RfqmTransactionSubmissionEntity';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
+import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
@@ -307,6 +309,7 @@ export class RfqmService {
         private readonly _sqsProducer: Producer,
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _transactionWatcherSleepTimeMs: number,
+        private readonly _cacheClient: CacheClient,
     ) {}
 
     /**
@@ -425,6 +428,10 @@ export class RfqmService {
             type: 'fixed',
         };
 
+        // Fetch the current bucket
+        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync()) % RFQM_NUM_BUCKETS;
+        logger.info({ currentBucket }, 'TODO: implement usage of currentBucket');
+
         // Fetch quotes
         const opts: RfqmRequestOptions = {
             ...RFQM_DEFAULT_OPTS,
@@ -447,7 +454,7 @@ export class RfqmService {
 
         const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
             if (quote.order.chainId !== CHAIN_ID) {
-                logger.error(`Received a quote with incorrect chain id: ${quote}`);
+                logger.error({ quote }, 'Received a quote with incorrect chain id');
                 return false;
             }
             return true;
@@ -549,7 +556,10 @@ export class RfqmService {
         try {
             gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
         } catch (error) {
-            logger.error({ error }, 'Current gas price is unable to be fetched, marking worker as not ready.');
+            logger.error(
+                { errorMessage: error.message },
+                'Current gas price is unable to be fetched, marking worker as not ready.',
+            );
             RFQM_WORKER_NOT_READY.labels(workerAddress).inc();
             return false;
         }
@@ -563,7 +573,15 @@ export class RfqmService {
         RFQM_JOB_REPAIR.labels(workerAddress).inc(unresolvedJobs.length);
         for (const job of unresolvedJobs) {
             logger.info({ workerAddress, orderHash: job.orderHash }, `Unresolved job found, attempting to re-process`);
-            await this.processRfqmJobAsync(job.orderHash, workerAddress);
+            try {
+                await this.processRfqmJobAsync(job.orderHash, workerAddress);
+            } catch (error) {
+                logger.error(
+                    { errorMessage: error.message, orderHash: job.orderHash, workerAddress },
+                    'Error reprocessing rfqm job',
+                );
+                throw error;
+            }
         }
 
         const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
@@ -578,8 +596,11 @@ export class RfqmService {
                 throw new Error('Worker index is undefined');
             }
             await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance);
-        } catch (e) {
-            logger.error({ workerAddress, balance }, `Worker failed to write a heartbeat to storage: ${e}`);
+        } catch (error) {
+            logger.error(
+                { workerAddress, balance, errorMessage: error.message },
+                'Worker failed to write a heartbeat to storage',
+            );
         }
 
         RFQM_WORKER_READY.labels(workerAddress).inc();
@@ -666,12 +687,19 @@ export class RfqmService {
     public async runHealthCheckAsync(): Promise<HealthCheckResult> {
         const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync();
         const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
+        let gasPrice: BigNumber | undefined;
+        try {
+            gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        } catch (error) {
+            logger.warn({ errorMessage: error.message }, 'Failed to get gas price for health check');
+        }
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
             registryBalance,
             RFQM_MAKER_ASSET_OFFERINGS,
             this._sqsProducer,
             heartbeats,
+            gasPrice,
         );
     }
 
@@ -732,7 +760,7 @@ export class RfqmService {
                 this._registryAddress,
             );
         } catch (error) {
-            logger.error({ error }, 'RFQM quote failed eth_call validation.');
+            logger.error({ errorMessage: error.message }, 'RFQM quote failed eth_call validation.');
             RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.inc();
             throw new ValidationError([
                 {
@@ -773,7 +801,7 @@ export class RfqmService {
             await this._dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
             await this._enqueueJobAsync(quote.orderHash!);
         } catch (error) {
-            logger.error({ error }, 'Failed to queue the quote for submission.');
+            logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
             throw new InternalServerError(
                 `failed to queue the quote for submission, it may have already been submitted`,
             );
@@ -790,7 +818,7 @@ export class RfqmService {
      * Process an orderHash as an RfqmJob. Throws an error if job must be retried
      */
     public async processRfqmJobAsync(orderHash: string, workerAddress: string): Promise<void> {
-        logger.info({ orderHash }, 'start processing job');
+        logger.info({ orderHash, workerAddress }, 'Start processing job');
         const timerStopFn = RFQM_PROCESS_JOB_LATENCY.startTimer();
 
         // Get job
@@ -807,9 +835,10 @@ export class RfqmService {
             });
 
             if (errorStatus === RfqmJobStatus.FailedExpired) {
-                logger.error(`Job "${orderHash}" expired and cannot be processed. Marking job as complete`);
+                logger.error({ orderHash }, 'Job expired and cannot be processed. Marking job as complete');
                 RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
             }
+            timerStopFn();
             return;
         }
         const { calldata, makerUri, order, fee } = job;
@@ -829,11 +858,12 @@ export class RfqmService {
                 await this._blockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(calldata!, workerAddress);
             } catch (e) {
                 RFQM_JOB_FAILED_ETHCALL_VALIDATION.inc();
-                logger.warn({ error: e, orderHash }, 'The eth_call validation failed');
+                logger.error({ errorMessage: e.message, orderHash }, 'The eth_call validation failed');
                 // Terminate with an error transition
                 await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
                     status: RfqmJobStatus.FailedEthCallFailed,
                 });
+                timerStopFn();
                 return;
             }
 
@@ -847,7 +877,12 @@ export class RfqmService {
             const shouldProceed = await this._quoteServerClient.confirmLastLookAsync(makerUri!, submitRequest);
             logger.info({ makerUri, shouldProceed, orderHash }, 'Got last look response from market maker');
 
-            if (!shouldProceed) {
+            if (shouldProceed) {
+                await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    lastLookResult: shouldProceed,
+                });
+            } else {
                 RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri!).inc();
                 // Terminate with an error transition
                 await this._dbUtils.updateRfqmJobAsync(orderHash, true, {
@@ -856,23 +891,22 @@ export class RfqmService {
                     lastLookResult: shouldProceed,
                 });
                 return;
-            } else {
-                await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
-                    status: RfqmJobStatus.PendingLastLookAccepted,
-                    lastLookResult: shouldProceed,
-                });
             }
         } else {
             // log if last look completed and was previously accepted
-            logger.info({ workerAddress, orderHash }, 'last look previously accepted, skipping ahead to submission');
+            logger.info({ workerAddress, orderHash }, 'Last look previously accepted, skipping ahead to submission');
         }
 
         // submit to chain
         let submissionsMap: SubmissionsMap;
         try {
             submissionsMap = await this.completeSubmissionLifecycleAsync(orderHash, workerAddress, calldata!);
-        } catch (err) {
-            logger.warn({ error: err, orderHash, workerAddress }, `encountered an error in transaction submission`);
+        } catch (error) {
+            logger.error(
+                { errorMessage: error.message, orderHash, workerAddress },
+                `Encountered an error in transaction submission`,
+            );
+            timerStopFn();
             throw new Error(`encountered an error in transaction submission`);
         }
 
@@ -935,10 +969,11 @@ export class RfqmService {
                             oldGasPrice: gasPrice,
                             newGasPrice,
                         },
-                        're-submitting tx with higher gas price',
+                        'Resubmitting tx with higher gas price',
                     );
                     gasPrice = newGasPrice;
 
+                    // TODO(rhinodavid): make sure a throw here gets handled
                     const submission = await this._submitTransactionAsync(
                         orderHash,
                         workerAddress,
@@ -949,7 +984,7 @@ export class RfqmService {
                     );
                     logger.info(
                         { workerAddress, orderHash, transactionHash: submission.transactionHash },
-                        'successfully re-submit tx with higher gas price',
+                        'Successfully resubmited tx with higher gas price',
                     );
                     submissionsMap[submission.transactionHash!] = submission;
                 }
@@ -967,7 +1002,7 @@ export class RfqmService {
         callData: string,
         previousSubmissions: RfqmTransactionSubmissionEntity[],
     ): Promise<SubmissionContext> {
-        logger.info({ workerAddress, orderHash }, `previous submissions found, recovering context`);
+        logger.info({ workerAddress, orderHash }, `Previous submissions found, recovering context`);
         const submissionsMap: SubmissionsMap = {};
 
         // setting values to override them
@@ -978,7 +1013,7 @@ export class RfqmService {
             if (submission.from !== workerAddress) {
                 logger.warn(
                     { workerAddress, orderHash },
-                    `found submissions from a different worker when recovering context`,
+                    `Found submissions from a different worker when recovering context`,
                 );
                 throw new Error('found tx submissions from a different worker');
             }
@@ -987,7 +1022,7 @@ export class RfqmService {
             if (submission.nonce! !== nonce) {
                 logger.warn(
                     { workerAddress, orderHash },
-                    `found submissions with a different nonce when recovering context`,
+                    `Found submissions with a different nonce when recovering context`,
                 );
                 throw new Error(`found different nonces in tx submissions`);
             }
@@ -1014,7 +1049,7 @@ export class RfqmService {
         orderHash: string,
         callData: string,
     ): Promise<SubmissionContext> {
-        logger.info({ orderHash, workerAddress }, 'initializing submission context');
+        logger.info({ orderHash, workerAddress }, 'Initializing submission context');
 
         // claim this job for the worker, and set status to submitted
         await this._dbUtils.updateRfqmJobAsync(orderHash, false, {
@@ -1038,7 +1073,7 @@ export class RfqmService {
         );
         logger.info(
             { workerAddress, orderHash, transactionHash: firstSubmission.transactionHash },
-            'successfully submit tx',
+            'Successfully submitted tx',
         );
         const submissionsMap = { [firstSubmission.transactionHash!]: firstSubmission };
 
@@ -1195,7 +1230,7 @@ export class RfqmService {
 
         logger.info(
             { orderHash, workerAddress, transactionHash: transactionHashFromSubmit },
-            'transaction calldata submitted to exchange proxy',
+            'Transaction calldata submitted to exchange proxy',
         );
 
         await this._dbUtils.updateRfqmTransactionSubmissionsAsync([

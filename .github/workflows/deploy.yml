@@ -52,6 +52,10 @@ jobs:
             - name: deploy from branch to production (Avalanche)
               if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production avalanche' || github.event.comment.body == 'deploy avalanche production')
               run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=avalanche" >> $GITHUB_ENV;
+            # Fantom: folder_chain=fantom
+            - name: deploy from branch to production (Fantom)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production fantom' || github.event.comment.body == 'deploy fantom production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=fantom" >> $GITHUB_ENV;
             # Make the changes to 0x-main-infra
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
@@ -70,6 +74,9 @@ jobs:
             - name: Update API configs (Avalanche)
               if: env.chain == 'avalanche'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/avalanche/*.yml
+            - name: Update API configs (Fantom)
+              if: env.chain == 'fantom'
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/fantom/*.yml
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3.5.0
               with:

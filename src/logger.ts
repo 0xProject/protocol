@@ -6,8 +6,12 @@ import { ExpiredOrderError } from './errors';
 import { SRAOrder } from './types';
 
 export const logger = pino({
+    formatters: {
+        level: (label) => ({
+            level: label,
+        }),
+    },
     level: LOG_LEVEL,
-    useLevelLabels: true,
     timestamp: LOGGER_INCLUDE_TIMESTAMP,
 });
 

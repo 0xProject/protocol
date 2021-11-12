@@ -156,7 +156,8 @@ export class MetaTransactionService {
                 sellTokenAddress: params.sellTokenAddress,
                 buyAmount: params.buyAmount,
                 sellAmount: params.sellAmount,
-                apiKey: params.apiKey,
+                integratorId: params.apiKey,
+                slippage: undefined,
             });
         }
         return {

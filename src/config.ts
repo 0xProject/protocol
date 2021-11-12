@@ -14,8 +14,9 @@ import {
     SwapQuoterRfqOpts,
 } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
-import { nativeWrappedTokenSymbol, TokenMetadatasForChains } from '@0x/token-metadata';
+import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
+import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
 
@@ -24,6 +25,7 @@ import {
     DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
+    DEFAULT_LOCAL_REDIS_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     HEALTHCHECK_PATH,
@@ -83,7 +85,7 @@ export type IntegratorsAcl = Integrator[];
 export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
     let integrators: IntegratorsAcl;
     try {
-        integrators = JSON.parse(process.env.INTEGRATORS_ACL || '[]');
+        integrators = resolveEnvVar<IntegratorsAcl>('INTEGRATORS_ACL', EnvVarType.JsonStringList, []);
         schemaUtils.validateSchema(integrators, schemas.integratorsAclSchema);
     } catch (e) {
         throw new Error(`INTEGRATORS_ACL was defined but is not valid JSON per the schema: ${e}`);
@@ -222,6 +224,8 @@ export const POSTGRES_READ_REPLICA_URIS: string[] | undefined = _.isEmpty(proces
     ? undefined
     : assertEnvVarType('POSTGRES_READ_REPLICA_URIS', process.env.POSTGRES_READ_REPLICA_URIS, EnvVarType.UrlList);
 
+export const REDIS_URI = _.isEmpty(process.env.REDIS_URI) ? DEFAULT_LOCAL_REDIS_URI : process.env.REDIS_URI;
+
 // Should the logger include time field in the output logs, defaults to true.
 export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
@@ -235,9 +239,11 @@ export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(
           EnvVarType.LiquidityProviderRegistry,
       );
 
-export const RFQT_REGISTRY_PASSWORDS: string[] = _.isEmpty(process.env.RFQT_REGISTRY_PASSWORDS)
-    ? []
-    : assertEnvVarType('RFQT_REGISTRY_PASSWORDS', process.env.RFQT_REGISTRY_PASSWORDS, EnvVarType.JsonStringList);
+export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
+    'RFQT_REGISTRY_PASSWORDS',
+    EnvVarType.JsonStringList,
+    [],
+);
 
 export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
@@ -247,15 +253,11 @@ export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegrators
 
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
-export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = _.isEmpty(process.env.RFQT_TX_ORIGIN_BLACKLIST)
-    ? new Set()
-    : new Set(
-          assertEnvVarType(
-              'RFQT_TX_ORIGIN_BLACKLIST',
-              process.env.RFQT_TX_ORIGIN_BLACKLIST,
-              EnvVarType.JsonStringList,
-          ).map((addr: string) => addr.toLowerCase()),
-      );
+export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
+    resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
+        addr.toLowerCase(),
+    ),
+);
 
 export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
     ? undefined
@@ -267,21 +269,17 @@ export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
-export const RFQT_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQT_MAKER_ASSET_OFFERINGS)
-    ? {}
-    : assertEnvVarType(
-          'RFQT_MAKER_ASSET_OFFERINGS',
-          process.env.RFQT_MAKER_ASSET_OFFERINGS,
-          EnvVarType.RfqMakerAssetOfferings,
-      );
+export const RFQT_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
+    'RFQT_MAKER_ASSET_OFFERINGS',
+    EnvVarType.RfqMakerAssetOfferings,
+    {},
+);
 
-export const RFQM_MAKER_ASSET_OFFERINGS: RfqMakerAssetOfferings = _.isEmpty(process.env.RFQM_MAKER_ASSET_OFFERINGS)
-    ? {}
-    : assertEnvVarType(
-          'RFQM_MAKER_ASSET_OFFERINGS',
-          process.env.RFQM_MAKER_ASSET_OFFERINGS,
-          EnvVarType.RfqMakerAssetOfferings,
-      );
+export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
+    'RFQM_MAKER_ASSET_OFFERINGS',
+    EnvVarType.RfqMakerAssetOfferings,
+    {},
+);
 
 export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
     ? undefined
@@ -385,6 +383,10 @@ export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROX
     ? undefined
     : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
 
+export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPIC_QUOTE_REPORT)
+    ? undefined
+    : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
@@ -393,6 +395,18 @@ export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
+
+const UNWRAP_GAS_BY_CHAIN_ID = valueByChainId<BigNumber>(
+    {
+        // NOTE: FTM uses a different WFTM implementation than WETH which uses more gas
+        [ChainId.Fantom]: new BigNumber(37000),
+    },
+    new BigNumber(25000),
+);
+export const UNWRAP_WETH_GAS = UNWRAP_GAS_BY_CHAIN_ID[CHAIN_ID];
+export const WRAP_ETH_GAS = UNWRAP_WETH_GAS;
+export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
+export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 
 const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
@@ -422,6 +436,8 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.Avalanche:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Celo:
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
+        case ChainId.Fantom:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
             return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
@@ -625,6 +641,31 @@ function transformIntegratorsAcl(
         });
     });
     return result;
+}
+
+/**
+ * Resolves a config of type T for an Enviornment Variable. Checks:
+ *  - If the env variable is undefined, use the hardcoded fallback
+ *  - If the env variable points to a filepath, resolve it
+ *  - Otherwise, just use the env variable
+ *
+ * @param envVar - the name of the Environment Variable
+ * @param envVarType - the type
+ * @param fallback  - A hardcoded fallback value
+ * @returns The config
+ */
+function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): T {
+    const rawEnvVar = process.env[envVar];
+    if (rawEnvVar === undefined || _.isEmpty(rawEnvVar)) {
+        return fallback;
+    }
+
+    // If the enviornment variable points to a file
+    if (fs.existsSync(rawEnvVar)) {
+        return JSON.parse(fs.readFileSync(rawEnvVar, 'utf8'));
+    }
+
+    return assertEnvVarType(envVar, process.env[envVar], envVarType);
 }
 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
