@@ -375,7 +375,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
             }
-
         }
 
         // If it's two hop we have an intermediate token this is needed to encode the individual FQT
@@ -436,7 +435,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
             }
-
         }
 
         const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
@@ -511,25 +509,25 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // tslint:disable-next-line: custom-no-magic-numbers
             case CELO_CHAIN_ID:
                 calldataHexString = this._exchangeProxy
-                .transformERC20(
-                    isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                    isToETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : buyToken,
-                    shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                    minBuyAmount,
-                    transforms,
-                )
-                .getABIEncodedTransactionData();
+                    .transformERC20(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : buyToken,
+                        shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
+                        minBuyAmount,
+                        transforms,
+                    )
+                    .getABIEncodedTransactionData();
                 break;
             default:
                 calldataHexString = this._exchangeProxy
-                .transformERC20(
-                    isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                    isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                    shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                    minBuyAmount,
-                    transforms,
-                )
-                .getABIEncodedTransactionData();
+                    .transformERC20(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
+                        minBuyAmount,
+                        transforms,
+                    )
+                    .getABIEncodedTransactionData();
         }
 
         return {

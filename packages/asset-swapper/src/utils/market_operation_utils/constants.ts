@@ -289,7 +289,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.SushiSwap,
-
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -668,7 +667,6 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             CELO_TOKENS.UBE,
             CELO_TOKENS.WCELO,
             CELO_TOKENS.mCELO,
-
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
     },
