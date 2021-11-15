@@ -3,7 +3,8 @@
         "version": "16.33.0",
         "changes": [
             {
-                "note": "Add support for Uniswap V3 1 bps pools"
+                "note": "Add support for Uniswap V3 1 bps pools",
+                "pr": 366
             }
         ]
     },
