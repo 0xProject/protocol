@@ -93,6 +93,10 @@ export async function ethSignHashWithSignatureFnAsync(
     signer: string,
     signMessageAsync: (hash: string, signer: string) => Promise<string>,
 ): Promise<Signature> {
+    if (typeof hash !== 'string') {
+        throw new Error(`Invalid message parameter for eth sign hash`);
+    }
+
     const rpcSig = await signMessageAsync(hash, signer);
     return {
         ...parseRpcSignature(rpcSig),
@@ -108,8 +112,11 @@ export async function eip712SignTypedDataWithSignatureFnAsync(
     signer: string,
     signTypedDataAsync: (typedData: EIP712TypedData, signer: string) => Promise<string>,
 ): Promise<Signature> {
-    const rpcSig = await signTypedDataAsync(data, signer);
+    if (typeof data !== 'object') {
+        throw new Error('Invalid EIP712 data parameter for sign typed data');
+    }
 
+    const rpcSig = await signTypedDataAsync(data, signer);
     return {
         ...parseRpcSignature(rpcSig),
         signatureType: SignatureType.EIP712,

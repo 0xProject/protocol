@@ -86,6 +86,10 @@ export interface OtcOrderInfo {
     orderHash: string;
 }
 
+type EIP712SignCallbackFunction = (data: EIP712TypedData, signer: string) => Promise<string>;
+type EthSignCallbackFunction = (data: string, signer: string) => Promise<string>;
+type SignatureCallbackFunction = EIP712TypedData | EthSignCallbackFunction;
+
 export abstract class OrderBase {
     public makerToken: string;
     public takerToken: string;
@@ -131,17 +135,30 @@ export abstract class OrderBase {
         }
     }
 
+    /*
+     * This is an advanced order signature function that should only be used if you know what you're doing.
+     * It allows you to bring your own wallet signature callback function, this can be used to sign orders
+     * with a wallet that is otherwise unsupported by Web3Wrapper.
+     * The signature function needs to implement correct signing of the data and return the results as a string.
+     */
     public async _getSignatureWithSignFunctionAsync(
-        // TODO: fix typing here
-        signFn: (data: any, signer: string) => Promise<string>,
+        signFn: SignatureCallbackFunction,
         type: SignatureType,
         signer: string = this.maker,
     ): Promise<Signature> {
         switch (type) {
             case SignatureType.EIP712:
-                return eip712SignTypedDataWithSignatureFnAsync(this.getEIP712TypedData(), signer, signFn);
+                return eip712SignTypedDataWithSignatureFnAsync(
+                    this.getEIP712TypedData(),
+                    signer,
+                    (signFn as unknown) as EIP712SignCallbackFunction,
+                );
             case SignatureType.EthSign:
-                return ethSignHashWithSignatureFnAsync(this.getHash(), signer, signFn);
+                return ethSignHashWithSignatureFnAsync(
+                    this.getHash(),
+                    signer,
+                    (signFn as unknown) as EthSignCallbackFunction,
+                );
             default:
                 throw new Error(`Cannot sign with signature type: ${type}`);
         }
@@ -494,3 +511,4 @@ export class OtcOrder extends OrderBase {
         return expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
     }
 }
+// tslint:disable:max-file-line-count
