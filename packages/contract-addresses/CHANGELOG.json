@@ -3,7 +3,7 @@
         "version": "6.9.0",
         "changes": [
             {
-                "note": "Fix Celo rebase",
+                "note": "Add Celo addresses",
                 "pr": 368
             }
         ]
