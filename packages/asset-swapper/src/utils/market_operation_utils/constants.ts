@@ -57,7 +57,6 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Polygon]: defaultValue,
         [ChainId.PolygonMumbai]: defaultValue,
         [ChainId.Avalanche]: defaultValue,
-        [ChainId.Celo]: defaultValue,
         [ChainId.Fantom]: defaultValue,
         [ChainId.Celo]: defaultValue,
         ...(rest || {}),
@@ -293,12 +292,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.KyberDmm,
         ]),
-
-        [ChainId.Celo]: new SourceFilters([
-            ERC20BridgeSource.UbeSwap,
-            ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.SushiSwap,
-        ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Curve,
@@ -331,7 +324,6 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
-        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
     },
@@ -680,7 +672,6 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.USDT,
             AVALANCHE_TOKENS.USDC,
         ],
-        [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.CELO, CELO_TOKENS.WETH],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
         [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.CELO],
     },
@@ -711,10 +702,6 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         }).build(),
-
-        [ChainId.Celo]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
-        }).build(),
         [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
         }).build(),
@@ -735,7 +722,6 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
         [ChainId.Avalanche]: getContractAddressesForChainOrThrow(ChainId.Avalanche).etherToken,
-        [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
         [ChainId.Fantom]: getContractAddressesForChainOrThrow(ChainId.Fantom).etherToken,
         [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
     },
@@ -1409,7 +1395,6 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
-        [ChainId.Celo]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Celo]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
