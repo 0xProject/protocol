@@ -6,7 +6,8 @@
                 "note": "Add support for Uniswap V3 1 bps pools",
                 "pr": 366
             }
-        ]
+        ],
+        "timestamp": 1637065617
     },
     {
         "version": "16.32.0",
