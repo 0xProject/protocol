@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.34.0",
+        "changes": [
+            {
+                "note": "Add support Celo",
+                "pr": 367
+            }
+        ]
+    },
+    {
         "version": "16.33.0",
         "changes": [
             {
