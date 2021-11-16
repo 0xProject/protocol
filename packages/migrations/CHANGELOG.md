@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.1.11 - _November 16, 2021_
+
+    * Dependencies updated
+
 ## v8.1.10 - _November 3, 2021_
 
     * Add OtcOrders to fullMigrateAsync (#350)
