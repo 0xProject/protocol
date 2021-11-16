@@ -92,7 +92,7 @@ export async function buildRfqmServiceAsync(
     let provider: SupportedProvider;
 
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
-    const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL, CHAIN_ID);
+    const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL[0], CHAIN_ID);
     let ethersWallet: Wallet | undefined;
 
     const rpcProvider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
