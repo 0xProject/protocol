@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-zero-ex",
-    "version": "0.29.3",
+    "version": "0.29.4",
     "engines": {
         "node": ">=6.12"
     },
