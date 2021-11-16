@@ -60,13 +60,14 @@
 "@0x/asset-swapper@0xProject/gitpkg-registry#0x-asset-swapper-v16.32.0-b70a98bbf":
   version "16.32.0"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/6e9af2380ac14addccc12f34f7c9cf767e169441"
+
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
     "@0x/contract-addresses" "^6.8.1"
     "@0x/contract-wrappers" "^13.18.2"
     "@0x/contracts-erc20" "^3.3.22"
-    "@0x/contracts-zero-ex" "^0.29.3"
+    "@0x/contracts-zero-ex" "^0.29.4"
     "@0x/dev-utils" "^4.2.9"
     "@0x/json-schemas" "^6.3.0"
     "@0x/neon-router" "^0.2.1"
@@ -140,6 +141,10 @@
 "@0x/contract-addresses@^6.8.0":
   version "6.8.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.8.0.tgz#d974d80ec396f96a426da7daa419d8e437062e68"
+
+"@0x/contract-addresses@^6.8.1":
+  version "6.8.1"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.8.1.tgz#dbddbe6a622b0366d498ed3df83c62513c6c0d95"
 
 "@0x/contract-wrappers@^13.17.4", "@0x/contract-wrappers@^13.17.6":
   version "13.17.6"
@@ -251,7 +256,6 @@
 "@0x/contracts-erc20@^3.3.22":
   version "3.3.22"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.22.tgz#049b4ec26b8668f3e56e2ff70ab7da51471f3576"
-  integrity sha512-SlRG+hijtDG/bMB6TOE3IJPoUJywjsJ2ULpnLRU+puHovQQv1eda16o+rikrOpKNNUwIWGPmaCOh7uYpr7u+hA==
   dependencies:
     "@0x/base-contract" "^6.4.2"
     ethers "~4.0.4"
@@ -460,6 +464,21 @@
 "@0x/contracts-zero-ex@^0.29.3":
   version "0.29.3"
   resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.29.3.tgz#9a9b3bef231eb16aeaa5a40ed03625783c53f665"
+  dependencies:
+    "@0x/base-contract" "^6.4.2"
+    "@0x/protocol-utils" "^1.9.4"
+    "@0x/subproviders" "^6.6.0"
+    "@0x/types" "^3.3.4"
+    "@0x/typescript-typings" "^5.2.1"
+    "@0x/utils" "^6.4.4"
+    "@0x/web3-wrapper" "^7.6.0"
+    ethereum-types "^3.6.0"
+    ethereumjs-util "^7.0.10"
+    ethers "~4.0.4"
+
+"@0x/contracts-zero-ex@^0.29.4":
+  version "0.29.4"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.29.4.tgz#3ef3315a99f3f7ffb562df6c36a375d6d67fe884"
   dependencies:
     "@0x/base-contract" "^6.4.2"
     "@0x/protocol-utils" "^1.9.4"
