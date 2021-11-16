@@ -63,7 +63,7 @@
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
-    "@0x/contract-addresses" "0xProject/gitpkg-registry#0x-contract-addresses-v6.8.1-16323bfb1"
+    "@0x/contract-addresses" "^6.8.1"
     "@0x/contract-wrappers" "^13.18.2"
     "@0x/contracts-erc20" "^3.3.22"
     "@0x/contracts-zero-ex" "^0.29.3"
@@ -129,7 +129,7 @@
     js-sha3 "^0.7.0"
     uuid "^3.3.2"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v6.8.1-16323bfb1":
+"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v6.8.1-16323bfb1", "@0x/contract-addresses@^6.8.1":
   version "6.8.1"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/448bf80e180afdbb2effd510d01ad6be1e0ec0ac"
 
@@ -140,10 +140,6 @@
 "@0x/contract-addresses@^6.8.0":
   version "6.8.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.8.0.tgz#d974d80ec396f96a426da7daa419d8e437062e68"
-
-"@0x/contract-addresses@^6.8.1":
-  version "6.8.1"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/3e79c386aa21c2d1ba2267c78d8856c889ac2cf1"
 
 "@0x/contract-wrappers@^13.17.4", "@0x/contract-wrappers@^13.17.6":
   version "13.17.6"
@@ -1001,7 +997,7 @@
   version "0.1.7"
   resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/7bd58f83f6fe5dd5364b76d9f595d8943b9ae72b"
   dependencies:
-    "@0x/contract-addresses" "0xProject/gitpkg-registry#0x-contract-addresses-v6.8.1-16323bfb1"
+    "@0x/contract-addresses" "^6.8.0"
     typescript "^4.2.4"
 
 "@0x/tslint-config@^4.1.4":
