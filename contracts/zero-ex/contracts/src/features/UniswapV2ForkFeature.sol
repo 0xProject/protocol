@@ -79,7 +79,8 @@ contract UniswapV2ForkFeature is
     {
         require(tokens.length > 1, 'UniswapV2ForkFeature/INVALID_TOKENS_LENGTH');
 
-        if (address(tokens[0]) == ETH_ADDRESS) {
+        bool wrapEth = address(tokens[0]) == ETH_ADDRESS;
+        if (wrapEth) {
             require(msg.value == sellAmount, "UniswapV2ForkFeature/INVALID_SELL_AMOUNT");
             IEtherTokenV06(WETH).deposit{value:msg.value}();
             tokens[0] = IERC20TokenV06(WETH);
@@ -90,14 +91,12 @@ contract UniswapV2ForkFeature is
             tokens[tokens.length - 1] = IERC20TokenV06(WETH);
         }
 
-        _transferERC20TokensFrom(
-            tokens[0],
-            msg.sender,
-            address(_pairFor(tokens[0], tokens[1])),
-            sellAmount
+        uint256[] memory amounts = _swap(
+            tokens,
+            sellAmount,
+            wrapEth ? address (this) : msg.sender,
+            unwrapWeth ? address(this) : msg.sender
         );
-        address recipient = unwrapWeth ? address(this) : msg.sender;
-        uint[] memory amounts = _swap(tokens, sellAmount, recipient);
         buyAmount = amounts[amounts.length - 1];
         require(buyAmount >= minBuyAmount, 'UniswapV2ForkFeature/INSUFFICIENT_OUTPUT_AMOUNT');
 
@@ -118,7 +117,6 @@ contract UniswapV2ForkFeature is
     {
         require(tokenA != tokenB, 'UniswapV2ForkFeature/IDENTICAL_ADDRESSES');
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != IERC20TokenV06(0), 'UniswapV2ForkFeature/ZERO_ADDRESS');
     }
 
     function _getAmountOut(
@@ -158,6 +156,7 @@ contract UniswapV2ForkFeature is
     function _swap(
         IERC20TokenV06[] memory tokens,
         uint256 sellAmount,
+        address _from,
         address _to
     )
         internal
@@ -165,36 +164,57 @@ contract UniswapV2ForkFeature is
     {
         require(tokens.length >= 2, 'UniswapV2ForkFeature/INVALID_PATH');
 
+        IUniswapV2ForkPair currPair = _pairFor(tokens[0], tokens[1]);
+        if (_from == address(this)) {
+            _transferERC20Tokens(
+                tokens[0],
+                address(currPair),
+                sellAmount
+            );
+        } else {
+            _transferERC20TokensFrom(
+                tokens[0],
+                _from,
+                address(currPair),
+                sellAmount
+            );
+        }
+
         amounts = new uint[](tokens.length);
         amounts[0] = sellAmount;
 
         for (uint i; i < tokens.length - 1; i++) {
-            (IERC20TokenV06 tokenA, IERC20TokenV06 tokenB, IERC20TokenV06 tokenC) =
-                (tokens[i], tokens[i + 1], tokens[i + 2]);
+            (IERC20TokenV06 tokenA, IERC20TokenV06 tokenB) = (tokens[i], tokens[i + 1]);
 
-            address to = i < tokens.length - 2 ? address(_pairFor(tokenB, tokenC)) : _to;
-            amounts[i + 1] = _swapInternal(amounts[i], tokenA, tokenB, to);
+            IUniswapV2ForkPair nextPair;
+            address to = _to;
+            if (i < tokens.length - 2) {
+                nextPair = _pairFor(tokens[i + 1], tokens[i + 2]);
+                to = address(nextPair);
+            }
+
+            amounts[i + 1] = _swapInternal(currPair, tokenA, tokenB, amounts[i], to);
+            currPair = nextPair;
         }
     }
 
     function _swapInternal(
-        uint256 amountIn,
+        IUniswapV2ForkPair pair,
         IERC20TokenV06 tokenA,
         IERC20TokenV06 tokenB,
+        uint256 amountIn,
         address to
     )
         internal
         returns (uint amountOut)
     {
-        IUniswapV2ForkPair pairCurrent = _pairFor(tokenA, tokenB);
-
         (IERC20TokenV06 token0,) = _sortTokens(tokenA, tokenB);
-        (uint reserve0, uint reserve1,) = pairCurrent.getReserves();
-        (uint reserveIn, uint reserveOut) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+        (uint256 reserveIn, uint256 reserveOut,) = pair.getReserves();
+        (reserveIn, reserveOut) = tokenA == token0 ? (reserveIn, reserveOut) : (reserveOut, reserveIn);
 
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
         (uint amount0Out, uint amount1Out) = tokenA == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
 
-        pairCurrent.swap(amount0Out, amount1Out, to, new bytes(0));
+        pair.swap(amount0Out, amount1Out, to, "");
     }
 }
