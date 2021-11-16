@@ -348,7 +348,9 @@ export const RFQM_MAINTENANCE_MODE: boolean = _.isEmpty(process.env.RFQM_MAINTEN
     : assertEnvVarType('RFQM_MAINTENANCE_MODE', process.env.RFQM_MAINTENANCE_MODE, EnvVarType.Boolean);
 
 // tslint:disable-next-line:boolean-naming
-export const RFQT_REQUEST_MAX_RESPONSE_MS = 600;
+export const RFQT_REQUEST_MAX_RESPONSE_MS = _.isEmpty(process.env.RFQT_REQUEST_MAX_RESPONSE_MS)
+    ? 600
+    : assertEnvVarType('RFQT_REQUEST_MAX_RESPONSE_MS', process.env.RFQT_REQUEST_MAX_RESPONSE_MS, EnvVarType.Integer);
 
 // Whitelisted 0x API keys that can post orders to the SRA and have them persist indefinitely
 export const SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS: string[] =
