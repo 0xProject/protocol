@@ -1,6 +1,6 @@
 {
     "name": "@0x/asset-swapper",
-    "version": "16.32.0",
+    "version": "16.33.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -63,7 +63,7 @@
         "@0x/contract-addresses": "^6.8.1",
         "@0x/contract-wrappers": "^13.18.2",
         "@0x/contracts-erc20": "^3.3.22",
-        "@0x/contracts-zero-ex": "^0.29.3",
+        "@0x/contracts-zero-ex": "^0.29.4",
         "@0x/dev-utils": "^4.2.9",
         "@0x/json-schemas": "^6.3.0",
         "@0x/neon-router": "^0.2.1",
@@ -101,7 +101,7 @@
         "@0x/contracts-test-utils": "^5.4.13",
         "@0x/contracts-utils": "^4.8.3",
         "@0x/mesh-rpc-client": "^9.4.2",
-        "@0x/migrations": "^8.1.10",
+        "@0x/migrations": "^8.1.11",
         "@0x/sol-compiler": "^4.7.5",
         "@0x/subproviders": "^6.6.0",
         "@0x/ts-doc-gen": "^0.0.28",
