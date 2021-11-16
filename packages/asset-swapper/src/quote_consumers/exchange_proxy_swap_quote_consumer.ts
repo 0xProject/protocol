@@ -360,8 +360,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // Build up the transforms.
         const transforms = [];
-        if (isFromETH) {
-            // Create a WETH wrapper if coming from ETH.
+        // Create a WETH wrapper if coming from ETH.
+        // Dont add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
+        if (isFromETH && this.chainId !== ChainId.Celo) {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
@@ -413,9 +414,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 }),
             });
         }
-
-        if (isToETH) {
-            // Create a WETH unwrapper if going to ETH.
+        // Create a WETH unwrapper if going to ETH.
+        // Dont add the wethTransformer on CELO. There is no wrap/unwrap logic for CELO.
+        if (isToETH && this.chainId !== ChainId.Celo) {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
@@ -492,10 +493,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 amounts: [],
             }),
         });
+        const TO_ETH_ADDRESS = this.chainId === ChainId.Celo ? this.contractAddresses.etherToken : ETH_TOKEN_ADDRESS;
         const calldataHexString = this._exchangeProxy
             .transformERC20(
                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                isToETH ? TO_ETH_ADDRESS : buyToken,
                 shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
                 minBuyAmount,
                 transforms,
