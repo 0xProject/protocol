@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.9.0",
+        "changes": [
+            {
+                "note": "Fix Celo rebase",
+                "pr": 368
+            }
+        ]
+    },
+    {
         "timestamp": 1635903615,
         "version": "6.8.1",
         "changes": [
