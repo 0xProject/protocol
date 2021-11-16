@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-test-utils",
-    "version": "5.4.13",
+    "version": "5.4.14",
     "engines": {
         "node": ">=6.12"
     },
@@ -44,7 +44,7 @@
     "dependencies": {
         "@0x/assert": "^3.0.29",
         "@0x/base-contract": "^6.4.2",
-        "@0x/contract-addresses": "^6.8.1",
+        "@0x/contract-addresses": "^6.9.0",
         "@0x/dev-utils": "^4.2.9",
         "@0x/json-schemas": "^6.3.0",
         "@0x/order-utils": "^10.4.28",
