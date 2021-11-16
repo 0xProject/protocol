@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.29.5 - _November 16, 2021_
+
+    * Dependencies updated
+
 ## v0.29.4 - _November 16, 2021_
 
     * Prevent EP ETH balance from reducing when executin mtxs (#365)

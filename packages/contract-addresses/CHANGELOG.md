@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.9.0 - _November 16, 2021_
+
+    * Add Celo addresses (#368)
+
 ## v6.8.1 - _November 3, 2021_
 
     * Dependencies updated
