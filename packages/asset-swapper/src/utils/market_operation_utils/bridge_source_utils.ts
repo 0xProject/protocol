@@ -49,6 +49,7 @@ import {
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     SWERVE_MAINNET_INFOS,
     TRADER_JOE_ROUTER_BY_CHAIN_ID,
+    UBESWAP_ROUTER_BY_CHAIN_ID,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
@@ -486,6 +487,7 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.JetSwap
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
+        | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.SpookySwap
         | ERC20BridgeSource.SpiritSwap,
 ): string {
@@ -528,6 +530,8 @@ export function uniswapV2LikeRouterAddress(
             return PANGOLIN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.TraderJoe:
             return TRADER_JOE_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.UbeSwap:
+            return UBESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpookySwap:
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
