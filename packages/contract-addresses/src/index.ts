@@ -54,7 +54,11 @@ export enum ChainId {
     PolygonMumbai = 80001,
     Avalanche = 43114,
     Fantom = 250,
+<<<<<<< HEAD
     Arbitrum = 42161,
+=======
+    Celo = 42220,
+>>>>>>> 602290925 (fix celo rebase)
 }
 
 /**
