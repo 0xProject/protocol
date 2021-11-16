@@ -377,12 +377,30 @@ export class RfqBlockchainUtils {
         chainId?: ChainId,
         callData?: utils.BytesLike,
     ): providers.TransactionRequest {
-        return {
+        const baseRequest = {
             chainId,
             data: callData,
             from: txOptions.from,
             // web3wrappers "gas" field -> ethers "gasLimit" field
             gasLimit: txOptions.gas instanceof BigNumber ? BigInt(txOptions.gas.toString()) : txOptions.gas,
+            nonce: txOptions.nonce,
+            to: txOptions.to || this._exchangeProxy.address,
+            value: txOptions.value instanceof BigNumber ? txOptions.value.toString() : txOptions.value,
+        };
+
+        // Handle Type 0 (Legacy) Tx
+        if (txOptions.gasPrice) {
+            return {
+                ...baseRequest,
+                type: 0,
+                gasPrice: txOptions.gasPrice instanceof BigNumber ? txOptions.gasPrice.toString() : txOptions.gasPrice,
+            };
+        }
+
+        // Handle Type 2 (EIP-1559) Tx
+        return {
+            ...baseRequest,
+            type: 2,
             maxFeePerGas:
                 txOptions.maxFeePerGas instanceof BigNumber
                     ? BigInt(txOptions.maxFeePerGas.toString())
@@ -391,9 +409,6 @@ export class RfqBlockchainUtils {
                 txOptions.maxPriorityFeePerGas instanceof BigNumber
                     ? BigInt(txOptions.maxPriorityFeePerGas.toString())
                     : txOptions.maxPriorityFeePerGas,
-            nonce: txOptions.nonce,
-            to: txOptions.to || this._exchangeProxy.address,
-            value: txOptions.value instanceof BigNumber ? txOptions.value.toString() : txOptions.value,
         };
     }
 

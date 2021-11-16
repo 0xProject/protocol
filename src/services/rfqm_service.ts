@@ -230,6 +230,7 @@ const RFQM_PROCESS_JOB_LATENCY = new Summary({
 const PRICE_DECIMAL_PLACES = 6;
 
 const INITIAL_MAX_PRIORITY_FEE_PER_GAS = new BigNumber(2e9); // in wei
+// Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
 const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = new BigNumber(1.5);
 
 /**
