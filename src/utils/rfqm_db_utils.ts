@@ -1,16 +1,65 @@
 import { BigNumber } from '@0x/asset-swapper';
-import { RfqOrder } from '@0x/protocol-utils';
+import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
-import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
+import {
+    RfqmJobEntity,
+    RfqmQuoteEntity,
+    RfqmTransactionSubmissionEntity,
+    RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
+    RfqmV2TransactionSubmissionEntity,
+} from '../entities';
 import { RfqmJobConstructorOpts, StoredOrder } from '../entities/RfqmJobEntity';
 import { RfqmQuoteConstructorOpts } from '../entities/RfqmQuoteEntity';
+import { RfqmV2JobConstructorOpts, StoredOtcOrder } from '../entities/RfqmV2JobEntity';
+import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
+import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../entities/types';
 
 export type RfqmOrder = RfqOrder;
+
+/**
+ * Map a StoredOtcOrder to an OtcOrder
+ */
+export function storedOtcOrderToOtcOrder(storedOrder: StoredOtcOrder): OtcOrder {
+    return new OtcOrder({
+        txOrigin: storedOrder.order.txOrigin,
+        maker: storedOrder.order.maker,
+        taker: storedOrder.order.taker,
+        makerToken: storedOrder.order.makerToken,
+        takerToken: storedOrder.order.takerToken,
+        makerAmount: new BigNumber(storedOrder.order.makerAmount),
+        takerAmount: new BigNumber(storedOrder.order.takerAmount),
+        expiryAndNonce: new BigNumber(storedOrder.order.expiryAndNonce),
+        verifyingContract: storedOrder.order.verifyingContract,
+        chainId: Number(storedOrder.order.chainId),
+    });
+}
+
+/**
+ * Map an OtcOrder to a StoredOtcOrder
+ */
+export function otcOrderToStoredOtcOrder(order: OtcOrder): StoredOtcOrder {
+    return {
+        type: RfqmOrderTypes.Otc,
+        order: {
+            txOrigin: order.txOrigin,
+            maker: order.maker,
+            taker: order.taker,
+            makerToken: order.makerToken,
+            takerToken: order.takerToken,
+            makerAmount: order.makerAmount.toString(),
+            takerAmount: order.takerAmount.toString(),
+            expiryAndNonce: order.expiryAndNonce.toString(),
+            verifyingContract: order.verifyingContract,
+            chainId: String(order.chainId),
+        },
+    };
+}
 
 /**
  * convert a stored order into the appropriate order class
@@ -81,18 +130,27 @@ export const feeToStoredFee = (fee: Fee): StoredFee => {
 export class RfqmDbUtils {
     constructor(private readonly _connection: Connection) {}
 
+    /**
+     * [RFQm v1] Queries the rfqm_job table with the given orderHash
+     */
     public async findJobByOrderHashAsync(orderHash: string): Promise<RfqmJobEntity | undefined> {
         return this._connection.getRepository(RfqmJobEntity).findOne({
             where: { orderHash },
         });
     }
 
+    /**
+     * [RFQm v1] Queries the rfqm_quote table with the given orderHash
+     */
     public async findQuoteByOrderHashAsync(orderHash: string): Promise<RfqmQuoteEntity | undefined> {
         return this._connection.getRepository(RfqmQuoteEntity).findOne({
             where: { orderHash },
         });
     }
 
+    /**
+     * [RFQm v1] Queries the rfqm_quote table with the given metaTransactionHash
+     */
     public async findQuoteByMetaTransactionHashAsync(
         metaTransactionHash: string,
     ): Promise<RfqmQuoteEntity | undefined> {
@@ -101,6 +159,9 @@ export class RfqmDbUtils {
         });
     }
 
+    /**
+     * [RFQm v1] Queries the rfqm_transaction_submission table with the given transactionHash
+     */
     public async findRfqmTransactionSubmissionByTransactionHashAsync(
         transactionHash: string,
     ): Promise<RfqmTransactionSubmissionEntity | undefined> {
@@ -109,6 +170,9 @@ export class RfqmDbUtils {
         });
     }
 
+    /**
+     * [RFQm v1] Queries the rfqm_transaction_submission table with the given orderHash
+     */
     public async findRfqmTransactionSubmissionsByOrderHashAsync(
         orderHash: string,
     ): Promise<RfqmTransactionSubmissionEntity[]> {
@@ -122,7 +186,7 @@ export class RfqmDbUtils {
     }
 
     /**
-     * updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
+     * [RFQm v1] updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
      */
     public async updateRfqmJobAsync(
         orderHash: string,
@@ -132,14 +196,23 @@ export class RfqmDbUtils {
         await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, isCompleted, orderHash });
     }
 
+    /**
+     * [RFQm v1] writes to the rfqm_quote table
+     */
     public async writeRfqmQuoteToDbAsync(rfqmQuoteOpts: RfqmQuoteConstructorOpts): Promise<void> {
         await this._connection.getRepository(RfqmQuoteEntity).insert(new RfqmQuoteEntity(rfqmQuoteOpts));
     }
 
+    /**
+     * [RFQm v1] writes to the rfqm_job table
+     */
     public async writeRfqmJobToDbAsync(rfqmJobOpts: RfqmJobConstructorOpts): Promise<void> {
         await this._connection.getRepository(RfqmJobEntity).insert(new RfqmJobEntity(rfqmJobOpts));
     }
 
+    /**
+     * [RFQm v1] writes to the rfqm_transaction_submission table
+     */
     public async writeRfqmTransactionSubmissionToDbAsync(
         partialRfqmTransactionSubmissionEntity: Partial<RfqmTransactionSubmissionEntity>,
     ): Promise<RfqmTransactionSubmissionEntity> {
@@ -175,12 +248,18 @@ export class RfqmDbUtils {
         return newEntity;
     }
 
+    /**
+     * [RFQm v1] updates to the rfqm_transaction_submission table
+     */
     public async updateRfqmTransactionSubmissionsAsync(
         entities: Partial<RfqmTransactionSubmissionEntity>[],
     ): Promise<RfqmTransactionSubmissionEntity[]> {
         return this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
     }
 
+    /**
+     * [RFQm v1] find unresolved jobs from the rfqm_jobs table
+     */
     public async findUnresolvedJobsAsync(workerAddress: string): Promise<RfqmJobEntity[]> {
         return this._connection
             .getRepository(RfqmJobEntity)
@@ -196,5 +275,102 @@ export class RfqmDbUtils {
         return this._connection.getRepository(RfqmJobEntity).find({
             status: In(statuses),
         });
+    }
+
+    // ------------------------ RFQm v2 ------------------------ //
+
+    /**
+     * [RFQm v2] Queries the rfqm_job table with the given orderHash
+     */
+    public async findV2JobByOrderHashAsync(orderHash: string): Promise<RfqmV2JobEntity | undefined> {
+        return this._connection.getRepository(RfqmV2JobEntity).findOne({
+            where: { orderHash },
+        });
+    }
+
+    /**
+     * [RFQm v2] Queries the rfqm_quote table with the given orderHash
+     */
+    public async findV2QuoteByOrderHashAsync(orderHash: string): Promise<RfqmV2QuoteEntity | undefined> {
+        return this._connection.getRepository(RfqmV2QuoteEntity).findOne({
+            where: { orderHash },
+        });
+    }
+
+    /**
+     * Queries the `rfqm_v2_jobs` table for all jobs with the specified statuses
+     */
+    public async findV2JobsWithStatusesAsync(statuses: RfqmJobStatus[]): Promise<RfqmV2JobEntity[]> {
+        return this._connection.getRepository(RfqmV2JobEntity).find({
+            status: In(statuses),
+        });
+    }
+
+    /**
+     * [RFQm v2] Queries the rfqm_v2_transaction_submission table with the given transactionHash
+     */
+    public async findV2TransactionSubmissionByTransactionHashAsync(
+        transactionHash: string,
+    ): Promise<RfqmV2TransactionSubmissionEntity | undefined> {
+        return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).findOne({
+            where: { transactionHash },
+        });
+    }
+
+    /**
+     * [RFQm v2] Queries the rfqm_v2_transaction_submission table with the given orderHash
+     */
+    public async findV2TransactionSubmissionsByOrderHashAsync(
+        orderHash: string,
+    ): Promise<RfqmV2TransactionSubmissionEntity[]> {
+        return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).find({
+            where: { orderHash },
+        });
+    }
+
+    /**
+     * [RFQm v2] Updates an RfqmV2Job at the given orderHash
+     */
+    public async updateV2JobAsync(
+        orderHash: string,
+        isCompleted: boolean,
+        rfqmJobOpts: Partial<RfqmV2JobEntity>,
+    ): Promise<void> {
+        await this._connection.getRepository(RfqmV2JobEntity).save({ ...rfqmJobOpts, isCompleted, orderHash });
+    }
+
+    /**
+     * [RFQm v2] bulk update to the rfqm_v2_transaction_submission table
+     */
+    public async updateV2TransactionSubmissionsAsync(
+        entities: Partial<RfqmV2TransactionSubmissionEntity>[],
+    ): Promise<RfqmV2TransactionSubmissionEntity[]> {
+        return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).save(entities);
+    }
+
+    /**
+     * [RFQm v2] writes to the rfqm_v2_quote table
+     */
+    public async writeV2QuoteAsync(rfqmV2QuoteOpts: RfqmV2QuoteConstructorOpts): Promise<void> {
+        await this._connection.getRepository(RfqmV2QuoteEntity).insert(new RfqmV2QuoteEntity(rfqmV2QuoteOpts));
+    }
+
+    /**
+     * [RFQm v2] writes to the rfqm_v2_job table
+     */
+    public async writeV2JobAsync(rfqmV2JobOpts: RfqmV2JobConstructorOpts): Promise<void> {
+        await this._connection.getRepository(RfqmV2JobEntity).insert(new RfqmV2JobEntity(rfqmV2JobOpts));
+    }
+
+    /**
+     * [RFQm v2] writes to the rfqm_v2_transaction_submission table
+     */
+    public async writeV2TransactionSubmissionAsync(
+        constructorOpts: RfqmV2TransactionSubmissionEntityConstructorOpts,
+    ): Promise<RfqmV2TransactionSubmissionEntity> {
+        const entity = new RfqmV2TransactionSubmissionEntity(constructorOpts);
+        await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).insert(entity);
+
+        return entity;
     }
 }

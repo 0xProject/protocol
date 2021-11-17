@@ -1,14 +1,23 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
-import { RfqOrder } from '@0x/protocol-utils';
+import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import 'mocha';
 import { Connection } from 'typeorm';
 
+import { ZERO } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
+import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../src/entities/types';
-import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
+import {
+    feeToStoredFee,
+    otcOrderToStoredOtcOrder,
+    RfqmDbUtils,
+    storedFeeToFee,
+    storedOtcOrderToOtcOrder,
+    v4RfqOrderToStoredOrder,
+} from '../src/utils/rfqm_db_utils';
 
 import { MATCHA_AFFILIATE_ADDRESS } from './constants';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
@@ -51,6 +60,20 @@ describe(SUITE_NAME, () => {
     });
 
     const orderHash = order.getHash();
+
+    const otcOrderNonce = new BigNumber(1637085289);
+    const otcOrder = new OtcOrder({
+        txOrigin: '0x0000000000000000000000000000000000000000',
+        taker: '0x1111111111111111111111111111111111111111',
+        maker: '0x2222222222222222222222222222222222222222',
+        makerToken: '0x3333333333333333333333333333333333333333',
+        takerToken: '0x4444444444444444444444444444444444444444',
+        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, otcOrderNonce),
+        chainId,
+        verifyingContract: '0x0000000000000000000000000000000000000000',
+    });
+
+    const otcOrderHash = otcOrder.getHash();
 
     // tx properties
     const transactionHash = '0x5678';
@@ -321,6 +344,118 @@ describe(SUITE_NAME, () => {
             expect(unresolvedJobs.length).to.deep.eq(2);
             expect(unresolvedJobs[0].orderHash).to.deep.eq(orderHash);
             expect(unresolvedJobs[1].orderHash).to.deep.eq('0x1234');
+        });
+    });
+    describe('v2 tables', () => {
+        it('should be able to write to and read from the rfqm_v2_quote table', async () => {
+            await dbUtils.writeV2QuoteAsync({
+                chainId,
+                makerUri,
+                isUnwrap: false,
+                order: otcOrderToStoredOtcOrder(otcOrder),
+                orderHash: otcOrderHash,
+                fee: feeToStoredFee(fee),
+            });
+
+            const storedQuote = await dbUtils.findV2QuoteByOrderHashAsync(otcOrderHash);
+            expect(otcOrder).to.deep.eq(storedOtcOrderToOtcOrder(storedQuote?.order!));
+            expect(fee).to.deep.eq(storedFeeToFee(storedQuote?.fee!));
+        });
+
+        it('should be able to write, update, and read the rfqm_v2_job table', async () => {
+            // Write
+            await dbUtils.writeV2JobAsync({
+                chainId,
+                status: RfqmJobStatus.PendingProcessing,
+                expiry: otcOrder.expiry,
+                makerUri,
+                isUnwrap: false,
+                order: otcOrderToStoredOtcOrder(otcOrder),
+                orderHash: otcOrderHash,
+                fee: feeToStoredFee(fee),
+            });
+
+            // First Read
+            const storedJob = await dbUtils.findV2JobByOrderHashAsync(otcOrderHash);
+            expect(storedOtcOrderToOtcOrder(storedJob?.order!)).to.deep.eq(otcOrder);
+            expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
+            expect(storedJob?.status).to.eq(RfqmJobStatus.PendingProcessing);
+
+            // Update
+            await dbUtils.updateV2JobAsync(otcOrderHash, true, { status: RfqmJobStatus.SucceededConfirmed });
+
+            // Second Read
+            const updatedJob = await dbUtils.findV2JobByOrderHashAsync(otcOrderHash);
+            expect(storedOtcOrderToOtcOrder(updatedJob?.order!)).to.deep.eq(otcOrder);
+            expect(storedFeeToFee(updatedJob?.fee!)).to.deep.eq(fee);
+            expect(updatedJob?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
+        });
+
+        it('should be able to find by status across the rfqm_v2_job table', async () => {
+            // Write job with failed status
+            await dbUtils.writeV2JobAsync({
+                chainId,
+                status: RfqmJobStatus.FailedEthCallFailed,
+                expiry: otcOrder.expiry,
+                makerUri,
+                isUnwrap: false,
+                order: otcOrderToStoredOtcOrder(otcOrder),
+                orderHash: otcOrderHash,
+                fee: feeToStoredFee(fee),
+            });
+
+            // Get jobs with that status
+            const storedJobs = await dbUtils.findV2JobsWithStatusesAsync([RfqmJobStatus.FailedEthCallFailed]);
+            expect(storedJobs.length).to.eq(1);
+
+            // Confirm correctness
+            const storedJob = storedJobs[0];
+            expect(storedOtcOrderToOtcOrder(storedJob?.order!)).to.deep.eq(otcOrder);
+            expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
+            expect(storedJob?.status).to.eq(RfqmJobStatus.FailedEthCallFailed);
+        });
+
+        it('should be able to write, update, and read the rfqm_v2_transaction_submission table', async () => {
+            // Write
+            const rfqmTransactionSubmissionEntityOpts: RfqmV2TransactionSubmissionEntityConstructorOpts = {
+                transactionHash,
+                orderHash: otcOrderHash,
+                createdAt,
+                from,
+                to,
+                gasPrice,
+                gasUsed,
+                blockMined,
+                nonce,
+                status: RfqmTransactionSubmissionStatus.Submitted,
+            };
+            await dbUtils.writeV2TransactionSubmissionAsync(rfqmTransactionSubmissionEntityOpts);
+
+            // First Read
+            const transactionSubmissions = await dbUtils.findV2TransactionSubmissionsByOrderHashAsync(otcOrderHash);
+            expect(transactionSubmissions.length).to.eq(1);
+
+            const transactionSubmission = transactionSubmissions[0];
+            expect(transactionSubmission.transactionHash).to.eq(transactionHash);
+            expect(transactionSubmission.status).to.eq(RfqmTransactionSubmissionStatus.Submitted);
+
+            // Update
+            await dbUtils.updateV2TransactionSubmissionsAsync([
+                {
+                    ...transactionSubmission,
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                },
+            ]);
+
+            // Second Read
+            const updatedTransactionSubmissions = await dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                otcOrderHash,
+            );
+            expect(updatedTransactionSubmissions.length).to.eq(1);
+
+            const updatedTransactionSubmission = updatedTransactionSubmissions[0];
+            expect(updatedTransactionSubmission.transactionHash).to.eq(transactionHash);
+            expect(updatedTransactionSubmission.status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
         });
     });
 });

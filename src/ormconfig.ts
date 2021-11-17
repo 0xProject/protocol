@@ -11,6 +11,9 @@ import {
     RfqmJobEntity,
     RfqmQuoteEntity,
     RfqmTransactionSubmissionEntity,
+    RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
+    RfqmV2TransactionSubmissionEntity,
     RfqmWorkerHeartbeatEntity,
     SignedOrderEntity,
     SignedOrderV4Entity,
@@ -30,6 +33,9 @@ const entities = [
     RfqmQuoteEntity,
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,
+    RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
+    RfqmV2TransactionSubmissionEntity,
     OrderWatcherSignedOrderEntity,
 ];
 
