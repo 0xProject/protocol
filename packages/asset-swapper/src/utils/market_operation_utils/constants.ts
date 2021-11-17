@@ -174,6 +174,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BeethovenX,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
@@ -298,6 +300,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BeethovenX,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.JetSwap,
+            ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
@@ -1781,6 +1785,7 @@ export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
         [ChainId.Polygon]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
+        [ChainId.Fantom]: '0x845e76a8691423fbc4ecb8dd77556cb61c09ee25',
     },
     NULL_ADDRESS,
 );
@@ -1802,6 +1807,13 @@ export const TRADER_JOE_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 export const UBESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Celo]: '0x7d28570135a2b1930f331c507f65039d4937f66c',
+    },
+    NULL_ADDRESS,
+);
+
+export const MORPHEUSSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0x8ac868293d97761a1fed6d4a01e9ff17c5594aa3',
     },
     NULL_ADDRESS,
 );
@@ -1979,6 +1991,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     // Fantom
     //
+    [ERC20BridgeSource.MorpheusSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.BeethovenX]: () => 100e3,

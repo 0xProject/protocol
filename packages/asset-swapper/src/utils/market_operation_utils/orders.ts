@@ -192,6 +192,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SpiritSwap');
         case ERC20BridgeSource.SpookySwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SpookySwap');
+        case ERC20BridgeSource.MorpheusSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MorpheusSwap');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -272,6 +274,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UbeSwap:
         case ERC20BridgeSource.SpiritSwap:
         case ERC20BridgeSource.SpookySwap:
+        case ERC20BridgeSource.MorpheusSwap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -464,6 +467,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.TraderJoe]: routerAddressPathEncoder,
     [ERC20BridgeSource.SpiritSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC
