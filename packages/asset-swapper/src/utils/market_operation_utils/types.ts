@@ -92,6 +92,8 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    // Celo only
+    UbeSwap = 'UbeSwap',
     // Fantom
     SpiritSwap = 'SpiritSwap',
     SpookySwap = 'SpookySwap',

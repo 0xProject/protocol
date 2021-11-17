@@ -1,5 +1,25 @@
 [
     {
+        "version": "16.34.0",
+        "changes": [
+            {
+                "note": "Add support Celo",
+                "pr": 367
+            }
+        ],
+        "timestamp": 1637102971
+    },
+    {
+        "version": "16.33.0",
+        "changes": [
+            {
+                "note": "Add support for Uniswap V3 1 bps pools",
+                "pr": 366
+            }
+        ],
+        "timestamp": 1637065617
+    },
+    {
         "version": "16.32.0",
         "changes": [
             {

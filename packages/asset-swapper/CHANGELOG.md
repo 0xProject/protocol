@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.34.0 - _November 16, 2021_
+
+    * Add support Celo (#367)
+
+## v16.33.0 - _November 16, 2021_
+
+    * Add support for Uniswap V3 1 bps pools (#366)
+
 ## v16.32.0 - _November 9, 2021_
 
     * Extended Quote Report (#361)

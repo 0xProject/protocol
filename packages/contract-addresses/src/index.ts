@@ -54,6 +54,7 @@ export enum ChainId {
     PolygonMumbai = 80001,
     Avalanche = 43114,
     Fantom = 250,
+    Celo = 42220,
 }
 
 /**
