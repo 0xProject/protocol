@@ -42,7 +42,13 @@ import {
 } from './constants';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, BeethovenXPoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import {
+    BalancerPoolsCache,
+    BalancerV2PoolsCache,
+    BeethovenXPoolsCache,
+    CreamPoolsCache,
+    PoolsCache,
+} from './pools_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SourceFilters } from './source_filters';
 import {
@@ -1306,12 +1312,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.BalancerV2:
                     case ERC20BridgeSource.Beethovenx:
                         const poolIds =
-                            this.poolsCaches[source].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || [];
+                            this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
-                        const vault = source === ERC20BridgeSource.BalancerV2 ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault =
+                            source === ERC20BridgeSource.BalancerV2
+                                ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId]
+                                : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1579,12 +1585,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.BalancerV2:
                     case ERC20BridgeSource.Beethovenx:
                         const poolIds =
-                            this.poolsCaches[source].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || [];
+                            this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
-                        const vault = source === ERC20BridgeSource.BalancerV2 ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault =
+                            source === ERC20BridgeSource.BalancerV2
+                                ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId]
+                                : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
