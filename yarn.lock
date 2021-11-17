@@ -1054,11 +1054,12 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/token-metadata@0xProject/gitpkg-registry#0x-token-metadata-v0.1.7-c41a140":
-  version "0.1.7"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/7bd58f83f6fe5dd5364b76d9f595d8943b9ae72b"
+"@0x/token-metadata@^0.1.8":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.8.tgz#54f3179d9b5cfd28dca8a49b6c6dd9b4206edd4d"
+  integrity sha512-bg3hgas0z+8MgaXcNXRQBLBuBUJmHe5i0TV2eITLzuu6rdiqjJT/M7Z32oAVwVQULO+mvTKwtQoWvmHJ3P6Cgg==
   dependencies:
-    "@0x/contract-addresses" "^6.8.0"
+    "@0x/contract-addresses" "^6.9.0"
     typescript "^4.2.4"
 
 "@0x/tslint-config@^4.1.4":
