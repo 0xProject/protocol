@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-test-utils",
-    "version": "5.4.13",
+    "version": "5.4.14",
     "engines": {
         "node": ">=6.12"
     },
