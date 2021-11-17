@@ -980,6 +980,23 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
+"@0x/protocol-utils@^1.9.5":
+  version "1.9.5"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-1.9.5.tgz#d365e9812ccdffcff7ac0238e14a9ae8f89daf79"
+  integrity sha512-4mmHEhPvJ7Smb1uhvEzW1k9QRvYzJlLJoCQMVIctM1f9I9MHmaxr1w36RVoj5ij8v1TDVAF12UaN39WlqixA+A==
+  dependencies:
+    "@0x/assert" "^3.0.29"
+    "@0x/contract-addresses" "^6.9.0"
+    "@0x/contract-wrappers" "^13.18.3"
+    "@0x/json-schemas" "^6.3.0"
+    "@0x/subproviders" "^6.6.0"
+    "@0x/utils" "^6.4.4"
+    "@0x/web3-wrapper" "^7.6.0"
+    chai "^4.0.1"
+    ethereumjs-util "^7.0.10"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
 "@0x/quote-server@^6.0.6":
   version "6.0.6"
   resolved "https://registry.yarnpkg.com/@0x/quote-server/-/quote-server-6.0.6.tgz#0f0bf50647efc4bff039a491689974af7e8c5776"
