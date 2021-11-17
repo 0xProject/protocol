@@ -23,7 +23,7 @@ spec:
         app.kubernetes.io/component: worker
     spec:
       containers:
-      - image: 0x-rfq-api:latest
+      - image: 0x-rfq-api-worker:latest
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/sh"
