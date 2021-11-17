@@ -171,7 +171,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.BeethovenX,
+            ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.JetSwap,
@@ -297,7 +297,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.BeethovenX,
+            ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.JetSwap,
@@ -1994,7 +1994,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.MorpheusSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.BeethovenX]: () => 100e3,
+    [ERC20BridgeSource.Beethovenx]: () => 100e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };

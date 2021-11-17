@@ -19,8 +19,8 @@ import {
 } from './bridge_source_utils';
 import {
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
-    BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
+    BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
@@ -123,7 +123,7 @@ export class SamplerOperations {
             ? poolsCaches
             : {
                   [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(chainId),
-                  [ERC20BridgeSource.BeethovenX]: new BeethovenXPoolsCache(chainId),
+                  [ERC20BridgeSource.Beethovenx]: new BeethovenXPoolsCache(chainId),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
               };
@@ -1263,17 +1263,17 @@ export class SamplerOperations {
                             this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts, source),
                         );
                     case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(	
-                            this.liquidityProviderRegistry,	
-                            takerToken,	
-                            makerToken,	
-                        ).map(({ providerAddress, gasCost }) =>	
-                            this.getLiquidityProviderSellQuotes(	
-                                providerAddress,	
-                                makerToken,	
-                                takerToken,	
-                                takerFillAmounts,	
-                                gasCost,	
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(({ providerAddress, gasCost }) =>
+                            this.getLiquidityProviderSellQuotes(
+                                providerAddress,
+                                makerToken,
+                                takerToken,
+                                takerFillAmounts,
+                                gasCost,
                             ),
                         );
                     case ERC20BridgeSource.MStable:
@@ -1304,14 +1304,14 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2:
-                    case ERC20BridgeSource.BeethovenX:
+                    case ERC20BridgeSource.Beethovenx:
                         const poolIds =
                             this.poolsCaches[source].getCachedPoolAddressesForPair(
                                 takerToken,
                                 makerToken,
                             ) || [];
 
-                        const vault = source === ERC20BridgeSource.BalancerV2? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = source === ERC20BridgeSource.BalancerV2 ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1536,17 +1536,17 @@ export class SamplerOperations {
                             this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts, source),
                         );
                     case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(	
-                            this.liquidityProviderRegistry,	
-                            takerToken,	
-                            makerToken,	
-                        ).map(({ providerAddress, gasCost }) =>	
-                            this.getLiquidityProviderBuyQuotes(	
-                                providerAddress,	
-                                makerToken,	
-                                takerToken,	
-                                makerFillAmounts,	
-                                gasCost,	
+                        return getLiquidityProvidersForPair(
+                            this.liquidityProviderRegistry,
+                            takerToken,
+                            makerToken,
+                        ).map(({ providerAddress, gasCost }) =>
+                            this.getLiquidityProviderBuyQuotes(
+                                providerAddress,
+                                makerToken,
+                                takerToken,
+                                makerFillAmounts,
+                                gasCost,
                             ),
                         );
                     case ERC20BridgeSource.MStable:
@@ -1577,14 +1577,14 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2:
-                    case ERC20BridgeSource.BeethovenX:
+                    case ERC20BridgeSource.Beethovenx:
                         const poolIds =
                             this.poolsCaches[source].getCachedPoolAddressesForPair(
                                 takerToken,
                                 makerToken,
                             ) || [];
 
-                        const vault = source === ERC20BridgeSource.BalancerV2? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = source === ERC20BridgeSource.BalancerV2 ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId] : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }

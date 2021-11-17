@@ -186,8 +186,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'TraderJoe');
         case ERC20BridgeSource.UbeSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UbeSwap');
-        case ERC20BridgeSource.BeethovenX:
-            return encodeBridgeSourceId(BridgeProtocol.BalancerV2, 'BeethovenX');
+        case ERC20BridgeSource.Beethovenx:
+            return encodeBridgeSourceId(BridgeProtocol.BalancerV2, 'Beethovenx');
         case ERC20BridgeSource.SpiritSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SpiritSwap');
         case ERC20BridgeSource.SpookySwap:
@@ -242,7 +242,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([balancerFillData.poolAddress]);
             break;
         case ERC20BridgeSource.BalancerV2:
-        case ERC20BridgeSource.BeethovenX:
+        case ERC20BridgeSource.Beethovenx:
             const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
             const { vault, poolId } = balancerV2FillData;
             bridgeData = encoder.encode([vault, poolId]);
@@ -497,7 +497,7 @@ export const BRIDGE_ENCODERS: {
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
-    [ERC20BridgeSource.BeethovenX]: balancerV2Encoder,
+    [ERC20BridgeSource.Beethovenx]: balancerV2Encoder,
     [ERC20BridgeSource.UniswapV3]: AbiEncoder.create([
         { name: 'router', type: 'address' },
         { name: 'path', type: 'bytes' },
