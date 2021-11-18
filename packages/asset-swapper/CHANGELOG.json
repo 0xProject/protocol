@@ -3,7 +3,7 @@
         "version": "16.35.0",
         "changes": [
             {
-                "note": "Specify liquid route for FEI/TRIBE",
+                "note": "Specify liquid routes for FEI/TRIBE FXS/FRAX and OHM/FRAX",
                 "pr": 371
             }
         ]
