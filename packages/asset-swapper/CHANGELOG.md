@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.35.0 - _November 18, 2021_
+
+    * Add Beethoven X, MorpheusSwap and JetSwap to Fantom (#370)
+
 ## v16.34.0 - _November 16, 2021_
 
     * Add support Celo (#367)
