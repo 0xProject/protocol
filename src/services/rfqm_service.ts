@@ -45,6 +45,7 @@ import { getBestQuote } from '../utils/quote_comparison_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
+    otcOrderToStoredOtcOrder,
     RfqmDbUtils,
     storedFeeToFee,
     storedOrderToRfqmOrder,
@@ -454,11 +455,12 @@ export class RfqmService {
             : buyAmount!;
 
         // Get the Order and its hash
-        const rfqOrder = new RfqOrder(bestQuote.order);
-        const orderHash = rfqOrder.getHash();
+        const orderHash = bestQuote.order.getHash();
 
         // Handle Metatransaction flow
         if (bestQuote.kind === 'rfq') {
+            const rfqOrder = bestQuote.order;
+
             // Generate the Meta Transaction and its hash
             const metaTransaction = this._blockchainUtils.generateMetaTransaction(
                 rfqOrder,
@@ -501,7 +503,17 @@ export class RfqmService {
         }
 
         // Otherwise, OtcOrder flow
-        // TODO: save OtcOrder to new tables
+        const otcOrder = bestQuote.order;
+        await this._dbUtils.writeV2QuoteAsync({
+            orderHash,
+            chainId: CHAIN_ID,
+            fee: feeToStoredFee(fee),
+            order: otcOrderToStoredOtcOrder(otcOrder),
+            makerUri,
+            affiliateAddress,
+            integratorId: integrator.integratorId,
+        });
+        RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
             type: RfqmTypes.OtcOrder,
             price: roundedPrice,
