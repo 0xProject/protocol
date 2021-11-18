@@ -33,6 +33,16 @@ export {
     RollingLimiterIntervalUnit,
 } from './utils/rate-limiters/types';
 
+export interface IndicativeQuote {
+    maker: string;
+    makerUri: string;
+    makerToken: string;
+    takerToken: string;
+    makerAmount: BigNumber;
+    takerAmount: BigNumber;
+    expiry: BigNumber;
+}
+
 /**
  * FirmRfqQuote is a quote for an RfqOrder.
  */

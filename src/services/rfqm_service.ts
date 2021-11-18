@@ -38,7 +38,7 @@ import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from 
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { FirmQuote } from '../types';
+import { FirmOtcQuote, FirmQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { PairsManager } from '../utils/pairs_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -1099,8 +1099,6 @@ export class RfqmService {
             assetFillAmount,
             isLastLook: true,
             fee: otcOrderFee,
-            nonce: nowSeconds,
-            nonceBucket: currentBucket,
         });
         const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
@@ -1119,7 +1117,19 @@ export class RfqmService {
                     }),
                 ),
             otcOrderMakerUris.length > 0
-                ? this._quoteServerClient.batchGetQuoteV2Async(otcOrderMakerUris, integrator, otcOrderParams)
+                ? this._quoteServerClient
+                      .batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
+                      .then((quotes) =>
+                          quotes.map(
+                              (q): FirmQuote =>
+                                  this._mapIndicativeQuoteToFirmOtcQuote(
+                                      q,
+                                      takerAddress,
+                                      new BigNumber(currentBucket),
+                                      new BigNumber(nowSeconds),
+                                  ),
+                          ),
+                      )
                 : Promise.resolve([]),
         ]);
 
@@ -1399,5 +1409,32 @@ export class RfqmService {
             body: JSON.stringify({ orderHash }),
             deduplicationId: orderHash,
         });
+    }
+
+    /**
+     * Maps an IndicativeQuote to a FirmOtcQuote. Handles txOrigin, chainId, expiryAndNonce, etc
+     */
+    private _mapIndicativeQuoteToFirmOtcQuote(
+        q: IndicativeQuote,
+        takerAddress: string,
+        nonceBucket: BigNumber,
+        nonce: BigNumber,
+    ): FirmOtcQuote {
+        return {
+            kind: 'otc',
+            makerUri: q.makerUri,
+            order: new OtcOrder({
+                txOrigin: this._registryAddress,
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(q.expiry, nonceBucket, nonce),
+                maker: q.maker,
+                taker: takerAddress,
+                makerToken: q.makerToken,
+                takerToken: q.takerToken,
+                makerAmount: q.makerAmount,
+                takerAmount: q.takerAmount,
+                chainId: CHAIN_ID,
+                verifyingContract: this._contractAddresses.exchangeProxy,
+            }),
+        };
     }
 }

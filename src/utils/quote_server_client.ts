@@ -1,6 +1,6 @@
-import { MarketOperation, V4RFQIndicativeQuote } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/asset-swapper';
 import { SchemaValidator } from '@0x/json-schemas';
-import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { Signature } from '@0x/protocol-utils';
 import {
     schemas as quoteServerSchemas,
     SignRequest,
@@ -14,12 +14,13 @@ import { AxiosInstance } from 'axios';
 import { ethers } from 'ethers';
 import * as _ from 'lodash';
 import { Summary } from 'prom-client';
+import * as uuid from 'uuid';
 
 import { Integrator, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
-import { FirmOtcQuote } from '../types';
+import { IndicativeQuote } from '../types';
 
 import { METRICS_PROXY } from './metrics_service';
 
@@ -55,8 +56,6 @@ export class QuoteServerClient {
         comparisonPrice?: BigNumber;
         isLastLook?: boolean | undefined;
         fee?: Fee | undefined;
-        nonce?: number;
-        nonceBucket?: number;
     }): TakerRequestQueryParamsUnnested {
         const {
             txOrigin,
@@ -68,8 +67,6 @@ export class QuoteServerClient {
             comparisonPrice,
             isLastLook,
             fee,
-            nonce,
-            nonceBucket,
         } = input;
         const { buyAmountBaseUnits, sellAmountBaseUnits } =
             marketOperation === MarketOperation.Buy
@@ -94,8 +91,6 @@ export class QuoteServerClient {
             | 'feeAmount'
             | 'feeToken'
             | 'feeType'
-            | 'nonce'
-            | 'nonceBucket'
         > = {
             txOrigin,
             takerAddress,
@@ -112,17 +107,6 @@ export class QuoteServerClient {
             requestParamsWithBigNumbers.feeAmount = fee.amount.toString();
             requestParamsWithBigNumbers.feeToken = fee.token;
             requestParamsWithBigNumbers.feeType = fee.type;
-        }
-
-        if (nonce && nonceBucket) {
-            requestParamsWithBigNumbers.nonce = nonce.toString();
-            requestParamsWithBigNumbers.nonceBucket = nonceBucket.toString();
-        } else {
-            const isNoncePresent = nonce !== undefined;
-            const isNonceBucketPresent = nonceBucket !== undefined;
-            if (isNoncePresent !== isNonceBucketPresent) {
-                throw new Error('nonce and nonceBucket must be both present or both absent');
-            }
         }
 
         // convert BigNumbers to strings so they are digestible by axios
@@ -156,11 +140,12 @@ export class QuoteServerClient {
         makerUri: string,
         integrator: Integrator,
         parameters: TakerRequestQueryParamsUnnested,
-    ): Promise<V4RFQIndicativeQuote | undefined> {
+    ): Promise<IndicativeQuote | undefined> {
         const startTime = Date.now();
         const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/price`, {
             timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
             headers: {
+                '0x-request-uuid': uuid.v4(),
                 '0x-integrator-id': integrator.integratorId,
                 '0x-api-key': integrator.integratorId,
             },
@@ -179,13 +164,15 @@ export class QuoteServerClient {
             buyTokenAddress: parameters.buyTokenAddress,
         });
 
-        const validationResult = schemaValidator.validate(response.data, schemas.indicativeQuoteResponseSchema);
+        const validationResult = schemaValidator.validate(response.data, schemas.indicativeOtcQuoteResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
-            const errorsMsg = validationResult.errors.map((err) => err.toString()).join(',');
+            const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
         return {
+            makerUri,
+            maker: response.data.maker,
             makerAmount: new BigNumber(response.data.makerAmount),
             takerAmount: new BigNumber(response.data.takerAmount),
             makerToken: response.data.makerToken,
@@ -206,7 +193,7 @@ export class QuoteServerClient {
         makerUris: string[],
         integrator: Integrator,
         parameters: TakerRequestQueryParamsUnnested,
-    ): Promise<V4RFQIndicativeQuote[]> {
+    ): Promise<IndicativeQuote[]> {
         return Promise.all(
             makerUris.map(async (uri) => {
                 return this.getPriceV2Async(uri, integrator, parameters).catch((err) => {
@@ -221,94 +208,7 @@ export class QuoteServerClient {
                     return undefined;
                 });
             }),
-        ).then((arr) => arr.filter((result): result is V4RFQIndicativeQuote => result !== undefined));
-    }
-
-    /**
-     * Fetch a quote (firm quote)
-     *
-     * @param makerUri - the maker URI
-     * @param integrator - the integrator
-     * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
-     * @returns - a Promise containing the firm quote if available, else undefined
-     * @throws - Will throw an error if a 4xx or 5xx is returned
-     */
-    public async getQuoteV2Async(
-        makerUri: string,
-        integrator: Integrator,
-        parameters: TakerRequestQueryParamsUnnested,
-    ): Promise<FirmOtcQuote | undefined> {
-        const startTime = Date.now();
-        const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/quote`, {
-            timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
-            headers: {
-                '0x-integrator-id': integrator.integratorId,
-                '0x-api-key': integrator.integratorId,
-            },
-            params: parameters,
-        });
-        const latencyMs = Date.now() - startTime;
-        METRICS_PROXY.logRfqMakerNetworkInteraction({
-            isLastLook: parameters.isLastLook === 'true',
-            integrator,
-            url: makerUri,
-            quoteType: 'firm',
-            statusCode: response.status,
-            latencyMs,
-            included: true,
-            sellTokenAddress: parameters.sellTokenAddress,
-            buyTokenAddress: parameters.buyTokenAddress,
-        });
-
-        const validationResult = schemaValidator.validate(response.data, quoteServerSchemas.otcQuoteResponseSchema);
-        if (validationResult.errors && validationResult.errors.length > 0) {
-            const errorsMsg = validationResult.errors.map((err) => JSON.stringify(err)).join(',');
-            throw new Error(`Error from validator: ${errorsMsg}`);
-        }
-
-        const order = response.data.order;
-        return {
-            order: new OtcOrder({
-                ...order,
-                expiryAndNonce: new BigNumber(order.expiryAndNonce),
-                makerAmount: new BigNumber(order.makerAmount),
-                takerAmount: new BigNumber(order.takerAmount),
-                chainId: parseInt(order.chainId, 10),
-            }),
-            kind: 'otc',
-            makerSignature: response.data.signature ? response.data.signature : undefined,
-            makerUri,
-        };
-    }
-
-    /**
-     * Fetch a batch of quotes. Ignores all quotes that return errors
-     *
-     * @param makerUris - a list of maker URIs
-     * @param integrator - the integrator
-     * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
-     * @returns - a Promise containing a list of firm quotes
-     */
-    public async batchGetQuoteV2Async(
-        makerUris: string[],
-        integrator: Integrator,
-        parameters: TakerRequestQueryParamsUnnested,
-    ): Promise<FirmOtcQuote[]> {
-        return Promise.all(
-            makerUris.map(async (uri) => {
-                return this.getQuoteV2Async(uri, integrator, parameters).catch((err) => {
-                    logger.error(
-                        {
-                            errorMessage: err?.message,
-                            makerUri: uri,
-                            status: err?.isAxiosError ? err.response.status : undefined,
-                        },
-                        'Encountered an error requesting a firm quote',
-                    );
-                    return undefined;
-                });
-            }),
-        ).then((arr) => arr.filter((result): result is FirmOtcQuote => result !== undefined));
+        ).then((arr) => arr.filter((result): result is IndicativeQuote => result !== undefined));
     }
 
     /**
@@ -321,13 +221,25 @@ export class QuoteServerClient {
      */
     public async signV2Async(makerUri: string, payload: SignRequest): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.labels(makerUri).startTimer();
+        const requestUuid = uuid.v4();
         const rawResponse = await this._axiosInstance.post(`${makerUri}/rfqm/v2/sign`, payload, {
             timeout: ONE_SECOND_MS * 2,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                '0x-request-uuid': requestUuid,
+            },
         });
+        logger.info(
+            {
+                makerUri,
+                requestUuid,
+                status: rawResponse.status,
+            },
+            'Sign response received from MM',
+        );
         const validationResult = schemaValidator.validate(rawResponse.data, quoteServerSchemas.signResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
-            const errorsMsg = validationResult.errors.map((err) => JSON.stringify(err)).join(',');
+            const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 

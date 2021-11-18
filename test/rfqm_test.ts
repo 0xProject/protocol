@@ -11,7 +11,7 @@ import {
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, MetaTransactionFields, OtcOrder, RfqOrder } from '@0x/protocol-utils';
+import { MetaTransaction, MetaTransactionFields, RfqOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -27,7 +27,7 @@ import { anyString, anything, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../src/constants';
+import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
@@ -67,6 +67,8 @@ const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 const MARKET_MAKER_1 = 'https://mock-rfqt1.club';
 const MARKET_MAKER_2 = 'https://mock-rfqt2.club';
 const MARKET_MAKER_3 = 'https://mock-rfqt3.club';
+const MARKET_MAKER_2_ADDR = '0xbEA29fE10caed0E1a65A7AdBddd254dD372e83Ff';
+const MARKET_MAKER_3_ADDR = '0xA84f003D3a6F62c5dF218c7fb7b0EFB766b5AC07';
 const GAS_PRICE = new BigNumber(100);
 const BASE_RFQM_REQUEST_PARAMS = {
     txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
@@ -625,12 +627,14 @@ describe(SUITE_NAME, () => {
                 .replyOnce(HttpStatus.OK, {
                     ...baseResponse,
                     makerAmount: winningQuote.toString(),
+                    maker: MARKET_MAKER_2_ADDR,
                 });
             mockAxios
                 .onGet(`${MARKET_MAKER_3}/rfqm/v2/price`, { headers, params: otcOrderParams })
                 .replyOnce(HttpStatus.OK, {
                     ...baseResponse,
                     makerAmount: losingQuote.toString(),
+                    maker: MARKET_MAKER_3_ADDR,
                 });
 
             // When
@@ -1038,20 +1042,11 @@ describe(SUITE_NAME, () => {
                 txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
                 expiry: new BigNumber('1903620548'),
             };
-            const baseOtcOrder = {
-                maker: makerAddress,
-                taker: takerAddress,
+            const baseResponse = {
+                takerAmount: sellAmount.toString(),
                 makerToken: contractAddresses.zrxToken,
                 takerToken: contractAddresses.etherToken,
-                takerAmount: sellAmount,
-                chainId: 1337,
-                verifyingContract: '0xd209925defc99488e3afff1174e48b4fa628302a',
-                txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
-                expiryAndNonce: `0x${OtcOrder.encodeExpiryAndNonce(
-                    new BigNumber('1903620548'),
-                    ZERO,
-                    new BigNumber('1903620548'),
-                ).toString(16)}`,
+                expiry: '1903620548', // in the year 2030
             };
 
             // RfqOrder requests
@@ -1075,17 +1070,15 @@ describe(SUITE_NAME, () => {
             });
 
             // OtcOrder requests
-            mockAxios.onGet(`${MARKET_MAKER_2}/rfqm/v2/quote`, { headers }).replyOnce(HttpStatus.OK, {
-                order: {
-                    ...baseOtcOrder,
-                    makerAmount: winningQuote.toString(),
-                },
+            mockAxios.onGet(`${MARKET_MAKER_2}/rfqm/v2/price`, { headers }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: winningQuote.toString(),
+                maker: MARKET_MAKER_2_ADDR,
             });
-            mockAxios.onGet(`${MARKET_MAKER_3}/rfqm/v2/quote`, { headers }).replyOnce(HttpStatus.OK, {
-                order: {
-                    ...baseOtcOrder,
-                    makerAmount: losingQuote.toString(),
-                },
+            mockAxios.onGet(`${MARKET_MAKER_3}/rfqm/v2/price`, { headers }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: losingQuote.toString(),
+                maker: MARKET_MAKER_3_ADDR,
             });
 
             // When
@@ -1100,6 +1093,7 @@ describe(SUITE_NAME, () => {
             expect(appResponse.body.price).to.equal(expectedPrice);
             expect(appResponse.body.type).to.eq(RfqmTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+            expect(appResponse.body.order.maker).to.eq(MARKET_MAKER_2_ADDR);
         });
 
         it('should return a 400 BAD REQUEST if api key is missing', async () => {

@@ -5,7 +5,7 @@
 import { RfqOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { OtcOrder, Signature, SignatureType } from '@0x/protocol-utils';
-import { SignRequest, SubmitRequest, TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '@0x/quote-server';
+import { SignRequest, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -115,7 +115,8 @@ describe('QuoteServerClient', () => {
                     nonceBucket: '1',
                 };
 
-                const response: V4RFQIndicativeQuote = {
+                const response = {
+                    maker: makerAddress,
                     makerAmount,
                     takerAmount,
                     makerToken,
@@ -129,7 +130,11 @@ describe('QuoteServerClient', () => {
                 const indicativeQuote = await client.getPriceV2Async(makerUri, integrator, request);
 
                 // Then
-                expect(indicativeQuote).to.deep.eq(response);
+                const expectedResponse = {
+                    ...response,
+                    makerUri,
+                };
+                expect(indicativeQuote).to.deep.eq(expectedResponse);
             });
 
             it('should throw an error for a malformed response', async () => {
@@ -189,7 +194,8 @@ describe('QuoteServerClient', () => {
                     nonceBucket: '1',
                 };
 
-                const response: V4RFQIndicativeQuote = {
+                const response = {
+                    maker: makerAddress,
                     makerAmount,
                     takerAmount,
                     makerToken,
@@ -211,128 +217,7 @@ describe('QuoteServerClient', () => {
                 // Then
                 expect(indicativeQuotes!.length).to.eq(1);
                 expect(indicativeQuotes[0].makerAmount.toNumber()).to.eq(response.makerAmount.toNumber());
-            });
-        });
-
-        describe('getQuoteV2Async', () => {
-            it('should return a valid OtcOrder quote', async () => {
-                // Given
-                const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
-                    sellTokenAddress: takerToken,
-                    buyTokenAddress: makerToken,
-                    takerAddress,
-                    sellAmountBaseUnits: takerAmount.toString(),
-                    protocolVersion: '4',
-                    txOrigin: takerAddress,
-                    isLastLook: 'true',
-                    feeAmount: '100',
-                    feeType: 'fixed',
-                    feeToken: CONTRACT_ADDRESSES.etherToken,
-                    nonce: '1634322835',
-                    nonceBucket: '1',
-                };
-
-                const expiryAndNonce = `0x${order.expiryAndNonce.toString(16)}`;
-                const response = {
-                    order: {
-                        ...order,
-                        expiryAndNonce,
-                    },
-                };
-
-                axiosMock.onGet(`${makerUri}/rfqm/v2/quote`).replyOnce(HttpStatus.OK, response);
-
-                // When
-                const firmQuoteResponse = await client.getQuoteV2Async(makerUri, integrator, request);
-
-                // Then
-                expect(firmQuoteResponse!.order).to.deep.eq(order);
-                expect(firmQuoteResponse!.makerUri).to.eq(makerUri);
-            });
-
-            it('should throw an error for a malformed response', async () => {
-                // Given
-                const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
-                    sellTokenAddress: takerToken,
-                    buyTokenAddress: makerToken,
-                    takerAddress,
-                    sellAmountBaseUnits: takerAmount.toString(),
-                    protocolVersion: '4',
-                    txOrigin: takerAddress,
-                    isLastLook: 'true',
-                    feeAmount: '100',
-                    feeType: 'fixed',
-                    feeToken: CONTRACT_ADDRESSES.etherToken,
-                    nonce: '1634322835',
-                    nonceBucket: '1',
-                };
-
-                const response = {
-                    order: {
-                        ...order,
-                        expiryAndNonce: 'not a hex string',
-                    },
-                };
-
-                axiosMock.onGet(`${makerUri}/rfqm/v2/quote`).replyOnce(HttpStatus.OK, response);
-
-                try {
-                    // When
-                    await client.getQuoteV2Async(makerUri, integrator, request);
-                    expect.fail('Should not succeed');
-                } catch (err) {
-                    // Then
-                    expect(err).to.not.be.undefined();
-                }
-            });
-        });
-
-        describe('batchGetQuoteV2Async', () => {
-            it('should return the valid OtcOrder firm quotes and filter out errors', async () => {
-                // Given
-                const makerUri1 = 'https://some-market-maker1.xyz';
-                const makerUri2 = 'https://some-market-maker2.xyz';
-                const makerUri3 = 'https://some-market-maker3.xyz';
-                const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
-                    sellTokenAddress: takerToken,
-                    buyTokenAddress: makerToken,
-                    takerAddress,
-                    sellAmountBaseUnits: takerAmount.toString(),
-                    protocolVersion: '4',
-                    txOrigin: takerAddress,
-                    isLastLook: 'true',
-                    feeAmount: '100',
-                    feeType: 'fixed',
-                    feeToken: CONTRACT_ADDRESSES.etherToken,
-                    nonce: '1634322835',
-                    nonceBucket: '1',
-                };
-
-                const expiryAndNonce = `0x${order.expiryAndNonce.toString(16)}`;
-                const response = {
-                    order: {
-                        ...order,
-                        expiryAndNonce,
-                    },
-                };
-
-                axiosMock.onGet(`${makerUri1}/rfqm/v2/quote`).replyOnce(HttpStatus.OK, response);
-                axiosMock.onGet(`${makerUri2}/rfqm/v2/quote`).replyOnce(HttpStatus.NO_CONTENT, {});
-                axiosMock.onGet(`${makerUri3}/rfqm/v2/quote`).replyOnce(HttpStatus.BAD_GATEWAY, {});
-
-                // When
-                const firmQuotes = await client.batchGetQuoteV2Async(
-                    [makerUri1, makerUri2, makerUri3],
-                    integrator,
-                    request,
-                );
-
-                // Then
-                expect(firmQuotes!.length).to.eq(1);
-                expect(firmQuotes[0].makerUri).to.eq(makerUri1);
+                expect(indicativeQuotes[0].maker).to.eq(makerAddress);
             });
         });
 
@@ -348,6 +233,7 @@ describe('QuoteServerClient', () => {
                         type: 'fixed',
                         token: CONTRACT_ADDRESSES.etherToken,
                     },
+                    expiry: order.expiry,
                     takerSignature,
                 };
 
@@ -383,6 +269,7 @@ describe('QuoteServerClient', () => {
                         type: 'fixed',
                         token: CONTRACT_ADDRESSES.etherToken,
                     },
+                    expiry: order.expiry,
                     takerSignature,
                 };
 
@@ -415,6 +302,7 @@ describe('QuoteServerClient', () => {
                         type: 'fixed',
                         token: CONTRACT_ADDRESSES.etherToken,
                     },
+                    expiry: order.expiry,
                     takerSignature,
                 };
 
@@ -450,6 +338,7 @@ describe('QuoteServerClient', () => {
                         type: 'fixed',
                         token: CONTRACT_ADDRESSES.etherToken,
                     },
+                    expiry: order.expiry,
                     takerSignature,
                 };
 
@@ -485,6 +374,7 @@ describe('QuoteServerClient', () => {
                         type: 'fixed',
                         token: CONTRACT_ADDRESSES.etherToken,
                     },
+                    expiry: order.expiry,
                     takerSignature,
                 };
 
