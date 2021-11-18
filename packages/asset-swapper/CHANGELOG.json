@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.35.0",
+        "changes": [
+            {
+                "note": "Add Beethoven X, MorpheusSwap and JetSwap to Fantom",
+                "pr": 370
+            }
+        ]
+    },
+    {
         "version": "16.34.0",
         "changes": [
             {
