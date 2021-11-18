@@ -30,6 +30,7 @@ import {
     KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAX_DODOV2_POOLS_QUERIED,
     MAX_KYBER_RESERVES_QUERIED,
+    MORPHEUSSWAP_ROUTER_BY_CHAIN_ID,
     MSTABLE_POOLS_BY_CHAIN_ID,
     NERVE_BSC_INFOS,
     NULL_ADDRESS,
@@ -507,6 +508,7 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
         | ERC20BridgeSource.UbeSwap
+        | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
         | ERC20BridgeSource.SpiritSwap,
 ): string {
@@ -551,6 +553,8 @@ export function uniswapV2LikeRouterAddress(
             return TRADER_JOE_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.UbeSwap:
             return UBESWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.MorpheusSwap:
+            return MORPHEUSSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpookySwap:
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:

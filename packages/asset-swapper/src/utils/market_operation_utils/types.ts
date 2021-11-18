@@ -97,8 +97,14 @@ export enum ERC20BridgeSource {
     // Fantom
     SpiritSwap = 'SpiritSwap',
     SpookySwap = 'SpookySwap',
+    Beethovenx = 'Beethovenx',
+    MorpheusSwap = 'MorpheusSwap',
 }
-export type SourcesWithPoolsCache = ERC20BridgeSource.Balancer | ERC20BridgeSource.BalancerV2 | ERC20BridgeSource.Cream;
+export type SourcesWithPoolsCache =
+    | ERC20BridgeSource.Balancer
+    | ERC20BridgeSource.BalancerV2
+    | ERC20BridgeSource.Beethovenx
+    | ERC20BridgeSource.Cream;
 
 // tslint:disable: enum-naming
 /**
