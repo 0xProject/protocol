@@ -1,12 +1,22 @@
 [
     {
-        "version": "16.35.0",
+        "version": "16.36.0",
         "changes": [
             {
                 "note": "Specify liquid routes for FEI/TRIBE FXS/FRAX and OHM/FRAX",
                 "pr": 371
             }
         ]
+    },
+    {
+        "version": "16.35.0",
+        "changes": [
+            {
+                "note": "Add Beethoven X, MorpheusSwap and JetSwap to Fantom",
+                "pr": 370
+            }
+        ],
+        "timestamp": 1637206290
     },
     {
         "version": "16.34.0",
