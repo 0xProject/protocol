@@ -10,6 +10,7 @@ import {
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
 import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import delay from 'delay';
@@ -238,6 +239,8 @@ const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = new BigNumber(1.5);
  * RfqmService is the coordination layer for HTTP based RFQM flows.
  */
 export class RfqmService {
+    private readonly _tokenDecimalsCache: Map<string, number> = new Map();
+
     public static shouldResubmitTransaction(gasFees: GasFees, gasPriceEstimate: BigNumber): boolean {
         // Geth only allows replacement of transactions if the replacement gas price
         // is at least 10% higher than the gas price of the transaction being replaced
@@ -316,6 +319,29 @@ export class RfqmService {
         private readonly _cacheClient: CacheClient,
         private readonly _pairsManager: PairsManager,
     ) {}
+
+    /**
+     * Utility function to get the decimals for an ERC20 token by its address.
+     * First checks 0x/token-metadata for the information, and if not present,
+     * queries the data from the blockchain.
+     *
+     * Uses an in-memory cache to store previously-fetched values.
+     *
+     * Throws if there is a problem fetching the data from on chain.
+     */
+    public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
+        const localMetadata = getTokenMetadataIfExists(tokenAddress, CHAIN_ID);
+        if (localMetadata) {
+            return localMetadata.decimals;
+        }
+        const cachedDecimals = this._tokenDecimalsCache.get(tokenAddress);
+        if (cachedDecimals) {
+            return cachedDecimals;
+        }
+        const onchainDecimals = await this._blockchainUtils.getTokenDecimalsAsync(tokenAddress);
+        this._tokenDecimalsCache.set(tokenAddress, onchainDecimals);
+        return onchainDecimals;
+    }
 
     /**
      * Fetch the best indicative quote available. Returns null if no valid quotes found

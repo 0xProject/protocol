@@ -7,7 +7,7 @@ import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { HDNode } from '@ethersproject/hdnode';
 import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
-import { providers, utils, Wallet } from 'ethers';
+import { Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
@@ -430,5 +430,28 @@ export class RfqBlockchainUtils {
         const signedTransaction = await this._ethersWallet.signTransaction(checkedRequest);
         const hash = utils.keccak256(signedTransaction);
         return { signedTransaction, transactionHash: hash };
+    }
+
+    public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
+        const erc20AbiDecimals = `[{
+            "constant": true,
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        }]`;
+        const tokenContract = new Contract(tokenAddress, erc20AbiDecimals, this._ethersProvider);
+        const decimals = await tokenContract.decimals();
+        if (typeof decimals !== 'number') {
+            throw new Error('Decimals was not a number');
+        }
+        return decimals;
     }
 }

@@ -522,4 +522,18 @@ describe(SUITE_NAME, () => {
             expect(rfqOrderFilledEvent.blockNumber).to.deep.eq(TEST_RFQ_ORDER_FILLED_EVENT_LOG.blockNumber);
         });
     });
+
+    describe('getTokenDecimalsAsync', () => {
+        it('gets the token decimals', async () => {
+            const decimals = await rfqBlockchainUtils.getTokenDecimalsAsync(makerToken.address);
+
+            expect(decimals).to.eq(18);
+        });
+
+        it('throws if the contract does not exist', () => {
+            expect(
+                rfqBlockchainUtils.getTokenDecimalsAsync('0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B'),
+            ).to.eventually.be.rejected();
+        });
+    });
 });

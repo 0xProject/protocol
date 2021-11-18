@@ -8,7 +8,7 @@ import {
     ValidationErrorCodes,
 } from '@0x/api-utils';
 import { MetaTransaction } from '@0x/protocol-utils';
-import { getTokenMetadataIfExists, isNativeSymbolOrAddress, TokenMetadata } from '@0x/token-metadata';
+import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
@@ -90,7 +90,7 @@ export class RfqmHandlers {
         RFQM_INDICATIVE_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const params = this._parseFetchIndicativeQuoteParams(req);
+        const params = await this._parseFetchIndicativeQuoteParamsAsync(req);
 
         // Try to get indicative quote
         let indicativeQuote;
@@ -119,7 +119,7 @@ export class RfqmHandlers {
         RFQM_FIRM_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const params = this._parseFetchFirmQuoteParams(req);
+        const params = await this._parseFetchFirmQuoteParamsAsync(req);
 
         // Try to get firm quote
         let firmQuote;
@@ -195,9 +195,9 @@ export class RfqmHandlers {
         }
     }
 
-    private _parseFetchFirmQuoteParams(req: express.Request): FetchFirmQuoteParams {
+    private async _parseFetchFirmQuoteParamsAsync(req: express.Request): Promise<FetchFirmQuoteParams> {
         // Same as indicative except requires takerAddress
-        const indicativeQuoteRequest = this._parseFetchIndicativeQuoteParams(req);
+        const indicativeQuoteRequest = await this._parseFetchIndicativeQuoteParamsAsync(req);
         const takerAddress = indicativeQuoteRequest.takerAddress || '';
         if (takerAddress === '') {
             throw new ValidationError([
@@ -242,7 +242,7 @@ export class RfqmHandlers {
         return { apiKey, integrator };
     }
 
-    private _parseFetchIndicativeQuoteParams(req: express.Request): FetchIndicativeQuoteParams {
+    private async _parseFetchIndicativeQuoteParamsAsync(req: express.Request): Promise<FetchIndicativeQuoteParams> {
         // HACK - reusing the validation for Swap Quote as the interface here is a subset
         schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'));
@@ -256,11 +256,40 @@ export class RfqmHandlers {
         validateNotNativeTokenOrThrow(sellTokenRaw, 'sellToken');
         validateNotNativeTokenOrThrow(buyTokenRaw, 'buyToken');
 
-        const { tokenAddress: sellToken, decimals: sellTokenDecimals } = getTokenMetadataOrThrow(
-            sellTokenRaw,
-            'sellToken',
-        );
-        const { tokenAddress: buyToken, decimals: buyTokenDecimals } = getTokenMetadataOrThrow(buyTokenRaw, 'buyToken');
+        let buyTokenDecimals: number;
+        let sellTokenDecimals: number;
+        let buyTokenContractAddress: string;
+        let sellTokenContractAddress: string;
+
+        try {
+            buyTokenContractAddress = buyTokenRaw.toLocaleLowerCase().startsWith('0x')
+                ? buyTokenRaw
+                : contractAddressForSymbol(buyTokenRaw);
+            buyTokenDecimals = await this._rfqmService.getTokenDecimalsAsync(buyTokenRaw);
+        } catch {
+            throw new ValidationError([
+                {
+                    field: 'buyToken',
+                    code: ValidationErrorCodes.AddressNotSupported,
+                    reason: `Token ${buyTokenRaw} is currently unsupported`,
+                },
+            ]);
+        }
+
+        try {
+            sellTokenContractAddress = sellTokenRaw.toLocaleLowerCase().startsWith('0x')
+                ? sellTokenRaw
+                : contractAddressForSymbol(sellTokenRaw);
+            sellTokenDecimals = await this._rfqmService.getTokenDecimalsAsync(sellTokenRaw);
+        } catch {
+            throw new ValidationError([
+                {
+                    field: 'sellToken',
+                    code: ValidationErrorCodes.AddressNotSupported,
+                    reason: `Token ${sellTokenRaw} is currently unsupported`,
+                },
+            ]);
+        }
 
         // Parse number params
         const sellAmount =
@@ -269,11 +298,11 @@ export class RfqmHandlers {
 
         return {
             buyAmount,
-            buyToken,
+            buyToken: buyTokenContractAddress,
             buyTokenDecimals,
             integrator,
             sellAmount,
-            sellToken,
+            sellToken: sellTokenContractAddress,
             sellTokenDecimals,
             takerAddress: takerAddress as string,
             affiliateAddress: affiliateAddress as string,
@@ -308,6 +337,19 @@ export class RfqmHandlers {
     }
 }
 
+/**
+ * Gets the token address for a given symbol.
+ *
+ * Throws if the symbol is not present in @0x/token-metadata
+ */
+const contractAddressForSymbol = (symbol: string): string => {
+    const address = getTokenMetadataIfExists(symbol, CHAIN_ID)?.tokenAddress;
+    if (!address) {
+        throw new Error('Unsupported token');
+    }
+    return address;
+};
+
 const validateNotNativeTokenOrThrow = (token: string, field: string): boolean => {
     if (isNativeSymbolOrAddress(token, CHAIN_ID)) {
         throw new ValidationError([
@@ -320,19 +362,4 @@ const validateNotNativeTokenOrThrow = (token: string, field: string): boolean =>
     }
 
     return true;
-};
-
-const getTokenMetadataOrThrow = (token: string, field: string): TokenMetadata => {
-    const metadata = getTokenMetadataIfExists(token, CHAIN_ID);
-    if (metadata === undefined) {
-        throw new ValidationError([
-            {
-                field,
-                code: ValidationErrorCodes.AddressNotSupported,
-                reason: `Token ${token} is currently unsupported`,
-            },
-        ]);
-    }
-
-    return metadata;
 };
