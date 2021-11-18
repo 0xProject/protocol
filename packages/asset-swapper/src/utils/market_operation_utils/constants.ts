@@ -425,6 +425,7 @@ export const MAINNET_TOKENS = {
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
     FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
+    TRIBE: '0xc7283b66eb1eb5fb86327f08e1b5816b0720212b',
     DSU: '0x605d26fbd5be761089281d5cec2ce86eea667109',
     ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
     cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
@@ -690,6 +691,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
                 // Convex and Curve
                 builder.add(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV).add(MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV);
+                // FEI TRIBE liquid in UniV2
+                builder.add(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE).add(MAINNET_TOKENS.TRIBE, MAINNET_TOKENS.FEI);
             })
             // Build
             .build(),
