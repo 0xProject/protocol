@@ -369,8 +369,6 @@ export class SwapService {
             .times(new BigNumber(10).pow(wethToken.decimals - makerTokenDecimals))
             .decimalPlaces(makerTokenDecimals);
 
-        //const TO_ETH_TOKEN_ADDRESS = (CHAIN_ID === ChainId.Celo) ? CELO_TOKENS.CELO : ETH_TOKEN_ADDRESS;
-
         const apiSwapQuote: GetSwapQuoteResponse = {
             chainId: CHAIN_ID,
             price,
