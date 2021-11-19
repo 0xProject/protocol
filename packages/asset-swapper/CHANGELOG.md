@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.37.0 - _November 19, 2021_
+
+    * Changed Sushiswap router address (#373)
+
 ## v16.36.0 - _November 19, 2021_
 
     * Specify liquid routes for FEI/TRIBE FXS/FRAX and OHM/FRAX (#371)
