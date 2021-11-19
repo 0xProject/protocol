@@ -1482,10 +1482,14 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
 <<<<<<< HEAD
+<<<<<<< HEAD
         [ChainId.Arbitrum]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
 =======
         [ChainId.Celo]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
 >>>>>>> 602290925 (fix celo rebase)
+=======
+        [ChainId.Celo]: '0x1421bDe4B10e8dd459b3BCb598810B1337D56842',
+>>>>>>> 6ef4d9504 (Updated Sushiswap router on CELO )
     },
     NULL_ADDRESS,
 );
