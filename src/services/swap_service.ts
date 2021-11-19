@@ -18,7 +18,10 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
-import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
+import {
+    CELO_TOKENS,
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+} from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { ChainId } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
@@ -218,7 +221,6 @@ export class SwapService {
         // Check if integrator ID specifically whitelists a set of maker URIs. If whitelist is "undefined" then it
         // means all integrators will be enabled.
 
-        const CELO_CHAIN_ID = 42220;
         if (shouldEnableRfqt) {
             // tslint:disable-next-line:custom-no-magic-numbers
             const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
@@ -366,66 +368,37 @@ export class SwapService {
         const buyTokenToEthRate = makerTokenToEthRate
             .times(new BigNumber(10).pow(wethToken.decimals - makerTokenDecimals))
             .decimalPlaces(makerTokenDecimals);
-        let apiSwapQuote: GetSwapQuoteResponse;
-        switch (CHAIN_ID) {
-            case CELO_CHAIN_ID:
-                apiSwapQuote = {
-                    chainId: CHAIN_ID,
-                    price,
-                    guaranteedPrice,
-                    to,
-                    data,
-                    value: adjustedValue,
-                    gas: worstCaseGasEstimate,
-                    estimatedGas: conservativeBestCaseGasEstimate,
-                    from: takerAddress,
-                    gasPrice,
-                    protocolFee,
-                    minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
-                    // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-                    buyTokenAddress: isETHBuy ? '0x471ece3750da237f93b8e339c536989b8978a438' : buyToken,
-                    sellTokenAddress: isETHSell ? '0x471ece3750da237f93b8e339c536989b8978a438' : sellToken,
-                    buyAmount: makerAmount.minus(buyTokenFeeAmount),
-                    sellAmount: totalTakerAmount,
-                    sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-                    orders: swapQuote.orders,
-                    allowanceTarget,
-                    decodedUniqueId,
-                    sellTokenToEthRate,
-                    buyTokenToEthRate,
-                    quoteReport,
-                    priceComparisonsReport,
-                };
-                break;
-            default:
-                apiSwapQuote = {
-                    chainId: CHAIN_ID,
-                    price,
-                    guaranteedPrice,
-                    to,
-                    data,
-                    value: adjustedValue,
-                    gas: worstCaseGasEstimate,
-                    estimatedGas: conservativeBestCaseGasEstimate,
-                    from: takerAddress,
-                    gasPrice,
-                    protocolFee,
-                    minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
-                    // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-                    buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
-                    sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
-                    buyAmount: makerAmount.minus(buyTokenFeeAmount),
-                    sellAmount: totalTakerAmount,
-                    sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-                    orders: swapQuote.orders,
-                    allowanceTarget,
-                    decodedUniqueId,
-                    sellTokenToEthRate,
-                    buyTokenToEthRate,
-                    quoteReport,
-                    priceComparisonsReport,
-                };
-        }
+
+        //const TO_ETH_TOKEN_ADDRESS = (CHAIN_ID === ChainId.Celo) ? CELO_TOKENS.CELO : ETH_TOKEN_ADDRESS;
+
+        const apiSwapQuote: GetSwapQuoteResponse = {
+            chainId: CHAIN_ID,
+            price,
+            guaranteedPrice,
+            to,
+            data,
+            value: adjustedValue,
+            gas: worstCaseGasEstimate,
+            estimatedGas: conservativeBestCaseGasEstimate,
+            from: takerAddress,
+            gasPrice,
+            protocolFee,
+            minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
+            // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+            buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
+            sellTokenAddress: isETHSell ? this.getNativeAssetForChain(CHAIN_ID) : sellToken,
+            buyAmount: makerAmount.minus(buyTokenFeeAmount),
+            sellAmount: totalTakerAmount,
+            sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
+            orders: swapQuote.orders,
+            allowanceTarget,
+            decodedUniqueId,
+            sellTokenToEthRate,
+            buyTokenToEthRate,
+            quoteReport,
+            priceComparisonsReport,
+        };
+
         return apiSwapQuote;
     }
 
@@ -435,6 +408,15 @@ export class SwapService {
 
     public async getSwapQuoteForUnwrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         return this._getSwapQuoteForNativeWrappedAsync(params, true);
+    }
+
+    public getNativeAssetForChain(chainId: ChainId): string {
+        switch (chainId) {
+            case ChainId.Celo:
+                return CELO_TOKENS.CELO;
+            default:
+                return ETH_TOKEN_ADDRESS;
+        }
     }
 
     public async getTokenPricesAsync(
