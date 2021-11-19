@@ -408,6 +408,7 @@ export class SwapService {
         return this._getSwapQuoteForNativeWrappedAsync(params, true);
     }
 
+    // tslint:disable-next-line: prefer-function-over-method
     public getNativeAssetForChain(chainId: ChainId): string {
         switch (chainId) {
             case ChainId.Celo:
