@@ -12,7 +12,7 @@ import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './types';
+import { DexSample, ERC20BridgeSource, Fill } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -391,6 +391,32 @@ export async function findOptimalPathJSAsync(
         optimalPath = mixPaths(side, optimalPath, path, targetInput, runLimit * RUN_LIMIT_DECAY_FACTOR ** i, rates);
         // Yield to event loop.
         await Promise.resolve();
+    }
+    {
+        const sourcePathIds = Object.keys(Object.assign(
+            {},
+            ...optimalPath.fills.map(f => ({
+                [f.sourcePathId]: true,
+            })),
+        ));
+        const parts = Object.assign(
+            {},
+            ...sourcePathIds.map(id => {
+                const fills = optimalPath.fills.filter(f => f.sourcePathId === id);
+                const input = BigNumber.sum(...fills.map(f => f.input));
+                const output = BigNumber.sum(...fills.map(f => f.output));
+                const adjustedOutput = BigNumber.sum(...fills.map(f => f.adjustedOutput));
+                return {
+                    [fills[0].source]: {
+                        input,
+                        output,
+                        adjustedRate: adjustedOutput.div(input),
+                        rate: output.div(input), // why is this the same as above?
+                    },
+                };
+            }),
+        );
+        console.log(parts);
     }
     return optimalPath.isComplete() ? optimalPath : undefined;
 }

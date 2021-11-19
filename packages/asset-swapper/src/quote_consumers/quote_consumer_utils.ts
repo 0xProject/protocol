@@ -6,12 +6,13 @@ import {
 } from '../utils/market_operation_utils/orders';
 import {
     ERC20BridgeSource,
-    NativeLimitOrderFillData,
-    NativeRfqOrderFillData,
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    OptimizedMarketOrderBase,
 } from '../utils/market_operation_utils/types';
+import {
+    SwapQuoteBridgeOrder,
+    SwapQuoteOrder,
+    SwapQuoteLimitOrder,
+    SwapQuoteRfqOrder,
+} from '../types';
 
 const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,
@@ -28,16 +29,19 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    if (quote.isTwoHop) {
+    // Must not be multi-hop.
+    if (quote.hops.length > 1) {
         return false;
     }
-    if (quote.orders.map(o => o.type).includes(FillQuoteTransformerOrderType.Limit)) {
+    // Must not contain limit orders.
+    const allOrderTypes = quote.hops.map(h => h.orders.map(o => o.type)).flat(2);
+    if (allOrderTypes.includes(FillQuoteTransformerOrderType.Limit)) {
         return false;
     }
     // Use Multiplex if the non-fallback sources are a subset of
     // {UniswapV2, Sushiswap, RFQ, PLP, UniswapV3}
-    const nonFallbackSources = Object.keys(quote.sourceBreakdown);
-    return nonFallbackSources.every(source => MULTIPLEX_BATCH_FILL_SOURCES.includes(source as ERC20BridgeSource));
+    const nonFallbackSources = quote.hops.map(h => h.orders.filter(o => !o.isFallback).map(o => o.source)).flat(2);
+    return nonFallbackSources.every(s => MULTIPLEX_BATCH_FILL_SOURCES.includes(s));
 }
 
 const MULTIPLEX_MULTIHOP_FILL_SOURCES = [
@@ -54,14 +58,12 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    if (!quote.isTwoHop) {
+    // Must be multi-hop.
+    if (quote.hops.length < 2) {
         return false;
     }
-    const [firstHopOrder, secondHopOrder] = quote.orders;
-    return (
-        MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(firstHopOrder.source) &&
-        MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(secondHopOrder.source)
-    );
+    const sources = quote.hops.map(h => h.orders.map(o => o.source)).flat(2);
+    return sources.every(s => MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(s));
 }
 
 /**
@@ -76,11 +78,11 @@ export function isDirectSwapCompatible(
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    // Must be a single order.
-    if (quote.orders.length !== 1) {
+    // Must be a single hop with a single order.
+    if (quote.hops.length !== 1 || quote.hops[0].orders.length !== 1) {
         return false;
     }
-    const order = quote.orders[0];
+    const order = quote.hops[0].orders[0];
     if (!directSources.includes(order.source)) {
         return false;
     }
@@ -94,7 +96,7 @@ export function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
     return quote.type === MarketOperation.Buy;
 }
 
-function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBridgeOrder {
+function isBridgeOrder(x: SwapQuoteOrder): x is SwapQuoteBridgeOrder {
     return x.type === FillQuoteTransformerOrderType.Bridge;
 }
 
@@ -111,7 +113,7 @@ function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBr
  * FillQuoteTransformer.
  */
 export function getFQTTransformerDataFromOptimizedOrders(
-    orders: OptimizedMarketOrder[],
+    orders: SwapQuoteOrder[],
 ): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
     const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
         bridgeOrders: [],
@@ -121,7 +123,7 @@ export function getFQTTransformerDataFromOptimizedOrders(
     };
 
     for (const order of orders) {
-        if (isOptimizedBridgeOrder(order)) {
+        if (isBridgeOrder(order)) {
             fqtData.bridgeOrders.push({
                 bridgeData: order.encodedFillData,
                 makerTokenAmount: order.makerAmount,

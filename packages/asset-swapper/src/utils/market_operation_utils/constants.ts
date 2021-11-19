@@ -1,30 +1,13 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
 import { SourceFilters } from './source_filters';
 import {
-    BancorFillData,
-    CurveFillData,
-    CurveFunctionSelectors,
-    CurveInfo,
-    DODOFillData,
     ERC20BridgeSource,
-    FeeSchedule,
-    FillData,
     GetMarketOrdersOpts,
-    KyberSamplerOpts,
-    LidoInfo,
-    LiquidityProviderFillData,
-    LiquidityProviderRegistry,
-    MakerPsmFillData,
-    PsmInfo,
     TokenAdjacencyGraph,
-    UniswapV2FillData,
-    UniswapV3FillData,
 } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
@@ -38,7 +21,6 @@ export const ONE_HOUR_IN_SECONDS = 60 * 60;
 export const ONE_SECOND_MS = 1000;
 export const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
-export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const COMPARISON_PRICE_DECIMALS = 10;
 
 // TODO(kimpers): Consolidate this implementation with the one in @0x/token-metadata
@@ -350,6 +332,129 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
         ],
     },
     [],
+);
+
+// Mainnet tokens
+// Not an exhaustive list, just enough so we don't repeat ourselves
+export const MAINNET_TOKENS = {
+    WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
+    MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
+    cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
+    CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
+};
+
+export const BSC_TOKENS = {
+    WBNB: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+    BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
+    USDT: '0x55d398326f99059ff775485246999027b3197955',
+    USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
+    DAI: '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3',
+    UST: '0x23396cf899ca06c4472205fc903bdb4de249d6fc',
+    WEX: '0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90',
+    WETH: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+};
+
+export const POLYGON_TOKENS = {
+    DAI: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
+    USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
+    WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+    WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+};
+
+export const AVALANCHE_TOKENS = {
+    WAVAX: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
+    WETH: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
+    DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    USDC: '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664',
+    USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
+};
+
+export const FANTOM_TOKENS = {
+    WFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+    WETH: '0x74b23882a30290451a17c44f4f05243b6b58c76d',
+    USDC: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+    DAI: '0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e',
+};
+
+export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
+    {
+        [ChainId.Mainnet]: [
+            MAINNET_TOKENS.WETH,
+            MAINNET_TOKENS.USDT,
+            MAINNET_TOKENS.DAI,
+            MAINNET_TOKENS.USDC,
+            MAINNET_TOKENS.WBTC,
+        ],
+        [ChainId.BSC]: [
+            BSC_TOKENS.WBNB,
+            BSC_TOKENS.BUSD,
+            BSC_TOKENS.DAI,
+            BSC_TOKENS.USDC,
+            BSC_TOKENS.WETH,
+            BSC_TOKENS.USDT,
+            BSC_TOKENS.WEX,
+        ],
+        [ChainId.Ropsten]: [
+            getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
+            '0xad6d458402f60fd3bd25163575031acdce07538d', // DAI
+            '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
+        ],
+        [ChainId.Polygon]: [
+            POLYGON_TOKENS.WMATIC,
+            POLYGON_TOKENS.WETH,
+            POLYGON_TOKENS.USDC,
+            POLYGON_TOKENS.DAI,
+            POLYGON_TOKENS.USDT,
+            POLYGON_TOKENS.WBTC,
+        ],
+        [ChainId.Avalanche]: [
+            AVALANCHE_TOKENS.WAVAX,
+            AVALANCHE_TOKENS.WETH,
+            AVALANCHE_TOKENS.DAI,
+            AVALANCHE_TOKENS.USDT,
+            AVALANCHE_TOKENS.USDC,
+        ],
+        [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
+    },
+    [],
+);
+
+// Note be careful here as a UNION is performed when finding intermediary tokens
+// attaching to a default intermediary token (stables or ETH etc) can have a large impact
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
+    {
+        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet],
+        })
+            .tap(builder => {
+                // Mirror Protocol
+                builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
+                // Convex and Curve
+                builder.add(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV).add(MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV);
+            })
+            // Build
+            .build(),
+        [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
+        }).build(),
+        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
+        }).build(),
+        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
+        }).build(),
+        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
+        }).build(),
+    },
+    new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
 
 export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(

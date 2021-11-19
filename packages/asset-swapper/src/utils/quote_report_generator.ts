@@ -8,11 +8,7 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    FillData,
     NativeCollapsedFill,
-    NativeFillData,
-    NativeLimitOrderFillData,
-    NativeRfqOrderFillData,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
@@ -20,7 +16,7 @@ export interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
-    fillData: FillData;
+    fillData: any;
 }
 export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
@@ -33,14 +29,14 @@ export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
 
 export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    fillData: NativeFillData;
+    fillData: any;
     fillableTakerAmount: BigNumber;
     isRfqt: false;
 }
 
 export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
-    fillData: NativeFillData;
+    fillData: any;
     fillableTakerAmount: BigNumber;
     isRfqt: true;
     nativeOrder: RfqOrderFields;
@@ -198,41 +194,42 @@ function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollaps
  */
 export function nativeOrderToReportEntry(
     type: FillQuoteTransformerOrderType,
-    fillData: NativeLimitOrderFillData | NativeRfqOrderFillData,
+    fillData: any,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry {
-    const nativeOrderBase = {
-        makerAmount: fillData.order.makerAmount,
-        takerAmount: fillData.order.takerAmount,
-        fillableTakerAmount: fillableAmount,
-    };
-
-    // if we find this is an rfqt order, label it as such and associate makerUri
-    const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
-    const rfqtMakerUri =
-        isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
-
-    if (isRfqt) {
-        const nativeOrder = fillData.order as RfqOrderFields;
-        // tslint:disable-next-line: no-object-literal-type-assertion
-        return {
-            liquiditySource: ERC20BridgeSource.Native,
-            ...nativeOrderBase,
-            isRfqt: true,
-            makerUri: rfqtMakerUri || '',
-            ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
-            nativeOrder,
-            fillData,
-        };
-    } else {
-        // tslint:disable-next-line: no-object-literal-type-assertion
-        return {
-            liquiditySource: ERC20BridgeSource.Native,
-            ...nativeOrderBase,
-            isRfqt: false,
-            fillData,
-        };
-    }
+    throw new Error(`Not implemented`);
+    // const nativeOrderBase = {
+    //     makerAmount: fillData.order.makerAmount,
+    //     takerAmount: fillData.order.takerAmount,
+    //     fillableTakerAmount: fillableAmount,
+    // };
+    //
+    // // if we find this is an rfqt order, label it as such and associate makerUri
+    // const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
+    // const rfqtMakerUri =
+    //     isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
+    //
+    // if (isRfqt) {
+    //     const nativeOrder = fillData.order as RfqOrderFields;
+    //     // tslint:disable-next-line: no-object-literal-type-assertion
+    //     return {
+    //         liquiditySource: ERC20BridgeSource.Native,
+    //         ...nativeOrderBase,
+    //         isRfqt: true,
+    //         makerUri: rfqtMakerUri || '',
+    //         ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+    //         nativeOrder,
+    //         fillData,
+    //     };
+    // } else {
+    //     // tslint:disable-next-line: no-object-literal-type-assertion
+    //     return {
+    //         liquiditySource: ERC20BridgeSource.Native,
+    //         ...nativeOrderBase,
+    //         isRfqt: false,
+    //         fillData,
+    //     };
+    // }
 }

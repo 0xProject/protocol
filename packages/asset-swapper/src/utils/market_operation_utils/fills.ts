@@ -4,7 +4,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import { DexSample, Fill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -18,11 +18,9 @@ export function createFills(opts: {
     targetInput?: BigNumber;
     outputAmountPerEth?: BigNumber;
     inputAmountPerEth?: BigNumber;
-    excludedSources?: ERC20BridgeSource[];
     gasPrice: BigNumber;
 }): Fill[][] {
     const { side } = opts;
-    const excludedSources = opts.excludedSources || [];
     const orders = opts.orders || [];
     const dexQuotes = opts.dexQuotes || [];
     const outputAmountPerEth = opts.outputAmountPerEth || ZERO_AMOUNT;
@@ -42,7 +40,7 @@ export function createFills(opts: {
     );
     return [...dexFills, nativeFills]
         .map(p => clipFillsToInput(p, opts.targetInput))
-        .filter(fills => hasLiquidity(fills) && !excludedSources.includes(fills[0].source));
+        .filter(fills => hasLiquidity(fills));
 }
 
 function clipFillsToInput(fills: Fill[], targetInput: BigNumber = POSITIVE_INF): Fill[] {

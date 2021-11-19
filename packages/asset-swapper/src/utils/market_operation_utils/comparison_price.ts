@@ -1,5 +1,4 @@
 import { Web3Wrapper } from '@0x/dev-utils';
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -8,10 +7,6 @@ import { MarketOperation } from '../../types';
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
 import {
     ComparisonPrice,
-    ERC20BridgeSource,
-    ExchangeProxyOverhead,
-    FeeEstimate,
-    FeeSchedule,
     MarketSideLiquidity,
 } from './types';
 

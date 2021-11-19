@@ -122,33 +122,19 @@ export {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
 export {
-    BalancerFillData,
-    BancorFillData,
     CollapsedFill,
-    CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
     DexSample,
-    DODOFillData,
     ERC20BridgeSource,
     ExchangeProxyOverhead,
-    FeeSchedule,
     Fill,
-    FillData,
     GetMarketOrdersRfqOpts,
-    KyberFillData,
-    LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MarketDepth,
     MarketDepthSide,
-    MooniswapFillData,
     NativeCollapsedFill,
-    NativeRfqOrderFillData,
-    NativeLimitOrderFillData,
-    NativeFillData,
-    OptimizedMarketOrder,
     TokenAdjacencyGraph,
-    UniswapV2FillData,
 } from './utils/market_operation_utils/types';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {

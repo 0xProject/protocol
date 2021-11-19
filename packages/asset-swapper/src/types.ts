@@ -1,7 +1,9 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-wrappers';
 import {
+    FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
+    FillQuoteTransformerRfqOrderInfo,
     LimitOrderFields,
     RfqOrder,
     RfqOrderFields,
@@ -16,7 +18,6 @@ import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     LiquidityProviderRegistry,
-    OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
 import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
@@ -40,7 +41,9 @@ export interface SignedOrder<T> {
     signature: Signature;
 }
 
-export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type SignedRfqOrder = SignedOrder<RfqOrderFields>;
+export type SignedLimitOrder = SignedOrder<LimitOrderFields>;
+export type SignedNativeOrder = SignedLimitOrder | SignedRfqOrder;
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
 /**
@@ -169,18 +172,59 @@ export interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
-    orders: OptimizedMarketOrder[];
+    hops: SwapQuoteHop[];
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
     priceComparisonsReport?: PriceComparisonsReport;
-    isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
     takerAmountPerEth: BigNumber;
     makerAmountPerEth: BigNumber;
+    maxSlippage: number;
 }
+
+export interface SwapQuoteHop {
+    takerToken: Address;
+    makerToken: Address;
+    makerAmount: BigNumber;
+    takerAmount: BigNumber;
+    minMakerAmount: BigNumber;
+    maxTakerAmount: BigNumber;
+    sourceFlags: bigint;
+    orders: SwapQuoteOrder[];
+}
+
+interface SwapQuoteOrderBase {
+    type: FillQuoteTransformerOrderType; // should correspond with TFillData
+    source: ERC20BridgeSource;
+    makerToken: string;
+    takerToken: string;
+    gasCost: number;
+    makerAmount: BigNumber;
+    takerAmount: BigNumber;
+    isFallback: boolean;
+}
+
+export interface SwapQuoteBridgeOrder extends SwapQuoteOrderBase {
+    encodedFillData: Bytes;
+    minMakerAmount: BigNumber;
+    maxTakerAmount: BigNumber;
+}
+
+export interface SwapQuoteLimitOrder extends SwapQuoteOrderBase {
+    type: FillQuoteTransformerOrderType.Limit;
+    orderInfo: FillQuoteTransformerLimitOrderInfo;
+}
+
+export interface SwapQuoteRfqOrder extends SwapQuoteOrderBase {
+    type: FillQuoteTransformerOrderType.Rfq;
+    orderInfo: FillQuoteTransformerRfqOrderInfo;
+}
+
+export type SwapQuoteOrder =
+    SwapQuoteBridgeOrder | SwapQuoteLimitOrder | SwapQuoteRfqOrder;
 
 /**
  * takerAssetFillAmount: The amount of takerAsset sold for makerAsset.
@@ -223,11 +267,11 @@ export interface SwapQuoteInfo {
  * percentage breakdown of each liquidity source used in quote
  */
 export type SwapQuoteOrdersBreakdown = Partial<
-    { [key in Exclude<ERC20BridgeSource, typeof ERC20BridgeSource.MultiHop>]: BigNumber } & {
+    { [key in Exclude<ERC20BridgeSource, typeof ERC20BridgeSource.MultiHop>]: number } & {
         [ERC20BridgeSource.MultiHop]: {
-            proportion: BigNumber;
-            intermediateToken: string;
-            hops: ERC20BridgeSource[];
+            proportion: number;
+            tokenPath: Address[];
+            breakdown: Partial<{ [key in ERC20BridgeSource]: number }>;
         };
     }
 >;

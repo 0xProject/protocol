@@ -34,14 +34,7 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
 import {
-    CurveFillData,
     ERC20BridgeSource,
-    FinalUniswapV3FillData,
-    LiquidityProviderFillData,
-    MooniswapFillData,
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    UniswapV2FillData,
 } from '../utils/market_operation_utils/types';
 
 import {
@@ -146,8 +139,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         if (isFromETH) {
             ethAmount = ethAmount.plus(sellAmount);
         }
-
-        const slippedOrders = slipNonNativeOrders(quote);
 
         // VIP routes.
         // if (
@@ -367,47 +358,28 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        // If it's two hop we have an intermediate token this is needed to encode the individual FQT
-        // and we also want to ensure no dust amount is left in the flash wallet
-        const intermediateToken = quote.isTwoHop ? slippedOrders[0].makerToken : NULL_ADDRESS;
-        // This transformer will fill the quote.
-        if (quote.isTwoHop) {
-            const [firstHopOrder, secondHopOrder] = slippedOrders;
+        for (const [i, hop] of quote.hops.entries()) {
+            let fillAmount = !isBuyQuote(quote)
+                ? shouldSellEntireBalance ? MAX_UINT256 : hop.takerAmount
+                : hop.makerAmount;
+            let side = !isBuyQuote(quote) ? FillQuoteTransformerSide.Sell : FillQuoteTransformerSide.Buy;
+            if (quote.hops.length > 1) { // Multi-hop.
+                // Multi-hop is always a sell.
+                side = FillQuoteTransformerSide.Sell;
+                // Subsequent multi-hops always sell entire balance.
+                fillAmount = i > 0 ? MAX_UINT256 : hop.takerAmount;
+            }
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
+                    side,
+                    fillAmount,
+                    sellToken: hop.takerToken,
+                    buyToken: hop.makerToken,
+                    ...getFQTTransformerDataFromOptimizedOrders(hop.orders),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
                 }),
-            });
-            transforms.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    buyToken,
-                    sellToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([secondHopOrder]),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: MAX_UINT256,
-                }),
-            });
-        } else {
-            const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
-            transforms.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken,
-                    ...getFQTTransformerDataFromOptimizedOrders(slippedOrders),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
-                }),
-            });
+            })
         }
 
         if (isToETH) {
@@ -471,10 +443,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // Return any unspent sell tokens.
         const payTakerTokens = [sellToken];
-        // Return any unspent intermediate tokens for two-hop swaps.
-        if (quote.isTwoHop) {
-            payTakerTokens.push(intermediateToken);
-        }
         // Return any unspent ETH. If ETH is the buy token, it will
         // be returned in TransformERC20Feature rather than PayTakerTransformer.
         if (!isToETH) {
@@ -681,39 +649,4 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     //             .getABIEncodedTransactionData();
     //     }
     // }
-}
-
-function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): OptimizedMarketOrder[] {
-    const slippage = getMaxQuoteSlippageRate(quote);
-    if (!slippage) {
-        return quote.orders;
-    }
-    return quote.orders.map(o => {
-        if (o.source === ERC20BridgeSource.Native) {
-            return o;
-        }
-        return {
-            ...o,
-            ...(quote.type === MarketOperation.Sell
-                ? { makerAmount: o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN) }
-                : { takerAmount: o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP) }),
-        };
-    });
-}
-
-function getMaxQuoteSlippageRate(quote: MarketBuySwapQuote | MarketSellSwapQuote): number {
-    if (quote.type === MarketOperation.Buy) {
-        // (worstCaseTaker - bestCaseTaker) / bestCaseTaker
-        // where worstCaseTaker >= bestCaseTaker
-        return quote.worstCaseQuoteInfo.takerAmount
-            .minus(quote.bestCaseQuoteInfo.takerAmount)
-            .div(quote.bestCaseQuoteInfo.takerAmount)
-            .toNumber();
-    }
-    // (bestCaseMaker - worstCaseMaker) / bestCaseMaker
-    // where bestCaseMaker >= worstCaseMaker
-    return quote.bestCaseQuoteInfo.makerAmount
-        .minus(quote.worstCaseQuoteInfo.makerAmount)
-        .div(quote.bestCaseQuoteInfo.makerAmount)
-        .toNumber();
 }

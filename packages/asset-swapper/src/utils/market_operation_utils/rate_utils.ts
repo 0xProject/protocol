@@ -2,38 +2,9 @@ import { BigNumber } from '@0x/utils';
 
 import { MarketOperation } from '../../types';
 
-import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule } from './types';
+import { ZERO_AMOUNT } from './constants';
 
 // tslint:disable:no-bitwise
-
-/**
- * Returns the fee-adjusted rate of a two-hop quote. Returns zero if the
- * quote falls short of the target input.
- */
-export function getTwoHopAdjustedRate(
-    side: MarketOperation,
-    twoHopQuote: DexSample,
-    targetInput: BigNumber,
-    outputAmountPerEth: BigNumber,
-    fees: FeeSchedule = {},
-    exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
-): BigNumber {
-    throw new Error(`Not implemented`);
-    // const { output, input, fillData } = twoHopQuote;
-    // if (input.isLessThan(targetInput) || output.isZero()) {
-    //     return ZERO_AMOUNT;
-    // }
-    // const penalty = outputAmountPerEth.times(
-    //     exchangeProxyOverhead(
-    //         SOURCE_FLAGS.MultiHop |
-    //             SOURCE_FLAGS[fillData.firstHopSource.source] |
-    //             SOURCE_FLAGS[fillData.secondHopSource.source],
-    //     ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
-    // );
-    // const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
-    // return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
-}
 
 /**
  * Computes the "complete" rate given the input/output of a path.
