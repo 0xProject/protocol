@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.36.0 - _November 19, 2021_
+
+    * Specify liquid routes for FEI/TRIBE FXS/FRAX and OHM/FRAX (#371)
+
 ## v16.35.0 - _November 18, 2021_
 
     * Add Beethoven X, MorpheusSwap and JetSwap to Fantom (#370)
