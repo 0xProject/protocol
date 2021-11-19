@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.37.0",
+        "changes": [
+            {
+                "note": "Changed Sushiswap router address",
+                "pr": 373
+            }
+        ],
+    },
+    {
         "version": "16.36.0",
         "changes": [
             {
