@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.10.0",
+        "changes": [
+            {
+                "note": "Add Aave and Compound supported FQT addresses for Polygon, Avalanche",
+                "pr": 321
+            }
+        ]
+    },
+    {
         "version": "6.9.0",
         "changes": [
             {
