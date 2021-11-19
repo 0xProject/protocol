@@ -1483,6 +1483,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         [ChainId.Arbitrum]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
 =======
         [ChainId.Celo]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
@@ -1490,6 +1491,9 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 =======
         [ChainId.Celo]: '0x1421bDe4B10e8dd459b3BCb598810B1337D56842',
 >>>>>>> 6ef4d9504 (Updated Sushiswap router on CELO )
+=======
+        [ChainId.Celo]: '0x1421bde4b10e8dd459b3bcb598810b1337d56842',
+>>>>>>> 82d42eeed (address to lowercase)
     },
     NULL_ADDRESS,
 );
