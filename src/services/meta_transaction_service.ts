@@ -48,7 +48,6 @@ import {
     TransactionWatcherSignerStatus,
 } from '../types';
 import { ethGasStationUtils } from '../utils/gas_station_utils';
-import { quoteReportUtils } from '../utils/quote_report_utils';
 import { serviceUtils } from '../utils/service_utils';
 import { utils } from '../utils/utils';
 
@@ -133,8 +132,6 @@ export class MetaTransactionService {
             quoteReport: quote.quoteReport,
         };
 
-        const shouldLogQuoteReport = quote.quoteReport && params.apiKey !== undefined;
-
         // Go through the Exchange Proxy.
         const epmtx = this._generateExchangeProxyMetaTransaction(
             quote.callData,
@@ -146,19 +143,6 @@ export class MetaTransactionService {
 
         const mtxHash = getExchangeProxyMetaTransactionHash(epmtx);
 
-        // log quote report and associate with txn hash if this is an RFQT firm quote
-        if (quote.quoteReport && shouldLogQuoteReport) {
-            quoteReportUtils.logQuoteReport({
-                submissionBy: 'metaTxn',
-                quoteReport: quote.quoteReport,
-                zeroExTransactionHash: mtxHash,
-                buyTokenAddress: params.buyTokenAddress,
-                sellTokenAddress: params.sellTokenAddress,
-                buyAmount: params.buyAmount,
-                sellAmount: params.sellAmount,
-                apiKey: params.apiKey,
-            });
-        }
         return {
             ...commonQuoteFields,
             mtx: epmtx,

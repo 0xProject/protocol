@@ -52,7 +52,6 @@ import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
-import { quoteReportUtils } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
 
@@ -153,21 +152,6 @@ export class SwapHandlers {
                     // makers: quote.orders.map(order => order.makerAddress),
                 },
             });
-            if (quote.quoteReport && params.rfqt && params.rfqt.intentOnFilling) {
-                quoteReportUtils.logQuoteReport(
-                    {
-                        quoteReport: quote.quoteReport,
-                        submissionBy: 'taker',
-                        decodedUniqueId: quote.decodedUniqueId,
-                        buyTokenAddress: quote.buyTokenAddress,
-                        sellTokenAddress: quote.sellTokenAddress,
-                        buyAmount: params.buyAmount,
-                        sellAmount: params.sellAmount,
-                        apiKey: params.integrator?.integratorId, // TODO (rhinodavid): update to align apiKey/integratorId
-                    },
-                    req.log,
-                );
-            }
         }
         const response = _.omit(
             {

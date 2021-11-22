@@ -1,12 +1,8 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import {
-    AssetSwapperContractAddresses,
-    MarketOperation,
-    ProtocolFeeUtils,
-    QuoteRequestor,
-    V4RFQIndicativeQuote,
-} from '@0x/asset-swapper';
+import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+// tslint:disable-next-line:no-duplicate-imports
+import { V4RFQIndicativeQuoteMM } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
 import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
@@ -14,6 +10,7 @@ import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import delay from 'delay';
+import { Producer as KafkaProducer } from 'kafkajs';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
@@ -43,6 +40,7 @@ import { FirmOtcQuote, FirmQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { PairsManager } from '../utils/pairs_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
+import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
@@ -318,6 +316,7 @@ export class RfqmService {
         private readonly _transactionWatcherSleepTimeMs: number,
         private readonly _cacheClient: CacheClient,
         private readonly _pairsManager: PairsManager,
+        private readonly _kafkaProducer?: KafkaProducer,
     ) {}
 
     /**
@@ -382,6 +381,23 @@ export class RfqmService {
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
         );
 
+        // Quote Report
+        if (this._kafkaProducer) {
+            quoteReportUtils.publishRFQMQuoteReport(
+                {
+                    taker: params.takerAddress,
+                    buyTokenAddress: makerToken,
+                    sellTokenAddress: takerToken,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integrator?.integratorId,
+                    allQuotes: indicativeQuotes,
+                    bestQuote,
+                },
+                this._kafkaProducer,
+            );
+        }
+
         // No quotes found
         if (bestQuote === null) {
             return null;
@@ -443,6 +459,23 @@ export class RfqmService {
             assetFillAmount,
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
         );
+
+        // Quote Report
+        if (this._kafkaProducer) {
+            quoteReportUtils.publishRFQMQuoteReport(
+                {
+                    taker: params.takerAddress,
+                    buyTokenAddress: makerToken,
+                    sellTokenAddress: takerToken,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integrator?.integratorId,
+                    allQuotes: firmQuotes,
+                    bestQuote,
+                },
+                this._kafkaProducer,
+            );
+        }
 
         // No quote found
         if (bestQuote === null) {
@@ -1016,7 +1049,7 @@ export class RfqmService {
     private async _fetchIndicativeQuotesAsync(
         params: FetchIndicativeQuoteParams,
         gasPrice: BigNumber,
-    ): Promise<V4RFQIndicativeQuote[]> {
+    ): Promise<V4RFQIndicativeQuoteMM[]> {
         // Extract params
         const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
 

@@ -33,6 +33,7 @@ import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
+const MOCK_MM_URI = 'https://mm-address';
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 const MOCK_INTEGRATOR: Integrator = {
@@ -74,6 +75,7 @@ const buildRfqmServiceForUnitTest = (
             takerToken: contractAddresses.etherToken,
             takerAmount: new BigNumber(100),
             expiry: NEVER_EXPIRES,
+            makerUri: MOCK_MM_URI,
         },
     ]);
 
@@ -400,6 +402,7 @@ describe('RfqmService', () => {
                         takerToken: contractAddresses.etherToken,
                         takerAmount: new BigNumber(333),
                         expiry: NEVER_EXPIRES,
+                        makerUri: MOCK_MM_URI,
                     },
                 ]);
 
@@ -437,6 +440,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(50),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const fullQuote = {
                     makerToken: contractAddresses.zrxToken,
@@ -444,6 +448,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
@@ -491,6 +496,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(50),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
@@ -531,6 +537,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const betterPricing = {
                     makerToken: contractAddresses.zrxToken,
@@ -538,6 +545,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(200),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
@@ -584,6 +592,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const wrongPair = {
                     makerToken: '0x1111111111111111111111111111111111111111',
@@ -591,6 +600,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
@@ -638,6 +648,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: new BigNumber(inOneMinute),
+                    makerUri: MOCK_MM_URI,
                 };
                 const expiresNever = {
                     makerToken: contractAddresses.zrxToken,
@@ -645,6 +656,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(
@@ -705,6 +717,7 @@ describe('RfqmService', () => {
                         takerToken: contractAddresses.etherToken,
                         takerAmount: new BigNumber(100),
                         expiry: NEVER_EXPIRES,
+                        makerUri: MOCK_MM_URI,
                     },
                 ]);
 
@@ -742,6 +755,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const partialFillQuoteGoodPricing = {
                     makerToken: contractAddresses.zrxToken,
@@ -749,6 +763,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(40),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const fullQuote = {
                     makerToken: contractAddresses.zrxToken,
@@ -756,6 +771,7 @@ describe('RfqmService', () => {
                     takerToken: contractAddresses.etherToken,
                     takerAmount: new BigNumber(100),
                     expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
                 };
                 const quoteRequestorMock = mock(QuoteRequestor);
                 when(

@@ -12,6 +12,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 import * as redis from 'redis';
 import * as rax from 'retry-axios';
 import { Producer } from 'sqs-producer';
@@ -23,6 +24,7 @@ import {
     defaultHttpServiceWithRateLimiterConfig,
     ETHEREUM_RPC_URL,
     ETH_GAS_STATION_API_URL,
+    KAFKA_BROKERS,
     META_TX_WORKER_MNEMONIC,
     META_TX_WORKER_REGISTRY,
     REDIS_URI,
@@ -76,6 +78,7 @@ if (require.main === module) {
         };
         const connection = await getDBConnectionAsync();
         const configManager = new ConfigManager();
+
         const rfqmService = await buildRfqmServiceAsync(connection, /* asWorker = */ false, configManager);
         await runHttpRfqmServiceAsync(rfqmService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
@@ -167,6 +170,8 @@ export async function buildRfqmServiceAsync(
 
     const pairsManager = new PairsManager(configManager);
 
+    const kafkaProducer = getKafkaProducer();
+
     return new RfqmService(
         quoteRequestor,
         protocolFeeUtils,
@@ -179,6 +184,7 @@ export async function buildRfqmServiceAsync(
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
         pairsManager,
+        kafkaProducer,
     );
 }
 
@@ -228,4 +234,21 @@ export async function runHttpRfqmServiceAsync(
 
     server.listen(config.httpPort);
     return { app, server };
+}
+
+/**
+ * Initialize a kafka producer if KAFKA_BROKERS is set
+ */
+function getKafkaProducer(): KafkaProducer | undefined {
+    let kafkaProducer: KafkaProducer | undefined;
+    if (KAFKA_BROKERS !== undefined) {
+        const kafka = new Kafka({
+            clientId: '0x-api',
+            brokers: KAFKA_BROKERS,
+        });
+
+        kafkaProducer = kafka.producer();
+        kafkaProducer.connect();
+    }
+    return kafkaProducer;
 }
