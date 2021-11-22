@@ -339,6 +339,10 @@ export class RfqmService {
             return cachedDecimals;
         }
         const onchainDecimals = await this._blockchainUtils.getTokenDecimalsAsync(tokenAddress);
+        logger.info(
+            { tokenAddress, decimals: onchainDecimals, cacheSize: this._tokenDecimalsCache.size },
+            'Token decimals fetched from blockchain',
+        );
         this._tokenDecimalsCache.set(tokenAddress, onchainDecimals);
         return onchainDecimals;
     }
