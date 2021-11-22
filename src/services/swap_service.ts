@@ -384,8 +384,8 @@ export class SwapService {
             protocolFee,
             minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-            buyTokenAddress: isETHBuy ? this.getNativeAssetForChain(CHAIN_ID) : buyToken,
-            sellTokenAddress: isETHSell ? this.getNativeAssetForChain(CHAIN_ID) : sellToken,
+            buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
+            sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
             buyAmount: makerAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAmount,
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
@@ -408,16 +408,6 @@ export class SwapService {
 
     public async getSwapQuoteForUnwrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         return this._getSwapQuoteForNativeWrappedAsync(params, true);
-    }
-
-    // tslint:disable-next-line: prefer-function-over-method
-    public getNativeAssetForChain(chainId: ChainId): string {
-        switch (chainId) {
-            case ChainId.Celo:
-                return CELO_TOKENS.CELO;
-            default:
-                return ETH_TOKEN_ADDRESS;
-        }
     }
 
     public async getTokenPricesAsync(
