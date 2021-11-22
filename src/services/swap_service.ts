@@ -19,7 +19,6 @@ import {
     SwapQuoterOpts,
 } from '@0x/asset-swapper';
 import {
-    CELO_TOKENS,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { ChainId } from '@0x/contract-addresses';
