@@ -286,7 +286,8 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport } = swapQuote;
+        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport, extendedQuoteReportSources } =
+            swapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
@@ -383,7 +384,7 @@ export class SwapService {
             protocolFee,
             minimumProtocolFee: BigNumber.min(protocolFee, bestCaseProtocolFee),
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-            buyTokenAddress: isETHBuy ? ETH_TOKEN_ADDRESS : buyToken,
+            buyTokenAddress: isETHBuy ? this.getNativeAssetForChain(CHAIN_ID) : buyToken,
             sellTokenAddress: isETHSell ? this.getNativeAssetForChain(CHAIN_ID) : sellToken,
             buyAmount: makerAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAmount,
@@ -391,6 +392,7 @@ export class SwapService {
             orders: swapQuote.orders,
             allowanceTarget,
             decodedUniqueId,
+            extendedQuoteReportSources,
             sellTokenToEthRate,
             buyTokenToEthRate,
             quoteReport,
