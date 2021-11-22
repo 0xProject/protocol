@@ -11,7 +11,6 @@ import {
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
-import { ethers } from 'ethers';
 import * as _ from 'lodash';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
@@ -23,6 +22,7 @@ import { schemas } from '../schemas';
 import { IndicativeQuote } from '../types';
 
 import { METRICS_PROXY } from './metrics_service';
+import { getSignerFromHash } from './signature_utils';
 
 const MARKET_MAKER_LAST_LOOK_LATENCY = new Summary({
     name: 'market_maker_last_look_latency',
@@ -272,7 +272,7 @@ export class QuoteServerClient {
         }
 
         // Verify the signer was the maker
-        const signerAddress = ethers.utils.verifyMessage(payload.orderHash, response.makerSignature).toLowerCase();
+        const signerAddress = getSignerFromHash(payload.orderHash, response.makerSignature).toLowerCase();
         const makerAddress = payload.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
             logger.warn({ signerAddress, makerAddress, makerUri }, 'Signature is invalid');

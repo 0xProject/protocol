@@ -4,37 +4,16 @@
 
 import { RfqOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
-import { OtcOrder, Signature, SignatureType } from '@0x/protocol-utils';
+import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
 import { SignRequest, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { ethers } from 'ethers';
 import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { CONTRACT_ADDRESSES } from '../constants';
-
-async function signAsync(signer: ethers.Signer, message: string): Promise<Signature> {
-    const hexSignature = await signer.signMessage(message);
-    return hexStringToSignature(hexSignature);
-}
-
-function hexStringToSignature(hexSignature: string): Signature {
-    const signature = hexSignature.substr(2); // remove 0x
-    const r = `0x${signature.slice(0, 64)}`;
-    const s = `0x${signature.slice(64, 128)}`;
-    const v = `0x${signature.slice(128, 130)}`;
-    const v_decimal = ethers.BigNumber.from(v).toNumber();
-
-    return {
-        v: v_decimal,
-        r,
-        s,
-        signatureType: SignatureType.EthSign,
-    };
-}
 
 const makerUri = 'https://some-market-maker.xyz';
 const integrator: Integrator = {
@@ -48,13 +27,11 @@ const integrator: Integrator = {
 
 // Maker
 const makerAddress = '0xFDbEf5C1Ad7d173D191D565c14E28eBd5b50470e';
-const makerPrivateKey = 'f4559ca5152145f5e0b9762f12213c2e74020a4481953fb940413273051a89d3';
-const makerSigner = new ethers.Wallet(makerPrivateKey);
+const makerPrivateKey = '0xf4559ca5152145f5e0b9762f12213c2e74020a4481953fb940413273051a89d3';
 
 // Taker
 const takerAddress = '0xdA9AC423442169588DE6b4305f4E820D708d0cE5';
-const takerPrivateKey = '653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
-const takerSigner = new ethers.Wallet(takerPrivateKey);
+const takerPrivateKey = '0x653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
 
 // Some tokens and amounts
 const takerToken = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
@@ -78,19 +55,13 @@ const order = new OtcOrder({
 });
 const orderHash = order.getHash();
 
-// Signatures, to be set in the before()
-let takerSignature: Signature;
-let makerSignature: Signature;
+// Signatures
+const takerSignature = ethSignHashWithKey(orderHash, takerPrivateKey);
+const makerSignature = ethSignHashWithKey(orderHash, makerPrivateKey);
 
 describe('QuoteServerClient', () => {
     const axiosInstance = Axios.create();
     const axiosMock = new AxiosMockAdapter(axiosInstance);
-
-    before(async () => {
-        // Prepare the signatures
-        takerSignature = await signAsync(takerSigner, orderHash);
-        makerSignature = await signAsync(makerSigner, orderHash);
-    });
 
     afterEach(() => {
         axiosMock.reset();
