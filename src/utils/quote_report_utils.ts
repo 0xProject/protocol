@@ -72,7 +72,7 @@ export const quoteReportUtils = {
                 quoteId,
                 taker: logOpts.taker,
                 timestamp: Date.now(),
-                firmQuoteReport: isFirmQuote(logOpts.allQuotes[0]),
+                firmQuoteReport: logOpts.allQuotes[0] ? isFirmQuote(logOpts.allQuotes[0]) : false,
                 submissionBy: 'rfqm',
                 buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
                 sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
