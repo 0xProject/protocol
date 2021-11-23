@@ -109,6 +109,7 @@ export {
     SwapQuoteGetOutputOpts,
     SwapQuoteInfo,
     SwapQuoteOrdersBreakdown,
+    SwapQuoteMultiHopBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterError,
     SwapQuoterOpts,

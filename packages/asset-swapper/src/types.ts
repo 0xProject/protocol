@@ -268,13 +268,15 @@ export interface SwapQuoteInfo {
  */
 export type SwapQuoteOrdersBreakdown = Partial<
     { [key in Exclude<ERC20BridgeSource, typeof ERC20BridgeSource.MultiHop>]: number } & {
-        [ERC20BridgeSource.MultiHop]: {
-            proportion: number;
-            tokenPath: Address[];
-            breakdown: Partial<{ [key in ERC20BridgeSource]: number }>;
-        };
+        [ERC20BridgeSource.MultiHop]: SwapQuoteMultiHopBreakdown;
     }
 >;
+
+export interface SwapQuoteMultiHopBreakdown {
+    proportion: number;
+    tokenPath: Address[];
+    breakdowns: Partial<{ [key in ERC20BridgeSource]: number }>[];
+};
 
 /**
  * nativeExclusivelyRFQ: if set to `true`, Swap quote will exclude Open Orderbook liquidity.

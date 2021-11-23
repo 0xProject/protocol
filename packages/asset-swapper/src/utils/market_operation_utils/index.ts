@@ -57,6 +57,7 @@ import {
     OptimizedHop,
     OrderDomain,
     RawHopQuotes,
+    TokenAmountPerEth,
 } from './types';
 
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
@@ -134,15 +135,23 @@ export class MarketOperationUtils {
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
-        const [multiHopLegs, multiHopAmounts] = await this._getMultiHopSampleLegsAndAmountsAsync(
+        const [multiHopLegs, multiHopAmounts] = await this._getMultiHopSampleLegsAndAmountsAsync({
             takerToken,
             makerToken,
-            quoteSourceFilters.sources,
-            takerAmount,
-        );
+            side: MarketOperation.Sell,
+            sources: quoteSourceFilters.sources,
+            inputAmount: takerAmount,
+        });
+
+        const terminalTokens = [...new Set([
+            takerToken,
+            makerToken,
+            ...multiHopLegs.map(leg => getTakerMakerTokenFromTokenPath(leg)).flat(1)
+        ].map(t => t.toLowerCase()))];
+
         const [
             tokenInfos,
-            [makerTokenToEthPrice, takerTokenToEthPrice],
+            tokenPricesPerEth,
             singleHopQuotes,
             multiHopQuotes,
         ] = await Promise.all([
@@ -150,10 +159,7 @@ export class MarketOperationUtils {
                 [makerToken, takerToken],
             ),
             this._sampler.getPricesAsync(
-                [
-                    [this._nativeFeeToken, makerToken],
-                    [this._nativeFeeToken, takerToken],
-                ],
+                terminalTokens.map(t => [this._nativeFeeToken, t]),
                 feeSourceFilters.sources,
             ),
             this._sampler.getSellLiquidityAsync(
@@ -170,6 +176,16 @@ export class MarketOperationUtils {
                     )
                 ))
                 : [],
+            multiHopLegs.length
+                ? this._sampler.getPricesAsync(
+                    multiHopLegs.map(hopPath => [this._nativeFeeToken, hopPath.slice(-1)[0]]),
+                    feeSourceFilters.sources,
+                ) : [],
+            multiHopLegs.length
+                ? this._sampler.getPricesAsync(
+                    multiHopLegs.map(hopPath => [this._nativeFeeToken, hopPath[0]]),
+                    feeSourceFilters.sources,
+                ) : [],
         ]);
 
         const [{ decimals: makerTokenDecimals }, { decimals: takerTokenDecimals }] = tokenInfos;
@@ -181,8 +197,10 @@ export class MarketOperationUtils {
             inputAmount: takerAmount,
             inputToken: takerToken,
             outputToken: makerToken,
-            outputAmountPerEth: makerTokenToEthPrice,
-            inputAmountPerEth: takerTokenToEthPrice,
+            tokenAmountPerEth: Object.assign(
+                {},
+                ...terminalTokens.map((t, i) => ({ [t]: tokenPricesPerEth[i] })),
+            ),
             quoteSourceFilters,
             makerTokenDecimals: makerTokenDecimals,
             takerTokenDecimals: takerTokenDecimals,
@@ -194,9 +212,9 @@ export class MarketOperationUtils {
                     dexQuotes: singleHopQuotes,
                     nativeOrders: [],
                 },
-                ...multiHopLegs.map(([takerToken, makerToken], i) => ({
-                    inputToken: takerToken,
-                    outputToken: makerToken,
+                ...multiHopLegs.map((tokenPath, i) => ({
+                    inputToken: tokenPath[0],
+                    outputToken: tokenPath[tokenPath.length - 1],
                     nativeOrders: [],
                     rfqtIndicativeQuotes: [],
                     dexQuotes: multiHopQuotes[i],
@@ -206,50 +224,105 @@ export class MarketOperationUtils {
         };
     }
 
-    private async _getMultiHopSampleLegsAndAmountsAsync(
+    private async _getMultiHopSampleLegsAndAmountsAsync(opts: {
+        side: MarketOperation,
         takerToken: Address,
         makerToken: Address,
         sources: ERC20BridgeSource[],
         inputAmount: BigNumber,
-        hopAmountScaling: number = 1.25,
-    ): Promise<[Address[][], BigNumber[]]> {
-        const hopTokens = getIntermediateTokens(
-            makerToken,
+        hopAmountScaling?: number,
+    }): Promise<[Address[][], BigNumber[]]> {
+        const {
+            side,
             takerToken,
-            DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[this._sampler.chainId],
-        );
-        if (!hopTokens.length) {
+            makerToken,
+            sources,
+            inputAmount,
+        } = opts;
+        const hopAmountScaling = opts.hopAmountScaling === undefined ? 1.25 : opts.hopAmountScaling;
+
+        const getIntermediateTokenPaths = (_takerToken: Address, _makerToken: Address, maxPathLength: number): Address[][] => {
+            if (maxPathLength < 2) {
+                return [];
+            }
+            const hopTokens = getIntermediateTokens(
+                _makerToken,
+                _takerToken,
+                DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[this._sampler.chainId],
+            );
+            const shortHops = hopTokens.map(t => [
+                [_takerToken, t],
+                [t, _makerToken],
+            ]).flat(1);
+            // Find inner hops for each leg.
+            const deepHops = shortHops.map(([t, m]) =>
+                getIntermediateTokenPaths(t, m, maxPathLength - 1)
+                    .filter(innerPath => !innerPath.includes(_takerToken))
+                    .filter(innerPath => !innerPath.includes(_makerToken))
+                    .map(innerPath => innerPath[0] === t ? [...innerPath, m] : [t, ...innerPath]),
+            ).flat(1);
+            const paths = [ ...shortHops, ...deepHops ];
+            // Prune duplicate paths.
+            return paths.filter(p => !paths.find(o => p !== o && o.every((_v, i) => p[i] === o[i])));
+        };
+        const hopTokenPaths = getIntermediateTokenPaths(takerToken, makerToken, 3);
+        if (!hopTokenPaths.length) {
             return [[],[]];
         }
-        const hopPrices = await this._sampler.getPricesAsync(
-            [
-                ...hopTokens.map(h => [takerToken, h]),
-                ...hopTokens.map(h => [h, makerToken]),
-            ],
+        const hopTokenPathPrices = await this._sampler.getPricesAsync(
+            hopTokenPaths,
             sources,
         );
-        let bestHopToken = hopTokens[0];
-        let bestHopPrices = [hopPrices[0], hopPrices[hopTokens.length]];
-        let bestHopTotalPrice = bestHopPrices.reduce((a, v) => a.times(v));
-        for (let i = 1; i < hopTokens.length; ++i) {
-            const prices = [hopPrices[i], hopPrices[i + hopTokens.length]];
-            const totalPrice = bestHopPrices.reduce((a, v) => a.times(v));
-            if (totalPrice.gte(bestHopTotalPrice)) {
-                bestHopTotalPrice = totalPrice;
-                bestHopToken = hopTokens[i];
-                bestHopPrices = prices;
+        let bestTwoHopTokenPaths;
+        let bestTwoHopTokenPrices;
+        let bestTwoHopTotalPrice = ZERO_AMOUNT;
+        for (const [firstHopIndex, firstHop] of hopTokenPaths.entries()) {
+            const firstHopPrice = hopTokenPathPrices[firstHopIndex];
+            const [firstHopTakerToken, firstHopMakerToken] = getTakerMakerTokenFromTokenPath(firstHop);
+            if (firstHopTakerToken !== takerToken) {
+                continue;
+            }
+            for (const [secondHopIndex, secondHop] of hopTokenPaths.entries()) {
+                const secondHopPrice = hopTokenPathPrices[secondHopIndex];
+                if (firstHop === secondHop) {
+                    continue;
+                }
+                const [secondHopTakerToken, secondHopMakerToken] = getTakerMakerTokenFromTokenPath(secondHop);
+                if (secondHopMakerToken !== makerToken) {
+                    continue;
+                }
+                if (firstHopMakerToken !== secondHopTakerToken) {
+                    continue;
+                }
+                const tokenPrices = [firstHopPrice, secondHopPrice];
+                const totalPrice = tokenPrices.reduce((a, v) => a.times(v));
+                if (bestTwoHopTokenPaths) {
+                    if (totalPrice.lt(bestTwoHopTotalPrice)) {
+                        continue;
+                    }
+                }
+                bestTwoHopTokenPaths = [firstHop, secondHop];
+                bestTwoHopTokenPrices = tokenPrices;
+                bestTwoHopTotalPrice = totalPrice;
             }
         }
-        // TODO: this is wrong for buys
-        const amounts = [inputAmount];
-        for (const prevPrice of bestHopPrices.slice(0, -1)) {
-            const prevAmount = amounts[amounts.length - 1];
-            amounts.push(prevPrice.times(prevAmount).times(hopAmountScaling));
+        if (!bestTwoHopTokenPaths || !bestTwoHopTokenPrices) {
+            return [[], []];
         }
-        return [
-            [[takerToken, bestHopToken], [bestHopToken, makerToken]],
-            amounts,
-        ];
+
+        const amounts = [inputAmount.integerValue()];
+        if (side === MarketOperation.Buy) {
+            // Reverse paths/prices and invert prices for buys.
+            bestTwoHopTokenPaths.reverse();
+            bestTwoHopTokenPrices =
+                bestTwoHopTokenPrices.map(p => new BigNumber(1).dividedBy(p)).reverse();
+        }
+        for (let i = 0; i < bestTwoHopTokenPrices.length - 1; ++i) {
+            const lastAmount = amounts[amounts.length - 1];
+            const prevPrice = bestTwoHopTokenPrices[i];
+            amounts.push(lastAmount.times(prevPrice).times(hopAmountScaling).integerValue());
+        }
+        return [bestTwoHopTokenPaths, amounts];
     }
     /**
      * Gets the liquidity available for a market buy operation
@@ -472,50 +545,43 @@ export class MarketOperationUtils {
         const {
             side,
             inputAmount,
+            inputToken,
+            outputToken,
             quotes,
-            outputAmountPerEth,
-            inputAmountPerEth,
+            tokenAmountPerEth,
         } = marketSideLiquidity;
 
-        const hops = (await Promise.all(quotes.map(hop =>
-            this._createOptimizedHopAsync({
-                side,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                inputAmount,
-                inputToken: hop.inputToken,
-                outputToken: hop.outputToken,
-                dexQuotes: hop.dexQuotes,
-                nativeOrders: hop.nativeOrders,
-                slippage: opts.bridgeSlippage || 0,
-                gasPrice: opts.gasPrice,
-                exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
-                runLimit: opts.runLimit,
-                maxFallbackSlippage: opts.maxFallbackSlippage || 0,
-            }),
-        ))).filter(h => h) as OptimizedHop[];
-
-        const bestHopRoute = findBestHopRoute(
+        const bestHopRoute = await this._findBestOptimizedHopRouteAsync(
             side,
-            marketSideLiquidity.inputToken,
-            marketSideLiquidity.outputToken,
-            hops,
+            inputToken,
+            outputToken,
+            inputAmount,
+            quotes,
+            {
+                tokenAmountPerEth,
+                exchangeProxyOverhead: opts.exchangeProxyOverhead,
+                slippage: opts.bridgeSlippage,
+                gasPrice: opts.gasPrice,
+                runLimit: opts.runLimit,
+                maxFallbackSlippage: opts.maxFallbackSlippage,
+            },
         );
         if (!bestHopRoute) {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-
         // TODO: Find the unoptimized best rate to calculate savings from optimizer
 
+        const [takerToken, makerToken] = side === MarketOperation.Sell
+            ? [inputToken, outputToken]
+            : [outputToken, inputToken];
         return {
             hops: bestHopRoute,
-            adjustedRate: getHopRouteOverallRate(hops),
+            adjustedRate: getHopRouteOverallRate(bestHopRoute),
             // liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             marketSideLiquidity,
-            takerAmountPerEth: side === MarketOperation.Sell ? inputAmountPerEth : outputAmountPerEth,
-            makerAmountPerEth: side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth,
+            takerAmountPerEth: tokenAmountPerEth[takerToken],
+            makerAmountPerEth: tokenAmountPerEth[makerToken],
         };
     }
 
@@ -825,6 +891,87 @@ export class MarketOperationUtils {
         }
         return path;
     }
+
+    // Find the and create the best sequence of OptimizedHops for a swap.
+    async _findBestOptimizedHopRouteAsync(
+        side: MarketOperation,
+        inputToken: Address,
+        outputToken: Address,
+        inputAmount: BigNumber,
+        hopQuotes: RawHopQuotes[],
+        opts: {
+            tokenAmountPerEth?: TokenAmountPerEth,
+            exchangeProxyOverhead?: ExchangeProxyOverhead,
+            slippage?: number,
+            gasPrice?: BigNumber,
+            runLimit?: number,
+            maxFallbackSlippage?: number,
+        } = {},
+    ): Promise<OptimizedHop[] | undefined> {
+        const findRoutes = (firstHop: RawHopQuotes, _hopQuotes: RawHopQuotes[] = hopQuotes): RawHopQuotes[][] => {
+            if (firstHop.inputToken === inputToken && firstHop.outputToken === outputToken) {
+                return [[firstHop]]; // Direct A -> B
+            }
+            const otherHopQuotes = _hopQuotes.filter(h => h !== firstHop);
+            const r = [];
+            for (const h of otherHopQuotes) {
+                if (h.inputToken === firstHop.outputToken) {
+                    if (h.outputToken === outputToken) {
+                        r.push([firstHop, h]);
+                    } else {
+                        r.push(...findRoutes(h, otherHopQuotes).map(route => [firstHop, ...route]));
+                    }
+                }
+            }
+            return r;
+        };
+        const firstHops = hopQuotes.filter(h => h.inputToken === inputToken);
+        const routes = firstHops.map(firstHop => findRoutes(firstHop)).flat(1);
+
+        const tokenAmountPerEth = opts.tokenAmountPerEth || {};
+        const slippage = opts.slippage || 0;
+        const gasPrice = opts.gasPrice || ZERO_AMOUNT;
+        const runLimit = opts.runLimit;
+        const maxFallbackSlippage = opts.maxFallbackSlippage || 0;
+        const exchangeProxyOverhead = opts.exchangeProxyOverhead || (() => ZERO_AMOUNT);
+        const hopRoutes = (await Promise.all(routes.map(async route => {
+            let hopInputAmount = inputAmount;
+            const hops = [];
+            for (const hopQuotes of route) {
+                const hop = await this._createOptimizedHopAsync({
+                    side,
+                    slippage,
+                    gasPrice,
+                    exchangeProxyOverhead,
+                    runLimit,
+                    maxFallbackSlippage,
+                    inputAmount: hopInputAmount,
+                    dexQuotes: hopQuotes.dexQuotes,
+                    nativeOrders: hopQuotes.nativeOrders,
+                    inputToken: hopQuotes.inputToken,
+                    outputToken: hopQuotes.outputToken,
+                    inputAmountPerEth: tokenAmountPerEth[hopQuotes.inputToken] || ZERO_AMOUNT,
+                    outputAmountPerEth: tokenAmountPerEth[hopQuotes.outputToken] || ZERO_AMOUNT,
+                });
+                if (!hop) {
+                    // This hop could not satisfy the input amount so the
+                    // whole route is invalid.
+                    return [];
+                }
+                // Output of this hop will be the input for the next hop.
+                hopInputAmount = hop.outputAmount;
+                hops.push(hop);
+            }
+            return hops;
+        }))).filter(routes => routes.length)
+            .sort((a, b) => -a[a.length - 1].outputAmount.comparedTo(b[b.length - 1].outputAmount));
+        if (side === MarketOperation.Buy) {
+            // For buys we actually want the route with the lowest output amount.
+            hopRoutes.reverse();
+        }
+        // Pick the best of all the hops.
+        return hopRoutes[0];
+    }
 }
 
 function doesPathNeedFallback(path: Path): boolean {
@@ -839,46 +986,6 @@ function getHopRouteOverallRate(multiHopPaths: OptimizedHop[]): BigNumber {
         (a, h) => a = a.times(h.adjustedCompleteRate),
         new BigNumber(1),
     );
-}
-
-// Given disjointed hops, find the valid sequence of them with the best rate (unlimited hops).
-// E.g., [A->B, B->C, A->C], returns the better of [A->C] [A->B, B->C]
-function findBestHopRoute(
-    side: MarketOperation,
-    inputToken: Address,
-    outputToken: Address,
-    hops: OptimizedHop[],
-): OptimizedHop[] | undefined {
-    const findRoutes = (endHop: OptimizedHop, _hops: OptimizedHop[] = hops): OptimizedHop[][] => {
-        const __hops = _hops.filter(h => h !== endHop);
-        const r = [];
-        for (const h of __hops) {
-            if (endHop === h) {
-                continue;
-            }
-            if (h.outputToken === endHop.inputToken) {
-                if (h.inputToken === inputToken) {
-                    return [[endHop]];
-                }
-                r.push(...findRoutes(h, __hops).map(r => [...r, h]));
-            }
-        }
-        return r;
-    };
-    const endHops = hops.filter(h => h.outputToken === outputToken);
-    const routes = endHops.map(endHop => {
-        if (endHop.inputToken === inputToken) {
-            return [[endHop]]; // Direct A->B
-        }
-        return findRoutes(endHop);
-    }).flat(1);
-    const route = routes
-        .sort((a, b) => -getHopRouteOverallRate(a).comparedTo(getHopRouteOverallRate(b)))
-        [0];
-    if (route && side === MarketOperation.Buy) {
-        route.reverse();
-    }
-    return route;
 }
 
 function indicativeRfqQuoteToSignedNativeOrder(iq: V4RFQIndicativeQuote): SignedRfqOrder {
@@ -945,4 +1052,16 @@ function injectRfqLiquidity(
             nativeOrders: fullOrders,
         });
     }
+}
+
+function getTakerMakerTokenFromTokenPath(tokenPath: Address[]): [Address, Address] {
+    return [tokenPath[0], tokenPath[tokenPath.length - 1]];
+}
+
+function getInputOutputTokenFromTokenPath(side: MarketOperation, tokenPath: Address[]): [Address, Address] {
+    const tokens = getTakerMakerTokenFromTokenPath(tokenPath);
+    if (side === MarketOperation.Buy) {
+        tokens.reverse();
+    }
+    return tokens;
 }

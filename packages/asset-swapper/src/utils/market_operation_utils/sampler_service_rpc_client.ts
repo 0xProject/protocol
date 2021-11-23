@@ -68,7 +68,11 @@ export class SamplerServiceRpcClient {
     }
 
     private async _requestAsync<TResult, TArgs = any>(method: string, params: TArgs[] = []): Promise<TResult> {
-        return this._rpcClient.request({ method, params }) as Promise<TResult>;
+        try {
+            return await this._rpcClient.request({ method, params }) as Promise<TResult>;
+        } catch (err) {
+            throw new Error(`Error making RPC request "${method}" to sampler service: ${err}`);
+        }
     }
 
     public async getChainIdAsync(): Promise<number> {

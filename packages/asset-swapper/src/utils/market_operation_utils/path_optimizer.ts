@@ -392,32 +392,6 @@ export async function findOptimalPathJSAsync(
         // Yield to event loop.
         await Promise.resolve();
     }
-    {
-        const sourcePathIds = Object.keys(Object.assign(
-            {},
-            ...optimalPath.fills.map(f => ({
-                [f.sourcePathId]: true,
-            })),
-        ));
-        const parts = Object.assign(
-            {},
-            ...sourcePathIds.map(id => {
-                const fills = optimalPath.fills.filter(f => f.sourcePathId === id);
-                const input = BigNumber.sum(...fills.map(f => f.input));
-                const output = BigNumber.sum(...fills.map(f => f.output));
-                const adjustedOutput = BigNumber.sum(...fills.map(f => f.adjustedOutput));
-                return {
-                    [fills[0].source]: {
-                        input,
-                        output,
-                        adjustedRate: adjustedOutput.div(input),
-                        rate: output.div(input), // why is this the same as above?
-                    },
-                };
-            }),
-        );
-        console.log(parts);
-    }
     return optimalPath.isComplete() ? optimalPath : undefined;
 }
 

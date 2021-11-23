@@ -29,11 +29,15 @@ export function getComparisonPrices(
     let wholeOrder: BigNumber | undefined;
     let feeInEth = gasPrice.times(100e3);
 
+    const [inputAmountPerEth, outputAmountPerEth] = [
+        marketSideLiquidity.tokenAmountPerEth[marketSideLiquidity.inputToken],
+        marketSideLiquidity.tokenAmountPerEth[marketSideLiquidity.outputToken],
+    ];
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)
-    const feePenalty = !marketSideLiquidity.outputAmountPerEth.isZero()
-        ? marketSideLiquidity.outputAmountPerEth.times(feeInEth)
+    const feePenalty = !outputAmountPerEth.isZero()
+        ? outputAmountPerEth.times(feeInEth)
         : // if it's a sell, the input token is the taker token
-          marketSideLiquidity.inputAmountPerEth
+          inputAmountPerEth
               .times(feeInEth)
               .times(marketSideLiquidity.side === MarketOperation.Sell ? adjustedRate : adjustedRate.pow(-1));
 

@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
 import {
+    Address,
     AssetSwapperContractAddresses,
     MarketBuySwapQuote,
     MarketOperation,
@@ -608,9 +609,11 @@ function calculateQuoteInfo(
     const bestCaseFillResults = [];
     const worstCaseFillResults = [];
     const tokenPath = [];
-    for (const hop of hops) {
-        tokenPath.push(hop.takerToken);
-        if (tokenPath.length == hops.length - 1) {
+    for (const [i, hop] of hops.entries()) {
+        if (i === 0 || i < hops.length - 1) {
+            tokenPath.push(hop.takerToken);
+        }
+        if (i === tokenPath.length - 1) {
             tokenPath.push(hop.makerToken);
         }
         const bestCaseFillResult = simulateBestCaseFill({
@@ -634,24 +637,11 @@ function calculateQuoteInfo(
 
     const combinedBestCaseFillResult = combineQuoteFillResults(bestCaseFillResults);
     const combinedWorstCaseFillResult = combineQuoteFillResults(worstCaseFillResults);
-    let sourceBreakdown = getSwapQuoteOrdersBreakdown(combinedBestCaseFillResult.fillAmountBySource);
-    if (hops.length > 1) {
-        sourceBreakdown = {
-            [ERC20BridgeSource.MultiHop]: {
-                proportion: 1,
-                tokenPath,
-                breakdown: Object.assign(
-                    {},
-                    ...Object.entries(sourceBreakdown).filter(([k]) => k !== ERC20BridgeSource.MultiHop)
-                        .map(([k, v]) => ({[k]: v })),
-                ),
-            },
-        };
-    }
+    const sourceBreakdown = getSwapQuoteOrdersBreakdown(side, tokenPath, bestCaseFillResults);
     return {
+        sourceBreakdown,
         bestCaseQuoteInfo: fillResultsToQuoteInfo(combinedBestCaseFillResult),
         worstCaseQuoteInfo: fillResultsToQuoteInfo(combinedWorstCaseFillResult),
-        sourceBreakdown: getSwapQuoteOrdersBreakdown(combinedBestCaseFillResult.fillAmountBySource),
     };
 }
 
@@ -659,31 +649,59 @@ function combineQuoteFillResults(fillResults: QuoteFillResult[]): QuoteFillResul
     if (fillResults.length === 0) {
         throw new Error(`Empty fillResults array`);
     }
-    const r = fillResults[0];
+    const lastResult = fillResults[fillResults.length - 1];
+    const r = {
+        ...fillResults[0],
+       makerAssetAmount: lastResult.makerAssetAmount,
+       totalMakerAssetAmount: lastResult.totalMakerAssetAmount,
+   };
     for (const fr of fillResults.slice(1)) {
         r.gas += fr.gas + 30e3;
-        r.makerAssetAmount = fr.makerAssetAmount;
-        r.totalMakerAssetAmount = fr.totalMakerAssetAmount;
         r.protocolFeeAmount = r.protocolFeeAmount.plus(fr.protocolFeeAmount);
-        for (const source in fr.fillAmountBySource) {
-            r.fillAmountBySource[source] =
-                r.fillAmountBySource[source].plus(fr.fillAmountBySource[source]);
-        }
     }
     return r;
 }
 
-function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: BigNumber }): SwapQuoteOrdersBreakdown {
-    const totalFillAmount = BigNumber.sum(...Object.values(fillAmountBySource));
-    const breakdown: SwapQuoteOrdersBreakdown = {};
-    Object.entries(fillAmountBySource).forEach(([s, fillAmount]) => {
-        const source = s as keyof SwapQuoteOrdersBreakdown;
-        if (source === ERC20BridgeSource.MultiHop) {
-            // TODO jacob has a different breakdown
-        } else {
-            breakdown[source] = fillAmount.div(totalFillAmount).toNumber();
+function getSwapQuoteOrdersBreakdown(side: MarketOperation, tokenPath: Address[], hopFillResults: QuoteFillResult[]): SwapQuoteOrdersBreakdown {
+    const cumulativeFillRatioBySource: Partial<{ [key in ERC20BridgeSource]: number }> = {};
+    for (const hop of hopFillResults) {
+        const hopTotalFillAmount = side === MarketOperation.Sell
+            ? hop.totalTakerAssetAmount
+            : hop.totalMakerAssetAmount;
+        for (const [source, sourceFillAmount] of Object.entries(hop.fillAmountBySource)) {
+            cumulativeFillRatioBySource[source as ERC20BridgeSource] =
+                (cumulativeFillRatioBySource[source as ERC20BridgeSource] || 0)
+                + sourceFillAmount.div(hopTotalFillAmount).toNumber();
         }
+    }
+    const globalFillRatiosSum = Object.values(cumulativeFillRatioBySource).reduce((a, v) => a! + v!, 0);
+    if (!globalFillRatiosSum) {
+        return {};
+    }
+    const breakdown: SwapQuoteOrdersBreakdown = {};
+    for (const [source, fillRatio] of Object.entries(cumulativeFillRatioBySource)) {
+        (breakdown as any)[source] = fillRatio! / globalFillRatiosSum;
+    }
+    const hopBreakdowns = hopFillResults.map(hop => {
+        const hopTotalFillAmount = side === MarketOperation.Sell
+            ? hop.totalTakerAssetAmount
+            : hop.totalMakerAssetAmount;
+        return Object.assign(
+            {},
+            ...Object.entries(hop.fillAmountBySource).map(([source, sourceFillAmount]) => ({
+                [source as ERC20BridgeSource]: sourceFillAmount.div(hopTotalFillAmount).toNumber(),
+            })),
+        );
     });
+    if (hopFillResults.length > 1) {
+        return {
+            [ERC20BridgeSource.MultiHop]: {
+                proportion: 1,
+                tokenPath: tokenPath,
+                breakdowns: hopBreakdowns,
+            },
+        };
+    }
     return breakdown;
 }
 

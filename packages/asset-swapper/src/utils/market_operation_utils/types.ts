@@ -390,13 +390,16 @@ export interface MarketDepth {
     takerTokenDecimals: number;
 }
 
+export interface TokenAmountPerEth {
+    [tokenAddress: string]: BigNumber;
+}
+
 export interface MarketSideLiquidity {
     side: MarketOperation;
     inputAmount: BigNumber;
     inputToken: string;
     outputToken: string;
-    outputAmountPerEth: BigNumber;
-    inputAmountPerEth: BigNumber;
+    tokenAmountPerEth: TokenAmountPerEth;
     quoteSourceFilters: SourceFilters;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
