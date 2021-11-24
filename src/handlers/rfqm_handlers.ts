@@ -7,7 +7,7 @@ import {
     ValidationError,
     ValidationErrorCodes,
 } from '@0x/api-utils';
-import { MetaTransaction } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -16,19 +16,21 @@ import { Counter } from 'prom-client';
 
 import { CHAIN_ID, Integrator, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
 import { schemas } from '../schemas';
+import { RfqmService } from '../services/rfqm_service';
 import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
-    RfqmService,
     RfqmTypes,
     SubmitRfqmSignedQuoteParams,
-} from '../services/rfqm_service';
+} from '../services/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
+    RawOtcOrderFields,
     StringMetaTransactionFields,
     StringSignatureFields,
     stringsToMetaTransactionFields,
+    stringsToOtcOrderFields,
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../utils/schema_utils';
@@ -190,6 +192,18 @@ export class RfqmHandlers {
                     throw new InternalServerError(`An unexpected error occurred`);
                 }
             }
+        } else if (params.type === RfqmTypes.OtcOrder) {
+            try {
+                const response = await this._rfqmService.submitTakerSignedOtcOrderAsync(params);
+                res.status(HttpStatus.CREATED).send(response);
+            } catch (err) {
+                req.log.error(err, 'Encountered an error while queuing a signed quote');
+                if (isAPIError(err)) {
+                    throw err;
+                } else {
+                    throw new InternalServerError(`An unexpected error occurred`);
+                }
+            }
         } else {
             throw new NotImplementedError('rfqm type not supported');
         }
@@ -315,13 +329,22 @@ export class RfqmHandlers {
 
         if (type === RfqmTypes.MetaTransaction) {
             const metaTransaction = new MetaTransaction(
-                stringsToMetaTransactionFields(req.body.metaTransaction as unknown as StringMetaTransactionFields),
+                stringsToMetaTransactionFields(req.body.metaTransaction as StringMetaTransactionFields),
             );
-            const signature = stringsToSignature(req.body.signature as unknown as StringSignatureFields);
+            const signature = stringsToSignature(req.body.signature as StringSignatureFields);
 
             return {
                 type,
                 metaTransaction,
+                signature,
+                integrator,
+            };
+        } else if (type === RfqmTypes.OtcOrder) {
+            const order = new OtcOrder(stringsToOtcOrderFields(req.body.order as RawOtcOrderFields));
+            const signature = stringsToSignature(req.body.signature as StringSignatureFields);
+            return {
+                type,
+                order,
                 signature,
                 integrator,
             };

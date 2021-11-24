@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
-import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
+import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import 'mocha';
 import { Connection } from 'typeorm';
@@ -74,6 +74,13 @@ describe(SUITE_NAME, () => {
     });
 
     const otcOrderHash = otcOrder.getHash();
+
+    const takerSignature: Signature = {
+        v: 27,
+        r: '0xd00d00',
+        s: '0xcaca',
+        signatureType: 1,
+    };
 
     // tx properties
     const transactionHash = '0x5678';
@@ -371,6 +378,7 @@ describe(SUITE_NAME, () => {
                 makerUri,
                 isUnwrap: false,
                 order: otcOrderToStoredOtcOrder(otcOrder),
+                takerSignature,
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
             });
@@ -380,6 +388,7 @@ describe(SUITE_NAME, () => {
             expect(storedOtcOrderToOtcOrder(storedJob?.order!)).to.deep.eq(otcOrder);
             expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
             expect(storedJob?.status).to.eq(RfqmJobStatus.PendingProcessing);
+            expect(storedJob?.takerSignature).to.deep.eq(takerSignature);
 
             // Update
             await dbUtils.updateV2JobAsync(otcOrderHash, true, { status: RfqmJobStatus.SucceededConfirmed });

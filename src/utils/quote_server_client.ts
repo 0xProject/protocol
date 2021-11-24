@@ -275,7 +275,10 @@ export class QuoteServerClient {
         const signerAddress = getSignerFromHash(payload.orderHash, response.makerSignature).toLowerCase();
         const makerAddress = payload.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
-            logger.warn({ signerAddress, makerAddress, makerUri }, 'Signature is invalid');
+            logger.warn(
+                { signerAddress, makerAddress, orderHash: payload.orderHash, makerUri },
+                'Signature is invalid',
+            );
             return undefined;
         }
 

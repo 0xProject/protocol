@@ -4,7 +4,7 @@ import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, Quote
 // tslint:disable-next-line:no-duplicate-imports
 import { V4RFQIndicativeQuoteMM } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
-import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
+import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Fee, SubmitRequest } from '@0x/quote-server/lib/src/types';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
@@ -16,7 +16,6 @@ import { Producer } from 'sqs-producer';
 
 import {
     CHAIN_ID,
-    Integrator,
     META_TX_WORKER_REGISTRY,
     RFQM_MAINTENANCE_MODE,
     RFQM_MAKER_ASSET_OFFERINGS,
@@ -33,6 +32,7 @@ import {
     RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
 } from '../constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
+import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
@@ -53,85 +53,23 @@ import {
 import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { getSignerFromHash } from '../utils/signature_utils';
+
+import {
+    FetchFirmQuoteParams,
+    FetchFirmQuoteResponse,
+    FetchIndicativeQuoteParams,
+    FetchIndicativeQuoteResponse,
+    MetaTransactionSubmitRfqmSignedQuoteParams,
+    MetaTransactionSubmitRfqmSignedQuoteResponse,
+    OtcOrderSubmitRfqmSignedQuoteParams,
+    OtcOrderSubmitRfqmSignedQuoteResponse,
+    RfqmTypes,
+    StatusResponse,
+} from './types';
 
 export const BLOCK_FINALITY_THRESHOLD = 3;
 const MIN_GAS_PRICE_INCREASE = 0.1;
-
-export enum RfqmTypes {
-    MetaTransaction = 'metatransaction',
-    OtcOrder = 'otc',
-}
-
-export interface FetchIndicativeQuoteParams {
-    integrator: Integrator;
-    buyAmount?: BigNumber;
-    buyToken: string;
-    buyTokenDecimals: number;
-    sellAmount?: BigNumber;
-    sellToken: string;
-    sellTokenDecimals: number;
-    takerAddress?: string;
-    affiliateAddress?: string;
-}
-
-export interface FetchIndicativeQuoteResponse {
-    allowanceTarget?: string;
-    buyAmount: BigNumber;
-    buyTokenAddress: string;
-    gas: BigNumber;
-    price: BigNumber;
-    sellAmount: BigNumber;
-    sellTokenAddress: string;
-}
-
-export interface FetchFirmQuoteParams {
-    integrator: Integrator;
-    buyAmount?: BigNumber;
-    buyToken: string;
-    buyTokenDecimals: number;
-    sellAmount?: BigNumber;
-    sellToken: string;
-    sellTokenDecimals: number;
-    takerAddress: string;
-    affiliateAddress?: string;
-}
-
-export interface BaseRfqmQuoteResponse {
-    allowanceTarget?: string;
-    buyAmount: BigNumber;
-    buyTokenAddress: string;
-    gas: BigNumber;
-    price: BigNumber;
-    sellAmount: BigNumber;
-    sellTokenAddress: string;
-}
-
-export interface MetaTransactionSubmitRfqmSignedQuoteParams {
-    integrator: Integrator;
-    metaTransaction: MetaTransaction;
-    signature: Signature;
-    type: RfqmTypes.MetaTransaction;
-}
-
-export interface MetaTransactionSubmitRfqmSignedQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
-    metaTransactionHash: string;
-    orderHash: string;
-}
-
-export interface MetaTransactionRfqmQuoteResponse extends BaseRfqmQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
-    metaTransaction: MetaTransaction;
-    metaTransactionHash: string;
-    orderHash: string;
-}
-
-export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
-    type: RfqmTypes.OtcOrder;
-    order: OtcOrder;
-    orderHash: string;
-}
-
 interface SubmissionsMap {
     [transactionHash: string]: Partial<RfqmTransactionSubmissionEntity>;
 }
@@ -140,22 +78,11 @@ interface GasFees {
     maxFeePerGas: BigNumber;
     maxPriorityFeePerGas: BigNumber;
 }
-
 interface SubmissionContext {
     submissionsMap: SubmissionsMap;
     nonce: number;
     gasEstimate: number;
     gasFees: GasFees;
-}
-
-export type FetchFirmQuoteResponse = MetaTransactionRfqmQuoteResponse | OtcOrderRfqmQuoteResponse;
-export type SubmitRfqmSignedQuoteParams = MetaTransactionSubmitRfqmSignedQuoteParams;
-export type SubmitRfqmSignedQuoteResponse = MetaTransactionSubmitRfqmSignedQuoteResponse;
-
-export interface StatusResponse {
-    status: 'pending' | 'submitted' | 'failed' | 'succeeded' | 'confirmed';
-    // For pending, expect no transactions. For successful transactions, expect just the mined transaction.
-    transactions: { hash: string; timestamp: number /* unix ms */ }[];
 }
 
 const RFQM_QUOTE_INSERTED = new Counter({
@@ -743,6 +670,9 @@ export class RfqmService {
         );
     }
 
+    /**
+     * Validates and Enqueues the signed MetaTransaction for processing
+     */
     public async submitMetaTransactionSignedQuoteAsync(
         params: MetaTransactionSubmitRfqmSignedQuoteParams,
     ): Promise<MetaTransactionSubmitRfqmSignedQuoteResponse> {
@@ -839,7 +769,7 @@ export class RfqmService {
         try {
             // make sure job data is persisted to Postgres before queueing task
             await this._dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
-            await this._enqueueJobAsync(quote.orderHash!);
+            await this._enqueueJobAsync(quote.orderHash!, RfqmTypes.MetaTransaction);
         } catch (error) {
             logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
             throw new InternalServerError(
@@ -850,6 +780,119 @@ export class RfqmService {
         return {
             type: RfqmTypes.MetaTransaction,
             metaTransactionHash,
+            orderHash: quote.orderHash!,
+        };
+    }
+
+    /**
+     * Validates and enqueues the Taker Signed Otc Order for submission
+     */
+    public async submitTakerSignedOtcOrderAsync(
+        params: OtcOrderSubmitRfqmSignedQuoteParams,
+    ): Promise<OtcOrderSubmitRfqmSignedQuoteResponse> {
+        const { order, signature: takerSignature } = params;
+        const orderHash = params.order.getHash();
+
+        // check that the orderHash is indeed a recognized quote
+        const quote = await this._dbUtils.findV2QuoteByOrderHashAsync(orderHash);
+        if (quote === undefined) {
+            RFQM_SIGNED_QUOTE_NOT_FOUND.inc();
+            throw new NotFoundError('quote not found');
+        }
+
+        // validate that the expiration window is long enough to fill quote
+        const currentTimeMs = new Date().getTime();
+        if (!params.order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)) {
+            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+            throw new ValidationError([
+                {
+                    field: 'expiryAndNonce',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: `order will expire too soon`,
+                },
+            ]);
+        }
+
+        // validate that there is not a pending transaction for this taker and taker token
+        const pendingJobs = await this._dbUtils.findV2JobsWithStatusesAsync([
+            RfqmJobStatus.PendingEnqueued,
+            RfqmJobStatus.PendingProcessing,
+            RfqmJobStatus.PendingLastLookAccepted,
+            RfqmJobStatus.PendingSubmitted,
+        ]);
+
+        if (
+            pendingJobs.some(
+                (job) =>
+                    job.order?.order.taker.toLowerCase() === quote.order?.order.taker.toLowerCase() &&
+                    job.order?.order.takerToken.toLowerCase() === quote.order?.order.takerToken.toLowerCase() &&
+                    // Other logic handles the case where the same order is submitted twice
+                    job.orderHash !== quote.orderHash,
+            )
+        ) {
+            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.inc();
+            throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
+        }
+
+        // validate that the given taker signature is valid
+        const signerAddress = getSignerFromHash(orderHash, takerSignature).toLowerCase();
+        const takerAddress = order.taker.toLowerCase();
+        if (signerAddress !== takerAddress) {
+            logger.warn({ signerAddress, takerAddress, orderHash }, 'Signature is invalid');
+            throw new ValidationError([
+                {
+                    field: 'signature',
+                    code: ValidationErrorCodes.InvalidSignatureOrHash,
+                    reason: `signature is not valid`,
+                },
+            ]);
+        }
+
+        // validate that order is fillable by both the maker and the taker according to balances and allowances
+        const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+            [order.maker, order.taker],
+            [order.makerAmount.toString(), order.takerAmount.toString()],
+        );
+        if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
+            throw new ValidationError([
+                {
+                    field: 'n/a',
+                    code: ValidationErrorCodes.InvalidOrder,
+                    reason: `order is not fillable`,
+                },
+            ]);
+        }
+
+        // prepare the job
+        const rfqmJobOpts: RfqmV2JobConstructorOpts = {
+            orderHash: quote.orderHash!,
+            createdAt: new Date(),
+            expiry: order.expiry,
+            chainId: CHAIN_ID,
+            integratorId: quote.integratorId ? quote.integratorId : null,
+            makerUri: quote.makerUri,
+            status: RfqmJobStatus.PendingEnqueued,
+            fee: quote.fee,
+            order: quote.order,
+            takerSignature,
+            affiliateAddress: quote.affiliateAddress,
+        };
+
+        // this insert will fail if a job has already been created, ensuring
+        // that a signed quote cannot be queued twice
+        try {
+            // make sure job data is persisted to Postgres before queueing task
+            await this._dbUtils.writeV2JobAsync(rfqmJobOpts);
+            await this._enqueueJobAsync(quote.orderHash!, RfqmTypes.OtcOrder);
+        } catch (error) {
+            logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
+            throw new InternalServerError(
+                `failed to queue the quote for submission, it may have already been submitted`,
+            );
+        }
+
+        return {
+            type: RfqmTypes.OtcOrder,
             orderHash: quote.orderHash!,
         };
     }
@@ -1475,13 +1518,13 @@ export class RfqmService {
         return updatedEntity;
     }
 
-    private async _enqueueJobAsync(orderHash: string): Promise<void> {
+    private async _enqueueJobAsync(orderHash: string, type: RfqmTypes): Promise<void> {
         await this._sqsProducer.send({
             // wait, it's all order hash?
             // always has been.
             groupId: orderHash,
             id: orderHash,
-            body: JSON.stringify({ orderHash }),
+            body: JSON.stringify({ orderHash, type }),
             deduplicationId: orderHash,
         });
     }

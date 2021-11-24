@@ -11,7 +11,7 @@ import {
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, MetaTransactionFields, RfqOrder } from '@0x/protocol-utils';
+import { ethSignHashWithKey, MetaTransaction, MetaTransactionFields, OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -27,19 +27,27 @@ import { anyString, anything, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../src/constants';
+import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
-import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
+import {
+    RfqmJobEntity,
+    RfqmQuoteEntity,
+    RfqmTransactionSubmissionEntity,
+    RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
+} from '../src/entities';
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
+import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus, StoredFee } from '../src/entities/types';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
-import { BLOCK_FINALITY_THRESHOLD, RfqmService, RfqmTypes } from '../src/services/rfqm_service';
+import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
+import { RfqmTypes } from '../src/services/types';
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { PairsManager } from '../src/utils/pairs_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
-import { RfqmDbUtils, storedOrderToRfqmOrder } from '../src/utils/rfqm_db_utils';
+import { RfqmDbUtils, storedOrderToRfqmOrder, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {
@@ -91,7 +99,12 @@ const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
     feeType: 'fixed',
 };
 const MOCK_META_TX_CALL_DATA = '0x123';
-const VALID_SIGNATURE = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
+const RANDOM_VALID_SIGNATURE = {
+    r: '0x72ba2125d4efe1f9cc77882138ed94cbd485f8897fe6d9fe34854906634fc59d',
+    s: '0x1e19d3d29ab2855debc62a1df98a727673b8bf31c4da3a391a6eaea465920ff2',
+    v: 27,
+    signatureType: SignatureType.EthSign,
+};
 const SAFE_EXPIRY = '1903620548';
 const NONCE = 1;
 const GAS_ESTIMATE = 165000;
@@ -234,6 +247,10 @@ describe(SUITE_NAME, () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
+        when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            new BigNumber(1),
+            new BigNumber(1),
+        ]);
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(NONCE);
         when(rfqBlockchainUtilsMock.estimateGasForExchangeProxyCallAsync(anything(), anything())).thenResolve(
             GAS_ESTIMATE,
@@ -332,6 +349,9 @@ describe(SUITE_NAME, () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
 
     afterEach(async () => {
@@ -342,6 +362,9 @@ describe(SUITE_NAME, () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
         await new Promise<void>((resolve, reject) => {
             server.close((err?: Error) => {
                 if (err) {
@@ -854,9 +877,7 @@ describe(SUITE_NAME, () => {
                                 ...BASE_SIGNED_ORDER,
                                 makerAmount: winningQuote,
                                 takerAmount: sellAmount,
-                                signature: {
-                                    ...VALID_SIGNATURE,
-                                },
+                                signature: RANDOM_VALID_SIGNATURE,
                             },
                         },
                     },
@@ -878,7 +899,7 @@ describe(SUITE_NAME, () => {
                                 makerAmount: losingQuote,
                                 takerAmount: sellAmount,
                                 signature: {
-                                    ...VALID_SIGNATURE,
+                                    ...RANDOM_VALID_SIGNATURE,
                                     r: '0xb1',
                                     s: '0xb2',
                                 },
@@ -955,9 +976,7 @@ describe(SUITE_NAME, () => {
                                 ...BASE_SIGNED_ORDER,
                                 makerAmount: insufficientSellAmount,
                                 takerAmount: insufficientSellAmount,
-                                signature: {
-                                    ...VALID_SIGNATURE,
-                                },
+                                signature: RANDOM_VALID_SIGNATURE,
                             },
                         },
                     },
@@ -979,7 +998,7 @@ describe(SUITE_NAME, () => {
                                 makerAmount: insufficientSellAmount,
                                 takerAmount: insufficientSellAmount,
                                 signature: {
-                                    ...VALID_SIGNATURE,
+                                    ...RANDOM_VALID_SIGNATURE,
                                     r: '0xb1',
                                     s: '0xb2',
                                 },
@@ -1054,18 +1073,14 @@ describe(SUITE_NAME, () => {
                 signedOrder: {
                     ...baseRfqOrder,
                     makerAmount: losingQuote,
-                    signature: {
-                        ...VALID_SIGNATURE,
-                    },
+                    signature: RANDOM_VALID_SIGNATURE,
                 },
             });
             mockAxios.onGet(`${MARKET_MAKER_2}/quote`, { headers, params: rfqOrderParams }).replyOnce(HttpStatus.OK, {
                 signedOrder: {
                     ...baseRfqOrder,
                     makerAmount: losingQuote,
-                    signature: {
-                        ...VALID_SIGNATURE,
-                    },
+                    signature: RANDOM_VALID_SIGNATURE,
                 },
             });
 
@@ -1141,6 +1156,7 @@ describe(SUITE_NAME, () => {
                 ...overrideFields,
             });
         };
+
         const mockStoredFee: StoredFee = {
             token: '0x123',
             amount: '1000',
@@ -1163,6 +1179,32 @@ describe(SUITE_NAME, () => {
                 verifyingContract: '0x123',
             },
         };
+        // OtcOrder Taker
+        const otcOrderTakerAddress = '0xdA9AC423442169588DE6b4305f4E820D708d0cE5';
+        const otcOrderTakerPrivateKey = '0x653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
+
+        // OtcOrder
+        const mockStoredOtcOrder: StoredOtcOrder = {
+            type: RfqmOrderTypes.Otc,
+            order: {
+                txOrigin: '0x123',
+                maker: '0x123',
+                taker: otcOrderTakerAddress,
+                makerToken: '0x123',
+                takerToken: '0x123',
+                makerAmount: '1',
+                takerAmount: '1',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                    new BigNumber(SAFE_EXPIRY),
+                    ZERO,
+                    new BigNumber(SAFE_EXPIRY),
+                ).toString(),
+                chainId: '1337',
+                verifyingContract: '0x123',
+            },
+        };
+        const otcOrder = storedOtcOrderToOtcOrder(mockStoredOtcOrder);
+
         it('should return status 201 created and queue up a job with a successful request', async () => {
             const mockMetaTx = createMockMetaTx();
             const order = storedOrderToRfqmOrder(mockStoredOrder);
@@ -1181,7 +1223,11 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({
+                    type: RfqmTypes.MetaTransaction,
+                    metaTransaction: mockMetaTx,
+                    signature: RANDOM_VALID_SIGNATURE,
+                })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -1197,25 +1243,86 @@ describe(SUITE_NAME, () => {
             expect(dbJobEntity?.makerUri).to.equal(MARKET_MAKER_1);
             expect(dbJobEntity?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
         });
+
+        it('[v2] should return status 201 created and queue up a job with a successful request', async () => {
+            // OtcOrder
+            const order = otcOrder;
+            const orderHash = order.getHash();
+
+            // Taker Signature
+            const takerSignature = ethSignHashWithKey(orderHash, otcOrderTakerPrivateKey);
+
+            const mockQuote = new RfqmV2QuoteEntity({
+                orderHash,
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOtcOrder,
+                chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+            });
+
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+
+            const appResponse = await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.orderHash).to.eq(orderHash);
+
+            const dbJobEntity = await connection.getRepository(RfqmV2JobEntity).findOne({
+                orderHash,
+            });
+            expect(dbJobEntity).to.not.be.null();
+            expect(dbJobEntity?.orderHash).to.equal(mockQuote.orderHash);
+            expect(dbJobEntity?.makerUri).to.equal(MARKET_MAKER_1);
+            expect(dbJobEntity?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
+            expect(dbJobEntity?.takerSignature).to.deep.eq(takerSignature);
+        });
+
         it('should return status 404 not found if there is not a pre-existing quote', async () => {
             const mockMetaTx = createMockMetaTx();
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({
+                    type: RfqmTypes.MetaTransaction,
+                    metaTransaction: mockMetaTx,
+                    signature: RANDOM_VALID_SIGNATURE,
+                })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.NOT_FOUND)
                 .expect('Content-Type', /json/);
 
             expect(appResponse.body.reason).to.equal('Not Found');
         });
+
+        it('[v2] should return status 404 not found if there is not a pre-existing quote', async () => {
+            const order = otcOrder;
+
+            // Taker Signature
+            const takerSignature = ethSignHashWithKey(order.getHash(), otcOrderTakerPrivateKey);
+
+            const appResponse = await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.NOT_FOUND)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Not Found');
+        });
+
         it('should return a 400 BAD REQUEST Error the type is not supported', async () => {
             const mockMetaTx = createMockMetaTx();
             const invalidType = 'v10rfq';
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: invalidType, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({ type: invalidType, metaTransaction: mockMetaTx, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
@@ -1225,6 +1332,7 @@ describe(SUITE_NAME, () => {
                 `${invalidType} is an invalid value for 'type'`,
             );
         });
+
         it('should fail with status code 500 if a quote has already been submitted', async () => {
             const mockMetaTx = createMockMetaTx();
             const order = storedOrderToRfqmOrder(mockStoredOrder);
@@ -1240,7 +1348,11 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({
+                    type: RfqmTypes.MetaTransaction,
+                    metaTransaction: mockMetaTx,
+                    signature: RANDOM_VALID_SIGNATURE,
+                })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -1248,11 +1360,52 @@ describe(SUITE_NAME, () => {
             // try to submit again
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({
+                    type: RfqmTypes.MetaTransaction,
+                    metaTransaction: mockMetaTx,
+                    signature: RANDOM_VALID_SIGNATURE,
+                })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expect('Content-Type', /json/);
         });
+
+        it('[v2] should fail with status code 500 if a quote has already been submitted', async () => {
+            // OtcOrder
+            const order = otcOrder;
+            const orderHash = order.getHash();
+
+            // Taker Signature
+            const takerSignature = ethSignHashWithKey(orderHash, otcOrderTakerPrivateKey);
+
+            const mockQuote = new RfqmV2QuoteEntity({
+                orderHash,
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOtcOrder,
+                chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+            });
+
+            // write a corresponding quote entity to validate against
+            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            // try to submit again
+            await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.INTERNAL_SERVER_ERROR)
+                .expect('Content-Type', /json/);
+        });
+
         it('should fail with 400 BAD REQUEST if meta tx is too close to expiration', async () => {
             const mockMetaTx = createMockMetaTx({ expirationTimeSeconds: new BigNumber(1) });
             const order = storedOrderToRfqmOrder(mockStoredOrder);
@@ -1268,13 +1421,72 @@ describe(SUITE_NAME, () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction: mockMetaTx, signature: VALID_SIGNATURE })
+                .send({
+                    type: RfqmTypes.MetaTransaction,
+                    metaTransaction: mockMetaTx,
+                    signature: RANDOM_VALID_SIGNATURE,
+                })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
             expect(appResponse.body.reason).to.equal('Validation Failed');
             expect(appResponse.body.validationErrors[0].reason).to.equal(`metatransaction will expire too soon`);
+        });
+
+        it('[v2] should fail with 400 BAD REQUEST if meta tx is too close to expiration', async () => {
+            const order = new OtcOrder({
+                ...otcOrder,
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(ZERO, ZERO, ZERO),
+            });
+            const orderHash = order.getHash();
+
+            const mockQuote = new RfqmV2QuoteEntity({
+                orderHash,
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOtcOrder,
+                chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+            });
+
+            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+
+            const appResponse = await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+            expect(appResponse.body.validationErrors[0].reason).to.equal(`order will expire too soon`);
+        });
+
+        it('[v2] should fail with 400 BAD REQUEST if signature is invalid', async () => {
+            const order = otcOrder;
+            const orderHash = order.getHash();
+
+            const mockQuote = new RfqmV2QuoteEntity({
+                orderHash,
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOtcOrder,
+                chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+            });
+
+            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+
+            const appResponse = await request(app)
+                .post(`${RFQM_PATH}/submit`)
+                .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+            expect(appResponse.body.validationErrors[0].reason).to.equal(`signature is not valid`);
         });
     });
 
@@ -1374,7 +1586,7 @@ describe(SUITE_NAME, () => {
         });
         const metaTransaction = blockchainUtils.generateMetaTransaction(
             order,
-            VALID_SIGNATURE,
+            RANDOM_VALID_SIGNATURE,
             taker,
             new BigNumber(1),
             CHAIN_ID,
@@ -1427,7 +1639,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -1455,7 +1667,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -1473,7 +1685,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -1499,7 +1711,7 @@ describe(SUITE_NAME, () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: VALID_SIGNATURE })
+                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
