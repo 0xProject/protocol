@@ -28,7 +28,6 @@ import {
     META_TX_WORKER_MNEMONIC,
     META_TX_WORKER_REGISTRY,
     REDIS_URI,
-    RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_META_TX_SQS_URL,
     RFQM_WORKER_INDEX,
     RFQ_PROXY_ADDRESS,
@@ -121,6 +120,7 @@ export async function buildRfqmServiceAsync(
         provider = rpcProvider;
     }
 
+    const pairsManager = new PairsManager(configManager);
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     axiosInstance.defaults.raxConfig = {
@@ -129,9 +129,12 @@ export async function buildRfqmServiceAsync(
         instance: axiosInstance,
     };
     rax.attach(axiosInstance);
+
+    // NOTE: QuoteRequestor is only used for RfqOrder
+    const rfqmMakerAssetOfferingsForRfqOrder = pairsManager.getRfqmMakerOfferingsForRfqOrder();
     const quoteRequestor = new QuoteRequestor(
         {}, // No RFQT offerings
-        RFQM_MAKER_ASSET_OFFERINGS,
+        rfqmMakerAssetOfferingsForRfqOrder,
         axiosInstance,
         undefined, // No Alt RFQM offerings at the moment
         logger.warn.bind(logger),
@@ -167,8 +170,6 @@ export async function buildRfqmServiceAsync(
 
     const redisClient = redis.createClient({ url: REDIS_URI });
     const cacheClient = new CacheClient(redisClient);
-
-    const pairsManager = new PairsManager(configManager);
 
     const kafkaProducer = getKafkaProducer();
 

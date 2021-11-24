@@ -145,4 +145,31 @@ describe('PairsManager', () => {
             expect(uris).to.deep.eq([]);
         });
     });
+
+    describe('getRfqmMakerOfferingsForRfqOrder', () => {
+        it('should return the RfqMakerAssetOfferings for RfqOrder', () => {
+            // Given
+            const rfqmOfferings: RfqMakerAssetOfferings = {
+                'https://maker1.asdf': [[tokenA, tokenB]],
+                'https://maker2.asdf': [[tokenA, tokenB]],
+                'https://maker3.asdf': [[tokenA, tokenC]],
+            };
+            const configManagerMock = mock(ConfigManager);
+            when(configManagerMock.getRfqmAssetOfferings()).thenReturn(rfqmOfferings);
+            when(configManagerMock.getRfqmMakerSetForRfqOrder()).thenReturn(
+                new Set(['https://maker2.asdf', 'https://maker3.asdf']),
+            );
+            const configManager = instance(configManagerMock);
+            const pairsManager = new PairsManager(configManager);
+
+            // When
+            const assetOfferings = pairsManager.getRfqmMakerOfferingsForRfqOrder();
+
+            // Then
+            expect(assetOfferings).to.deep.eq({
+                'https://maker2.asdf': [[tokenA, tokenB]],
+                'https://maker3.asdf': [[tokenA, tokenC]],
+            });
+        });
+    });
 });

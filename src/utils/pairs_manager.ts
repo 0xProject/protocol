@@ -48,14 +48,15 @@ type PairsToUris = Record<string, string[]>;
  * PairsManager abstracts away all operations for handling maker pairs
  */
 export class PairsManager {
+    private readonly _rfqmOfferings: RfqMakerAssetOfferings;
     private readonly _rfqmPairToMakerUris: PairsToUris;
     private readonly _rfqtPairToMakerUris: PairsToUris;
 
     constructor(private readonly _configManager: ConfigManager) {
-        const rfqmOfferings = _configManager.getRfqmAssetOfferings();
+        this._rfqmOfferings = _configManager.getRfqmAssetOfferings();
         const rfqtOfferings = _configManager.getRfqtAssetOfferings();
 
-        this._rfqmPairToMakerUris = generatePairToMakerUriMap(rfqmOfferings);
+        this._rfqmPairToMakerUris = generatePairToMakerUriMap(this._rfqmOfferings);
         this._rfqtPairToMakerUris = generatePairToMakerUriMap(rfqtOfferings);
     }
 
@@ -81,5 +82,20 @@ export class PairsManager {
         const makerUris = this.getRfqmMakerUrisForPair(makerToken, takerToken);
 
         return makerUris.filter((makerUri) => otcMakerSet.has(makerUri));
+    }
+
+    /**
+     * Get the RfqMakerAssetOfferings for RfqOrder
+     */
+    public getRfqmMakerOfferingsForRfqOrder(): RfqMakerAssetOfferings {
+        const rfqMakerSet = this._configManager.getRfqmMakerSetForRfqOrder();
+        const rfqMakerOfferings = { ...this._rfqmOfferings };
+        for (const makerUri in rfqMakerOfferings) {
+            if (!rfqMakerSet.has(makerUri)) {
+                delete rfqMakerOfferings[makerUri];
+            }
+        }
+
+        return rfqMakerOfferings;
     }
 }
