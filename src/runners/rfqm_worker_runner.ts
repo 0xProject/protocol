@@ -96,7 +96,25 @@ if (require.main === module) {
         // Run the worker
         const worker = createRfqmWorker(rfqmService, workerAddress);
         logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Starting RFQM worker');
-        await worker.consumeAsync();
+        const consumeLoop: Promise<void> = worker.consumeAsync();
+
+        // Add SIGTERM signal handler
+        process.on('SIGTERM', async () => {
+            logger.info(
+                { workerAddress, workerIndex: RFQM_WORKER_INDEX },
+                'SIGTERM signal received. Stop consuming more queue messages.',
+            );
+
+            // Avoid pulling more messages from the queue
+            worker.stop();
+
+            // Wait to finish processing current queue message
+            await consumeLoop;
+            logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Worker has stopped consuming.');
+        });
+
+        // Wait for pulling loop
+        await consumeLoop;
     })(); // tslint:disable-line no-floating-promises
 }
 
