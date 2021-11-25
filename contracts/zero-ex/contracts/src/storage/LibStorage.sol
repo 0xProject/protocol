@@ -39,7 +39,8 @@ library LibStorage {
         MetaTransactions,
         ReentrancyGuard,
         NativeOrders,
-        OtcOrders
+        OtcOrders,
+        ERC721Orders
     }
 
     /// @dev Get the storage slot given a storage ID. We assign unique, well-spaced
