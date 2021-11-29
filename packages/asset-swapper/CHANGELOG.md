@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.38.0 - _November 29, 2021_
+
+    * Capture sampler metrics (#374)
+
 ## v16.37.0 - _November 19, 2021_
 
     * Changed Sushiswap router address (#373)
