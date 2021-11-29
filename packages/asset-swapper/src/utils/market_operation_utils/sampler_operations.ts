@@ -158,6 +158,30 @@ export class SamplerOperations {
         };
     }
 
+    public getGasLeft(): BatchedOperation<BigNumber> {
+        return {
+            encodeCall: () => this._samplerContract.getGasLeft().getABIEncodedTransactionData(),
+            handleCallResults: (callResults: string) =>
+                this._samplerContract.getABIDecodedReturnData<BigNumber>('getGasLeft', callResults),
+            handleRevert: () => {
+                /* should never happen */
+                throw new Error('Invalid result for getGasLeft');
+            },
+        };
+    }
+
+    public getBlockNumber(): BatchedOperation<BigNumber> {
+        return {
+            encodeCall: () => this._samplerContract.getBlockNumber().getABIEncodedTransactionData(),
+            handleCallResults: (callResults: string) =>
+                this._samplerContract.getABIDecodedReturnData<BigNumber>('getBlockNumber', callResults),
+            handleRevert: () => {
+                /* should never happen */
+                throw new Error('Invalid result for getBlockNumber');
+            },
+        };
+    }
+
     public getLimitOrderFillableTakerAmounts(
         orders: SignedNativeOrder[],
         exchangeAddress: string,
