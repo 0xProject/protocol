@@ -6,7 +6,8 @@
                 "note": "Capture sampler metrics",
                 "pr": 374
             }
-        ]
+        ],
+        "timestamp": 1638228231
     },
     {
         "version": "16.37.0",
