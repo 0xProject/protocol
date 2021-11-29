@@ -686,7 +686,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.USDC,
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
-        [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.CELO],
+        [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.WCELO],
     },
     [],
 );
