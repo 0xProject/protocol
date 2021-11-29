@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.38.0",
+        "changes": [
+            {
+                "note": "Capture sampler metrics",
+                "pr": 374
+            }
+        ]
+    },
+    {
         "version": "16.37.0",
         "changes": [
             {
