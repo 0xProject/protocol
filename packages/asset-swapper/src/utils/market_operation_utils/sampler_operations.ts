@@ -158,6 +158,18 @@ export class SamplerOperations {
         };
     }
 
+    public getGasLeft(): BatchedOperation<BigNumber> {
+        return {
+            encodeCall: () => this._samplerContract.getGasLeft().getABIEncodedTransactionData(),
+            handleCallResults: (callResults: string) =>
+                this._samplerContract.getABIDecodedReturnData<BigNumber>('getGasLeft', callResults),
+            handleRevert: () => {
+                /* should never happen */
+                throw new Error('Invalid result for getGasLeft');
+            },
+        };
+    }
+
     public getLimitOrderFillableTakerAmounts(
         orders: SignedNativeOrder[],
         exchangeAddress: string,

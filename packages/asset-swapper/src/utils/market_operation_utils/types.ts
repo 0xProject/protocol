@@ -469,6 +469,21 @@ export interface GetMarketOrdersOpts {
      * Gas price to use for quote
      */
     gasPrice: BigNumber;
+
+    /**
+     * Sampler metrics for recording data on the sampler service and operations
+     */
+    samplerMetrics?: SamplerMetrics;
+}
+
+export interface SamplerMetrics {
+    /**
+     * Logs the gas information performed during a sampler call.
+     *
+     * @param data.gasBefore The gas remaining measured before any operations have been performed
+     * @param data.gasAfter The gas remaining measured after all operations have been performed
+     */
+    logGasDetails(data: { gasBefore: BigNumber; gasAfter: BigNumber }): void;
 }
 
 /**

@@ -77,4 +77,11 @@ contract UtilitySampler {
         assembly { size := extcodesize(account) }
         return size > 0;
     }
+
+    function getGasLeft()
+        public
+        returns (uint256)
+    {
+        return gasleft();
+    }
 }

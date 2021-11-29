@@ -158,6 +158,7 @@ export class MarketOperationUtils {
 
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
+            this._sampler.getGasLeft(),
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
@@ -184,6 +185,7 @@ export class MarketOperationUtils {
                 takerAmount,
             ),
             this._sampler.isAddressContract(txOrigin),
+            this._sampler.getGasLeft(),
         );
 
         // Refresh the cached pools asynchronously if required
@@ -191,6 +193,7 @@ export class MarketOperationUtils {
 
         const [
             [
+                gasBefore,
                 tokenDecimals,
                 orderFillableTakerAmounts,
                 outputAmountPerEth,
@@ -198,8 +201,12 @@ export class MarketOperationUtils {
                 dexQuotes,
                 rawTwoHopQuotes,
                 isTxOriginContract,
+                gasAfter,
             ],
         ] = await Promise.all([samplerPromise]);
+
+        // Log the gas metrics
+        _opts.samplerMetrics?.logGasDetails({ gasBefore, gasAfter });
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
