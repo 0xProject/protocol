@@ -435,6 +435,8 @@ const EXCLUDED_SOURCES = (() => {
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Avalanche:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
+        case ChainId.Celo:
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Fantom:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
@@ -453,6 +455,8 @@ const EXCLUDED_FEE_SOURCES = (() => {
         case ChainId.BSC:
             return [ERC20BridgeSource.Uniswap];
         case ChainId.Polygon:
+            return [];
+        case ChainId.Celo:
             return [];
         default:
             return [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];

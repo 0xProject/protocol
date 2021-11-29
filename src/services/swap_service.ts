@@ -217,6 +217,7 @@ export class SwapService {
 
         // Check if integrator ID specifically whitelists a set of maker URIs. If whitelist is "undefined" then it
         // means all integrators will be enabled.
+
         if (shouldEnableRfqt) {
             // tslint:disable-next-line:custom-no-magic-numbers
             const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
@@ -282,7 +283,7 @@ export class SwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport, extendedQuoteReportSources, priceComparisonsReport } =
+        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport, extendedQuoteReportSources } =
             swapQuote;
 
         const {
@@ -388,12 +389,13 @@ export class SwapService {
             orders: swapQuote.orders,
             allowanceTarget,
             decodedUniqueId,
+            extendedQuoteReportSources,
             sellTokenToEthRate,
             buyTokenToEthRate,
             quoteReport,
-            extendedQuoteReportSources,
             priceComparisonsReport,
         };
+
         return apiSwapQuote;
     }
 

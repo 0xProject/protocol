@@ -92,11 +92,11 @@
     },
     "devDependencies": {
         "@0x/contracts-erc20": "^3.3.22",
-        "@0x/contracts-test-utils": "^5.4.13",
-        "@0x/contracts-treasury": "^1.4.5",
+        "@0x/contracts-test-utils": "^5.4.14",
+        "@0x/contracts-treasury": "^1.4.6",
         "@0x/contracts-utils": "^4.8.4",
         "@0x/dev-utils": "^4.2.10",
-        "@0x/migrations": "^8.1.9",
+        "@0x/migrations": "^8.1.12",
         "@0x/neon-router": "^0.2.1",
         "@0x/tslint-config": "^4.1.4",
         "@0x/typescript-typings": "^5.2.1",
@@ -140,7 +140,7 @@
     "dependencies": {
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.30",
-        "@0x/asset-swapper": "^16.36.0",
+        "@0x/asset-swapper": "^16.37.0",
         "@0x/contract-addresses": "^6.9.0",
         "@0x/contract-wrappers": "^13.18.3",
         "@0x/contracts-zero-ex": "^0.29.5",
