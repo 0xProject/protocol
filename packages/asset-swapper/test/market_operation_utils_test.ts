@@ -429,6 +429,7 @@ describe('MarketOperationUtils tests', () => {
         getTwoHopBuyQuotes: (..._params: any[]) => [],
         isAddressContract: (..._params: any[]) => false,
         getGasLeft: () => ZERO_AMOUNT,
+        getBlockNumber: () => ZERO_AMOUNT,
     };
 
     const MOCK_SAMPLER = ({

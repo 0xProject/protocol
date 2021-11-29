@@ -484,6 +484,13 @@ export interface SamplerMetrics {
      * @param data.gasAfter The gas remaining measured after all operations have been performed
      */
     logGasDetails(data: { gasBefore: BigNumber; gasAfter: BigNumber }): void;
+
+    /**
+     * Logs the block number
+     *
+     * @param blockNumber block number of the sampler call
+     */
+    logBlockNumber(blockNumber: BigNumber): void;
 }
 
 /**

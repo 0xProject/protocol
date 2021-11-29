@@ -158,6 +158,7 @@ export class MarketOperationUtils {
 
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
+            this._sampler.getBlockNumber(),
             this._sampler.getGasLeft(),
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
@@ -193,6 +194,7 @@ export class MarketOperationUtils {
 
         const [
             [
+                blockNumber,
                 gasBefore,
                 tokenDecimals,
                 orderFillableTakerAmounts,
@@ -207,6 +209,7 @@ export class MarketOperationUtils {
 
         // Log the gas metrics
         _opts.samplerMetrics?.logGasDetails({ gasBefore, gasAfter });
+        _opts.samplerMetrics?.logBlockNumber(blockNumber);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(

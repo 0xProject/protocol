@@ -84,4 +84,12 @@ contract UtilitySampler {
     {
         return gasleft();
     }
+
+    function getBlockNumber()
+        public
+        view
+        returns (uint256)
+    {
+        return block.number;
+    }
 }
