@@ -166,9 +166,42 @@ export interface BalancerV2PoolInfo {
 export interface DexSample {
     source: ERC20BridgeSource;
     encodedFillData: Bytes;
+    metadata?: any;
     input: BigNumber;
     output: BigNumber;
     gasCost: number;
+}
+
+export interface BridgeFillData {
+    encodedFillData: Bytes;
+}
+
+export interface UniswapV2FillData extends BridgeFillData {
+    tokenAddressPath: Address[];
+}
+
+export interface UniswapV3FillData extends BridgeFillData {
+    encodedPath: Bytes;
+}
+
+export interface LiquidityProviderFillData extends BridgeFillData {
+    poolAddress: Address;
+}
+
+export interface CurveFillData extends BridgeFillData {
+    poolAddress: Address;
+    exchangeFunctionSelector: Bytes;
+    fromTokenIdx: number;
+    toTokenIdx: number;
+}
+
+export interface MooniswapFillData extends BridgeFillData {
+    poolAddress: Address;
+}
+
+export interface NativeOrderFillData {
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    orderInfo: FillQuoteTransformerLimitOrderInfo;
 }
 
 /**
@@ -179,7 +212,7 @@ export interface Fill {
     source: ERC20BridgeSource;
     // TODO jacob people seem to agree  that orderType here is more readable
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    encodedFillData: Bytes;
+    data?: any;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -200,13 +233,33 @@ export interface Fill {
     gasCost: number;
 }
 
+export interface BridgeFill<TData extends BridgeFillData> extends Fill {
+    data: TData;
+}
+
+export interface GenericBridgeFill extends BridgeFill<BridgeFillData> {}
+
+export interface  UniswapV2BridgeFill extends BridgeFill<UniswapV2FillData> {}
+
+export interface  UniswapV3BridgeFill extends BridgeFill<UniswapV3FillData> {}
+
+export interface  LiquidityProviderBridgeFill extends BridgeFill<LiquidityProviderFillData> {}
+
+export interface  CurveBridgeFill extends BridgeFill<CurveFillData> {}
+
+export interface  MooniswapBridgeFill extends BridgeFill<MooniswapFillData> {}
+
+export interface NativeOrderFill extends Fill {
+    data: NativeOrderFillData;
+}
+
 /**
  * Represents continguous fills on a path that have been merged together.
  */
 export interface CollapsedFill {
     source: ERC20BridgeSource;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    encodedFillData: Bytes;
+    data?: any;
     // Unique ID of the original source path this fill belongs to.
     // This is generated when the path is generated and is useful to distinguish
     // paths that have the same `source` IDs but are distinct (e.g., Curves).
@@ -230,14 +283,29 @@ export interface CollapsedFill {
     isFallback: boolean;
 }
 
-/**
- * A `CollapsedFill` wrapping a native order.
- */
-export interface NativeCollapsedFill extends CollapsedFill {}
+export interface CollapsedBridgeFill<TData extends BridgeFillData> extends CollapsedFill {
+    data: TData;
+}
 
-export interface OptimizedOrderBase {
+export interface CollapsedGenericBridgeFill extends CollapsedBridgeFill<BridgeFillData> {}
+
+export interface CollapsedUniswapV2BridgeFill extends CollapsedBridgeFill<UniswapV2FillData> {}
+
+export interface CollapsedUniswapV3BridgeFill extends CollapsedBridgeFill<UniswapV3FillData> {}
+
+export interface CollapsedLiquidityProviderBridgeFill extends CollapsedBridgeFill<LiquidityProviderFillData> {}
+
+export interface CollapsedCurveBridgeFill extends CollapsedBridgeFill<CurveFillData> {}
+
+export interface CollapsedMooniswapBridgeFill extends CollapsedBridgeFill<MooniswapFillData> {}
+
+export interface CollapsedNativeOrderFill extends CollapsedFill {
+    data: NativeOrderFillData;
+}
+
+export interface OptimizedOrder {
     source: ERC20BridgeSource;
-    type: FillQuoteTransformerOrderType; // should correspond with TFillData
+    type: FillQuoteTransformerOrderType;
     inputToken: string;
     outputToken: string;
     gasCost: number;
@@ -245,31 +313,28 @@ export interface OptimizedOrderBase {
     outputAmount: BigNumber;
     fills: CollapsedFill[];
     isFallback: boolean;
+    fillData: any;
 }
 
-export interface OptimizedBridgeOrder extends OptimizedOrderBase {
+export interface OptimizedBridgeOrder<TFillData extends BridgeFillData> extends OptimizedOrder {
     type: FillQuoteTransformerOrderType.Bridge;
     sourcePathId: string;
-    encodedFillData: Bytes;
+    fillData: TFillData;
 }
 
-export interface OptimizedLimitOrder extends OptimizedOrderBase {
+export interface OptimizedGenericBridgeOrder extends OptimizedBridgeOrder<BridgeFillData> {}
+
+export interface OptimizedUniswapV2BridgeOrder extends OptimizedBridgeOrder<UniswapV2FillData> {}
+
+export interface OptimizedLimitOrder extends OptimizedOrder {
     type: FillQuoteTransformerOrderType.Limit;
-    orderInfo: FillQuoteTransformerLimitOrderInfo;
+    fillData: Omit<NativeOrderFillData, 'type'>;
 }
 
-export interface OptimizedRfqOrder extends OptimizedOrderBase {
+export interface OptimizedRfqOrder extends OptimizedOrder {
     type: FillQuoteTransformerOrderType.Rfq;
-    orderInfo: FillQuoteTransformerRfqOrderInfo;
+    fillData: Omit<NativeOrderFillData, 'type'>;
 }
-
-/**
- * Optimized orders to fill.
- */
-export type OptimizedOrder =
-    | OptimizedBridgeOrder
-    | OptimizedRfqOrder
-    | OptimizedLimitOrder;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     quoteRequestor?: QuoteRequestor;

@@ -172,7 +172,7 @@ export function dexSamplesToFills(
     for (let i = 0; i < nonzeroSamples.length; i++) {
         const sample = nonzeroSamples[i];
         const prevSample = i === 0 ? undefined : nonzeroSamples[i - 1];
-        const { source, encodedFillData } = sample;
+        const { source, encodedFillData, metadata } = sample;
         const input = sample.input.minus(prevSample ? prevSample.input : 0);
         const output = sample.output.minus(prevSample ? prevSample.output : 0);
         const fee = gasPrice.times(sample.gasCost);
@@ -195,12 +195,15 @@ export function dexSamplesToFills(
             output,
             adjustedOutput,
             source,
-            encodedFillData,
             type: FillQuoteTransformerOrderType.Bridge,
             gasCost: sample.gasCost,
             index: i,
             parent: i !== 0 ? fills[fills.length - 1] : undefined,
             flags: SOURCE_FLAGS[source],
+            data: {
+                ...metadata,
+                encodedFillData,
+            },
         });
     }
     return fills;

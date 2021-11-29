@@ -20,6 +20,8 @@ import {
     SwapQuoteInfo,
     SwapQuoteHop,
     SwapQuoteOrder,
+    SwapQuoteGenericBridgeOrder,
+    SwapQuoteNativeOrder,
     SwapQuoteOrdersBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -41,6 +43,7 @@ import {
     OptimizedBridgeOrder,
     OptimizedLimitOrder,
     OptimizedRfqOrder,
+    OptimizedGenericBridgeOrder,
     OptimizerResultWithReport,
 } from './utils/market_operation_utils/types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
@@ -550,7 +553,7 @@ function slipTakerAmount(side: MarketOperation, takerAmount: BigNumber, slippage
     );
 }
 
-function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage: number): SwapQuoteOrder {
+function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage: number): SwapQuoteGenericBridgeOrder | SwapQuoteNativeOrder {
     const { inputToken, outputToken, inputAmount, outputAmount, ...rest } = order;
     const common = {
         ...rest,
@@ -562,7 +565,6 @@ function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage
     if (isBridgeOrder(order)) {
         return {
             ...common,
-            encodedFillData: order.encodedFillData,
             minMakerAmount: slipMakerAmount(
                 side,
                 side === MarketOperation.Sell
@@ -579,13 +581,10 @@ function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage
             ),
         };
     }
-    return {
-        ...common,
-        orderInfo: order.orderInfo,
-    } as any; // y typescript
+    return common as SwapQuoteNativeOrder;
 }
 
-function isBridgeOrder(order: OptimizedOrder): order is OptimizedBridgeOrder {
+function isBridgeOrder(order: OptimizedOrder): order is OptimizedGenericBridgeOrder {
     return order.type === FillQuoteTransformerOrderType.Bridge;
 }
 

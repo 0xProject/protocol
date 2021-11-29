@@ -4,10 +4,10 @@ import { Address, MarketOperation } from '../../types';
 
 import {
     AggregationError,
-    CollapsedFill,
+    CollapsedGenericBridgeFill,
     ERC20BridgeSource,
-    NativeCollapsedFill,
-    OptimizedBridgeOrder,
+    CollapsedNativeOrderFill,
+    OptimizedGenericBridgeOrder,
     OptimizedLimitOrder,
     OptimizedRfqOrder,
 } from './types';
@@ -131,22 +131,23 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
 }
 
 export function createBridgeOrder(
-    fill: CollapsedFill,
+    fill: CollapsedGenericBridgeFill,
     inputToken: Address,
     outputToken: Address,
-): OptimizedBridgeOrder {
+): OptimizedGenericBridgeOrder {
     return {
         inputToken,
         outputToken,
         inputAmount: fill.input,
         outputAmount: fill.output,
-        encodedFillData: fill.encodedFillData,
+        fillData: fill.data,
         source: fill.source,
         sourcePathId: fill.sourcePathId,
         type: FillQuoteTransformerOrderType.Bridge,
         fills: [fill],
         gasCost: fill.gasCost,
         isFallback: fill.isFallback,
+        ...((fill as any).metadata !== undefined ? { metadata: (fill as any).metadata } : {}),
     };
 }
 
@@ -157,7 +158,7 @@ export function getMakerTakerTokens(side: MarketOperation, inputToken: Address, 
 }
 
 export function createNativeOptimizedOrder(
-    fill: NativeCollapsedFill,
+    fill: CollapsedNativeOrderFill,
     side: MarketOperation,
 ): OptimizedLimitOrder | OptimizedRfqOrder {
     throw new Error(`No implementado`);

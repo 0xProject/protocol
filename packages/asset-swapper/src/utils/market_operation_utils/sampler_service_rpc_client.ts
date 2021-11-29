@@ -9,12 +9,16 @@ export interface LiquidityCurvePoint {
     sellAmount: BigNumber;
     buyAmount: BigNumber;
     encodedFillData: Bytes;
+    metadata: object;
     gasCost: number;
 }
 
-type RpcLiquidityCurvePoint = Omit<Omit<LiquidityCurvePoint, 'sellAmount'>, 'buyAmount'> & {
+interface RpcLiquidityCurvePoint {
     sellAmount: DecimalString;
     buyAmount: DecimalString;
+    encodedFillData: Bytes;
+    jsonMetadata: string;
+    gasCost: number;
 }
 
 export interface LiquidityRequest {
@@ -95,6 +99,7 @@ export class SamplerServiceRpcClient {
                 ...c,
                 buyAmount: new BigNumber(c.buyAmount),
                 sellAmount: new BigNumber(c.sellAmount),
+                metadata: decodeMetadata(c.jsonMetadata),
             }))),
         }));
     }
@@ -115,6 +120,7 @@ export class SamplerServiceRpcClient {
                 ...c,
                 buyAmount: new BigNumber(c.buyAmount),
                 sellAmount: new BigNumber(c.sellAmount),
+                metadata: decodeMetadata(c.jsonMetadata),
             }))),
         }));
     }
@@ -133,4 +139,30 @@ export class SamplerServiceRpcClient {
             [ addresses ],
         );
     }
+}
+
+function decodeMetadata(jsonMetadata: string): any {
+    if (!jsonMetadata) {
+        return undefined;
+    }
+    return unmarshallMetadata(JSON.parse(jsonMetadata));
+}
+
+function unmarshallMetadata(v: any): any {
+    switch (typeof(v)) {
+        case 'string':
+            if (/^\d+n$/.test(v)) {
+                return new BigNumber(v.slice(0, -1));
+            }
+            return v;
+        case 'object':
+            if (Array.isArray(v)) {
+                return v.map(v => unmarshallMetadata(v));
+            }
+            return Object.assign(
+                {},
+                ...Object.entries(v).map(([k, v]) => ({ [k]: v})),
+            );
+    }
+    return v;
 }

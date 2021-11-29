@@ -18,7 +18,14 @@ import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     LiquidityProviderRegistry,
+    LiquidityProviderFillData,
     TokenAdjacencyGraph,
+    BridgeFillData,
+    CurveFillData,
+    UniswapV2FillData,
+    UniswapV3FillData,
+    NativeOrderFillData,
+    MooniswapFillData,
 } from './utils/market_operation_utils/types';
 import { PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { MetricsProxy } from './utils/quote_requestor';
@@ -196,7 +203,7 @@ export interface SwapQuoteHop {
     orders: SwapQuoteOrder[];
 }
 
-interface SwapQuoteOrderBase {
+export interface SwapQuoteOrder {
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
     source: ERC20BridgeSource;
     makerToken: string;
@@ -205,26 +212,38 @@ interface SwapQuoteOrderBase {
     makerAmount: BigNumber;
     takerAmount: BigNumber;
     isFallback: boolean;
+    fillData?: any;
 }
 
-export interface SwapQuoteBridgeOrder extends SwapQuoteOrderBase {
-    encodedFillData: Bytes;
+export interface SwapQuoteBridgeOrder<TFillData extends BridgeFillData> extends SwapQuoteOrder {
+    fillData: TFillData;
     minMakerAmount: BigNumber;
     maxTakerAmount: BigNumber;
 }
 
-export interface SwapQuoteLimitOrder extends SwapQuoteOrderBase {
+export interface SwapQuoteGenericBridgeOrder extends SwapQuoteBridgeOrder<BridgeFillData> {}
+
+export interface SwapQuoteUniswapV2BridgeOrder extends SwapQuoteBridgeOrder<UniswapV2FillData> {}
+
+export interface SwapQuoteUniswapV3BridgeOrder extends SwapQuoteBridgeOrder<UniswapV3FillData> {}
+
+export interface SwapQuoteLiquidityProviderBridgeOrder extends SwapQuoteBridgeOrder<LiquidityProviderFillData> {}
+
+export interface SwapQuoteMooniswapBridgeOrder extends SwapQuoteBridgeOrder<MooniswapFillData> {}
+
+export interface SwapQuoteCurveBridgeOrder extends SwapQuoteBridgeOrder<CurveFillData> {}
+
+export interface SwapQuoteLimitOrder extends SwapQuoteOrder {
     type: FillQuoteTransformerOrderType.Limit;
-    orderInfo: FillQuoteTransformerLimitOrderInfo;
+    fillData: NativeOrderFillData;
 }
 
-export interface SwapQuoteRfqOrder extends SwapQuoteOrderBase {
+export interface SwapQuoteRfqOrder extends SwapQuoteOrder {
     type: FillQuoteTransformerOrderType.Rfq;
-    orderInfo: FillQuoteTransformerRfqOrderInfo;
+    fillData: NativeOrderFillData;
 }
 
-export type SwapQuoteOrder =
-    SwapQuoteBridgeOrder | SwapQuoteLimitOrder | SwapQuoteRfqOrder;
+export type SwapQuoteNativeOrder = SwapQuoteLimitOrder | SwapQuoteRfqOrder;
 
 /**
  * takerAssetFillAmount: The amount of takerAsset sold for makerAsset.
@@ -459,8 +478,6 @@ export interface SamplerCallResult {
     success: boolean;
     data: string;
 }
-
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export enum AltQuoteModel {
     Firm = 'firm',

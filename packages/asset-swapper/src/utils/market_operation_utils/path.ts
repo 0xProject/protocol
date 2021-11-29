@@ -7,11 +7,13 @@ import { ethToOutputAmount } from './fills';
 import { createBridgeOrder, createNativeOptimizedOrder } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
+    BridgeFill,
+    CollapsedGenericBridgeFill,
     CollapsedFill,
+    CollapsedNativeOrderFill,
     ERC20BridgeSource,
     ExchangeProxyOverhead,
     Fill,
-    NativeCollapsedFill,
     OptimizedOrder,
 } from './types';
 
@@ -119,11 +121,11 @@ export class Path {
         this.orders = [];
         for (let i = 0; i < collapsedFills.length; ++i) {
             if (collapsedFills[i].source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOptimizedOrder(collapsedFills[i] as NativeCollapsedFill, opts.side));
+                this.orders.push(createNativeOptimizedOrder(collapsedFills[i] as CollapsedNativeOrderFill, opts.side));
                 continue;
             }
             this.orders.push(createBridgeOrder(
-                collapsedFills[i],
+                collapsedFills[i] as CollapsedGenericBridgeFill,
                 opts.inputToken,
                 opts.outputToken,
             ));
@@ -251,7 +253,7 @@ export class Path {
                 if (prevFill.sourcePathId === fill.sourcePathId) {
                     prevFill.input = prevFill.input.plus(fill.input);
                     prevFill.output = prevFill.output.plus(fill.output);
-                    prevFill.encodedFillData = fill.encodedFillData;
+                    prevFill.data = fill.data;
                     prevFill.subFills.push(fill);
                     prevFill.gasCost;
                     continue;
@@ -261,7 +263,7 @@ export class Path {
                 sourcePathId: fill.sourcePathId,
                 source: fill.source,
                 type: fill.type,
-                encodedFillData: fill.encodedFillData,
+                data: fill.data,
                 input: fill.input,
                 output: fill.output,
                 subFills: [fill],

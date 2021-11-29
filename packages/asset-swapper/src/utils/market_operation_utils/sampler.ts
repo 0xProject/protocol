@@ -78,6 +78,7 @@ export class SamplerClient implements Sampler {
                         input: pt.sellAmount,
                         output: pt.buyAmount,
                         encodedFillData: pt.encodedFillData,
+                        metadata: pt.metadata,
                         gasCost: pt.gasCost,
                         source: liq.source,
                     }) as DexSample),

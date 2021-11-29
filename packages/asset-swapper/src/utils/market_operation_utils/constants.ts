@@ -2,6 +2,7 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { BigNumber } from '@0x/utils';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
+import { valueByChainId } from '../utils';
 
 import { SourceFilters } from './source_filters';
 import {
@@ -22,24 +23,6 @@ export const ONE_SECOND_MS = 1000;
 export const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const COMPARISON_PRICE_DECIMALS = 10;
-
-// TODO(kimpers): Consolidate this implementation with the one in @0x/token-metadata
-function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue: T): { [key in ChainId]: T } {
-    // TODO I don't like this but iterating through enums is weird
-    return {
-        [ChainId.Mainnet]: defaultValue,
-        [ChainId.Ropsten]: defaultValue,
-        [ChainId.Rinkeby]: defaultValue,
-        [ChainId.Kovan]: defaultValue,
-        [ChainId.Ganache]: defaultValue,
-        [ChainId.BSC]: defaultValue,
-        [ChainId.Polygon]: defaultValue,
-        [ChainId.PolygonMumbai]: defaultValue,
-        [ChainId.Avalanche]: defaultValue,
-        [ChainId.Fantom]: defaultValue,
-        ...(rest || {}),
-    };
-}
 
 /**
  * Valid sources for market sell.
@@ -287,22 +270,6 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
     },
     [],
-);
-
-export const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Mainnet]: '0x561b94454b65614ae3db0897b74303f4acf7cc75',
-        [ChainId.Ropsten]: '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
-    },
-    NULL_ADDRESS,
-);
-
-export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
-        [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
-    },
-    NULL_ADDRESS,
 );
 
 // HACK(mzhu25): Limit and RFQ orders need to be treated as different sources

@@ -134,7 +134,6 @@ export {
     LiquidityProviderRegistry,
     MarketDepth,
     MarketDepthSide,
-    NativeCollapsedFill,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';

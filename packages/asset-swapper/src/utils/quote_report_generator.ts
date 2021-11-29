@@ -8,7 +8,7 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    NativeCollapsedFill,
+    CollapsedNativeOrderFill,
 } from './market_operation_utils/types';
 import { QuoteRequestor } from './quote_requestor';
 
@@ -183,7 +183,7 @@ export function multiHopSampleToReportSource(
     // }
 }
 
-function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {
+function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is CollapsedNativeOrderFill {
     const { type } = cf;
     return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
 }

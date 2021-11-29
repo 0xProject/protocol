@@ -12,12 +12,14 @@ import {
     FillQuoteTransformerSide,
     findTransformerNonce,
 } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
 import {
+    Address,
     AffiliateFeeType,
+    Bytes,
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
@@ -28,8 +30,14 @@ import {
     SwapQuoteConsumerOpts,
     SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
+    SwapQuoteLiquidityProviderBridgeOrder,
+    SwapQuoteUniswapV2BridgeOrder,
+    SwapQuoteUniswapV3BridgeOrder,
+    SwapQuoteCurveBridgeOrder,
+    SwapQuoteMooniswapBridgeOrder,
 } from '../types';
 import { assert } from '../utils/assert';
+import { valueByChainId } from '../utils/utils';
 import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
@@ -67,11 +75,29 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.CheeseSwap,
     ERC20BridgeSource.JulSwap,
 ];
+
 const FAKE_PROVIDER: any = {
     sendAsync(): void {
         return;
     },
 };
+
+const CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x561b94454b65614ae3db0897b74303f4acf7cc75',
+        [ChainId.Ropsten]: '0xae241c6fc7f28f6dc0cb58b4112ba7f63fcaf5e2',
+    },
+    NULL_ADDRESS,
+);
+
+const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
+        [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
+    },
+    NULL_ADDRESS,
+);
+
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     public readonly chainId: ChainId;
@@ -141,184 +167,185 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         // VIP routes.
-        // if (
-        //     this.chainId === ChainId.Mainnet &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
-        // ) {
-        //     const source = slippedOrders[0].source;
-        //     const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
-        //     return {
-        //         calldataHexString: this._exchangeProxy
-        //             .sellToUniswap(
-        //                 fillData.tokenAddressPath.map((a, i) => {
-        //                     if (i === 0 && isFromETH) {
-        //                         return ETH_TOKEN_ADDRESS;
-        //                     }
-        //                     if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
-        //                         return ETH_TOKEN_ADDRESS;
-        //                     }
-        //                     return a;
-        //                 }),
-        //                 sellAmount,
-        //                 minBuyAmount,
-        //                 source === ERC20BridgeSource.SushiSwap,
-        //             )
-        //             .getABIEncodedTransactionData(),
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
-        //
-        // if (
-        //     this.chainId === ChainId.Mainnet &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
-        // ) {
-        //     const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
-        //     let _calldataHexString;
-        //     if (isFromETH) {
-        //         _calldataHexString = this._exchangeProxy
-        //             .sellEthForTokenToUniswapV3(fillData.uniswapPath, minBuyAmount, NULL_ADDRESS)
-        //             .getABIEncodedTransactionData();
-        //     } else if (isToETH) {
-        //         _calldataHexString = this._exchangeProxy
-        //             .sellTokenForEthToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
-        //             .getABIEncodedTransactionData();
-        //     } else {
-        //         _calldataHexString = this._exchangeProxy
-        //             .sellTokenForTokenToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
-        //             .getABIEncodedTransactionData();
-        //     }
-        //     return {
-        //         calldataHexString: _calldataHexString,
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
-        //
-        // if (
-        //     this.chainId === ChainId.BSC &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [
-        //         ERC20BridgeSource.PancakeSwap,
-        //         ERC20BridgeSource.PancakeSwapV2,
-        //         ERC20BridgeSource.BakerySwap,
-        //         ERC20BridgeSource.SushiSwap,
-        //         ERC20BridgeSource.ApeSwap,
-        //         ERC20BridgeSource.CafeSwap,
-        //         ERC20BridgeSource.CheeseSwap,
-        //         ERC20BridgeSource.JulSwap,
-        //     ])
-        // ) {
-        //     const source = slippedOrders[0].source;
-        //     const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
-        //     return {
-        //         calldataHexString: this._exchangeProxy
-        //             .sellToPancakeSwap(
-        //                 fillData.tokenAddressPath.map((a, i) => {
-        //                     if (i === 0 && isFromETH) {
-        //                         return ETH_TOKEN_ADDRESS;
-        //                     }
-        //                     if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
-        //                         return ETH_TOKEN_ADDRESS;
-        //                     }
-        //                     return a;
-        //                 }),
-        //                 sellAmount,
-        //                 minBuyAmount,
-        //                 PANCAKE_SWAP_FORKS.indexOf(source),
-        //             )
-        //             .getABIEncodedTransactionData(),
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
-        //
-        // if (
-        //     [ChainId.Mainnet, ChainId.BSC].includes(this.chainId) &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
-        // ) {
-        //     const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
-        //     const target = fillData.poolAddress;
-        //     return {
-        //         calldataHexString: this._exchangeProxy
-        //             .sellToLiquidityProvider(
-        //                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-        //                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-        //                 target,
-        //                 NULL_ADDRESS,
-        //                 sellAmount,
-        //                 minBuyAmount,
-        //                 NULL_BYTES,
-        //             )
-        //             .getABIEncodedTransactionData(),
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
+        ) {
+            const order = quote.hops[0].orders[0] as SwapQuoteUniswapV2BridgeOrder;
+            const { source } = order;
+            const { fillData } = order;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToUniswap(
+                        fillData.tokenAddressPath.map((a, i) => {
+                            if (i === 0 && isFromETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            return a;
+                        }),
+                        sellAmount,
+                        minBuyAmount,
+                        source === ERC20BridgeSource.SushiSwap,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
 
-        // if (
-        //     this.chainId === ChainId.Mainnet &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
-        //     // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
-        //     // into WETH prior/post the trade.
-        //     // ETH buy/sell is supported
-        //     ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
-        // ) {
-        //     const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
-        //     return {
-        //         calldataHexString: this._exchangeProxy
-        //             .sellToLiquidityProvider(
-        //                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-        //                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-        //                 CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
-        //                 NULL_ADDRESS,
-        //                 sellAmount,
-        //                 minBuyAmount,
-        //                 encodeCurveLiquidityProviderData({
-        //                     curveAddress: fillData.pool.poolAddress,
-        //                     exchangeFunctionSelector: fillData.pool.exchangeFunctionSelector,
-        //                     fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
-        //                     toCoinIdx: new BigNumber(fillData.toTokenIdx),
-        //                 }),
-        //             )
-        //             .getABIEncodedTransactionData(),
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
+        ) {
+            const order = quote.hops[0].orders[0] as SwapQuoteUniswapV3BridgeOrder;
+            const { fillData } = order;
+            let _calldataHexString;
+            if (isFromETH) {
+                _calldataHexString = this._exchangeProxy
+                    .sellEthForTokenToUniswapV3(fillData.encodedPath, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            } else if (isToETH) {
+                _calldataHexString = this._exchangeProxy
+                    .sellTokenForEthToUniswapV3(fillData.encodedPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            } else {
+                _calldataHexString = this._exchangeProxy
+                    .sellTokenForTokenToUniswapV3(fillData.encodedPath, sellAmount, minBuyAmount, NULL_ADDRESS)
+                    .getABIEncodedTransactionData();
+            }
+            return {
+                calldataHexString: _calldataHexString,
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
 
-        // if (
-        //     this.chainId === ChainId.Mainnet &&
-        //     isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
-        // ) {
-        //     const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
-        //     return {
-        //         calldataHexString: this._exchangeProxy
-        //             .sellToLiquidityProvider(
-        //                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-        //                 isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-        //                 MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
-        //                 NULL_ADDRESS,
-        //                 sellAmount,
-        //                 minBuyAmount,
-        //                 poolEncoder.encode([fillData.poolAddress]),
-        //             )
-        //             .getABIEncodedTransactionData(),
-        //         ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this.contractAddresses.exchangeProxy,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
+        if (
+            this.chainId === ChainId.BSC &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [
+                ERC20BridgeSource.PancakeSwap,
+                ERC20BridgeSource.PancakeSwapV2,
+                ERC20BridgeSource.BakerySwap,
+                ERC20BridgeSource.SushiSwap,
+                ERC20BridgeSource.ApeSwap,
+                ERC20BridgeSource.CafeSwap,
+                ERC20BridgeSource.CheeseSwap,
+                ERC20BridgeSource.JulSwap,
+            ])
+        ) {
+            const order = quote.hops[0].orders[0] as SwapQuoteUniswapV2BridgeOrder;
+            const { source, fillData } = order;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToPancakeSwap(
+                        fillData.tokenAddressPath.map((a, i) => {
+                            if (i === 0 && isFromETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
+                                return ETH_TOKEN_ADDRESS;
+                            }
+                            return a;
+                        }),
+                        sellAmount,
+                        minBuyAmount,
+                        PANCAKE_SWAP_FORKS.indexOf(source),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            [ChainId.Mainnet, ChainId.BSC].includes(this.chainId) &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
+        ) {
+            const { fillData } = quote.hops[0].orders[0] as SwapQuoteLiquidityProviderBridgeOrder;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        fillData.poolAddress,
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        NULL_BYTES,
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
+            // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
+            // into WETH prior/post the trade.
+            // ETH buy/sell is supported
+            ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
+        ) {
+            const { fillData } = quote.hops[0].orders[0] as SwapQuoteCurveBridgeOrder;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        encodeCurveLiquidityProviderData({
+                            curveAddress: fillData.poolAddress,
+                            exchangeFunctionSelector: fillData.exchangeFunctionSelector,
+                            fromCoinIdx: new BigNumber(fillData.fromTokenIdx),
+                            toCoinIdx: new BigNumber(fillData.toTokenIdx),
+                        }),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        if (
+            this.chainId === ChainId.Mainnet &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
+        ) {
+            const { fillData } = quote.hops[0].orders[0] as SwapQuoteMooniswapBridgeOrder;
+            return {
+                calldataHexString: this._exchangeProxy
+                    .sellToLiquidityProvider(
+                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
+                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
+                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
+                        NULL_ADDRESS,
+                        sellAmount,
+                        minBuyAmount,
+                        encodeAddress(fillData.poolAddress),
+                    )
+                    .getABIEncodedTransactionData(),
+                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this.contractAddresses.exchangeProxy,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
 
         // if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
         //     return {
@@ -649,4 +676,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     //             .getABIEncodedTransactionData();
     //     }
     // }
+}
+
+function encodeAddress(address: Address): Bytes {
+    return hexUtils.leftPad(hexUtils.slice(address, 0, 20));
 }

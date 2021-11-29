@@ -8,7 +8,7 @@ import {
     ERC20BridgeSource,
 } from '../utils/market_operation_utils/types';
 import {
-    SwapQuoteBridgeOrder,
+    SwapQuoteGenericBridgeOrder,
     SwapQuoteOrder,
     SwapQuoteLimitOrder,
     SwapQuoteRfqOrder,
@@ -96,7 +96,7 @@ export function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
     return quote.type === MarketOperation.Buy;
 }
 
-function isBridgeOrder(x: SwapQuoteOrder): x is SwapQuoteBridgeOrder {
+function isBridgeOrder(x: SwapQuoteOrder): x is SwapQuoteGenericBridgeOrder {
     return x.type === FillQuoteTransformerOrderType.Bridge;
 }
 
@@ -125,7 +125,7 @@ export function getFQTTransformerDataFromOptimizedOrders(
     for (const order of orders) {
         if (isBridgeOrder(order)) {
             fqtData.bridgeOrders.push({
-                bridgeData: order.encodedFillData,
+                bridgeData: order.fillData.encodedFillData,
                 makerTokenAmount: order.makerAmount,
                 takerTokenAmount: order.takerAmount,
                 source: getErc20BridgeSourceToBridgeSource(order.source),

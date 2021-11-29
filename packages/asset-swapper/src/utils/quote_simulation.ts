@@ -220,7 +220,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderInputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
                           ? getNativeAdjustedTakerFeeAmount(
-                                (o as SwapQuoteLimitOrder).orderInfo.order,
+                                (o as SwapQuoteLimitOrder).fillData.orderInfo.order,
                                 o.takerAmount,
                             )
                           : ZERO_AMOUNT,
