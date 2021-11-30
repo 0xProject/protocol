@@ -6,7 +6,8 @@
                 "note": "Changed Sushiswap router address",
                 "pr": 373
             }
-        ]
+        ],
+        "timestamp": 1637349338
     },
     {
         "version": "16.36.0",
