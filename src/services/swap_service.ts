@@ -73,6 +73,7 @@ import { METRICS_PROXY } from '../utils/metrics_service';
 import { paginationUtils } from '../utils/pagination_utils';
 import { createResultCache } from '../utils/result_cache';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
+import { SAMPLER_METRICS } from '../utils/sampler_metrics';
 import { serviceUtils } from '../utils/service_utils';
 import { utils } from '../utils/utils';
 
@@ -260,6 +261,7 @@ export class SwapService {
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
             shouldIncludePriceComparisonsReport: !!includePriceComparisons,
+            samplerMetrics: SAMPLER_METRICS,
         };
 
         const marketSide = sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
