@@ -17,10 +17,10 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './typ
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 200;
+const RUST_ROUTER_NUM_SAMPLES = 1000;
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
-const MIN_NUM_SAMPLE_INPUTS = 3;
+const MIN_NUM_SAMPLE_INPUTS = 8;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
 
@@ -94,18 +94,6 @@ function findRoutesAndCreateOptimalPath(
 ): Path | undefined {
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
-    // Track sample id's to integers (required by rust router)
-    const sampleIdLookup: { [key: string]: number } = {};
-    let sampleIdCounter = 0;
-    const sampleToId = (source: ERC20BridgeSource, index: number): number => {
-        const key = `${source}-${index}`;
-        if (sampleIdLookup[key]) {
-            return sampleIdLookup[key];
-        } else {
-            sampleIdLookup[key] = ++sampleIdCounter;
-            return sampleIdLookup[key];
-        }
-    };
 
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
@@ -131,7 +119,7 @@ function findRoutesAndCreateOptimalPath(
         // TODO(kimpers): Do we need to handle 0 entries, from eg Kyber?
         const serializedPath = singleSourceSamplesWithOutput.reduce<SerializedPath>(
             (memo, sample, sampleIdx) => {
-                memo.ids.push(sampleToId(sample.source, sampleIdx));
+                memo.ids.push(`${sample.source}-${serializedPaths.length}-${sampleIdx}`);
                 memo.inputs.push(sample.input.integerValue().toNumber());
                 memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(
@@ -188,7 +176,7 @@ function findRoutesAndCreateOptimalPath(
             .toNumber();
         const outputFees = [fee, fee, fee];
         // NOTE: ids can be the same for all fake samples
-        const id = sampleToId(ERC20BridgeSource.Native, idx);
+        const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}`;
         const ids = [id, id, id];
 
         const serializedPath: SerializedPath = {
@@ -215,7 +203,8 @@ function findRoutesAndCreateOptimalPath(
     const before = performance.now();
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
     const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
-    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES);
+
+    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES, false);
     DEFAULT_INFO_LOGGER(
         { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
         'Rust router real routing performance',
