@@ -1,13 +1,7 @@
 // tslint:disable:max-file-line-count
 // tslint:disable: prefer-function-over-method
 import { ethSignHashWithKey, OtcOrder, RfqOrder } from '@0x/protocol-utils';
-import {
-    FirmQuoteResponse,
-    SignRequest,
-    SignResponse,
-    SubmitRequest,
-    TakerRequestQueryParamsUnnested,
-} from '@0x/quote-server';
+import { SignRequest, SignResponse, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -144,14 +138,11 @@ export class DummyMMHandlers {
         const fiveMinLater = now.plus(new BigNumber(5).times(ONE_MINUTE_MS)).div(ONE_SECOND_MS).integerValue();
 
         const indicativeQuote = {
-            protocolVersion: '4',
-            response: {
-                expiry: fiveMinLater.toString(),
-                makerToken,
-                takerToken,
-                makerAmount: amount.toString(),
-                takerAmount: amount.toString(),
-            },
+            expiry: fiveMinLater.toString(),
+            makerToken,
+            takerToken,
+            makerAmount: amount.toString(),
+            takerAmount: amount.toString(),
         };
         res.status(HttpStatus.OK).send(indicativeQuote);
         return;
@@ -184,15 +175,12 @@ export class DummyMMHandlers {
         const fiveMinLater = now.plus(new BigNumber(5).times(ONE_MINUTE_MS)).div(ONE_SECOND_MS).integerValue();
 
         const indicativeQuote = {
-            protocolVersion: '4',
-            response: {
-                expiry: fiveMinLater.toString(),
-                makerToken,
-                takerToken,
-                makerAmount: amount.toString(),
-                takerAmount: amount.toString(),
-                maker: MM_ADDRESS,
-            },
+            expiry: fiveMinLater.toString(),
+            makerToken,
+            takerToken,
+            makerAmount: amount.toString(),
+            takerAmount: amount.toString(),
+            maker: MM_ADDRESS,
         };
         res.status(HttpStatus.OK).send(indicativeQuote);
         return;
@@ -240,13 +228,10 @@ export class DummyMMHandlers {
         const orderHash = rfqOrder.getHash();
         const signature = ethSignHashWithKey(orderHash, MM_PRIVATE_KEY);
 
-        const firmQuote: FirmQuoteResponse = {
-            protocolVersion: '4',
-            response: {
-                signedOrder: {
-                    ...rfqOrder,
-                    signature,
-                },
+        const firmQuote = {
+            signedOrder: {
+                ...rfqOrder,
+                signature,
             },
         };
         res.status(HttpStatus.OK).send(firmQuote);
