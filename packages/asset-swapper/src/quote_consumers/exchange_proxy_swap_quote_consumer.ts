@@ -35,6 +35,9 @@ import {
     SwapQuoteUniswapV3BridgeOrder,
     SwapQuoteCurveBridgeOrder,
     SwapQuoteMooniswapBridgeOrder,
+    SwapQuoteHop,
+    SwapQuoteGenericBridgeOrder,
+    SwapQuoteOrder,
 } from '../types';
 import { assert } from '../utils/assert';
 import { valueByChainId } from '../utils/utils';
@@ -51,6 +54,7 @@ import {
     MultiplexSubcall,
     multiplexTransformERC20Encoder,
     multiplexUniswapEncoder,
+    multiplexBatchSellEncoder,
 } from './multiplex_encoders';
 import {
     getFQTTransformerDataFromOptimizedOrders,
@@ -347,30 +351,30 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        // if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
-        //     return {
-        //         calldataHexString: this._encodeMultiplexBatchFillCalldata(
-        //             { ...quote, orders: slippedOrders },
-        //             optsWithDefaults,
-        //         ),
-        //         ethAmount,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
-        // if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
-        //     return {
-        //         calldataHexString: this._encodeMultiplexMultiHopFillCalldata(
-        //             { ...quote, orders: slippedOrders },
-        //             optsWithDefaults,
-        //         ),
-        //         ethAmount,
-        //         toAddress: this._exchangeProxy.address,
-        //         allowanceTarget: this._exchangeProxy.address,
-        //         gasOverhead: ZERO_AMOUNT,
-        //     };
-        // }
+        if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
+            return {
+                calldataHexString: this._encodeMultiplexBatchFillCalldata(
+                    quote.hops[0],
+                    optsWithDefaults,
+                ),
+                ethAmount,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+        if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
+            return {
+                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(
+                    quote.hops,
+                    optsWithDefaults,
+                ),
+                ethAmount,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
 
         // Build up the transforms.
         const transforms = [];
@@ -510,172 +514,199 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         throw new Error('Execution not supported for Exchange Proxy quotes');
     }
 
-    // private _encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
-    //     const subcalls = [];
-    //     for_loop: for (const [i, order] of quote.orders.entries()) {
-    //         switch_statement: switch (order.source) {
-    //             case ERC20BridgeSource.Native:
-    //                 if (order.type !== FillQuoteTransformerOrderType.Rfq) {
-    //                     // Should never happen because we check `isMultiplexBatchFillCompatible`
-    //                     // before calling this function.
-    //                     throw new Error('Multiplex batch fill only supported for RFQ native orders');
-    //                 }
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.Rfq,
-    //                     sellAmount: order.takerAmount,
-    //                     data: multiplexRfqEncoder.encode({
-    //                         order: order.fillData.order,
-    //                         signature: order.fillData.signature,
-    //                     }),
-    //                 });
-    //                 break switch_statement;
-    //             case ERC20BridgeSource.UniswapV2:
-    //             case ERC20BridgeSource.SushiSwap:
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.UniswapV2,
-    //                     sellAmount: order.takerAmount,
-    //                     data: multiplexUniswapEncoder.encode({
-    //                         tokens: (order.fillData as UniswapV2FillData).tokenAddressPath,
-    //                         isSushi: order.source === ERC20BridgeSource.SushiSwap,
-    //                     }),
-    //                 });
-    //                 break switch_statement;
-    //             case ERC20BridgeSource.LiquidityProvider:
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.LiquidityProvider,
-    //                     sellAmount: order.takerAmount,
-    //                     data: multiplexPlpEncoder.encode({
-    //                         provider: (order.fillData as LiquidityProviderFillData).poolAddress,
-    //                         auxiliaryData: NULL_BYTES,
-    //                     }),
-    //                 });
-    //                 break switch_statement;
-    //             case ERC20BridgeSource.UniswapV3:
-    //                 const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.UniswapV3,
-    //                     sellAmount: order.takerAmount,
-    //                     data: fillData.uniswapPath,
-    //                 });
-    //                 break switch_statement;
-    //             default:
-    //                 const fqtData = encodeFillQuoteTransformerData({
-    //                     side: FillQuoteTransformerSide.Sell,
-    //                     sellToken: quote.takerToken,
-    //                     buyToken: quote.makerToken,
-    //                     ...getFQTTransformerDataFromOptimizedOrders(quote.orders.slice(i)),
-    //                     refundReceiver: NULL_ADDRESS,
-    //                     fillAmount: MAX_UINT256,
-    //                 });
-    //                 const transformations = [
-    //                     { deploymentNonce: this.transformerNonces.fillQuoteTransformer, data: fqtData },
-    //                     {
-    //                         deploymentNonce: this.transformerNonces.payTakerTransformer,
-    //                         data: encodePayTakerTransformerData({
-    //                             tokens: [quote.takerToken],
-    //                             amounts: [],
-    //                         }),
-    //                     },
-    //                 ];
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.TransformERC20,
-    //                     sellAmount: BigNumber.sum(...quote.orders.slice(i).map(o => o.takerAmount)),
-    //                     data: multiplexTransformERC20Encoder.encode({
-    //                         transformations,
-    //                     }),
-    //                 });
-    //                 break for_loop;
-    //         }
-    //     }
-    //     if (opts.isFromETH) {
-    //         return this._exchangeProxy
-    //             .multiplexBatchSellEthForToken(quote.makerToken, subcalls, quote.worstCaseQuoteInfo.makerAmount)
-    //             .getABIEncodedTransactionData();
-    //     } else if (opts.isToETH) {
-    //         return this._exchangeProxy
-    //             .multiplexBatchSellTokenForEth(
-    //                 quote.takerToken,
-    //                 subcalls,
-    //                 quote.worstCaseQuoteInfo.totalTakerAmount,
-    //                 quote.worstCaseQuoteInfo.makerAmount,
-    //             )
-    //             .getABIEncodedTransactionData();
-    //     } else {
-    //         return this._exchangeProxy
-    //             .multiplexBatchSellTokenForToken(
-    //                 quote.takerToken,
-    //                 quote.makerToken,
-    //                 subcalls,
-    //                 quote.worstCaseQuoteInfo.totalTakerAmount,
-    //                 quote.worstCaseQuoteInfo.makerAmount,
-    //             )
-    //             .getABIEncodedTransactionData();
-    //     }
-    // }
-    //
-    // private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
-    //     const subcalls = [];
-    //     const [firstHopOrder, secondHopOrder] = quote.orders;
-    //     const intermediateToken = firstHopOrder.makerToken;
-    //     const tokens = [quote.takerToken, intermediateToken, quote.makerToken];
-    //
-    //     for (const order of [firstHopOrder, secondHopOrder]) {
-    //         switch (order.source) {
-    //             case ERC20BridgeSource.UniswapV2:
-    //             case ERC20BridgeSource.SushiSwap:
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.UniswapV2,
-    //                     data: multiplexUniswapEncoder.encode({
-    //                         tokens: (order.fillData as UniswapV2FillData).tokenAddressPath,
-    //                         isSushi: order.source === ERC20BridgeSource.SushiSwap,
-    //                     }),
-    //                 });
-    //                 break;
-    //             case ERC20BridgeSource.LiquidityProvider:
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.LiquidityProvider,
-    //                     data: multiplexPlpEncoder.encode({
-    //                         provider: (order.fillData as LiquidityProviderFillData).poolAddress,
-    //                         auxiliaryData: NULL_BYTES,
-    //                     }),
-    //                 });
-    //                 break;
-    //             case ERC20BridgeSource.UniswapV3:
-    //                 subcalls.push({
-    //                     id: MultiplexSubcall.UniswapV3,
-    //                     data: (order.fillData as FinalUniswapV3FillData).uniswapPath,
-    //                 });
-    //                 break;
-    //             default:
-    //                 // Should never happen because we check `isMultiplexMultiHopFillCompatible`
-    //                 // before calling this function.
-    //                 throw new Error(`Multiplex multi-hop unsupported source: ${order.source}`);
-    //         }
-    //     }
-    //     if (opts.isFromETH) {
-    //         return this._exchangeProxy
-    //             .multiplexMultiHopSellEthForToken(tokens, subcalls, quote.worstCaseQuoteInfo.makerAmount)
-    //             .getABIEncodedTransactionData();
-    //     } else if (opts.isToETH) {
-    //         return this._exchangeProxy
-    //             .multiplexMultiHopSellTokenForEth(
-    //                 tokens,
-    //                 subcalls,
-    //                 quote.worstCaseQuoteInfo.totalTakerAmount,
-    //                 quote.worstCaseQuoteInfo.makerAmount,
-    //             )
-    //             .getABIEncodedTransactionData();
-    //     } else {
-    //         return this._exchangeProxy
-    //             .multiplexMultiHopSellTokenForToken(
-    //                 tokens,
-    //                 subcalls,
-    //                 quote.worstCaseQuoteInfo.totalTakerAmount,
-    //                 quote.worstCaseQuoteInfo.makerAmount,
-    //             )
-    //             .getABIEncodedTransactionData();
-    //     }
-    // }
+    private _encodeMultiplexBatchFillCalldata(hop: SwapQuoteHop, opts: ExchangeProxyContractOpts): string {
+        const subcalls = this._getMultiplexBatchSellSubcalls(hop.orders);
+        if (opts.isFromETH) {
+            return this._exchangeProxy
+                .multiplexBatchSellEthForToken(hop.makerToken, subcalls, hop.minMakerAmount)
+                .getABIEncodedTransactionData();
+        } else if (opts.isToETH) {
+            return this._exchangeProxy
+                .multiplexBatchSellTokenForEth(
+                    hop.takerToken,
+                    subcalls,
+                    hop.maxTakerAmount,
+                    hop.minMakerAmount,
+                )
+                .getABIEncodedTransactionData();
+        } else {
+            return this._exchangeProxy
+                .multiplexBatchSellTokenForToken(
+                    hop.takerToken,
+                    hop.makerToken,
+                    subcalls,
+                    hop.maxTakerAmount,
+                    hop.minMakerAmount,
+                )
+                .getABIEncodedTransactionData();
+        }
+    }
+
+    private _encodeMultiplexMultiHopFillCalldata(hops: SwapQuoteHop[], opts: ExchangeProxyContractOpts): string {
+        const subcalls = [];
+        for (const hop of hops) {
+            if (hop.orders.length !== 1) {
+                subcalls.push({
+                    id: MultiplexSubcall.BatchSell,
+                    sellAmount: hop.maxTakerAmount,
+                    data: multiplexBatchSellEncoder.encode(this._getMultiplexBatchSellSubcalls(hop.orders)),
+                });
+                continue;
+            }
+            const order = hop.orders[0] as SwapQuoteGenericBridgeOrder;
+            switch (order.source) {
+                case ERC20BridgeSource.UniswapV2:
+                case ERC20BridgeSource.SushiSwap:
+                    subcalls.push({
+                        id: MultiplexSubcall.UniswapV2,
+                        data: multiplexUniswapEncoder.encode({
+                            tokens: (order as SwapQuoteUniswapV2BridgeOrder).fillData.tokenAddressPath,
+                            isSushi: order.source === ERC20BridgeSource.SushiSwap,
+                        }),
+                    });
+                    break;
+                case ERC20BridgeSource.LiquidityProvider:
+                    subcalls.push({
+                        id: MultiplexSubcall.LiquidityProvider,
+                        data: multiplexPlpEncoder.encode({
+                            provider: (order as SwapQuoteLiquidityProviderBridgeOrder).fillData.poolAddress,
+                            auxiliaryData: NULL_BYTES,
+                        }),
+                    });
+                    break;
+                case ERC20BridgeSource.UniswapV3:
+                    subcalls.push({
+                        id: MultiplexSubcall.UniswapV3,
+                        data: (order as SwapQuoteUniswapV3BridgeOrder).fillData.encodedPath,
+                    });
+                    break;
+                default:
+                    // Should never happen because we check `isMultiplexMultiHopFillCompatible`
+                    // before calling this function.
+                    throw new Error(`Multiplex multi-hop unsupported source: ${order.source}`);
+            }
+        }
+        const tokenPath = getTokenPathFromHops(hops);
+        const firstHop = hops[0];
+        const lastHop = hops[hops.length - 1];
+        if (opts.isFromETH) {
+            return this._exchangeProxy
+                .multiplexMultiHopSellEthForToken(tokenPath, subcalls, lastHop.minMakerAmount)
+                .getABIEncodedTransactionData();
+        } else if (opts.isToETH) {
+            return this._exchangeProxy
+                .multiplexMultiHopSellTokenForEth(
+                    tokenPath,
+                    subcalls,
+                    firstHop.maxTakerAmount,
+                    lastHop.minMakerAmount,
+                )
+                .getABIEncodedTransactionData();
+        } else {
+            return this._exchangeProxy
+                .multiplexMultiHopSellTokenForToken(
+                    tokenPath,
+                    subcalls,
+                    firstHop.maxTakerAmount,
+                    lastHop.minMakerAmount,
+                )
+                .getABIEncodedTransactionData();
+        }
+    }
+
+    private _getMultiplexBatchSellSubcalls(orders: SwapQuoteOrder[]): any[] {
+        const subcalls = [];
+        for_loop: for (const [i, order] of orders.entries()) {
+            switch_statement: switch (order.source) {
+                case ERC20BridgeSource.Native:
+                    if (order.type !== FillQuoteTransformerOrderType.Rfq) {
+                        // Should never happen because we check `isMultiplexBatchFillCompatible`
+                        // before calling this function.
+                        throw new Error('Multiplex batch fill only supported for RFQ native orders');
+                    }
+                    subcalls.push({
+                        id: MultiplexSubcall.Rfq,
+                        sellAmount: order.takerAmount,
+                        data: multiplexRfqEncoder.encode({
+                            order: order.fillData.order,
+                            signature: order.fillData.signature,
+                        }),
+                    });
+                    break switch_statement;
+                case ERC20BridgeSource.UniswapV2:
+                case ERC20BridgeSource.SushiSwap:
+                    subcalls.push({
+                        id: MultiplexSubcall.UniswapV2,
+                        sellAmount: (order as SwapQuoteUniswapV2BridgeOrder).maxTakerAmount,
+                        data: multiplexUniswapEncoder.encode({
+                            tokens: (order as SwapQuoteUniswapV2BridgeOrder).fillData.tokenAddressPath,
+                            isSushi: order.source === ERC20BridgeSource.SushiSwap,
+                        }),
+                    });
+                    break switch_statement;
+                case ERC20BridgeSource.LiquidityProvider:
+                    subcalls.push({
+                        id: MultiplexSubcall.LiquidityProvider,
+                        sellAmount: (order as SwapQuoteLiquidityProviderBridgeOrder).maxTakerAmount,
+                        data: multiplexPlpEncoder.encode({
+                            provider: (order as SwapQuoteLiquidityProviderBridgeOrder).fillData.poolAddress,
+                            auxiliaryData: NULL_BYTES,
+                        }),
+                    });
+                    break switch_statement;
+                case ERC20BridgeSource.UniswapV3:
+                    subcalls.push({
+                        id: MultiplexSubcall.UniswapV3,
+                        sellAmount: (order as SwapQuoteUniswapV3BridgeOrder).maxTakerAmount,
+                        data: (order as SwapQuoteUniswapV3BridgeOrder).fillData.encodedPath,
+                    });
+                    break switch_statement;
+                default:
+                    const fqtData = encodeFillQuoteTransformerData({
+                        side: FillQuoteTransformerSide.Sell,
+                        sellToken: order.takerToken,
+                        buyToken: order.makerToken,
+                        ...getFQTTransformerDataFromOptimizedOrders(orders.slice(i)),
+                        refundReceiver: NULL_ADDRESS,
+                        fillAmount: MAX_UINT256,
+                    });
+                    const transformations = [
+                        { deploymentNonce: this.transformerNonces.fillQuoteTransformer, data: fqtData },
+                        // TODO(lawrence): needed?
+                        // {
+                        //     deploymentNonce: this.transformerNonces.payTakerTransformer,
+                        //     data: encodePayTakerTransformerData({
+                        //         tokens: [hop.takerToken],
+                        //         amounts: [],
+                        //     }),
+                        // },
+                    ];
+                    subcalls.push({
+                        id: MultiplexSubcall.TransformERC20,
+                        sellAmount: BigNumber.sum(
+                            ...orders.slice(i)
+                                .map(o => (o as SwapQuoteGenericBridgeOrder).maxTakerAmount),
+                        ),
+                        data: multiplexTransformERC20Encoder.encode({
+                            transformations,
+                        }),
+                    });
+                    break for_loop;
+            }
+        }
+        return subcalls;
+    }
+}
+
+function getTokenPathFromHops(hops: SwapQuoteHop[]): Address[] {
+    const path = [];
+    for (const [i, hop] of hops.entries()) {
+        path.push(hop.takerToken);
+        if (i === path.length - 1) {
+            path.push(hop.makerToken);
+        }
+    }
+    return path;
 }
 
 function encodeAddress(address: Address): Bytes {

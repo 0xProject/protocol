@@ -568,7 +568,7 @@ function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage
             minMakerAmount: slipMakerAmount(
                 side,
                 side === MarketOperation.Sell
-                    ? order.outputAmount.times(1 - slippage)
+                    ? order.outputAmount
                     : order.inputAmount,
                 slippage,
             ),
@@ -576,7 +576,7 @@ function toSwapQuoteOrder(order: OptimizedOrder, side: MarketOperation, slippage
                 side,
                 side === MarketOperation.Sell
                     ? order.inputAmount
-                    : order.outputAmount.times(1 + slippage),
+                    : order.outputAmount,
                 slippage,
             ),
         };

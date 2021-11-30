@@ -126,8 +126,8 @@ export function getFQTTransformerDataFromOptimizedOrders(
         if (isBridgeOrder(order)) {
             fqtData.bridgeOrders.push({
                 bridgeData: order.fillData.encodedFillData,
-                makerTokenAmount: order.makerAmount,
-                takerTokenAmount: order.takerAmount,
+                makerTokenAmount: order.minMakerAmount,
+                takerTokenAmount: order.maxTakerAmount,
                 source: getErc20BridgeSourceToBridgeSource(order.source),
             });
         // } else if (isOptimizedLimitOrder(order)) {
