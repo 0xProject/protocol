@@ -13,7 +13,7 @@ const SAMPLER_GAS_LIMIT_SUMMARY = new Summary({
 });
 
 const SAMPLER_BLOCK_NUMBER_GUAGE = new Gauge({
-    name: 'sampler_gas_limit_blocknumber',
+    name: 'sampler_blocknumber',
     help: 'Provides information about the gas limit detected during a sampler call',
 });
 
