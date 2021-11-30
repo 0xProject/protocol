@@ -3,7 +3,7 @@
 import { ethSignHashWithKey, OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { SignRequest, SignResponse, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
-import { BigNumber, NULL_ADDRESS } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
@@ -191,7 +191,8 @@ export class DummyMMHandlers {
      */
     public async getQuoteV1Async(req: express.Request, res: express.Response): Promise<void> {
         const requestParams = DummyMMHandlers._parseQuoteRequest(req);
-        const { sellTokenAddress, buyTokenAddress, sellAmountBaseUnits, buyAmountBaseUnits, txOrigin } = requestParams;
+        const { sellTokenAddress, buyTokenAddress, sellAmountBaseUnits, buyAmountBaseUnits, txOrigin, takerAddress } =
+            requestParams;
 
         // Check tokens
         if (!TOKEN_SET.has(sellTokenAddress.toLowerCase()) || !TOKEN_SET.has(buyTokenAddress.toLowerCase())) {
@@ -214,7 +215,7 @@ export class DummyMMHandlers {
 
         const rfqOrder = new RfqOrder({
             txOrigin,
-            taker: NULL_ADDRESS,
+            taker: takerAddress,
             maker: MM_ADDRESS,
             takerToken,
             makerToken,
