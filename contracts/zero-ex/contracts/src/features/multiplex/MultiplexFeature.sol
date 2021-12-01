@@ -622,15 +622,6 @@ contract MultiplexFeature is
             _executeBatchSell(batchSellParams).boughtAmount;
     }
 
-    // Transfers some amount of ETH to the given recipient and
-    // reverts if the transfer fails.
-    function _transferEth(address payable recipient, uint256 amount)
-        private
-    {
-        (bool success,) = recipient.call{value: amount}("");
-        require(success, "MultiplexFeature::_transferEth/TRANSFER_FAILED");
-    }
-
     // This function computes the "target" address of hop index `i` within
     // a multi-hop sell.
     // If `i == 0`, the target is the address which should hold the input

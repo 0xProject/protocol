@@ -20,8 +20,10 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../libs/LibERC721Order.sol";
 import "../libs/LibSignature.sol";
+import "../../vendor/IERC721Token.sol";
 
 
 /// @dev Feature for interacting with ERC721 orders.
@@ -40,12 +42,20 @@ interface IERC721OrdersFeature {
     /// @param nonce The unique maker nonce in the order.
     event ERC721OrderFilled(
         LibERC721Order.TradeDirection direction,
-        address erc20Token,
+        IERC20TokenV06 erc20Token,
         uint256 erc20TokenAmount,
-        address erc721Token,
+        IERC721Token erc721Token,
         uint256 erc721TokenId,
         address maker,
         address taker,
+        uint256 nonce
+    );
+
+    /// @dev Emitted whenever an `ERC721Order` is cancelled.
+    /// @param maker The maker of the order.
+    /// @param nonce The nonce of the order that was cancelled.
+    event ERC721OrderCancelled(
+        address maker,
         uint256 nonce
     );
 
@@ -77,6 +87,12 @@ interface IERC721OrdersFeature {
         external
         payable;
 
+    /// @dev Cancel a single ERC721 order. The caller must be the maker.
+    ///      Silently succeeds if the order has already been cancelled.
+    /// @param order The ERC721 order.
+    function cancelERC721Order(LibERC721Order.ERC721Order calldata order)
+        external;
+
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
     /// @param orders The ERC721 orders.
@@ -86,7 +102,7 @@ interface IERC721OrdersFeature {
     function batchBuyERC721s(
         LibERC721Order.ERC721Order[] calldata orders,
         LibSignature.Signature[] calldata signatures,
-        bool revertIfIncomplete // TODO: maybe delete
+        bool revertIfIncomplete
     )
         external
         payable
@@ -159,11 +175,12 @@ interface IERC721OrdersFeature {
     /// @param erc721TokenId The ID of the ERC721 asset.
     /// @return canFillOrder Whether or not the given ERC721 asset can
     ///         be used to fill the given order.
-    function satisfiesOrderProperties(
+    function satisfiesERC721OrderProperties(
         LibERC721Order.ERC721Order calldata order, 
         uint256 erc721TokenId
     )
         external
+        view
         returns (bool canFillOrder);
     
     /// @dev Get the current status of an ERC721 order.

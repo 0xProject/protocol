@@ -311,7 +311,7 @@ contract OtcOrdersFeature is
         // Unwrap WETH
         WETH.withdraw(order.makerAmount);
         // Transfer ETH to taker
-        _transferEth(taker, order.makerAmount);
+        _transferEth(payable(taker), order.makerAmount);
 
         emit OtcOrderFilled(
             orderInfo.orderHash,
@@ -621,17 +621,5 @@ contract OtcOrdersFeature is
         return stor.txOriginNonces
             [txOrigin]
             [nonceBucket];
-    }
-
-    function _transferEth(address recipient, uint256 amount)
-        private
-    {
-        // Transfer ETH to recipient
-        (bool success, bytes memory revertData) =
-            recipient.call{value: amount}("");
-        // Revert on failure
-        if (!success) {
-            revertData.rrevert();
-        }
     }
 }

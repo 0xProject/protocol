@@ -24,6 +24,7 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../vendor/IERC721Token.sol";
+import "../../vendor/IPropertyValidator.sol";
 
 
 /// @dev A library for common ERC721 order operations.
@@ -44,7 +45,7 @@ library LibERC721Order {
     }
 
     struct Property {
-        address propertyValidator;
+        IPropertyValidator propertyValidator;
         bytes propertyData;
     }
 
