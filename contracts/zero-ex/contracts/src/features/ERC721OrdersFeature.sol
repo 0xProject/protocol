@@ -163,6 +163,8 @@ contract ERC721OrdersFeature is
     /// @param signatures The order signatures.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
+    /// @return successes An array of booleans corresponding to whether
+    ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
         LibERC721Order.ERC721Order[] memory orders,
         LibSignature.Signature[] memory signatures,
@@ -214,6 +216,9 @@ contract ERC721OrdersFeature is
     /// @param buyOrder Order buying an ERC721 asset.
     /// @param sellOrderSignature Signature for the sell order.
     /// @param buyOrderSignature Signature for the buy order.
+    /// @return profit The amount of profit earned by the caller
+    ///         of this function (denominated in the ERC20 token
+    ///         of the matched orders).
     function matchERC721Orders(
         LibERC721Order.ERC721Order memory sellOrder,
         LibERC721Order.ERC721Order memory buyOrder,
@@ -235,6 +240,11 @@ contract ERC721OrdersFeature is
     /// @param buyOrders Orders buying ERC721 assets.
     /// @param sellOrderSignatures Signatures for the sell orders.
     /// @param buyOrderSignatures Signatures for the buy orders.
+    /// @return profits The amount of profit earned by the caller
+    ///         of this function for each pair of matched orders
+    ///         (denominated in the ERC20 token of the order pair).
+    /// @return successes An array of booleans corresponding to
+    ///         whether each pair of orders was successfully matched.
     function batchMatchERC721Orders(
         LibERC721Order.ERC721Order[] memory sellOrders,
         LibERC721Order.ERC721Order[] memory buyOrders,
