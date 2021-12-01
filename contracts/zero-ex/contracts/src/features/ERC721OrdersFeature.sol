@@ -210,15 +210,15 @@ contract ERC721OrdersFeature is
     ///      a non-negative spread. Each order is filled at 
     ///      their respective price, and the matcher receives
     ///      a profit denominated in the ERC20 token.
-    /// @param leftOrder First order to match.
-    /// @param rightOrder Second order to match.
-    /// @param leftSignature Signature for the left order.
-    /// @param rightSignature Signature for the right order.
+    /// @param sellOrder Order selling an ERC721 asset.
+    /// @param buyOrder Order buying an ERC721 asset.
+    /// @param sellOrderSignature Signature for the sell order.
+    /// @param buyOrderSignature Signature for the buy order.
     function matchERC721Orders(
-        LibERC721Order.ERC721Order memory leftOrder,
-        LibERC721Order.ERC721Order memory rightOrder,
-        LibSignature.Signature memory leftSignature,
-        LibSignature.Signature memory rightSignature
+        LibERC721Order.ERC721Order memory sellOrder,
+        LibERC721Order.ERC721Order memory buyOrder,
+        LibSignature.Signature memory sellOrderSignature,
+        LibSignature.Signature memory buyOrderSignature
     )
         public
         override
@@ -231,15 +231,15 @@ contract ERC721OrdersFeature is
     ///      non-negative spreads. Each order is filled at 
     ///      their respective price, and the matcher receives
     ///      a profit denominated in the ERC20 token.
-    /// @param leftOrders Orders to match against `rightOrders`.
-    /// @param rightOrders Orders to match against `leftOrders`.
-    /// @param leftSignatures Signatures for the left orders.
-    /// @param rightSignatures Signatures for the right orders.
+    /// @param sellOrders Orders selling ERC721 assets.
+    /// @param buyOrders Orders buying ERC721 assets.
+    /// @param sellOrderSignatures Signatures for the sell orders.
+    /// @param buyOrderSignatures Signatures for the buy orders.
     function batchMatchERC721Orders(
-        LibERC721Order.ERC721Order[] memory leftOrders,
-        LibERC721Order.ERC721Order[] memory rightOrders,
-        LibSignature.Signature[] memory leftSignatures,
-        LibSignature.Signature[] memory rightSignatures
+        LibERC721Order.ERC721Order[] memory sellOrders,
+        LibERC721Order.ERC721Order[] memory buyOrders,
+        LibSignature.Signature[] memory sellOrderSignatures,
+        LibSignature.Signature[] memory buyOrderSignatures
     )
         public
         override
