@@ -31,7 +31,12 @@ import {
     RFQM_TX_GAS_ESTIMATE,
     RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
 } from '../constants';
-import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
+import {
+    RfqmJobEntity,
+    RfqmQuoteEntity,
+    RfqmTransactionSubmissionEntity,
+    RfqmV2TransactionSubmissionEntity,
+} from '../entities';
 import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
@@ -575,27 +580,55 @@ export class RfqmService {
     }
 
     public async getOrderStatusAsync(orderHash: string): Promise<StatusResponse | null> {
-        const transformSubmission = (submission: RfqmTransactionSubmissionEntity) => {
+        const transformSubmission = (
+            submission: RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity,
+        ) => {
             const { transactionHash: hash, createdAt } = submission;
             return hash ? { hash, timestamp: createdAt.getTime() } : null;
         };
 
-        const transformSubmissions = (submissions: RfqmTransactionSubmissionEntity[]) =>
-            submissions.map(transformSubmission).flatMap((s) => (s ? s : []));
+        const transformSubmissions = (
+            submissions: (RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity)[],
+        ) => submissions.map(transformSubmission).flatMap((s) => (s ? s : []));
 
-        const job = await this._dbUtils.findJobByOrderHashAsync(orderHash);
-        if (!job) {
+        const [jobV1, jobV2] = await Promise.all([
+            this._dbUtils.findJobByOrderHashAsync(orderHash),
+            this._dbUtils.findV2JobByOrderHashAsync(orderHash),
+        ]);
+
+        let isV2 = false;
+        let status: RfqmJobStatus;
+        let expiry: BigNumber;
+
+        if (jobV1 === undefined && jobV2 === undefined) {
+            // Both not found
             return null;
+        } else if (jobV2 !== undefined && jobV1 !== undefined) {
+            // Both found
+            throw new Error(`Multiple jobs found for ${orderHash}`);
+        } else if (jobV2 !== undefined) {
+            // Only V2 found
+            isV2 = true;
+            status = jobV2.status;
+            expiry = jobV2.expiry;
+        } else {
+            // Only V1 found
+            status = jobV1!.status;
+            expiry = jobV1!.expiry;
         }
-        const { status } = job;
-        if (status === RfqmJobStatus.PendingEnqueued && job.expiry.multipliedBy(ONE_SECOND_MS).lt(Date.now())) {
+
+        if (status === RfqmJobStatus.PendingEnqueued && expiry.multipliedBy(ONE_SECOND_MS).lt(Date.now())) {
             // the workers are dead/on vacation and the expiration time has passed
             return {
                 status: 'failed',
                 transactions: [],
             };
         }
-        const transactionSubmissions = await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+
+        const transactionSubmissions: (RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity)[] = isV2
+            ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash)
+            : await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+
         switch (status) {
             case RfqmJobStatus.PendingEnqueued:
             case RfqmJobStatus.PendingProcessing:
