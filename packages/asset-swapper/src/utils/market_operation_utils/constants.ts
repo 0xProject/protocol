@@ -103,7 +103,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
-            // TODO: enable after EP has been redeployed on Ethereum mainnet
+            // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
         ]),
@@ -234,7 +234,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
-            // TODO: enable after EP has been redeployed on Ethereum mainnet
+            // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
         ]),
@@ -1714,7 +1714,7 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
 
 export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
     {
-        // TODO: enable after EP has been redeployed on Ethereum mainnet
+        // TODO: enable after FQT has been redeployed on Ethereum mainnet
         // [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2',
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/aave/aave-v2-matic',
         [ChainId.Avalanche]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-avalanche',
@@ -1724,7 +1724,7 @@ export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
 
 export const COMPOUND_API_URL_BY_CHAIN_ID = valueByChainId(
     {
-        // TODO: enable after EP has been redeployed on Ethereum mainnet
+        // TODO: enable after FQT has been redeployed on Ethereum mainnet
         // [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
     },
     null,

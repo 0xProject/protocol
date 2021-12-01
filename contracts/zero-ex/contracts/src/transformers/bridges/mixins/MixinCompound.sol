@@ -31,11 +31,11 @@ interface ICToken {
     /// @dev deposits specified amount underlying tokens and mints cToken for the sender
     /// @param mintAmountInUnderlying amount of underlying tokens to deposit to mint cTokens
     /// @return status code of whether the mint was successful or not
-    function mint(uint mintAmountInUnderlying) external returns (uint);
+    function mint(uint256 mintAmountInUnderlying) external returns (uint256);
     /// @dev redeems specified amount of cTokens and returns the underlying token to the sender
     /// @param redeemTokensInCtokens amount of cTokens to redeem for underlying collateral
     /// @return status code of whether the redemption was successful or not
-    function redeem(uint redeemTokensInCtokens) external returns (uint);
+    function redeem(uint256 redeemTokensInCtokens) external returns (uint256);
 }
 /// @dev Minimal CEther interface
 interface ICEther {
@@ -44,7 +44,7 @@ interface ICEther {
     /// @dev redeems specified amount of cETH and returns the underlying ether to the sender
     /// @dev redeemTokensInCEther amount of cETH to redeem for underlying ether
     /// @return status code of whether the redemption was successful or not
-    function redeem(uint redeemTokensInCEther) external returns (uint);
+    function redeem(uint256 redeemTokensInCEther) external returns (uint256);
 }
 
 contract MixinCompound {
@@ -73,7 +73,6 @@ contract MixinCompound {
         (address cTokenAddress) = abi.decode(bridgeData, (address));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
-
         if (address(buyToken) == cTokenAddress) {
             if (address(sellToken) == address(WETH)) {
                 // ETH/WETH -> cETH
@@ -91,12 +90,14 @@ contract MixinCompound {
                 ICToken cToken = ICToken(cTokenAddress);
                 require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");
             }
-        } else if (address(sellToken) == address(cTokenAddress)) {
+        } else if (address(sellToken) == cTokenAddress) {
             if (address(buyToken) == address(WETH)) {
                 // cETH -> ETH/WETH
+                uint256 etherBalanceBefore = address(this).balance;
                 ICEther cETH = ICEther(cTokenAddress);
                 require(cETH.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CETHER");
-                uint256 receivedEtherBalance = address(this).balance;
+                uint256 etherBalanceAfter = address(this).balance;
+                uint256 receivedEtherBalance = etherBalanceAfter.safeSub(etherBalanceBefore);
                 WETH.deposit{value: receivedEtherBalance}();
             } else {
                 ICToken cToken = ICToken(cTokenAddress);

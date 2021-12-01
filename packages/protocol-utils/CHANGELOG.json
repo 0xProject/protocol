@@ -3,12 +3,8 @@
         "version": "1.10.0",
         "changes": [
             {
-                "note": "Add `AaveV2` deposit/withdrawal liquidity source",
-                "pr": 293
-            },
-            {
-                "note": "Add `Compound` deposit/withdrawal liquidity source",
-                "pr": 294
+                "note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
+                "pr": 321
             }
         ]
     },
