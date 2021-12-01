@@ -60,6 +60,7 @@ export * from '../test/generated-wrappers/lib_bootstrap';
 export * from '../test/generated-wrappers/lib_common_rich_errors';
 export * from '../test/generated-wrappers/lib_erc20_transformer';
 export * from '../test/generated-wrappers/lib_erc721_order';
+export * from '../test/generated-wrappers/lib_erc721_orders_rich_errors';
 export * from '../test/generated-wrappers/lib_erc721_orders_storage';
 export * from '../test/generated-wrappers/lib_fee_collector';
 export * from '../test/generated-wrappers/lib_liquidity_provider_rich_errors';
