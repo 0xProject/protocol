@@ -194,7 +194,7 @@ contract ERC721OrdersFeature is
             );
             if (successes[i]) {
                 (uint256 _ethSpent) = abi.decode(returnData, (uint256));
-                ethSpent += _ethSpent;
+                ethSpent = ethSpent.safeAdd(_ethSpent);
             } else if (revertIfIncomplete) {
                 returnData.rrevert();
             }
@@ -520,7 +520,8 @@ contract ERC721OrdersFeature is
                 "Insufficient ETH"
             );
             _transferEth(payable(order.maker), order.erc20TokenAmount);
-            ethSpent = order.erc20TokenAmount + _payFees(order, address(this), true);
+            uint256 ethFees = _payFees(order, address(this), true);
+            ethSpent = order.erc20TokenAmount.safeAdd(ethFees);
         } else if (order.erc20Token == WETH) {
             if (ethAvailable >= order.erc20TokenAmount) {
                 // Wrap native token
@@ -532,7 +533,8 @@ contract ERC721OrdersFeature is
                     order.maker,
                     order.erc20TokenAmount
                 );
-                ethSpent = order.erc20TokenAmount + _payFees(order, address(this), true);
+                uint256 ethFees = _payFees(order, address(this), true);
+                ethSpent = order.erc20TokenAmount.safeAdd(ethFees);
             } else {
                 _transferERC20TokensFrom(
                     order.erc20Token,
@@ -678,7 +680,7 @@ contract ERC721OrdersFeature is
                     "Fee callback failed"
                 );
             }
-            totalFeesPaid += fee.amount;
+            totalFeesPaid = totalFeesPaid.safeAdd(fee.amount);
         }
     }
 
