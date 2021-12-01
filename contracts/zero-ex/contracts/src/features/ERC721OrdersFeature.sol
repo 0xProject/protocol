@@ -130,81 +130,14 @@ contract ERC721OrdersFeature is
         override
         payable
     {
+        uint256 ethSpent = _buyERC721(order, signature, msg.value);
         require(
-            order.direction == LibERC721Order.TradeDirection.SELL_721,
-            "Order is not selling 721"
+            ethSpent <= msg.value,
+            "Overspent ETH"
         );
-
-        require(
-            order.taker == address(0) || order.taker == msg.sender,
-            "msg.sender is not order.taker"
-        );
-
-        require(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
-            "Order is not fillable"
-        );
-
-        require(
-            isValidERC721OrderSignature(order, signature),
-            "Invalid signature"
-        );
-
-        _setOrderStatusBit(order);
-
-        _transferERC721AssetFrom(
-            order.erc721Token,
-            order.maker,
-            msg.sender,
-            order.erc721TokenId
-        );
-
-        if (msg.value > 0) {
-            if (order.erc20Token == WETH) {
-                // Wrap native token
-                WETH.deposit{value: order.erc20TokenAmount}();
-                // TODO: Probably safe to just use WETH.transfer for some
-                //       small gas savings
-                _transferERC20Tokens(
-                    WETH,
-                    order.maker,
-                    order.erc20TokenAmount
-                );
-            } else if (address(order.erc20Token) == NATIVE_TOKEN_ADDRESS) {
-                _transferEth(payable(order.maker), order.erc20TokenAmount);
-            } else {
-                revert("ERC20 token is not (wrapped) native token");
-            }
-
-            uint256 ethSpent = order.erc20TokenAmount + _payFees(order, address(this), true);
-
-            require(
-                ethSpent <= msg.value,
-                "Overspent ETH"
-            );
-            if (ethSpent < msg.value) {
-                _transferEth(msg.sender, msg.value - ethSpent);
-            }
-        } else {
-            _transferERC20TokensFrom(
-                order.erc20Token,
-                msg.sender,
-                order.maker,
-                order.erc20TokenAmount
-            );
-            _payFees(order, msg.sender, false);
+        if (ethSpent < msg.value) {
+            _transferEth(msg.sender, msg.value - ethSpent);
         }
-
-        emit ERC721OrderFilled(
-            order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
-            order.erc721TokenId,
-            order.maker,
-            msg.sender,
-            order.nonce
-        );
     }
 
     /// @dev Cancel a single ERC721 order. The caller must be the maker.
@@ -240,7 +173,37 @@ contract ERC721OrdersFeature is
         payable
         returns (bool[] memory successes)
     {
-        // TODO
+        require(
+            orders.length == signatures.length,
+            "Array length mismatch"
+        );
+        successes = new bool[](orders.length);
+
+        uint256 ethSpent = 0;
+        for (uint256 i = 0; i < orders.length; i++) {
+            bytes memory returnData;
+            (successes[i], returnData) = _implementation.delegatecall(
+                abi.encodeWithSelector(
+                    this._buyERC721.selector, 
+                    orders[i],
+                    signatures[i],
+                    msg.value - ethSpent
+                )
+            );
+            if (successes[i]) {
+                (uint256 _ethSpent) = abi.decode(returnData, (uint256));
+                ethSpent += _ethSpent;
+            } else if (revertIfIncomplete) {
+                returnData.rrevert();
+            }
+            require(
+                ethSpent <= msg.value,
+                "Overspent ETH"
+            );
+        }
+        if (ethSpent < msg.value) {
+            _transferEth(msg.sender, msg.value - ethSpent);
+        }
     }
 
     /// @dev Matches a pair of complementary orders that have
@@ -415,6 +378,94 @@ contract ERC721OrdersFeature is
             erc721TokenId,
             order.maker,
             taker,
+            order.nonce
+        );
+    }
+
+    function _buyERC721(
+        LibERC721Order.ERC721Order memory order,
+        LibSignature.Signature memory signature,
+        uint256 ethAvailable
+    )
+        public
+        payable
+        returns (uint256 ethSpent)
+    {
+        require(
+            order.direction == LibERC721Order.TradeDirection.SELL_721,
+            "Order is not selling 721"
+        );
+
+        require(
+            order.taker == address(0) || order.taker == msg.sender,
+            "msg.sender is not order.taker"
+        );
+
+        require(
+            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+            "Order is not fillable"
+        );
+
+        require(
+            isValidERC721OrderSignature(order, signature),
+            "Invalid signature"
+        );
+
+        _setOrderStatusBit(order);
+
+        _transferERC721AssetFrom(
+            order.erc721Token,
+            order.maker,
+            msg.sender,
+            order.erc721TokenId
+        );
+
+        if (address(order.erc20Token) == NATIVE_TOKEN_ADDRESS) {
+            require(
+                ethAvailable >= order.erc20TokenAmount,
+                "Insufficient ETH"
+            );
+            _transferEth(payable(order.maker), order.erc20TokenAmount);
+            ethSpent = order.erc20TokenAmount + _payFees(order, address(this), true);
+        } else if (order.erc20Token == WETH) {
+            if (ethAvailable >= order.erc20TokenAmount) {
+                // Wrap native token
+                WETH.deposit{value: order.erc20TokenAmount}();
+                // TODO: Probably safe to just use WETH.transfer for some
+                //       small gas savings
+                _transferERC20Tokens(
+                    WETH,
+                    order.maker,
+                    order.erc20TokenAmount
+                );
+                ethSpent = order.erc20TokenAmount + _payFees(order, address(this), true);
+            } else {
+                _transferERC20TokensFrom(
+                    order.erc20Token,
+                    msg.sender,
+                    order.maker,
+                    order.erc20TokenAmount
+                );
+                _payFees(order, msg.sender, false);
+            }
+        } else {
+            _transferERC20TokensFrom(
+                order.erc20Token,
+                msg.sender,
+                order.maker,
+                order.erc20TokenAmount
+            );
+            _payFees(order, msg.sender, false);
+        }
+
+        emit ERC721OrderFilled(
+            order.direction,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.erc721Token,
+            order.erc721TokenId,
+            order.maker,
+            msg.sender,
             order.nonce
         );
     }
