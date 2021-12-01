@@ -1,10 +1,10 @@
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
 import { MarketOperation, SwapQuoteLimitOrder, SwapQuoteOrder } from '../types';
 
-import { getNativeAdjustedTakerFeeAmount } from './utils';
+import { getNativeTakerFeeFillAmount } from './native_orders';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
@@ -219,8 +219,8 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderOutput: o.makerAmount,
                   totalOrderInputFee:
                       o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeAdjustedTakerFeeAmount(
-                                (o as SwapQuoteLimitOrder).fillData.orderInfo.order,
+                          ? getNativeTakerFeeFillAmount(
+                                ((o as SwapQuoteLimitOrder).fillData.order as LimitOrderFields),
                                 o.takerAmount,
                             )
                           : ZERO_AMOUNT,

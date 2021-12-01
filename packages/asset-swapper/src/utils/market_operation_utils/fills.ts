@@ -1,10 +1,11 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
+import { NativeOrderWithFillableAmounts } from '../native_orders';
+import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, Fill } from './types';
+import { DexSample, ERC20BridgeSource, Fill, GenericBridgeFill, NativeOrderFill } from './types';
 
 // tslint:disable: prefer-for-of no-bitwise completed-docs
 
@@ -93,66 +94,76 @@ export function nativeOrdersToFills(
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
     gasPrice: BigNumber,
-): Fill[] {
+): NativeOrderFill[] {
     if (orders.length === 0) {
         return [];
     }
-    throw new Error(`Not implemented`);
-    // const sourcePathId = hexUtils.random();
-    // // Create a single path from all orders.
-    // let fills: Array<Fill & { adjustedRate: BigNumber }> = [];
-    // for (const o of orders) {
-    //     const { fillableTakerAmount, fillableTakerFeeAmount, fillableMakerAmount, type } = o;
-    //     const makerAmount = fillableMakerAmount;
-    //     const takerAmount = fillableTakerAmount.plus(fillableTakerFeeAmount);
-    //     const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
-    //     const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
-    //     const fee = fees[ERC20BridgeSource.Native] === undefined ? 0 : fees[ERC20BridgeSource.Native]!(o);
-    //     const outputPenalty = ethToOutputAmount({
-    //         input,
-    //         output,
-    //         inputAmountPerEth,
-    //         outputAmountPerEth,
-    //         ethAmount: fee,
-    //     });
-    //     // targetInput can be less than the order size
-    //     // whilst the penalty is constant, it affects the adjusted output
-    //     // only up until the target has been exhausted.
-    //     // A large order and an order at the exact target should be penalized
-    //     // the same.
-    //     const clippedInput = BigNumber.min(targetInput, input);
-    //     // scale the clipped output inline with the input
-    //     const clippedOutput = clippedInput.dividedBy(input).times(output);
-    //     const adjustedOutput =
-    //         side === MarketOperation.Sell ? clippedOutput.minus(outputPenalty) : clippedOutput.plus(outputPenalty);
-    //     const adjustedRate =
-    //         side === MarketOperation.Sell ? adjustedOutput.div(clippedInput) : clippedInput.div(adjustedOutput);
-    //     // Skip orders with rates that are <= 0.
-    //     if (adjustedRate.lte(0)) {
-    //         continue;
-    //     }
-    //     fills.push({
-    //         sourcePathId,
-    //         adjustedRate,
-    //         adjustedOutput,
-    //         input: clippedInput,
-    //         output: clippedOutput,
-    //         flags: SOURCE_FLAGS[type === FillQuoteTransformerOrderType.Rfq ? 'RfqOrder' : 'LimitOrder'],
-    //         index: 0, // TBD
-    //         parent: undefined, // TBD
-    //         source: ERC20BridgeSource.Native,
-    //         type,
-    //         fillData: { ...o },
-    //     });
-    // }
-    // // Sort by descending adjusted rate.
-    // fills = fills.sort((a, b) => b.adjustedRate.comparedTo(a.adjustedRate));
-    // // Re-index fills.
-    // for (let i = 0; i < fills.length; ++i) {
-    //     fills[i].parent = i === 0 ? undefined : fills[i - 1];
-    //     fills[i].index = i;
-    // }
-    // return fills;
+    const sourcePathId = hexUtils.random();
+    // Create a single path from all orders.
+    let fills: Array<NativeOrderFill & { adjustedRate: BigNumber }> = [];
+    for (const o of orders) {
+        const { fillableTakerAmount, fillableMakerAmount, type } = o;
+        // TODO(lawrence): handle taker fees.
+        if (o.fillableTakerFeeAmount.gt(0)) {
+            continue;
+        }
+        let input, output;
+        if (side === MarketOperation.Sell) {
+            input = fillableTakerAmount;
+            output = fillableMakerAmount;
+        } else {
+            input = fillableMakerAmount;
+            output = fillableTakerAmount;
+        }
+        const outputPenalty = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: gasPrice.times(o.gasCost),
+        });
+        // targetInput can be less than the order size
+        // whilst the penalty is constant, it affects the adjusted output
+        // only up until the target has been exhausted.
+        // A large order and an order at the exact target should be penalized
+        // the same.
+        const clippedInput = BigNumber.min(targetInput, input);
+        // scale the clipped output inline with the input
+        const clippedOutput = clippedInput.dividedBy(input).times(output);
+        const adjustedOutput =
+            side === MarketOperation.Sell ? clippedOutput.minus(outputPenalty) : clippedOutput.plus(outputPenalty);
+        const adjustedRate =
+            side === MarketOperation.Sell ? adjustedOutput.div(clippedInput) : clippedInput.div(adjustedOutput);
+        // Skip orders with rates that are <= 0.
+        if (adjustedRate.lte(0)) {
+            continue;
+        }
+        fills.push({
+            type,
+            sourcePathId,
+            adjustedOutput,
+            adjustedRate,
+            input: clippedInput,
+            output: clippedOutput,
+            flags: SOURCE_FLAGS[type === FillQuoteTransformerOrderType.Rfq ? 'RfqOrder' : 'LimitOrder'],
+            index: 0, // TBD
+            parent: undefined, // TBD
+            source: ERC20BridgeSource.Native,
+            gasCost: o.gasCost,
+            data: {
+                order: o.order,
+                signature: o.signature,
+            },
+        });
+    }
+    // Sort by descending adjusted rate.
+    fills = fills.sort((a, b) => b.adjustedRate.comparedTo(a.adjustedRate));
+    // Re-index fills.
+    for (let i = 0; i < fills.length; ++i) {
+        fills[i].parent = i === 0 ? undefined : fills[i - 1];
+        fills[i].index = i;
+    }
+    return fills;
 }
 
 export function dexSamplesToFills(
@@ -161,9 +172,9 @@ export function dexSamplesToFills(
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
     gasPrice: BigNumber,
-): Fill[] {
+): GenericBridgeFill[] {
     const sourcePathId = hexUtils.random();
-    const fills: Fill[] = [];
+    const fills: GenericBridgeFill[] = [];
     // Drop any non-zero entries. This can occur if the any fills on Kyber were UniswapReserves
     // We need not worry about Kyber fills going to UniswapReserve as the input amount
     // we fill is the same as we sampled. I.e we received [0,20,30] output from [1,2,3] input

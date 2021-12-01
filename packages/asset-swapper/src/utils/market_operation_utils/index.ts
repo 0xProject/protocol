@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, RfqOrder, SignatureType } from '@0x/protocol-utils';
+import { CommonOrderFields, FillQuoteTransformerOrderType, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { V4RFQIndicativeQuote } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
@@ -8,16 +8,11 @@ import {
     Address,
     AssetSwapperContractAddresses,
     MarketOperation,
-    NativeOrderWithFillableAmounts,
     SignedNativeOrder,
     SignedRfqOrder,
 } from '../../types';
+import { NativeOrderWithFillableAmounts } from '../native_orders';
 import { QuoteRequestor } from '../quote_requestor';
-import {
-    getNativeAdjustedFillableAmountsFromMakerAmount,
-    getNativeAdjustedFillableAmountsFromTakerAmount,
-    getNativeAdjustedMakerFillAmount,
-} from '../utils';
 
 import {
     dexSampleToReportSource,
@@ -35,13 +30,12 @@ import {
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
 import { createFills } from './fills';
 import { getIntermediateTokens } from './multihop_utils';
 import { Path, PathPenaltyOpts } from './path';
-import { fillsToSortedPaths, findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
+import { findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
 import { Sampler } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -61,6 +55,7 @@ import {
 } from './types';
 
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
+const RFQT_ORDER_GAS_COST = Number(process.env.RFQT_ORDER_GAS_COST || 0) || 100e3;
 
 // tslint:disable:boolean-naming
 
@@ -671,6 +666,8 @@ export class MarketOperationUtils {
                         marketSideLiquidity.quotes,
                         side,
                         indicativeQuotes.map(indicativeRfqQuoteToSignedNativeOrder),
+                        [],
+                        RFQT_ORDER_GAS_COST,
                     );
                     optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
                 }
@@ -700,7 +697,7 @@ export class MarketOperationUtils {
                             : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(
                                   firmQuotes.map(q => new RfqOrder(q.order)),
                               );
-                    injectRfqLiquidity(marketSideLiquidity.quotes, side, firmQuotes, rfqTakerFillableAmounts);
+                    injectRfqLiquidity(marketSideLiquidity.quotes, side, firmQuotes, rfqTakerFillableAmounts, RFQT_ORDER_GAS_COST);
 
                     // Re-run optimizer with the new firm quote. This is the second and last time
                     // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
@@ -813,16 +810,6 @@ export class MarketOperationUtils {
         exchangeProxyOverhead: ExchangeProxyOverhead;
         runLimit?: number;
     }): Promise<Path | undefined | null> {
-        const fills = createFills({
-            side: opts.side,
-            orders: opts.nativeOrders,
-            dexQuotes: opts.dexQuotes,
-            targetInput: opts.inputAmount,
-            outputAmountPerEth: opts.outputAmountPerEth,
-            inputAmountPerEth: opts.inputAmountPerEth,
-            gasPrice: opts.gasPrice,
-        });
-
         // Find the optimal path.
         const penaltyOpts: PathPenaltyOpts = {
             outputAmountPerEth: opts.outputAmountPerEth,
@@ -843,6 +830,16 @@ export class MarketOperationUtils {
                 this._sampler.chainId,
             );
         };
+
+        const fills = createFills({
+            side: opts.side,
+            orders: opts.nativeOrders,
+            dexQuotes: opts.dexQuotes,
+            targetInput: opts.inputAmount,
+            outputAmountPerEth: opts.outputAmountPerEth,
+            inputAmountPerEth: opts.inputAmountPerEth,
+            gasPrice: opts.gasPrice,
+        });
         return findOptimalPathJSAsync(opts.side, fills, opts.inputAmount, opts.runLimit, penaltyOpts);
     }
 
@@ -1019,6 +1016,7 @@ function injectRfqLiquidity(
     side: MarketOperation,
     orders: SignedRfqOrder[],
     orderFillableTakerAmounts: BigNumber[] = [],
+    gasCostPerOrder: number,
 ): void {
     if (orders.length === 0) {
         return;
@@ -1027,11 +1025,12 @@ function injectRfqLiquidity(
     const fullOrders = orders.map((o, i) => ({
         ...o,
         fillableTakerAmount: orderFillableTakerAmounts[i] || ZERO_AMOUNT,
-        fillableMakerAmount: getNativeAdjustedMakerFillAmount(
+        fillableMakerAmount: getNativeOrderMakerFillAmount(
             o.order,
             orderFillableTakerAmounts[i],
         ),
         fillableTakerFeeAmount: ZERO_AMOUNT,
+        gasCost: gasCostPerOrder,
     }));
     const inputToken = side === MarketOperation.Sell ? takerToken : makerToken;
     const outputToken = side === MarketOperation.Sell ? makerToken : takerToken;
@@ -1058,10 +1057,10 @@ function getTakerMakerTokenFromTokenPath(tokenPath: Address[]): [Address, Addres
     return [tokenPath[0], tokenPath[tokenPath.length - 1]];
 }
 
-function getInputOutputTokenFromTokenPath(side: MarketOperation, tokenPath: Address[]): [Address, Address] {
-    const tokens = getTakerMakerTokenFromTokenPath(tokenPath);
-    if (side === MarketOperation.Buy) {
-        tokens.reverse();
-    }
-    return tokens;
+function getNativeOrderMakerFillAmount(order: CommonOrderFields, takerFillAmount: BigNumber): BigNumber {
+    // Round down because exchange rate favors Maker
+    return takerFillAmount
+        .multipliedBy(order.makerAmount)
+        .div(order.takerAmount)
+        .integerValue(BigNumber.ROUND_DOWN);
 }

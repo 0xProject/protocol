@@ -7,7 +7,6 @@ import { ethToOutputAmount } from './fills';
 import { createBridgeOrder, createNativeOptimizedOrder } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
 import {
-    BridgeFill,
     CollapsedGenericBridgeFill,
     CollapsedFill,
     CollapsedNativeOrderFill,

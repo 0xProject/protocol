@@ -6,7 +6,8 @@ import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
 import { DEFAULT_INFO_LOGGER } from '../../constants';
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
+import { NativeOrderWithFillableAmounts } from '../native_orders';
+import { MarketOperation } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
 
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
@@ -45,7 +46,7 @@ function calculateOuputFee(
     gasPrice: BigNumber,
 ): BigNumber {
     if (isDexSample(sampleOrNativeOrder)) {
-        const { input, output, source, encodedFillData } = sampleOrNativeOrder;
+        const { input, output } = sampleOrNativeOrder;
         const fee = gasPrice.times(sampleOrNativeOrder.gasCost);
         const outputFee = ethToOutputAmount({
             input,
@@ -56,16 +57,15 @@ function calculateOuputFee(
         });
         return outputFee;
     } else {
-        throw new Error(`No implementado`);
-        // const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
-        // const outputFee = ethToOutputAmount({
-        //     input,
-        //     output,
-        //     inputAmountPerEth,
-        //     outputAmountPerEth,
-        //     ethAmount: fee,
-        // });
-        // return outputFee;
+        const { input, output } = nativeOrderToNormalizedAmounts(side, sampleOrNativeOrder);
+        const outputFee = ethToOutputAmount({
+            input,
+            output,
+            inputAmountPerEth,
+            outputAmountPerEth,
+            ethAmount: gasPrice.times((sampleOrNativeOrder as NativeOrderWithFillableAmounts).gasCost),
+        });
+        return outputFee;
     }
 }
 
@@ -381,7 +381,7 @@ export async function findOptimalPathJSAsync(
 ): Promise<Path | undefined> {
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
-    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
+    const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -420,7 +420,7 @@ export function fillsToSortedPaths(
 }
 
 // Remove paths which have no impact on the optimal path
-export function reducePaths(sortedPaths: Path[], side: MarketOperation): Path[] {
+export function reducePaths(sortedPaths: Path[]): Path[] {
     // Any path which has a min rate that is less than the best adjusted completed rate has no chance of improving
     // the overall route.
     const bestNonNativeCompletePath = sortedPaths.filter(

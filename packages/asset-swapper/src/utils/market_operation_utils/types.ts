@@ -2,11 +2,15 @@ import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerRfqOrderInfo,
+    LimitOrderFields,
+    RfqOrderFields,
+    Signature,
 } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { Address, Bytes, NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
+import { Address, Bytes, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
+import { NativeOrderWithFillableAmounts } from '../native_orders';
 import { QuoteRequestor } from '../../utils/quote_requestor';
 import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
@@ -200,8 +204,8 @@ export interface MooniswapFillData extends BridgeFillData {
 }
 
 export interface NativeOrderFillData {
-    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
-    orderInfo: FillQuoteTransformerLimitOrderInfo;
+    order: LimitOrderFields | RfqOrderFields;
+    signature: Signature;
 }
 
 /**

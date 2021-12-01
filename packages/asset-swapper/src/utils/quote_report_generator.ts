@@ -2,7 +2,7 @@ import { FillQuoteTransformerOrderType, RfqOrderFields, Signature } from '@0x/pr
 import { BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
+import { MarketOperation } from '../types';
 
 import {
     CollapsedFill,
@@ -10,6 +10,7 @@ import {
     ERC20BridgeSource,
     CollapsedNativeOrderFill,
 } from './market_operation_utils/types';
+import { NativeOrderWithFillableAmounts } from './native_orders';
 import { QuoteRequestor } from './quote_requestor';
 
 export interface QuoteReportEntryBase {

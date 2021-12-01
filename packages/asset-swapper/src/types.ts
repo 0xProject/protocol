@@ -51,18 +51,6 @@ export interface SignedOrder<T> {
 export type SignedRfqOrder = SignedOrder<RfqOrderFields>;
 export type SignedLimitOrder = SignedOrder<LimitOrderFields>;
 export type SignedNativeOrder = SignedLimitOrder | SignedRfqOrder;
-export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
-
-/**
- * fillableMakerAmount: Amount of makerAsset that is fillable
- * fillableTakerAmount: Amount of takerAsset that is fillable
- * fillableTakerFeeAmount: Amount of takerFee paid to fill fillableTakerAmount
- */
-export interface NativeOrderFillableAmountFields {
-    fillableMakerAmount: BigNumber;
-    fillableTakerAmount: BigNumber;
-    fillableTakerFeeAmount: BigNumber;
-}
 
 /**
  * Represents the metadata to call a smart contract with calldata.
