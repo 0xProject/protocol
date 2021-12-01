@@ -57,6 +57,8 @@ contract ERC721OrdersFeature is
 
     /// @dev The magic return value indicating the success of a `receiveFeeCallback`.
     bytes4 private constant FEE_CALLBACK_MAGIC_BYTES = IFeeRecipient.receiveFeeCallback.selector;
+    /// @dev The magic return value indicating the success of a `onERC721Received`.
+    bytes4 private constant ERC721_RECEIVED_MAGIC_BYTES = this.onERC721Received.selector;
 
 
     constructor(address zeroExAddress, IEtherTokenV06 weth)
@@ -107,75 +109,13 @@ contract ERC721OrdersFeature is
         public
         override
     {
-        require(
-            order.direction == LibERC721Order.TradeDirection.BUY_721,
-            "Order is not buying 721"
-        );
-
-        require(
-            order.taker == address(0) || order.taker == msg.sender,
-            "msg.sender is not order.taker"
-        );
-
-        require(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
-            "Order is not fillable"
-        );
-
-        require(
-            satisfiesERC721OrderProperties(order, erc721TokenId),
-            "721 token ID does not satisfy order properties"
-        );
-
-        require(
-            isValidERC721OrderSignature(order, signature),
-            "Invalid signature"
-        );
-
-        _setOrderStatusBit(order);
-
-        _transferERC721AssetFrom(
-            order.erc721Token,
-            msg.sender,
-            order.maker,
-            erc721TokenId
-        );
-
-        if (unwrapNativeToken) {
-            require(
-                order.erc20Token == WETH,
-                "ERC20 token is not WETH"
-            );
-            // TODO: Probably safe to just use WETH.transferFrom for some
-            //       small gas savings
-            _transferERC20TokensFrom(
-                WETH,
-                order.maker,
-                address(this),
-                order.erc20TokenAmount
-            );
-            WETH.withdraw(order.erc20TokenAmount);
-            _transferEth(msg.sender, order.erc20TokenAmount);
-        } else {
-            _transferERC20TokensFrom(
-                order.erc20Token, 
-                order.maker, 
-                msg.sender, 
-                order.erc20TokenAmount
-            );
-        }
-
-        _payFees(order, order.maker, false);
-
-        emit ERC721OrderFilled(
-            order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
-            erc721TokenId,
-            order.maker,
-            msg.sender,
-            order.nonce
+        _sellERC721(
+            order, 
+            signature, 
+            erc721TokenId, 
+            unwrapNativeToken,
+            msg.sender, // taker
+            false       // isCallback
         );
     }
 
@@ -369,7 +309,114 @@ contract ERC721OrdersFeature is
         override
         returns (bytes4 success)
     {
-        // TODO
+        (
+            LibERC721Order.ERC721Order memory order, 
+            LibSignature.Signature memory signature,
+            bool unwrapNativeToken
+        ) = abi.decode(
+            data,
+            (LibERC721Order.ERC721Order, LibSignature.Signature, bool)
+        );
+
+        require(
+            msg.sender == address(order.erc721Token),
+            "Incorrect ERC721 token"
+        );
+
+        // TODO: Enforce operator == from?
+
+        _sellERC721(
+            order, 
+            signature, 
+            tokenId, 
+            unwrapNativeToken,
+            from, // taker
+            true  // isCallback
+        );
+
+        return ERC721_RECEIVED_MAGIC_BYTES;
+    }
+
+    function _sellERC721(
+        LibERC721Order.ERC721Order memory order,
+        LibSignature.Signature memory signature,
+        uint256 erc721TokenId,
+        bool unwrapNativeToken,
+        address taker,
+        bool isCallback
+    )
+        private
+    {
+        require(
+            order.direction == LibERC721Order.TradeDirection.BUY_721,
+            "Order is not buying 721"
+        );
+
+        require(
+            order.taker == address(0) || order.taker == taker,
+            "Invalid taker"
+        );
+
+        require(
+            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+            "Order is not fillable"
+        );
+
+        require(
+            satisfiesERC721OrderProperties(order, erc721TokenId),
+            "721 token ID does not satisfy order properties"
+        );
+
+        require(
+            isValidERC721OrderSignature(order, signature),
+            "Invalid signature"
+        );
+
+        _setOrderStatusBit(order);
+
+        _transferERC721AssetFrom(
+            order.erc721Token,
+            isCallback ? address(this) : taker,
+            order.maker,
+            erc721TokenId
+        );
+
+        if (unwrapNativeToken) {
+            require(
+                order.erc20Token == WETH,
+                "ERC20 token is not WETH"
+            );
+            // TODO: Probably safe to just use WETH.transferFrom for some
+            //       small gas savings
+            _transferERC20TokensFrom(
+                WETH,
+                order.maker,
+                address(this),
+                order.erc20TokenAmount
+            );
+            WETH.withdraw(order.erc20TokenAmount);
+            _transferEth(payable(taker), order.erc20TokenAmount);
+        } else {
+            _transferERC20TokensFrom(
+                order.erc20Token, 
+                order.maker, 
+                taker, 
+                order.erc20TokenAmount
+            );
+        }
+
+        _payFees(order, order.maker, false);
+
+        emit ERC721OrderFilled(
+            order.direction,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.erc721Token,
+            erc721TokenId,
+            order.maker,
+            taker,
+            order.nonce
+        );
     }
 
     /// @dev Returns whether not the given signature is valid for the
