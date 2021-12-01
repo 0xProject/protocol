@@ -22,10 +22,12 @@ pragma experimental ABIEncoderV2;
 
 import "./IBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
+import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
+import "./mixins/MixinCompound.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
@@ -47,10 +49,12 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract BridgeAdapter is
     IBridgeAdapter,
+    MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2,
     MixinBancor,
     MixinCoFiX,
+    MixinCompound,
     MixinCurve,
     MixinCurveV2,
     MixinCryptoCom,
@@ -72,10 +76,12 @@ contract BridgeAdapter is
 {
     constructor(IEtherTokenV06 weth)
         public
+        MixinAaveV2()
         MixinBalancer()
         MixinBalancerV2()
         MixinBancor(weth)
         MixinCoFiX()
+        MixinCompound(weth)
         MixinCurve(weth)
         MixinCurveV2()
         MixinCryptoCom()
@@ -240,6 +246,20 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.LIDO) {
             boughtAmount = _tradeLido(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.AAVEV2) {
+            boughtAmount = _tradeAaveV2(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.COMPOUND) {
+            boughtAmount = _tradeCompound(
                 sellToken,
                 buyToken,
                 sellAmount,

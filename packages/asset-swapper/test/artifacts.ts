@@ -10,6 +10,7 @@ import * as BalanceChecker from '../test/generated-artifacts/BalanceChecker.json
 import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.json';
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
+import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
@@ -52,6 +53,7 @@ export const artifacts = {
     BalancerSampler: BalancerSampler as ContractArtifact,
     BalancerV2Sampler: BalancerV2Sampler as ContractArtifact,
     BancorSampler: BancorSampler as ContractArtifact,
+    CompoundSampler: CompoundSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
     DODOV2Sampler: DODOV2Sampler as ContractArtifact,

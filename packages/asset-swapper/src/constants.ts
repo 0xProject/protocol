@@ -28,7 +28,6 @@ const ONE_SECOND_MS = 1000;
 const ONE_MINUTE_SECS = 60;
 const ONE_MINUTE_MS = ONE_SECOND_MS * ONE_MINUTE_SECS;
 const DEFAULT_PER_PAGE = 1000;
-const ZERO_AMOUNT = new BigNumber(0);
 const ALT_MM_IMPUTED_INDICATIVE_EXPIRY_SECONDS = 180;
 
 const DEFAULT_ORDER_PRUNER_OPTS: OrderPrunerOpts = {
@@ -43,6 +42,7 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
+export const ZERO_AMOUNT = new BigNumber(0);
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds
