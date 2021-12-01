@@ -4,8 +4,6 @@ import { BigNumber } from '@0x/utils';
 import { constants } from '../constants';
 import { MarketOperation, SwapQuoteLimitOrder, SwapQuoteOrder } from '../types';
 
-import { getNativeTakerFeeFillAmount } from './native_orders';
-
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
 const { ROUND_DOWN, ROUND_UP } = BigNumber;
 
@@ -217,13 +215,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
             ? {
                   totalOrderInput: o.takerAmount,
                   totalOrderOutput: o.makerAmount,
-                  totalOrderInputFee:
-                      o.type === FillQuoteTransformerOrderType.Limit
-                          ? getNativeTakerFeeFillAmount(
-                                ((o as SwapQuoteLimitOrder).fillData.order as LimitOrderFields),
-                                o.takerAmount,
-                            )
-                          : ZERO_AMOUNT,
+                  totalOrderInputFee: ZERO_AMOUNT, // Limit orders not supported atm
                   totalOrderOutputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (sell output)
               }
             : // Buy
@@ -231,7 +223,7 @@ function createBestCaseFillOrderCalls(quoteInfo: QuoteFillInfo): QuoteFillOrderC
                   totalOrderInput: o.makerAmount,
                   totalOrderOutput: o.takerAmount,
                   totalOrderInputFee: ZERO_AMOUNT, // makerToken fees are not supported in v4 (buy input)
-                  totalOrderOutputFee: ZERO_AMOUNT,
+                  totalOrderOutputFee: ZERO_AMOUNT, // Limit orders not supported atm
               }),
     }));
 }
