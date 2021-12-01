@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.39.0",
+        "changes": [
+            {
+                "note": "Curve ETH/CRV pool"
+            }
+        ]
+    },
+    {
         "version": "16.38.0",
         "changes": [
             {
