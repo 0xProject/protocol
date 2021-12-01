@@ -165,6 +165,19 @@ interface IERC721OrdersFeature {
         external
         returns (bytes4 success);
 
+    /// @dev Returns whether not the given signature is valid for the
+    ///      the given ERC721 order.
+    /// @param order The ERC721 order.
+    /// @param signature The signature to validate.
+    /// @return isValid Whether `signature` is valid for `order`.
+    function isValidERC721OrderSignature(
+        LibERC721Order.ERC721Order calldata order,
+        LibSignature.Signature calldata signature
+    )
+        external
+        view
+        returns (bool isValid);
+
     /// @dev If the given order is buying an ERC721 asset, returns
     ///      whether or not the given token ID satisfies the required
     ///      properties specified in the order. If the order does not
