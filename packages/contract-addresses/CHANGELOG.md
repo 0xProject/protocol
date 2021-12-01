@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.10.0 - _December 1, 2021_
+
+    * Add Aave supported FQT addresses for Polygon, Avalanche (#321)
+
 ## v6.9.0 - _November 16, 2021_
 
     * Add Celo addresses (#368)

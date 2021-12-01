@@ -6,7 +6,8 @@
                 "note": "Add Aave supported FQT addresses for Polygon, Avalanche",
                 "pr": 321
             }
-        ]
+        ],
+        "timestamp": 1638390144
     },
     {
         "version": "6.9.0",
