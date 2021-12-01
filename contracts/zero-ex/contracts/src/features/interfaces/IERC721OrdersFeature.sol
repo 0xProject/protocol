@@ -51,6 +51,34 @@ interface IERC721OrdersFeature {
         uint256 nonce
     );
 
+    /// @dev Emitted whenever two `ERC721Order`s are matched.
+    /// @param erc20Token The ERC20 token of the two orders.
+    ///        If `sellOrder.erc20Token` is the native token
+    ///        and `buyOrder.erc20Token` is the wrapped native
+    ///        token, this will be `NATIVE_TOKEN_ADDRESS`.
+    /// @param erc721Token The address of the ERC721 token.
+    /// @param erc721TokenId The ID of the ERC721 asset.
+    /// @param sellOrderMaker The maker of the sell order.
+    /// @param buyOrderMaker The maker of the buy order.
+    /// @param sellOrderNonce The nonce of the sell order.
+    /// @param buyOrderNonce The nonce of the buy order.
+    /// @param matcher The address that called the `matchERC721Orders`
+    ///        or `batchMatchERC721Orders` function.
+    /// @param profit The amount of profit earned by the matcher,
+    ///        denominated in `erc20Token`.
+    event ERC721OrdersMatched(
+        IERC20TokenV06 erc20Token,
+        IERC721Token erc721Token,
+        uint256 erc20TokenAmount,
+        uint256 erc721TokenId,
+        address sellOrderMaker,
+        address buyOrderMaker,
+        uint256 sellOrderNonce,
+        uint256 buyOrderNonce,
+        address matcher,
+        uint256 profit
+    );
+
     /// @dev Emitted whenever an `ERC721Order` is cancelled.
     /// @param maker The maker of the order.
     /// @param nonce The nonce of the order that was cancelled.

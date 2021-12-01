@@ -229,7 +229,103 @@ contract ERC721OrdersFeature is
         override
         returns (uint256 profit)
     {
-        // TODO
+        _validateSellOrder(sellOrder, sellOrderSignature);
+        _validateBuyOrder(
+            buyOrder,
+            buyOrderSignature,
+            msg.sender, // TODO: maybe allow sellOrder.taker == buyOrder.maker, vice versa
+            sellOrder.erc721TokenId
+        );
+
+        require(
+            sellOrder.erc721Token == buyOrder.erc721Token,
+            "ERC721 token mismatch"
+        );
+        require(
+            sellOrder.erc20Token == buyOrder.erc20Token ||
+            (
+                address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS && 
+                buyOrder.erc20Token == WETH
+            ),
+            "ERC20 token mismatch"
+        );
+        require(
+            buyOrder.erc20TokenAmount >= sellOrder.erc20TokenAmount,
+            "Negative spread"
+        );
+
+        uint256 spread = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount;
+
+        _setOrderStatusBit(sellOrder);
+        _setOrderStatusBit(buyOrder);
+
+        _transferERC721AssetFrom(
+            sellOrder.erc721Token,
+            sellOrder.maker,
+            buyOrder.maker,
+            sellOrder.erc721TokenId
+        );
+
+        if (
+            address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS && 
+            buyOrder.erc20Token == WETH
+        ) {
+            _transferERC20TokensFrom(
+                WETH,
+                buyOrder.maker,
+                address(this),
+                sellOrder.erc20TokenAmount
+            );
+            WETH.withdraw(buyOrder.erc20TokenAmount);
+            _transferEth(payable(sellOrder.maker), sellOrder.erc20TokenAmount);
+            _payFees(buyOrder, buyOrder.maker, false);
+            uint256 sellOrderFees = _payFees(sellOrder, address(this), true);
+            require(
+                spread >= sellOrderFees,
+                "Sell order fees exceed spread"
+            );            
+            profit = spread - sellOrderFees;
+            if (profit > 0) {
+                _transferEth(msg.sender, profit);
+            }
+        } else {
+            _transferERC20TokensFrom(
+                buyOrder.erc20Token,
+                buyOrder.maker,
+                sellOrder.maker,
+                sellOrder.erc20TokenAmount
+            );
+
+            _payFees(buyOrder, buyOrder.maker, false);
+            uint256 sellOrderFees = _payFees(sellOrder, buyOrder.maker, false);
+            require(
+                spread >= sellOrderFees,
+                "Sell order fees exceed spread"
+            );            
+            profit = spread - sellOrderFees;
+            if (profit > 0) {
+                _transferERC20TokensFrom(
+                    buyOrder.erc20Token,
+                    buyOrder.maker,
+                    msg.sender,
+                    profit
+                );
+            }
+        }
+
+        // TODO: or we could emit 2 ERC721OrderFilled events
+        emit ERC721OrdersMatched(
+            sellOrder.erc20Token,
+            sellOrder.erc721Token,
+            sellOrder.erc20TokenAmount,
+            sellOrder.erc721TokenId,
+            sellOrder.maker,
+            buyOrder.maker,
+            sellOrder.nonce,
+            buyOrder.nonce,
+            msg.sender,
+            profit
+        );
     }
     
     /// @dev Matches pairs of complementary orders that have
@@ -255,7 +351,31 @@ contract ERC721OrdersFeature is
         override
         returns (uint256[] memory profits, bool[] memory successes)
     {
-        // TODO
+        require(
+            sellOrders.length == buyOrders.length &&
+            sellOrderSignatures.length == buyOrderSignatures.length &&
+            sellOrders.length == sellOrderSignatures.length,
+            "Array length mismatch"
+        );
+        profits = new uint256[](sellOrders.length);
+        successes = new bool[](sellOrders.length);
+
+        for (uint256 i = 0; i < sellOrders.length; i++) {
+            bytes memory returnData;
+            (successes[i], returnData) = _implementation.delegatecall(
+                abi.encodeWithSelector(
+                    this.matchERC721Orders.selector, 
+                    sellOrders[i],
+                    buyOrders[i],
+                    sellOrderSignatures[i],
+                    buyOrderSignatures[i]
+                )
+            );
+            if (successes[i]) {
+                (uint256 profit) = abi.decode(returnData, (uint256));
+                profits[i] = profit;
+            }
+        }        
     }
     
     /// @dev Callback for the ERC721 `safeTransferFrom` function.
@@ -320,29 +440,11 @@ contract ERC721OrdersFeature is
     )
         private
     {
-        require(
-            order.direction == LibERC721Order.TradeDirection.BUY_721,
-            "Order is not buying 721"
-        );
-
-        require(
-            order.taker == address(0) || order.taker == taker,
-            "Invalid taker"
-        );
-
-        require(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
-            "Order is not fillable"
-        );
-
-        require(
-            satisfiesERC721OrderProperties(order, erc721TokenId),
-            "721 token ID does not satisfy order properties"
-        );
-
-        require(
-            isValidERC721OrderSignature(order, signature),
-            "Invalid signature"
+        _validateBuyOrder(
+            order,
+            signature,
+            taker,
+            erc721TokenId
         );
 
         _setOrderStatusBit(order);
@@ -401,25 +503,7 @@ contract ERC721OrdersFeature is
         payable
         returns (uint256 ethSpent)
     {
-        require(
-            order.direction == LibERC721Order.TradeDirection.SELL_721,
-            "Order is not selling 721"
-        );
-
-        require(
-            order.taker == address(0) || order.taker == msg.sender,
-            "msg.sender is not order.taker"
-        );
-
-        require(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
-            "Order is not fillable"
-        );
-
-        require(
-            isValidERC721OrderSignature(order, signature),
-            "Invalid signature"
-        );
+        _validateSellOrder(order, signature);
 
         _setOrderStatusBit(order);
 
@@ -498,6 +582,69 @@ contract ERC721OrdersFeature is
         address signer = LibSignature.getSignerOfHash(orderHash, signature);
         // TODO: Signer registry
         return signer == order.maker;
+    }
+
+    function _validateSellOrder(
+        LibERC721Order.ERC721Order memory order,
+        LibSignature.Signature memory signature
+    )
+        private
+        view
+    {
+        require(
+            order.direction == LibERC721Order.TradeDirection.SELL_721,
+            "Order is not selling 721"
+        );
+
+        require(
+            order.taker == address(0) || order.taker == msg.sender,
+            "msg.sender is not order.taker"
+        );
+
+        require(
+            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+            "Order is not fillable"
+        );
+
+        require(
+            isValidERC721OrderSignature(order, signature),
+            "Invalid signature"
+        );
+    }
+
+    function _validateBuyOrder(
+        LibERC721Order.ERC721Order memory order,
+        LibSignature.Signature memory signature,
+        address taker,
+        uint256 erc721TokenId
+    )
+        private
+        view
+    {
+        require(
+            order.direction == LibERC721Order.TradeDirection.BUY_721,
+            "Order is not buying 721"
+        );
+
+        require(
+            order.taker == address(0) || order.taker == taker,
+            "Invalid taker"
+        );
+
+        require(
+            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+            "Order is not fillable"
+        );
+
+        require(
+            satisfiesERC721OrderProperties(order, erc721TokenId),
+            "721 token ID does not satisfy order properties"
+        );
+
+        require(
+            isValidERC721OrderSignature(order, signature),
+            "Invalid signature"
+        );
     }
 
     function _payFees(
