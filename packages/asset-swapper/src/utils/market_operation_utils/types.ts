@@ -117,8 +117,10 @@ export enum CurveFunctionSelectors {
     exchange_underlying = '0xa6417ed6',
     get_dy_underlying = '0x07211ef7',
     get_dx_underlying = '0x0e71d1b9',
-    get_dy = '0x5e0d443f',
+    get_dy = '0x5e0d443f', // get_dy(int128,int128,uint256)
     get_dx = '0x67df02ca',
+    get_dy_uint256 = '0x556d6e9f', // get_dy(uint256,uint256,uint256)
+    exchange_underlying_uint256 = '0x65b2489b', // exchange_underlying(uint256,uint256,uint256,uint256)
     // Curve V2
     exchange_v2 = '0x5b41b908',
     exchange_underlying_v2 = '0x65b2489b',
