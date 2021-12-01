@@ -62,6 +62,18 @@ abstract contract FixinCommon {
         _implementation = address(this);
     }
 
+    /// @dev RichError equivalent of `require`. 
+    /// @param condition If `condition` is false, this function will revert.
+    /// @param errorData ABI-encoded error data.
+    function rrequire(bool condition, bytes memory errorData)
+        internal
+        pure
+    {
+        if (!condition) {
+            errorData.rrevert();
+        }
+    }
+
     /// @dev Registers a function implemented by this feature at `_implementation`.
     ///      Can and should only be called within a `migrate()`.
     /// @param selector The selector of the function whose implementation

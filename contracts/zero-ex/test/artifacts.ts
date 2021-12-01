@@ -62,6 +62,7 @@ import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
 import * as LibERC20Transformer from '../test/generated-artifacts/LibERC20Transformer.json';
 import * as LibERC721Order from '../test/generated-artifacts/LibERC721Order.json';
+import * as LibERC721OrdersRichErrors from '../test/generated-artifacts/LibERC721OrdersRichErrors.json';
 import * as LibERC721OrdersStorage from '../test/generated-artifacts/LibERC721OrdersStorage.json';
 import * as LibFeeCollector from '../test/generated-artifacts/LibFeeCollector.json';
 import * as LibLiquidityProviderRichErrors from '../test/generated-artifacts/LibLiquidityProviderRichErrors.json';
@@ -189,6 +190,7 @@ export const artifacts = {
     ZeroEx: ZeroEx as ContractArtifact,
     ZeroExOptimized: ZeroExOptimized as ContractArtifact,
     LibCommonRichErrors: LibCommonRichErrors as ContractArtifact,
+    LibERC721OrdersRichErrors: LibERC721OrdersRichErrors as ContractArtifact,
     LibLiquidityProviderRichErrors: LibLiquidityProviderRichErrors as ContractArtifact,
     LibMetaTransactionsRichErrors: LibMetaTransactionsRichErrors as ContractArtifact,
     LibNativeOrdersRichErrors: LibNativeOrdersRichErrors as ContractArtifact,

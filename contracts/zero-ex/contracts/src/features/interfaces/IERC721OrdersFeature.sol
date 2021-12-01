@@ -216,23 +216,21 @@ interface IERC721OrdersFeature {
         view
         returns (bool isValid);
 
-    /// @dev If the given order is buying an ERC721 asset, returns
+    /// @dev If the given order is buying an ERC721 asset, checks
     ///      whether or not the given token ID satisfies the required
     ///      properties specified in the order. If the order does not
-    ///      specify any properties, this function instead returns 
+    ///      specify any properties, this function instead checks 
     ///      whether the given token ID matches the ID in the order.
-    ///      Reverts if the order is selling an ERC721 asset.
+    ///      Reverts if any checks fail, or if the order is selling 
+    ///      an ERC721 asset.
     /// @param order The ERC721 order.
     /// @param erc721TokenId The ID of the ERC721 asset.
-    /// @return canFillOrder Whether or not the given ERC721 asset can
-    ///         be used to fill the given order.
-    function satisfiesERC721OrderProperties(
+    function validateERC721OrderProperties(
         LibERC721Order.ERC721Order calldata order, 
         uint256 erc721TokenId
     )
         external
-        view
-        returns (bool canFillOrder);
+        view;
     
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.
