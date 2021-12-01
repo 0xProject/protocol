@@ -80,6 +80,7 @@ contract ERC721OrdersFeature is
         _registerFeatureFunction(this.matchERC721Orders.selector);
         _registerFeatureFunction(this.batchMatchERC721Orders.selector);
         _registerFeatureFunction(this.onERC721Received.selector);
+        _registerFeatureFunction(this.isValidERC721OrderSignature.selector);
         _registerFeatureFunction(this.satisfiesERC721OrderProperties.selector);
         _registerFeatureFunction(this.getERC721OrderStatus.selector);
         _registerFeatureFunction(this.getERC721OrderHash.selector);
@@ -127,7 +128,7 @@ contract ERC721OrdersFeature is
         );
 
         require(
-            isValidSignature(order, signature),
+            isValidERC721OrderSignature(order, signature),
             "Invalid signature"
         );
 
@@ -205,7 +206,7 @@ contract ERC721OrdersFeature is
         );
 
         require(
-            isValidSignature(order, signature),
+            isValidERC721OrderSignature(order, signature),
             "Invalid signature"
         );
 
@@ -371,11 +372,18 @@ contract ERC721OrdersFeature is
         // TODO
     }
 
-    function isValidSignature(
+    /// @dev Returns whether not the given signature is valid for the
+    ///      the given ERC721 order.
+    /// @param order The ERC721 order.
+    /// @param signature The signature to validate.
+    /// @return isValid Whether `signature` is valid for `order`.
+    function isValidERC721OrderSignature(
         LibERC721Order.ERC721Order memory order,
         LibSignature.Signature memory signature
     )
         public
+        override
+        view
         returns (bool isValid)
     {
         bytes32 orderHash = getERC721OrderHash(order);
