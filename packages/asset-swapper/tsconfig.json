@@ -11,6 +11,7 @@
         "test/generated-artifacts/BalancerSampler.json",
         "test/generated-artifacts/BalancerV2Sampler.json",
         "test/generated-artifacts/BancorSampler.json",
+        "test/generated-artifacts/CompoundSampler.json",
         "test/generated-artifacts/CurveSampler.json",
         "test/generated-artifacts/DODOSampler.json",
         "test/generated-artifacts/DODOV2Sampler.json",

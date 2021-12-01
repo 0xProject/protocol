@@ -7,7 +7,9 @@ import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
 import { SourceFilters } from './source_filters';
 import {
+    AaveV2FillData,
     BancorFillData,
+    CompoundFillData,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -101,6 +103,9 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            // TODO: enable after FQT has been redeployed on Ethereum mainnet
+            // ERC20BridgeSource.AaveV2,
+            // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -159,6 +164,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -168,6 +174,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -227,6 +234,9 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            // TODO: enable after FQT has been redeployed on Ethereum mainnet
+            // ERC20BridgeSource.AaveV2,
+            // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -285,6 +295,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -294,6 +305,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.AaveV2,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -1700,6 +1712,24 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
 );
 
+export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
+    {
+        // TODO: enable after FQT has been redeployed on Ethereum mainnet
+        // [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2',
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/aave/aave-v2-matic',
+        [ChainId.Avalanche]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-avalanche',
+    },
+    null,
+);
+
+export const COMPOUND_API_URL_BY_CHAIN_ID = valueByChainId(
+    {
+        // TODO: enable after FQT has been redeployed on Ethereum mainnet
+        // [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
+    },
+    null,
+);
+
 //
 // BSC
 //
@@ -1965,6 +1995,21 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
+    [ERC20BridgeSource.AaveV2]: (fillData?: FillData) => {
+        const aaveFillData = fillData as AaveV2FillData;
+        // NOTE: The Aave deposit method is more expensive than the withdraw
+        return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
+    },
+    [ERC20BridgeSource.Compound]: (fillData?: FillData) => {
+        // NOTE: cETH is handled differently than other cTokens
+        const wethAddress = NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet];
+        const compoundFillData = fillData as CompoundFillData;
+        if (compoundFillData.takerToken === compoundFillData.cToken) {
+            return compoundFillData.makerToken === wethAddress ? 120e3 : 150e3;
+        } else {
+            return compoundFillData.takerToken === wethAddress ? 210e3 : 250e3;
+        }
+    },
 
     //
     // BSC
