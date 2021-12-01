@@ -6,7 +6,8 @@
                 "note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
                 "pr": 321
             }
-        ]
+        ],
+        "timestamp": 1638390144
     },
     {
         "timestamp": 1637102971,

@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.40.0 - _December 1, 2021_
+
+    * Add `AaveV2` and `Compound` deposit/withdrawal liquidity source (#321)
+
+## v16.39.0 - _Invalid date_
+
+    * Curve ETH/CRV pool (#378)
+
 ## v16.38.0 - _November 29, 2021_
 
     * Capture sampler metrics (#374)
