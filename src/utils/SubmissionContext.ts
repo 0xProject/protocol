@@ -1,10 +1,18 @@
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
-type Provider = providers.Provider;
+import { RfqmTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../entities/types';
+import { BLOCK_FINALITY_THRESHOLD } from '../services/rfqm_service';
+
+import { RfqBlockchainUtils } from './rfq_blockchain_utils';
+
 type TransactionReceipt = providers.TransactionReceipt;
 
-import { RfqmV2TransactionSubmissionEntity } from '../entities';
+// https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean
+function isDefined<T>(value: T): value is NonNullable<T> {
+    return value !== null && value !== undefined;
+}
 
 /**
  * Encapsulates the transaction submissions for an RFQM job.
@@ -13,17 +21,31 @@ import { RfqmV2TransactionSubmissionEntity } from '../entities';
  * all as one unit. It ensures consistency across transactions and makes retrieval
  * of the mined transaction receipt, if one exists, easy.
  */
-// TODO (rhinodavid): Add RfqmTransactionSubmissionEntity once it has EIP-1559 fields
-export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity> {
-    private _transactions: T[];
-    private readonly _provider: Provider;
+export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[]> {
+    private _transactions: T;
+    private readonly _blockchainUtils: RfqBlockchainUtils;
     private readonly _transactionType: 0 | 2;
 
-    constructor(provider: providers.Provider, transactions: T[]) {
+    public static isBlockConfirmed(currentBlock: number, receiptBlockNumber: number): boolean {
+        // We specify a finality threshold of n blocks deep to have greater confidence
+        // in the transaction receipt
+        return currentBlock - receiptBlockNumber >= BLOCK_FINALITY_THRESHOLD;
+    }
+
+    constructor(blockchainUtils: RfqBlockchainUtils, transactions: T) {
         this._ensureTransactionsAreConsistent(transactions);
         this._transactionType = !!transactions[0].gasPrice ? 0 : 2;
         this._transactions = transactions;
-        this._provider = provider;
+        this._blockchainUtils = blockchainUtils;
+    }
+
+    public get transactions(): T {
+        return this._transactions;
+    }
+
+    // Gets the transaction hashes for the transactions in the SubmissionContext
+    public get transactionHashes(): string[] {
+        return this._transactions.map((t) => t.transactionHash).filter(isDefined);
     }
 
     /**
@@ -38,10 +60,10 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity> {
      * Adds a transaction to the SubmissionContext. Throws if the transaction has a nonce or type
      * different than the existing transactions.
      */
-    public addTransaction(transaction: T): void {
-        const transactions = [...this._transactions, transaction];
-        this._ensureTransactionsAreConsistent(transactions);
-        this._transactions = transactions;
+    public addTransaction(transaction: T[number]): void {
+        // TODO (rhinodavid): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is closed
+        (this._transactions as any[]).push(transaction);
+        this._ensureTransactionsAreConsistent(this._transactions);
     }
 
     /**
@@ -87,16 +109,100 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity> {
      * has been mined; otherwise returns `null`.
      */
     public async getReceiptAsync(): Promise<TransactionReceipt | null> {
-        const receipts = await Promise.all(
-            this._transactions
-                .map((t) => t.transactionHash!)
-                .filter(Boolean)
-                .map(async (transactionHash) => this._provider.getTransactionReceipt(transactionHash)),
-        ).then((r) => r.filter(Boolean));
+        const receipts = (
+            await this._blockchainUtils.getReceiptsAsync(this._transactions.map((t) => t.transactionHash!))
+        ).filter(isDefined);
         if (receipts.length > 1) {
             throw new Error('Found more than one transaction receipt');
         }
         return receipts.length ? receipts[0] : null;
+    }
+
+    /**
+     * Update the in-memory transactions in response to a mined transaction receipt.
+     * Updates the statuses of all transactions and the metadata of v1 transactions.
+     */
+    public async updateForReceiptAsync(
+        receipt: TransactionReceipt,
+        expectedTakerTokenFillAmount: BigNumber,
+        now: Date = new Date(),
+    ): Promise<void> {
+        const isTransactionSuccessful = receipt.status === 1;
+        const currentBlock = await this._blockchainUtils.getCurrentBlockAsync();
+        const isTransactionConfirmed = SubmissionContext.isBlockConfirmed(currentBlock, receipt.blockNumber);
+
+        this._transactions = this._transactions.map((transaction) => {
+            transaction.updatedAt = now;
+            if (transaction.kind === 'rfqm_v1_transaction_submission') {
+                transaction.metadata = {
+                    expectedTakerTokenFillAmount: expectedTakerTokenFillAmount.toString(),
+                    actualTakerFillAmount: '0',
+                    decodedFillLog: '{}',
+                };
+            }
+            if (transaction.transactionHash === receipt.transactionHash) {
+                if (isTransactionSuccessful) {
+                    if (transaction.kind === 'rfqm_v1_transaction_submission') {
+                        const decodedLog = this._blockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(receipt.logs);
+                        transaction.metadata = {
+                            expectedTakerTokenFillAmount: expectedTakerTokenFillAmount.toString(),
+                            actualTakerFillAmount: decodedLog.args.takerTokenFilledAmount.toString(),
+                            decodedFillLog: JSON.stringify(decodedLog),
+                        };
+                    }
+                }
+
+                const submissionStatus = isTransactionSuccessful
+                    ? isTransactionConfirmed
+                        ? RfqmTransactionSubmissionStatus.SucceededConfirmed
+                        : RfqmTransactionSubmissionStatus.SucceededUnconfirmed
+                    : isTransactionConfirmed
+                    ? RfqmTransactionSubmissionStatus.RevertedConfirmed
+                    : RfqmTransactionSubmissionStatus.RevertedUnconfirmed;
+
+                transaction.status = submissionStatus;
+                transaction.blockMined = new BigNumber(receipt.blockNumber);
+                transaction.gasUsed = new BigNumber(receipt.gasUsed.toString());
+            } else {
+                transaction.status = RfqmTransactionSubmissionStatus.DroppedAndReplaced;
+            }
+
+            return transaction;
+        }) as T;
+    }
+
+    /**
+     * Returns the appropriate job status given the statuses of the transactions
+     */
+    public get jobStatus():
+        | RfqmJobStatus.PendingSubmitted
+        | RfqmJobStatus.FailedRevertedConfirmed
+        | RfqmJobStatus.FailedRevertedUnconfirmed
+        | RfqmJobStatus.SucceededConfirmed
+        | RfqmJobStatus.SucceededUnconfirmed {
+        for (const transaction of this._transactions) {
+            switch (transaction.status) {
+                case RfqmTransactionSubmissionStatus.DroppedAndReplaced:
+                    continue;
+                case RfqmTransactionSubmissionStatus.Presubmit:
+                    continue;
+                case RfqmTransactionSubmissionStatus.RevertedConfirmed:
+                    return RfqmJobStatus.FailedRevertedConfirmed;
+                case RfqmTransactionSubmissionStatus.RevertedUnconfirmed:
+                    return RfqmJobStatus.FailedRevertedUnconfirmed;
+                case RfqmTransactionSubmissionStatus.Submitted:
+                    continue;
+                case RfqmTransactionSubmissionStatus.SucceededConfirmed:
+                    return RfqmJobStatus.SucceededConfirmed;
+                case RfqmTransactionSubmissionStatus.SucceededUnconfirmed:
+                    return RfqmJobStatus.SucceededUnconfirmed;
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(transaction.status);
+            }
+        }
+        return RfqmJobStatus.PendingSubmitted;
     }
 
     /**
@@ -109,7 +215,7 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity> {
      * `T` generic type.
      */
     // tslint:disable-next-line: prefer-function-over-method
-    private _ensureTransactionsAreConsistent(transactions: T[]): void {
+    private _ensureTransactionsAreConsistent(transactions: T): void {
         if (!transactions.length) {
             throw new Error('`transactions` must have a nonzero length');
         }
@@ -119,9 +225,12 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity> {
         if (new Set(transactions.map((t) => t.transactionHash)).size !== transactions.length) {
             throw new Error('Transactions are not unique');
         }
-        const areAllGasPricesNonNull = transactions.every((t) => t.gasPrice !== null);
-        const areAllMaxFeesPerGasNonNull = transactions.every((t) => t.maxFeePerGas !== null);
-        const areAllMaxPriorityFeesPerGasNonNull = transactions.every((t) => t.maxPriorityFeePerGas !== null);
+        // TODO (rhinodavid): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is fixed
+        const areAllGasPricesNonNull = (transactions as any[]).every((t) => t.gasPrice !== null);
+        const areAllMaxFeesPerGasNonNull = (transactions as any[]).every((t) => t.maxFeePerGas !== null);
+        const areAllMaxPriorityFeesPerGasNonNull = (transactions as any[]).every(
+            (t) => t.maxPriorityFeePerGas !== null,
+        );
         if (!(areAllGasPricesNonNull || (areAllMaxFeesPerGasNonNull && areAllMaxPriorityFeesPerGasNonNull))) {
             throw new Error('Transactions do not have the same gas type');
         }

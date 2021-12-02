@@ -1812,6 +1812,11 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-4.72.0.tgz#43df23af013ad1135407e5cf33ca6e4c4c7708d5"
   integrity sha512-o+TYF8vBcyySRsb2kqBDv/KMeme8a2nwWoG+lAWzbDmWfb2/MrVWYCVYDYvjXdSoI/Cujqy1i0gIDrkdxa9chA==
 
+"@lifeomic/attempt@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@lifeomic/attempt/-/attempt-3.0.1.tgz#a1d65fc06df3b5650cc851a6cafee0a733f8b58e"
+  integrity sha512-zvQ6ydPI2mevhuZ++l2S93+DS08w27ad942Ae9WW5h7j+giEHrK7rsgbchVTAs0jo35Ox90G5/c8ZDSz5vipWg==
+
 "@mapbox/node-pre-gyp@^1.0.4", "@mapbox/node-pre-gyp@^1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.5.tgz#2a0b32fcb416fb3f2250fd24cb2a81421a4f5950"

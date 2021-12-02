@@ -1,23 +1,23 @@
 import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
-import { instance, mock, when } from 'ts-mockito';
+import { deepEqual, instance, mock, when } from 'ts-mockito';
 
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities';
+import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { SubmissionContext } from '../../src/utils/SubmissionContext';
 
-type Provider = providers.Provider;
 type TransactionReceipt = providers.TransactionReceipt;
 
-let mockProvider: Provider;
+let mockBlockchainUtils: RfqBlockchainUtils;
 
 describe('SubmissionContext', () => {
     beforeEach(() => {
-        mockProvider = mock<Provider>();
+        mockBlockchainUtils = mock<RfqBlockchainUtils>();
     });
     describe('constructor', () => {
         it('requires a transaction', () => {
-            expect(() => new SubmissionContext(instance(mockProvider), [])).to.throw('nonzero');
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [])).to.throw('nonzero');
         });
 
         it('requires all transactions to have unique hashes', () => {
@@ -38,7 +38,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockProvider), [transaction1, transaction2])).to.throw(
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
                 'unique',
             );
         });
@@ -61,7 +61,9 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockProvider), [transaction1, transaction2])).to.throw('nonce');
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
+                'nonce',
+            );
         });
 
         it('requires all transactions to have the same gas format', () => {
@@ -83,7 +85,9 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockProvider), [transaction1, transaction2])).to.throw('type');
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction1, transaction2])).to.throw(
+                'type',
+            );
         });
 
         it('fails for invalid EIP-1559 transactions', () => {
@@ -96,7 +100,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            expect(() => new SubmissionContext(instance(mockProvider), [transaction])).to.throw();
+            expect(() => new SubmissionContext(instance(mockBlockchainUtils), [transaction])).to.throw();
         });
     });
     describe('get transactionType', () => {
@@ -110,7 +114,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
             expect(submissionContext.transactionType).to.equal(0);
         });
@@ -126,7 +130,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
             expect(submissionContext.transactionType).to.equal(2);
         });
@@ -144,7 +148,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
             expect(() => submissionContext.maxGasPrice).to.throw('EIP-1559');
         });
@@ -167,7 +171,10 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(2),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction1, transaction2]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                transaction1,
+                transaction2,
+            ]);
 
             expect(submissionContext.maxGasPrice.toNumber()).to.equal(new BigNumber(2).toNumber());
         });
@@ -184,7 +191,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
             expect(() => submissionContext.maxGasFees).to.throw('non-EIP-1559');
         });
@@ -209,7 +216,10 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(0),
             });
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction1, transaction2]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                transaction1,
+                transaction2,
+            ]);
 
             expect(submissionContext.maxGasFees.maxFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
             expect(submissionContext.maxGasFees.maxPriorityFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
@@ -228,10 +238,9 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
 
-            // @ts-ignore: Ethers doesn't have strict null checks on so this doesn't type-check
-            when(mockProvider.getTransactionReceipt('0x1')).thenResolve(undefined);
+            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0x1']))).thenResolve([undefined]);
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [transaction]);
 
             expect(await submissionContext.getReceiptAsync()).to.equal(null);
         });
@@ -276,11 +285,12 @@ describe('SubmissionContext', () => {
                 status: 1,
             };
 
-            when(mockProvider.getTransactionReceipt('0x1')).thenResolve(receipt);
-            // @ts-ignore: Ethers doesn't have strict null checks on so this doesn't type-check
-            when(mockProvider.getTransactionReceipt('0x2')).thenResolve(undefined);
+            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0x1', '0x2']))).thenResolve([receipt, undefined]);
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction1, transaction2]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                transaction1,
+                transaction2,
+            ]);
 
             expect(await submissionContext.getReceiptAsync()).to.equal(receipt);
         });
@@ -325,14 +335,31 @@ describe('SubmissionContext', () => {
                 status: 1,
             };
 
-            when(mockProvider.getTransactionReceipt('0x1')).thenResolve(receipt);
-            when(mockProvider.getTransactionReceipt('0x2')).thenResolve(receipt);
+            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0x1', '0x2']))).thenResolve([receipt, receipt]);
 
-            const submissionContext = new SubmissionContext(instance(mockProvider), [transaction1, transaction2]);
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                transaction1,
+                transaction2,
+            ]);
 
             expect(submissionContext.getReceiptAsync()).to.eventually.be.rejectedWith(
                 'more than one transaction receipt',
             );
+        });
+
+        describe('isBlockConfirmed', () => {
+            it('should say no if receipt block is under 3 blocks deep', async () => {
+                const receiptBlock = 100;
+                const currentBlock = 102;
+
+                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(false);
+            });
+            it('should say yes if the receipt block is at least 3 blocks deep', async () => {
+                const receiptBlock = 100;
+                const currentBlock = 103;
+
+                expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(true);
+            });
         });
     });
 });

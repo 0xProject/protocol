@@ -11,38 +11,31 @@ import {
 } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { ethSignHashWithKey, MetaTransaction, MetaTransactionFields, OtcOrder, RfqOrder } from '@0x/protocol-utils';
+import { ethSignHashWithKey, MetaTransaction, MetaTransactionFields, OtcOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { TransactionReceiptStatus } from 'ethereum-types';
-import { providers } from 'ethers';
+import { BigNumber as EthersBigNumber } from 'ethers';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import 'mocha';
 import * as redis from 'redis';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
-import { anyString, anything, instance, mock, when } from 'ts-mockito';
+import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
 import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../src/constants';
 import { getDBConnectionAsync } from '../src/db_connection';
-import {
-    RfqmJobEntity,
-    RfqmQuoteEntity,
-    RfqmTransactionSubmissionEntity,
-    RfqmV2JobEntity,
-    RfqmV2QuoteEntity,
-} from '../src/entities';
+import { RfqmJobEntity, RfqmQuoteEntity, RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus, StoredFee } from '../src/entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
 import { RfqmTypes } from '../src/services/types';
-import { BalanceChecker } from '../src/utils/balance_checker';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { PairsManager } from '../src/utils/pairs_manager';
@@ -51,7 +44,6 @@ import { RfqmDbUtils, storedOrderToRfqmOrder, storedOtcOrderToOtcOrder } from '.
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {
-    CHAIN_ID,
     CONTRACT_ADDRESSES,
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
@@ -121,19 +113,24 @@ const EXPECTED_FILL_AMOUNT = new BigNumber(9000);
 const SUCCESSFUL_TRANSACTION_RECEIPT = {
     blockHash: '0xaBlockHash',
     blockNumber: MINED_BLOCK,
-    contractAddress: null,
-    cumulativeGasUsed: 150000,
+    byzantium: true,
+    confirmations: 2,
+    contractAddress: '',
+    cumulativeGasUsed: EthersBigNumber.from(150000),
+    effectiveGasPrice: EthersBigNumber.from(1000),
     from: WORKER_ADDRESS,
-    gasUsed: GAS_ESTIMATE,
+    gasUsed: EthersBigNumber.from(GAS_ESTIMATE),
     logs: [TEST_RFQ_ORDER_FILLED_EVENT_LOG],
+    logsBloom: '',
     status: TX_STATUS,
     to: MOCK_EXCHANGE_PROXY,
     transactionHash: FIRST_TRANSACTION_HASH,
     transactionIndex: 5,
+    type: 2,
 };
 const TEST_TRANSACTION_WATCHER_SLEEP_MS = 500;
 
-const MOCK_RFQM_JOB: RfqmJobEntity = {
+const MOCK_RFQM_JOB = new RfqmJobEntity({
     calldata:
         '0xaa77476c000000000000000000000000374a16f5e686c09b0cc9e8bc3466b3b645c74aa7000000000000000000000000f84830b73b2ed3c7267e7638f500110ea47fdf30000000000000000000000000000000000000000000000000002356870546ced00000000000000000000000000000000000000000000000015af1d78b58c4000100000000000000000000000006754422cf9f54ae0e67d42fd788b33d8eb4c5d500000000000000000000000006652bdd5a8eb3d206caedd6b95b61f820abb9b1000000000000000000000000a85795b9b37e200c67398d7796ab301a838f539d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060c2a83100000000000000000000000000000000000000000000000000000179f85d57800000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000001c45c3a18bfafd33f71ac9b53d29a69d550ea5429bb6eafce9c0f8f9c4c253e5d45056b83e5b7eeb97629144760dcdccc4eeb09c1d215f8ebededeb790a2277d070000000000000000000000000000000000000000000000015af1d78b58c40001',
     chainId: 1337,
@@ -172,7 +169,7 @@ const MOCK_RFQM_JOB: RfqmJobEntity = {
     workerAddress: null,
     lastLookResult: null,
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
-};
+});
 
 describe(SUITE_NAME, () => {
     let takerAddress: string;
@@ -265,9 +262,9 @@ describe(SUITE_NAME, () => {
         when(rfqBlockchainUtilsMock.submitCallDataToExchangeProxyAsync(anything(), anything(), anything())).thenResolve(
             FIRST_TRANSACTION_HASH,
         );
-        when(rfqBlockchainUtilsMock.getTransactionReceiptIfExistsAsync(FIRST_TRANSACTION_HASH)).thenResolve(
+        when(rfqBlockchainUtilsMock.getReceiptsAsync(deepEqual([FIRST_TRANSACTION_HASH]))).thenResolve([
             SUCCESSFUL_TRANSACTION_RECEIPT,
-        );
+        ]);
         when(rfqBlockchainUtilsMock.getCurrentBlockAsync()).thenResolve(CURRENT_BLOCK);
         when(rfqBlockchainUtilsMock.getExchangeProxyAddress()).thenReturn(MOCK_EXCHANGE_PROXY);
         when(rfqBlockchainUtilsMock.getTakerTokenFillAmountFromMetaTxCallData(anything())).thenReturn(
@@ -1510,227 +1507,6 @@ describe(SUITE_NAME, () => {
 
             // Response details are covered by the service test, but do one small check for sanity
             expect(response.body.status).to.equal('submitted');
-        });
-    });
-
-    describe('completeSubmissionLifecycleAsync', async () => {
-        const callData = '0x123';
-        const orderHash = '0xanOrderHash';
-
-        it('should successfully process a transaction', async () => {
-            await dbUtils.writeRfqmJobToDbAsync({
-                ...MOCK_RFQM_JOB,
-                orderHash,
-                calldata: callData,
-            });
-            await rfqmService.completeSubmissionLifecycleAsync(orderHash, WORKER_ADDRESS, callData);
-
-            // find the saved results
-            const dbSubmissionEntity = await connection.getRepository(RfqmTransactionSubmissionEntity).findOne({
-                transactionHash: FIRST_TRANSACTION_HASH,
-            });
-            expect(dbSubmissionEntity).to.not.be.null();
-            expect(dbSubmissionEntity?.transactionHash).to.equal(FIRST_TRANSACTION_HASH);
-            expect(dbSubmissionEntity?.orderHash).to.equal(orderHash);
-            expect(dbSubmissionEntity?.from).to.deep.equal(WORKER_ADDRESS);
-            expect(dbSubmissionEntity?.gasUsed).to.deep.equal(new BigNumber(GAS_ESTIMATE));
-            expect(dbSubmissionEntity?.maxFeePerGas).to.deep.equal(GAS_PRICE);
-            expect(dbSubmissionEntity?.maxPriorityFeePerGas).to.deep.equal(new BigNumber(2e9));
-            expect(dbSubmissionEntity?.gasPrice).to.be.null();
-            expect(dbSubmissionEntity?.nonce).to.deep.equal(NONCE);
-            expect(dbSubmissionEntity?.status).to.deep.equal(RfqmTransactionSubmissionStatus.SucceededConfirmed);
-            expect(dbSubmissionEntity?.blockMined).to.deep.equal(new BigNumber(MINED_BLOCK));
-            expect(dbSubmissionEntity?.to).to.deep.equal(MOCK_EXCHANGE_PROXY);
-            expect(dbSubmissionEntity?.statusReason).to.deep.equal(null);
-        });
-    });
-    describe('processJobAsync', async () => {
-        const feeAddress = '0xB974AB7E99C15587f182aEb749b584a3B8f14716';
-        const mockStoredFee: StoredFee = {
-            token: feeAddress,
-            amount: '1000',
-            type: 'fixed',
-        };
-
-        const txOrigin = '0x064Ef480A8a9892A28F027Db7Df331330948801c';
-        const maker = '0x753faAbC50bEEb9C8A7635aE670863FfB5AE216B';
-        const taker = '0xCa667eA8E6F60933Faaa5a017104b4DE5db5f77c';
-        const makerToken = '0x404207B9e5c75B35d9E43f0338CB93E455C11a01';
-        const takerToken = '0x7e238128219511Ab74c296442cf58D15d5aFE243';
-        const pool = `0x${new BigNumber(
-            '11857151820888047027103111127198028299842265359943718838117637388213023887461',
-        ).toString(16)}`;
-
-        const provider = getProvider();
-        const balanceChecker = new BalanceChecker(provider);
-        const blockchainUtils = new RfqBlockchainUtils(
-            provider,
-            contractAddresses.exchangeProxy,
-            balanceChecker,
-            instance(mock(providers.Provider)),
-        );
-
-        const order = new RfqOrder({
-            txOrigin,
-            chainId: CHAIN_ID,
-            expiry: new BigNumber(new Date().getTime()).plus(60 * 5),
-            maker,
-            taker: NULL_ADDRESS,
-            makerAmount: new BigNumber(1),
-            takerAmount: EXPECTED_FILL_AMOUNT,
-            makerToken,
-            takerToken,
-            pool,
-            salt: new BigNumber(1),
-            verifyingContract: contractAddresses.exchangeProxy,
-        });
-        const metaTransaction = blockchainUtils.generateMetaTransaction(
-            order,
-            RANDOM_VALID_SIGNATURE,
-            taker,
-            new BigNumber(1),
-            CHAIN_ID,
-        );
-        const orderHash = order.getHash();
-        const workerAddress = '0x14fF8F10C610403442D037A165dbbB55DF1DF677';
-
-        const mockQuote = new RfqmQuoteEntity({
-            orderHash,
-            metaTransactionHash: metaTransaction.getHash(),
-            makerUri: MARKET_MAKER_1,
-            fee: mockStoredFee,
-            order: {
-                type: RfqmOrderTypes.V4Rfq,
-                order: {
-                    ...order,
-                    chainId: order.chainId.toString(),
-                    makerAmount: order.makerAmount.toString(),
-                    takerAmount: order.takerAmount.toString(),
-                    salt: order.salt.toString(),
-                    expiry: order.expiry.toString(),
-                },
-            },
-            chainId: 1337,
-            affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
-        });
-        const mmResponse = {
-            fee: mockStoredFee,
-            proceedWithFill: true,
-            signedOrderHash: orderHash,
-            takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
-        };
-
-        const txSubmission: Partial<RfqmTransactionSubmissionEntity> = {
-            transactionHash: FIRST_TRANSACTION_HASH,
-            orderHash,
-            createdAt: new Date(),
-            from: workerAddress,
-            to: '0x123',
-            nonce: 0,
-            gasPrice: new BigNumber(1),
-            gasUsed: new BigNumber(100),
-            status: RfqmTransactionSubmissionStatus.Submitted,
-        };
-
-        it('should sucessfully resolve when the job is processed', async () => {
-            mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, mmResponse);
-            // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
-
-            await request(app)
-                .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
-                .set('0x-api-key', API_KEY)
-                .expect(HttpStatus.CREATED)
-                .expect('Content-Type', /json/);
-
-            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-
-            const job = await dbUtils.findJobByOrderHashAsync(orderHash);
-            expect(job?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
-
-            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
-            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
-        });
-
-        it('should clear out calldata if market maker rejects last look', async () => {
-            const lastLookResponse = {
-                fee: mockStoredFee,
-                proceedWithFill: false,
-                signedOrderHash: orderHash,
-                takerTokenFillAmount: EXPECTED_FILL_AMOUNT.toString(),
-            };
-            mockAxios.onPost(`${MARKET_MAKER_1}/submit`).replyOnce(HttpStatus.OK, lastLookResponse);
-
-            // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
-
-            await request(app)
-                .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
-                .set('0x-api-key', API_KEY)
-                .expect(HttpStatus.CREATED)
-                .expect('Content-Type', /json/);
-
-            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-
-            const job = await dbUtils.findJobByOrderHashAsync(orderHash);
-            expect(job?.status).to.eq(RfqmJobStatus.FailedLastLookDeclined);
-            expect(job?.calldata).to.eq('');
-        });
-
-        it('should sucessfully resolve when there is a retry after last look is accepted', async () => {
-            // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
-
-            await request(app)
-                .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
-                .set('0x-api-key', API_KEY)
-                .expect(HttpStatus.CREATED)
-                .expect('Content-Type', /json/);
-
-            // mark job as having completed last look
-            const jobBefore = await dbUtils.findJobByOrderHashAsync(orderHash);
-            jobBefore!.status = RfqmJobStatus.PendingLastLookAccepted;
-            jobBefore!.lastLookResult = true;
-            await dbUtils.updateRfqmJobAsync(orderHash, false, jobBefore!);
-
-            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-
-            const jobAfter = await dbUtils.findJobByOrderHashAsync(orderHash);
-
-            expect(jobAfter?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
-
-            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
-            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
-        });
-        it('should successfully complete a job if previous submissions found', async () => {
-            // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmQuoteEntity).insert(mockQuote);
-
-            await request(app)
-                .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.MetaTransaction, metaTransaction, signature: RANDOM_VALID_SIGNATURE })
-                .set('0x-api-key', API_KEY)
-                .expect(HttpStatus.CREATED)
-                .expect('Content-Type', /json/);
-
-            // mark job as having been submitted on-chain
-            await dbUtils.writeRfqmTransactionSubmissionToDbAsync(txSubmission);
-            const jobBefore = await dbUtils.findJobByOrderHashAsync(orderHash);
-            jobBefore!.status = RfqmJobStatus.PendingSubmitted;
-            jobBefore!.lastLookResult = true;
-            await dbUtils.updateRfqmJobAsync(orderHash, false, jobBefore!);
-
-            await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-
-            const jobAfter = await dbUtils.findJobByOrderHashAsync(orderHash);
-
-            expect(jobAfter?.status).to.eq(RfqmJobStatus.SucceededConfirmed);
-
-            const submissions = await dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
-            expect(submissions[0].status).to.eq(RfqmTransactionSubmissionStatus.SucceededConfirmed);
         });
     });
 });

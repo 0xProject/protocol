@@ -25,7 +25,7 @@ import { numberUtils } from './number_utils';
 export const serviceUtils = {
     attributeCallData(
         data: string,
-        affiliateAddress?: string,
+        affiliateAddress: string | null,
     ): {
         affiliatedData: string;
         decodedUniqueId: string;

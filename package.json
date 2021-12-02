@@ -150,6 +150,7 @@
         "@0x/utils": "^6.4.4",
         "@0x/web3-wrapper": "^7.6.1",
         "@ethersproject/hdnode": "^5.2.0",
+        "@lifeomic/attempt": "^3.0.1",
         "aws-sdk": "^2.908.0",
         "axios": "^0.21.1",
         "body-parser": "^1.19.0",

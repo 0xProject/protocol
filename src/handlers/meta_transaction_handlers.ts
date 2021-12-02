@@ -210,7 +210,7 @@ export class MetaTransactionHandlers {
     }
     public async submitTransactionIfWhitelistedAsync(req: express.Request, res: express.Response): Promise<void> {
         const apiKey = req.header('0x-api-key');
-        const affiliateAddress = req.query.affiliateAddress as string | undefined;
+        const affiliateAddress = (req.query.affiliateAddress as string) ?? null;
         if (apiKey !== undefined && !isValidUUID(apiKey)) {
             throw new InvalidAPIKeyError();
             return;

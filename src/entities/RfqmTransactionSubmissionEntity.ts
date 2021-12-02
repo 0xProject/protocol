@@ -6,6 +6,9 @@ import { RfqmTransactionSubmissionStatus } from './types';
 
 @Entity({ name: 'rfqm_transaction_submissions' })
 export class RfqmTransactionSubmissionEntity {
+    // Differentiator for different flavors of RFQM transactions
+    public kind: 'rfqm_v1_transaction_submission';
+
     @PrimaryColumn({ name: 'transaction_hash', type: 'varchar' })
     public transactionHash?: string;
 
@@ -56,6 +59,8 @@ export class RfqmTransactionSubmissionEntity {
     public metadata: object | null;
 
     constructor(opts: Partial<RfqmTransactionSubmissionEntity> = {}) {
+        this.kind = 'rfqm_v1_transaction_submission';
+
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;

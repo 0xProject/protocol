@@ -567,7 +567,7 @@ export class SwapService {
             isUnwrap ? this._wethContract.withdraw(amount) : this._wethContract.deposit()
         ).getABIEncodedTransactionData();
         const value = isUnwrap ? ZERO : amount;
-        const attributedCalldata = serviceUtils.attributeCallData(data, affiliateAddress);
+        const attributedCalldata = serviceUtils.attributeCallData(data, affiliateAddress ?? null);
         // TODO: consider not using protocol fee utils due to lack of need for an aggresive gas price for wrapping/unwrapping
         const gasPrice = providedGasPrice || (await this._swapQuoter.getGasPriceEstimationOrThrowAsync());
         const gasEstimate = isUnwrap ? UNWRAP_QUOTE_GAS : WRAP_QUOTE_GAS;
@@ -708,7 +708,7 @@ export class SwapService {
             gasOverhead,
         } = await this._swapQuoteConsumer.getCalldataOrThrowAsync(swapQuote, opts);
 
-        const { affiliatedData, decodedUniqueId } = serviceUtils.attributeCallData(data, affiliateAddress);
+        const { affiliatedData, decodedUniqueId } = serviceUtils.attributeCallData(data, affiliateAddress ?? null);
         return {
             to,
             value,

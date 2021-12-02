@@ -6,7 +6,7 @@ import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } fr
 import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { HDNode } from '@ethersproject/hdnode';
-import { CallData, LogEntry, LogWithDecodedArgs, TransactionReceipt, TxData } from 'ethereum-types';
+import { CallData, LogEntry, LogWithDecodedArgs, TxData } from 'ethereum-types';
 import { Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
@@ -244,7 +244,7 @@ export class RfqBlockchainUtils {
         makerSignature: Signature,
         takerSignature: Signature,
         isUnwrap: boolean,
-        affiliateAddress?: string,
+        affiliateAddress: string | null,
     ): string {
         const callData = isUnwrap
             ? this._exchangeProxy
@@ -259,7 +259,7 @@ export class RfqBlockchainUtils {
     public generateMetaTransactionCallData(
         metaTx: MetaTransaction,
         metaTxSig: Signature,
-        affiliateAddress?: string,
+        affiliateAddress: string | null,
     ): string {
         const callData = this._exchangeProxy.executeMetaTransaction(metaTx, metaTxSig).getABIEncodedTransactionData();
         return serviceUtils.attributeCallData(callData, affiliateAddress).affiliatedData;
@@ -273,14 +273,16 @@ export class RfqBlockchainUtils {
         return this._exchangeProxyAddress;
     }
 
-    public async getTransactionReceiptIfExistsAsync(transactionHash: string): Promise<TransactionReceipt | undefined> {
-        // TODO(phil/david) - remove the try catch and let the caller handle the logging of the error
-        try {
-            return await this._web3Wrapper.getTransactionReceiptIfExistsAsync(transactionHash);
-        } catch (err) {
-            logger.warn({ transactionHash, errorMessage: err?.message }, `failed to get transaction receipt`);
-            return undefined;
-        }
+    /**
+     * Returns the transaction receipts for the given transaction hashes.
+     * If a receipt does not exist, returns `undefined`.
+     */
+    public async getReceiptsAsync(transactionHashes: string[]): Promise<(providers.TransactionReceipt | undefined)[]> {
+        return Promise.all(
+            transactionHashes.map(async (transactionHash) =>
+                this._ethersProvider.getTransactionReceipt(transactionHash),
+            ),
+        );
     }
 
     public async getCurrentBlockAsync(): Promise<number> {

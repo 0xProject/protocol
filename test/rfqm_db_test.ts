@@ -183,7 +183,7 @@ describe(SUITE_NAME, () => {
         });
 
         it('should be able to update an rfqm job entity', async () => {
-            const rfqmJobOpts = {
+            const job = new RfqmJobEntity({
                 orderHash,
                 metaTransactionHash,
                 createdAt,
@@ -192,16 +192,15 @@ describe(SUITE_NAME, () => {
                 integratorId,
                 makerUri,
                 status: RfqmJobStatus.PendingEnqueued,
-                statusReason: null,
                 calldata,
                 fee: feeToStoredFee(fee),
                 order: v4RfqOrderToStoredOrder(order),
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
-            };
-            await dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
+            });
+            await dbUtils.writeRfqmJobToDbAsync(job);
 
             const dbEntityFirstSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
-            await dbUtils.updateRfqmJobAsync(orderHash, false, { status: RfqmJobStatus.PendingProcessing });
+            await dbUtils.updateRfqmJobAsync({ ...job, isCompleted: false, status: RfqmJobStatus.PendingProcessing });
 
             const dbEntitySecondSnapshot = await dbUtils.findJobByOrderHashAsync(orderHash);
 

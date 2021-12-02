@@ -404,6 +404,7 @@ describe(SUITE_NAME, () => {
                 makerOtcOrderSig,
                 takerOtcOrderSig,
                 false,
+                /* affiliateAddress */ null,
             );
 
             const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
@@ -414,7 +415,7 @@ describe(SUITE_NAME, () => {
 
             await web3Wrapper.awaitTransactionMinedAsync(txHash);
 
-            const receipt = await rfqBlockchainUtils.getTransactionReceiptIfExistsAsync(txHash);
+            const [receipt] = await rfqBlockchainUtils.getReceiptsAsync([txHash]);
 
             const decodedEvent = rfqBlockchainUtils.getDecodedOtcOrderFillEventLogFromLogs(receipt!.logs);
 

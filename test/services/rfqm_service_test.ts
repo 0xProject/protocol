@@ -13,13 +13,13 @@ import {
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, OtcOrder, RfqOrder, ZERO } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
-import { ETH_DECIMALS, ONE_MINUTE_MS } from '../../src/constants';
+import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
 import {
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,
@@ -116,77 +116,7 @@ const buildRfqmServiceForUnitTest = (
     );
 };
 
-describe('RfqmService', () => {
-    it('should validate jobs and mark them as expired', () => {
-        const in_five_minutes = Math.floor(Date.now() / ONE_SECOND_MS + 360).toString();
-        const one_minute_ago = Math.floor(Date.now() / ONE_SECOND_MS - 60).toString();
-        const partialOrder = {
-            chainId: '1',
-            maker: '',
-            makerAmount: '',
-            taker: '',
-            takerAmount: '',
-            makerToken: '',
-            pool: '',
-            salt: '',
-            takerToken: '',
-            txOrigin: '',
-            verifyingContract: '',
-        };
-        const partialJob = {
-            chainId: 1,
-            affiliateAddress: '',
-            createdAt: new Date(),
-            expiry: new BigNumber(in_five_minutes),
-            integratorId: '',
-            isCompleted: false,
-            lastLookResult: null,
-            metadata: null,
-            status: RfqmJobStatus.PendingEnqueued,
-            updatedAt: new Date(),
-            workerAddress: '',
-            orderHash: '',
-            metaTransactionHash: '',
-            calldata: '0x000',
-            makerUri: 'http://foo.bar',
-        };
-
-        // First test, order not expired
-        let response = RfqmService.validateJob({
-            ...partialJob,
-            fee: {
-                type: 'fixed',
-                amount: '0',
-                token: '',
-            },
-            order: {
-                type: RfqmOrderTypes.V4Rfq,
-                order: {
-                    ...partialOrder,
-                    expiry: in_five_minutes,
-                },
-            },
-        });
-        expect(response).to.eql(null);
-
-        response = RfqmService.validateJob({
-            ...partialJob,
-            fee: {
-                type: 'fixed',
-                amount: '0',
-                token: '',
-            },
-            order: {
-                type: RfqmOrderTypes.V4Rfq,
-                order: {
-                    ...partialOrder,
-                    expiry: one_minute_ago,
-                },
-            },
-        });
-        expect(response).to.eql(RfqmJobStatus.FailedExpired);
-    });
-
+describe('RfqmService HTTP Logic', () => {
     describe('submitMetaTransactionSignedQuoteAsync', () => {
         it('should fail if there is already a pending trade for the taker and taker token', async () => {
             const existingOrder = {
@@ -203,7 +133,7 @@ describe('RfqmService', () => {
                 txOrigin: '',
                 verifyingContract: '',
             };
-            const existingJob: RfqmJobEntity = {
+            const existingJob = new RfqmJobEntity({
                 affiliateAddress: '',
                 calldata: '0x000',
                 chainId: 1,
@@ -228,7 +158,7 @@ describe('RfqmService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 updatedAt: new Date(),
                 workerAddress: '',
-            };
+            });
 
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
@@ -289,7 +219,7 @@ describe('RfqmService', () => {
                 txOrigin: '',
                 verifyingContract: '',
             };
-            const existingJob: RfqmJobEntity = {
+            const existingJob = new RfqmJobEntity({
                 affiliateAddress: '',
                 calldata: '0x000',
                 chainId: 1,
@@ -314,7 +244,7 @@ describe('RfqmService', () => {
                 status: RfqmJobStatus.PendingEnqueued,
                 updatedAt: new Date(),
                 workerAddress: '',
-            };
+            });
 
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
@@ -2000,41 +1930,6 @@ describe('RfqmService', () => {
                     await service.getOrderStatusAsync('0x00');
                 }).to.throw; // tslint:disable-line no-unused-expression
             });
-        });
-    });
-
-    describe('shouldResubmitTransaction', () => {
-        it('should say no if new gas price < 10% greater than previous', async () => {
-            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
-            const newGasPrice = new BigNumber(105);
-
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(false);
-        });
-        it('should say yes if new gas price is 10% greater than previous', async () => {
-            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
-            const newGasPrice = new BigNumber(110);
-
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
-        });
-        it('should say yes if new gas price > 10% greater than previous', async () => {
-            const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
-            const newGasPrice = new BigNumber(120);
-
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
-        });
-    });
-    describe('isBlockConfirmed', () => {
-        it('should say no if receipt block is under 3 blocks deep', async () => {
-            const receiptBlock = 100;
-            const currentBlock = 102;
-
-            expect(RfqmService.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(false);
-        });
-        it('should say yes if the receipt block is at least 3 blocks deep', async () => {
-            const receiptBlock = 100;
-            const currentBlock = 103;
-
-            expect(RfqmService.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(true);
         });
     });
 });

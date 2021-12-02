@@ -5,7 +5,7 @@ export enum RfqmJobStatus {
     PendingEnqueued = 'pending_enqueued',
     // Transaction has passed initial validation. Last look will be executed and transaction will be submitted if last look is accepted.
     PendingProcessing = 'pending_processing',
-    // Last look has been accepted, awaiting submission
+    // For v1 orders, the last look has been approved. For v2 orders, the market maker has signed the order.
     PendingLastLookAccepted = 'pending_last_look_accepted',
     // Transaction has passed initial verification and has been submitted to the mem pool
     PendingSubmitted = 'pending_submitted',
@@ -16,16 +16,23 @@ export enum RfqmJobStatus {
     FailedExpired = 'failed_expired',
     // Market Maker declined the last look
     FailedLastLookDeclined = 'failed_last_look_declined',
+    // [RFQM v2] Balance checks executed before obtaining market maker signature failed
+    FailedPresignValidationFailed = 'failed_presign_validation_failed',
     // Transaction was reverted more than 3 blocks ago
     FailedRevertedConfirmed = 'failed_reverted_confirmed',
     // Transaction was reverted less than 3 blocks ago
     FailedRevertedUnconfirmed = 'failed_reverted_unconfirmed',
+    // Obtaining the market maker's signature for a v2 order failed.
+    // This is NOT a status for the case where the market maker intentionally declined to sign.
+    FailedSignFailed = 'failed_sign_failed',
     // Submitting the transaction to the network was unsuccessful
     FailedSubmitFailed = 'failed_submit_failed',
     // Transaction does not contain call data
     FailedValidationNoCallData = 'failed_validation_no_call_data',
     // Transaction does not include a maker URI
     FailedValidationNoMakerUri = 'failed_validation_no_maker_uri',
+    // Job has been submitted with no taker signuature
+    FailedValidationNoTakerSignature = 'failed_validation_no_taker_signature',
     // Transaction does not contain an order
     FailedValidationNoOrder = 'failed_validation_no_order',
     // Transaction does not contain a fee

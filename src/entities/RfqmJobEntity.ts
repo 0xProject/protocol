@@ -18,6 +18,9 @@ export type RfqmJobConstructorOpts = Pick<RfqmJobEntity, 'calldata' | 'chainId' 
 
 @Entity({ name: 'rfqm_jobs' })
 export class RfqmJobEntity {
+    // Differentiator for different flavors of RFQM jobs
+    public kind: 'rfqm_v1_job';
+
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
 
@@ -77,6 +80,7 @@ export class RfqmJobEntity {
     // therefore, add this hacky default.
     // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmJobConstructorOpts = {} as RfqmJobConstructorOpts) {
+        this.kind = 'rfqm_v1_job';
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;

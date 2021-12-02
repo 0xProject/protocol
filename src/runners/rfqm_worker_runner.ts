@@ -4,7 +4,7 @@
 import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
 import { SQS } from 'aws-sdk';
 import * as express from 'express';
-import { Counter, Summary } from 'prom-client';
+import { Counter } from 'prom-client';
 
 import {
     ENABLE_PROMETHEUS_METRICS,
@@ -26,24 +26,6 @@ import { buildRfqmServiceAsync } from './http_rfqm_service_runner';
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
     help: 'An Rfqm Job was pulled from the queue',
-    labelNames: ['address'],
-});
-
-const RFQM_JOB_COMPLETED = new Counter({
-    name: 'rfqm_job_completed',
-    help: 'An Rfqm Job completed with no errors',
-    labelNames: ['address'],
-});
-
-const RFQM_JOB_PROCESSING_TIME = new Summary({
-    name: 'rfqm_job_processing_time',
-    help: 'The time it takes to process an RFQM job',
-    labelNames: ['address'],
-});
-
-const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
-    name: 'rfqm_job_completed_with_error',
-    help: 'An Rfqm Job completed with an error',
     labelNames: ['address'],
 });
 
@@ -131,23 +113,8 @@ export function createRfqmWorker(rfqmService: RfqmService, workerAddress: string
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.labels(workerAddress).inc();
             const { orderHash } = JSON.parse(message.Body!);
-            logger.info({ workerAddress, orderHash }, 'about to process job');
-            const stopTimer = RFQM_JOB_PROCESSING_TIME.labels(workerAddress).startTimer();
-            try {
-                await rfqmService.processRfqmJobAsync(orderHash, workerAddress);
-            } finally {
-                stopTimer();
-            }
-        },
-        afterHandle: async (message, error) => {
-            const orderHash = message.Body!;
-            if (error !== undefined) {
-                RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
-                logger.error({ workerAddress, orderHash, errorMessage: error.message }, 'Job completed with error');
-            } else {
-                logger.info({ workerAddress, orderHash }, 'Job completed without errors');
-                RFQM_JOB_COMPLETED.labels(workerAddress).inc();
-            }
+            logger.info({ workerAddress, orderHash }, 'Job dequeued from SQS');
+            await rfqmService.processJobAsync(orderHash, workerAddress);
         },
     });
 
@@ -165,8 +132,8 @@ function startMetricsServer(): void {
             logger.info(`Metrics (HTTP) listening on port ${PROMETHEUS_PORT}`);
         });
 
-        metricsServer.on('error', (err) => {
-            logger.error(err);
+        metricsServer.on('error', (error) => {
+            logger.error(error);
         });
     }
 }

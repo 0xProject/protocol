@@ -20,6 +20,9 @@ type StringOtcOrderFields = Record<keyof OtcOrderFields, string>;
 
 @Entity({ name: 'rfqm_v2_jobs' })
 export class RfqmV2JobEntity {
+    // Differentiator for different flavors of RFQM jobs
+    public kind: 'rfqm_v2_job';
+
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
 
@@ -82,6 +85,8 @@ export class RfqmV2JobEntity {
     // therefore, add this hacky default.
     // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmV2JobConstructorOpts = {} as RfqmV2JobConstructorOpts) {
+        this.kind = 'rfqm_v2_job';
+
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;

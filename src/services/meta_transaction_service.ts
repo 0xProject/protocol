@@ -248,7 +248,7 @@ export class MetaTransactionService {
         mtx: ExchangeProxyMetaTransactionWithoutDomain,
         signature: Signature,
         apiKey: string,
-        affiliateAddress?: string,
+        affiliateAddress: string | null,
     ): Promise<PostTransactionResponse> {
         const { callTarget, gasPrice, protocolFee, executeCall, signer } = this._getMetaTransactionExecutionDetails(
             mtx,

@@ -186,14 +186,22 @@ export class RfqmDbUtils {
     }
 
     /**
-     * [RFQm v1] updateRfqmJobAsync allows for partial updates of an RfqmJob at the given orderHash
+     * Updates an existing RFQM job
      */
-    public async updateRfqmJobAsync(
-        orderHash: string,
-        isCompleted: boolean,
-        rfqmJobOpts: Partial<RfqmJobEntity>,
-    ): Promise<void> {
-        await this._connection.getRepository(RfqmJobEntity).save({ ...rfqmJobOpts, isCompleted, orderHash });
+    public async updateRfqmJobAsync<T extends RfqmJobEntity | RfqmV2JobEntity>(job: T): Promise<void> {
+        const kind = job.kind;
+        switch (kind) {
+            case 'rfqm_v1_job':
+                await this._connection.getRepository(RfqmJobEntity).save(job);
+                return;
+            case 'rfqm_v2_job':
+                await this._connection.getRepository(RfqmV2JobEntity).save(job);
+                return;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
     }
 
     /**
@@ -249,12 +257,30 @@ export class RfqmDbUtils {
     }
 
     /**
-     * [RFQm v1] updates to the rfqm_transaction_submission table
+     * Updates transactions in the `rfqm_transaction_submission` or
+     * the `rfqm_v2_transaction_submission` tables as appropriate
      */
-    public async updateRfqmTransactionSubmissionsAsync(
-        entities: Partial<RfqmTransactionSubmissionEntity>[],
-    ): Promise<RfqmTransactionSubmissionEntity[]> {
-        return this._connection.getRepository(RfqmTransactionSubmissionEntity).save(entities);
+    public async updateRfqmTransactionSubmissionsAsync<
+        T extends RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[],
+    >(entities: T): Promise<(T[number] & Partial<T[number]>)[]> {
+        if (entities.length === 0) {
+            return [];
+        }
+        const kind = entities[0].kind;
+        switch (kind) {
+            case 'rfqm_v1_transaction_submission':
+                return this._connection
+                    .getRepository(RfqmTransactionSubmissionEntity)
+                    .save(entities as Partial<RfqmTransactionSubmissionEntity>[]);
+            case 'rfqm_v2_transaction_submission':
+                return this._connection
+                    .getRepository(RfqmV2TransactionSubmissionEntity)
+                    .save(entities as Partial<RfqmV2TransactionSubmissionEntity>[]);
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
     }
 
     /**
@@ -340,6 +366,18 @@ export class RfqmDbUtils {
     }
 
     /**
+     * [RFQm v2] writes to the rfqm_v2_transaction_submission table
+     */
+    public async writeV2RfqmTransactionSubmissionToDbAsync(
+        partialV2RfqmTransactionSubmissionEntity: RfqmV2TransactionSubmissionEntityConstructorOpts,
+    ): Promise<RfqmV2TransactionSubmissionEntity> {
+        const entity = new RfqmV2TransactionSubmissionEntity(partialV2RfqmTransactionSubmissionEntity);
+        await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).insert(entity);
+
+        return entity;
+    }
+
+    /**
      * [RFQm v2] bulk update to the rfqm_v2_transaction_submission table
      */
     public async updateV2TransactionSubmissionsAsync(
@@ -372,5 +410,22 @@ export class RfqmDbUtils {
         await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).insert(entity);
 
         return entity;
+    }
+
+    /**
+     * [RFQm v2] find unresolved jobs from the rfqm_v2_jobs table
+     */
+    public async findV2UnresolvedJobsAsync(workerAddress: string): Promise<RfqmV2JobEntity[]> {
+        return this._connection.getRepository(RfqmV2JobEntity).find({
+            workerAddress,
+            status: In([
+                RfqmJobStatus.FailedRevertedUnconfirmed,
+                RfqmJobStatus.PendingEnqueued,
+                RfqmJobStatus.PendingLastLookAccepted,
+                RfqmJobStatus.PendingProcessing,
+                RfqmJobStatus.PendingSubmitted,
+                RfqmJobStatus.SucceededUnconfirmed,
+            ]),
+        });
     }
 }
