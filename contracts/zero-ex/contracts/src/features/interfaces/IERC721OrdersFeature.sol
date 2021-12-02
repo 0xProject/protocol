@@ -203,18 +203,23 @@ interface IERC721OrdersFeature {
         external
         returns (bytes4 success);
 
-    /// @dev Returns whether not the given signature is valid for the
-    ///      the given ERC721 order.
+    /// @dev Approves an ERC721 order hash on-chain. After pre-signing 
+    ///      a hash, the `PRESIGNED` signature type will become valid 
+    ///      for that order and maker.
+    /// @param orderHash An ERC721 order hash.
+    function preSignERC721Order(bytes32 orderHash)
+        external;
+
+    /// @dev Checks whether the given signature is valid for the
+    ///      the given ERC721 order. Reverts if not.
     /// @param order The ERC721 order.
     /// @param signature The signature to validate.
-    /// @return isValid Whether `signature` is valid for `order`.
-    function isValidERC721OrderSignature(
+    function validateERC721OrderSignature(
         LibERC721Order.ERC721Order calldata order,
         LibSignature.Signature calldata signature
     )
         external
-        view
-        returns (bool isValid);
+        view;
 
     /// @dev If the given order is buying an ERC721 asset, checks
     ///      whether or not the given token ID satisfies the required
