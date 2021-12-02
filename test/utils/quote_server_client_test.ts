@@ -208,18 +208,23 @@ describe('QuoteServerClient', () => {
                     takerSignature,
                 };
 
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
                 const response = {
-                    fee: {
-                        amount: '100',
-                        type: 'fixed',
-                        token: CONTRACT_ADDRESSES.etherToken,
-                    },
+                    feeAmount: '100',
                     proceedWithFill: true,
                     makerSignature,
                 };
 
                 axiosMock
-                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(request)))
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
@@ -277,18 +282,23 @@ describe('QuoteServerClient', () => {
                     takerSignature,
                 };
 
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
                 const response = {
-                    fee: {
-                        amount: '100',
-                        type: 'fixed',
-                        token: CONTRACT_ADDRESSES.etherToken,
-                    },
+                    feeAmount: '100',
                     proceedWithFill: true,
                     makerSignature: takerSignature, // this is clearly wrong
                 };
 
                 axiosMock
-                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(request)))
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
@@ -313,18 +323,23 @@ describe('QuoteServerClient', () => {
                     takerSignature,
                 };
 
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
                 const response = {
-                    fee: {
-                        amount: '10', // Not the right fee
-                        type: 'fixed',
-                        token: CONTRACT_ADDRESSES.etherToken,
-                    },
+                    feeAmount: '10', // Not the right fee
                     proceedWithFill: true,
                     makerSignature,
                 };
 
                 axiosMock
-                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(request)))
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
@@ -349,12 +364,21 @@ describe('QuoteServerClient', () => {
                     takerSignature,
                 };
 
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
                 const response = {
                     proceedWithFill: false,
                 };
 
                 axiosMock
-                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(request)))
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
                     .replyOnce(HttpStatus.OK, response);
 
                 // When

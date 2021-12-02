@@ -4,7 +4,6 @@ import { Signature } from '@0x/protocol-utils';
 import {
     schemas as quoteServerSchemas,
     SignRequest,
-    SignResponse,
     SubmitRequest,
     TakerRequestQueryParamsUnnested,
 } from '@0x/quote-server';
@@ -222,13 +221,24 @@ export class QuoteServerClient {
     public async signV2Async(makerUri: string, payload: SignRequest): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.labels(makerUri).startTimer();
         const requestUuid = uuid.v4();
-        const rawResponse = await this._axiosInstance.post(`${makerUri}/rfqm/v2/sign`, payload, {
-            timeout: ONE_SECOND_MS * 2,
-            headers: {
-                'Content-Type': 'application/json',
-                '0x-request-uuid': requestUuid,
+        const rawResponse = await this._axiosInstance.post(
+            `${makerUri}/rfqm/v2/sign`,
+            {
+                order: payload.order,
+                orderHash: payload.orderHash,
+                expiry: payload.expiry,
+                takerSignature: payload.takerSignature,
+                feeToken: payload.fee.token,
+                feeAmount: payload.fee.amount,
             },
-        });
+            {
+                timeout: ONE_SECOND_MS * 2,
+                headers: {
+                    'Content-Type': 'application/json',
+                    '0x-request-uuid': requestUuid,
+                },
+            },
+        );
         logger.info(
             {
                 makerUri,
@@ -237,42 +247,36 @@ export class QuoteServerClient {
             },
             'Sign response received from MM',
         );
-        const validationResult = schemaValidator.validate(rawResponse.data, quoteServerSchemas.signResponseSchema);
+        const validationResult = schemaValidator.validate(rawResponse.data, schemas.signResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
-        const response: SignResponse = {
-            proceedWithFill: rawResponse.data?.proceedWithFill,
-            makerSignature: rawResponse.data?.makerSignature,
-            fee: {
-                amount: new BigNumber(rawResponse.data?.fee?.amount),
-                token: rawResponse.data?.fee?.token,
-                type: rawResponse.data?.fee?.type,
-            },
-        };
+        const proceedWithFill = rawResponse.data?.proceedWithFill;
+        const makerSignature: Signature | undefined = rawResponse.data?.makerSignature;
+        const feeAmount = rawResponse.data?.feeAmount;
 
-        if (!response.proceedWithFill) {
+        if (!proceedWithFill) {
             logger.info({ makerUri }, 'Sign request rejected');
             return undefined;
         }
 
-        if (!_.isEqual(response.fee, payload.fee)) {
+        if (payload.fee.amount.toString() !== feeAmount) {
             logger.warn(
-                { requestFee: payload.fee, responseFee: response.fee, makerUri },
+                { requestFeeAmount: payload.fee.amount, responseFeeAmount: feeAmount, makerUri },
                 'Invalid fee acknowledgement',
             );
             return undefined;
         }
 
-        if (response.makerSignature === undefined) {
+        if (makerSignature === undefined) {
             logger.warn({ makerUri }, 'Signature is missing');
             return undefined;
         }
 
         // Verify the signer was the maker
-        const signerAddress = getSignerFromHash(payload.orderHash, response.makerSignature).toLowerCase();
+        const signerAddress = getSignerFromHash(payload.orderHash, makerSignature).toLowerCase();
         const makerAddress = payload.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
             logger.warn(
@@ -283,7 +287,7 @@ export class QuoteServerClient {
         }
 
         timerStopFn();
-        return response.makerSignature;
+        return makerSignature;
     }
 
     /**

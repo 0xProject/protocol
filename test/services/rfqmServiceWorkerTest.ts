@@ -197,7 +197,7 @@ describe('RfqmService Worker Logic', () => {
             ).to.deep.equal([{ ...expiredJob, status: RfqmJobStatus.FailedExpired, isCompleted: true }]);
         });
 
-        it.only('handles an eth call failure', async () => {
+        it('handles an eth call failure', async () => {
             const job = new RfqmJobEntity({
                 affiliateAddress: '',
                 calldata: '0xcalldata',

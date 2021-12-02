@@ -1,7 +1,7 @@
 // tslint:disable:max-file-line-count
 // tslint:disable: prefer-function-over-method
-import { ethSignHashWithKey, OtcOrder, RfqOrder } from '@0x/protocol-utils';
-import { SignRequest, SignResponse, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
+import { ethSignHashWithKey, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
+import { SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -89,11 +89,19 @@ export class DummyMMHandlers {
         };
     }
 
-    private static _parseSignRequest(req: express.Request): SignRequest {
+    private static _parseSignRequest(req: express.Request): {
+        feeAmount: string;
+        feeToken: string;
+        order: OtcOrder;
+        orderHash: string;
+        expiry: BigNumber;
+        takerSignature: Signature;
+    } {
         const {
             order: orderRaw,
             orderHash,
-            fee: feeRaw,
+            feeAmount: feeAmountRaw,
+            feeToken: feeTokenRaw,
             expiry: expiryRaw,
             takerSignature: takerSignatureRaw,
         } = req.body;
@@ -105,7 +113,8 @@ export class DummyMMHandlers {
         return {
             order,
             orderHash: orderHash as string,
-            fee: feeRaw as unknown as Fee,
+            feeAmount: feeAmountRaw as string,
+            feeToken: feeTokenRaw as string,
             takerSignature,
             expiry,
         };
@@ -270,7 +279,7 @@ export class DummyMMHandlers {
      */
     public async signAsync(req: express.Request, res: express.Response): Promise<void> {
         const requestParams = DummyMMHandlers._parseSignRequest(req);
-        const { order, fee, orderHash } = requestParams;
+        const { order, feeAmount, orderHash } = requestParams;
 
         const isEven = order.takerAmount.div(ONE_TOKEN).integerValue().mod(2).eq(0);
 
@@ -284,8 +293,8 @@ export class DummyMMHandlers {
 
         // Accept and sign
         const signature = ethSignHashWithKey(orderHash, MM_PRIVATE_KEY);
-        const response: SignResponse = {
-            fee,
+        const response = {
+            feeAmount,
             proceedWithFill: isEven,
             makerSignature: signature,
         };
