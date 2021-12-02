@@ -83,7 +83,8 @@ contract ERC721OrdersFeature is
         _registerFeatureFunction(this.matchERC721Orders.selector);
         _registerFeatureFunction(this.batchMatchERC721Orders.selector);
         _registerFeatureFunction(this.onERC721Received.selector);
-        _registerFeatureFunction(this.isValidERC721OrderSignature.selector);
+        _registerFeatureFunction(this.preSignERC721Order.selector);
+        _registerFeatureFunction(this.validateERC721OrderSignature.selector);
         _registerFeatureFunction(this.validateERC721OrderProperties.selector);
         _registerFeatureFunction(this.getERC721OrderStatus.selector);
         _registerFeatureFunction(this.getERC721OrderHash.selector);
@@ -153,7 +154,6 @@ contract ERC721OrdersFeature is
         public
         override
     {
-        // TODO: Signer registry
         rrequire(
             msg.sender == order.maker,
             LibERC721OrdersRichErrors.OnlyMakerError(
@@ -554,6 +554,18 @@ contract ERC721OrdersFeature is
         return ERC721_RECEIVED_MAGIC_BYTES;
     }
 
+    /// @dev Approves an ERC721 order hash on-chain. After pre-signing 
+    ///      a hash, the `PRESIGNED` signature type will become valid 
+    ///      for that order and signer.
+    /// @param orderHash An ERC721 order hash.
+    function preSignERC721Order(bytes32 orderHash)
+        external
+        override
+    {
+        LibERC721OrdersStorage.getStorage()
+            .preSigned[orderHash][msg.sender] = true;
+    }
+
     // Core settlment logic for selling an ERC721 asset. 
     // Used by `sellERC721` and `onERC721Received`. 
     function _sellERC721(
@@ -731,26 +743,6 @@ contract ERC721OrdersFeature is
         );
     }
 
-    /// @dev Returns whether not the given signature is valid for the
-    ///      the given ERC721 order.
-    /// @param order The ERC721 order.
-    /// @param signature The signature to validate.
-    /// @return isValid Whether `signature` is valid for `order`.
-    function isValidERC721OrderSignature(
-        LibERC721Order.ERC721Order memory order,
-        LibSignature.Signature memory signature
-    )
-        public
-        override
-        view
-        returns (bool isValid)
-    {
-        bytes32 orderHash = getERC721OrderHash(order);
-        address signer = LibSignature.getSignerOfHash(orderHash, signature);
-        // TODO: Signer registry
-        return signer == order.maker;
-    }
-
     function _validateSellOrder(
         LibERC721Order.ERC721Order memory order,
         LibSignature.Signature memory signature
@@ -781,13 +773,7 @@ contract ERC721OrdersFeature is
             )
         );
         // Check the signature.
-        // TODO: Signer registry
-        bytes32 orderHash = getERC721OrderHash(order);
-        address signer = LibSignature.getSignerOfHash(orderHash, signature);
-        rrequire(
-            signer == order.maker,
-            LibERC721OrdersRichErrors.InvalidSignerError(signer, order.maker)
-        );
+        validateERC721OrderSignature(order, signature);
     }
 
     function _validateBuyOrder(
@@ -825,13 +811,7 @@ contract ERC721OrdersFeature is
         // specified by the order.
         validateERC721OrderProperties(order, erc721TokenId);
         // Check the signature.
-        // TODO: Signer registry
-        bytes32 orderHash = getERC721OrderHash(order);
-        address signer = LibSignature.getSignerOfHash(orderHash, signature);
-        rrequire(
-            signer == order.maker,
-            LibERC721OrdersRichErrors.InvalidSignerError(signer, order.maker)
-        );
+        validateERC721OrderSignature(order, signature);
     }
 
     function _payFees(

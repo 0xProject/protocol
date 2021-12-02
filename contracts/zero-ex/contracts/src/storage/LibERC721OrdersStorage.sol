@@ -30,6 +30,8 @@ library LibERC721OrdersStorage {
     struct Storage {
         // maker => nonce range => order status bit vector
         mapping(address => mapping(uint248 => uint256)) orderStatusByMaker;
+        // order hash => maker => isSigned
+        mapping(bytes32 => mapping(address => bool)) preSigned;
     }
 
     /// @dev Get the storage bucket for this contract.
