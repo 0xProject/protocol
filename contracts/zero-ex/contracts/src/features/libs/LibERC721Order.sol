@@ -132,10 +132,16 @@ library LibERC721Order {
         // TODO: Verify EIP-712 behavior for array of structs
         // TODO: Rewrite in assembly to hash in place
 
+        // We give `order.erc721TokenProperties.length == 0` and 
+        // `order.erc721TokenProperties.length == 1` special treatment
+        // because we expect these to be the most common.
         bytes32 propertiesHash;
         if (order.erc721TokenProperties.length == 0) {
             propertiesHash = _NULL_KECCAK256;
         } else if (order.erc721TokenProperties.length == 1) {
+            // TODO: Maybe introduce yet another case here for if 
+            // propertyValidator == 0 and propertyData == 0. Should be 
+            // a particularly common use case that we can optimize for.
             propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
                 _PROPERTY_TYPEHASH,
                 order.erc721TokenProperties[0].propertyValidator,
@@ -155,6 +161,9 @@ library LibERC721Order {
             propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
         }
 
+        // We give `order.fees.length == 0` and 
+        // `order.fees.length == 1` special treatment
+        // because we expect these to be the most common.
         bytes32 feesHash;
         if (order.fees.length == 0) {
             feesHash = _NULL_KECCAK256;
