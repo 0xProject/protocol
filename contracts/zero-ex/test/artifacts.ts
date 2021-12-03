@@ -154,6 +154,7 @@ import * as TestMetaTransactionsNativeOrdersFeature from '../test/generated-arti
 import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json';
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
+import * as TestMintableERC721Token from '../test/generated-artifacts/TestMintableERC721Token.json';
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
@@ -366,6 +367,7 @@ export const artifacts = {
     TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
     TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
+    TestMintableERC721Token: TestMintableERC721Token as ContractArtifact,
     TestTokenSpenderERC20Token: TestTokenSpenderERC20Token as ContractArtifact,
     TestWeth: TestWeth as ContractArtifact,
 };

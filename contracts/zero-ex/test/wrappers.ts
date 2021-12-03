@@ -153,6 +153,7 @@ export * from '../test/generated-wrappers/test_meta_transactions_transform_erc20
 export * from '../test/generated-wrappers/test_migrator';
 export * from '../test/generated-wrappers/test_mint_token_erc20_transformer';
 export * from '../test/generated-wrappers/test_mintable_erc20_token';
+export * from '../test/generated-wrappers/test_mintable_erc721_token';
 export * from '../test/generated-wrappers/test_mooniswap';
 export * from '../test/generated-wrappers/test_native_orders_feature';
 export * from '../test/generated-wrappers/test_no_eth_recipient';
