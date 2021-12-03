@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../src/transformers/IERC20Transformer.sol";
 import "../src/transformers/LibERC20Transformer.sol";
-import "./TestMintableERC20Token.sol";
+import "./tokens/TestMintableERC20Token.sol";
 
 
 contract TestMintTokenERC20Transformer is

@@ -2,7 +2,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../src/vendor/IUniswapV2Pair.sol";
+import "../../src/vendor/IUniswapV2Pair.sol";
 
 interface IUniswapV2PoolDeployer {
     struct CreationParameters {

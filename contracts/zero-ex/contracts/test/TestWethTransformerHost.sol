@@ -21,9 +21,9 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "../src/transformers/IERC20Transformer.sol";
-import "./TestMintableERC20Token.sol";
+import "./tokens/TestMintableERC20Token.sol";
 import "./TestTransformerHost.sol";
-import "./TestWeth.sol";
+import "./tokens/TestWeth.sol";
 
 
 contract TestWethTransformerHost is
