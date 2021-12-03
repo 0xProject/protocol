@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "./TestMintableERC20Token.sol";
+import "./tokens/TestMintableERC20Token.sol";
 import "../src/features/libs/LibNativeOrder.sol";
 import "../src/features/libs/LibSignature.sol";
 
