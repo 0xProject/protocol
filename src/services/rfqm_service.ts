@@ -999,6 +999,14 @@ export class RfqmService {
             let job = jobs[0];
 
             // Step 2: Prepare the job for submission
+
+            // Claim job for worker
+            if (job.workerAddress!! && job.workerAddress !== workerAddress) {
+                throw new Error('Worker was sent a job claimed by a different worker');
+            }
+            job.workerAddress = workerAddress;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
             let calldata: string;
             const kind = job.kind;
 

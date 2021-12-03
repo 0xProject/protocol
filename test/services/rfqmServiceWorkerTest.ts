@@ -138,6 +138,58 @@ describe('RfqmService Worker Logic', () => {
                 errorMessage: 'Found more than one job for order hash',
             });
         });
+
+        it('fails if a worker ends up with a job assigned to a different worker', async () => {
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findJobByOrderHashAsync('0xorderhash')).thenResolve(
+                new RfqmJobEntity({
+                    affiliateAddress: '',
+                    calldata: '0x000',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeOneMinuteAgoS),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    isCompleted: false,
+                    lastLookResult: null,
+                    makerUri: 'http://foo.bar',
+                    metadata: null,
+                    metaTransactionHash: '',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiry: fakeOneMinuteAgoS.toString(),
+                            maker: '',
+                            makerAmount: '',
+                            makerToken: '',
+                            pool: '',
+                            salt: '',
+                            taker: '',
+                            takerAmount: '',
+                            takerToken: '',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.V4Rfq,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingEnqueued,
+                    updatedAt: new Date(),
+                    workerAddress: '0xwrongworkeraddress',
+                }),
+            );
+
+            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+            await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
+            expect(capture(loggerSpy.error).last()[0]).to.include({
+                errorMessage: 'Worker was sent a job claimed by a different worker',
+            });
+        });
     });
 
     describe('prepareV1JobAsync', () => {
