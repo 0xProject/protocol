@@ -1326,7 +1326,10 @@ export class RfqmService {
             this._blockchainUtils.estimateGasForExchangeProxyCallAsync(calldata, workerAddress),
         ]);
 
-        const gasFees = { maxFeePerGas: gasPriceEstimate, maxPriorityFeePerGas: INITIAL_MAX_PRIORITY_FEE_PER_GAS };
+        let gasFees: GasFees = {
+            maxFeePerGas: gasPriceEstimate,
+            maxPriorityFeePerGas: INITIAL_MAX_PRIORITY_FEE_PER_GAS,
+        };
 
         let submissionContext;
 
@@ -1395,17 +1398,20 @@ export class RfqmService {
                             'Resubmitting tx with higher gas price',
                         );
 
+                        // Update gasFees for resubmission
+                        gasFees = {
+                            maxFeePerGas: newGasPriceEstimate,
+                            maxPriorityFeePerGas: submissionContext.maxGasFees.maxPriorityFeePerGas.multipliedBy(
+                                MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER,
+                            ),
+                        };
+
                         const newTransaction = await this._submitTransactionAsync(
                             _job.kind,
                             orderHash,
                             workerAddress,
                             calldata,
-                            {
-                                maxFeePerGas: newGasPriceEstimate,
-                                maxPriorityFeePerGas: submissionContext.maxGasFees.maxPriorityFeePerGas.multipliedBy(
-                                    MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER,
-                                ),
-                            },
+                            gasFees,
                             nonce,
                             gasEstimate,
                         );
