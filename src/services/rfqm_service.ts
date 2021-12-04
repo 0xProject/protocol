@@ -1131,7 +1131,7 @@ export class RfqmService {
             } else {
                 RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri).inc();
                 _job.calldata = ''; // clear out calldata so transaction can never be submitted, even by accident
-                _job.isCompleted = false;
+                _job.isCompleted = true;
                 _job.lastLookResult = isLastLookApproved;
                 _job.status = RfqmJobStatus.FailedLastLookDeclined;
                 await this._dbUtils.updateRfqmJobAsync(_job);
