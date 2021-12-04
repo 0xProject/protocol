@@ -115,10 +115,12 @@ interface IERC721OrdersFeature {
         external
         payable;
 
-    /// @dev Cancel a single ERC721 order. The caller must be the maker.
-    ///      Silently succeeds if the order has already been cancelled.
-    /// @param order The ERC721 order.
-    function cancelERC721Order(LibERC721Order.ERC721Order calldata order)
+    /// @dev Cancel a single ERC721 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC721Order(uint256 orderNonce)
         external;
 
     /// @dev Buys multiple ERC721 assets by filling the

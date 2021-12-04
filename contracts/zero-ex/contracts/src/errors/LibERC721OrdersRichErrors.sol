@@ -114,21 +114,6 @@ library LibERC721OrdersRichErrors {
         );
     }
 
-    function OnlyMakerError(
-        address sender,
-        address maker
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("OnlyMakerError(address,address)")),
-            sender,
-            maker
-        );
-    }
-
     function OnlyTakerError(
         address sender,
         address taker

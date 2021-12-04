@@ -147,26 +147,21 @@ contract ERC721OrdersFeature is
         }
     }
 
-    /// @dev Cancel a single ERC721 order. The caller must be the maker.
-    ///      Silently succeeds if the order has already been cancelled.
-    /// @param order The ERC721 order.
-    function cancelERC721Order(LibERC721Order.ERC721Order memory order)
+    /// @dev Cancel a single ERC721 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC721Order(uint256 orderNonce)
         public
         override
     {
-        rrequire(
-            msg.sender == order.maker,
-            LibERC721OrdersRichErrors.OnlyMakerError(
-                msg.sender,
-                order.maker
-            )
-        );
         // Mark order as cancelled
-        _setOrderStatusBit(order);
+        _setOrderStatusBit(msg.sender, orderNonce);
 
         emit ERC721OrderCancelled(
-            order.maker,
-            order.nonce
+            msg.sender,
+            orderNonce
         );
     }
 
@@ -296,8 +291,8 @@ contract ERC721OrdersFeature is
         uint256 spread = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount;
 
         // Mark both orders as filled.
-        _setOrderStatusBit(sellOrder);
-        _setOrderStatusBit(buyOrder);
+        _setOrderStatusBit(sellOrder.maker, sellOrder.nonce);
+        _setOrderStatusBit(buyOrder.maker, buyOrder.nonce);
 
         // Transfer the ERC721 asset from seller to buyer. 
         _transferERC721AssetFrom(
@@ -587,7 +582,7 @@ contract ERC721OrdersFeature is
         );
 
         // Mark the order as filled.
-        _setOrderStatusBit(order);
+        _setOrderStatusBit(order.maker, order.nonce);
 
         // Transfer the ERC721 asset to the buyer.
         // If this function is called from the 
@@ -664,7 +659,7 @@ contract ERC721OrdersFeature is
         _validateSellOrder(order, signature);
 
         // Mark the order as filled.
-        _setOrderStatusBit(order);
+        _setOrderStatusBit(order.maker, order.nonce);
 
         // Transfer the ERC721 asset to the buyer (`msg.sender`).
         _transferERC721AssetFrom(
@@ -858,15 +853,15 @@ contract ERC721OrdersFeature is
         }
     }
 
-    function _setOrderStatusBit(LibERC721Order.ERC721Order memory order)
+    function _setOrderStatusBit(address maker, uint256 nonce)
         private
     {
         // The bitvector is indexed by the lower 8 bits of the nonce.
-        uint256 flag = 1 << (order.nonce % 256);
+        uint256 flag = 1 << (nonce % 256);
         // Update order status bit vector to indicate that the given order
         // has been cancelled/filled by setting the designated bit to 1.
         LibERC721OrdersStorage.getStorage().orderStatusByMaker
-            [order.maker][uint248(order.nonce >> 8)] |= flag;            
+            [maker][uint248(nonce >> 8)] |= flag;            
     }
 
 
