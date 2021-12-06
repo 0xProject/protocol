@@ -30,8 +30,6 @@ import {
     ONE_SECOND_MS,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
-    RFQM_TX_GAS_ESTIMATE,
-    RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
 } from '../constants';
 import {
     RfqmJobEntity,
@@ -1452,8 +1450,11 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Prepare gas estimate and fee
-        const rfqOrderFeeAmount = gasPrice.times(RFQM_TX_GAS_ESTIMATE);
-        const otcOrderFeeAmount = gasPrice.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE);
+        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq');
+        const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
+
+        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc');
+        const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
 
         // Create Rfq Order request options
         const rfqOrderOpts: RfqmRequestOptions = {
