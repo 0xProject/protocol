@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.41.0 - _December 6, 2021_
+
+    * Update mcusd contract address, and made celo native asset (#376)
+
 ## v16.40.0 - _December 1, 2021_
 
     * Add `AaveV2` and `Compound` deposit/withdrawal liquidity source (#321)
