@@ -6,7 +6,8 @@
                 "note": "Update mcusd contract address, and made celo native asset",
                 "pr": 376
             }
-        ]
+        ],
+        "timestamp": 1638827302
     },
     {
         "version": "16.40.0",
