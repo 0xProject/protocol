@@ -524,8 +524,8 @@ export const AVALANCHE_TOKENS = {
 
 export const CELO_TOKENS = {
     WETH: '0xe919f65739c26a42616b7b8eedc6b5524d1e3ac4',
-    CELO: '0x471ece3750da237f93b8e339c536989b8978a438',
-    mCUSD: '0x64defa3544c695db8c535d289d843a189aa26b98',
+    WCELO: '0x471ece3750da237f93b8e339c536989b8978a438',
+    mCUSD: '0x918146359264c492bd6934071c6bd31c854edbc3',
 };
 
 export const FANTOM_TOKENS = {
@@ -736,7 +736,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.USDC,
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
+<<<<<<< HEAD
         [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.DAI, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.WBTC],
+=======
+        [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.WCELO],
+>>>>>>> 4170f970d (Sushi router celo fix (#376))
     },
     [],
 );
