@@ -164,7 +164,7 @@ export class ERC721Order {
                 erc20Token: this.erc20Token,
                 erc20TokenAmount: this.erc20TokenAmount.toString(10),
                 erc721Token: this.erc721Token,
-                erd721TokenId: this.erc721TokenId.toString(10),
+                erc721TokenId: this.erc721TokenId.toString(10),
                 erc721TokenProperties: this.erc721TokenProperties as any,
                 fees: this.fees.map(fee => ({
                     recipient: fee.recipient,
@@ -216,24 +216,6 @@ export class ERC721Order {
     }
 }
 
-const ERC721_ORDER_DEFAULT_VALUES = {
-    direction: ERC721Order.TradeDirection.Sell721,
-    erc20Token: NULL_ADDRESS,
-    erc20TokenAmount: ZERO,
-    erc721Token: NULL_ADDRESS,
-    erc721TokenId: ZERO,
-    erc721TokenProperties: [] as ERC721Order.Property[],
-    fees: [] as ERC721Order.Fee[],
-    maker: NULL_ADDRESS,
-    taker: NULL_ADDRESS,
-    expiry: ZERO,
-    nonce: ZERO,
-    chainId: 1,
-    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
-};
-
-export type ERC721OrderFields = typeof ERC721_ORDER_DEFAULT_VALUES;
-
 export namespace ERC721Order {
     export interface Property {
         propertyValidator: string;
@@ -258,3 +240,21 @@ export namespace ERC721Order {
         Expired = 3,
     }
 }
+
+const ERC721_ORDER_DEFAULT_VALUES = {
+    direction: ERC721Order.TradeDirection.Sell721,
+    erc20Token: NULL_ADDRESS,
+    erc20TokenAmount: ZERO,
+    erc721Token: NULL_ADDRESS,
+    erc721TokenId: ZERO,
+    erc721TokenProperties: [] as ERC721Order.Property[],
+    fees: [] as ERC721Order.Fee[],
+    maker: NULL_ADDRESS,
+    taker: NULL_ADDRESS,
+    expiry: ZERO,
+    nonce: ZERO,
+    chainId: 1,
+    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
+};
+
+export type ERC721OrderFields = typeof ERC721_ORDER_DEFAULT_VALUES;
