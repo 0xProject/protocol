@@ -1,5 +1,15 @@
 [
     {
+        "version": "1.10.0",
+        "changes": [
+            {
+                "note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
+                "pr": 321
+            }
+        ],
+        "timestamp": 1638390144
+    },
+    {
         "timestamp": 1637102971,
         "version": "1.9.5",
         "changes": [

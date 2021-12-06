@@ -68,6 +68,8 @@ export enum ERC20BridgeSource {
     CurveV2 = 'Curve_V2',
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
+    AaveV2 = 'Aave_V2',
+    Compound = 'Compound',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -116,8 +118,10 @@ export enum CurveFunctionSelectors {
     exchange_underlying = '0xa6417ed6',
     get_dy_underlying = '0x07211ef7',
     get_dx_underlying = '0x0e71d1b9',
-    get_dy = '0x5e0d443f',
+    get_dy = '0x5e0d443f', // get_dy(int128,int128,uint256)
     get_dx = '0x67df02ca',
+    get_dy_uint256 = '0x556d6e9f', // get_dy(uint256,uint256,uint256)
+    exchange_underlying_uint256 = '0x65b2489b', // exchange_underlying(uint256,uint256,uint256,uint256)
     // Curve V2
     exchange_v2 = '0x5b41b908',
     exchange_underlying_v2 = '0x65b2489b',
@@ -168,6 +172,12 @@ export interface LidoInfo {
 export interface BalancerV2PoolInfo {
     poolId: string;
     vault: string;
+}
+
+export interface AaveV2Info {
+    lendingPool: string;
+    aToken: string;
+    underlyingToken: string;
 }
 
 // Internal `fillData` field for `Fill` objects.
@@ -275,6 +285,19 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswap
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
     takerToken: string;
+}
+
+export interface AaveV2FillData extends FillData {
+    lendingPool: string;
+    aToken: string;
+    underlyingToken: string;
+    takerToken: string;
+}
+
+export interface CompoundFillData extends FillData {
+    cToken: string;
+    takerToken: string;
+    makerToken: string;
 }
 
 /**
@@ -469,6 +492,28 @@ export interface GetMarketOrdersOpts {
      * Gas price to use for quote
      */
     gasPrice: BigNumber;
+
+    /**
+     * Sampler metrics for recording data on the sampler service and operations
+     */
+    samplerMetrics?: SamplerMetrics;
+}
+
+export interface SamplerMetrics {
+    /**
+     * Logs the gas information performed during a sampler call.
+     *
+     * @param data.gasBefore The gas remaining measured before any operations have been performed
+     * @param data.gasAfter The gas remaining measured after all operations have been performed
+     */
+    logGasDetails(data: { gasBefore: BigNumber; gasAfter: BigNumber }): void;
+
+    /**
+     * Logs the block number
+     *
+     * @param blockNumber block number of the sampler call
+     */
+    logBlockNumber(blockNumber: BigNumber): void;
 }
 
 /**

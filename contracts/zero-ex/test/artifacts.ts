@@ -81,10 +81,12 @@ import * as LiquidityProviderFeature from '../test/generated-artifacts/Liquidity
 import * as LiquidityProviderSandbox from '../test/generated-artifacts/LiquidityProviderSandbox.json';
 import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadataTransformer.json';
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
+import * as MixinAaveV2 from '../test/generated-artifacts/MixinAaveV2.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2 from '../test/generated-artifacts/MixinBalancerV2.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
+import * as MixinCompound from '../test/generated-artifacts/MixinCompound.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinCurveV2 from '../test/generated-artifacts/MixinCurveV2.json';
@@ -272,10 +274,12 @@ export const artifacts = {
     BridgeAdapter: BridgeAdapter as ContractArtifact,
     BridgeProtocols: BridgeProtocols as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
+    MixinAaveV2: MixinAaveV2 as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBalancerV2: MixinBalancerV2 as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,
+    MixinCompound: MixinCompound as ContractArtifact,
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,
     MixinCurveV2: MixinCurveV2 as ContractArtifact,

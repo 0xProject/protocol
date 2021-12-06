@@ -1,12 +1,41 @@
 [
     {
-        "version": "16.38.0",
+        "version": "16.40.0",
         "changes": [
             {
-                "note": "fix celo ref in api and mcusd",
+                "note": "Update mcusd contract address, and made celo native asset",
                 "pr": 376
             }
         ]
+    },
+    {
+        "version": "16.40.0",
+        "changes": [
+            {
+                "note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
+                "pr": 321
+            }
+        ],
+        "timestamp": 1638390144
+    },
+    {
+        "version": "16.39.0",
+        "changes": [
+            {
+                "note": "Curve ETH/CRV pool",
+                "pr": 378
+            }
+        ]
+    },
+    {
+        "version": "16.38.0",
+        "changes": [
+            {
+                "note": "Capture sampler metrics",
+                "pr": 374
+            }
+        ],
+        "timestamp": 1638228231
     },
     {
         "version": "16.37.0",

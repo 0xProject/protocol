@@ -23,6 +23,7 @@ import {
     POSITIVE_INF,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
+    ZERO_AMOUNT,
 } from '../src/utils/market_operation_utils/constants';
 import { createFills } from '../src/utils/market_operation_utils/fills';
 import { PoolsCache } from '../src/utils/market_operation_utils/pools_cache';
@@ -427,6 +428,8 @@ describe('MarketOperationUtils tests', () => {
         getTwoHopSellQuotes: (..._params: any[]) => [],
         getTwoHopBuyQuotes: (..._params: any[]) => [],
         isAddressContract: (..._params: any[]) => false,
+        getGasLeft: () => ZERO_AMOUNT,
+        getBlockNumber: () => ZERO_AMOUNT,
     };
 
     const MOCK_SAMPLER = ({

@@ -113,6 +113,7 @@ export {
     SwapQuoterError,
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
+    SamplerMetrics,
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {

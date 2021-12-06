@@ -19,6 +19,7 @@ import {
     OptimizedMarketOrder,
     TokenAdjacencyGraph,
 } from './utils/market_operation_utils/types';
+export { SamplerMetrics } from './utils/market_operation_utils/types';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { MetricsProxy } from './utils/quote_requestor';
 
