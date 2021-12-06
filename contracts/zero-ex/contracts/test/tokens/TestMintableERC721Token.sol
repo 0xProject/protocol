@@ -56,9 +56,9 @@ contract TestMintableERC721Token {
     ///      may be created and assigned without emitting Transfer. At the time of
     ///      any transfer, the approved address for that NFT (if any) is reset to none.
     event Transfer(
-        address indexed _from,
-        address indexed _to,
-        uint256 indexed _tokenId
+        address _from,
+        address _to,
+        uint256 _tokenId
     );
 
     /// @dev This emits when the approved address for an NFT is changed or

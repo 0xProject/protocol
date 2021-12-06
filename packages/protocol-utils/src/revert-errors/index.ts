@@ -14,6 +14,7 @@ import {
 } from './inherited';
 import * as NativeOrders from './native_orders';
 import * as Signatures from './signatures';
+import * as ERC721Orders from './erc721_orders';
 
 export {
     Common,
@@ -28,4 +29,5 @@ export {
     LiquidityProvider,
     NativeOrders,
     Signatures,
+    ERC721Orders,
 };

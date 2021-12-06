@@ -139,7 +139,9 @@ import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
 import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
+import * as TestERC721OrderPresigner from '../test/generated-artifacts/TestERC721OrderPresigner.json';
 import * as TestFeeCollectorController from '../test/generated-artifacts/TestFeeCollectorController.json';
+import * as TestFeeRecipient from '../test/generated-artifacts/TestFeeRecipient.json';
 import * as TestFillQuoteTransformerBridge from '../test/generated-artifacts/TestFillQuoteTransformerBridge.json';
 import * as TestFillQuoteTransformerExchange from '../test/generated-artifacts/TestFillQuoteTransformerExchange.json';
 import * as TestFillQuoteTransformerHost from '../test/generated-artifacts/TestFillQuoteTransformerHost.json';
@@ -162,6 +164,7 @@ import * as TestNoEthRecipient from '../test/generated-artifacts/TestNoEthRecipi
 import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
+import * as TestPropertyValidator from '../test/generated-artifacts/TestPropertyValidator.json';
 import * as TestRfqOriginRegistration from '../test/generated-artifacts/TestRfqOriginRegistration.json';
 import * as TestSimpleFunctionRegistryFeatureImpl1 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json';
 import * as TestSimpleFunctionRegistryFeatureImpl2 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json';
@@ -329,7 +332,9 @@ export const artifacts = {
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
     TestDelegateCaller: TestDelegateCaller as ContractArtifact,
+    TestERC721OrderPresigner: TestERC721OrderPresigner as ContractArtifact,
     TestFeeCollectorController: TestFeeCollectorController as ContractArtifact,
+    TestFeeRecipient: TestFeeRecipient as ContractArtifact,
     TestFillQuoteTransformerBridge: TestFillQuoteTransformerBridge as ContractArtifact,
     TestFillQuoteTransformerExchange: TestFillQuoteTransformerExchange as ContractArtifact,
     TestFillQuoteTransformerHost: TestFillQuoteTransformerHost as ContractArtifact,
@@ -348,6 +353,7 @@ export const artifacts = {
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
+    TestPropertyValidator: TestPropertyValidator as ContractArtifact,
     TestRfqOriginRegistration: TestRfqOriginRegistration as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl2: TestSimpleFunctionRegistryFeatureImpl2 as ContractArtifact,
