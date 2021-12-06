@@ -1,6 +1,6 @@
 [
     {
-        "version": "16.40.0",
+        "version": "16.41.0",
         "changes": [
             {
                 "note": "Update mcusd contract address, and made celo native asset",
