@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.38.0",
+        "changes": [
+            {
+                "note": "fix celo ref in api and mcusd",
+                "pr": 376
+            }
+        ]
+    },
+    {
         "version": "16.37.0",
         "changes": [
             {
