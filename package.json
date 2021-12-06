@@ -140,7 +140,7 @@
     "dependencies": {
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.30",
-        "@0x/asset-swapper": "^16.40.0",
+        "@0x/asset-swapper": "^16.41.0",
         "@0x/contract-addresses": "^6.10.0",
         "@0x/contract-wrappers": "^13.18.4",
         "@0x/contracts-zero-ex": "^0.30.0",
@@ -149,7 +149,7 @@
         "@0x/protocol-utils": "^1.10.0",
         "@0x/quote-server": "^7.0.2",
         "@0x/subproviders": "~6.5.4",
-        "@0x/token-metadata": "^0.1.8",
+        "@0x/token-metadata": "^0.1.9",
         "@0x/types": "^3.3.4",
         "@0x/utils": "^6.4.4",
         "@0x/web3-wrapper": "^7.6.1",

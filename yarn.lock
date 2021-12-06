@@ -57,10 +57,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.40.0":
-  version "16.40.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.40.0.tgz#2de49500e7de04e2fba584d7b586100a89134dc2"
-  integrity sha512-Zi3LF1yF4THjjv/NYa+XX0VbVlL4dxMXEtS1ybFE9kaXsV4SW6+K+zt4sOI+23GpIIjqosx7l4FCkcOkrM98SA==
+"@0x/asset-swapper@^16.41.0":
+  version "16.41.0"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.41.0.tgz#18868fcf36f76dd578b4eb803db96f24977ada70"
+  integrity sha512-Tf2mN6ZrbS/Y3eHYLDe/hAIbCG1lC1HXwvkaRKrORAHyrqMe9b6KlVgmolpBGIHivoHCWz9sBzZIlyixpc5Lyg==
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
@@ -974,9 +974,10 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/token-metadata@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.8.tgz#54f3179d9b5cfd28dca8a49b6c6dd9b4206edd4d"
+"@0x/token-metadata@^0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.9.tgz#16713f36962b8f8a0da9531204ce2702ff245144"
+  integrity sha512-Zs5myUBFtJlDcEbWqlSshq704qT6o5fLRP1wmVGw/rl8r9Zs+xsmkufXuZFwzaAtBuBvDtdl9nyK6BTLTseJ0A==
   dependencies:
     "@0x/contract-addresses" "^6.9.0"
     typescript "^4.2.4"
