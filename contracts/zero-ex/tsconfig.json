@@ -60,6 +60,7 @@
         "test/generated-artifacts/IBridgeAdapter.json",
         "test/generated-artifacts/IERC20Bridge.json",
         "test/generated-artifacts/IERC20Transformer.json",
+        "test/generated-artifacts/IERC721OrderCallback.json",
         "test/generated-artifacts/IERC721OrdersFeature.json",
         "test/generated-artifacts/IERC721Token.json",
         "test/generated-artifacts/IFeature.json",

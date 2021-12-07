@@ -27,6 +27,7 @@ export * from '../test/generated-wrappers/i_bootstrap_feature';
 export * from '../test/generated-wrappers/i_bridge_adapter';
 export * from '../test/generated-wrappers/i_erc20_bridge';
 export * from '../test/generated-wrappers/i_erc20_transformer';
+export * from '../test/generated-wrappers/i_erc721_order_callback';
 export * from '../test/generated-wrappers/i_erc721_orders_feature';
 export * from '../test/generated-wrappers/i_erc721_token';
 export * from '../test/generated-wrappers/i_feature';

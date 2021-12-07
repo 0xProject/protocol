@@ -29,6 +29,7 @@ import "../fixins/FixinERC721Spender.sol";
 import "../fixins/FixinTokenSpender.sol";
 import "../migrations/LibMigrate.sol";
 import "../storage/LibERC721OrdersStorage.sol";
+import "../vendor/IERC721OrderCallback.sol";
 import "../vendor/IFeeRecipient.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IERC721OrdersFeature.sol";
@@ -58,6 +59,8 @@ contract ERC721OrdersFeature is
 
     /// @dev The magic return value indicating the success of a `receiveFeeCallback`.
     bytes4 private constant FEE_CALLBACK_MAGIC_BYTES = IFeeRecipient.receiveFeeCallback.selector;
+    /// @dev The magic return value indicating the success of a `zeroExERC721OrderCallback`.
+    bytes4 private constant TAKER_CALLBACK_MAGIC_BYTES = IERC721OrderCallback.zeroExERC721OrderCallback.selector;
     /// @dev The magic return value indicating the success of a `onERC721Received`.
     bytes4 private constant ERC721_RECEIVED_MAGIC_BYTES = this.onERC721Received.selector;
 
@@ -102,11 +105,16 @@ contract ERC721OrdersFeature is
     /// @param unwrapNativeToken If this parameter is true and the 
     ///        ERC20 token of the order is e.g. WETH, unwraps the 
     ///        token before transferring it to the taker.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC721OrderCallback` on `msg.sender` after
+    ///        the ERC20 tokens have been transferred to `msg.sender`
+    ///        but before transferring the ERC721 asset to the buyer. 
     function sellERC721(
         LibERC721Order.ERC721Order memory order,
         LibSignature.Signature memory signature,
         uint256 erc721TokenId,
-        bool unwrapNativeToken
+        bool unwrapNativeToken,
+        bytes memory callbackData
     )
         public
         override
@@ -117,33 +125,49 @@ contract ERC721OrdersFeature is
             erc721TokenId, 
             unwrapNativeToken,
             msg.sender, // taker
-            false       // isCallback
+            false,      // isCallback
+            callbackData
         );
     }
 
     /// @dev Buys an ERC721 asset by filling the given order.
     /// @param order The ERC721 order.
     /// @param signature The order signature.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC721OrderCallback` on `msg.sender` after
+    ///        the ERC721 asset has been transferred to `msg.sender`
+    ///        but before transferring the ERC20 tokens to the seller. 
+    ///        Native tokens acquired during the callback can be used
+    ///        to fill the order.
     function buyERC721(
         LibERC721Order.ERC721Order memory order,
-        LibSignature.Signature memory signature
+        LibSignature.Signature memory signature,
+        bytes memory callbackData
     )
         public
         override
         payable
     {
-        uint256 ethSpent = _buyERC721(order, signature, msg.value);
+        uint256 ethBalanceBefore = address(this).balance
+            .safeSub(msg.value);
+        _buyERC721(
+            order, 
+            signature, 
+            msg.value,
+            callbackData
+        );
+        uint256 ethBalanceAfter = address(this).balance;
         // Cannot spent more than `msg.value`
         rrequire(
-            ethSpent <= msg.value,
+            ethBalanceAfter >= ethBalanceBefore,
             LibERC721OrdersRichErrors.OverspentEthError(
-                ethSpent,
+                ethBalanceBefore - ethBalanceAfter + msg.value,
                 msg.value   
             )
         );
         // Refund
-        if (ethSpent < msg.value) {
-            _transferEth(msg.sender, msg.value - ethSpent);
+        if (ethBalanceAfter > ethBalanceBefore) {
+            _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
         }
     }
 
@@ -201,7 +225,10 @@ contract ERC721OrdersFeature is
                     this._buyERC721.selector, 
                     orders[i],
                     signatures[i],
-                    msg.value - ethSpent
+                    msg.value - ethSpent, // Remaining ETH available
+                    new bytes(0)          // No taker callback; allowing a 
+                                          // callback would potentially mess
+                                          // up the ETH accounting here.
                 )
             );
             if (successes[i]) {
@@ -542,8 +569,9 @@ contract ERC721OrdersFeature is
             signature, 
             tokenId, 
             unwrapNativeToken,
-            from, // taker
-            true  // isCallback
+            from,        // taker
+            true,        // isCallback
+            new bytes(0) // No taker callback
         );
 
         return ERC721_RECEIVED_MAGIC_BYTES;
@@ -569,7 +597,8 @@ contract ERC721OrdersFeature is
         uint256 erc721TokenId,
         bool unwrapNativeToken,
         address taker,
-        bool isCallback
+        bool isCallback,
+        bytes memory takerCallbackData
     )
         private
     {
@@ -583,18 +612,6 @@ contract ERC721OrdersFeature is
 
         // Mark the order as filled.
         _setOrderStatusBit(order.maker, order.nonce);
-
-        // Transfer the ERC721 asset to the buyer.
-        // If this function is called from the 
-        // `onERC721Received` callback the Exchange Proxy
-        // holds the asset. Otherwise, transfer it from 
-        // the seller.
-        _transferERC721AssetFrom(
-            order.erc721Token,
-            isCallback ? address(this) : taker,
-            order.maker,
-            erc721TokenId
-        );
 
         if (unwrapNativeToken) {
             // The ERC20 token must be WETH for it to be unwrapped.
@@ -629,6 +646,33 @@ contract ERC721OrdersFeature is
             );
         }
 
+        if (takerCallbackData.length > 0) {
+            require(
+                taker != address(this), 
+                "ERC721OrdersFeature::_sellERC721/CANNOT_CALLBACK_SELF"
+            );
+            // Invoke the callback
+            bytes4 callbackResult = IERC721OrderCallback(taker)
+                .zeroExERC721OrderCallback(takerCallbackData);
+            // Check for the magic success bytes
+            require(
+                callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
+                "ERC721OrdersFeature::_sellERC721/CALLBACK_FAILED"
+            );            
+        }
+
+        // Transfer the ERC721 asset to the buyer.
+        // If this function is called from the 
+        // `onERC721Received` callback the Exchange Proxy
+        // holds the asset. Otherwise, transfer it from 
+        // the seller.
+        _transferERC721AssetFrom(
+            order.erc721Token,
+            isCallback ? address(this) : taker,
+            order.maker,
+            erc721TokenId
+        );
+
         // The buyer pays the order fees.
         _payFees(order, order.maker, false);
 
@@ -649,7 +693,8 @@ contract ERC721OrdersFeature is
     function _buyERC721(
         LibERC721Order.ERC721Order memory order,
         LibSignature.Signature memory signature,
-        uint256 ethAvailable
+        uint256 ethAvailable,
+        bytes memory takerCallbackData
     )
         public
         payable
@@ -668,6 +713,25 @@ contract ERC721OrdersFeature is
             msg.sender,
             order.erc721TokenId
         );
+
+        if (takerCallbackData.length > 0) {
+            require(
+                msg.sender != address(this), 
+                "ERC721OrdersFeature::_buyERC721/CANNOT_CALLBACK_SELF"
+            );
+            uint256 ethBalanceBeforeCallback = address(this).balance;
+            // Invoke the callback
+            bytes4 callbackResult = IERC721OrderCallback(msg.sender)
+                .zeroExERC721OrderCallback(takerCallbackData);
+            ethAvailable = ethAvailable.safeAdd(
+                address(this).balance.safeSub(ethBalanceBeforeCallback)
+            );
+            // Check for the magic success bytes
+            require(
+                callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
+                "ERC721OrdersFeature::_sellERC721/CALLBACK_FAILED"
+            );            
+        }
 
         if (address(order.erc20Token) == NATIVE_TOKEN_ADDRESS) {
             // Check that we have enough ETH.
@@ -819,6 +883,12 @@ contract ERC721OrdersFeature is
     {
         for (uint256 i = 0; i < order.fees.length; i++) {
             LibERC721Order.Fee memory fee = order.fees[i];
+            
+            require(
+                fee.recipient != address(this), 
+                "ERC721OrdersFeature::_payFees/RECIPIENT_CANNOT_BE_EXCHANGE_PROXY"
+            );
+
             if (useNativeToken) {
                 // Transfer ETH to the fee recipient.
                 _transferEth(payable(fee.recipient), fee.amount);

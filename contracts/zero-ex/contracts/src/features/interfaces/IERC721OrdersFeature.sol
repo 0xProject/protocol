@@ -97,20 +97,32 @@ interface IERC721OrdersFeature {
     /// @param unwrapNativeToken If this parameter is true and the 
     ///        ERC20 token of the order is e.g. WETH, unwraps the 
     ///        token before transferring it to the taker.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC721OrderCallback` on `msg.sender` after
+    ///        the ERC20 tokens have been transferred to `msg.sender`
+    ///        but before transferring the ERC721 asset to the buyer. 
     function sellERC721(
         LibERC721Order.ERC721Order calldata order,
         LibSignature.Signature calldata signature,
         uint256 erc721TokenId,
-        bool unwrapNativeToken
+        bool unwrapNativeToken,
+        bytes calldata callbackData
     )
         external;
 
     /// @dev Buys an ERC721 asset by filling the given order.
     /// @param order The ERC721 order.
     /// @param signature The order signature.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC721OrderCallback` on `msg.sender` after
+    ///        the ERC721 asset has been transferred to `msg.sender`
+    ///        but before transferring the ERC20 tokens to the seller. 
+    ///        Native tokens acquired during the callback can be used
+    ///        to fill the order.
     function buyERC721(
         LibERC721Order.ERC721Order calldata order,
-        LibSignature.Signature calldata signature
+        LibSignature.Signature calldata signature,
+        bytes calldata callbackData
     )
         external
         payable;
