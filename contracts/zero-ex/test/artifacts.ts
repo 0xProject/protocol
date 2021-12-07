@@ -29,6 +29,7 @@ import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeatur
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
+import * as IERC721OrderCallback from '../test/generated-artifacts/IERC721OrderCallback.json';
 import * as IERC721OrdersFeature from '../test/generated-artifacts/IERC721OrdersFeature.json';
 import * as IERC721Token from '../test/generated-artifacts/IERC721Token.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
@@ -313,6 +314,7 @@ export const artifacts = {
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinUniswapV3: MixinUniswapV3 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
+    IERC721OrderCallback: IERC721OrderCallback as ContractArtifact,
     IERC721Token: IERC721Token as ContractArtifact,
     IFeeRecipient: IFeeRecipient as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
