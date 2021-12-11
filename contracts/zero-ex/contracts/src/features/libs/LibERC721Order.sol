@@ -118,8 +118,18 @@ library LibERC721Order {
         0x6292cf854241cb36887e639065eca63b3af9f7f70270cebeda4c29b6d3bc65e8;
 
     // keccak256("");
-    bytes32 private constant _NULL_KECCAK256 = 
+    bytes32 private constant _EMPTY_ARRAY_KECCAK256 = 
         0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;        
+
+    // keccak256(abi.encodePacked(keccak256(abi.encode(
+    //     _PROPERTY_TYPEHASH,
+    //     address(0),
+    //     keccak256("")
+    // ))));
+    bytes32 private constant _NULL_PROPERTY_STRUCT_HASH = 
+        0x720ee400a9024f6a49768142c339bf09d2dd9056ab52d20fbe7165faba6e142d;
+
+    uint256 private constant ADDRESS_MASK = (1 << 160) - 1;
 
     /// @dev Get the struct hash of an ERC721 order.
     /// @param order The ERC721 order.
@@ -129,24 +139,41 @@ library LibERC721Order {
         pure
         returns (bytes32 structHash)
     {
-        // TODO: Verify EIP-712 behavior for array of structs
-        // TODO: Rewrite in assembly to hash in place
-
         // We give `order.erc721TokenProperties.length == 0` and 
         // `order.erc721TokenProperties.length == 1` special treatment
         // because we expect these to be the most common.
         bytes32 propertiesHash;
         if (order.erc721TokenProperties.length == 0) {
-            propertiesHash = _NULL_KECCAK256;
+            propertiesHash = _EMPTY_ARRAY_KECCAK256;
         } else if (order.erc721TokenProperties.length == 1) {
-            // TODO: Maybe introduce yet another case here for if 
-            // propertyValidator == 0 and propertyData == 0. Should be 
-            // a particularly common use case that we can optimize for.
-            propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-                _PROPERTY_TYPEHASH,
-                order.erc721TokenProperties[0].propertyValidator,
-                keccak256(order.erc721TokenProperties[0].propertyData)
-            ))));
+            Property memory property = order
+                .erc721TokenProperties[0];
+            if (
+                address(property.propertyValidator) == address(0) &&
+                property.propertyData.length == 0
+            ) {
+                propertiesHash = _NULL_PROPERTY_STRUCT_HASH;
+            } else {
+                // propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
+                //     _PROPERTY_TYPEHASH,
+                //     order.erc721TokenProperties[0].propertyValidator,
+                //     keccak256(order.erc721TokenProperties[0].propertyData)
+                // ))));
+                bytes memory data = property.propertyData;
+                assembly {
+                    // dataHash = keccak256(property.propertyData)
+                    let dataHash := keccak256(add(data, 32), mload(data))
+                    // Load free memory pointer
+                    let mem := mload(64)
+                    mstore(mem, _PROPERTY_TYPEHASH)
+                    // property.propertyValidator
+                    mstore(add(mem, 32), and(ADDRESS_MASK, mload(property)))
+                    // keccak256(property.propertyData)
+                    mstore(add(mem, 64), dataHash)
+                    mstore(mem, keccak256(mem, 96))
+                    propertiesHash := keccak256(mem, 32)
+                }
+            }
         } else {
             bytes32[] memory propertyStructHashArray = new bytes32[](
                 order.erc721TokenProperties.length
@@ -166,14 +193,31 @@ library LibERC721Order {
         // because we expect these to be the most common.
         bytes32 feesHash;
         if (order.fees.length == 0) {
-            feesHash = _NULL_KECCAK256;
+            feesHash = _EMPTY_ARRAY_KECCAK256;
         } else if (order.fees.length == 1) {
-            feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-                _FEE_TYPEHASH,
-                order.fees[0].recipient,
-                order.fees[0].amount,
-                keccak256(order.fees[0].feeData)
-            ))));
+            // feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
+            //     _FEE_TYPEHASH,
+            //     order.fees[0].recipient,
+            //     order.fees[0].amount,
+            //     keccak256(order.fees[0].feeData)
+            // ))));
+            Fee memory fee = order.fees[0];
+            bytes memory data = fee.feeData;
+            assembly {
+                // dataHash = keccak256(fee.feeData)
+                let dataHash := keccak256(add(data, 32), mload(data))
+                // Load free memory pointer
+                let mem := mload(64)
+                mstore(mem, _FEE_TYPEHASH)
+                // fee.recipient
+                mstore(add(mem, 32), and(ADDRESS_MASK, mload(fee)))
+                // fee.amount
+                mstore(add(mem, 64), mload(add(fee, 32)))
+                // keccak256(fee.feeData)
+                mstore(add(mem, 96), dataHash)
+                mstore(mem, keccak256(mem, 128))
+                feesHash := keccak256(mem, 32)
+            }
         } else {
             bytes32[] memory feeStructHashArray = new bytes32[](order.fees.length);
             for (uint256 i = 0; i < order.fees.length; i++) {
@@ -187,19 +231,39 @@ library LibERC721Order {
             feesHash = keccak256(abi.encodePacked(feeStructHashArray));
         }
 
-        return keccak256(abi.encode(
-            _ERC_721_ORDER_TYPEHASH,
-            order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
-            order.erc721TokenId,
-            propertiesHash,
-            feesHash,
-            order.maker,
-            order.taker,
-            order.expiry,
-            order.nonce
-        ));
+        // Hash in place, equivalent to:
+        // return keccak256(abi.encode(
+        //     _ERC_721_ORDER_TYPEHASH,
+        //     order.direction,
+        //     order.erc20Token,
+        //     order.erc20TokenAmount,
+        //     order.erc721Token,
+        //     order.erc721TokenId,
+        //     propertiesHash,
+        //     feesHash,
+        //     order.maker,
+        //     order.taker,
+        //     order.expiry,
+        //     order.nonce
+        // ));
+        assembly {
+            let pos1 := sub(order, 32)
+            let pos2 := add(order, 160)
+            let pos3 := add(order, 192)
+
+            let temp1 := mload(pos1)
+            let temp2 := mload(pos2)
+            let temp3 := mload(pos3)
+
+            mstore(pos1, _ERC_721_ORDER_TYPEHASH)
+            mstore(pos2, propertiesHash)
+            mstore(pos3, feesHash)
+            structHash := keccak256(pos1, 384)
+
+            mstore(pos1, temp1)
+            mstore(pos2, temp2)
+            mstore(pos3, temp3)
+        }
+        return structHash;
     }
 }
