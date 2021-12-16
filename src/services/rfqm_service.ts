@@ -175,7 +175,7 @@ const PRICE_DECIMAL_PLACES = 6;
 
 const INITIAL_MAX_PRIORITY_FEE_PER_GAS = new BigNumber(2e9); // in wei
 // Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
-const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = new BigNumber(1.5);
+// const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = new BigNumber(1.5);
 
 // https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean
 function isDefined<T>(value: T): value is NonNullable<T> {
@@ -1399,9 +1399,10 @@ export class RfqmService {
                         // Update gasFees for resubmission
                         gasFees = {
                             maxFeePerGas: newGasPriceEstimate,
-                            maxPriorityFeePerGas: submissionContext.maxGasFees.maxPriorityFeePerGas.multipliedBy(
-                                MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER,
-                            ),
+
+                            // HACK: Disabled decision logic around what price to resubmit to reduce risk of transactions
+                            // getting kicked out of mempool. Must be revisited.
+                            maxPriorityFeePerGas: newGasPriceEstimate,
                         };
 
                         const newTransaction = await this._submitTransactionAsync(
