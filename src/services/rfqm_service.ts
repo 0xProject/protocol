@@ -1368,7 +1368,7 @@ export class RfqmService {
                 : new BigNumber(_job.order.order.takerAmount);
 
         while (true) {
-            // We've already submitted the transaction once at this point, so we first need to wait checking the status.
+            // We've already submitted the transaction once at this point, so we first need to wait before checking the status.
             await delay(this._transactionWatcherSleepTimeMs);
 
             const jobStatus = await this._checkSubmissionMapReceiptsAndUpdateDbAsync(

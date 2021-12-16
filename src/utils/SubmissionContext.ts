@@ -163,6 +163,9 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
                 transaction.status = submissionStatus;
                 transaction.blockMined = new BigNumber(receipt.blockNumber);
                 transaction.gasUsed = new BigNumber(receipt.gasUsed.toString());
+                if (transaction.gasPrice === null) {
+                    transaction.gasPrice = new BigNumber(receipt.effectiveGasPrice.toString());
+                }
             } else {
                 transaction.status = RfqmTransactionSubmissionStatus.DroppedAndReplaced;
             }

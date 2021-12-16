@@ -19,7 +19,7 @@ export class RfqmV2TransactionSubmissionEntity {
     public transactionHash: string;
 
     // specified as a foreign key to rfqm jobs in migration, but not in the typeorm
-    // definition to preserve it's being read as a string
+    // definition to preserve its being read as a string
     @Column({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
 
@@ -39,7 +39,7 @@ export class RfqmV2TransactionSubmissionEntity {
     @Column({ name: 'nonce', type: 'bigint', transformer: BigIntTransformer })
     public nonce: number;
 
-    // The Gas Price in wei. Present in non-EIP1559 transactions.
+    // The gas price in wei. Set at transaction submission time in non-EIP1559 transactions. In EIP1559 transactions, this is set once we have the transaction receipt.
     @Column({ name: 'gas_price', type: 'numeric', nullable: true, transformer: BigNumberTransformer })
     public gasPrice: BigNumber | null;
 

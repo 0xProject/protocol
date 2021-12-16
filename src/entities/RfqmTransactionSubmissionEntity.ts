@@ -13,7 +13,7 @@ export class RfqmTransactionSubmissionEntity {
     public transactionHash?: string;
 
     // specified as a foreign key to rfqm jobs in migration, but not in the typeorm
-    // definition to preserve it's being read as a string
+    // definition to preserve its being read as a string
     @Column({ name: 'order_hash', type: 'varchar' })
     public orderHash?: string;
 
