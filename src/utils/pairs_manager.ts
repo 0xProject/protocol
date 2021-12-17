@@ -1,16 +1,7 @@
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 
 import { ConfigManager } from './config_manager';
-
-/**
- * Generate a lookup key from two tokens
- */
-const toKey = (tokenA: string, tokenB: string): string => {
-    return [tokenA, tokenB]
-        .map((str) => str.toLowerCase())
-        .sort()
-        .join('-');
-};
+import { pairUtils } from './pair_utils';
 
 /**
  * Transform RfqMakerAssetOfferings into an object of the form:
@@ -30,7 +21,7 @@ const generatePairToMakerUriMap = (offerings: RfqMakerAssetOfferings): PairsToUr
     makerUris.forEach((makerUri) => {
         const pairs = offerings[makerUri];
         pairs.forEach((pair) => {
-            const key = toKey(...pair);
+            const key = pairUtils.toKey(...pair);
             if (res[key] !== undefined) {
                 res[key].push(makerUri);
             } else {
@@ -64,14 +55,14 @@ export class PairsManager {
      * Get a list of RFQt Maker Uris that support this pair
      */
     public getRfqtMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqtPairToMakerUris[toKey(makerToken, takerToken)] || [];
+        return this._rfqtPairToMakerUris[pairUtils.toKey(makerToken, takerToken)] || [];
     }
 
     /**
      * Get a list of RFQm Maker Uris that support this pair
      */
     public getRfqmMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqmPairToMakerUris[toKey(makerToken, takerToken)] || [];
+        return this._rfqmPairToMakerUris[pairUtils.toKey(makerToken, takerToken)] || [];
     }
 
     /**

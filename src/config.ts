@@ -114,14 +114,16 @@ export const getIntegratorIdFromLabel = (label: string): string | undefined => {
 };
 
 /**
- * The JSON config indicating which 0x order types a given Market Maker supports
+ * The JSON config for each Market Maker, providing information including URLs, type of order supported and authentication.
  */
 export interface RfqMakerConfig {
+    makerId: string;
     label: string;
     rfqmMakerUri: string;
     rfqmOrderTypes: ('rfq' | 'otc')[];
     rfqtMakerUri: string;
     rfqtOrderTypes: ('rfq' | 'otc')[];
+    apiKeyHashes: string[];
 }
 
 /**
