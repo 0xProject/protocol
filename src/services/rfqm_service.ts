@@ -173,9 +173,11 @@ const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
 
 const PRICE_DECIMAL_PLACES = 6;
 
-const INITIAL_MAX_PRIORITY_FEE_PER_GAS = new BigNumber(2e9); // in wei
+const INITIAL_MAX_PRIORITY_FEE_PER_GAS = new BigNumber(2e9); // 2 gwei in wei
+const MAX_PRIORITY_FEE_PER_GAS_CAP = new BigNumber(128e9); // The maximum tip we're willing to pay
 // Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
-// const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = new BigNumber(1.5);
+const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = 1.5; // Increase multiplier for tip with each resubmission cycle
+const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per gas with each cycle; limitation of geth node
 
 // https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean
 function isDefined<T>(value: T): value is NonNullable<T> {
@@ -1324,8 +1326,12 @@ export class RfqmService {
             this._blockchainUtils.estimateGasForExchangeProxyCallAsync(calldata, workerAddress),
         ]);
 
+        // For the first submission, we use the "fast" gas estimate to approximate the base fee.
+        // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
+        // The `maxFeePerGas` is 2x the base fee (plus priority tip). Since we don't have a
+        // handy oracle for the en vogue priorty fee we start with 2 gwei and work up from there.
         let gasFees: GasFees = {
-            maxFeePerGas: gasPriceEstimate,
+            maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(INITIAL_MAX_PRIORITY_FEE_PER_GAS),
             maxPriorityFeePerGas: INITIAL_MAX_PRIORITY_FEE_PER_GAS,
         };
 
@@ -1379,47 +1385,68 @@ export class RfqmService {
 
             switch (jobStatus) {
                 case RfqmJobStatus.PendingSubmitted:
+                    // "Fast" gas price estimation; used to approximate the base fee
                     const newGasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
                     if (submissionContext.transactionType === 0) {
                         throw new Error('Non-EIP-1559 transactions are not implemented');
                     }
 
-                    if (RfqmService.shouldResubmitTransaction(gasFees, newGasPriceEstimate)) {
-                        logger.info(
-                            {
-                                workerAddress,
-                                orderHash,
-                                gasFees,
-                                gasPriceEstimate,
-                            },
-                            'Resubmitting tx with higher gas price',
-                        );
+                    // We don't wait for gas conditions to change. Rather, we increase the gas
+                    // based bid based onthe knowledge that time (and therefore blocks, theoretically)
+                    // has passed without a transaction being mined.
 
-                        // Update gasFees for resubmission
-                        gasFees = {
-                            maxFeePerGas: newGasPriceEstimate,
+                    const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
+                        submissionContext.maxGasFees;
 
-                            // HACK: Disabled decision logic around what price to resubmit to reduce risk of transactions
-                            // getting kicked out of mempool. Must be revisited.
-                            maxPriorityFeePerGas: newGasPriceEstimate,
-                        };
-
-                        const newTransaction = await this._submitTransactionAsync(
-                            _job.kind,
-                            orderHash,
-                            workerAddress,
-                            calldata,
-                            gasFees,
-                            nonce,
-                            gasEstimate,
-                        );
-                        logger.info(
-                            { workerAddress, orderHash, transactionHash: newTransaction.transactionHash },
-                            'Successfully resubmited tx with higher gas price',
-                        );
-                        submissionContext.addTransaction(newTransaction);
+                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
+                        // If we've reached the max priority fee per gas we'd like to pay, just
+                        // continue watching the transactions to see if one gets mined.
+                        continue;
                     }
+
+                    const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas.multipliedBy(
+                        MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER,
+                    );
+
+                    // The RPC nodes still need at least a 0.1 increase in both values to accept the new transaction.
+                    // For the new max fee per gas, we'll take the maximum of a 0.1 increase from the last value
+                    // or the value from an increase in the base fee.
+                    const newMaxFeePerGas = BigNumber.max(
+                        oldMaxFeePerGas.multipliedBy(MAX_FEE_PER_GAS_MULTIPLIER),
+                        newGasPriceEstimate.multipliedBy(2).plus(newMaxPriorityFeePerGas),
+                    );
+
+                    gasFees = {
+                        maxFeePerGas: newMaxFeePerGas,
+                        maxPriorityFeePerGas: newMaxPriorityFeePerGas,
+                    };
+
+                    logger.info(
+                        {
+                            gasFees,
+                            gasPriceEstimate,
+                            orderHash,
+                            submissionCount: submissionContext.transactions.length + 1,
+                            workerAddress,
+                        },
+                        'Resubmitting tx with higher gas price',
+                    );
+
+                    const newTransaction = await this._submitTransactionAsync(
+                        _job.kind,
+                        orderHash,
+                        workerAddress,
+                        calldata,
+                        gasFees,
+                        nonce,
+                        gasEstimate,
+                    );
+                    logger.info(
+                        { workerAddress, orderHash, transactionHash: newTransaction.transactionHash },
+                        'Successfully resubmited tx with higher gas price',
+                    );
+                    submissionContext.addTransaction(newTransaction);
                     break;
                 case RfqmJobStatus.FailedRevertedUnconfirmed:
                 case RfqmJobStatus.SucceededUnconfirmed:
