@@ -17,7 +17,7 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './typ
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 1000;
+const RUST_ROUTER_NUM_SAMPLES = 14;
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 8;
