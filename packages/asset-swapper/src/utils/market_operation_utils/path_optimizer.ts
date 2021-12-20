@@ -20,7 +20,7 @@ const RUN_LIMIT_DECAY_FACTOR = 0.5;
 const RUST_ROUTER_NUM_SAMPLES = 14;
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
-const MIN_NUM_SAMPLE_INPUTS = 8;
+const MIN_NUM_SAMPLE_INPUTS = 3;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
 
@@ -261,8 +261,8 @@ function findRoutesAndCreateOptimalPath(
                         output: new BigNumber(outputAmount),
                     });
                 } else {
-                    assert.assert(Boolean(left), 'No valid sample to use');
-                    fill = createFill(left);
+                    assert.assert(Boolean(left || right), 'No valid sample to use');
+                    fill = createFill(left || right);
                 }
                 break;
             }
