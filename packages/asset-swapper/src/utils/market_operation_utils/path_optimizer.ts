@@ -69,21 +69,6 @@ function calculateOuputFee(
     }
 }
 
-// Use linear interpolation to approximate the output
-// at a certain input somewhere between the two samples
-// See https://en.wikipedia.org/wiki/Linear_interpolation
-const interpolateOutputFromSamples = (
-    left: { input: BigNumber; output: BigNumber },
-    right: { input: BigNumber; output: BigNumber },
-    targetInput: BigNumber,
-): BigNumber =>
-    left.output.plus(
-        right.output
-            .minus(left.output)
-            .dividedBy(right.input.minus(left.input))
-            .times(targetInput.minus(left.input)),
-    );
-
 function findRoutesAndCreateOptimalPath(
     side: MarketOperation,
     samples: DexSample[][],
@@ -229,10 +214,10 @@ function findRoutesAndCreateOptimalPath(
 
     const scale = input.dividedBy(totalRoutedAmount);
     for (const [routeInput, routeSamplesAndNativeOrders, outputAmount] of routesAndSamplesAndOutputs) {
-        if (!routeInput || !routeSamplesAndNativeOrders) {
+        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
             continue;
         }
-        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precisions loss for number/f64
+        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
         // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
         const rustInputAdjusted = BigNumber.min(
             new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
@@ -270,21 +255,10 @@ function findRoutesAndCreateOptimalPath(
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
-                    // NOTE: If the amount is outside of the sampled range the Rust router can return either
-                    // 0 (sells) or Infinity (buys) as the expected output amount. In those cases we need to
-                    // fall back to interpolating the samples
-                    const output =
-                        outputAmount !== undefined && Number.isFinite(outputAmount) && outputAmount > 0
-                            ? new BigNumber(outputAmount)
-                            : interpolateOutputFromSamples(left, right, rustInputAdjusted).decimalPlaces(
-                                  0,
-                                  side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL,
-                              );
-
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInputAdjusted,
-                        output,
+                        output: new BigNumber(outputAmount),
                     });
                 } else {
                     assert.assert(Boolean(left), 'No valid sample to use');
@@ -294,7 +268,7 @@ function findRoutesAndCreateOptimalPath(
             }
         }
 
-        // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the the Rust router
+        // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const scaleOutput = (output: BigNumber) =>
             output
                 .dividedBy(fill.input)
