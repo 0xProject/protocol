@@ -165,6 +165,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -297,6 +298,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.UniswapV3,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -341,7 +343,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
-        [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap],
+        [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
@@ -1889,6 +1891,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
         [ChainId.Ropsten]: {
             quoter: '0x2f9e608fd881861b8916257b76613cb22ee0652c',
             router: '0x03782388516e94fcd4c18666303601a12aa729ea',
+        },
+        [ChainId.Polygon]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
     },
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
