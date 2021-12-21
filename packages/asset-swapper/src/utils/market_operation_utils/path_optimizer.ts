@@ -189,7 +189,7 @@ function findRoutesAndCreateOptimalPath(
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
     const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
 
-    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES, false);
+    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES);
     DEFAULT_INFO_LOGGER(
         { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
         'Rust router real routing performance',
