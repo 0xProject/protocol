@@ -1,5 +1,6 @@
 // tslint:disable: prefer-function-over-method
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
+import { createHash } from 'crypto';
 
 import {
     getIntegratorByIdOrThrow,
@@ -10,7 +11,10 @@ import {
     RFQM_MAKER_SET_FOR_OTC_ORDER,
     RFQM_MAKER_SET_FOR_RFQ_ORDER,
     RFQT_MAKER_ASSET_OFFERINGS,
+    RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
+
+const getApiKeyHash = (apiKey: string): string => createHash('sha256').update(apiKey).digest('base64');
 
 /**
  * ConfigManager is a simple wrapper around configs.
@@ -36,6 +40,10 @@ export class ConfigManager {
 
     public getRfqmMakerSetForRfqOrder(): Set<string> {
         return RFQM_MAKER_SET_FOR_RFQ_ORDER;
+    }
+
+    public getRfqMakerIdForApiKey(apiKey: string): string | undefined {
+        return RFQ_API_KEY_HASH_TO_MAKER_ID.get(getApiKeyHash(apiKey));
     }
 
     public getIntegratorByIdOrThrow(integratorId: string): Integrator {

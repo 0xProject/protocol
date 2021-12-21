@@ -296,6 +296,27 @@ export const RFQM_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderT
 export const RFQT_MAKER_SET_FOR_RFQ_ORDER: Set<string> = getMakerUriSetForOrderType('rfq', 'rfqt');
 export const RFQT_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderType('otc', 'rfqt');
 
+/**
+ * A map from RFQ maker's api key hashes to maker ids.
+ * Invalid hashes, which appear more than once in the config file and might resolve to different makers, are removed from the result.
+ */
+export const RFQ_API_KEY_HASH_TO_MAKER_ID: Map<string, string> = (() => {
+    const hashToIdCount = RFQ_MAKER_CONFIGS.reduce((result, rfqMakerConfig) => {
+        rfqMakerConfig.apiKeyHashes.forEach((hash) => result.set(hash, (result.get(hash) || 0) + 1));
+        return result;
+    }, new Map<string, number>());
+
+    return RFQ_MAKER_CONFIGS.reduce((result, mm) => {
+        mm.apiKeyHashes.forEach((hash) => {
+            // Ignore invalid hashes with more than one appearances
+            if (hashToIdCount.get(hash) === 1) {
+                result.set(hash, mm.makerId);
+            }
+        });
+        return result;
+    }, new Map<string, string>());
+})();
+
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(

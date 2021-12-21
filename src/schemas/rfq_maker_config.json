@@ -1,6 +1,15 @@
 {
     "id": "/rfqMakerConfig",
     "properties": {
+        "makerId": {
+            "type": "string"
+        },
+        "apiKeyHashes": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
         "label": {
             "type": "string"
         },
