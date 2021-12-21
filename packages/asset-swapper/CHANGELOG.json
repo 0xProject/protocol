@@ -3,7 +3,8 @@
         "version": "16.42.0",
         "changes": [
             {
-                "note": "`UniswapV3` support for `Polygon`"
+                "note": "`UniswapV3` support for `Polygon`",
+                "pr": 382
             }
         ]
     },
