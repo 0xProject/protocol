@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.42.0",
+        "changes": [
+            {
+                "note": "`UniswapV3` support for `Polygon`"
+            }
+        ]
+    },
+    {
         "version": "16.41.0",
         "changes": [
             {
