@@ -5,6 +5,10 @@
             {
                 "note": "`UniswapV3` support for `Polygon`",
                 "pr": 382
+            },
+            {
+                "note": "Update `Beethoven` Graphql url",
+                "pr": 383
             }
         ]
     },
