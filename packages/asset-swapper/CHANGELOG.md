@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.42.0 - _December 21, 2021_
+
+    * `UniswapV3` support for `Polygon` (#382)
+    * Update `Beethoven` Graphql url (#383)
+
 ## v16.41.0 - _December 6, 2021_
 
     * Update mcusd contract address, and made celo native asset (#376)
