@@ -10,7 +10,8 @@
                 "note": "Update `Beethoven` Graphql url",
                 "pr": 383
             }
-        ]
+        ],
+        "timestamp": 1640124159
     },
     {
         "version": "16.41.0",
