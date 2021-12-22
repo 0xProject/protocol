@@ -61,6 +61,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Avalanche]: defaultValue,
         [ChainId.Fantom]: defaultValue,
         [ChainId.Celo]: defaultValue,
+        [ChainId.Optimism]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -192,6 +193,9 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
+        ]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
         ]),
     },
     new SourceFilters([]),
@@ -325,6 +329,9 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -346,6 +353,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
+        [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
     },
     [],
 );
@@ -519,6 +527,14 @@ export const FANTOM_TOKENS = {
     fUSDT: '0x049d68029688eabf473097a2fc38ef61633a3c7a',
     WBTC: '0x321162cd933e2be498cd2267a90534a804051b11',
     renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+};
+
+export const OPTIMISM_TOKENS = {
+    WETH: '0x4200000000000000000000000000000000000006',
+    USDC: '0x4e62882864fb8ce54affcaf8d899a286762b011b',
+    USDT: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+    DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    WBTC: '0x2382a8f65b9120e554d1836a504808ac864e169d',
 };
 
 export const CURVE_POOLS = {
@@ -702,6 +718,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
         [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.WCELO],
+        [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC],
     },
     [],
 );
@@ -741,6 +758,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Celo]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
         }).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -757,6 +777,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Avalanche]: getContractAddressesForChainOrThrow(ChainId.Avalanche).etherToken,
         [ChainId.Fantom]: getContractAddressesForChainOrThrow(ChainId.Fantom).etherToken,
         [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
+        [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
     },
     NULL_ADDRESS,
 );
@@ -1711,6 +1732,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0x03782388516e94fcd4c18666303601a12aa729ea',
         },
         [ChainId.Polygon]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.Optimism]: {
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
