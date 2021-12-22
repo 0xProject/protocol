@@ -456,6 +456,10 @@ export interface GetMarketOrdersOpts {
      */
     sampleDistributionBase: number;
     /**
+     * Number of samples to use when creating fill curves with neon-router
+     */
+    neonRouterNumSamples: number;
+    /**
      * Fees for each liquidity source, expressed in gas.
      */
     feeSchedule: FeeSchedule;
@@ -599,6 +603,7 @@ export interface GenerateOptimizedOrdersOpts {
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
     gasPrice: BigNumber;
+    neonRouterNumSamples: number;
 }
 
 export interface ComparisonPrice {

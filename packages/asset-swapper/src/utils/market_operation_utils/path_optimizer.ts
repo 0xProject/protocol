@@ -17,7 +17,6 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './typ
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 14;
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
@@ -76,6 +75,7 @@ function findRoutesAndCreateOptimalPath(
     input: BigNumber,
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
+    neonRouterNumSamples: number,
 ): Path | undefined {
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
@@ -189,7 +189,7 @@ function findRoutesAndCreateOptimalPath(
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
     const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
 
-    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, RUST_ROUTER_NUM_SAMPLES);
+    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, neonRouterNumSamples);
     DEFAULT_INFO_LOGGER(
         { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
         'Rust router real routing performance',
@@ -297,6 +297,7 @@ export function findOptimalRustPathFromSamples(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
     chainId: ChainId,
+    neonRouterNumSamples: number,
 ): Path | undefined {
     const before = performance.now();
     const logPerformance = () =>
@@ -305,7 +306,15 @@ export function findOptimalRustPathFromSamples(
             'Rust router total routing performance',
         );
 
-    const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, fees);
+    const allSourcesPath = findRoutesAndCreateOptimalPath(
+        side,
+        samples,
+        nativeOrders,
+        input,
+        opts,
+        fees,
+        neonRouterNumSamples,
+    );
     if (!allSourcesPath) {
         return undefined;
     }
@@ -319,7 +328,15 @@ export function findOptimalRustPathFromSamples(
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
 
         if (vipSourcesSamples.length > 0) {
-            const vipSourcesPath = findRoutesAndCreateOptimalPath(side, vipSourcesSamples, [], input, opts, fees);
+            const vipSourcesPath = findRoutesAndCreateOptimalPath(
+                side,
+                vipSourcesSamples,
+                [],
+                input,
+                opts,
+                fees,
+                neonRouterNumSamples,
+            );
 
             const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
             // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
