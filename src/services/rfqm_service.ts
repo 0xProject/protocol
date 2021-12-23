@@ -18,6 +18,7 @@ import { Producer } from 'sqs-producer';
 
 import {
     CHAIN_ID,
+    Integrator,
     META_TX_WORKER_REGISTRY,
     RFQM_MAINTENANCE_MODE,
     RFQM_MAKER_ASSET_OFFERINGS,
@@ -1222,6 +1223,7 @@ export class RfqmService {
             };
 
             // "Last Look" in v1 is replaced by market maker order signing in v2.
+            const signAttemptTimeMs = Date.now();
             try {
                 makerSignature = await retry(
                     async () => this._quoteServerClient.signV2Async(makerUri, signRequest).then((s) => s ?? null),
@@ -1258,6 +1260,60 @@ export class RfqmService {
                 _job.lastLookResult = false;
                 _job.status = RfqmJobStatus.FailedLastLookDeclined;
                 await this._dbUtils.updateRfqmJobAsync(_job);
+
+                // We'd like some data on how much the price the market maker is offering
+                // has changed. We query the market maker's price endpoint with the same
+                // trade they've just declined to sign and log the result.
+                try {
+                    const declineToSignPriceCheckTimeMs = Date.now();
+                    const otcOrderParams = QuoteServerClient.makeQueryParameters({
+                        txOrigin: this._registryAddress,
+                        takerAddress: otcOrder.taker,
+                        marketOperation: MarketOperation.Sell,
+                        buyTokenAddress: otcOrder.makerToken,
+                        sellTokenAddress: otcOrder.takerToken,
+                        assetFillAmount: otcOrder.takerAmount,
+                        isLastLook: true,
+                        fee: storedFeeToFee(job.fee),
+                    });
+                    // Instead of adding a dependency to `ConfigManager` to get the actual integrator
+                    // (we only have the ID at this point), just create a stand-in.
+                    // This will send the same integrator ID to the market maker; they will not be
+                    // able to tell the difference.
+                    // `logRfqMakerNetworkInteraction` does use the `label`, however, but I think the
+                    // tradeoff is reasonable.
+                    const integrator: Integrator = {
+                        apiKeys: [],
+                        integratorId: job.integratorId!,
+                        label: 'decline-to-sign-price-check',
+                        plp: true,
+                        rfqm: true,
+                        rfqt: true,
+                    };
+                    const priceResponse = await this._quoteServerClient.getPriceV2Async(
+                        job.makerUri,
+                        integrator,
+                        otcOrderParams,
+                    );
+                    if (!priceResponse) {
+                        throw new Error('Failed to get a price response');
+                    }
+                    const { makerAmount: priceCheckMakerAmount, takerAmount: priceCheckTakerAmount } = priceResponse;
+                    const originalPrice = otcOrder.makerAmount.dividedBy(priceCheckTakerAmount).toNumber();
+                    const priceAfterReject = priceCheckMakerAmount.dividedBy(priceCheckTakerAmount).toNumber();
+                    // The time, in seconds, between when we initiated the sign attempt and when we
+                    // initiated the price check after the maker declined to sign.
+                    const priceCheckDelayS = (declineToSignPriceCheckTimeMs - signAttemptTimeMs) / ONE_SECOND_MS;
+                    logger.info(
+                        { originalPrice, priceAfterReject, priceCheckDelayS, orderHash },
+                        'Decline to sign price check',
+                    );
+                } catch (error) {
+                    logger.warn(
+                        { errorMessage: error.message },
+                        'Encountered error during decline to sign price check',
+                    );
+                }
                 throw new Error('Market Maker declined to sign');
             }
 
