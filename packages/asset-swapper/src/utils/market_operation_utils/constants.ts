@@ -194,9 +194,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
@@ -329,9 +327,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
