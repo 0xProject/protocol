@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.11.0 - _December 24, 2021_
+
+    * Add Optimism addresses (#385)
+
 ## v6.10.0 - _December 1, 2021_
 
     * Add Aave supported FQT addresses for Polygon, Avalanche (#321)

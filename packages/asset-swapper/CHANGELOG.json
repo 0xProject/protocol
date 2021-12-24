@@ -6,7 +6,8 @@
                 "note": "`UniswapV3` support for `Optimism`",
                 "pr": 385
             }
-        ]
+        ],
+        "timestamp": 1640364306
     },
     {
         "version": "16.42.0",
