@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.30.1 - _December 24, 2021_
+
+    * Dependencies updated
+
 ## v0.30.0 - _December 1, 2021_
 
     * Add `AaveV2` and `Compound` deposit/withdrawal liquidity source (#321)

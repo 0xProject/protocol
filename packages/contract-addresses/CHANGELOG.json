@@ -6,7 +6,8 @@
                 "note": "Add Optimism addresses",
                 "pr": 385
             }
-        ]
+        ],
+        "timestamp": 1640364306
     },
     {
         "version": "6.10.0",
