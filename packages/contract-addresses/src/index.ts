@@ -55,6 +55,7 @@ export enum ChainId {
     Avalanche = 43114,
     Fantom = 250,
     Celo = 42220,
+    Optimism = 10,
 }
 
 /**
