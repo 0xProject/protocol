@@ -33,7 +33,7 @@ import { RfqmJobEntity, RfqmQuoteEntity, RfqmV2JobEntity, RfqmV2QuoteEntity } fr
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
-import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
+import { buildRfqMakerService, runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
@@ -331,9 +331,12 @@ describe(SUITE_NAME, () => {
             pairsManager,
         );
 
+        const rfqMakerService = buildRfqMakerService(connection, configManager);
+
         // Start the server
         const res = await runHttpRfqmServiceAsync(
             rfqmService,
+            rfqMakerService,
             configManager,
             config.defaultHttpServiceConfig,
             connection,

@@ -17,5 +17,5 @@
         "allowSyntheticDefaultImports": true,
         "useUnknownInCatchVariables": false
     },
-    "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json"]
+    "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json", "src/api-docs/*.json"]
 }

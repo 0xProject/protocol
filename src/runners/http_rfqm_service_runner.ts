@@ -39,6 +39,7 @@ import {
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
     RFQM_PATH,
     RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+    RFQ_MAKER_PATH,
 } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { rootHandler } from '../handlers/root_handler';
@@ -46,7 +47,9 @@ import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
+import { createRfqMakerRouter } from '../routers/rfq_maker_router';
 import { RfqmService } from '../services/rfqm_service';
+import { RfqMakerService } from '../services/rfq_maker_service';
 import { HttpServiceConfig } from '../types';
 import { BalanceChecker } from '../utils/balance_checker';
 import { CacheClient } from '../utils/cache_client';
@@ -57,6 +60,7 @@ import { providerUtils } from '../utils/provider_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -79,7 +83,8 @@ if (require.main === module) {
         const configManager = new ConfigManager();
 
         const rfqmService = await buildRfqmServiceAsync(connection, /* asWorker = */ false, configManager);
-        await runHttpRfqmServiceAsync(rfqmService, configManager, config, connection);
+        const rfqMakerService = buildRfqMakerService(connection, configManager);
+        await runHttpRfqmServiceAsync(rfqmService, rfqMakerService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
 }
 
@@ -190,6 +195,14 @@ export async function buildRfqmServiceAsync(
 }
 
 /**
+ * Builds an instance of RfqMakerService
+ */
+export function buildRfqMakerService(connection: Connection, configManager: ConfigManager): RfqMakerService {
+    const dbUtils = new RfqMakerDbUtils(connection);
+    return new RfqMakerService(dbUtils, configManager);
+}
+
+/**
  * Creates the Axios Request Config
  */
 function getAxiosRequestConfig(): AxiosRequestConfig {
@@ -212,6 +225,7 @@ function getAxiosRequestConfig(): AxiosRequestConfig {
  */
 export async function runHttpRfqmServiceAsync(
     rfqmService: RfqmService,
+    rfqMakerService: RfqMakerService,
     configManager: ConfigManager,
     config: HttpServiceConfig,
     connection: Connection,
@@ -226,6 +240,7 @@ export async function runHttpRfqmServiceAsync(
 
     if (rfqmService && configManager) {
         app.use(RFQM_PATH, createRfqmRouter(rfqmService, configManager));
+        app.use(RFQ_MAKER_PATH, createRfqMakerRouter(rfqMakerService));
     } else {
         logger.error(`Could not run rfqm service, exiting`);
         process.exit(1);
