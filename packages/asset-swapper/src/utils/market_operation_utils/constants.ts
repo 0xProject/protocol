@@ -202,7 +202,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
-        ])
+        ]),
+        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
@@ -343,7 +344,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
-        ])
+        ]),
+        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
@@ -364,7 +366,12 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
+<<<<<<< HEAD
         [ChainId.Arbitrum]: [ERC20BridgeSource.SushiSwap],
+=======
+        [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
+        [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
+>>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
     },
     [],
 );
@@ -547,6 +554,14 @@ export const ARBITRUM_TOKENS = {
     USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
     renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+};
+
+export const OPTIMISM_TOKENS = {
+    WETH: '0x4200000000000000000000000000000000000006',
+    USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
+    USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
+    DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
 };
 
 export const CURVE_POOLS = {
@@ -742,7 +757,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.DAI, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.WBTC],
 =======
         [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.WCELO],
+<<<<<<< HEAD
 >>>>>>> 4170f970d (Sushi router celo fix (#376))
+=======
+        [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC],
+>>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
     },
     [],
 );
@@ -787,6 +806,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
 >>>>>>> 602290925 (fix celo rebase)
         }).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -806,7 +828,11 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Arbitrum]: getContractAddressesForChainOrThrow(ChainId.Arbitrum).etherToken,
 =======
         [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
+<<<<<<< HEAD
 >>>>>>> 602290925 (fix celo rebase)
+=======
+        [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
+>>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
     },
     NULL_ADDRESS,
 );
@@ -1809,6 +1835,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
 =======
         [ChainId.Polygon]: {
 >>>>>>> 813d703d1 (feat: UniswapV3 on Polygon (#382))
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.Optimism]: {
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },

@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.43.0",
+        "changes": [
+            {
+                "note": "`UniswapV3` support for `Optimism`",
+                "pr": 385
+            }
+        ]
+    },
+    {
         "version": "16.42.0",
         "changes": [
             {
