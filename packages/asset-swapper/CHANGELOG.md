@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.43.0 - _December 24, 2021_
+
+    * `UniswapV3` support for `Optimism` (#385)
+
 ## v16.42.0 - _December 21, 2021_
 
     * `UniswapV3` support for `Polygon` (#382)
