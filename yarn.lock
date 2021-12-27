@@ -738,6 +738,7 @@
 "@0x/contracts-asset-proxy@^3.7.19":
   version "3.7.19"
   resolved "https://registry.yarnpkg.com/@0x/contracts-asset-proxy/-/contracts-asset-proxy-3.7.19.tgz#ee621a233f4d77b439c74c5b8d70db2e1ed001c4"
+  integrity sha512-6lTgz8JdmceaSnqpJrbyKJXUIyAA2HZrXel+ZWpgMtO7qaSSQDRUcWUBwejTE588BcVxhNFQ7tHvOK3/QGnpHw==
   dependencies:
     "@0x/base-contract" "^6.4.0"
     "@0x/contracts-erc1155" "^2.1.37"

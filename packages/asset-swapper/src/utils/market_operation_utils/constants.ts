@@ -62,6 +62,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Fantom]: defaultValue,
         [ChainId.Optimism]: defaultValue,
         [ChainId.Arbitrum]: defaultValue,
+        [ChainId.Celo]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -213,6 +214,11 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.MultiHop,
+        ]),
+        [ChainId.Arbitrum]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
     },
@@ -368,6 +374,11 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
         ]),
+        [ChainId.Arbitrum]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -391,6 +402,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Arbitrum]: [ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
+        [ChainId.Arbitrum]: [ERC20BridgeSource.UniswapV3, ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -622,6 +634,13 @@ export const OPTIMISM_TOKENS = {
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
+};
+
+export const ARBITRUM_TOKENS = {
+    WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    WBTC: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
+    USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
 };
 
 export const CURVE_POOLS = {
@@ -899,7 +918,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             OPTIMISM_TOKENS.nETH,
             OPTIMISM_TOKENS.sWETH,
         ],
+<<<<<<< HEAD
 >>>>>>> 9d08fefa1 (Feat/synapse (#400))
+=======
+        [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC,ARBITRUM_TOKENS.USDC,ARBITRUM_TOKENS.DAI],
+>>>>>>> ebd39d2b0 (arbitrum asset swapper)
     },
     [],
 );
@@ -954,6 +977,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
         }).build(),
+        [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -977,7 +1003,11 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
 >>>>>>> 602290925 (fix celo rebase)
 =======
         [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
+<<<<<<< HEAD
 >>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
+=======
+        [ChainId.Arbitrum]: getContractAddressesForChainOrThrow(ChainId.Arbitrum).etherToken,
+>>>>>>> ebd39d2b0 (arbitrum asset swapper)
     },
     NULL_ADDRESS,
 );
@@ -1867,7 +1897,11 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 >>>>>>> 6ef4d9504 (Updated Sushiswap router on CELO )
 =======
         [ChainId.Celo]: '0x1421bde4b10e8dd459b3bcb598810b1337d56842',
+<<<<<<< HEAD
 >>>>>>> 82d42eeed (address to lowercase)
+=======
+        [ChainId.Arbitrum]: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
+>>>>>>> ebd39d2b0 (arbitrum asset swapper)
     },
     NULL_ADDRESS,
 );
@@ -2157,6 +2191,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Optimism]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.Arbitrum]: {
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
