@@ -284,6 +284,10 @@ function findRoutesAndCreateOptimalPath(
         });
     }
 
+    if (adjustedFills.length === 0) {
+        return undefined;
+    }
+
     const pathFromRustInputs = Path.create(side, adjustedFills, input);
 
     return pathFromRustInputs;
