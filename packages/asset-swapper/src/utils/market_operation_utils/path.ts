@@ -153,7 +153,7 @@ export class Path {
         };
     }
 
-    public adjustedCompleteRate(): BigNumber {
+    public adjustedCompleteMakerToTakerRate(): BigNumber {
         const { input, output } = this.adjustedSize();
         return getCompleteRate(this.side, input, output, this.targetInput);
     }
@@ -193,7 +193,7 @@ export class Path {
         if (input.isLessThan(targetInput) || otherInput.isLessThan(targetInput)) {
             return input.isGreaterThan(otherInput);
         } else {
-            return this.adjustedCompleteRate().isGreaterThan(other.adjustedCompleteRate());
+            return this.adjustedCompleteMakerToTakerRate().isGreaterThan(other.adjustedCompleteMakerToTakerRate());
         }
         // if (otherInput.isLessThan(targetInput)) {
         //     return input.isGreaterThan(otherInput);

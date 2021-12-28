@@ -92,6 +92,7 @@ function findRoutesAndCreateOptimalPath(
     opts: PathPenaltyOpts,
     gasPrice: BigNumber,
 ): Path | undefined {
+    console.log(samples);
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)[0];
     // Track sample id's to integers (required by rust router)
@@ -404,8 +405,8 @@ export function fillsToSortedPaths(
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
     const sortedPaths = paths.sort((a, b) => {
-        const aRate = a.adjustedCompleteRate();
-        const bRate = b.adjustedCompleteRate();
+        const aRate = a.adjustedCompleteMakerToTakerRate();
+        const bRate = b.adjustedCompleteMakerToTakerRate();
         // There is a case where the adjusted completed rate isn't sufficient for the desired amount
         // resulting in a NaN div by 0 (output)
         if (bRate.isNaN()) {
@@ -433,7 +434,7 @@ export function reducePaths(sortedPaths: Path[]): Path[] {
     if (!bestNonNativeCompletePath) {
         return sortedPaths;
     }
-    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteRate();
+    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteMakerToTakerRate();
     if (!bestNonNativeCompletePathAdjustedRate.isGreaterThan(0)) {
         return sortedPaths;
     }

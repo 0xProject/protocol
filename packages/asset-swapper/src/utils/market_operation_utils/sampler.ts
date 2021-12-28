@@ -18,6 +18,7 @@ export interface Sampler {
     getTokenInfosAsync(tokens: Address[]): Promise<TokenInfo[]>;
     getPricesAsync(paths: Address[][], sources: ERC20BridgeSource[]): Promise<BigNumber[]>;
     getSellLiquidityAsync(path: Address[], takerAmount: BigNumber, sources: ERC20BridgeSource[]): Promise<DexSample[][]>;
+    getBuyLiquidityAsync(path: Address[], makerAmount: BigNumber, sources: ERC20BridgeSource[]): Promise<DexSample[][]>;
 }
 
 export class SamplerClient implements Sampler {
@@ -77,6 +78,33 @@ export class SamplerClient implements Sampler {
                     pts.map(pt => ({
                         input: pt.sellAmount,
                         output: pt.buyAmount,
+                        encodedFillData: pt.encodedFillData,
+                        metadata: pt.metadata,
+                        gasCost: pt.gasCost,
+                        source: liq.source,
+                    }) as DexSample),
+        )).flat(1);
+    }
+
+    public async getBuyLiquidityAsync(
+        path: Address[],
+        makerAmount: BigNumber,
+        sources: ERC20BridgeSource[],
+    ): Promise<DexSample[][]> {
+        const liquidity = await this._service.getBuyLiquidityAsync(
+            sources.map(s => ({
+                tokenPath: path,
+                inputAmount: makerAmount,
+                source: s,
+                demand: true,
+            })),
+        );
+        return liquidity.map(
+            liq => liq.liquidityCurves.map(
+                pts =>
+                    pts.map(pt => ({
+                        input: pt.buyAmount,
+                        output: pt.sellAmount,
                         encodedFillData: pt.encodedFillData,
                         metadata: pt.metadata,
                         gasCost: pt.gasCost,

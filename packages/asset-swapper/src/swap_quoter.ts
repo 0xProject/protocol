@@ -482,7 +482,6 @@ function createSwapQuote(
         makerToken,
         takerToken,
         gasPrice,
-        orders: hops.map(h => h.orders).flat(1),
         bestCaseQuoteInfo,
         worstCaseQuoteInfo,
         sourceBreakdown,
@@ -610,10 +609,18 @@ function calculateQuoteInfo(
     const tokenPath = [];
     for (const [i, hop] of hops.entries()) {
         if (i === 0 || i < hops.length - 1) {
-            tokenPath.push(hop.takerToken);
+            if (side == MarketOperation.Sell) {
+                tokenPath.push(hop.takerToken);
+            } else {
+                tokenPath.unshift(hop.makerToken);
+            }
         }
         if (i === tokenPath.length - 1) {
-            tokenPath.push(hop.makerToken);
+            if (side === MarketOperation.Sell) {
+                tokenPath.push(hop.makerToken);
+            } else {
+                tokenPath.unshift(hop.takerToken);
+            }
         }
         const bestCaseFillResult = simulateBestCaseFill({
             gasPrice,
@@ -634,8 +641,8 @@ function calculateQuoteInfo(
         worstCaseFillResults.push(worstCaseFillResult);
     }
 
-    const combinedBestCaseFillResult = combineQuoteFillResults(bestCaseFillResults);
-    const combinedWorstCaseFillResult = combineQuoteFillResults(worstCaseFillResults);
+    const combinedBestCaseFillResult = combineQuoteFillResults(side, bestCaseFillResults);
+    const combinedWorstCaseFillResult = combineQuoteFillResults(side, worstCaseFillResults);
     const sourceBreakdown = getSwapQuoteOrdersBreakdown(side, tokenPath, bestCaseFillResults);
     return {
         sourceBreakdown,
@@ -644,17 +651,18 @@ function calculateQuoteInfo(
     };
 }
 
-function combineQuoteFillResults(fillResults: QuoteFillResult[]): QuoteFillResult {
+function combineQuoteFillResults(side: MarketOperation, fillResults: QuoteFillResult[]): QuoteFillResult {
     if (fillResults.length === 0) {
         throw new Error(`Empty fillResults array`);
     }
-    const lastResult = fillResults[fillResults.length - 1];
+    const orderedFillResults = side === MarketOperation.Sell ? fillResults : fillResults.slice().reverse();
+    const lastResult = orderedFillResults[orderedFillResults.length - 1];
     const r = {
-        ...fillResults[0],
+        ...orderedFillResults[0],
        makerAssetAmount: lastResult.makerAssetAmount,
        totalMakerAssetAmount: lastResult.totalMakerAssetAmount,
    };
-    for (const fr of fillResults.slice(1)) {
+    for (const fr of orderedFillResults.slice(1)) {
         r.gas += fr.gas + 30e3;
         r.protocolFeeAmount = r.protocolFeeAmount.plus(fr.protocolFeeAmount);
     }
@@ -697,7 +705,7 @@ function getSwapQuoteOrdersBreakdown(side: MarketOperation, tokenPath: Address[]
             [ERC20BridgeSource.MultiHop]: {
                 proportion: 1,
                 tokenPath: tokenPath,
-                breakdowns: hopBreakdowns,
+                breakdowns: side === MarketOperation.Sell ? hopBreakdowns : hopBreakdowns.reverse(),
             },
         };
     }

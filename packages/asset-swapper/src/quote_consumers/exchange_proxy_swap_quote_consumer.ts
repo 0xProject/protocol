@@ -389,7 +389,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        for (const [i, hop] of quote.hops.entries()) {
+        // Sort hops so they always flow taker -> maker
+        const orderedHops = isBuyQuote(quote) ? quote.hops.slice().reverse() : quote.hops;
+        for (const [i, hop] of orderedHops.entries()) {
             let fillAmount = !isBuyQuote(quote)
                 ? shouldSellEntireBalance ? MAX_UINT256 : hop.takerAmount
                 : hop.makerAmount;
@@ -410,7 +412,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     ...getFQTTransformerDataFromOptimizedOrders(hop.orders),
                     refundReceiver: refundReceiver || NULL_ADDRESS,
                 }),
-            })
+            });
         }
 
         if (isToETH) {
