@@ -250,6 +250,7 @@ export class QuoteServerClient {
         const validationResult = schemaValidator.validate(rawResponse.data, schemas.signResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
+            logger.error({ response: rawResponse.data, makerUri }, 'Malformed sign response');
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
