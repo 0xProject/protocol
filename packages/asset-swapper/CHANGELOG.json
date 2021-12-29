@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.44.0",
+        "changes": [
+            {
+                "note": "Update neon-router and use router estimated output amount",
+                "pr": 354
+            }
+        ]
+    },
+    {
         "version": "16.43.0",
         "changes": [
             {
