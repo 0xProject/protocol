@@ -76,8 +76,15 @@ function findRoutesAndCreateOptimalPath(
     fees: FeeSchedule,
     neonRouterNumSamples: number,
 ): Path | undefined {
-    const createFill = (sample: DexSample) =>
-        dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
+    const createFill = (sample: DexSample): Fill | undefined => {
+        const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees);
+        // NOTE: If the sample has 0 output dexSamplesToFills will return [] because no fill can be created
+        if (fills.length === 0) {
+            return undefined;
+        }
+
+        return fills[0];
+    };
 
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
@@ -233,6 +240,9 @@ function findRoutesAndCreateOptimalPath(
 
         // NOTE: For DexSamples only
         let fill = createFill(current);
+        if (!fill) {
+            continue;
+        }
         const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
         // Descend to approach a closer fill for fillData which may not be consistent
         // throughout the path (UniswapV3) and for a closer guesstimate at
@@ -241,36 +251,37 @@ function findRoutesAndCreateOptimalPath(
         assert.assert(routeSamples.length >= 1, 'Found no sample to use for source');
         for (let k = routeSamples.length - 1; k >= 0; k--) {
             if (k === 0) {
-                fill = createFill(routeSamples[0]);
+                fill = createFill(routeSamples[0]) ?? fill;
             }
             if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
-                    fill = createFill({
-                        ...right, // default to the greater (for gas used)
-                        input: rustInputAdjusted,
-                        output: new BigNumber(outputAmount),
-                    });
+                    fill =
+                        createFill({
+                            ...right, // default to the greater (for gas used)
+                            input: rustInputAdjusted,
+                            output: new BigNumber(outputAmount),
+                        }) ?? fill;
                 } else {
                     assert.assert(Boolean(left || right), 'No valid sample to use');
-                    fill = createFill(left || right);
+                    fill = createFill(left || right) ?? fill;
                 }
                 break;
             }
         }
 
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
-        const scaleOutput = (output: BigNumber) =>
+        const scaleOutput = (fillInput: BigNumber, output: BigNumber) =>
             output
-                .dividedBy(fill.input)
+                .dividedBy(fillInput)
                 .times(rustInputAdjusted)
                 .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
         adjustedFills.push({
             ...fill,
             input: rustInputAdjusted,
-            output: scaleOutput(fill.output),
-            adjustedOutput: scaleOutput(fill.adjustedOutput),
+            output: scaleOutput(fill.input, fill.output),
+            adjustedOutput: scaleOutput(fill.input, fill.adjustedOutput),
             index: 0,
             parent: undefined,
         });
