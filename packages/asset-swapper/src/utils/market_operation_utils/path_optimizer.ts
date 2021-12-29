@@ -232,9 +232,13 @@ function findRoutesAndCreateOptimalPath(
                 opts.outputAmountPerEth,
                 opts.inputAmountPerEth,
                 fees,
-            )[0];
-            // NOTE: For Limit/RFQ orders we are done here. No need to scale output
-            adjustedFills.push(nativeFill);
+            )[0] as Fill | undefined;
+            // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
+            // and nativeFill will be `undefined`
+            if (nativeFill) {
+                // NOTE: For Limit/RFQ orders we are done here. No need to scale output
+                adjustedFills.push(nativeFill);
+            }
             continue;
         }
 
