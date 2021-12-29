@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.44.0 - _December 29, 2021_
+
+    * Update neon-router and use router estimated output amount (#354)
+
 ## v16.43.0 - _December 24, 2021_
 
     * `UniswapV3` support for `Optimism` (#385)
