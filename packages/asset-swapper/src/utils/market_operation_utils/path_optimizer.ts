@@ -1,7 +1,7 @@
 import { assert } from '@0x/assert';
 import { ChainId } from '@0x/contract-addresses';
 import { OptimizerCapture, route, SerializedPath } from '@0x/neon-router';
-import { BigNumber } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
@@ -21,6 +21,8 @@ const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const MIN_NUM_SAMPLE_INPUTS = 3;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
+
+type SourcePathIdMap = { [key in ERC20BridgeSource]: string };
 
 function nativeOrderToNormalizedAmounts(
     side: MarketOperation,
@@ -211,6 +213,17 @@ function findRoutesAndCreateOptimalPath(
     const adjustedFills: Fill[] = [];
     const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
 
+    const sourcePathIdMap = ({} as any) as SourcePathIdMap;
+    const getSourcePathId = (key: ERC20BridgeSource) => {
+        if (sourcePathIdMap[key]) {
+            return sourcePathIdMap[key];
+        }
+
+        const sourcePathId = hexUtils.random();
+        sourcePathIdMap[key] = sourcePathId;
+        return sourcePathId;
+    };
+
     const scale = input.dividedBy(totalRoutedAmount);
     for (const [routeInput, routeSamplesAndNativeOrders, outputAmount] of routesAndSamplesAndOutputs) {
         if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
@@ -237,7 +250,7 @@ function findRoutesAndCreateOptimalPath(
             // and nativeFill will be `undefined`
             if (nativeFill) {
                 // NOTE: For Limit/RFQ orders we are done here. No need to scale output
-                adjustedFills.push(nativeFill);
+                adjustedFills.push({ ...nativeFill, sourcePathId: getSourcePathId(ERC20BridgeSource.Native) });
             }
             continue;
         }
@@ -275,6 +288,7 @@ function findRoutesAndCreateOptimalPath(
             }
         }
 
+        const sourcePathId = getSourcePathId(current.source);
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const scaleOutput = (fillInput: BigNumber, output: BigNumber) =>
             output
@@ -288,6 +302,7 @@ function findRoutesAndCreateOptimalPath(
             adjustedOutput: scaleOutput(fill.input, fill.adjustedOutput),
             index: 0,
             parent: undefined,
+            sourcePathId,
         });
     }
 
