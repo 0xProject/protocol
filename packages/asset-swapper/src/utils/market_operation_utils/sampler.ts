@@ -14,7 +14,8 @@ import { BatchedOperation, ERC20BridgeSource, LiquidityProviderRegistry, TokenAd
  */
 export function getSampleAmounts(maxFillAmount: BigNumber, numSamples: number, expBase: number = 1): BigNumber[] {
     const distribution = [...Array<BigNumber>(numSamples)].map((_v, i) => new BigNumber(expBase).pow(i));
-    const stepSizes = distribution.map(d => d.div(BigNumber.sum(...distribution)));
+    const distributionSum = BigNumber.sum(...distribution);
+    const stepSizes = distribution.map(d => d.div(distributionSum));
     const amounts = stepSizes.map((_s, i) => {
         if (i === numSamples - 1) {
             return maxFillAmount;

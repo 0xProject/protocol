@@ -443,6 +443,7 @@ export class MarketOperationUtils {
                             feeSchedule: _opts.feeSchedule,
                             allowFallback: _opts.allowFallback,
                             gasPrice: _opts.gasPrice,
+                            neonRouterNumSamples: _opts.neonRouterNumSamples,
                         },
                     );
                     return optimizerResult;
@@ -531,6 +532,7 @@ export class MarketOperationUtils {
                 penaltyOpts,
                 opts.feeSchedule,
                 this._sampler.chainId,
+                opts.neonRouterNumSamples,
             );
         } else {
             optimalPath = await findOptimalPathJSAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
@@ -596,6 +598,7 @@ export class MarketOperationUtils {
             allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
+            neonRouterNumSamples: _opts.neonRouterNumSamples,
         };
 
         if (nativeOrders.length === 0) {
@@ -806,6 +809,7 @@ export class MarketOperationUtils {
                     sturdyPenaltyOpts,
                     opts.feeSchedule,
                     this._sampler.chainId,
+                    opts.neonRouterNumSamples,
                 );
             } else {
                 const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));

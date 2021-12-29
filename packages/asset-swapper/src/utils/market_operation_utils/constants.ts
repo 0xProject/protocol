@@ -2286,4 +2286,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     shouldGenerateQuoteReport: true,
     shouldIncludePriceComparisonsReport: false,
     tokenAdjacencyGraph: { default: [] },
+    neonRouterNumSamples: 14,
 };
