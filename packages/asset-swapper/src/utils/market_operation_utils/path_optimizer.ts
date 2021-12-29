@@ -17,7 +17,6 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './typ
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const RUST_ROUTER_NUM_SAMPLES = 200;
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
@@ -69,21 +68,6 @@ function calculateOuputFee(
     }
 }
 
-// Use linear interpolation to approximate the output
-// at a certain input somewhere between the two samples
-// See https://en.wikipedia.org/wiki/Linear_interpolation
-const interpolateOutputFromSamples = (
-    left: { input: BigNumber; output: BigNumber },
-    right: { input: BigNumber; output: BigNumber },
-    targetInput: BigNumber,
-): BigNumber =>
-    left.output.plus(
-        right.output
-            .minus(left.output)
-            .dividedBy(right.input.minus(left.input))
-            .times(targetInput.minus(left.input)),
-    );
-
 function findRoutesAndCreateOptimalPath(
     side: MarketOperation,
     samples: DexSample[][],
@@ -91,21 +75,10 @@ function findRoutesAndCreateOptimalPath(
     input: BigNumber,
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
+    neonRouterNumSamples: number,
 ): Path | undefined {
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees)[0];
-    // Track sample id's to integers (required by rust router)
-    const sampleIdLookup: { [key: string]: number } = {};
-    let sampleIdCounter = 0;
-    const sampleToId = (source: ERC20BridgeSource, index: number): number => {
-        const key = `${source}-${index}`;
-        if (sampleIdLookup[key]) {
-            return sampleIdLookup[key];
-        } else {
-            sampleIdLookup[key] = ++sampleIdCounter;
-            return sampleIdLookup[key];
-        }
-    };
 
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
@@ -131,7 +104,7 @@ function findRoutesAndCreateOptimalPath(
         // TODO(kimpers): Do we need to handle 0 entries, from eg Kyber?
         const serializedPath = singleSourceSamplesWithOutput.reduce<SerializedPath>(
             (memo, sample, sampleIdx) => {
-                memo.ids.push(sampleToId(sample.source, sampleIdx));
+                memo.ids.push(`${sample.source}-${serializedPaths.length}-${sampleIdx}`);
                 memo.inputs.push(sample.input.integerValue().toNumber());
                 memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(
@@ -188,7 +161,7 @@ function findRoutesAndCreateOptimalPath(
             .toNumber();
         const outputFees = [fee, fee, fee];
         // NOTE: ids can be the same for all fake samples
-        const id = sampleToId(ERC20BridgeSource.Native, idx);
+        const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}`;
         const ids = [id, id, id];
 
         const serializedPath: SerializedPath = {
@@ -214,7 +187,9 @@ function findRoutesAndCreateOptimalPath(
 
     const before = performance.now();
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
-    route(rustArgs, allSourcesRustRoute, RUST_ROUTER_NUM_SAMPLES);
+    const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
+
+    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, neonRouterNumSamples);
     DEFAULT_INFO_LOGGER(
         { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
         'Rust router real routing performance',
@@ -224,18 +199,25 @@ function findRoutesAndCreateOptimalPath(
         rustArgs.pathsIn.length === allSourcesRustRoute.length,
         'different number of sources in the Router output than the input',
     );
+    assert.assert(
+        rustArgs.pathsIn.length === strategySourcesOutputAmounts.length,
+        'different number of sources in the Router output amounts results than the input',
+    );
 
-    const routesAndSamples = _.zip(allSourcesRustRoute, samplesAndNativeOrdersWithResults);
-
+    const routesAndSamplesAndOutputs = _.zip(
+        allSourcesRustRoute,
+        samplesAndNativeOrdersWithResults,
+        strategySourcesOutputAmounts,
+    );
     const adjustedFills: Fill[] = [];
     const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
 
     const scale = input.dividedBy(totalRoutedAmount);
-    for (const [routeInput, routeSamplesAndNativeOrders] of routesAndSamples) {
-        if (!routeInput || !routeSamplesAndNativeOrders) {
+    for (const [routeInput, routeSamplesAndNativeOrders, outputAmount] of routesAndSamplesAndOutputs) {
+        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
             continue;
         }
-        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precisions loss for number/f64
+        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
         // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
         const rustInputAdjusted = BigNumber.min(
             new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
@@ -270,22 +252,13 @@ function findRoutesAndCreateOptimalPath(
                 fill = createFill(routeSamples[0]);
             }
             if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
-                // Between here and the previous fill
-                // HACK: Use the midpoint between the two
                 const left = routeSamples[k];
                 const right = routeSamples[k + 1];
                 if (left && right) {
-                    // Approximate how much output we get for the input with the surrounding samples
-                    const interpolatedOutput = interpolateOutputFromSamples(
-                        left,
-                        right,
-                        rustInputAdjusted,
-                    ).decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
-
                     fill = createFill({
                         ...right, // default to the greater (for gas used)
                         input: rustInputAdjusted,
-                        output: interpolatedOutput,
+                        output: new BigNumber(outputAmount),
                     });
                 } else {
                     assert.assert(Boolean(left || right), 'No valid sample to use');
@@ -295,6 +268,7 @@ function findRoutesAndCreateOptimalPath(
             }
         }
 
+        // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const scaleOutput = (output: BigNumber) =>
             output
                 .dividedBy(fill.input)
@@ -310,6 +284,10 @@ function findRoutesAndCreateOptimalPath(
         });
     }
 
+    if (adjustedFills.length === 0) {
+        return undefined;
+    }
+
     const pathFromRustInputs = Path.create(side, adjustedFills, input);
 
     return pathFromRustInputs;
@@ -323,6 +301,7 @@ export function findOptimalRustPathFromSamples(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
     chainId: ChainId,
+    neonRouterNumSamples: number,
 ): Path | undefined {
     const before = performance.now();
     const logPerformance = () =>
@@ -331,7 +310,15 @@ export function findOptimalRustPathFromSamples(
             'Rust router total routing performance',
         );
 
-    const allSourcesPath = findRoutesAndCreateOptimalPath(side, samples, nativeOrders, input, opts, fees);
+    const allSourcesPath = findRoutesAndCreateOptimalPath(
+        side,
+        samples,
+        nativeOrders,
+        input,
+        opts,
+        fees,
+        neonRouterNumSamples,
+    );
     if (!allSourcesPath) {
         return undefined;
     }
@@ -345,7 +332,15 @@ export function findOptimalRustPathFromSamples(
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
 
         if (vipSourcesSamples.length > 0) {
-            const vipSourcesPath = findRoutesAndCreateOptimalPath(side, vipSourcesSamples, [], input, opts, fees);
+            const vipSourcesPath = findRoutesAndCreateOptimalPath(
+                side,
+                vipSourcesSamples,
+                [],
+                input,
+                opts,
+                fees,
+                neonRouterNumSamples,
+            );
 
             const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
             // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
