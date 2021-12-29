@@ -22,8 +22,6 @@ const MIN_NUM_SAMPLE_INPUTS = 3;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
 
-type SourcePathIdMap = { [key in ERC20BridgeSource]: string };
-
 function nativeOrderToNormalizedAmounts(
     side: MarketOperation,
     nativeOrder: NativeOrderWithFillableAmounts,
@@ -90,11 +88,13 @@ function findRoutesAndCreateOptimalPath(
 
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
     const serializedPaths: SerializedPath[] = [];
+    const sampleSourcePathIds: string[] = [];
     for (const singleSourceSamples of samples) {
         if (singleSourceSamples.length === 0) {
             continue;
         }
 
+        const sourcePathId = hexUtils.random();
         const singleSourceSamplesWithOutput = [...singleSourceSamples];
         for (let i = singleSourceSamples.length - 1; i >= 0; i--) {
             if (singleSourceSamples[i].output.isZero()) {
@@ -133,8 +133,10 @@ function findRoutesAndCreateOptimalPath(
 
         samplesAndNativeOrdersWithResults.push(singleSourceSamplesWithOutput);
         serializedPaths.push(serializedPath);
+        sampleSourcePathIds.push(sourcePathId);
     }
 
+    const nativeOrdersourcePathId = hexUtils.random();
     for (const [idx, nativeOrder] of nativeOrders.entries()) {
         const { input: normalizedOrderInput, output: normalizedOrderOutput } = nativeOrderToNormalizedAmounts(
             side,
@@ -181,6 +183,7 @@ function findRoutesAndCreateOptimalPath(
 
         samplesAndNativeOrdersWithResults.push([nativeOrder]);
         serializedPaths.push(serializedPath);
+        sampleSourcePathIds.push(nativeOrdersourcePathId);
     }
 
     if (serializedPaths.length === 0) {
@@ -209,23 +212,13 @@ function findRoutesAndCreateOptimalPath(
         allSourcesRustRoute,
         samplesAndNativeOrdersWithResults,
         strategySourcesOutputAmounts,
+        sampleSourcePathIds,
     );
     const adjustedFills: Fill[] = [];
     const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
 
-    const sourcePathIdMap = ({} as any) as SourcePathIdMap;
-    const getSourcePathId = (key: ERC20BridgeSource) => {
-        if (sourcePathIdMap[key]) {
-            return sourcePathIdMap[key];
-        }
-
-        const sourcePathId = hexUtils.random();
-        sourcePathIdMap[key] = sourcePathId;
-        return sourcePathId;
-    };
-
     const scale = input.dividedBy(totalRoutedAmount);
-    for (const [routeInput, routeSamplesAndNativeOrders, outputAmount] of routesAndSamplesAndOutputs) {
+    for (const [routeInput, routeSamplesAndNativeOrders, outputAmount, sourcePathId] of routesAndSamplesAndOutputs) {
         if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
             continue;
         }
@@ -250,7 +243,7 @@ function findRoutesAndCreateOptimalPath(
             // and nativeFill will be `undefined`
             if (nativeFill) {
                 // NOTE: For Limit/RFQ orders we are done here. No need to scale output
-                adjustedFills.push({ ...nativeFill, sourcePathId: getSourcePathId(ERC20BridgeSource.Native) });
+                adjustedFills.push({ ...nativeFill, sourcePathId: sourcePathId ?? hexUtils.random() });
             }
             continue;
         }
@@ -288,7 +281,6 @@ function findRoutesAndCreateOptimalPath(
             }
         }
 
-        const sourcePathId = getSourcePathId(current.source);
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const scaleOutput = (fillInput: BigNumber, output: BigNumber) =>
             output
@@ -302,7 +294,7 @@ function findRoutesAndCreateOptimalPath(
             adjustedOutput: scaleOutput(fill.input, fill.adjustedOutput),
             index: 0,
             parent: undefined,
-            sourcePathId,
+            sourcePathId: sourcePathId ?? hexUtils.random(),
         });
     }
 
