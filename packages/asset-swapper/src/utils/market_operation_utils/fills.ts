@@ -153,6 +153,7 @@ export function nativeOrdersToFills(
             data: {
                 order: o.order,
                 signature: o.signature,
+                fillableTakerAmount: o.fillableTakerAmount,
             },
         });
     }

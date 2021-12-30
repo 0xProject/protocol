@@ -206,6 +206,7 @@ export interface MooniswapFillData extends BridgeFillData {
 export interface NativeOrderFillData {
     order: LimitOrderFields | RfqOrderFields;
     signature: Signature;
+    fillableTakerAmount: BigNumber;
 }
 
 /**
@@ -330,14 +331,16 @@ export interface OptimizedGenericBridgeOrder extends OptimizedBridgeOrder<Bridge
 
 export interface OptimizedUniswapV2BridgeOrder extends OptimizedBridgeOrder<UniswapV2FillData> {}
 
-export interface OptimizedLimitOrder extends OptimizedOrder {
-    type: FillQuoteTransformerOrderType.Limit;
+export interface OptimizedNativeOrder extends OptimizedOrder {
     fillData: Omit<NativeOrderFillData, 'type'>;
 }
 
-export interface OptimizedRfqOrder extends OptimizedOrder {
+export interface OptimizedLimitOrder extends OptimizedNativeOrder {
+    type: FillQuoteTransformerOrderType.Limit;
+}
+
+export interface OptimizedRfqOrder extends OptimizedNativeOrder {
     type: FillQuoteTransformerOrderType.Rfq;
-    fillData: Omit<NativeOrderFillData, 'type'>;
 }
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
@@ -438,7 +441,6 @@ export interface OptimizedHop {
 export interface OptimizerResult {
     adjustedRate: BigNumber;
     hops: OptimizedHop[];
-    // liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     unoptimizedPath?: CollapsedPath;
     takerAmountPerEth: BigNumber;

@@ -1,14 +1,14 @@
-import { FillQuoteTransformerOrderType, RfqOrderFields, Signature } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, RfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import _ = require('lodash');
 
-import { MarketOperation } from '../types';
+import { Address, MarketOperation } from '../types';
 
 import {
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    CollapsedNativeOrderFill,
+    RawHopQuotes,
+    OptimizedHop,
+    OptimizedNativeOrder,
 } from './market_operation_utils/types';
 import { NativeOrderWithFillableAmounts } from './native_orders';
 import { QuoteRequestor } from './quote_requestor';
@@ -66,127 +66,85 @@ export interface PriceComparisonsReport {
  * Generates a report of sources considered while computing the optimized
  * swap quote, and the sources ultimately included in the computed quote.
  */
-export function generateQuoteReport(
-    marketOperation: MarketOperation,
-    nativeOrders: NativeOrderWithFillableAmounts[],
-    // liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+export function generateQuoteReport(opts: {
+    side: MarketOperation,
+    inputToken: Address,
+    outputToken: Address,
+    rawHopQuotes: RawHopQuotes[],
+    hops: OptimizedHop[],
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
-): QuoteReport {
-    throw new Error(`Not implemented`);
-    // const nativeOrderSourcesConsidered = nativeOrders.map(order =>
-    //     nativeOrderToReportEntry(order.type, order as any, order.fillableTakerAmount, comparisonPrice, quoteRequestor),
-    // );
-    // const sourcesConsidered = [...nativeOrderSourcesConsidered.filter(order => order.isRfqt)];
-    //
-    // let sourcesDelivered;
-    // if (Array.isArray(liquidityDelivered)) {
-    //     // create easy way to look up fillable amounts
-    //     const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
-    //         nativeOrders.map(o => {
-    //             return [_nativeDataToId(o), o.fillableTakerAmount];
-    //         }),
-    //     );
-    //     // map sources delivered
-    //     sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-    //         if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
-    //             return nativeOrderToReportEntry(
-    //                 collapsedFill.type,
-    //                 collapsedFill.fillData,
-    //                 nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
-    //                 comparisonPrice,
-    //                 quoteRequestor,
-    //             );
-    //         } else {
-    //             return dexSampleToReportSource(collapsedFill, marketOperation);
-    //         }
-    //     });
-    // } else {
-    //     sourcesDelivered = [
-    //         // tslint:disable-next-line: no-unnecessary-type-assertion
-    //         multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
-    //     ];
-    // }
-    // return {
-    //     sourcesConsidered,
-    //     sourcesDelivered,
-    // };
+}): QuoteReport {
+    const { inputToken, outputToken, side } = opts;
+    // Only handle direct taker -> maker raw hops.
+    const { nativeOrders } = opts.rawHopQuotes
+        .filter(h => h.inputToken === inputToken && h.outputToken === outputToken)
+        .flat(1)
+        .reduce((a, q) => ({ ...a, dexQuotes: a.dexQuotes.concat(q.dexQuotes), nativeOrders: a.nativeOrders.concat(q.nativeOrders)}));
+    // According to the old code, we only include RFQT samples in quote report?
+    const sourcesConsidered = nativeOrders
+        .filter(o => o.type === FillQuoteTransformerOrderType.Rfq)
+        .map(o => nativeOrderToReportEntry(side, o, opts.comparisonPrice, opts.quoteRequestor));
+
+    let sourcesDelivered;
+    if (opts.hops.length === 1) {
+        // Single-hop.
+        const [hop] = opts.hops;
+        sourcesDelivered = hop.orders.map(o => {
+            switch (o.type) {
+                default: {
+                    const [makerAmount, takerAmount] = side === MarketOperation.Sell
+                    ? [o.outputAmount, o.inputAmount]
+                    : [o.inputAmount, o.outputAmount];
+                    return {
+                        makerAmount,
+                        takerAmount,
+                        liquiditySource: o.source,
+                        fillData: {}, // Does this matter?
+                    } as BridgeQuoteReportEntry;
+                }
+                case FillQuoteTransformerOrderType.Limit:
+                case FillQuoteTransformerOrderType.Rfq: {
+                    return nativeOrderToReportEntry(side, o, opts.comparisonPrice, opts.quoteRequestor);
+                }
+            }
+        });
+    } else {
+        // Multi-hop.
+        const firstHop = opts.hops[0];
+        const lastHop = opts.hops[opts.hops.length - 1];
+        const [makerAmount, takerAmount] = side === MarketOperation.Sell
+            ? [lastHop.outputAmount, firstHop.inputAmount]
+            : [firstHop.inputAmount, lastHop.outputAmount];
+        sourcesDelivered = [
+            {
+                makerAmount,
+                takerAmount,
+                liquiditySource: ERC20BridgeSource.MultiHop,
+                fillData: {},
+                hopSources: opts.hops.map(h => h.orders.map(o => o.source)).flat(1),
+            } as MultiHopQuoteReportEntry,
+        ];
+    }
+    return {
+        sourcesConsidered,
+        sourcesDelivered,
+    };
 }
 
-function _nativeDataToId(data: { signature: Signature }): string {
-    const { v, r, s } = data.signature;
-    return `${v}${r}${s}`;
-}
-
-/**
- * Generates a report sample for a DEX source
- * NOTE: this is used for the QuoteReport and quote price comparison data
- */
-export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
-    throw new Error(`Not implemented`);
-    // const liquiditySource = ds.source;
-    //
-    // if (liquiditySource === ERC20BridgeSource.Native) {
-    //     throw new Error(`Unexpected liquidity source Native`);
-    // }
-    //
-    // // input and output map to different values
-    // // based on the market operation
-    // if (marketOperation === MarketOperation.Buy) {
-    //     return {
-    //         makerAmount: ds.input,
-    //         takerAmount: ds.output,
-    //         liquiditySource,
-    //         fillData: ds.fillData,
-    //     };
-    // } else if (marketOperation === MarketOperation.Sell) {
-    //     return {
-    //         makerAmount: ds.output,
-    //         takerAmount: ds.input,
-    //         liquiditySource,
-    //         fillData: ds.fillData,
-    //     };
-    // } else {
-    //     throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    // }
-}
-
-/**
- * Generates a report sample for a MultiHop source
- * NOTE: this is used for the QuoteReport and quote price comparison data
- */
-export function multiHopSampleToReportSource(
-    ds: DexSample,
-    marketOperation: MarketOperation,
-): MultiHopQuoteReportEntry {
-    throw new Error(`Not implemented`);
-    // const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
-    // // input and output map to different values
-    // // based on the market operation
-    // if (marketOperation === MarketOperation.Buy) {
-    //     return {
-    //         liquiditySource: ERC20BridgeSource.MultiHop,
-    //         makerAmount: ds.input,
-    //         takerAmount: ds.output,
-    //         fillData: ds.fillData,
-    //         hopSources: [firstHop.source, secondHop.source],
-    //     };
-    // } else if (marketOperation === MarketOperation.Sell) {
-    //     return {
-    //         liquiditySource: ERC20BridgeSource.MultiHop,
-    //         makerAmount: ds.output,
-    //         takerAmount: ds.input,
-    //         fillData: ds.fillData,
-    //         hopSources: [firstHop.source, secondHop.source],
-    //     };
-    // } else {
-    //     throw new Error(`Unexpected marketOperation ${marketOperation}`);
-    // }
-}
-
-function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is CollapsedNativeOrderFill {
-    const { type } = cf;
-    return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
+export function dexSampleToReportSource(
+    side: MarketOperation,
+    sample: DexSample,
+): BridgeQuoteReportEntry {
+    const [makerAmount, takerAmount] = side === MarketOperation.Sell
+        ? [sample.output, sample.input]
+        : [sample.input, sample.output];
+    return {
+        makerAmount,
+        takerAmount,
+        liquiditySource: sample.source,
+        fillData: {}, // Does this matter?
+    } as BridgeQuoteReportEntry;
 }
 
 /**
@@ -194,43 +152,52 @@ function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is CollapsedNati
  * NOTE: this is used for the QuoteReport and quote price comparison data
  */
 export function nativeOrderToReportEntry(
-    type: FillQuoteTransformerOrderType,
-    fillData: any,
-    fillableAmount: BigNumber,
+    side: MarketOperation,
+    order: OptimizedNativeOrder | NativeOrderWithFillableAmounts,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry {
-    throw new Error(`Not implemented`);
-    // const nativeOrderBase = {
-    //     makerAmount: fillData.order.makerAmount,
-    //     takerAmount: fillData.order.takerAmount,
-    //     fillableTakerAmount: fillableAmount,
-    // };
-    //
-    // // if we find this is an rfqt order, label it as such and associate makerUri
-    // const isRfqt = type === FillQuoteTransformerOrderType.Rfq;
-    // const rfqtMakerUri =
-    //     isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
-    //
-    // if (isRfqt) {
-    //     const nativeOrder = fillData.order as RfqOrderFields;
-    //     // tslint:disable-next-line: no-object-literal-type-assertion
-    //     return {
-    //         liquiditySource: ERC20BridgeSource.Native,
-    //         ...nativeOrderBase,
-    //         isRfqt: true,
-    //         makerUri: rfqtMakerUri || '',
-    //         ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
-    //         nativeOrder,
-    //         fillData,
-    //     };
-    // } else {
-    //     // tslint:disable-next-line: no-object-literal-type-assertion
-    //     return {
-    //         liquiditySource: ERC20BridgeSource.Native,
-    //         ...nativeOrderBase,
-    //         isRfqt: false,
-    //         fillData,
-    //     };
-    // }
+    let nativeOrder;
+    let makerAmount;
+    let takerAmount;
+    let fillableTakerAmount;
+    let signature;
+    if (isOptimizedNativeOrder(order)) {
+        nativeOrder = order.fillData.order;
+        fillableTakerAmount = order.fillData.fillableTakerAmount;
+        signature = order.fillData.signature;
+        [makerAmount, takerAmount] = side === MarketOperation.Sell
+            ? [order.outputAmount, order.outputAmount]
+            : [order.inputAmount, order.outputAmount];
+    } else {
+        nativeOrder = order.order;
+        fillableTakerAmount = order.fillableTakerAmount;
+        signature = order.signature;
+        [makerAmount, takerAmount] = [nativeOrder.makerAmount, nativeOrder.takerAmount];
+    }
+    const isRfqt = order.type === FillQuoteTransformerOrderType.Rfq;
+    // if we find this is an rfqt order, label it as such and associate makerUri
+    const rfqtMakerUri =
+        isRfqt && quoteRequestor ? quoteRequestor.getMakerUriForSignature(signature) : '';
+
+    return {
+        makerAmount,
+        takerAmount,
+        isRfqt,
+        fillableTakerAmount,
+        liquiditySource: ERC20BridgeSource.Native,
+        fillData: {},
+        ...(isRfqt
+            ? {
+                makerUri: rfqtMakerUri,
+                nativeOrder,
+                ...(comparisonPrice ? { comparisonPrice: comparisonPrice.toNumber() } : {}),
+            }
+            : {}
+        ),
+    } as NativeRfqOrderQuoteReportEntry | NativeLimitOrderQuoteReportEntry;
+}
+
+function isOptimizedNativeOrder(order: OptimizedNativeOrder | NativeOrderWithFillableAmounts): order is OptimizedNativeOrder {
+    return !!(order as any).fillData;
 }

@@ -17,8 +17,8 @@ import { QuoteRequestor } from '../quote_requestor';
 import {
     dexSampleToReportSource,
     generateQuoteReport,
-    multiHopSampleToReportSource,
     nativeOrderToReportEntry,
+    MultiHopQuoteReportEntry,
     PriceComparisonsReport,
     QuoteReport,
 } from './../quote_report_generator';
@@ -65,16 +65,22 @@ export class MarketOperationUtils {
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
 
-    private static _computeQuoteReport(
+    private static _computeQuoteReport(opts: {
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
         optimizerResult: OptimizerResult,
         comparisonPrice?: BigNumber | undefined,
-    ): QuoteReport {
-        throw new Error(`Not implemented`);
-        // const { side, quotes } = marketSideLiquidity;
-        // const { liquidityDelivered } = optimizerResult;
-        // return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
+    }): QuoteReport {
+        const { side, quotes } = opts.marketSideLiquidity;
+        return generateQuoteReport({
+            side,
+            inputToken: opts.marketSideLiquidity.inputToken,
+            outputToken: opts.marketSideLiquidity.outputToken,
+            rawHopQuotes: quotes,
+            hops: opts.optimizerResult.hops,
+            comparisonPrice: opts.comparisonPrice,
+            quoteRequestor: opts.quoteRequestor,
+        });
     }
 
     private static _computePriceComparisonsReport(
@@ -82,21 +88,27 @@ export class MarketOperationUtils {
         marketSideLiquidity: MarketSideLiquidity,
         comparisonPrice?: BigNumber | undefined,
     ): PriceComparisonsReport {
-        throw new Error(`Not implemented`);
-        // const { side, quotes } = marketSideLiquidity;
-        // const dexSources = _.flatten(quotes.dexQuotes).map(quote => dexSampleToReportSource(quote, side));
-        // const multiHopSources = quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, side));
-        // const nativeSources = quotes.nativeOrders.map(order =>
-        //     nativeOrderToReportEntry(
-        //         order.type,
-        //         order as any,
-        //         order.fillableTakerAmount,
-        //         comparisonPrice,
-        //         quoteRequestor,
-        //     ),
-        // );
-        //
-        // return { dexSources, multiHopSources, nativeSources };
+        const { inputToken, outputToken, side, quotes } = marketSideLiquidity;
+        marketSideLiquidity.inputToken
+        const singleHopLiquidity = quotes
+            .filter(q => q.inputToken === inputToken && q.outputToken === outputToken)
+            .reduce((a, v) => ({
+                ...a,
+                dexQuotes: [...a.dexQuotes, ...v.dexQuotes],
+                nativeOrders: [...a.nativeOrders, ...v.nativeOrders],
+            }));
+        const dexSources = singleHopLiquidity.dexQuotes.map(ss => ss.map(s => dexSampleToReportSource(side, s))).flat(2);
+        const multiHopSources = [] as MultiHopQuoteReportEntry[]; // TODO
+        const nativeSources = singleHopLiquidity.nativeOrders.map(order =>
+            nativeOrderToReportEntry(
+                side,
+                order,
+                comparisonPrice,
+                quoteRequestor,
+            ),
+        );
+
+        return { dexSources, multiHopSources, nativeSources };
     }
 
     constructor(
@@ -642,12 +654,12 @@ export class MarketOperationUtils {
         // Compute Quote Report and return the results.
         let quoteReport: QuoteReport | undefined;
         if (_opts.shouldGenerateQuoteReport) {
-            // quoteReport = MarketOperationUtils._computeQuoteReport(
-            //     _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-            //     marketSideLiquidity,
-            //     optimizerResult,
-            //     wholeOrderPrice,
-            // );
+            quoteReport = MarketOperationUtils._computeQuoteReport({
+                quoteRequestor: _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                comparisonPrice: wholeOrderPrice,
+                marketSideLiquidity,
+                optimizerResult,
+            });
         }
 
         let priceComparisonsReport: PriceComparisonsReport | undefined;
