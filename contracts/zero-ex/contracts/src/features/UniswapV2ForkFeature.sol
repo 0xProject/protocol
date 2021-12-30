@@ -43,12 +43,6 @@ abstract contract UniswapV2ForkFeature is
     string public constant override FEATURE_NAME = "UniswapV2ForkFeature";
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
-    /// @dev WETH contract.
-    IEtherTokenV06 private immutable WETH;
-    /// @dev UniswapV2Fork Factory contract address.
-    address private immutable UNI_FACTORY_ADDRESS;
-    /// @dev UniswapV2Fork init code of the factory.
-    bytes32 private immutable UNI_POOL_INIT_CODE_HASH;
 
     address private constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
@@ -62,8 +56,7 @@ abstract contract UniswapV2ForkFeature is
         internal
         pure
         virtual
-        returns (IEtherTokenV06 wethAddress);
-
+        returns (IEtherTokenV06 weth);
 
     /// @dev Efficiently sell directly to UniswapV2 (and forks).
     /// @param tokens Sell path.
