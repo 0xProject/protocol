@@ -31,7 +31,7 @@ import "./interfaces/IUniswapV2ForkFeature.sol";
 import "./interfaces/IUniswapV2ForkPair.sol";
 
 /// @dev VIP UniswapV2Fork fill functions.
-contract UniswapV2ForkFeature is
+abstract contract UniswapV2ForkFeature is
     IFeature,
     IUniswapV2ForkFeature,
     FixinCommon,
@@ -52,15 +52,18 @@ contract UniswapV2ForkFeature is
 
     address private constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    constructor(
-        IEtherTokenV06 weth,
-        address uniV2ForkFactory,
-        bytes32 poolInitCodeHash
-    ) public {
-        WETH = weth;
-        UNI_FACTORY_ADDRESS = uniV2ForkFactory;
-        UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
-    }
+    function _getForkDetails()
+        internal
+        pure
+        virtual
+        returns (address factoryAddress, bytes32 initCodeHash);
+
+    function _getWeth()
+        internal
+        pure
+        virtual
+        returns (IEtherTokenV06 wethAddress);
+
 
     /// @dev Efficiently sell directly to UniswapV2 (and forks).
     /// @param tokens Sell path.
@@ -79,29 +82,30 @@ contract UniswapV2ForkFeature is
     {
         require(tokens.length > 1, 'UniswapV2ForkFeature/INVALID_TOKENS_LENGTH');
 
+        IEtherTokenV06 weth = _getWeth();
         bool wrapEth = address(tokens[0]) == ETH_ADDRESS;
         if (wrapEth) {
             require(msg.value == sellAmount, "UniswapV2ForkFeature/INVALID_SELL_AMOUNT");
-            IEtherTokenV06(WETH).deposit{value:msg.value}();
-            tokens[0] = IERC20TokenV06(WETH);
+            weth.deposit{value:msg.value}();
+            tokens[0] = weth;
         }
 
         bool unwrapWeth = address(tokens[tokens.length - 1]) == ETH_ADDRESS;
         if (unwrapWeth) {
-            tokens[tokens.length - 1] = IERC20TokenV06(WETH);
+            tokens[tokens.length - 1] = weth;
         }
 
         uint256[] memory amounts = _swap(
             tokens,
             sellAmount,
-            wrapEth ? address (this) : msg.sender,
+            wrapEth ? address(this) : msg.sender,
             unwrapWeth ? address(this) : msg.sender
         );
         buyAmount = amounts[amounts.length - 1];
         require(buyAmount >= minBuyAmount, 'UniswapV2ForkFeature/INSUFFICIENT_OUTPUT_AMOUNT');
 
         if (unwrapWeth) {
-            IEtherTokenV06(WETH).withdraw(buyAmount);
+            weth.withdraw(buyAmount);
             (bool sent, ) = msg.sender.call{value: buyAmount}("");
             require(sent, "UniswapV2ForkFeature/FAILED_TO_SEND_ETHER");
         }
@@ -144,12 +148,13 @@ contract UniswapV2ForkFeature is
         view
         returns (IUniswapV2ForkPair)
     {
+        (address factoryAddress, bytes32 initCodeHash) = _getForkDetails();
         (IERC20TokenV06 token0, IERC20TokenV06 token1) = _sortTokens(tokenA, tokenB);
         return IUniswapV2ForkPair(address(uint(keccak256(abi.encodePacked(
             hex'ff',
-            UNI_FACTORY_ADDRESS,
+            factoryAddress,
             keccak256(abi.encodePacked(address(token0), address(token1))),
-            UNI_POOL_INIT_CODE_HASH
+            initCodeHash
         )))));
     }
 
@@ -208,12 +213,11 @@ contract UniswapV2ForkFeature is
         internal
         returns (uint amountOut)
     {
-        (IERC20TokenV06 token0,) = _sortTokens(tokenA, tokenB);
         (uint256 reserveIn, uint256 reserveOut,) = pair.getReserves();
-        (reserveIn, reserveOut) = tokenA == token0 ? (reserveIn, reserveOut) : (reserveOut, reserveIn);
+        (reserveIn, reserveOut) = tokenA < tokenB ? (reserveIn, reserveOut) : (reserveOut, reserveIn);
 
         amountOut = _getAmountOut(amountIn, reserveIn, reserveOut);
-        (uint amount0Out, uint amount1Out) = tokenA == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
+        (uint amount0Out, uint amount1Out) = tokenA < tokenB ? (uint(0), amountOut) : (amountOut, uint(0));
 
         pair.swap(amount0Out, amount1Out, to, "");
     }
