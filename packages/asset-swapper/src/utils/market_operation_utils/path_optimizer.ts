@@ -5,14 +5,13 @@ import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
-import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
 
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetrics } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -185,16 +184,9 @@ function findRoutesAndCreateOptimalPath(
         pathsIn: serializedPaths,
     };
 
-    const before = performance.now();
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
     const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
-
     route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, neonRouterNumSamples);
-    DEFAULT_INFO_LOGGER(
-        { router: 'neon-router', performanceMs: performance.now() - before, type: 'real' },
-        'Rust router real routing performance',
-    );
-
     assert.assert(
         rustArgs.pathsIn.length === allSourcesRustRoute.length,
         'different number of sources in the Router output than the input',
@@ -302,14 +294,10 @@ export function findOptimalRustPathFromSamples(
     fees: FeeSchedule,
     chainId: ChainId,
     neonRouterNumSamples: number,
+    samplerMetrics?: SamplerMetrics,
 ): Path | undefined {
-    const before = performance.now();
-    const logPerformance = () =>
-        DEFAULT_INFO_LOGGER(
-            { router: 'neon-router', performanceMs: performance.now() - before, type: 'total' },
-            'Rust router total routing performance',
-        );
-
+    const beforeAllTimeMs = performance.now();
+    let beforeTimeMs = performance.now();
     const allSourcesPath = findRoutesAndCreateOptimalPath(
         side,
         samples,
@@ -319,6 +307,13 @@ export function findOptimalRustPathFromSamples(
         fees,
         neonRouterNumSamples,
     );
+    // tslint:disable-next-line: no-unused-expression
+    samplerMetrics &&
+        samplerMetrics.logRouterDetails({
+            router: 'neon-router',
+            type: 'all',
+            timingMs: performance.now() - beforeTimeMs,
+        });
     if (!allSourcesPath) {
         return undefined;
     }
@@ -328,6 +323,7 @@ export function findOptimalRustPathFromSamples(
     // HACK(kimpers): The Rust router currently doesn't account for VIP sources correctly
     // we need to try to route them in isolation and compare with the results all sources
     if (vipSources.length > 0) {
+        beforeTimeMs = performance.now();
         const vipSourcesSet = new Set(vipSources);
         const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
 
@@ -341,6 +337,13 @@ export function findOptimalRustPathFromSamples(
                 fees,
                 neonRouterNumSamples,
             );
+            // tslint:disable-next-line: no-unused-expression
+            samplerMetrics &&
+                samplerMetrics.logRouterDetails({
+                    router: 'neon-router',
+                    type: 'vip',
+                    timingMs: performance.now() - beforeTimeMs,
+                });
 
             const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
             // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
@@ -353,13 +356,18 @@ export function findOptimalRustPathFromSamples(
             const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
 
             if (vipSourcesPath?.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
-                logPerformance();
                 return vipSourcesPath;
             }
         }
     }
+    // tslint:disable-next-line: no-unused-expression
+    samplerMetrics &&
+        samplerMetrics.logRouterDetails({
+            router: 'neon-router',
+            type: 'total',
+            timingMs: performance.now() - beforeAllTimeMs,
+        });
 
-    logPerformance();
     return allSourcesPath;
 }
 
@@ -372,8 +380,10 @@ export async function findOptimalPathJSAsync(
     fills: Fill[][],
     targetInput: BigNumber,
     runLimit: number = 2 ** 8,
+    samplerMetrics?: SamplerMetrics,
     opts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
 ): Promise<Path | undefined> {
+    const beforeTimeMs = performance.now();
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
     const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts), side);
@@ -387,7 +397,15 @@ export async function findOptimalPathJSAsync(
         // Yield to event loop.
         await Promise.resolve();
     }
-    return optimalPath.isComplete() ? optimalPath : undefined;
+    const finalPath = optimalPath.isComplete() ? optimalPath : undefined;
+    // tslint:disable-next-line: no-unused-expression
+    samplerMetrics &&
+        samplerMetrics.logRouterDetails({
+            router: 'js',
+            type: 'total',
+            timingMs: performance.now() - beforeTimeMs,
+        });
+    return finalPath;
 }
 
 // Sort fill arrays by descending adjusted completed rate.

@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.45.0",
+        "changes": [
+            {
+                "note": "Capture router timings",
+                "pr": 388
+            }
+        ]
+    },
+    {
         "version": "16.44.0",
         "changes": [
             {
