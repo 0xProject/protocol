@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.45.0 - _January 4, 2022_
+
+    * Capture router timings (#388)
+
 ## v16.44.0 - _December 29, 2021_
 
     * Update neon-router and use router estimated output amount (#354)
