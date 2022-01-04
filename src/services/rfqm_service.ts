@@ -160,6 +160,11 @@ const RFQM_PROCESS_JOB_LATENCY = new Summary({
     help: 'Latency for the worker processing the job',
 });
 
+const RFQM_MINING_LATENCY = new Summary({
+    name: 'rfqm_mining_latency',
+    help: 'The time in seconds between when the first transaction for a job is sent and when a transaction for the job is mined',
+});
+
 const RFQM_JOB_COMPLETED = new Counter({
     name: 'rfqm_job_completed',
     help: 'An Rfqm Job completed with no errors',
@@ -1726,6 +1731,17 @@ export class RfqmService {
         // If the tx hasn't been mined yet, there're no database updates to do.
         if (!minedReceipt) {
             return RfqmJobStatus.PendingSubmitted;
+        }
+
+        // Attempt to publish the mining latency
+        try {
+            const { timestamp: minedBlockTimestampS } = await this._blockchainUtils.getBlockAsync(
+                minedReceipt.blockHash,
+            );
+            const firstSubmissionTimestampS = submissionContext.firstSubmissionTimestampS;
+            RFQM_MINING_LATENCY.observe(minedBlockTimestampS - firstSubmissionTimestampS);
+        } catch ({ message }) {
+            logger.warn({ orderHash: job.orderHash, errorMessage: message }, 'Failed to meter the mining latency');
         }
 
         await submissionContext.updateForReceiptAsync(minedReceipt, expectedTakerTokenFillAmount);

@@ -1,3 +1,4 @@
+import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
@@ -102,6 +103,18 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
             maxFeePerGas: BigNumber.maximum(...this._transactions.map((t) => t.maxFeePerGas!)),
             maxPriorityFeePerGas: BigNumber.maximum(...this._transactions.map((t) => t.maxPriorityFeePerGas!)),
         };
+    }
+
+    /**
+     * Gets the epoch time, in seconds, of the earliest transaction submission.
+     * Note: This uses the database time the transaction submission was created,
+     * not the blockchain timestamp.
+     */
+    public get firstSubmissionTimestampS(): number {
+        const submissionCreationTimesS = this._transactions
+            .map((t) => t.createdAt.getTime() / ONE_SECOND_MS)
+            .map((t) => Math.round(t));
+        return submissionCreationTimesS.reduce((result, time) => Math.min(result, time), Infinity);
     }
 
     /**

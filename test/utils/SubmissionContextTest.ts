@@ -1,3 +1,4 @@
+import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
@@ -223,6 +224,41 @@ describe('SubmissionContext', () => {
 
             expect(submissionContext.maxGasFees.maxFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
             expect(submissionContext.maxGasFees.maxPriorityFeePerGas.toNumber()).to.equal(new BigNumber(1).toNumber());
+        });
+    });
+
+    describe('get firstSubmissionTimestampS', () => {
+        it('gets the earliest time a transaction in the context was submitted', () => {
+            const fakeEarlierMs = 1640307189361;
+            const fakeLaterMs = 1650307189361;
+            const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                createdAt: new Date(fakeLaterMs),
+                transactionHash: '0x1',
+                from: '0xfrom',
+                to: '0xto',
+                orderHash: '0xOrderhash',
+                nonce: 0,
+                maxFeePerGas: new BigNumber(0),
+                maxPriorityFeePerGas: new BigNumber(1),
+            });
+            const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                //
+                createdAt: new Date(fakeEarlierMs), // Transaction 2 is older
+                transactionHash: '0x2',
+                from: '0xfrom',
+                to: '0xto',
+                orderHash: '0xOrderhash',
+                nonce: 0,
+                maxFeePerGas: new BigNumber(1),
+                maxPriorityFeePerGas: new BigNumber(0),
+            });
+
+            const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                transaction1,
+                transaction2,
+            ]);
+
+            expect(submissionContext.firstSubmissionTimestampS).to.equal(Math.round(fakeEarlierMs / ONE_SECOND_MS));
         });
     });
 

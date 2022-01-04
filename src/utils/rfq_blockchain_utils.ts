@@ -289,6 +289,11 @@ export class RfqBlockchainUtils {
         return this._web3Wrapper.getBlockNumberAsync();
     }
 
+    // Fetches a block from the block number or block hash
+    public async getBlockAsync(blockHash: providers.BlockTag): Promise<providers.Block> {
+        return this._ethersProvider.getBlock(blockHash);
+    }
+
     public async estimateGasForExchangeProxyCallAsync(callData: string, workerAddress: string): Promise<number> {
         const txData: Partial<TxData> = {
             to: this._exchangeProxy.address,
