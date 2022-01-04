@@ -533,9 +533,17 @@ export class MarketOperationUtils {
                 opts.feeSchedule,
                 this._sampler.chainId,
                 opts.neonRouterNumSamples,
+                opts.samplerMetrics,
             );
         } else {
-            optimalPath = await findOptimalPathJSAsync(side, fills, inputAmount, opts.runLimit, penaltyOpts);
+            optimalPath = await findOptimalPathJSAsync(
+                side,
+                fills,
+                inputAmount,
+                opts.runLimit,
+                opts.samplerMetrics,
+                penaltyOpts,
+            );
         }
 
         const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
@@ -599,6 +607,7 @@ export class MarketOperationUtils {
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
             neonRouterNumSamples: _opts.neonRouterNumSamples,
+            samplerMetrics: _opts.samplerMetrics,
         };
 
         if (nativeOrders.length === 0) {
@@ -810,6 +819,7 @@ export class MarketOperationUtils {
                     opts.feeSchedule,
                     this._sampler.chainId,
                     opts.neonRouterNumSamples,
+                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
                 );
             } else {
                 const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
@@ -818,6 +828,7 @@ export class MarketOperationUtils {
                     sturdyFills,
                     inputAmount,
                     opts.runLimit,
+                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
                     sturdyPenaltyOpts,
                 );
             }

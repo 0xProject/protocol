@@ -519,6 +519,15 @@ export interface SamplerMetrics {
      * @param blockNumber block number of the sampler call
      */
     logBlockNumber(blockNumber: BigNumber): void;
+
+    /**
+     * Logs the routing timings
+     *
+     * @param data.router The router type (neon-router or js)
+     * @param data.type The type of timing being recorded (e.g total timing, all sources timing or vip timing)
+     * @param data.timingMs The timing in milliseconds
+     */
+    logRouterDetails(data: { router: 'neon-router' | 'js'; type: 'all' | 'vip' | 'total'; timingMs: number }): void;
 }
 
 /**
@@ -605,6 +614,7 @@ export interface GenerateOptimizedOrdersOpts {
     shouldBatchBridgeOrders?: boolean;
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
+    samplerMetrics?: SamplerMetrics;
 }
 
 export interface ComparisonPrice {
