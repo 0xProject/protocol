@@ -1399,12 +1399,23 @@ export class RfqmService {
         let submissionContext;
 
         if (!previousSubmissions.length) {
-            logger.info({ orderHash, workerAddress }, 'Submitting first transaction');
+            logger.info({ orderHash, workerAddress }, 'Attempting to submit first transaction');
 
             // claim this job for the worker, and set status to submitted
             _job.workerAddress = workerAddress;
             _job.status = RfqmJobStatus.PendingSubmitted;
             await this._dbUtils.updateRfqmJobAsync(_job);
+
+            logger.info(
+                {
+                    gasFees,
+                    gasPriceEstimate,
+                    orderHash,
+                    submissionCount: 0,
+                    workerAddress,
+                },
+                'Submitting transaction',
+            );
 
             const firstSubmission = await this._submitTransactionAsync(
                 _job.kind,
@@ -1491,7 +1502,7 @@ export class RfqmService {
                             submissionCount: submissionContext.transactions.length + 1,
                             workerAddress,
                         },
-                        'Resubmitting tx with higher gas price',
+                        'Submitting transaction',
                     );
 
                     const newTransaction = await this._submitTransactionAsync(
