@@ -223,7 +223,17 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             cancelToken,
         })
         .catch(err => {
-            warningLogger(err, `Alt RFQ MM request failed`);
+            if (err.response) {
+                // request was made and market maker responded
+                warningLogger(
+                    { data: err.response.data, status: err.response.status, headers: err.response.headers },
+                    `Alt RFQ MM request failed`,
+                );
+            } else if (err.request) {
+                warningLogger({}, 'Alt RFQ MM no response received');
+            } else {
+                warningLogger({ err: err.message }, 'Failed to construct Alt RFQ MM request');
+            }
             throw new Error(`Alt RFQ MM request failed`);
         });
 
