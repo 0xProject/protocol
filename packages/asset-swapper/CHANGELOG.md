@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.45.1 - _January 5, 2022_
+
+    * Update `Celo` intermediate tokens (#390)
+
 ## v16.45.0 - _January 4, 2022_
 
     * Capture router timings (#388)
