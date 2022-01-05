@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.45.1",
+        "changes": [
+            {
+                "note": "Update `Celo` intermediate tokens",
+                "pr": 390
+            }
+        ]
+    },
+    {
         "version": "16.45.0",
         "changes": [
             {
