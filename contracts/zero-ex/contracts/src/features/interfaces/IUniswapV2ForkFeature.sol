@@ -24,6 +24,32 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 /// @dev VIP UniswapV2 (and forks) fill functions.
 interface IUniswapV2ForkFeature {
+    enum ProtocolFork {
+        UniswapV2,
+        SushiSwap,
+        CryptoCom,
+        PancakeSwap,
+        PancakeSwapV2,
+        BakerySwap,
+        ApeSwap,
+        CafeSwap,
+        CheeseSwap,
+        JulSwap,
+        QuickSwap,
+        ComethSwap,
+        Dfyn,
+        WaultSwap,
+        Polydex,
+        ShibaSwap,
+        JetSwap,
+        TraderJoe,
+        Pangolin,
+        UbeSwap,
+        MorpheusSwap,
+        SpookySwap,
+        SpiritSwap
+    }
+
     /// @dev Efficiently sell directly to UniswapV2 (and forks).
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.

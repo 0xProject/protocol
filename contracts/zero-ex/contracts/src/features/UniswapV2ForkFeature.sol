@@ -46,7 +46,7 @@ abstract contract UniswapV2ForkFeature is
 
     address private constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    function _getForkDetails()
+    function _getForkDetails(ProtocolFork fork)
         internal
         pure
         virtual
@@ -213,5 +213,91 @@ abstract contract UniswapV2ForkFeature is
         (uint amount0Out, uint amount1Out) = tokenA < tokenB ? (uint(0), amountOut) : (amountOut, uint(0));
 
         pair.swap(amount0Out, amount1Out, to, "");
+    }
+}
+
+contract EthereumUniswapV2ForkFeature is UniswapV2ForkFeature {
+    address private constant WETH_ADDRESS = address(0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2);
+
+    address private constant UNISWAP_V2_FACTORY_ADDRESS = address(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
+    bytes32 private constant UNISWAP_V2_INIT_CODE_HASH = 0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
+    address private constant SUSHISWAP_FACTORY_ADDRESS = address(0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac);
+    bytes32 private constant SUSHISWAP_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+
+    function _getForkDetails(ProtocolFork fork)
+        internal
+        pure
+        override
+        returns (address factoryAddress, bytes32 initCodeHash)
+    {
+        if (fork == ProtocolFork.UniSwapV2) {
+            return (UNISWAP_V2_FACTORY_ADDRESS, UNISWAP_V2_INIT_CODE_HASH);
+        } else if (fork == Protocol.SushiSwap) {
+            return (SUSHISWAP_FACTORY_ADDRESS, SUSHISWAP_INIT_CODE_HASH);
+        } else {
+            revert('unsupported uniswap2 fork');
+        }
+    }
+
+    function _getWeth()
+    internal
+    pure
+    override
+    returns (IEtherTokenV06 weth){
+        return IEtherTokenV06(WETH_ADDRESS);
+    }
+}
+
+contract PolygonUniswapV2ForkFeature is UniswapV2ForkFeature {
+    address private constant WETH_ADDRESS = address(0x7ceb23fd6bc0add59e62ac25578270cff1b9f619);
+    address private constant SUSHISWAP_FACTORY_ADDRESS = address(0xc35DADB65012eC5796536bD9864eD8773aBc74C4);
+    bytes32 private constant SUSHISWAP_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+
+    function _getForkDetails(ProtocolFork fork)
+        internal
+        pure
+        override
+        returns (address factoryAddress, bytes32 initCodeHash)
+    {
+        if (fork == Protocol.SushiSwap) {
+            return (SUSHISWAP_FACTORY_ADDRESS, SUSHISWAP_INIT_CODE_HASH);
+        } else {
+            revert('unsupported uniswap2 fork');
+        }
+    }
+
+    function _getWeth()
+        internal
+        pure
+        override
+        returns (IEtherTokenV06 weth){
+        return IEtherTokenV06(WETH_ADDRESS);
+    }
+}
+
+contract BscUniswapV2ForkFeature is UniswapV2ForkFeature {
+    address private constant WETH_ADDRESS = address(0);
+    address private constant SUSHISWAP_FACTORY_ADDRESS = address(0xc35DADB65012eC5796536bD9864eD8773aBc74C4);
+    bytes32 private constant SUSHISWAP_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+
+    function _getForkDetails(ProtocolFork fork)
+    internal
+    pure
+    override
+    returns (address factoryAddress, bytes32 initCodeHash)
+    {
+        if (fork == Protocol.SushiSwap) {
+            return (SUSHISWAP_FACTORY_ADDRESS, SUSHISWAP_INIT_CODE_HASH);
+        } else {
+            revert('unsupported uniswap2 fork');
+        }
+    }
+
+    function _getWeth()
+    internal
+    pure
+    override
+    returns (IEtherTokenV06 weth){
+        return IEtherTokenV06(WETH_ADDRESS);
     }
 }
