@@ -6,7 +6,8 @@
                 "note": "Update `Celo` intermediate tokens",
                 "pr": 390
             }
-        ]
+        ],
+        "timestamp": 1641359319
     },
     {
         "version": "16.45.0",
