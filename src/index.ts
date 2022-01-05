@@ -5,7 +5,11 @@ import { providerUtils } from './utils/provider_utils';
 
 if (require.main === module) {
     (async () => {
-        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        const provider = providerUtils.createWeb3Provider(
+            defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
+            defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
+            defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+        );
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await getAppAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
     })().catch((err) => logger.error(err.stack));

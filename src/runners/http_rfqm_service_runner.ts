@@ -89,7 +89,11 @@ export async function buildRfqmServiceAsync(connection: Connection, asWorker: bo
     const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL, CHAIN_ID);
     let ethersWallet: Wallet | undefined;
 
-    const rpcProvider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+    const rpcProvider = providerUtils.createWeb3Provider(
+        defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
+        defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
+        defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+    );
     if (asWorker) {
         if (META_TX_WORKER_MNEMONIC === undefined) {
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);

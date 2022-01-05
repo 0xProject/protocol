@@ -33,7 +33,11 @@ process.on('unhandledRejection', (err) => {
 
 if (require.main === module) {
     (async () => {
-        const provider = providerUtils.createWeb3Provider(defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl);
+        const provider = providerUtils.createWeb3Provider(
+            defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
+            defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
+            defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+        );
         const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
         await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
     })().catch((error) => logger.error(error));

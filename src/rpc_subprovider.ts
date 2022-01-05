@@ -1,12 +1,13 @@
 import { assert } from '@0x/assert';
-import { Callback, ErrorCallback, Subprovider } from '@0x/subproviders';
+import { Callback, ErrorCallback, JSONRPCRequestPayloadWithMethod, Subprovider } from '@0x/subproviders';
 import { StatusCodes } from '@0x/types';
 import { JSONRPCRequestPayload } from 'ethereum-types';
 import * as http from 'http';
 import * as https from 'https';
 import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
-import { Counter, Histogram } from 'prom-client';
+import { Counter, Histogram, Summary } from 'prom-client';
+import { gzip } from 'zlib';
 
 import { ONE_SECOND_MS, PROMETHEUS_REQUEST_BUCKETS } from './constants';
 
@@ -19,6 +20,12 @@ const ETH_RPC_RESPONSE_TIME = new Histogram({
     help: 'The response time of an RPC request',
     labelNames: ['method'],
     buckets: PROMETHEUS_REQUEST_BUCKETS,
+});
+
+const ETH_RPC_REQUEST_SIZE_SUMMARY = new Summary({
+    name: 'eth_rpc_request_size_summary',
+    help: 'The rpc request payload size',
+    labelNames: ['method'],
 });
 
 const ETH_RPC_REQUESTS = new Counter({
@@ -46,16 +53,19 @@ const ETH_RPC_REQUEST_ERROR = new Counter({
 export class RPCSubprovider extends Subprovider {
     private readonly _rpcUrls: string[];
     private readonly _requestTimeoutMs: number;
+    private readonly _shouldCompressRequest: boolean;
     /**
      * @param rpcUrl URL to the backing Ethereum node to which JSON RPC requests should be sent
      * @param requestTimeoutMs Amount of miliseconds to wait before timing out the JSON RPC request
+     * @param shouldCompressRequest Whether the request body should be compressed (gzip) and the content encoding set to gzip
      */
-    constructor(rpcUrl: string | string[], requestTimeoutMs: number = 5000) {
+    constructor(rpcUrl: string | string[], requestTimeoutMs: number, shouldCompressRequest: boolean) {
         super();
         this._rpcUrls = Array.isArray(rpcUrl) ? rpcUrl : [rpcUrl];
         this._rpcUrls.forEach((url) => assert.isString('rpcUrl', url));
         assert.isNumber('requestTimeoutMs', requestTimeoutMs);
         this._requestTimeoutMs = requestTimeoutMs;
+        this._shouldCompressRequest = shouldCompressRequest;
     }
     /**
      * This method conforms to the web3-provider-engine interface.
@@ -73,6 +83,7 @@ export class RPCSubprovider extends Subprovider {
             'Accept-Encoding': 'gzip, deflate',
             Connection: 'keep-alive',
             'Content-Type': 'application/json',
+            ...(this._shouldCompressRequest ? { 'Content-Encoding': 'gzip' } : {}),
         });
 
         ETH_RPC_REQUESTS.labels(finalPayload.method!).inc();
@@ -80,11 +91,13 @@ export class RPCSubprovider extends Subprovider {
 
         let response: Response;
         const rpcUrl = this._rpcUrls[Math.floor(Math.random() * this._rpcUrls.length)];
+        const body = await this._encodeRequestPayloadAsync(finalPayload);
+        ETH_RPC_REQUEST_SIZE_SUMMARY.labels(finalPayload.method!).observe(Buffer.byteLength(body, 'utf8'));
         try {
             response = await fetch(rpcUrl, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(finalPayload),
+                body,
                 timeout: this._requestTimeoutMs,
                 compress: true,
                 agent,
@@ -99,6 +112,7 @@ export class RPCSubprovider extends Subprovider {
         }
 
         const text = await response.text();
+
         if (!response.ok) {
             ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             const statusCode = response.status;
@@ -134,5 +148,17 @@ export class RPCSubprovider extends Subprovider {
         }
         ETH_RPC_REQUEST_SUCCESS.labels(finalPayload.method!).inc();
         end(null, data.result);
+    }
+
+    private async _encodeRequestPayloadAsync(finalPayload: Partial<JSONRPCRequestPayloadWithMethod>): Promise<Buffer> {
+        const body = Buffer.from(JSON.stringify(finalPayload));
+        if (!this._shouldCompressRequest) {
+            return body;
+        }
+        return new Promise((resolve, reject) => {
+            gzip(body, (err, result) => {
+                err ? reject(err) : resolve(result);
+            });
+        });
     }
 }

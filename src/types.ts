@@ -413,6 +413,8 @@ export interface HttpServiceConfig extends BaseHttpConfig {
     kafkaBrokers?: string[];
     kafkaConsumerGroupId?: string;
     metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
+    rpcRequestTimeout: number;
+    shouldCompressRequest: boolean;
 }
 
 export interface TokenMetadataOptionalSymbol {

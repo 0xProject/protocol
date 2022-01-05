@@ -74,6 +74,8 @@ if (require.main === module) {
 
         const provider = providerUtils.createWeb3Provider(
             defaultConfig.defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
+            defaultConfig.defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
+            defaultConfig.defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
         );
         const web3Wrapper = new Web3Wrapper(provider);
 

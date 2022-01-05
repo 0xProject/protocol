@@ -162,6 +162,19 @@ export const DB_ORDERS_UPDATE_CHUNK_SIZE = 300;
 
 // Ethereum RPC Url list
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.UrlList);
+// Timeout in seconds to wait for an RPC request (default 5000)
+export const RPC_REQUEST_TIMEOUT = _.isEmpty(process.env.RPC_REQUEST_TIMEOUT)
+    ? 5000
+    : assertEnvVarType('RPC_REQUEST_TIMEOUT', process.env.RPC_REQUEST_TIMEOUT, EnvVarType.Integer);
+
+// Enable client side content compression when sending RPC requests (default false)
+export const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_REQUEST_COMPRESSION)
+    ? false
+    : assertEnvVarType(
+          'ENABLE_RPC_REQUEST_COMPRESSION',
+          process.env.ENABLE_RPC_REQUEST_COMPRESSION,
+          EnvVarType.Boolean,
+      );
 
 export const ORDER_WATCHER_URL = _.isEmpty(process.env.ORDER_WATCHER_URL)
     ? 'http://127.0.0.1:8080'
@@ -584,6 +597,8 @@ export const defaultHttpServiceConfig: HttpServiceConfig = {
     prometheusPath: METRICS_PATH,
     kafkaBrokers: KAFKA_BROKERS,
     kafkaConsumerGroupId: KAFKA_CONSUMER_GROUP_ID,
+    rpcRequestTimeout: RPC_REQUEST_TIMEOUT,
+    shouldCompressRequest: ENABLE_RPC_REQUEST_COMPRESSION,
 };
 
 export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
