@@ -147,32 +147,25 @@ function findRoutesAndCreateOptimalPath(
         if (normalizedOrderInput.isLessThanOrEqualTo(0) || normalizedOrderOutput.isLessThanOrEqualTo(0)) {
             continue;
         }
-
-        // HACK: the router requires at minimum 3 samples as a basis for interpolation
-        const inputs = [
-            0,
-            normalizedOrderInput
-                .dividedBy(2)
-                .integerValue()
-                .toNumber(),
-            normalizedOrderInput.integerValue().toNumber(),
-        ];
-        const outputs = [
-            0,
-            normalizedOrderOutput
-                .dividedBy(2)
-                .integerValue()
-                .toNumber(),
-            normalizedOrderOutput.integerValue().toNumber(),
-        ];
-        // NOTE: same fee no matter if full or partial fill
         const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
             .integerValue()
             .toNumber();
-        const outputFees = [fee, fee, fee];
-        // NOTE: ids can be the same for all fake samples
-        const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}`;
-        const ids = [id, id, id];
+
+        // HACK: due to an issue with the Rust router interpolation we need to create exactly 13 samples from the native order
+        const ids = [];
+        const inputs = [];
+        const outputs = [];
+        const outputFees = [];
+        for (let i = 1; i <= 13; i++) {
+            const fraction = i / 13;
+            const currentInput = BigNumber.min(normalizedOrderInput.times(fraction), normalizedOrderInput);
+            const currentOutput = BigNumber.min(normalizedOrderOutput.times(fraction), normalizedOrderOutput);
+            const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}-${i}`;
+            inputs.push(currentInput.integerValue().toNumber());
+            outputs.push(currentOutput.integerValue().toNumber());
+            outputFees.push(fee);
+            ids.push(id);
+        }
 
         const serializedPath: SerializedPath = {
             ids,
