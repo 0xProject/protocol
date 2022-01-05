@@ -1306,7 +1306,7 @@ export class RfqmService {
                     const { makerAmount: priceCheckMakerAmount, takerAmount: priceCheckTakerAmount } = priceResponse;
                     const originalPrice = otcOrder.makerAmount.dividedBy(priceCheckTakerAmount);
                     const priceAfterReject = priceCheckMakerAmount.dividedBy(priceCheckTakerAmount);
-                    const bipsFactor = 1000;
+                    const bipsFactor = 10000;
                     const priceDifferenceBips = originalPrice
                         .minus(priceAfterReject)
                         .dividedBy(originalPrice)
