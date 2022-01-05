@@ -56,6 +56,18 @@ jobs:
             - name: deploy from branch to production (Fantom)
               if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production fantom' || github.event.comment.body == 'deploy fantom production')
               run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=fantom" >> $GITHUB_ENV;
+            # Celo : folder_chain=celo
+            - name: deploy from branch to production (Celo)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production celo' || github.event.comment.body == 'deploy celo production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=celo" >> $GITHUB_ENV;
+            # Optimism : folder_chain=optimism
+            - name: deploy from branch to production (Optimism)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production optimism' || github.event.comment.body == 'deploy optimism production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=optimism" >> $GITHUB_ENV;
+            # Arbitrum : folder_chain=arbitrum
+            - name: deploy from branch to production (Arbitrum)
+              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production arbitrum' || github.event.comment.body == 'deploy arbitrum production')
+              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=arbitrum" >> $GITHUB_ENV;
             # Make the changes to 0x-main-infra
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v2
@@ -77,6 +89,15 @@ jobs:
             - name: Update API configs (Fantom)
               if: env.chain == 'fantom'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/fantom/*.yml
+            - name: Update API configs (Celo)
+              if: env.chain == 'celo'
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/celo/*.yml
+            - name: Update API configs (Optimism)
+              if: env.chain == 'optimism'
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/optimism/*.yml
+            - name: Update API configs (Arbitrum)
+              if: env.chain == 'arbitrum'
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/arbitrum/*.yml
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3.5.0
               with:

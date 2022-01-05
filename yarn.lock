@@ -57,10 +57,9 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.45.0":
-  version "16.45.0"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.45.0.tgz#697e24ae7f0c64b76046045fe5b2c20c0abd1feb"
-  integrity sha512-ejph0ijqPmxx0pvdl/JyhDqSG3h0HRqySTTa/W4TopuUwbyLJoaB2951KNDtzGhTA3D9ih8cezfmzCcFjNMtdA==
+"@0x/asset-swapper@^16.45.1":
+  version "16.45.1"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.45.1.tgz#6f9f6b94cd6f2b4df6afe15d4bbd42cc38d0af53"
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
@@ -575,7 +574,6 @@
 "@0x/neon-router@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.1.tgz#4ec13e750d1435357c4928d7f2521a2b4376f27e"
-  integrity sha512-M4ypTov9KyxsGJpYwobrld3Y2JOlR7U0XjR6BEQE2gQ1k3nie/1wNEI2J4ZjKw++RLDxdv/RCqhgA5VnINzjxA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
