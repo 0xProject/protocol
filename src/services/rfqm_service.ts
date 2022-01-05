@@ -1304,13 +1304,26 @@ export class RfqmService {
                         throw new Error('Failed to get a price response');
                     }
                     const { makerAmount: priceCheckMakerAmount, takerAmount: priceCheckTakerAmount } = priceResponse;
-                    const originalPrice = otcOrder.makerAmount.dividedBy(priceCheckTakerAmount).toNumber();
-                    const priceAfterReject = priceCheckMakerAmount.dividedBy(priceCheckTakerAmount).toNumber();
+                    const originalPrice = otcOrder.makerAmount.dividedBy(priceCheckTakerAmount);
+                    const priceAfterReject = priceCheckMakerAmount.dividedBy(priceCheckTakerAmount);
+                    const bipsFactor = 1000;
+                    const priceDifferenceBips = originalPrice
+                        .minus(priceAfterReject)
+                        .dividedBy(originalPrice)
+                        .absoluteValue()
+                        .times(bipsFactor)
+                        .toPrecision(1);
                     // The time, in seconds, between when we initiated the sign attempt and when we
                     // initiated the price check after the maker declined to sign.
                     const priceCheckDelayS = (declineToSignPriceCheckTimeMs - signAttemptTimeMs) / ONE_SECOND_MS;
                     logger.info(
-                        { originalPrice, priceAfterReject, priceCheckDelayS, orderHash },
+                        {
+                            orderHash,
+                            originalPrice: originalPrice.toNumber(),
+                            priceAfterReject: priceAfterReject.toNumber(),
+                            priceCheckDelayS,
+                            priceDifferenceBips,
+                        },
                         'Decline to sign price check',
                     );
                 } catch (error) {
