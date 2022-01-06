@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.46.0",
+        "changes": [
+            {
+                "note": "Enable `Native` orders on `BSC` and `Polygon` in Asset-swapper"
+            }
+        ]
+    },
+    {
         "version": "16.45.1",
         "changes": [
             {
