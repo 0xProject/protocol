@@ -149,8 +149,10 @@ abstract contract FixinTokenSpender {
     function _transferEth(address payable recipient, uint256 amount)
         internal
     {
-        (bool success,) = recipient.call{value: amount}("");
-        require(success, "FixinTokenSpender::_transferEth/TRANSFER_FAILED");
+        if (amount > 0) {
+            (bool success,) = recipient.call{value: amount}("");
+            require(success, "FixinTokenSpender::_transferEth/TRANSFER_FAILED");
+        }
     }
 
     /// @dev Gets the maximum amount of an ERC20 token `token` that can be

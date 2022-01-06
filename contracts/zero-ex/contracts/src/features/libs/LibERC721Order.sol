@@ -105,7 +105,7 @@ library LibERC721Order {
     //       "bytes feeData",
     //     ")"
     // ))
-    uint256 private constant _FEE_TYPEHASH = 
+    uint256 private constant _FEE_TYPEHASH =
         0xe68c29f1b4e8cce0bbcac76eb1334bdc1dc1f293a517c90e9e532340e1e94115;
 
     // keccak256(abi.encodePacked(
@@ -114,19 +114,19 @@ library LibERC721Order {
     //       "bytes propertyData",
     //     ")"
     // ))
-    uint256 private constant _PROPERTY_TYPEHASH = 
+    uint256 private constant _PROPERTY_TYPEHASH =
         0x6292cf854241cb36887e639065eca63b3af9f7f70270cebeda4c29b6d3bc65e8;
 
     // keccak256("");
-    bytes32 private constant _EMPTY_ARRAY_KECCAK256 = 
-        0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;        
+    bytes32 private constant _EMPTY_ARRAY_KECCAK256 =
+        0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
 
     // keccak256(abi.encodePacked(keccak256(abi.encode(
     //     _PROPERTY_TYPEHASH,
     //     address(0),
     //     keccak256("")
     // ))));
-    bytes32 private constant _NULL_PROPERTY_STRUCT_HASH = 
+    bytes32 private constant _NULL_PROPERTY_STRUCT_HASH =
         0x720ee400a9024f6a49768142c339bf09d2dd9056ab52d20fbe7165faba6e142d;
 
     uint256 private constant ADDRESS_MASK = (1 << 160) - 1;
@@ -139,7 +139,7 @@ library LibERC721Order {
         pure
         returns (bytes32 structHash)
     {
-        // We give `order.erc721TokenProperties.length == 0` and 
+        // We give `order.erc721TokenProperties.length == 0` and
         // `order.erc721TokenProperties.length == 1` special treatment
         // because we expect these to be the most common.
         bytes32 propertiesHash;
@@ -159,10 +159,8 @@ library LibERC721Order {
                 //     order.erc721TokenProperties[0].propertyValidator,
                 //     keccak256(order.erc721TokenProperties[0].propertyData)
                 // ))));
-                bytes memory data = property.propertyData;
+                bytes32 dataHash = keccak256(property.propertyData);
                 assembly {
-                    // dataHash = keccak256(property.propertyData)
-                    let dataHash := keccak256(add(data, 32), mload(data))
                     // Load free memory pointer
                     let mem := mload(64)
                     mstore(mem, _PROPERTY_TYPEHASH)
@@ -188,7 +186,7 @@ library LibERC721Order {
             propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
         }
 
-        // We give `order.fees.length == 0` and 
+        // We give `order.fees.length == 0` and
         // `order.fees.length == 1` special treatment
         // because we expect these to be the most common.
         bytes32 feesHash;
@@ -202,10 +200,8 @@ library LibERC721Order {
             //     keccak256(order.fees[0].feeData)
             // ))));
             Fee memory fee = order.fees[0];
-            bytes memory data = fee.feeData;
+            bytes32 dataHash = keccak256(fee.feeData);
             assembly {
-                // dataHash = keccak256(fee.feeData)
-                let dataHash := keccak256(add(data, 32), mload(data))
                 // Load free memory pointer
                 let mem := mload(64)
                 mstore(mem, _FEE_TYPEHASH)
@@ -247,22 +243,24 @@ library LibERC721Order {
         //     order.nonce
         // ));
         assembly {
-            let pos1 := sub(order, 32)
-            let pos2 := add(order, 160)
-            let pos3 := add(order, 192)
+            if lt(order, 32) { invalid() } // Don't underflow memory.
 
-            let temp1 := mload(pos1)
-            let temp2 := mload(pos2)
-            let temp3 := mload(pos3)
+            let typeHashPos := sub(order, 32) // order + (32 * -1)
+            let propertiesHashPos := add(order, 160) // order + (32 * 5)
+            let feesHashPos := add(order, 192) // order + (32 * 6)
 
-            mstore(pos1, _ERC_721_ORDER_TYPEHASH)
-            mstore(pos2, propertiesHash)
-            mstore(pos3, feesHash)
-            structHash := keccak256(pos1, 384)
+            let temp1 := mload(typeHashPos)
+            let temp2 := mload(propertiesHashPos)
+            let temp3 := mload(feesHashPos)
 
-            mstore(pos1, temp1)
-            mstore(pos2, temp2)
-            mstore(pos3, temp3)
+            mstore(typeHashPos, _ERC_721_ORDER_TYPEHASH)
+            mstore(propertiesHashPos, propertiesHash)
+            mstore(feesHashPos, feesHash)
+            structHash := keccak256(typeHashPos, 384 /* 32 * 12 */ )
+
+            mstore(typeHashPos, temp1)
+            mstore(propertiesHashPos, temp2)
+            mstore(feesHashPos, temp3)
         }
         return structHash;
     }
