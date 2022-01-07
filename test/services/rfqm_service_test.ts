@@ -18,7 +18,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { Integrator } from '../../src/config';
+import { Integrator, RFQM_MAKER_ASSET_OFFERINGS } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
 import {
     RfqmJobEntity,
@@ -31,6 +31,7 @@ import { RfqmService } from '../../src/services/rfqm_service';
 import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmTypes } from '../../src/services/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { PairsManager } from '../../src/utils/pairs_manager';
+import { QuoteRequestorManager } from '../../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -51,9 +52,17 @@ const MOCK_INTEGRATOR: Integrator = {
     rfqt: true,
 };
 
+const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): QuoteRequestorManager => {
+    const quoteRequestorManagerMock = mock(QuoteRequestorManager);
+    const quoteRequestorManagerInstance = instance(quoteRequestorManagerMock);
+    when(quoteRequestorManagerMock.getInstance()).thenReturn(quoteRequestorInstance);
+
+    return quoteRequestorManagerInstance;
+};
+
 const buildRfqmServiceForUnitTest = (
     overrides: {
-        quoteRequestor?: QuoteRequestor;
+        quoteRequestorManager?: QuoteRequestorManager;
         protocolFeeUtils?: ProtocolFeeUtils;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
@@ -86,6 +95,7 @@ const buildRfqmServiceForUnitTest = (
     ]);
 
     const quoteRequestorInstance = instance(quoteRequestorMock);
+    const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
     const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
     when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
     const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
@@ -102,7 +112,7 @@ const buildRfqmServiceForUnitTest = (
     const pairsManagerMock = mock(PairsManager);
 
     return new RfqmService(
-        overrides.quoteRequestor || quoteRequestorInstance,
+        overrides.quoteRequestorManager || quoteRequestorManagerInstance,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
@@ -343,9 +353,10 @@ describe('RfqmService HTTP Logic', () => {
                 ]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -399,9 +410,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([partialFillQuote, fullQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -447,9 +459,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([partialFillQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // Expect
@@ -496,8 +509,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([worsePricing, betterPricing]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
+
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -551,8 +566,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([worsePricing, wrongPair]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
+
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -607,9 +624,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([expiresSoon, expiresNever]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -658,9 +676,10 @@ describe('RfqmService HTTP Logic', () => {
                 ]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -722,9 +741,10 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([partialFillQuoteBadPricing, partialFillQuoteGoodPricing, fullQuote]);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                 });
 
                 // When
@@ -792,6 +812,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -812,7 +833,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -874,6 +895,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -894,7 +916,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -957,6 +979,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -977,7 +1000,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -1036,6 +1059,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -1056,7 +1080,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -1119,6 +1143,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -1139,7 +1164,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -1217,6 +1242,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
 
                 const quoteRequestorInstance = instance(quoteRequestorMock);
+                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
 
                 // Mock out the blockchain utils
                 const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
@@ -1237,7 +1263,7 @@ describe('RfqmService HTTP Logic', () => {
                 const dbUtils = instance(dbUtilsMock);
 
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestor: quoteRequestorInstance,
+                    quoteRequestorManager: quoteRequestorManagerInstance,
                     rfqBlockchainUtils,
                     dbUtils,
                 });
@@ -1268,7 +1294,14 @@ describe('RfqmService HTTP Logic', () => {
         it('returns active pairs', async () => {
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync()).thenResolve([]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+            const pairsManagerMock = mock(PairsManager);
+            when(pairsManagerMock.getRfqmMakerOfferings()).thenReturn(RFQM_MAKER_ASSET_OFFERINGS);
+
+            const service = buildRfqmServiceForUnitTest({
+                dbUtils: instance(dbUtilsMock),
+                pairsManager: instance(pairsManagerMock),
+            });
 
             const result = await service.runHealthCheckAsync();
 

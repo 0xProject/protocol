@@ -26,6 +26,7 @@ import { logger } from '../../src/logger';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { CacheClient } from '../../src/utils/cache_client';
 import { PairsManager } from '../../src/utils/pairs_manager';
+import { QuoteRequestorManager } from '../../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
@@ -37,6 +38,14 @@ const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 50;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 let loggerSpy: pino.Logger;
 
+const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): QuoteRequestorManager => {
+    const quoteRequestorManagerMock = mock(QuoteRequestorManager);
+    const quoteRequestorManagerInstance = instance(quoteRequestorManagerMock);
+    when(quoteRequestorManagerMock.getInstance()).thenReturn(quoteRequestorInstance);
+
+    return quoteRequestorManagerInstance;
+};
+
 const buildRfqmServiceForUnitTest = (
     overrides: {
         cacheClient?: CacheClient;
@@ -44,7 +53,7 @@ const buildRfqmServiceForUnitTest = (
         pairsManager?: PairsManager;
         producer?: Producer;
         protocolFeeUtils?: ProtocolFeeUtils;
-        quoteRequestor?: QuoteRequestor;
+        quoteRequestorManager?: QuoteRequestorManager;
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
     } = {},
@@ -72,6 +81,7 @@ const buildRfqmServiceForUnitTest = (
     ]);
 
     const quoteRequestorInstance = instance(quoteRequestorMock);
+    const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
     const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
     when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
     const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
@@ -88,7 +98,7 @@ const buildRfqmServiceForUnitTest = (
     const pairsManagerMock = mock(PairsManager);
 
     return new RfqmService(
-        overrides.quoteRequestor || quoteRequestorInstance,
+        overrides.quoteRequestorManager || quoteRequestorManagerInstance,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,

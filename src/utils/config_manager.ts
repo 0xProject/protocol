@@ -1,13 +1,19 @@
 // tslint:disable: prefer-function-over-method
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
+import { ChainId } from '@0x/contract-addresses';
 import { createHash } from 'crypto';
 
 import {
+    CHAIN_ID,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     Integrator,
+    MakerIdsToConfigs,
     RFQM_API_KEY_WHITELIST,
     RFQM_MAKER_ASSET_OFFERINGS,
+    RFQM_MAKER_CONFIG_MAP,
+    RFQM_MAKER_CONFIG_MAP_FOR_OTC_ORDER,
+    RFQM_MAKER_CONFIG_MAP_FOR_RFQ_ORDER,
     RFQM_MAKER_SET_FOR_OTC_ORDER,
     RFQM_MAKER_SET_FOR_RFQ_ORDER,
     RFQT_MAKER_ASSET_OFFERINGS,
@@ -52,5 +58,33 @@ export class ConfigManager {
 
     public getIntegratorIdForApiKey(apiKey: string): string | undefined {
         return getIntegratorIdForApiKey(apiKey);
+    }
+
+    /**
+     * Get a map of makers that support RFQm workflow with either rfq or otc order types
+     * @returns a map from makerIds to makers' configuration object
+     */
+    public getRfqmMakerConfigMap(): MakerIdsToConfigs {
+        return RFQM_MAKER_CONFIG_MAP;
+    }
+
+    /**
+     * Get a map of makers that support RFQm workflow with rfq order type
+     * @returns a map from makerIds to makers' configuration object
+     */
+    public getRfqmMakerConfigMapForRfqOrder(): MakerIdsToConfigs {
+        return RFQM_MAKER_CONFIG_MAP_FOR_RFQ_ORDER;
+    }
+
+    /**
+     * Get a map of makers that support RFQm workflow with otc order type
+     * @returns a map from makerIds to makers' configuration object
+     */
+    public getRfqmMakerConfigMapForOtcOrder(): MakerIdsToConfigs {
+        return RFQM_MAKER_CONFIG_MAP_FOR_OTC_ORDER;
+    }
+
+    public getChainId(): ChainId {
+        return CHAIN_ID;
     }
 }

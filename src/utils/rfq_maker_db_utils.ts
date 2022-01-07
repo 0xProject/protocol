@@ -18,6 +18,15 @@ export class RfqMakerDbUtils {
     }
 
     /**
+     * [RFQ maker] find all RfqMakerPairs for given blockchain
+     */
+    public async getPairsArrayAsync(chainId: number): Promise<RfqMakerPairs[]> {
+        return this._connection.getRepository(RfqMakerPairs).find({
+            where: { chainId },
+        });
+    }
+
+    /**
      * [RFQ maker] create or update RfqMakerPairs for given maker and blockchain
      */
     public async createOrUpdatePairsAsync(

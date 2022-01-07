@@ -16,6 +16,7 @@ export const DEFAULT_LOCAL_REDIS_URI = 'redis://localhost';
 export const DEFAULT_LOGGER_INCLUDE_TIMESTAMP = true;
 export const ONE_SECOND_MS = 1000;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
+export const ONE_HOUR_MS = ONE_MINUTE_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const DEFAULT_VALIDATION_GAS_LIMIT = 10e6;
 export const HEX_BASE = 16;

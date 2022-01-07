@@ -2,7 +2,7 @@
  * This module can be used to run the RFQM HTTP service standalone
  */
 import { createDefaultServer } from '@0x/api-utils';
-import { ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { SupportedProvider } from '@0x/dev-utils';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import Axios, { AxiosRequestConfig } from 'axios';
@@ -57,6 +57,7 @@ import { ConfigManager } from '../utils/config_manager';
 import { METRICS_PROXY } from '../utils/metrics_service';
 import { PairsManager } from '../utils/pairs_manager';
 import { providerUtils } from '../utils/provider_utils';
+import { QuoteRequestorManager } from '../utils/quote_requestor_manager';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -80,10 +81,17 @@ if (require.main === module) {
             ...defaultHttpServiceWithRateLimiterConfig,
         };
         const connection = await getDBConnectionAsync();
+        const rfqmDbUtils = new RfqmDbUtils(connection);
+        const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
 
-        const rfqmService = await buildRfqmServiceAsync(connection, /* asWorker = */ false, configManager);
-        const rfqMakerService = buildRfqMakerService(connection, configManager);
+        const rfqmService = await buildRfqmServiceAsync(
+            /* asWorker = */ false,
+            rfqmDbUtils,
+            rfqMakerDbUtils,
+            configManager,
+        );
+        const rfqMakerService = buildRfqMakerService(rfqMakerDbUtils, configManager);
         await runHttpRfqmServiceAsync(rfqmService, rfqMakerService, configManager, config, connection);
     })().catch((error) => logger.error(error.stack));
 }
@@ -92,8 +100,9 @@ if (require.main === module) {
  * Builds an instance of RfqmService
  */
 export async function buildRfqmServiceAsync(
-    connection: Connection,
     asWorker: boolean,
+    rfqmDbUtils: RfqmDbUtils,
+    rfqMakerDbUtils: RfqMakerDbUtils,
     configManager: ConfigManager = new ConfigManager(),
 ): Promise<RfqmService> {
     let provider: SupportedProvider;
@@ -125,7 +134,8 @@ export async function buildRfqmServiceAsync(
         provider = rpcProvider;
     }
 
-    const pairsManager = new PairsManager(configManager);
+    const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
+    await pairsManager.initializeAsync();
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     axiosInstance.defaults.raxConfig = {
@@ -136,10 +146,9 @@ export async function buildRfqmServiceAsync(
     rax.attach(axiosInstance);
 
     // NOTE: QuoteRequestor is only used for RfqOrder
-    const rfqmMakerAssetOfferingsForRfqOrder = pairsManager.getRfqmMakerOfferingsForRfqOrder();
-    const quoteRequestor = new QuoteRequestor(
+    const quoteRequestorManager = new QuoteRequestorManager(
+        pairsManager,
         {}, // No RFQT offerings
-        rfqmMakerAssetOfferingsForRfqOrder,
         axiosInstance,
         undefined, // No Alt RFQM offerings at the moment
         logger.warn.bind(logger),
@@ -165,8 +174,6 @@ export async function buildRfqmServiceAsync(
         ethersWallet,
     );
 
-    const dbUtils = new RfqmDbUtils(connection);
-
     const sqsProducer = Producer.create({
         queueUrl: RFQM_META_TX_SQS_URL,
     });
@@ -179,12 +186,12 @@ export async function buildRfqmServiceAsync(
     const kafkaProducer = getKafkaProducer();
 
     return new RfqmService(
-        quoteRequestor,
+        quoteRequestorManager,
         protocolFeeUtils,
         contractAddresses,
         META_TX_WORKER_REGISTRY!,
         rfqBlockchainUtils,
-        dbUtils,
+        rfqmDbUtils,
         sqsProducer,
         quoteServerClient,
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
@@ -197,8 +204,7 @@ export async function buildRfqmServiceAsync(
 /**
  * Builds an instance of RfqMakerService
  */
-export function buildRfqMakerService(connection: Connection, configManager: ConfigManager): RfqMakerService {
-    const dbUtils = new RfqMakerDbUtils(connection);
+export function buildRfqMakerService(dbUtils: RfqMakerDbUtils, configManager: ConfigManager): RfqMakerService {
     return new RfqMakerService(dbUtils, configManager);
 }
 

@@ -17,7 +17,9 @@ import { METRICS_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
+import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
 
@@ -73,7 +75,9 @@ if (require.main === module) {
 
         // Build dependencies
         const connection = await getDBConnectionAsync();
-        const rfqmService = await buildRfqmServiceAsync(connection, true);
+        const rfqmDbUtils = new RfqmDbUtils(connection);
+        const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
+        const rfqmService = await buildRfqmServiceAsync(true, rfqmDbUtils, rfqMakerDbUtils);
 
         // Run the worker
         const worker = createRfqmWorker(rfqmService, workerAddress);

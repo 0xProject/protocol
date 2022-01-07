@@ -1,6 +1,6 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils, QuoteRequestor } from '@0x/asset-swapper';
+import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils } from '@0x/asset-swapper';
 // tslint:disable-next-line:no-duplicate-imports
 import { V4RFQIndicativeQuoteMM } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
@@ -21,7 +21,6 @@ import {
     Integrator,
     META_TX_WORKER_REGISTRY,
     RFQM_MAINTENANCE_MODE,
-    RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_WORKER_INDEX,
     RFQT_REQUEST_MAX_RESPONSE_MS,
 } from '../config';
@@ -48,6 +47,7 @@ import { CacheClient } from '../utils/cache_client';
 import { PairsManager } from '../utils/pairs_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
+import { QuoteRequestorManager } from '../utils/quote_requestor_manager';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
@@ -274,7 +274,7 @@ export class RfqmService {
     }
 
     constructor(
-        private readonly _quoteRequestor: QuoteRequestor,
+        private readonly _quoteRequestorManager: QuoteRequestorManager,
         private readonly _protocolFeeUtils: ProtocolFeeUtils,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
@@ -732,7 +732,7 @@ export class RfqmService {
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
             registryBalance,
-            RFQM_MAKER_ASSET_OFFERINGS,
+            this._pairsManager.getRfqmMakerOfferings(),
             this._sqsProducer,
             heartbeats,
             gasPrice,
@@ -1604,8 +1604,9 @@ export class RfqmService {
         const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
         // Fetch quotes
+        const quoteRequestor = this._quoteRequestorManager.getInstance();
         const [rfqOrderQuotes, otcOrderQuotes] = await Promise.all([
-            this._quoteRequestor.requestRfqmIndicativeQuotesAsync(
+            quoteRequestor.requestRfqmIndicativeQuotesAsync(
                 makerToken,
                 takerToken,
                 assetFillAmount,
@@ -1687,8 +1688,9 @@ export class RfqmService {
         const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
         // Fetch quotes
+        const quoteRequestor = this._quoteRequestorManager.getInstance();
         const [rfqQuotes, otcQuotes] = await Promise.all([
-            this._quoteRequestor
+            quoteRequestor
                 .requestRfqmFirmQuotesAsync(makerToken, takerToken, assetFillAmount, marketOperation, undefined, opts)
                 .then((quotes) =>
                     quotes.map((q): FirmQuote => {
@@ -1696,7 +1698,7 @@ export class RfqmService {
                             order: new RfqOrder(q.order),
                             kind: 'rfq',
                             makerSignature: q.signature,
-                            makerUri: this._quoteRequestor.getMakerUriForSignature(q.signature)!,
+                            makerUri: quoteRequestor.getMakerUriForSignature(q.signature)!,
                         };
                     }),
                 ),

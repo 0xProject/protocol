@@ -39,9 +39,11 @@ import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { PairsManager } from '../src/utils/pairs_manager';
+import { QuoteRequestorManager } from '../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOrderToRfqmOrder, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
+import { RfqMakerDbUtils } from '../src/utils/rfq_maker_db_utils';
 
 import {
     CONTRACT_ADDRESSES,
@@ -171,6 +173,14 @@ const MOCK_RFQM_JOB = new RfqmJobEntity({
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
 });
 
+const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): QuoteRequestorManager => {
+    const quoteRequestorManagerMock = mock(QuoteRequestorManager);
+    const quoteRequestorManagerInstance = instance(quoteRequestorManagerMock);
+    when(quoteRequestorManagerMock.getInstance()).thenReturn(quoteRequestorInstance);
+
+    return quoteRequestorManagerInstance;
+};
+
 describe(SUITE_NAME, () => {
     let takerAddress: string;
     let makerAddress: string;
@@ -231,6 +241,7 @@ describe(SUITE_NAME, () => {
 
         // Build QuoteRequestor, note that Axios client is accessible outside of this scope
         const quoteRequestor = new QuoteRequestor({}, rfqOrderAssetOfferings, axiosClient);
+        const quoteRequestorManager = buildQuoteRequestorManager(quoteRequestor);
 
         // Create the mock rfqBlockchainUtils
         const validationResponse: [BigNumber, BigNumber] = [new BigNumber(1), new BigNumber(1)];
@@ -314,11 +325,17 @@ describe(SUITE_NAME, () => {
         });
         cacheClient = new CacheClient(redisClient);
 
-        // Create the PairsManager
-        const pairsManager = new PairsManager(configManager);
+        // Create the mock PairsManager
+        const pairsManagerMock = mock(PairsManager);
+        when(pairsManagerMock.getRfqmMakerUrisForPairOnOtcOrder(anyString(), anyString())).thenReturn([
+            MARKET_MAKER_2,
+            MARKET_MAKER_3,
+        ]);
+        when(pairsManagerMock.getRfqmMakerOfferings()).thenReturn(config.RFQM_MAKER_ASSET_OFFERINGS);
+        const pairsManager = instance(pairsManagerMock);
 
         rfqmService = new RfqmService(
-            quoteRequestor,
+            quoteRequestorManager,
             protocolFeeUtils,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
@@ -331,7 +348,7 @@ describe(SUITE_NAME, () => {
             pairsManager,
         );
 
-        const rfqMakerService = buildRfqMakerService(connection, configManager);
+        const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(connection), configManager);
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(

@@ -1,7 +1,30 @@
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
+import * as EventEmitter from 'events';
+import { Counter, Summary } from 'prom-client';
+
+import { MakerIdsToConfigs, RfqMakerConfig, RFQ_PAIR_REFRESH_INTERVAL_MS, RFQ_WORKFLOW } from '../config';
+import { RfqMakerPairs } from '../entities';
+import { logger } from '../logger';
 
 import { ConfigManager } from './config_manager';
 import { pairUtils } from './pair_utils';
+import { RfqMakerDbUtils } from './rfq_maker_db_utils';
+
+const RFQ_MAKER_PAIRS_REFRESH_FAILED = new Counter({
+    name: 'rfq_maker_pairs_refresh_failed',
+    help: 'A pair refreshing job failed.',
+    labelNames: ['chainId', 'workflow'],
+});
+const RFQ_MAKER_PAIRS_REFRESH_SUCCEEDED = new Counter({
+    name: 'rfq_maker_pairs_refresh_succeeded',
+    help: 'A pair refreshing job succeeded.',
+    labelNames: ['chainId', 'workflow'],
+});
+const RFQ_MAKER_PAIRS_REFRESH_LATENCY = new Summary({
+    name: 'rfq_maker_pairs_refresh_latency',
+    help: 'Latency for the maker pair refreshing job.',
+    labelNames: ['chainId', 'workflow'],
+});
 
 /**
  * Transform RfqMakerAssetOfferings into an object of the form:
@@ -34,59 +57,117 @@ const generatePairToMakerUriMap = (offerings: RfqMakerAssetOfferings): PairsToUr
 };
 
 type PairsToUris = Record<string, string[]>;
+const RfqMakerUrlField: 'rfqtMakerUri' | 'rfqmMakerUri' = `${RFQ_WORKFLOW}MakerUri`;
+
+/**
+ * Returns Asset Offerings from an RfqMakerConfig map and a list of RfqMakerPairs
+ */
+const generateAssetOfferings = (
+    makerConfigMap: MakerIdsToConfigs,
+    makerPairsList: RfqMakerPairs[],
+): RfqMakerAssetOfferings => {
+    return makerPairsList.reduce((offering: RfqMakerAssetOfferings, pairs: RfqMakerPairs) => {
+        if (makerConfigMap.has(pairs.makerId)) {
+            const makerConfig: RfqMakerConfig = makerConfigMap.get(pairs.makerId)!;
+            offering[makerConfig[RfqMakerUrlField]] = pairs.pairs;
+        }
+        return offering;
+    }, {});
+};
 
 /**
  * PairsManager abstracts away all operations for handling maker pairs
  */
-export class PairsManager {
-    private readonly _rfqmOfferings: RfqMakerAssetOfferings;
-    private readonly _rfqmPairToMakerUris: PairsToUris;
-    private readonly _rfqtPairToMakerUris: PairsToUris;
+export class PairsManager extends EventEmitter {
+    public static REFRESHED_EVENT = 'refreshed';
 
-    constructor(private readonly _configManager: ConfigManager) {
-        this._rfqmOfferings = _configManager.getRfqmAssetOfferings();
-        const rfqtOfferings = _configManager.getRfqtAssetOfferings();
+    private readonly _rfqmMakerConfigMap: MakerIdsToConfigs;
+    private readonly _rfqmMakerConfigMapForRfqOrder: MakerIdsToConfigs;
+    private readonly _rfqmMakerConfigMapForOtcOrder: MakerIdsToConfigs;
+    private _rfqmMakerOfferings: RfqMakerAssetOfferings;
+    private _rfqmMakerOfferingsForRfqOrder: RfqMakerAssetOfferings;
+    private _rfqmPairToMakerUrisForOtcOrder: PairsToUris;
 
-        this._rfqmPairToMakerUris = generatePairToMakerUriMap(this._rfqmOfferings);
-        this._rfqtPairToMakerUris = generatePairToMakerUriMap(rfqtOfferings);
+    constructor(private readonly _configManager: ConfigManager, private readonly _dbUtils: RfqMakerDbUtils) {
+        super();
+
+        this._rfqmMakerOfferings = {};
+        this._rfqmMakerOfferingsForRfqOrder = {};
+        this._rfqmPairToMakerUrisForOtcOrder = {};
+
+        this._rfqmMakerConfigMap = this._configManager.getRfqmMakerConfigMap();
+        this._rfqmMakerConfigMapForRfqOrder = this._configManager.getRfqmMakerConfigMapForRfqOrder();
+        this._rfqmMakerConfigMapForOtcOrder = this._configManager.getRfqmMakerConfigMapForOtcOrder();
     }
 
     /**
-     * Get a list of RFQt Maker Uris that support this pair
+     * Initialize pairs data and set up periodical refreshing
      */
-    public getRfqtMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqtPairToMakerUris[pairUtils.toKey(makerToken, takerToken)] || [];
-    }
+    public async initializeAsync(): Promise<void> {
+        await this._refreshAsync();
 
-    /**
-     * Get a list of RFQm Maker Uris that support this pair
-     */
-    public getRfqmMakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        return this._rfqmPairToMakerUris[pairUtils.toKey(makerToken, takerToken)] || [];
+        setInterval(async () => {
+            await this._refreshAsync();
+        }, RFQ_PAIR_REFRESH_INTERVAL_MS);
     }
 
     /**
      * Get a list of RFQm Maker Uris that support this pair on OtcOrder
      */
     public getRfqmMakerUrisForPairOnOtcOrder(makerToken: string, takerToken: string): string[] {
-        const otcMakerSet = this._configManager.getRfqmMakerSetForOtcOrder();
-        const makerUris = this.getRfqmMakerUrisForPair(makerToken, takerToken);
+        return this._rfqmPairToMakerUrisForOtcOrder[pairUtils.toKey(makerToken, takerToken)] || [];
+    }
 
-        return makerUris.filter((makerUri) => otcMakerSet.has(makerUri));
+    /**
+     * Get the RfqMakerAssetOfferings for rfq or otc orders
+     */
+    public getRfqmMakerOfferings(): RfqMakerAssetOfferings {
+        return this._rfqmMakerOfferings;
     }
 
     /**
      * Get the RfqMakerAssetOfferings for RfqOrder
      */
     public getRfqmMakerOfferingsForRfqOrder(): RfqMakerAssetOfferings {
-        const rfqMakerSet = this._configManager.getRfqmMakerSetForRfqOrder();
-        const rfqMakerOfferings = { ...this._rfqmOfferings };
-        for (const makerUri in rfqMakerOfferings) {
-            if (!rfqMakerSet.has(makerUri)) {
-                delete rfqMakerOfferings[makerUri];
-            }
-        }
+        return this._rfqmMakerOfferingsForRfqOrder;
+    }
 
-        return rfqMakerOfferings;
+    /**
+     * Refresh the pairs information for each maker by querying database.
+     * Emit an 'refreshed' event for subscribers to refresh if the operation is successful.
+     */
+    private async _refreshAsync(): Promise<void> {
+        const chainId = this._configManager.getChainId();
+        const refreshTime = new Date();
+        const timerStopFunction = RFQ_MAKER_PAIRS_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
+
+        try {
+            logger.info({ chainId, refreshTime }, `Start refreshing pairs.`);
+
+            const rfqMakerPairsList = await this._dbUtils.getPairsArrayAsync(chainId);
+
+            this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerConfigMap, rfqMakerPairsList);
+
+            this._rfqmMakerOfferingsForRfqOrder = generateAssetOfferings(
+                this._rfqmMakerConfigMapForRfqOrder,
+                rfqMakerPairsList,
+            );
+
+            const rfqmMakerOfferingsForOtcOrder = generateAssetOfferings(
+                this._rfqmMakerConfigMapForOtcOrder,
+                rfqMakerPairsList,
+            );
+            this._rfqmPairToMakerUrisForOtcOrder = generatePairToMakerUriMap(rfqmMakerOfferingsForOtcOrder);
+
+            this.emit(PairsManager.REFRESHED_EVENT);
+
+            logger.info({ chainId, refreshTime }, `Successfully refreshed pairs.`);
+            RFQ_MAKER_PAIRS_REFRESH_SUCCEEDED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
+        } catch (error) {
+            logger.error({ chainId, refreshTime, errorMessage: error.message }, `Failed to refresh pairs.`);
+            RFQ_MAKER_PAIRS_REFRESH_FAILED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
+        } finally {
+            timerStopFunction();
+        }
     }
 }
