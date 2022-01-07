@@ -1392,7 +1392,11 @@ export class RfqmService {
     ): Promise<RfqmJobStatus.FailedRevertedConfirmed | RfqmJobStatus.SucceededConfirmed> {
         const _job = _.cloneDeep(job);
         const { orderHash } = _job;
-        const previousSubmissions = await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+        const previousSubmissionsWithPresubmits = await (job.kind === 'rfqm_v1_job'
+            ? this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash)
+            : this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash));
+
+        const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
         const [gasPriceEstimate, nonce, gasEstimate] = await Promise.all([
             this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync(),
@@ -1414,8 +1418,6 @@ export class RfqmService {
         if (!previousSubmissions.length) {
             logger.info({ orderHash, workerAddress }, 'Attempting to submit first transaction');
 
-            // claim this job for the worker, and set status to submitted
-            _job.workerAddress = workerAddress;
             _job.status = RfqmJobStatus.PendingSubmitted;
             await this._dbUtils.updateRfqmJobAsync(_job);
 
@@ -1899,5 +1901,45 @@ export class RfqmService {
                 verifyingContract: this._contractAddresses.exchangeProxy,
             }),
         };
+    }
+
+    /**
+     * Takes an array of Transaction Submissions, which may include transactions with the
+     * "Presbumit" status, and resolves or removes the "Presubmit" transactions.
+     *
+     * If there are previous submissions in the "Presubmit" state,
+     *
+     * For "Presubmit" transactions, we check to see if the transaction was actually sent to
+     * the mempool or not, as that is indeterminate. Depending on the result of the check, we
+     * update the status to "Submitted" or remove them from the submissions in memory.
+     * Note that we leave the transaction record present in the database so that if the worker
+     * dies again and the submission actually went through but was not found at the time of
+     * this check we can potentially recover it later.
+     */
+    private async _recoverPresubmitTransactionsAsync<
+        T extends RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[],
+    >(transactionSubmissions: T): Promise<T> {
+        // Any is so nasty -- https://dev.to/shadow1349/typescript-tip-of-the-week-generics-170g
+        const result: any = await Promise.all(
+            transactionSubmissions.map(async (transactionSubmission) => {
+                // If the transaction is any status other than "Presubmit" then we'll leave it
+                if (transactionSubmission.status !== RfqmTransactionSubmissionStatus.Presubmit) {
+                    return transactionSubmission;
+                }
+                // For transactions in presubmit, check the mempool and chain to see if they exist
+                const transactionResponse = await this._blockchainUtils.getTransactionAsync(
+                    transactionSubmission.transactionHash!,
+                );
+                if (transactionResponse) {
+                    // If it does exist, update the status. If not, remove it.
+                    transactionSubmission.status = RfqmTransactionSubmissionStatus.Submitted;
+                    await this._dbUtils.updateRfqmTransactionSubmissionsAsync([transactionSubmission] as T);
+                    return transactionSubmission;
+                } else {
+                    return null;
+                }
+            }),
+        ).then((x) => x.filter(isDefined));
+        return result;
     }
 }

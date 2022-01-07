@@ -294,6 +294,20 @@ export class RfqBlockchainUtils {
         return this._ethersProvider.getBlock(blockHash);
     }
 
+    /**
+     * Passthrough to the ethers `getTransaction` function
+     * https://docs.ethers.io/v5/api/providers/provider/#Provider-getTransaction:
+     *
+     * Returns the transaction with hash or null if the transaction is unknown.
+     * If a transaction has not been mined, this method will search the transaction pool.
+     * Various backends may have more restrictive transaction pool access
+     * (e.g. if the gas price is too low or the transaction was only recently sent and not yet indexed)
+     * in which case this method may also return null.
+     */
+    public async getTransactionAsync(transactionHash: string): Promise<providers.TransactionResponse | null> {
+        return this._ethersProvider.getTransaction(transactionHash);
+    }
+
     public async estimateGasForExchangeProxyCallAsync(callData: string, workerAddress: string): Promise<number> {
         const txData: Partial<TxData> = {
             to: this._exchangeProxy.address,
