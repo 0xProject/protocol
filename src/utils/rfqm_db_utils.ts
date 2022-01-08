@@ -18,7 +18,7 @@ import { RfqmV2JobConstructorOpts, StoredOtcOrder } from '../entities/RfqmV2JobE
 import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee, UnresolvedRfqmJobStatuses } from '../entities/types';
 
 export type RfqmOrder = RfqOrder;
 
@@ -287,11 +287,10 @@ export class RfqmDbUtils {
      * [RFQm v1] find unresolved jobs from the rfqm_jobs table
      */
     public async findUnresolvedJobsAsync(workerAddress: string): Promise<RfqmJobEntity[]> {
-        return this._connection
-            .getRepository(RfqmJobEntity)
-            .createQueryBuilder()
-            .where('worker_address = :workerAddress AND is_completed = FALSE', { workerAddress })
-            .getMany();
+        return this._connection.getRepository(RfqmJobEntity).find({
+            workerAddress,
+            status: In(UnresolvedRfqmJobStatuses),
+        });
     }
 
     /**
@@ -418,14 +417,7 @@ export class RfqmDbUtils {
     public async findV2UnresolvedJobsAsync(workerAddress: string): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
             workerAddress,
-            status: In([
-                RfqmJobStatus.FailedRevertedUnconfirmed,
-                RfqmJobStatus.PendingEnqueued,
-                RfqmJobStatus.PendingLastLookAccepted,
-                RfqmJobStatus.PendingProcessing,
-                RfqmJobStatus.PendingSubmitted,
-                RfqmJobStatus.SucceededUnconfirmed,
-            ]),
+            status: In(UnresolvedRfqmJobStatuses),
         });
     }
 }

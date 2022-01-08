@@ -44,6 +44,50 @@ export enum RfqmJobStatus {
     SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
+/**
+ * Determines whether or not a given `RfqmJobStatus` indicates
+ * the associated job has been processed to completion or not.
+ *
+ * Returns `true` if the status indicates the associated job is
+ * resolved and should not be retried; returns `false` if the
+ * associated job is in an incomplete state and should be retried.
+ */
+function isJobResolved(status: RfqmJobStatus): boolean {
+    switch (status) {
+        case RfqmJobStatus.FailedEthCallFailed:
+        case RfqmJobStatus.FailedExpired:
+        case RfqmJobStatus.FailedLastLookDeclined:
+        case RfqmJobStatus.FailedPresignValidationFailed:
+        case RfqmJobStatus.FailedRevertedConfirmed:
+        case RfqmJobStatus.FailedSignFailed:
+        case RfqmJobStatus.FailedSubmitFailed:
+        case RfqmJobStatus.FailedValidationNoCallData:
+        case RfqmJobStatus.FailedValidationNoFee:
+        case RfqmJobStatus.FailedValidationNoMakerUri:
+        case RfqmJobStatus.FailedValidationNoOrder:
+        case RfqmJobStatus.FailedValidationNoTakerSignature:
+        case RfqmJobStatus.SucceededConfirmed:
+            return true;
+        case RfqmJobStatus.FailedRevertedUnconfirmed:
+        case RfqmJobStatus.PendingEnqueued:
+        case RfqmJobStatus.PendingLastLookAccepted:
+        case RfqmJobStatus.PendingProcessing:
+        case RfqmJobStatus.PendingSubmitted:
+        case RfqmJobStatus.SucceededUnconfirmed:
+            return false;
+        default:
+            ((_x: never) => {
+                throw new Error('unreachable');
+            })(status);
+    }
+}
+
+/**
+ * `RfqmJobStatus` values which should be considered incomplete
+ * and should be retried.
+ */
+export const UnresolvedRfqmJobStatuses = Object.values(RfqmJobStatus).filter((v) => !isJobResolved(v));
+
 export enum RfqmTransactionSubmissionStatus {
     DroppedAndReplaced = 'dropped_and_replaced',
     Presubmit = 'presubmit', // Transaction created but not yet broadcast
