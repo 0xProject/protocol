@@ -15,10 +15,9 @@
         "db:migration:generate": "./node_modules/.bin/typeorm migration:generate --config ./lib/src/ormconfig.js ",
         "db:revert": "./node_modules/.bin/typeorm migration:revert --config ./lib/src/ormconfig.js ",
         "integration-test": "mocha --require source-map-support/register --require make-promises-safe 'lib/integration-test/**/*_test.js' --timeout 200000 --exit",
-        "test": "yarn test:rest && yarn test:rfqt && yarn test:rfqm",
+        "test": "yarn test:rest && yarn test:rfqt",
         "test:rest": "env-cmd -f ./test/test_env mocha --exclude lib/test/meta_transaction_test.js --require source-map-support/register --require make-promises-safe 'lib/test/**/!(rfqm*|rfqt*)_test.js' --timeout 200000 --exit --bail",
         "test:rfqt": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/rfqt_*.js' --timeout 200000 --exit --bail",
-        "test:rfqm": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/rfqm_*.js' --timeout 200000 --exit --bail",
         "dev": "nodemon -r dotenv/config src/index.ts | pino-pretty",
         "dev:service:http": "nodemon -r dotenv/config src/runners/http_service_runner.ts | pino-pretty",
         "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
@@ -183,6 +182,6 @@
         "zen-observable": "^0.8.15"
     },
     "resolutions": {
-      "fast-abi": "^0.0.3"
+        "fast-abi": "^0.0.3"
     }
 }
