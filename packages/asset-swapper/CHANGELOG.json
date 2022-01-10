@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.45.2",
+        "changes": [
+            {
+                "note": "Handle 0 output samples and negative adjusted rate native orders in routing",
+                "pr": 387
+            }
+        ]
+    },
+    {
         "version": "16.45.1",
         "changes": [
             {
