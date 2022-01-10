@@ -3,7 +3,8 @@
         "version": "16.46.0",
         "changes": [
             {
-                "note": "Enable `Curve` ETH/CVX pool"
+                "note": "Enable `Curve` ETH/CVX pool",
+                "pr": 394
             }
         ]
     },
