@@ -110,6 +110,14 @@ interface IERC721OrdersFeature {
     function cancelERC721Order(uint256 orderNonce)
         external;
 
+    /// @dev Cancel multiple ERC721 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC721Orders(uint256[] calldata orderNonces)
+        external;
+
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
     /// @param sellOrders The ERC721 sell orders.

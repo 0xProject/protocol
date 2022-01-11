@@ -186,6 +186,20 @@ contract ERC721OrdersFeature is
         );
     }
 
+    /// @dev Cancel multiple ERC721 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC721Orders(uint256[] calldata orderNonces)
+        external
+        override
+    {
+        for (uint256 i = 0; i < orderNonces.length; i++) {
+            cancelERC721Order(orderNonces[i]);
+        }
+    }
+
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
     /// @param sellOrders The ERC721 sell orders.
