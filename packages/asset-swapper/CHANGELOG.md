@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.46.0 - _January 11, 2022_
+
+    * Enable `Curve` ETH/CVX pool (#394)
+
 ## v16.45.2 - _January 10, 2022_
 
     * Handle 0 output samples and negative adjusted rate native orders in routing (#387)
