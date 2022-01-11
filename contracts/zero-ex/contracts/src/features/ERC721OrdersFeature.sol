@@ -595,6 +595,10 @@ contract ERC721OrdersFeature is
         public
         override
     {
+        require(
+            order.maker == msg.sender,
+            "ERC721OrdersFeature::preSignERC721Order/MAKER_MISMATCH"
+        );
         bytes32 orderHash = getERC721OrderHash(order);
         LibERC721OrdersStorage.getStorage()
             .preSigned[orderHash][msg.sender] = true;
