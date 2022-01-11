@@ -179,7 +179,6 @@ interface IERC721OrdersFeature {
     /// @param buyOrders Orders buying ERC721 assets.
     /// @param sellOrderSignatures Signatures for the sell orders.
     /// @param buyOrderSignatures Signatures for the buy orders.
-    /// @param revertIfIncomplete Revert if any match operation fails.
     /// @return profits The amount of profit earned by the caller
     ///         of this function for each pair of matched orders
     ///         (denominated in the ERC20 token of the order pair).
@@ -189,8 +188,7 @@ interface IERC721OrdersFeature {
         LibERC721Order.ERC721Order[] calldata sellOrders,
         LibERC721Order.ERC721Order[] calldata buyOrders,
         LibSignature.Signature[] calldata sellOrderSignatures,
-        LibSignature.Signature[] calldata buyOrderSignatures,
-        bool revertIfIncomplete
+        LibSignature.Signature[] calldata buyOrderSignatures
     )
         external
         returns (uint256[] memory profits, bool[] memory successes);

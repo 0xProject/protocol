@@ -481,7 +481,6 @@ contract ERC721OrdersFeature is
     /// @param buyOrders Orders buying ERC721 assets.
     /// @param sellOrderSignatures Signatures for the sell orders.
     /// @param buyOrderSignatures Signatures for the buy orders.
-    /// @param revertIfIncomplete Revert if any match operation fails.
     /// @return profits The amount of profit earned by the caller
     ///         of this function for each pair of matched orders
     ///         (denominated in the ERC20 token of the order pair).
@@ -491,8 +490,7 @@ contract ERC721OrdersFeature is
         LibERC721Order.ERC721Order[] memory sellOrders,
         LibERC721Order.ERC721Order[] memory buyOrders,
         LibSignature.Signature[] memory sellOrderSignatures,
-        LibSignature.Signature[] memory buyOrderSignatures,
-        bool revertIfIncomplete
+        LibSignature.Signature[] memory buyOrderSignatures
     )
         public
         override
@@ -524,8 +522,6 @@ contract ERC721OrdersFeature is
                 // If the matching succeeded, record the profit.
                 (uint256 profit) = abi.decode(returnData, (uint256));
                 profits[i] = profit;
-            } else if (revertIfIncomplete) {
-                returnData.rrevert();
             }
         }
     }
