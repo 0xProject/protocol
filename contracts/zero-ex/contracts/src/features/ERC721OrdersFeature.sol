@@ -589,7 +589,7 @@ contract ERC721OrdersFeature is
             .preSigned[orderHash][msg.sender] = true;
     }
 
-    // Core settlment logic for selling an ERC721 asset.
+    // Core settlement logic for selling an ERC721 asset.
     // Used by `sellERC721` and `onERC721Received`.
     function _sellERC721(
         LibERC721Order.ERC721Order memory buyOrder,
