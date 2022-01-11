@@ -315,10 +315,15 @@ export class SwapService {
             .plus(isETHSell ? WRAP_ETH_GAS : 0)
             .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
 
+        // Cannot eth_gasEstimate for indicative quotes when RFQ Native liquidity is included
+        const isNativeIncluded = swapQuote.sourceBreakdown.Native !== undefined;
+        const isFirmQuote = !_rfqt?.isIndicative;
+        const canEstimateGas = isFirmQuote || !isNativeIncluded;
+
         // If the taker address is provided we can provide a more accurate gas estimate
         // using eth_gasEstimate
         // If an error occurs we attempt to provide a better message then "Transaction Reverted"
-        if (takerAddress && !skipValidation) {
+        if (takerAddress && !skipValidation && canEstimateGas) {
             let estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
                 to,
                 data,
