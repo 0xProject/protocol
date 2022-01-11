@@ -380,7 +380,7 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/neon-router@^0.3.0", "@0x/neon-router@^0.3.1":
+"@0x/neon-router@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.1.tgz#4ec13e750d1435357c4928d7f2521a2b4376f27e"
   dependencies:

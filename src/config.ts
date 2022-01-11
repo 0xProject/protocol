@@ -40,6 +40,8 @@ import { HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
 import { parseUtils } from './utils/parse_utils';
 import { schemaUtils } from './utils/schema_utils';
 
+const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
+
 // tslint:disable:no-bitwise
 
 enum EnvVarType {
@@ -531,13 +533,18 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
 
 export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
 
+const NEON_ROUTER_NUM_SAMPLES = 14;
+// TODO(kimpers): Due to an issue with the Rust router we want to use equidistant samples when using the Rust router
+const SAMPLE_DISTRIBUTION_BASE = SHOULD_USE_RUST_ROUTER ? 1 : 1.05;
+
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
     excludedFeeSources: EXCLUDED_FEE_SOURCES,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
-    sampleDistributionBase: 1.05,
+    sampleDistributionBase: SAMPLE_DISTRIBUTION_BASE,
+    neonRouterNumSamples: NEON_ROUTER_NUM_SAMPLES,
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
     runLimit: 2 ** 8,
     shouldGenerateQuoteReport: true,
