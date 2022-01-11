@@ -63,7 +63,7 @@ interface IERC721OrdersFeature {
     );
 
     /// @dev Sells an ERC721 asset to fill the given order.
-    /// @param order The ERC721 order.
+    /// @param buyOrder The ERC721 buy order.
     /// @param signature The order signature from the maker.
     /// @param erc721TokenId The ID of the ERC721 asset being
     ///        sold. If the given order specifies properties,
@@ -77,7 +77,7 @@ interface IERC721OrdersFeature {
     ///        the ERC20 tokens have been transferred to `msg.sender`
     ///        but before transferring the ERC721 asset to the buyer.
     function sellERC721(
-        LibERC721Order.ERC721Order calldata order,
+        LibERC721Order.ERC721Order calldata buyOrder,
         LibSignature.Signature calldata signature,
         uint256 erc721TokenId,
         bool unwrapNativeToken,
@@ -86,7 +86,7 @@ interface IERC721OrdersFeature {
         external;
 
     /// @dev Buys an ERC721 asset by filling the given order.
-    /// @param order The ERC721 order.
+    /// @param sellOrder The ERC721 sell order.
     /// @param signature The order signature.
     /// @param callbackData If this parameter is non-zero, invokes
     ///        `zeroExERC721OrderCallback` on `msg.sender` after
@@ -95,7 +95,7 @@ interface IERC721OrdersFeature {
     ///        Native tokens acquired during the callback can be used
     ///        to fill the order.
     function buyERC721(
-        LibERC721Order.ERC721Order calldata order,
+        LibERC721Order.ERC721Order calldata sellOrder,
         LibSignature.Signature calldata signature,
         bytes calldata callbackData
     )
@@ -112,14 +112,14 @@ interface IERC721OrdersFeature {
 
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
-    /// @param orders The ERC721 orders.
+    /// @param sellOrders The ERC721 sell orders.
     /// @param signatures The order signatures.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
     ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
-        LibERC721Order.ERC721Order[] calldata orders,
+        LibERC721Order.ERC721Order[] calldata sellOrders,
         LibSignature.Signature[] calldata signatures,
         bool revertIfIncomplete
     )

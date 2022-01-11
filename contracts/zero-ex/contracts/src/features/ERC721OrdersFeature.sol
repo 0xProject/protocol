@@ -96,7 +96,7 @@ contract ERC721OrdersFeature is
     }
 
     /// @dev Sells an ERC721 asset to fill the given order.
-    /// @param order The ERC721 order.
+    /// @param buyOrder The ERC721 buy order.
     /// @param signature The order signature from the maker.
     /// @param erc721TokenId The ID of the ERC721 asset being
     ///        sold. If the given order specifies properties,
@@ -110,7 +110,7 @@ contract ERC721OrdersFeature is
     ///        the ERC20 tokens have been transferred to `msg.sender`
     ///        but before transferring the ERC721 asset to the buyer.
     function sellERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory buyOrder,
         LibSignature.Signature memory signature,
         uint256 erc721TokenId,
         bool unwrapNativeToken,
@@ -120,7 +120,7 @@ contract ERC721OrdersFeature is
         override
     {
         _sellERC721(
-            order,
+            buyOrder,
             signature,
             erc721TokenId,
             unwrapNativeToken,
@@ -131,7 +131,7 @@ contract ERC721OrdersFeature is
     }
 
     /// @dev Buys an ERC721 asset by filling the given order.
-    /// @param order The ERC721 order.
+    /// @param sellOrder The ERC721 sell order.
     /// @param signature The order signature.
     /// @param callbackData If this parameter is non-zero, invokes
     ///        `zeroExERC721OrderCallback` on `msg.sender` after
@@ -140,7 +140,7 @@ contract ERC721OrdersFeature is
     ///        Native tokens acquired during the callback can be used
     ///        to fill the order.
     function buyERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory sellOrder,
         LibSignature.Signature memory signature,
         bytes memory callbackData
     )
@@ -151,7 +151,7 @@ contract ERC721OrdersFeature is
         uint256 ethBalanceBefore = address(this).balance
             .safeSub(msg.value);
         _buyERC721(
-            order,
+            sellOrder,
             signature,
             msg.value,
             callbackData
@@ -188,14 +188,14 @@ contract ERC721OrdersFeature is
 
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
-    /// @param orders The ERC721 orders.
+    /// @param sellOrders The ERC721 sell orders.
     /// @param signatures The order signatures.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
     ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
-        LibERC721Order.ERC721Order[] memory orders,
+        LibERC721Order.ERC721Order[] memory sellOrders,
         LibSignature.Signature[] memory signatures,
         bool revertIfIncomplete
     )
@@ -205,13 +205,13 @@ contract ERC721OrdersFeature is
         returns (bool[] memory successes)
     {
         require(
-            orders.length == signatures.length,
+            sellOrders.length == signatures.length,
             "ERC721OrdersFeature::batchBuyERC721s/ARRAY_LENGTH_MISMATCH"
         );
-        successes = new bool[](orders.length);
+        successes = new bool[](sellOrders.length);
 
         uint256 ethSpent = 0;
-        for (uint256 i = 0; i < orders.length; i++) {
+        for (uint256 i = 0; i < sellOrders.length; i++) {
             bytes memory returnData;
             // Delegatecall `_buyERC721` to track ETH consumption while
             // preserving execution context.
@@ -220,7 +220,7 @@ contract ERC721OrdersFeature is
             (successes[i], returnData) = _implementation.delegatecall(
                 abi.encodeWithSelector(
                     this._buyERC721.selector,
-                    orders[i],
+                    sellOrders[i],
                     signatures[i],
                     msg.value - ethSpent, // Remaining ETH available
                     new bytes(0)          // No taker callback; allowing a
@@ -269,7 +269,7 @@ contract ERC721OrdersFeature is
         override
         returns (uint256 profit)
     {
-        _validateSellOrder(sellOrder, sellOrderSignature);
+        _validateSellOrder(sellOrder, sellOrderSignature, buyOrder.maker);
         _validateBuyOrder(
             buyOrder,
             buyOrderSignature,
@@ -597,7 +597,7 @@ contract ERC721OrdersFeature is
         uint256 erc721TokenId,
         bool unwrapNativeToken,
         address taker,
-        address nftOwner,
+        address currentNftOrder,
         bytes memory takerCallbackData
     )
         private
@@ -667,7 +667,7 @@ contract ERC721OrdersFeature is
         // the seller.
         _transferERC721AssetFrom(
             buyOrder.erc721Token,
-            nftOwner,
+            currentNftOrder,
             buyOrder.maker,
             erc721TokenId
         );
@@ -701,7 +701,7 @@ contract ERC721OrdersFeature is
         returns (uint256 ethSpent)
     {
         // Check that the order can be filled.
-        _validateSellOrder(sellOrder, signature);
+        _validateSellOrder(sellOrder, signature, msg.sender);
 
         // Mark the order as filled.
         _setOrderStatusBit(sellOrder.maker, sellOrder.nonce);
@@ -803,34 +803,34 @@ contract ERC721OrdersFeature is
     }
 
     function _validateSellOrder(
-        LibERC721Order.ERC721Order memory order,
-        LibSignature.Signature memory signature
+        LibERC721Order.ERC721Order memory sellOrder,
+        LibSignature.Signature memory signature,
+        address taker
     )
         private
         view
     {
         // Order must be selling the ERC721 asset.
         require(
-            order.direction == LibERC721Order.TradeDirection.SELL_721,
+            sellOrder.direction == LibERC721Order.TradeDirection.SELL_721,
             "ERC721OrdersFeature::_validateSellOrder/WRONG_TRADE_DIRECTION"
         );
-        // The taker must either be unspecified in the order, or it must
-        // be equal to `msg.sender`.
-        if (order.taker != address(0) && order.taker != msg.sender) {
-            LibERC721OrdersRichErrors.OnlyTakerError(msg.sender, order.taker).rrevert();
+        // Taker must match the order taker, if one is specified.
+        if (sellOrder.taker != address(0) && sellOrder.taker != taker) {
+            LibERC721OrdersRichErrors.OnlyTakerError(taker, sellOrder.taker).rrevert();
         }
         // Check that the order is valid and has not expired, been cancelled,
         // or been filled.
-        LibERC721Order.OrderStatus status = getERC721OrderStatus(order);
-        if (getERC721OrderStatus(order) != LibERC721Order.OrderStatus.FILLABLE) {
+        LibERC721Order.OrderStatus status = getERC721OrderStatus(sellOrder);
+        if (getERC721OrderStatus(sellOrder) != LibERC721Order.OrderStatus.FILLABLE) {
             LibERC721OrdersRichErrors.OrderNotFillableError(
-                order.maker,
-                order.nonce,
+                sellOrder.maker,
+                sellOrder.nonce,
                 uint8(status)
             ).rrevert();
         }
         // Check the signature.
-        validateERC721OrderSignature(order, signature);
+        validateERC721OrderSignature(sellOrder, signature);
     }
 
     function _validateBuyOrder(
@@ -852,8 +852,7 @@ contract ERC721OrdersFeature is
             address(buyOrder.erc20Token) != NATIVE_TOKEN_ADDRESS,
             "ERC721OrdersFeature::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED"
         );
-        // The taker must either be unspecified in the order, or it must
-        // be equal to `msg.sender`.
+        // Taker must match the order taker, if one is specified.
         if (buyOrder.taker != address(0) && buyOrder.taker != taker) {
             LibERC721OrdersRichErrors.OnlyTakerError(taker, buyOrder.taker).rrevert();
         }

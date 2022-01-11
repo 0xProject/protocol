@@ -225,6 +225,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
             maker: order.maker,
             taker,
             nonce: order.nonce,
+            matcher: NULL_ADDRESS,
         };
     }
 
