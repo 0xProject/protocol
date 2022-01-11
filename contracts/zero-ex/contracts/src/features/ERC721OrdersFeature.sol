@@ -38,7 +38,7 @@ import "./libs/LibSignature.sol";
 
 
 /// @dev Feature for interacting with ERC721 orders.
-contract ERC721OrdersFeature is 
+contract ERC721OrdersFeature is
     IFeature,
     IERC721OrdersFeature,
     FixinCommon,
@@ -57,8 +57,8 @@ contract ERC721OrdersFeature is
     /// @dev The WETH token contract.
     IEtherTokenV06 private immutable WETH;
 
-    /// @dev The magic return value indicating the success of a `receiveFeeCallback`.
-    bytes4 private constant FEE_CALLBACK_MAGIC_BYTES = IFeeRecipient.receiveFeeCallback.selector;
+    /// @dev The magic return value indicating the success of a `receiveZeroExFeeCallback`.
+    bytes4 private constant FEE_CALLBACK_MAGIC_BYTES = IFeeRecipient.receiveZeroExFeeCallback.selector;
     /// @dev The magic return value indicating the success of a `zeroExERC721OrderCallback`.
     bytes4 private constant TAKER_CALLBACK_MAGIC_BYTES = IERC721OrderCallback.zeroExERC721OrderCallback.selector;
     /// @dev The magic return value indicating the success of a `onERC721Received`.
@@ -96,21 +96,21 @@ contract ERC721OrdersFeature is
     }
 
     /// @dev Sells an ERC721 asset to fill the given order.
-    /// @param order The ERC721 order.
+    /// @param buyOrder The ERC721 buy order.
     /// @param signature The order signature from the maker.
     /// @param erc721TokenId The ID of the ERC721 asset being
-    ///        sold. If the given order specifies properties, 
+    ///        sold. If the given order specifies properties,
     ///        the asset must satisfy those properties. Otherwise,
-    ///        it must equal the tokenId in the order. 
-    /// @param unwrapNativeToken If this parameter is true and the 
-    ///        ERC20 token of the order is e.g. WETH, unwraps the 
+    ///        it must equal the tokenId in the order.
+    /// @param unwrapNativeToken If this parameter is true and the
+    ///        ERC20 token of the order is e.g. WETH, unwraps the
     ///        token before transferring it to the taker.
     /// @param callbackData If this parameter is non-zero, invokes
     ///        `zeroExERC721OrderCallback` on `msg.sender` after
     ///        the ERC20 tokens have been transferred to `msg.sender`
-    ///        but before transferring the ERC721 asset to the buyer. 
+    ///        but before transferring the ERC721 asset to the buyer.
     function sellERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory buyOrder,
         LibSignature.Signature memory signature,
         uint256 erc721TokenId,
         bool unwrapNativeToken,
@@ -120,27 +120,27 @@ contract ERC721OrdersFeature is
         override
     {
         _sellERC721(
-            order, 
-            signature, 
-            erc721TokenId, 
+            buyOrder,
+            signature,
+            erc721TokenId,
             unwrapNativeToken,
             msg.sender, // taker
-            false,      // isCallback
+            msg.sender, // owner
             callbackData
         );
     }
 
     /// @dev Buys an ERC721 asset by filling the given order.
-    /// @param order The ERC721 order.
+    /// @param sellOrder The ERC721 sell order.
     /// @param signature The order signature.
     /// @param callbackData If this parameter is non-zero, invokes
     ///        `zeroExERC721OrderCallback` on `msg.sender` after
     ///        the ERC721 asset has been transferred to `msg.sender`
-    ///        but before transferring the ERC20 tokens to the seller. 
+    ///        but before transferring the ERC20 tokens to the seller.
     ///        Native tokens acquired during the callback can be used
     ///        to fill the order.
     function buyERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory sellOrder,
         LibSignature.Signature memory signature,
         bytes memory callbackData
     )
@@ -151,24 +151,21 @@ contract ERC721OrdersFeature is
         uint256 ethBalanceBefore = address(this).balance
             .safeSub(msg.value);
         _buyERC721(
-            order, 
-            signature, 
+            sellOrder,
+            signature,
             msg.value,
             callbackData
         );
         uint256 ethBalanceAfter = address(this).balance;
         // Cannot spent more than `msg.value`
-        rrequire(
-            ethBalanceAfter >= ethBalanceBefore,
+        if (ethBalanceAfter < ethBalanceBefore) {
             LibERC721OrdersRichErrors.OverspentEthError(
                 ethBalanceBefore - ethBalanceAfter + msg.value,
-                msg.value   
-            )
-        );
-        // Refund
-        if (ethBalanceAfter > ethBalanceBefore) {
-            _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
+                msg.value
+            ).rrevert();
         }
+        // Refund
+        _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
     /// @dev Cancel a single ERC721 order by its nonce. The caller
@@ -189,16 +186,30 @@ contract ERC721OrdersFeature is
         );
     }
 
+    /// @dev Cancel multiple ERC721 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC721Orders(uint256[] calldata orderNonces)
+        external
+        override
+    {
+        for (uint256 i = 0; i < orderNonces.length; i++) {
+            cancelERC721Order(orderNonces[i]);
+        }
+    }
+
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
-    /// @param orders The ERC721 orders.
+    /// @param sellOrders The ERC721 sell orders.
     /// @param signatures The order signatures.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
     ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
-        LibERC721Order.ERC721Order[] memory orders,
+        LibERC721Order.ERC721Order[] memory sellOrders,
         LibSignature.Signature[] memory signatures,
         bool revertIfIncomplete
     )
@@ -208,13 +219,13 @@ contract ERC721OrdersFeature is
         returns (bool[] memory successes)
     {
         require(
-            orders.length == signatures.length,
+            sellOrders.length == signatures.length,
             "ERC721OrdersFeature::batchBuyERC721s/ARRAY_LENGTH_MISMATCH"
         );
-        successes = new bool[](orders.length);
+        successes = new bool[](sellOrders.length);
 
         uint256 ethSpent = 0;
-        for (uint256 i = 0; i < orders.length; i++) {
+        for (uint256 i = 0; i < sellOrders.length; i++) {
             bytes memory returnData;
             // Delegatecall `_buyERC721` to track ETH consumption while
             // preserving execution context.
@@ -222,11 +233,11 @@ contract ERC721OrdersFeature is
             // be registered in the Exchange Proxy.
             (successes[i], returnData) = _implementation.delegatecall(
                 abi.encodeWithSelector(
-                    this._buyERC721.selector, 
-                    orders[i],
+                    this._buyERC721.selector,
+                    sellOrders[i],
                     signatures[i],
                     msg.value - ethSpent, // Remaining ETH available
-                    new bytes(0)          // No taker callback; allowing a 
+                    new bytes(0)          // No taker callback; allowing a
                                           // callback would potentially mess
                                           // up the ETH accounting here.
                 )
@@ -238,23 +249,21 @@ contract ERC721OrdersFeature is
                 // Bubble up revert
                 returnData.rrevert();
             }
+        }
 
-            rrequire(
-                ethSpent <= msg.value,
-                LibERC721OrdersRichErrors.OverspentEthError(
-                    ethSpent,
-                    msg.value   
-                )
-            );
+        if (ethSpent > msg.value) {
+            LibERC721OrdersRichErrors.OverspentEthError(
+                ethSpent,
+                msg.value
+            ).rrevert();
         }
+
         // Refund
-        if (ethSpent < msg.value) {
-            _transferEth(msg.sender, msg.value - ethSpent);
-        }
+        _transferEth(msg.sender, msg.value - ethSpent);
     }
 
     /// @dev Matches a pair of complementary orders that have
-    ///      a non-negative spread. Each order is filled at 
+    ///      a non-negative spread. Each order is filled at
     ///      their respective price, and the matcher receives
     ///      a profit denominated in the ERC20 token.
     /// @param sellOrder Order selling an ERC721 asset.
@@ -274,45 +283,41 @@ contract ERC721OrdersFeature is
         override
         returns (uint256 profit)
     {
-        _validateSellOrder(sellOrder, sellOrderSignature);
+        _validateSellOrder(sellOrder, sellOrderSignature, buyOrder.maker);
         _validateBuyOrder(
             buyOrder,
             buyOrderSignature,
-            msg.sender, // TODO: maybe allow sellOrder.taker == buyOrder.maker, vice versa
+            sellOrder.maker,
             sellOrder.erc721TokenId
         );
 
         // The ERC721 tokens must match
-        rrequire(
-            sellOrder.erc721Token == buyOrder.erc721Token,
+        if (sellOrder.erc721Token != buyOrder.erc721Token) {
             LibERC721OrdersRichErrors.ERC721TokenMismatchError(
                 address(sellOrder.erc721Token),
                 address(buyOrder.erc721Token)
-            )
-        );
+            ).rrevert();
+        }
         // The ERC20 tokens must match. Okay if the sell order specifies ETH
         // and the buy order specifies WETH; we will unwrap the WETH before
         // sending it to `sellOrder.maker`.
-        rrequire(
-            sellOrder.erc20Token == buyOrder.erc20Token ||
-            (
-                address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS && 
-                buyOrder.erc20Token == WETH
-            ),
+        bool isWethBuyEthSell =
+            address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS &&
+            buyOrder.erc20Token == WETH;
+        if (sellOrder.erc20Token != buyOrder.erc20Token && !isWethBuyEthSell) {
             LibERC721OrdersRichErrors.ERC20TokenMismatchError(
                 address(sellOrder.erc20Token),
                 address(buyOrder.erc20Token)
-            )
-        );
-        // The buyer must be willing to pay at least the amount that the 
+            ).rrevert();
+        }
+        // The buyer must be willing to pay at least the amount that the
         // seller is asking.
-        rrequire(
-            buyOrder.erc20TokenAmount >= sellOrder.erc20TokenAmount,
+        if (buyOrder.erc20TokenAmount < sellOrder.erc20TokenAmount) {
             LibERC721OrdersRichErrors.NegativeSpreadError(
                 sellOrder.erc20TokenAmount,
                 buyOrder.erc20TokenAmount
-            )
-        );
+            ).rrevert();
+        }
 
         // The difference in ERC20 token amounts is the spread.
         uint256 spread = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount;
@@ -321,7 +326,7 @@ contract ERC721OrdersFeature is
         _setOrderStatusBit(sellOrder.maker, sellOrder.nonce);
         _setOrderStatusBit(buyOrder.maker, buyOrder.nonce);
 
-        // Transfer the ERC721 asset from seller to buyer. 
+        // Transfer the ERC721 asset from seller to buyer.
         _transferERC721AssetFrom(
             sellOrder.erc721Token,
             sellOrder.maker,
@@ -331,7 +336,7 @@ contract ERC721OrdersFeature is
 
         // Handle the ERC20 side of the order:
         if (
-            address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS && 
+            address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS &&
             buyOrder.erc20Token == WETH
         ) {
             // The sell order specifies ETH, while the buy order specifies WETH.
@@ -339,7 +344,7 @@ contract ERC721OrdersFeature is
             // to unwrap the WETH on behalf of the buyer.
 
             // Step 1: Transfer WETH from the buyer to the EP.
-            //         Note that we transfer `buyOrder.erc20TokenAmount`, which 
+            //         Note that we transfer `buyOrder.erc20TokenAmount`, which
             //         is the amount the buyer signaled they are willing to pay
             //         for the ERC721 asset, which may be more than the seller's
             //         ask.
@@ -349,12 +354,12 @@ contract ERC721OrdersFeature is
                 address(this),
                 buyOrder.erc20TokenAmount
             );
-            // Step 2: Unwrap the WETH into ETH. We unwrap the entire 
+            // Step 2: Unwrap the WETH into ETH. We unwrap the entire
             //         `buyOrder.erc20TokenAmount`.
             //         The ETH will be used for three purposes:
             //         - To pay the seller
             //         - To pay fees for the sell order
-            //         - Any remaining ETH will be sent to 
+            //         - Any remaining ETH will be sent to
             //           `msg.sender` as profit.
             WETH.withdraw(buyOrder.erc20TokenAmount);
 
@@ -362,30 +367,29 @@ contract ERC721OrdersFeature is
             _transferEth(payable(sellOrder.maker), sellOrder.erc20TokenAmount);
 
             // Step 4: Pay fees for the buy order. Note that these are paid
-            //         in _WETH_ by the _buyer_. By signing the buy order, the 
+            //         in _WETH_ by the _buyer_. By signing the buy order, the
             //         buyer signals that they are willing to spend a total
             //         of `erc20TokenAmount` _plus_ fees, all denominated in
             //         the `erc20Token`, which in this case is WETH.
             _payFees(buyOrder, buyOrder.maker, false);
-            
-            // Step 5: Pay fees for the sell order. The `erc20Token` of the 
-            //         sell order is ETH, so the fees are paid out in ETH. 
-            //         There should be `spread` wei of ETH remaining in the 
+
+            // Step 5: Pay fees for the sell order. The `erc20Token` of the
+            //         sell order is ETH, so the fees are paid out in ETH.
+            //         There should be `spread` wei of ETH remaining in the
             //         EP at this point, which we will use ETH to pay the
             //         sell order fees.
             uint256 sellOrderFees = _payFees(sellOrder, address(this), true);
-            
+
             // Step 6: The spread must be enough to cover the sell order fees.
-            //         If not, either `_payFees` will have reverted, or we 
-            //         have spent ETH that was in the EP before this 
+            //         If not, either `_payFees` will have reverted, or we
+            //         have spent ETH that was in the EP before this
             //         `matchERC721Orders` call, which we disallow.
-            rrequire(
-                spread >= sellOrderFees,
+            if (spread < sellOrderFees) {
                 LibERC721OrdersRichErrors.SellOrderFeesExceedSpreadError(
                     sellOrderFees,
                     spread
-                )
-            );
+                ).rrevert();
+            }
             // Step 7: The spread less the sell order fees is the amount of ETH
             //         remaining in the EP that can be sent to `msg.sender` as
             //         the profit from matching these two orders.
@@ -406,7 +410,7 @@ contract ERC721OrdersFeature is
 
             // Step 2: Pay fees for the buy order. Note that these are paid
             //         by the buyer. By signing the buy order, the buyer signals
-            //         that they are willing to spend a total of 
+            //         that they are willing to spend a total of
             //         `buyOrder.erc20TokenAmount` _plus_ `buyOrder.fees`.
             _payFees(buyOrder, buyOrder.maker, false);
 
@@ -415,18 +419,17 @@ contract ERC721OrdersFeature is
             //         from the buyer than they agreed to in the buy order. If
             //         so, we revert in the following step.
             uint256 sellOrderFees = _payFees(sellOrder, buyOrder.maker, false);
-            
+
             // Step 4: The spread must be enough to cover the sell order fees.
-            //         If not, `_payFees` will have taken more tokens from the 
-            //         buyer than they had agreed to in the buy order, in which 
+            //         If not, `_payFees` will have taken more tokens from the
+            //         buyer than they had agreed to in the buy order, in which
             //         case we revert here.
-            rrequire(
-                spread >= sellOrderFees,
+            if (spread < sellOrderFees) {
                 LibERC721OrdersRichErrors.SellOrderFeesExceedSpreadError(
                     sellOrderFees,
                     spread
-                )
-            );
+                ).rrevert();
+            }
 
             // Step 7: We calculate the profit as:
             //         profit = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount - sellOrderFees
@@ -445,29 +448,40 @@ contract ERC721OrdersFeature is
             }
         }
 
-        // TODO: or we could emit 2 ERC721OrderFilled events
-        emit ERC721OrdersMatched(
+        emit ERC721OrderFilled(
+            LibERC721Order.TradeDirection.SELL_721,
             sellOrder.erc20Token,
-            sellOrder.erc721Token,
             sellOrder.erc20TokenAmount,
+            sellOrder.erc721Token,
             sellOrder.erc721TokenId,
             sellOrder.maker,
-            buyOrder.maker,
+            buyOrder.maker, // taker
             sellOrder.nonce,
+            msg.sender
+        );
+
+        emit ERC721OrderFilled(
+            LibERC721Order.TradeDirection.BUY_721,
+            buyOrder.erc20Token,
+            buyOrder.erc20TokenAmount,
+            buyOrder.erc721Token,
+            sellOrder.erc721TokenId,
+            buyOrder.maker,
+            sellOrder.maker, // taker
             buyOrder.nonce,
-            msg.sender,
-            profit
+            msg.sender
         );
     }
-    
+
     /// @dev Matches pairs of complementary orders that have
-    ///      non-negative spreads. Each order is filled at 
+    ///      non-negative spreads. Each order is filled at
     ///      their respective price, and the matcher receives
     ///      a profit denominated in the ERC20 token.
     /// @param sellOrders Orders selling ERC721 assets.
     /// @param buyOrders Orders buying ERC721 assets.
     /// @param sellOrderSignatures Signatures for the sell orders.
     /// @param buyOrderSignatures Signatures for the buy orders.
+    /// @param revertIfIncomplete Revert if any match operation fails.
     /// @return profits The amount of profit earned by the caller
     ///         of this function for each pair of matched orders
     ///         (denominated in the ERC20 token of the order pair).
@@ -477,7 +491,8 @@ contract ERC721OrdersFeature is
         LibERC721Order.ERC721Order[] memory sellOrders,
         LibERC721Order.ERC721Order[] memory buyOrders,
         LibSignature.Signature[] memory sellOrderSignatures,
-        LibSignature.Signature[] memory buyOrderSignatures
+        LibSignature.Signature[] memory buyOrderSignatures,
+        bool revertIfIncomplete
     )
         public
         override
@@ -494,11 +509,11 @@ contract ERC721OrdersFeature is
 
         for (uint256 i = 0; i < sellOrders.length; i++) {
             bytes memory returnData;
-            // Delegatecall `matchERC721Orders` to catch reverts while 
+            // Delegatecall `matchERC721Orders` to catch reverts while
             // preserving execution context.
             (successes[i], returnData) = _implementation.delegatecall(
                 abi.encodeWithSelector(
-                    this.matchERC721Orders.selector, 
+                    this.matchERC721Orders.selector,
                     sellOrders[i],
                     buyOrders[i],
                     sellOrderSignatures[i],
@@ -509,10 +524,12 @@ contract ERC721OrdersFeature is
                 // If the matching succeeded, record the profit.
                 (uint256 profit) = abi.decode(returnData, (uint256));
                 profits[i] = profit;
+            } else if (revertIfIncomplete) {
+                returnData.rrevert();
             }
-        }        
+        }
     }
-    
+
     /// @dev Callback for the ERC721 `safeTransferFrom` function.
     ///      This callback can be used to sell an ERC721 asset if
     ///      a valid ERC721 order, signature and `unwrapNativeToken`
@@ -541,10 +558,10 @@ contract ERC721OrdersFeature is
         //       attempting to decode?
 
         // Decode the order, signature, and `unwrapNativeToken` from
-        // `data`. If `data` does not encode such parameters, this 
+        // `data`. If `data` does not encode such parameters, this
         // will throw.
         (
-            LibERC721Order.ERC721Order memory order, 
+            LibERC721Order.ERC721Order memory buyOrder,
             LibSignature.Signature memory signature,
             bool unwrapNativeToken
         ) = abi.decode(
@@ -554,101 +571,112 @@ contract ERC721OrdersFeature is
 
         // `onERC721Received` is called by the ERC721 token contract.
         // Check that it matches the ERC721 token in the order.
-        rrequire(
-            msg.sender == address(order.erc721Token),
+        if (msg.sender != address(buyOrder.erc721Token)) {
             LibERC721OrdersRichErrors.ERC721TokenMismatchError(
                 msg.sender,
-                address(order.erc721Token)
-            )
-        );
-
-        // TODO: Enforce operator == from?
+                address(buyOrder.erc721Token)
+            ).rrevert();
+        }
 
         _sellERC721(
-            order, 
-            signature, 
-            tokenId, 
+            buyOrder,
+            signature,
+            tokenId,
             unwrapNativeToken,
-            from,        // taker
-            true,        // isCallback
-            new bytes(0) // No taker callback
+            operator,       // taker
+            address(this),  // owner (we hold the NFT currently)
+            new bytes(0)    // No taker callback
         );
 
         return ERC721_RECEIVED_MAGIC_BYTES;
     }
 
-    /// @dev Approves an ERC721 order hash on-chain. After pre-signing 
-    ///      a hash, the `PRESIGNED` signature type will become valid 
-    ///      for that order and signer.
-    /// @param orderHash An ERC721 order hash.
-    function preSignERC721Order(bytes32 orderHash)
-        external
+    /// @dev Approves an ERC721 order on-chain. After pre-signing
+    ///      the order, the `PRESIGNED` signature type will become
+    ///      valid for that order and signer.
+    /// @param order An ERC721 order.
+    function preSignERC721Order(LibERC721Order.ERC721Order memory order)
+        public
         override
     {
+        bytes32 orderHash = getERC721OrderHash(order);
         LibERC721OrdersStorage.getStorage()
             .preSigned[orderHash][msg.sender] = true;
+
+        emit ERC721OrderPreSigned(
+            order.direction,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.erc721Token,
+            order.erc721TokenId,
+            order.erc721TokenProperties,
+            order.fees,
+            order.maker,
+            order.taker,
+            order.expiry,
+            order.nonce
+        );
     }
 
-    // Core settlment logic for selling an ERC721 asset. 
-    // Used by `sellERC721` and `onERC721Received`. 
+    // Core settlement logic for selling an ERC721 asset.
+    // Used by `sellERC721` and `onERC721Received`.
     function _sellERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory buyOrder,
         LibSignature.Signature memory signature,
         uint256 erc721TokenId,
         bool unwrapNativeToken,
         address taker,
-        bool isCallback,
+        address currentNftOrder,
         bytes memory takerCallbackData
     )
         private
     {
         // Check that the order can be filled.
         _validateBuyOrder(
-            order,
+            buyOrder,
             signature,
             taker,
             erc721TokenId
         );
 
         // Mark the order as filled.
-        _setOrderStatusBit(order.maker, order.nonce);
+        _setOrderStatusBit(buyOrder.maker, buyOrder.nonce);
 
         if (unwrapNativeToken) {
             // The ERC20 token must be WETH for it to be unwrapped.
-            rrequire(
-                order.erc20Token == WETH,
+            if (buyOrder.erc20Token != WETH) {
                 LibERC721OrdersRichErrors.ERC20TokenMismatchError(
-                    address(order.erc20Token),
+                    address(buyOrder.erc20Token),
                     address(WETH)
-                )
-            );
+                ).rrevert();
+            }
             // Transfer the WETH from the maker to the Exchange Proxy
             // so we can unwrap it before sending it to the seller.
             // TODO: Probably safe to just use WETH.transferFrom for some
             //       small gas savings
             _transferERC20TokensFrom(
                 WETH,
-                order.maker,
+                buyOrder.maker,
                 address(this),
-                order.erc20TokenAmount
+                buyOrder.erc20TokenAmount
             );
             // Unwrap WETH into ETH.
-            WETH.withdraw(order.erc20TokenAmount);
+            WETH.withdraw(buyOrder.erc20TokenAmount);
             // Send ETH to the seller.
-            _transferEth(payable(taker), order.erc20TokenAmount);
+            _transferEth(payable(taker), buyOrder.erc20TokenAmount);
         } else {
             // Transfer the ERC20 token from the buyer to the seller.
             _transferERC20TokensFrom(
-                order.erc20Token, 
-                order.maker, 
-                taker, 
-                order.erc20TokenAmount
+                buyOrder.erc20Token,
+                buyOrder.maker,
+                taker,
+                buyOrder.erc20TokenAmount
             );
         }
 
         if (takerCallbackData.length > 0) {
             require(
-                taker != address(this), 
+                taker != address(this),
                 "ERC721OrdersFeature::_sellERC721/CANNOT_CALLBACK_SELF"
             );
             // Invoke the callback
@@ -658,40 +686,41 @@ contract ERC721OrdersFeature is
             require(
                 callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
                 "ERC721OrdersFeature::_sellERC721/CALLBACK_FAILED"
-            );            
+            );
         }
 
         // Transfer the ERC721 asset to the buyer.
-        // If this function is called from the 
+        // If this function is called from the
         // `onERC721Received` callback the Exchange Proxy
-        // holds the asset. Otherwise, transfer it from 
+        // holds the asset. Otherwise, transfer it from
         // the seller.
         _transferERC721AssetFrom(
-            order.erc721Token,
-            isCallback ? address(this) : taker,
-            order.maker,
+            buyOrder.erc721Token,
+            currentNftOrder,
+            buyOrder.maker,
             erc721TokenId
         );
 
         // The buyer pays the order fees.
-        _payFees(order, order.maker, false);
+        _payFees(buyOrder, buyOrder.maker, false);
 
         emit ERC721OrderFilled(
-            order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
+            buyOrder.direction,
+            buyOrder.erc20Token,
+            buyOrder.erc20TokenAmount,
+            buyOrder.erc721Token,
             erc721TokenId,
-            order.maker,
+            buyOrder.maker,
             taker,
-            order.nonce
+            buyOrder.nonce,
+            address(0)
         );
     }
 
     // Core settlement logic for buying an ERC721 asset.
     // Used by `buyERC721` and `batchBuyERC721s`.
     function _buyERC721(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory sellOrder,
         LibSignature.Signature memory signature,
         uint256 ethAvailable,
         bytes memory takerCallbackData
@@ -701,22 +730,22 @@ contract ERC721OrdersFeature is
         returns (uint256 ethSpent)
     {
         // Check that the order can be filled.
-        _validateSellOrder(order, signature);
+        _validateSellOrder(sellOrder, signature, msg.sender);
 
         // Mark the order as filled.
-        _setOrderStatusBit(order.maker, order.nonce);
+        _setOrderStatusBit(sellOrder.maker, sellOrder.nonce);
 
         // Transfer the ERC721 asset to the buyer (`msg.sender`).
         _transferERC721AssetFrom(
-            order.erc721Token,
-            order.maker,
+            sellOrder.erc721Token,
+            sellOrder.maker,
             msg.sender,
-            order.erc721TokenId
+            sellOrder.erc721TokenId
         );
 
         if (takerCallbackData.length > 0) {
             require(
-                msg.sender != address(this), 
+                msg.sender != address(this),
                 "ERC721OrdersFeature::_buyERC721/CANNOT_CALLBACK_SELF"
             );
             uint256 ethBalanceBeforeCallback = address(this).balance;
@@ -730,113 +759,111 @@ contract ERC721OrdersFeature is
             require(
                 callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
                 "ERC721OrdersFeature::_sellERC721/CALLBACK_FAILED"
-            );            
+            );
         }
 
-        if (address(order.erc20Token) == NATIVE_TOKEN_ADDRESS) {
+        if (address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS) {
             // Check that we have enough ETH.
-            rrequire(
-                ethAvailable >= order.erc20TokenAmount,
+            if (ethAvailable < sellOrder.erc20TokenAmount) {
                 LibERC721OrdersRichErrors.InsufficientEthError(
                     ethAvailable,
-                    order.erc20TokenAmount
-                )
-            );
+                    sellOrder.erc20TokenAmount
+                ).rrevert();
+            }
             // Transfer ETH to the seller.
-            _transferEth(payable(order.maker), order.erc20TokenAmount);
+            _transferEth(payable(sellOrder.maker), sellOrder.erc20TokenAmount);
             // Fees are paid from the EP's current balance of ETH.
-            uint256 ethFees = _payFees(order, address(this), true);
+            uint256 ethFees = _payFees(sellOrder, address(this), true);
             // Sum the amount of ETH spent.
-            ethSpent = order.erc20TokenAmount.safeAdd(ethFees);
-        } else if (order.erc20Token == WETH) {
-            // If there is enough ETH available, fill the WETH order 
-            // (including fees) using that ETH. 
+            ethSpent = sellOrder.erc20TokenAmount.safeAdd(ethFees);
+        } else if (sellOrder.erc20Token == WETH) {
+            // If there is enough ETH available, fill the WETH order
+            // (including fees) using that ETH.
             // Otherwise, transfer WETH from the taker.
-            if (ethAvailable >= order.erc20TokenAmount) {
+            if (ethAvailable >= sellOrder.erc20TokenAmount) {
                 // Wrap ETH.
-                WETH.deposit{value: order.erc20TokenAmount}();
+                WETH.deposit{value: sellOrder.erc20TokenAmount}();
                 // TODO: Probably safe to just use WETH.transfer for some
                 //       small gas savings
                 // Transfer WETH to the seller.
                 _transferERC20Tokens(
                     WETH,
-                    order.maker,
-                    order.erc20TokenAmount
+                    sellOrder.maker,
+                    sellOrder.erc20TokenAmount
                 );
-                // Pay fees using ETH. 
-                uint256 ethFees = _payFees(order, address(this), true);
+                // Pay fees using ETH.
+                uint256 ethFees = _payFees(sellOrder, address(this), true);
                 // Sum the amount of ETH spent.
-                ethSpent = order.erc20TokenAmount.safeAdd(ethFees);
+                ethSpent = sellOrder.erc20TokenAmount.safeAdd(ethFees);
             } else {
                 // Transfer WETH from the buyer to the seller.
                 _transferERC20TokensFrom(
-                    order.erc20Token,
+                    sellOrder.erc20Token,
                     msg.sender,
-                    order.maker,
-                    order.erc20TokenAmount
+                    sellOrder.maker,
+                    sellOrder.erc20TokenAmount
                 );
                 // The buyer pays fees using WETH.
-                _payFees(order, msg.sender, false);
+                _payFees(sellOrder, msg.sender, false);
             }
         } else {
             // Transfer ERC20 token from the buyer to the seller.
             _transferERC20TokensFrom(
-                order.erc20Token,
+                sellOrder.erc20Token,
                 msg.sender,
-                order.maker,
-                order.erc20TokenAmount
+                sellOrder.maker,
+                sellOrder.erc20TokenAmount
             );
             // The buyer pays fees.
-            _payFees(order, msg.sender, false);
+            _payFees(sellOrder, msg.sender, false);
         }
 
         emit ERC721OrderFilled(
-            order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
-            order.erc721TokenId,
-            order.maker,
+            sellOrder.direction,
+            sellOrder.erc20Token,
+            sellOrder.erc20TokenAmount,
+            sellOrder.erc721Token,
+            sellOrder.erc721TokenId,
+            sellOrder.maker,
             msg.sender,
-            order.nonce
+            sellOrder.nonce,
+            address(0)
         );
     }
 
     function _validateSellOrder(
-        LibERC721Order.ERC721Order memory order,
-        LibSignature.Signature memory signature
+        LibERC721Order.ERC721Order memory sellOrder,
+        LibSignature.Signature memory signature,
+        address taker
     )
         private
         view
     {
         // Order must be selling the ERC721 asset.
         require(
-            order.direction == LibERC721Order.TradeDirection.SELL_721,
+            sellOrder.direction == LibERC721Order.TradeDirection.SELL_721,
             "ERC721OrdersFeature::_validateSellOrder/WRONG_TRADE_DIRECTION"
         );
-        // The taker must either be unspecified in the order, or it must 
-        // be equal to `msg.sender`.
-        rrequire(
-            order.taker == address(0) || order.taker == msg.sender,
-            LibERC721OrdersRichErrors.OnlyTakerError(msg.sender, order.taker)
-        );
+        // Taker must match the order taker, if one is specified.
+        if (sellOrder.taker != address(0) && sellOrder.taker != taker) {
+            LibERC721OrdersRichErrors.OnlyTakerError(taker, sellOrder.taker).rrevert();
+        }
         // Check that the order is valid and has not expired, been cancelled,
         // or been filled.
-        LibERC721Order.OrderStatus status = getERC721OrderStatus(order);
-        rrequire(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+        LibERC721Order.OrderStatus status = getERC721OrderStatus(sellOrder);
+        if (getERC721OrderStatus(sellOrder) != LibERC721Order.OrderStatus.FILLABLE) {
             LibERC721OrdersRichErrors.OrderNotFillableError(
-                order.maker,
-                order.nonce,
+                sellOrder.maker,
+                sellOrder.nonce,
                 uint8(status)
-            )
-        );
+            ).rrevert();
+        }
         // Check the signature.
-        validateERC721OrderSignature(order, signature);
+        validateERC721OrderSignature(sellOrder, signature);
     }
 
     function _validateBuyOrder(
-        LibERC721Order.ERC721Order memory order,
+        LibERC721Order.ERC721Order memory buyOrder,
         LibSignature.Signature memory signature,
         address taker,
         uint256 erc721TokenId
@@ -846,31 +873,33 @@ contract ERC721OrdersFeature is
     {
         // Order must be buying the ERC721 asset.
         require(
-            order.direction == LibERC721Order.TradeDirection.BUY_721,
+            buyOrder.direction == LibERC721Order.TradeDirection.BUY_721,
             "ERC721OrdersFeature::_validateBuyOrder/WRONG_TRADE_DIRECTION"
         );
-        // The taker must either be unspecified in the order, or it must 
-        // be equal to `msg.sender`.
-        rrequire(
-            order.taker == address(0) || order.taker == taker,
-            LibERC721OrdersRichErrors.OnlyTakerError(taker, order.taker)
+        // The ERC20 token cannot be ETH.
+        require(
+            address(buyOrder.erc20Token) != NATIVE_TOKEN_ADDRESS,
+            "ERC721OrdersFeature::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED"
         );
+        // Taker must match the order taker, if one is specified.
+        if (buyOrder.taker != address(0) && buyOrder.taker != taker) {
+            LibERC721OrdersRichErrors.OnlyTakerError(taker, buyOrder.taker).rrevert();
+        }
         // Check that the order is valid and has not expired, been cancelled,
         // or been filled.
-        LibERC721Order.OrderStatus status = getERC721OrderStatus(order);
-        rrequire(
-            getERC721OrderStatus(order) == LibERC721Order.OrderStatus.FILLABLE,
+        LibERC721Order.OrderStatus status = getERC721OrderStatus(buyOrder);
+        if (getERC721OrderStatus(buyOrder) != LibERC721Order.OrderStatus.FILLABLE) {
             LibERC721OrdersRichErrors.OrderNotFillableError(
-                order.maker,
-                order.nonce,
+                buyOrder.maker,
+                buyOrder.nonce,
                 uint8(status)
-            )
-        );
+            ).rrevert();
+        }
         // Check that the asset with the given token ID satisfies the properties
         // specified by the order.
-        validateERC721OrderProperties(order, erc721TokenId);
+        validateERC721OrderProperties(buyOrder, erc721TokenId);
         // Check the signature.
-        validateERC721OrderSignature(order, signature);
+        validateERC721OrderSignature(buyOrder, signature);
     }
 
     function _payFees(
@@ -883,13 +912,14 @@ contract ERC721OrdersFeature is
     {
         for (uint256 i = 0; i < order.fees.length; i++) {
             LibERC721Order.Fee memory fee = order.fees[i];
-            
+
             require(
-                fee.recipient != address(this), 
+                fee.recipient != address(this),
                 "ERC721OrdersFeature::_payFees/RECIPIENT_CANNOT_BE_EXCHANGE_PROXY"
             );
 
             if (useNativeToken) {
+                assert(payer == address(this));
                 // Transfer ETH to the fee recipient.
                 _transferEth(payable(fee.recipient), fee.amount);
             } else {
@@ -897,17 +927,17 @@ contract ERC721OrdersFeature is
                 _transferERC20TokensFrom(
                     order.erc20Token,
                     payer,
-                    fee.recipient, 
+                    fee.recipient,
                     fee.amount
                 );
             }
             // Note that the fee callback is _not_ called if zero
             // `feeData` is provided. If `feeData` is provided, we assume
-            // the fee recipient is a contract that implements the 
+            // the fee recipient is a contract that implements the
             // `IFeeRecipient` interface.
             if (fee.feeData.length > 0) {
                 // Invoke the callback
-                bytes4 callbackResult = IFeeRecipient(fee.recipient).receiveFeeCallback(
+                bytes4 callbackResult = IFeeRecipient(fee.recipient).receiveZeroExFeeCallback(
                     useNativeToken ? NATIVE_TOKEN_ADDRESS : address(order.erc20Token),
                     fee.amount,
                     fee.feeData
@@ -931,7 +961,7 @@ contract ERC721OrdersFeature is
         // Update order status bit vector to indicate that the given order
         // has been cancelled/filled by setting the designated bit to 1.
         LibERC721OrdersStorage.getStorage().orderStatusByMaker
-            [maker][uint248(nonce >> 8)] |= flag;            
+            [maker][uint248(nonce >> 8)] |= flag;
     }
 
 
@@ -952,25 +982,23 @@ contract ERC721OrdersFeature is
             // Check if order hash has been pre-signed by the maker.
             bool isPreSigned = LibERC721OrdersStorage.getStorage()
                 .preSigned[orderHash][order.maker];
-            rrequire(
-                isPreSigned,
-                LibERC721OrdersRichErrors.InvalidSignerError(order.maker, address(0))
-            );
+            if (!isPreSigned) {
+                LibERC721OrdersRichErrors.InvalidSignerError(order.maker, address(0)).rrevert();
+            }
         } else {
             address signer = LibSignature.getSignerOfHash(orderHash, signature);
-            rrequire(
-                signer == order.maker,
-                LibERC721OrdersRichErrors.InvalidSignerError(order.maker, signer)
-            );
+            if (signer != order.maker) {
+                LibERC721OrdersRichErrors.InvalidSignerError(order.maker, signer).rrevert();
+            }
         }
     }
 
     /// @dev If the given order is buying an ERC721 asset, checks
     ///      whether or not the given token ID satisfies the required
     ///      properties specified in the order. If the order does not
-    ///      specify any properties, this function instead checks 
+    ///      specify any properties, this function instead checks
     ///      whether the given token ID matches the ID in the order.
-    ///      Reverts if any checks fail, or if the order is selling 
+    ///      Reverts if any checks fail, or if the order is selling
     ///      an ERC721 asset.
     /// @param order The ERC721 order.
     /// @param erc721TokenId The ID of the ERC721 asset.
@@ -982,23 +1010,21 @@ contract ERC721OrdersFeature is
         override
         view
     {
-        // Order must be selling an buying an ERC721 asset to 
-        // have properties.
+        // Order must be buying an ERC721 asset to have properties.
         require(
             order.direction == LibERC721Order.TradeDirection.BUY_721,
             "ERC721OrdersFeature::validateERC721OrderProperties/WRONG_TRADE_DIRECTION"
         );
 
-        // If no properties are specified, check that the given 
-        // `erc721TokenId` matches the one specified in the order. 
+        // If no properties are specified, check that the given
+        // `erc721TokenId` matches the one specified in the order.
         if (order.erc721TokenProperties.length == 0) {
-            rrequire(
-                erc721TokenId == order.erc721TokenId,
+            if (erc721TokenId != order.erc721TokenId) {
                 LibERC721OrdersRichErrors.ERC721TokenIdMismatchError(
                     erc721TokenId,
                     order.erc721TokenId
-                )
-            );
+                ).rrevert();
+            }
         }
 
         // Validate each property
@@ -1037,19 +1063,19 @@ contract ERC721OrdersFeature is
         view
         returns (LibERC721Order.OrderStatus status)
     {
-        // Only sell orders with `erc721TokenId` == 0 can be property
-        // orders. 
-        if (order.erc721TokenProperties.length > 0 && 
-                (order.direction == LibERC721Order.TradeDirection.SELL_721 ||
+        // Only buy orders with `erc721TokenId` == 0 can be property
+        // orders.
+        if (order.erc721TokenProperties.length > 0 &&
+                (order.direction != LibERC721Order.TradeDirection.BUY_721 ||
                  order.erc721TokenId != 0))
         {
             return LibERC721Order.OrderStatus.INVALID;
         }
 
-        // Buy orders cannot use ETH as the ERC20 token, since ETH cannot be 
+        // Buy orders cannot use ETH as the ERC20 token, since ETH cannot be
         // transferred from the buyer by a contract.
         if (order.direction == LibERC721Order.TradeDirection.BUY_721 &&
-            address(order.erc20Token) == NATIVE_TOKEN_ADDRESS) 
+            address(order.erc20Token) == NATIVE_TOKEN_ADDRESS)
         {
             return LibERC721Order.OrderStatus.INVALID;
         }
@@ -1061,7 +1087,7 @@ contract ERC721OrdersFeature is
 
         // Check `orderStatusByMaker` state variable to see if the order
         // has been cancelled or previously filled.
-        LibERC721OrdersStorage.Storage storage stor = 
+        LibERC721OrdersStorage.Storage storage stor =
             LibERC721OrdersStorage.getStorage();
         // `orderStatusByMaker` is indexed by maker and nonce.
         uint256 orderStatusBitVector =
@@ -1091,11 +1117,11 @@ contract ERC721OrdersFeature is
     }
 
     /// @dev Get the order status bit vector for the given
-    ///      maker address and nonce range. 
+    ///      maker address and nonce range.
     /// @param maker The maker of the order.
     /// @param nonceRange Order status bit vectors are indexed
-    ///        by maker address and the upper 248 bits of the 
-    ///        order nonce. We define `nonceRange` to be these 
+    ///        by maker address and the upper 248 bits of the
+    ///        order nonce. We define `nonceRange` to be these
     ///        248 bits.
     /// @return bitVector The order status bit vector for the
     ///         given maker and nonce range.

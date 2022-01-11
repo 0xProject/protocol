@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 
 contract TestFeeRecipient {
-    bytes4 constant private SUCCESS = this.receiveFeeCallback.selector;
+    bytes4 constant private SUCCESS = this.receiveZeroExFeeCallback.selector;
     bytes4 constant private FAILURE = 0xdeadbeef;
 
     uint256 constant private TRIGGER_REVERT = 333;
@@ -35,7 +35,7 @@ contract TestFeeRecipient {
 
     receive() external payable {}
 
-    function receiveFeeCallback(
+    function receiveZeroExFeeCallback(
         address tokenAddress,
         uint256 amount,
         bytes calldata /* feeData */
@@ -45,7 +45,7 @@ contract TestFeeRecipient {
     {
         emit FeeReceived(tokenAddress, amount);
         if (amount == TRIGGER_REVERT) {
-            revert("TestFeeRecipient::receiveFeeCallback/REVERT");
+            revert("TestFeeRecipient::receiveZeroExFeeCallback/REVERT");
         } else if (amount == TRIGGER_FAILURE) {
             return FAILURE;
         } else {

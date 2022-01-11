@@ -31,7 +31,7 @@ import {
     TestWethContract,
 } from '../wrappers';
 
-blockchainTests.resets('ERC721OrdersFeature', env => {
+blockchainTests.resets.only('ERC721OrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT: ZERO } = constants;
     const ETH_TOKEN_ADDRESS = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
@@ -225,6 +225,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
             maker: order.maker,
             taker,
             nonce: order.nonce,
+            matcher: NULL_ADDRESS,
         };
     }
 
@@ -462,13 +463,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
-            return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Invalid,
-                ),
-            );
+            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED');
         });
         it('cannot fill an expired order', async () => {
             const order = getTestERC721Order({
@@ -636,7 +631,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                     .awaitTransactionSuccessAsync({
                         from: taker,
                     });
-                return expect(tx).to.revertWith('TestFeeRecipient::receiveFeeCallback/REVERT');
+                return expect(tx).to.revertWith('TestFeeRecipient::receiveZeroExFeeCallback/REVERT');
             });
             it('single fee, callback returns invalid value', async () => {
                 const order = getTestERC721Order({
@@ -1406,7 +1401,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 direction: ERC721Order.TradeDirection.Buy721,
             });
             await mintAssetsAsync(order);
-            await contractMaker.preSignOrder(order.getHash()).awaitTransactionSuccessAsync();
+            await contractMaker.preSignOrder(order).awaitTransactionSuccessAsync();
             await zeroEx
                 .sellERC721(order, PRESIGN_SIGNATURE, order.erc721TokenId, false, NULL_BYTES)
                 .awaitTransactionSuccessAsync({
@@ -1435,7 +1430,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 direction: ERC721Order.TradeDirection.Buy721,
             });
             await mintAssetsAsync(order);
-            await contractMaker.preSignOrder(order.getHash()).awaitTransactionSuccessAsync();
+            await contractMaker.preSignOrder(order).awaitTransactionSuccessAsync();
             await contractMaker.cancelOrder(order.nonce).awaitTransactionSuccessAsync();
             const tx = zeroEx
                 .sellERC721(order, PRESIGN_SIGNATURE, order.erc721TokenId, false, NULL_BYTES)

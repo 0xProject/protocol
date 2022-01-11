@@ -60,12 +60,12 @@ abstract contract FixinERC721Spender {
                 0,
                 ptr,
                 0x64,
-                ptr,
-                32
+                0,
+                0
             )
 
-            let rdsize := returndatasize()
             if iszero(success) {
+                let rdsize := returndatasize()
                 returndatacopy(ptr, 0, rdsize)
                 revert(ptr, rdsize)
             }

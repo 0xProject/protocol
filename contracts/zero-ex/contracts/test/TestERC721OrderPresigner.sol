@@ -23,13 +23,14 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../src/IZeroEx.sol";
 import "../src/vendor/IERC721Token.sol";
+import "../src/features/libs/LibERC721Order.sol";
 
 
 contract TestERC721OrderPresigner {
     IZeroEx private immutable zeroEx;
 
-    constructor(IZeroEx _zeroEx) 
-        public 
+    constructor(IZeroEx _zeroEx)
+        public
     {
         zeroEx = _zeroEx;
     }
@@ -46,10 +47,10 @@ contract TestERC721OrderPresigner {
         token.approve(address(zeroEx), uint256(-1));
     }
 
-    function preSignOrder(bytes32 orderHash)
+    function preSignOrder(LibERC721Order.ERC721Order calldata order)
         external
     {
-        zeroEx.preSignERC721Order(orderHash);
+        zeroEx.preSignERC721Order(order);
     }
 
     function cancelOrder(uint256 orderNonce)
