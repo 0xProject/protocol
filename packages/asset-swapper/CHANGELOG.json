@@ -6,7 +6,8 @@
                 "note": "Enable `Curve` ETH/CVX pool",
                 "pr": 394
             }
-        ]
+        ],
+        "timestamp": 1641863395
     },
     {
         "version": "16.45.2",
