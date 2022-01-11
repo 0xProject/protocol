@@ -591,16 +591,31 @@ contract ERC721OrdersFeature is
         return ERC721_RECEIVED_MAGIC_BYTES;
     }
 
-    /// @dev Approves an ERC721 order hash on-chain. After pre-signing
-    ///      a hash, the `PRESIGNED` signature type will become valid
-    ///      for that order and signer.
-    /// @param orderHash An ERC721 order hash.
-    function preSignERC721Order(bytes32 orderHash)
-        external
+    /// @dev Approves an ERC721 order on-chain. After pre-signing
+    ///      the order, the `PRESIGNED` signature type will become
+    ///      valid for that order and signer.
+    /// @param order An ERC721 order.
+    function preSignERC721Order(LibERC721Order.ERC721Order memory order)
+        public
         override
     {
+        bytes32 orderHash = getERC721OrderHash(order);
         LibERC721OrdersStorage.getStorage()
             .preSigned[orderHash][msg.sender] = true;
+
+        emit ERC721OrderPreSigned(
+            order.direction,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.erc721Token,
+            order.erc721TokenId,
+            order.erc721TokenProperties,
+            order.fees,
+            order.maker,
+            order.taker,
+            order.expiry,
+            order.nonce
+        );
     }
 
     // Core settlement logic for selling an ERC721 asset.

@@ -62,6 +62,22 @@ interface IERC721OrdersFeature {
         uint256 nonce
     );
 
+    /// @dev Emitted when an `ERC721Order` is pre-signed.
+    ///      Contains all the fields of the order.
+    event ERC721OrderPreSigned(
+        LibERC721Order.TradeDirection direction,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        IERC721Token erc721Token,
+        uint256 erc721TokenId,
+        LibERC721Order.Property[] erc721TokenProperties,
+        LibERC721Order.Fee[] fees,
+        address maker,
+        address taker,
+        uint256 expiry,
+        uint256 nonce
+    );
+
     /// @dev Sells an ERC721 asset to fill the given order.
     /// @param buyOrder The ERC721 buy order.
     /// @param signature The order signature from the maker.
@@ -202,11 +218,11 @@ interface IERC721OrdersFeature {
         external
         returns (bytes4 success);
 
-    /// @dev Approves an ERC721 order hash on-chain. After pre-signing
-    ///      a hash, the `PRESIGNED` signature type will become valid
-    ///      for that order and maker.
-    /// @param orderHash An ERC721 order hash.
-    function preSignERC721Order(bytes32 orderHash)
+    /// @dev Approves an ERC721 order on-chain. After pre-signing
+    ///      the order, the `PRESIGNED` signature type will become
+    ///      valid for that order and signer.
+    /// @param order An ERC721 order.
+    function preSignERC721Order(LibERC721Order.ERC721Order calldata order)
         external;
 
     /// @dev Checks whether the given signature is valid for the
