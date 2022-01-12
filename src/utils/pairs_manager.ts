@@ -87,6 +87,7 @@ export class PairsManager extends EventEmitter {
     private _rfqmMakerOfferings: RfqMakerAssetOfferings;
     private _rfqmMakerOfferingsForRfqOrder: RfqMakerAssetOfferings;
     private _rfqmPairToMakerUrisForOtcOrder: PairsToUris;
+    private _rfqMakerPairsListUpdateTimeHash: string | null;
 
     constructor(private readonly _configManager: ConfigManager, private readonly _dbUtils: RfqMakerDbUtils) {
         super();
@@ -98,6 +99,7 @@ export class PairsManager extends EventEmitter {
         this._rfqmMakerConfigMap = this._configManager.getRfqmMakerConfigMap();
         this._rfqmMakerConfigMapForRfqOrder = this._configManager.getRfqmMakerConfigMapForRfqOrder();
         this._rfqmMakerConfigMapForOtcOrder = this._configManager.getRfqmMakerConfigMapForOtcOrder();
+        this._rfqMakerPairsListUpdateTimeHash = null;
     }
 
     /**
@@ -142,8 +144,18 @@ export class PairsManager extends EventEmitter {
         const timerStopFunction = RFQ_MAKER_PAIRS_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
 
         try {
+            logger.info({ chainId, refreshTime }, `Check if refreshing is necessary.`);
+
+            const rfqMakerPairsListUpdateTimeHash = await this._dbUtils.getPairsArrayUpdateTimeHashAsync(chainId);
+
+            if (rfqMakerPairsListUpdateTimeHash === this._rfqMakerPairsListUpdateTimeHash) {
+                logger.info({ chainId, refreshTime }, `Pairs are up to date.`);
+                return;
+            }
+
             logger.info({ chainId, refreshTime }, `Start refreshing pairs.`);
 
+            this._rfqMakerPairsListUpdateTimeHash = rfqMakerPairsListUpdateTimeHash;
             const rfqMakerPairsList = await this._dbUtils.getPairsArrayAsync(chainId);
 
             this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerConfigMap, rfqMakerPairsList);

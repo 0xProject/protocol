@@ -31,6 +31,7 @@ const createMockConfigManager = (
 const createMockRfqMakerDbUtilsInstance = (rfqMakerPairs: RfqMakerPairs[]): RfqMakerDbUtils => {
     const rfqMakerDbUtilsMock = mock(RfqMakerDbUtils);
     when(rfqMakerDbUtilsMock.getPairsArrayAsync(anything())).thenResolve(rfqMakerPairs);
+    when(rfqMakerDbUtilsMock.getPairsArrayUpdateTimeHashAsync(anything())).thenResolve('hash');
 
     return instance(rfqMakerDbUtilsMock);
 };

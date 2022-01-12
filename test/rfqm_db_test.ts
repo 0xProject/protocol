@@ -6,7 +6,6 @@ import 'mocha';
 import { Connection } from 'typeorm';
 
 import { ZERO } from '../src/constants';
-import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../src/entities/types';
@@ -20,6 +19,7 @@ import {
 } from '../src/utils/rfqm_db_utils';
 
 import { MATCHA_AFFILIATE_ADDRESS } from './constants';
+import { initDBConnectionAsync } from './test_utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -93,22 +93,19 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         dbUtils = new RfqmDbUtils(connection);
     });
 
     after(async () => {
         // reset DB
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
     beforeEach(async () => {
         // reset DB
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         dbUtils = new RfqmDbUtils(connection);
     });
 

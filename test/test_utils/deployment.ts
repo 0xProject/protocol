@@ -5,7 +5,8 @@ import * as path from 'path';
 import * as redis from 'redis';
 
 import { REDIS_URI } from '../../src/config';
-import { getDBConnectionAsync } from '../../src/db_connection';
+
+import { initDBConnectionAsync } from './db_connection';
 
 // depends on a `docker-compose-test.yml` existing in the api root directory
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
@@ -153,8 +154,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
             // delay before retrying
             new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
             async () => {
-                const connection = await getDBConnectionAsync();
-                await connection.synchronize(true);
+                await initDBConnectionAsync();
             },
         ]);
         return;

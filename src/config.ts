@@ -31,7 +31,7 @@ import {
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
-    ONE_HOUR_MS,
+    ONE_MINUTE_MS,
     ORDERBOOK_PATH,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     TX_BASE_GAS,
@@ -118,7 +118,7 @@ export type RfqWorkFlowType = 'rfqt' | 'rfqm';
 export type RfqOrderType = 'rfq' | 'otc';
 
 export const RFQ_WORKFLOW: RfqWorkFlowType = 'rfqm'; // This code base currently only supports rfqm workflow. rfqt is supported in 0x-api repo.
-export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_HOUR_MS * 1;
+export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 
 /**
  * The JSON config for each Market Maker, providing information including URLs, type of order supported and authentication.

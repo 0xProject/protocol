@@ -12,6 +12,7 @@ export { RfqmV2QuoteEntity } from './RfqmV2QuoteEntity';
 export { RfqmV2TransactionSubmissionEntity } from './RfqmV2TransactionSubmissionEntity';
 export { RfqmWorkerHeartbeatEntity } from './RfqmWorkerHeartbeatEntity';
 export { RfqMakerPairs } from './RfqMakerPairs';
+export { RfqMakerPairsUpdateTimeHash } from './RfqMakerPairsUpdateTimeHash';
 export { SignedOrderEntity } from './SignedOrderEntity';
 export { SignedOrderV4Entity } from './SignedOrderV4Entity';
 export { TransactionEntity } from './TransactionEntity';

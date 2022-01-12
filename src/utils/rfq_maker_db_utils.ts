@@ -1,6 +1,6 @@
 import { Connection } from 'typeorm';
 
-import { RfqMakerPairs } from '../entities';
+import { RfqMakerPairs, RfqMakerPairsUpdateTimeHash } from '../entities';
 
 /**
  * RfqMakerDbUtils provides tools for maker services to interact with the database
@@ -27,6 +27,17 @@ export class RfqMakerDbUtils {
     }
 
     /**
+     * [RFQ maker] find a hash for all pairs update time
+     */
+    public async getPairsArrayUpdateTimeHashAsync(chainId: number): Promise<string | null> {
+        const rfqMakerPairsUpdateTimeHash = await this._connection.getRepository(RfqMakerPairsUpdateTimeHash).findOne({
+            where: { chainId },
+        });
+
+        return rfqMakerPairsUpdateTimeHash ? rfqMakerPairsUpdateTimeHash.hash : null;
+    }
+
+    /**
      * [RFQ maker] create or update RfqMakerPairs for given maker and blockchain
      */
     public async createOrUpdatePairsAsync(
@@ -41,6 +52,7 @@ export class RfqMakerDbUtils {
             pairs,
         });
         await this._connection.getRepository(RfqMakerPairs).save(rfqMakerPairs);
+        await this._connection.query(`REFRESH MATERIALIZED VIEW rfq_maker_pairs_update_time_hashes`);
         return rfqMakerPairs;
     }
 }
