@@ -11,12 +11,14 @@ import * as BootstrapFeature from '../test/generated-artifacts/BootstrapFeature.
 import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
 import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
+import * as ERC1155OrdersFeature from '../test/generated-artifacts/ERC1155OrdersFeature.json';
 import * as ERC721OrdersFeature from '../test/generated-artifacts/ERC721OrdersFeature.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
 import * as FillQuoteTransformer from '../test/generated-artifacts/FillQuoteTransformer.json';
 import * as FixinCommon from '../test/generated-artifacts/FixinCommon.json';
 import * as FixinEIP712 from '../test/generated-artifacts/FixinEIP712.json';
+import * as FixinERC1155Spender from '../test/generated-artifacts/FixinERC1155Spender.json';
 import * as FixinERC721Spender from '../test/generated-artifacts/FixinERC721Spender.json';
 import * as FixinProtocolFees from '../test/generated-artifacts/FixinProtocolFees.json';
 import * as FixinReentrancyGuard from '../test/generated-artifacts/FixinReentrancyGuard.json';
@@ -27,6 +29,9 @@ import * as FundRecoveryFeature from '../test/generated-artifacts/FundRecoveryFe
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
+import * as IERC1155OrderCallback from '../test/generated-artifacts/IERC1155OrderCallback.json';
+import * as IERC1155OrdersFeature from '../test/generated-artifacts/IERC1155OrdersFeature.json';
+import * as IERC1155Token from '../test/generated-artifacts/IERC1155Token.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
 import * as IERC721OrderCallback from '../test/generated-artifacts/IERC721OrderCallback.json';
@@ -61,6 +66,9 @@ import * as IUniswapV3Pool from '../test/generated-artifacts/IUniswapV3Pool.json
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
+import * as LibERC1155Order from '../test/generated-artifacts/LibERC1155Order.json';
+import * as LibERC1155OrdersRichErrors from '../test/generated-artifacts/LibERC1155OrdersRichErrors.json';
+import * as LibERC1155OrdersStorage from '../test/generated-artifacts/LibERC1155OrdersStorage.json';
 import * as LibERC20Transformer from '../test/generated-artifacts/LibERC20Transformer.json';
 import * as LibERC721Order from '../test/generated-artifacts/LibERC721Order.json';
 import * as LibERC721OrdersRichErrors from '../test/generated-artifacts/LibERC721OrdersRichErrors.json';
@@ -195,6 +203,7 @@ export const artifacts = {
     ZeroEx: ZeroEx as ContractArtifact,
     ZeroExOptimized: ZeroExOptimized as ContractArtifact,
     LibCommonRichErrors: LibCommonRichErrors as ContractArtifact,
+    LibERC1155OrdersRichErrors: LibERC1155OrdersRichErrors as ContractArtifact,
     LibERC721OrdersRichErrors: LibERC721OrdersRichErrors as ContractArtifact,
     LibLiquidityProviderRichErrors: LibLiquidityProviderRichErrors as ContractArtifact,
     LibMetaTransactionsRichErrors: LibMetaTransactionsRichErrors as ContractArtifact,
@@ -216,6 +225,7 @@ export const artifacts = {
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
+    ERC1155OrdersFeature: ERC1155OrdersFeature as ContractArtifact,
     ERC721OrdersFeature: ERC721OrdersFeature as ContractArtifact,
     FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
@@ -230,6 +240,7 @@ export const artifacts = {
     UniswapV3Feature: UniswapV3Feature as ContractArtifact,
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
+    IERC1155OrdersFeature: IERC1155OrdersFeature as ContractArtifact,
     IERC721OrdersFeature: IERC721OrdersFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
     IFundRecoveryFeature: IFundRecoveryFeature as ContractArtifact,
@@ -246,6 +257,7 @@ export const artifacts = {
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
+    LibERC1155Order: LibERC1155Order as ContractArtifact,
     LibERC721Order: LibERC721Order as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
@@ -262,6 +274,7 @@ export const artifacts = {
     NativeOrdersSettlement: NativeOrdersSettlement as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
+    FixinERC1155Spender: FixinERC1155Spender as ContractArtifact,
     FixinERC721Spender: FixinERC721Spender as ContractArtifact,
     FixinProtocolFees: FixinProtocolFees as ContractArtifact,
     FixinReentrancyGuard: FixinReentrancyGuard as ContractArtifact,
@@ -272,6 +285,7 @@ export const artifacts = {
     InitialMigration: InitialMigration as ContractArtifact,
     LibBootstrap: LibBootstrap as ContractArtifact,
     LibMigrate: LibMigrate as ContractArtifact,
+    LibERC1155OrdersStorage: LibERC1155OrdersStorage as ContractArtifact,
     LibERC721OrdersStorage: LibERC721OrdersStorage as ContractArtifact,
     LibMetaTransactionsStorage: LibMetaTransactionsStorage as ContractArtifact,
     LibNativeOrdersStorage: LibNativeOrdersStorage as ContractArtifact,
@@ -318,6 +332,8 @@ export const artifacts = {
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinUniswapV3: MixinUniswapV3 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
+    IERC1155OrderCallback: IERC1155OrderCallback as ContractArtifact,
+    IERC1155Token: IERC1155Token as ContractArtifact,
     IERC721OrderCallback: IERC721OrderCallback as ContractArtifact,
     IERC721Token: IERC721Token as ContractArtifact,
     IFeeRecipient: IFeeRecipient as ContractArtifact,
