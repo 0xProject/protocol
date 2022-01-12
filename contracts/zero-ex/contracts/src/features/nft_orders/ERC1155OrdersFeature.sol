@@ -1,0 +1,611 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+
+  Copyright 2021 ZeroEx Intl.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+*/
+
+pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
+
+import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
+import "../../fixins/FixinERC1155Spender.sol";
+import "../../migrations/LibMigrate.sol";
+import "../../storage/LibERC1155OrdersStorage.sol";
+import "../interfaces/IFeature.sol";
+import "../interfaces/IERC1155OrdersFeature.sol";
+import "../libs/LibNFTOrder.sol";
+import "../libs/LibSignature.sol";
+import "./NFTOrders.sol";
+
+
+/// @dev Feature for interacting with ERC1155 orders.
+contract ERC1155OrdersFeature is
+    IFeature,
+    IERC1155OrdersFeature,
+    FixinERC1155Spender,
+    NFTOrders
+{
+    using LibSafeMathV06 for uint256;
+    using LibSafeMathV06 for uint128;
+    using LibNFTOrder for LibNFTOrder.ERC1155Order;
+    using LibNFTOrder for LibNFTOrder.NFTOrder;
+
+    /// @dev Name of this feature.
+    string public constant override FEATURE_NAME = "ERC1155Orders";
+    /// @dev Version of this feature.
+    uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
+
+    /// @dev The magic return value indicating the success of a `onERC1155Received`.
+    bytes4 private constant ERC1155_RECEIVED_MAGIC_BYTES = this.onERC1155Received.selector;
+    /// @dev Highest bit of a uint256, used to flag cancelled orders.
+    uint256 private constant CANCEL_BIT = 1 << 255;
+    /// @dev Second-highest bit of a uint256, used to flag pre-signed orders.
+    uint256 private constant PRESIGN_BIT = 1 << 254;
+
+
+    constructor(address zeroExAddress, IEtherTokenV06 weth)
+        public
+        NFTOrders(zeroExAddress, weth)
+    {}
+
+    /// @dev Initialize and register this feature.
+    ///      Should be delegatecalled by `Migrate.migrate()`.
+    /// @return success `LibMigrate.SUCCESS` on success.
+    function migrate()
+        external
+        returns (bytes4 success)
+    {
+        _registerFeatureFunction(this.sellERC1155.selector);
+        _registerFeatureFunction(this.buyERC1155.selector);
+        _registerFeatureFunction(this.cancelERC1155Order.selector);
+        _registerFeatureFunction(this.batchBuyERC1155s.selector);
+        _registerFeatureFunction(this.onERC1155Received.selector);
+        _registerFeatureFunction(this.preSignERC1155Order.selector);
+        _registerFeatureFunction(this.validateERC1155OrderSignature.selector);
+        _registerFeatureFunction(this.validateERC1155OrderProperties.selector);
+        _registerFeatureFunction(this.getERC1155OrderInfo.selector);
+        _registerFeatureFunction(this.getERC1155OrderHash.selector);
+        return LibMigrate.MIGRATE_SUCCESS;
+    }
+
+    /// @dev Sells an ERC1155 asset to fill the given order.
+    /// @param buyOrder The ERC1155 buy order.
+    /// @param signature The order signature from the maker.
+    /// @param erc1155TokenId The ID of the ERC1155 asset being
+    ///        sold. If the given order specifies properties,
+    ///        the asset must satisfy those properties. Otherwise,
+    ///        it must equal the tokenId in the order.
+    /// @param erc1155SellAmount The amount of the ERC1155 asset
+    ///        to sell.
+    /// @param unwrapNativeToken If this parameter is true and the
+    ///        ERC20 token of the order is e.g. WETH, unwraps the
+    ///        token before transferring it to the taker.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC1155OrderCallback` on `msg.sender` after
+    ///        the ERC20 tokens have been transferred to `msg.sender`
+    ///        but before transferring the ERC1155 asset to the buyer.
+    function sellERC1155(
+        LibNFTOrder.ERC1155Order memory buyOrder,
+        LibSignature.Signature memory signature,
+        uint256 erc1155TokenId,
+        uint128 erc1155SellAmount,
+        bool unwrapNativeToken,
+        bytes memory callbackData
+    )
+        public
+        override
+    {
+        _sellERC1155(
+            buyOrder,
+            signature,
+            SellParams(
+                erc1155SellAmount,
+                erc1155TokenId,
+                unwrapNativeToken,
+                msg.sender, // taker
+                msg.sender, // owner
+                callbackData
+            )
+        );
+    }
+
+    /// @dev Buys an ERC1155 asset by filling the given order.
+    /// @param sellOrder The ERC1155 sell order.
+    /// @param signature The order signature.
+    /// @param erc1155BuyAmount The amount of the ERC1155 asset
+    ///        to buy.
+    /// @param callbackData If this parameter is non-zero, invokes
+    ///        `zeroExERC1155OrderCallback` on `msg.sender` after
+    ///        the ERC1155 asset has been transferred to `msg.sender`
+    ///        but before transferring the ERC20 tokens to the seller.
+    ///        Native tokens acquired during the callback can be used
+    ///        to fill the order.
+    function buyERC1155(
+        LibNFTOrder.ERC1155Order memory sellOrder,
+        LibSignature.Signature memory signature,
+        uint128 erc1155BuyAmount,
+        bytes memory callbackData
+    )
+        public
+        override
+        payable
+    {
+        uint256 ethBalanceBefore = address(this).balance
+            .safeSub(msg.value);
+        _buyERC1155(
+            sellOrder,
+            signature,
+            BuyParams(
+                erc1155BuyAmount,
+                msg.value,
+                callbackData
+            )
+        );
+        uint256 ethBalanceAfter = address(this).balance;
+        // Cannot spent more than `msg.value`
+        if (ethBalanceAfter < ethBalanceBefore) {
+            LibNFTOrdersRichErrors.OverspentEthError(
+                ethBalanceBefore - ethBalanceAfter + msg.value,
+                msg.value
+            ).rrevert();
+        }
+        // Refund
+        _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
+    }
+
+    /// @dev Cancel a single ERC1155 order. The caller should be the
+    ///      maker of the order. Silently succeeds if the order has
+    ///      already been filled or cancelled.
+    /// @param order The order to cancel.
+    function cancelERC1155Order(LibNFTOrder.ERC1155Order memory order)
+        public
+        override
+    {
+        require(
+            order.maker == msg.sender,
+            "ERC1155OrdersFeature::cancelERC1155Order/ONLY_MAKER"
+        );
+
+        bytes32 orderHash = getERC1155OrderHash(order);
+        // Set the high bit on the order state variable to indicate
+        // a cancel. It's OK to cancel twice.
+        LibERC1155OrdersStorage.Storage storage stor =
+            LibERC1155OrdersStorage.getStorage();
+        stor.orderState[orderHash] |= CANCEL_BIT;
+
+        emit ERC1155OrderCancelled(orderHash, msg.sender);
+    }
+
+    /// @dev Cancel multiple ERC1155 orders. The caller should be the
+    ///      maker of the orders. Silently succeeds if an order has
+    ///      already been filled or cancelled.
+    /// @param orders The orders to cancel.
+    function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] memory orders)
+        public
+        override
+    {
+        for (uint256 i = 0; i < orders.length; i++) {
+            cancelERC1155Order(orders[i]);
+        }
+    }
+
+    /// @dev Buys multiple ERC1155 assets by filling the
+    ///      given orders.
+    /// @param sellOrders The ERC1155 sell orders.
+    /// @param signatures The order signatures.
+    /// @param erc1155FillAmounts The amounts of the ERC1155 assets
+    ///        to buy for each order.
+    /// @param revertIfIncomplete If true, reverts if this
+    ///        function fails to fill any individual order.
+    /// @return successes An array of booleans corresponding to whether
+    ///         each order in `orders` was successfully filled.
+    function batchBuyERC1155s(
+        LibNFTOrder.ERC1155Order[] memory sellOrders,
+        LibSignature.Signature[] memory signatures,
+        uint128[] calldata erc1155FillAmounts,
+        bool revertIfIncomplete
+    )
+        public
+        override
+        payable
+        returns (bool[] memory successes)
+    {
+        require(
+            sellOrders.length == signatures.length &&
+            sellOrders.length == erc1155FillAmounts.length,
+            "ERC1155OrdersFeature::batchBuyERC1155s/ARRAY_LENGTH_MISMATCH"
+        );
+        successes = new bool[](sellOrders.length);
+
+        uint256 ethSpent = 0;
+        for (uint256 i = 0; i < sellOrders.length; i++) {
+            bytes memory returnData;
+            // Delegatecall `_buyERC1155` to track ETH consumption while
+            // preserving execution context.
+            // Note that `_buyERC1155` is a public function but should _not_
+            // be registered in the Exchange Proxy.
+            (successes[i], returnData) = _implementation.delegatecall(
+                abi.encodeWithSelector(
+                    this._buyERC1155.selector,
+                    sellOrders[i],
+                    signatures[i],
+                    BuyParams(
+                        erc1155FillAmounts[i],
+                        msg.value - ethSpent, // Remaining ETH available
+                        new bytes(0)          // No taker callback; allowing a
+                                              // callback would potentially mess
+                                              // up the ETH accounting here.
+                    )
+                )
+            );
+            if (successes[i]) {
+                (uint256 _ethSpent) = abi.decode(returnData, (uint256));
+                ethSpent = ethSpent.safeAdd(_ethSpent);
+            } else if (revertIfIncomplete) {
+                // Bubble up revert
+                returnData.rrevert();
+            }
+        }
+
+        if (ethSpent > msg.value) {
+            LibNFTOrdersRichErrors.OverspentEthError(
+                ethSpent,
+                msg.value
+            ).rrevert();
+        }
+
+        // Refund
+        _transferEth(msg.sender, msg.value - ethSpent);
+    }
+
+    /// @dev Callback for the ERC1155 `safeTransferFrom` function.
+    ///      This callback can be used to sell an ERC1155 asset if
+    ///      a valid ERC1155 order, signature and `unwrapNativeToken`
+    ///      are encoded in `data`. This allows takers to sell their
+    ///      ERC1155 asset without first calling `setApprovalForAll`.
+    /// @param operator The address which called `safeTransferFrom`.
+    /// @param from The address which previously owned the token.
+    /// @param tokenId The ID of the asset being transferred.
+    /// @param value The amount being transferred.
+    /// @param data Additional data with no specified format. If a
+    ///        valid ERC1155 order, signature and `unwrapNativeToken`
+    ///        are encoded in `data`, this function will try to fill
+    ///        the order using the received asset.
+    /// @return success The selector of this function (0xf23a6e61),
+    ///         indicating that the callback succeeded.
+    function onERC1155Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        uint256 value,
+        bytes calldata data
+    )
+        external
+        override
+        returns (bytes4 success)
+    {
+        // TODO: Throw helpful reverts for malformed `data` before
+        //       attempting to decode?
+
+        // Decode the order, signature, and `unwrapNativeToken` from
+        // `data`. If `data` does not encode such parameters, this
+        // will throw.
+        (
+            LibNFTOrder.ERC1155Order memory buyOrder,
+            LibSignature.Signature memory signature,
+            bool unwrapNativeToken
+        ) = abi.decode(
+            data,
+            (LibNFTOrder.ERC1155Order, LibSignature.Signature, bool)
+        );
+
+        // `onERC1155Received` is called by the ERC1155 token contract.
+        // Check that it matches the ERC1155 token in the order.
+        if (msg.sender != address(buyOrder.erc1155Token)) {
+            LibNFTOrdersRichErrors.ERC1155TokenMismatchError(
+                msg.sender,
+                address(buyOrder.erc1155Token)
+            ).rrevert();
+        }
+
+        _sellERC1155(
+            buyOrder,
+            signature,
+            SellParams(
+                value.safeDowncastToUint128(),
+                tokenId,
+                unwrapNativeToken,
+                operator,       // taker
+                address(this),  // owner (we hold the NFT currently)
+                new bytes(0)    // No taker callback
+            )
+        );
+
+        return ERC1155_RECEIVED_MAGIC_BYTES;
+    }
+
+    /// @dev Approves an ERC1155 order on-chain. After pre-signing
+    ///      the order, the `PRESIGNED` signature type will become
+    ///      valid for that order and signer.
+    /// @param order An ERC1155 order.
+    function preSignERC1155Order(LibNFTOrder.ERC1155Order memory order)
+        public
+        override
+    {
+        require(
+            order.maker == msg.sender,
+            "ERC1155OrdersFeature::preSignERC1155Order/MAKER_MISMATCH"
+        );
+        bytes32 orderHash = getERC1155OrderHash(order);
+
+        LibERC1155OrdersStorage.Storage storage stor =
+            LibERC1155OrdersStorage.getStorage();
+        // Set the second-highest bit on the order state variable
+        // to indicate that the order has been pre-signed.
+        stor.orderState[orderHash] |= PRESIGN_BIT;
+
+        emit ERC1155OrderPreSigned(
+            order.direction,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.erc1155Token,
+            order.erc1155TokenId,
+            order.erc1155TokenAmount,
+            order.erc1155TokenProperties,
+            order.fees,
+            order.maker,
+            order.taker,
+            order.expiry,
+            order.nonce
+        );
+    }
+
+    // Core settlement logic for selling an ERC1155 asset.
+    // Used by `sellERC1155` and `onERC1155Received`.
+    function _sellERC1155(
+        LibNFTOrder.ERC1155Order memory buyOrder,
+        LibSignature.Signature memory signature,
+        SellParams memory params
+    )
+        private
+    {
+        uint256 erc20FillAmount = _sellNFT(
+            buyOrder.asNFTOrder(),
+            buyOrder.erc1155TokenAmount,
+            signature,
+            params
+        );
+
+        emit ERC1155OrderFilled(
+            buyOrder.direction,
+            buyOrder.erc20Token,
+            erc20FillAmount,
+            buyOrder.erc1155Token,
+            params.tokenId,
+            params.sellAmount,
+            buyOrder.maker,
+            params.taker,
+            buyOrder.nonce,
+            address(0)
+        );
+    }
+
+    // Core settlement logic for buying an ERC1155 asset.
+    // Used by `buyERC1155` and `batchBuyERC1155s`.
+    function _buyERC1155(
+        LibNFTOrder.ERC1155Order memory sellOrder,
+        LibSignature.Signature memory signature,
+        BuyParams memory params
+    )
+        public
+        payable
+        returns (uint256 ethSpent)
+    {
+        uint256 erc20FillAmount;
+        (erc20FillAmount, ethSpent) = _buyNFT(
+            sellOrder.asNFTOrder(),
+            sellOrder.erc1155TokenAmount,
+            signature,
+            params
+        );
+
+        emit ERC1155OrderFilled(
+            sellOrder.direction,
+            sellOrder.erc20Token,
+            erc20FillAmount,
+            sellOrder.erc1155Token,
+            sellOrder.erc1155TokenId,
+            params.buyAmount,
+            sellOrder.maker,
+            msg.sender,
+            sellOrder.nonce,
+            address(0)
+        );
+    }
+
+    /// @dev Checks whether the given signature is valid for the
+    ///      the given ERC1155 order. Reverts if not.
+    /// @param order The ERC1155 order.
+    /// @param signature The signature to validate.
+    function validateERC1155OrderSignature(
+        LibNFTOrder.ERC1155Order memory order,
+        LibSignature.Signature memory signature
+    )
+        public
+        override
+        view
+    {
+        bytes32 orderHash = getERC1155OrderHash(order);
+        _validateOrderSignature(orderHash, signature, order.maker);
+    }
+
+    function _validateOrderSignature(
+        bytes32 orderHash,
+        LibSignature.Signature memory signature,
+        address maker
+    )
+        internal
+        override
+        view
+    {
+        if (signature.signatureType == LibSignature.SignatureType.PRESIGNED) {
+            // Check if order hash has been pre-signed by the maker.
+            uint256 orderState = LibERC1155OrdersStorage.getStorage()
+                .orderState[orderHash];
+            bool isPreSigned = orderState & PRESIGN_BIT != 0;
+            if (!isPreSigned) {
+                LibNFTOrdersRichErrors.InvalidSignerError(maker, address(0)).rrevert();
+            }
+        } else {
+            address signer = LibSignature.getSignerOfHash(orderHash, signature);
+            if (signer != maker) {
+                LibNFTOrdersRichErrors.InvalidSignerError(maker, signer).rrevert();
+            }
+        }
+    }
+
+    function _transferNFTAssetFrom(
+        address token,
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 amount
+    )
+        internal
+        override
+    {
+        _transferERC1155AssetFrom(IERC1155Token(token), from, to, tokenId, amount);
+    }
+
+    function _updateOrderState(
+        LibNFTOrder.NFTOrder memory /* order */,
+        bytes32 orderHash,
+        uint128 fillAmount
+    )
+        internal
+        override
+    {
+        LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
+        uint128 currentFilledAmount = uint128(stor.orderState[orderHash]);
+        assert(currentFilledAmount + fillAmount > currentFilledAmount);
+        stor.orderState[orderHash] = currentFilledAmount + fillAmount;
+    }
+
+    /// @dev If the given order is buying an ERC1155 asset, checks
+    ///      whether or not the given token ID satisfies the required
+    ///      properties specified in the order. If the order does not
+    ///      specify any properties, this function instead checks
+    ///      whether the given token ID matches the ID in the order.
+    ///      Reverts if any checks fail, or if the order is selling
+    ///      an ERC1155 asset.
+    /// @param order The ERC1155 order.
+    /// @param erc1155TokenId The ID of the ERC1155 asset.
+    function validateERC1155OrderProperties(
+        LibNFTOrder.ERC1155Order memory order,
+        uint256 erc1155TokenId
+    )
+        public
+        override
+        view
+    {
+        _validateOrderProperties(
+            order.asNFTOrder(),
+            erc1155TokenId
+        );
+    }
+
+    /// @dev Get the order info for an ERC1155 order.
+    /// @param order The ERC1155 order.
+    /// @return orderInfo Infor about the order.
+    function getERC1155OrderInfo(LibNFTOrder.ERC1155Order memory order)
+        public
+        override
+        view
+        returns (LibNFTOrder.OrderInfo memory orderInfo)
+    {
+        orderInfo.orderHash = getERC1155OrderHash(order);
+
+        {
+            LibERC1155OrdersStorage.Storage storage stor =
+                LibERC1155OrdersStorage.getStorage();
+            uint256 orderState = stor.orderState[orderInfo.orderHash];
+            orderInfo.remainingAmount = order.erc1155TokenAmount
+                .safeSub128(uint128(orderState));
+
+            if (orderInfo.remainingAmount == 0) {
+                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
+                return orderInfo;
+            }
+            if (orderState & CANCEL_BIT != 0) {
+                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
+                return orderInfo;
+            }
+        }
+
+        // Only buy orders with `erc1155TokenId` == 0 can be property
+        // orders.
+        if (order.erc1155TokenProperties.length > 0 &&
+                (order.direction != LibNFTOrder.TradeDirection.BUY_NFT ||
+                 order.erc1155TokenId != 0))
+        {
+            orderInfo.status = LibNFTOrder.OrderStatus.INVALID;
+            return orderInfo;
+        }
+
+        // Buy orders cannot use ETH as the ERC20 token, since ETH cannot be
+        // transferred from the buyer by a contract.
+        if (order.direction == LibNFTOrder.TradeDirection.BUY_NFT &&
+            address(order.erc20Token) == NATIVE_TOKEN_ADDRESS)
+        {
+            orderInfo.status = LibNFTOrder.OrderStatus.INVALID;
+            return orderInfo;
+        }
+
+        // Check for expiry.
+        if (order.expiry <= block.timestamp) {
+            orderInfo.status = LibNFTOrder.OrderStatus.EXPIRED;
+            return orderInfo;
+        }
+
+        // Otherwise, the order is fillable.
+        orderInfo.status = LibNFTOrder.OrderStatus.FILLABLE;
+    }
+
+    function _getOrderInfo(
+        LibNFTOrder.NFTOrder memory order,
+        uint128 orderAmount
+    )
+        internal
+        override
+        view
+        returns (LibNFTOrder.OrderInfo memory orderInfo)
+    {
+        return getERC1155OrderInfo(order.asERC1155Order(orderAmount));
+    }
+
+    /// @dev Get the canonical hash of an ERC1155 order.
+    /// @param order The ERC1155 order.
+    /// @return orderHash The order hash.
+    function getERC1155OrderHash(LibNFTOrder.ERC1155Order memory order)
+        public
+        override
+        view
+        returns (bytes32 orderHash)
+    {
+        return _getEIP712Hash(LibNFTOrder.getERC1155OrderStructHash(order));
+    }
+}

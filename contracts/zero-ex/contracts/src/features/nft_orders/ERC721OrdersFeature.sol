@@ -694,7 +694,7 @@ contract ERC721OrdersFeature is
         payable
         returns (uint256 ethSpent)
     {
-        ethSpent = _buyNFT(
+        (, ethSpent) = _buyNFT(
             sellOrder.asNFTOrder(),
             1, // order amount
             signature,

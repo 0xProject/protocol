@@ -69,6 +69,21 @@ library LibNFTOrdersRichErrors {
         );
     }
 
+    function ERC1155TokenMismatchError(
+        address token1,
+        address token2
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("ERC1155TokenMismatchError(address,address)")),
+            token1,
+            token2
+        );
+    }
+
     function ERC20TokenMismatchError(
         address token1,
         address token2

@@ -29,12 +29,10 @@ import * as FundRecoveryFeature from '../test/generated-artifacts/FundRecoveryFe
 import * as IBatchFillNativeOrdersFeature from '../test/generated-artifacts/IBatchFillNativeOrdersFeature.json';
 import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeature.json';
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
-import * as IERC1155OrderCallback from '../test/generated-artifacts/IERC1155OrderCallback.json';
 import * as IERC1155OrdersFeature from '../test/generated-artifacts/IERC1155OrdersFeature.json';
 import * as IERC1155Token from '../test/generated-artifacts/IERC1155Token.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
-import * as IERC721OrderCallback from '../test/generated-artifacts/IERC721OrderCallback.json';
 import * as IERC721OrdersFeature from '../test/generated-artifacts/IERC721OrdersFeature.json';
 import * as IERC721Token from '../test/generated-artifacts/IERC721Token.json';
 import * as IFeature from '../test/generated-artifacts/IFeature.json';
@@ -67,8 +65,6 @@ import * as IUniswapV3Pool from '../test/generated-artifacts/IUniswapV3Pool.json
 import * as IZeroEx from '../test/generated-artifacts/IZeroEx.json';
 import * as LibBootstrap from '../test/generated-artifacts/LibBootstrap.json';
 import * as LibCommonRichErrors from '../test/generated-artifacts/LibCommonRichErrors.json';
-import * as LibERC1155Order from '../test/generated-artifacts/LibERC1155Order.json';
-import * as LibERC1155OrdersRichErrors from '../test/generated-artifacts/LibERC1155OrdersRichErrors.json';
 import * as LibERC1155OrdersStorage from '../test/generated-artifacts/LibERC1155OrdersStorage.json';
 import * as LibERC20Transformer from '../test/generated-artifacts/LibERC20Transformer.json';
 import * as LibERC721OrdersStorage from '../test/generated-artifacts/LibERC721OrdersStorage.json';
@@ -205,7 +201,6 @@ export const artifacts = {
     ZeroEx: ZeroEx as ContractArtifact,
     ZeroExOptimized: ZeroExOptimized as ContractArtifact,
     LibCommonRichErrors: LibCommonRichErrors as ContractArtifact,
-    LibERC1155OrdersRichErrors: LibERC1155OrdersRichErrors as ContractArtifact,
     LibLiquidityProviderRichErrors: LibLiquidityProviderRichErrors as ContractArtifact,
     LibMetaTransactionsRichErrors: LibMetaTransactionsRichErrors as ContractArtifact,
     LibNFTOrdersRichErrors: LibNFTOrdersRichErrors as ContractArtifact,
@@ -227,7 +222,6 @@ export const artifacts = {
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
-    ERC1155OrdersFeature: ERC1155OrdersFeature as ContractArtifact,
     FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
@@ -258,7 +252,6 @@ export const artifacts = {
     ITransformERC20Feature: ITransformERC20Feature as ContractArtifact,
     IUniswapFeature: IUniswapFeature as ContractArtifact,
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
-    LibERC1155Order: LibERC1155Order as ContractArtifact,
     LibNFTOrder: LibNFTOrder as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
@@ -273,6 +266,7 @@ export const artifacts = {
     NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
     NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
     NativeOrdersSettlement: NativeOrdersSettlement as ContractArtifact,
+    ERC1155OrdersFeature: ERC1155OrdersFeature as ContractArtifact,
     ERC721OrdersFeature: ERC721OrdersFeature as ContractArtifact,
     NFTOrders: NFTOrders as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
@@ -335,9 +329,7 @@ export const artifacts = {
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinUniswapV3: MixinUniswapV3 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
-    IERC1155OrderCallback: IERC1155OrderCallback as ContractArtifact,
     IERC1155Token: IERC1155Token as ContractArtifact,
-    IERC721OrderCallback: IERC721OrderCallback as ContractArtifact,
     IERC721Token: IERC721Token as ContractArtifact,
     IFeeRecipient: IFeeRecipient as ContractArtifact,
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,

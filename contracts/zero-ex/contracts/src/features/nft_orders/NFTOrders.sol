@@ -83,6 +83,7 @@ abstract contract NFTOrders is
         SellParams memory params
     )
         internal
+        returns (uint256 erc20FillAmount)
     {
         LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(buyOrder, orderAmount);
         // Check that the order can be filled.
@@ -103,7 +104,6 @@ abstract contract NFTOrders is
 
         _updateOrderState(buyOrder, orderInfo.orderHash, params.sellAmount);
 
-        uint256 erc20FillAmount;
         if (params.sellAmount == orderAmount) {
             erc20FillAmount = buyOrder.erc20TokenAmount;
         } else {
@@ -193,7 +193,7 @@ abstract contract NFTOrders is
         BuyParams memory params
     )
         internal
-        returns (uint256 ethSpent)
+        returns (uint256 erc20FillAmount, uint256 ethSpent)
     {
         LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(sellOrder, orderAmount);
         // Check that the order can be filled.
@@ -213,7 +213,6 @@ abstract contract NFTOrders is
 
         _updateOrderState(sellOrder, orderInfo.orderHash, params.buyAmount);
 
-        uint256 erc20FillAmount;
         if (params.buyAmount == orderAmount) {
             erc20FillAmount = sellOrder.erc20TokenAmount;
         } else {

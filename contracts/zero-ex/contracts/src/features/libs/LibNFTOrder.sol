@@ -221,6 +221,29 @@ library LibNFTOrder {
         }
     }
 
+    function asERC1155Order(
+        NFTOrder memory nftOrder,
+        uint128 erc1155TokenAmount
+    )
+        internal
+        pure
+        returns (ERC1155Order memory erc1155Order)
+    {
+        return ERC1155Order(
+            nftOrder.direction,
+            nftOrder.maker,
+            nftOrder.taker,
+            nftOrder.expiry,
+            nftOrder.nonce,
+            nftOrder.erc20Token,
+            nftOrder.erc20TokenAmount,
+            nftOrder.fees,
+            IERC1155Token(nftOrder.nft),
+            nftOrder.nftId,
+            nftOrder.nftProperties,
+            erc1155TokenAmount
+        );
+    }
 
     /// @dev Get the struct hash of an ERC721 order.
     /// @param order The ERC721 order.
