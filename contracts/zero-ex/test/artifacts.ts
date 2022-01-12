@@ -56,6 +56,7 @@ import * as IPancakeSwapFeature from '../test/generated-artifacts/IPancakeSwapFe
 import * as IPropertyValidator from '../test/generated-artifacts/IPropertyValidator.json';
 import * as ISimpleFunctionRegistryFeature from '../test/generated-artifacts/ISimpleFunctionRegistryFeature.json';
 import * as IStaking from '../test/generated-artifacts/IStaking.json';
+import * as ITakerCallback from '../test/generated-artifacts/ITakerCallback.json';
 import * as ITestSimpleFunctionRegistryFeature from '../test/generated-artifacts/ITestSimpleFunctionRegistryFeature.json';
 import * as ITokenSpenderFeature from '../test/generated-artifacts/ITokenSpenderFeature.json';
 import * as ITransformERC20Feature from '../test/generated-artifacts/ITransformERC20Feature.json';
@@ -81,6 +82,8 @@ import * as LibMigrate from '../test/generated-artifacts/LibMigrate.json';
 import * as LibNativeOrder from '../test/generated-artifacts/LibNativeOrder.json';
 import * as LibNativeOrdersRichErrors from '../test/generated-artifacts/LibNativeOrdersRichErrors.json';
 import * as LibNativeOrdersStorage from '../test/generated-artifacts/LibNativeOrdersStorage.json';
+import * as LibNFTOrder from '../test/generated-artifacts/LibNFTOrder.json';
+import * as LibNFTOrdersRichErrors from '../test/generated-artifacts/LibNFTOrdersRichErrors.json';
 import * as LibOtcOrdersStorage from '../test/generated-artifacts/LibOtcOrdersStorage.json';
 import * as LibOwnableRichErrors from '../test/generated-artifacts/LibOwnableRichErrors.json';
 import * as LibOwnableStorage from '../test/generated-artifacts/LibOwnableStorage.json';
@@ -136,6 +139,7 @@ import * as NativeOrdersFeature from '../test/generated-artifacts/NativeOrdersFe
 import * as NativeOrdersInfo from '../test/generated-artifacts/NativeOrdersInfo.json';
 import * as NativeOrdersProtocolFees from '../test/generated-artifacts/NativeOrdersProtocolFees.json';
 import * as NativeOrdersSettlement from '../test/generated-artifacts/NativeOrdersSettlement.json';
+import * as NFTOrders from '../test/generated-artifacts/NFTOrders.json';
 import * as OtcOrdersFeature from '../test/generated-artifacts/OtcOrdersFeature.json';
 import * as OwnableFeature from '../test/generated-artifacts/OwnableFeature.json';
 import * as PancakeSwapFeature from '../test/generated-artifacts/PancakeSwapFeature.json';
@@ -207,6 +211,7 @@ export const artifacts = {
     LibERC721OrdersRichErrors: LibERC721OrdersRichErrors as ContractArtifact,
     LibLiquidityProviderRichErrors: LibLiquidityProviderRichErrors as ContractArtifact,
     LibMetaTransactionsRichErrors: LibMetaTransactionsRichErrors as ContractArtifact,
+    LibNFTOrdersRichErrors: LibNFTOrdersRichErrors as ContractArtifact,
     LibNativeOrdersRichErrors: LibNativeOrdersRichErrors as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibProxyRichErrors: LibProxyRichErrors as ContractArtifact,
@@ -259,6 +264,7 @@ export const artifacts = {
     IUniswapV3Feature: IUniswapV3Feature as ContractArtifact,
     LibERC1155Order: LibERC1155Order as ContractArtifact,
     LibERC721Order: LibERC721Order as ContractArtifact,
+    LibNFTOrder: LibNFTOrder as ContractArtifact,
     LibNativeOrder: LibNativeOrder as ContractArtifact,
     LibSignature: LibSignature as ContractArtifact,
     MultiplexFeature: MultiplexFeature as ContractArtifact,
@@ -272,6 +278,7 @@ export const artifacts = {
     NativeOrdersInfo: NativeOrdersInfo as ContractArtifact,
     NativeOrdersProtocolFees: NativeOrdersProtocolFees as ContractArtifact,
     NativeOrdersSettlement: NativeOrdersSettlement as ContractArtifact,
+    NFTOrders: NFTOrders as ContractArtifact,
     FixinCommon: FixinCommon as ContractArtifact,
     FixinEIP712: FixinEIP712 as ContractArtifact,
     FixinERC1155Spender: FixinERC1155Spender as ContractArtifact,
@@ -340,6 +347,7 @@ export const artifacts = {
     ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMooniswapPool: IMooniswapPool as ContractArtifact,
     IPropertyValidator: IPropertyValidator as ContractArtifact,
+    ITakerCallback: ITakerCallback as ContractArtifact,
     IUniswapV2Pair: IUniswapV2Pair as ContractArtifact,
     IUniswapV3Pool: IUniswapV3Pool as ContractArtifact,
     IERC20Bridge: IERC20Bridge as ContractArtifact,
