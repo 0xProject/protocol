@@ -340,7 +340,7 @@ abstract contract NFTOrders is
         LibNFTOrder.OrderInfo memory orderInfo,
         address taker
     )
-        private
+        internal
         view
     {
         // Order must be selling the NFT asset.
@@ -373,7 +373,7 @@ abstract contract NFTOrders is
         address taker,
         uint256 tokenId
     )
-        private
+        internal
         view
     {
         // Order must be buying the NFT asset.
@@ -474,15 +474,6 @@ abstract contract NFTOrders is
         }
     }
 
-    function _validateOrderSignature(
-        bytes32 orderHash,
-        LibSignature.Signature memory signature,
-        address maker
-    )
-        internal
-        virtual
-        view;
-
     /// @dev If the given order is buying an NFT asset, checks
     ///      whether or not the given token ID satisfies the required
     ///      properties specified in the order. If the order does not
@@ -543,8 +534,17 @@ abstract contract NFTOrders is
         }
     }
 
+    function _validateOrderSignature(
+        bytes32 orderHash,
+        LibSignature.Signature memory signature,
+        address maker
+    )
+        internal
+        virtual
+        view;
+
     function _transferNFTAssetFrom(
-        address nft,
+        address token,
         address from,
         address to,
         uint256 tokenId,

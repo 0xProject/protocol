@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "../libs/LibERC721Order.sol";
+import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC721Token.sol";
 
@@ -43,7 +43,7 @@ interface IERC721OrdersFeature {
     /// @param matcher If this order was matched with another using `matchERC721Orders()`,
     ///                this will be the address of the caller. If not, this will be `address(0)`.
     event ERC721OrderFilled(
-        LibERC721Order.TradeDirection direction,
+        LibNFTOrder.TradeDirection direction,
         IERC20TokenV06 erc20Token,
         uint256 erc20TokenAmount,
         IERC721Token erc721Token,
@@ -65,13 +65,13 @@ interface IERC721OrdersFeature {
     /// @dev Emitted when an `ERC721Order` is pre-signed.
     ///      Contains all the fields of the order.
     event ERC721OrderPreSigned(
-        LibERC721Order.TradeDirection direction,
+        LibNFTOrder.TradeDirection direction,
         IERC20TokenV06 erc20Token,
         uint256 erc20TokenAmount,
         IERC721Token erc721Token,
         uint256 erc721TokenId,
-        LibERC721Order.Property[] erc721TokenProperties,
-        LibERC721Order.Fee[] fees,
+        LibNFTOrder.Property[] erc721TokenProperties,
+        LibNFTOrder.Fee[] fees,
         address maker,
         address taker,
         uint256 expiry,
@@ -93,7 +93,7 @@ interface IERC721OrdersFeature {
     ///        the ERC20 tokens have been transferred to `msg.sender`
     ///        but before transferring the ERC721 asset to the buyer.
     function sellERC721(
-        LibERC721Order.ERC721Order calldata buyOrder,
+        LibNFTOrder.ERC721Order calldata buyOrder,
         LibSignature.Signature calldata signature,
         uint256 erc721TokenId,
         bool unwrapNativeToken,
@@ -111,7 +111,7 @@ interface IERC721OrdersFeature {
     ///        Native tokens acquired during the callback can be used
     ///        to fill the order.
     function buyERC721(
-        LibERC721Order.ERC721Order calldata sellOrder,
+        LibNFTOrder.ERC721Order calldata sellOrder,
         LibSignature.Signature calldata signature,
         bytes calldata callbackData
     )
@@ -143,7 +143,7 @@ interface IERC721OrdersFeature {
     /// @return successes An array of booleans corresponding to whether
     ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
-        LibERC721Order.ERC721Order[] calldata sellOrders,
+        LibNFTOrder.ERC721Order[] calldata sellOrders,
         LibSignature.Signature[] calldata signatures,
         bool revertIfIncomplete
     )
@@ -163,8 +163,8 @@ interface IERC721OrdersFeature {
     ///         of this function (denominated in the ERC20 token
     ///         of the matched orders).
     function matchERC721Orders(
-        LibERC721Order.ERC721Order calldata sellOrder,
-        LibERC721Order.ERC721Order calldata buyOrder,
+        LibNFTOrder.ERC721Order calldata sellOrder,
+        LibNFTOrder.ERC721Order calldata buyOrder,
         LibSignature.Signature calldata sellOrderSignature,
         LibSignature.Signature calldata buyOrderSignature
     )
@@ -185,8 +185,8 @@ interface IERC721OrdersFeature {
     /// @return successes An array of booleans corresponding to
     ///         whether each pair of orders was successfully matched.
     function batchMatchERC721Orders(
-        LibERC721Order.ERC721Order[] calldata sellOrders,
-        LibERC721Order.ERC721Order[] calldata buyOrders,
+        LibNFTOrder.ERC721Order[] calldata sellOrders,
+        LibNFTOrder.ERC721Order[] calldata buyOrders,
         LibSignature.Signature[] calldata sellOrderSignatures,
         LibSignature.Signature[] calldata buyOrderSignatures
     )
@@ -220,7 +220,7 @@ interface IERC721OrdersFeature {
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
     /// @param order An ERC721 order.
-    function preSignERC721Order(LibERC721Order.ERC721Order calldata order)
+    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order)
         external;
 
     /// @dev Checks whether the given signature is valid for the
@@ -228,7 +228,7 @@ interface IERC721OrdersFeature {
     /// @param order The ERC721 order.
     /// @param signature The signature to validate.
     function validateERC721OrderSignature(
-        LibERC721Order.ERC721Order calldata order,
+        LibNFTOrder.ERC721Order calldata order,
         LibSignature.Signature calldata signature
     )
         external
@@ -244,7 +244,7 @@ interface IERC721OrdersFeature {
     /// @param order The ERC721 order.
     /// @param erc721TokenId The ID of the ERC721 asset.
     function validateERC721OrderProperties(
-        LibERC721Order.ERC721Order calldata order,
+        LibNFTOrder.ERC721Order calldata order,
         uint256 erc721TokenId
     )
         external
@@ -253,15 +253,15 @@ interface IERC721OrdersFeature {
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return status The status of the order.
-    function getERC721OrderStatus(LibERC721Order.ERC721Order calldata order)
+    function getERC721OrderStatus(LibNFTOrder.ERC721Order calldata order)
         external
         view
-        returns (LibERC721Order.OrderStatus status);
+        returns (LibNFTOrder.OrderStatus status);
 
     /// @dev Get the canonical hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return orderHash The order hash.
-    function getERC721OrderHash(LibERC721Order.ERC721Order calldata order)
+    function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order)
         external
         view
         returns (bytes32 orderHash);

@@ -102,8 +102,6 @@
         "test/generated-artifacts/LibERC1155OrdersRichErrors.json",
         "test/generated-artifacts/LibERC1155OrdersStorage.json",
         "test/generated-artifacts/LibERC20Transformer.json",
-        "test/generated-artifacts/LibERC721Order.json",
-        "test/generated-artifacts/LibERC721OrdersRichErrors.json",
         "test/generated-artifacts/LibERC721OrdersStorage.json",
         "test/generated-artifacts/LibFeeCollector.json",
         "test/generated-artifacts/LibLiquidityProviderRichErrors.json",

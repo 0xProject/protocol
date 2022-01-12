@@ -54,6 +54,21 @@ library LibNFTOrdersRichErrors {
         );
     }
 
+    function ERC721TokenMismatchError(
+        address token1,
+        address token2
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("ERC721TokenMismatchError(address,address)")),
+            token1,
+            token2
+        );
+    }
+
     function ERC20TokenMismatchError(
         address token1,
         address token2
@@ -66,6 +81,36 @@ library LibNFTOrdersRichErrors {
             bytes4(keccak256("ERC20TokenMismatchError(address,address)")),
             token1,
             token2
+        );
+    }
+
+    function NegativeSpreadError(
+        uint256 sellOrderAmount,
+        uint256 buyOrderAmount
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("NegativeSpreadError(uint256,uint256)")),
+            sellOrderAmount,
+            buyOrderAmount
+        );
+    }
+
+    function SellOrderFeesExceedSpreadError(
+        uint256 sellOrderFees,
+        uint256 spread
+    )
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(
+            bytes4(keccak256("SellOrderFeesExceedSpreadError(uint256,uint256)")),
+            sellOrderFees,
+            spread
         );
     }
 

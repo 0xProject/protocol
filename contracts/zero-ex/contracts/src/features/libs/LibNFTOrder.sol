@@ -211,6 +211,17 @@ library LibNFTOrder {
         }
     }
 
+    function asERC721Order(NFTOrder memory nftOrder)
+        internal
+        pure
+        returns (ERC721Order memory erc721Order)
+    {
+        assembly {
+            erc721Order := nftOrder
+        }
+    }
+
+
     /// @dev Get the struct hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return structHash The struct hash of the order.
