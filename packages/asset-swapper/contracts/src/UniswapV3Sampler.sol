@@ -180,35 +180,8 @@ contract UniswapV3Sampler
         uniswapTotalIntitializedTicksCrossed = new uint256[](takerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
-            // Pick the best result from all the paths.
-            bytes memory topUniswapPath;
-            uint256 topSellAmount = 0;
-            uint32[] memory topInitializedTicksCrossedList;
-            for (uint256 j = 0; j < poolPaths.length; ++j) {
-                // quoter requires path to be reversed for buys.
-                bytes memory uniswapPath = _toUniswapPath(
-                    reversedPath,
-                    _reversePoolPath(poolPaths[j])
-                );
-                try
-                    quoter.quoteExactOutput
-                        { gas: QUOTE_GAS }
-                        (uniswapPath, makerTokenAmounts[i])
-                        returns (
-                            uint256 sellAmount,
-                            uint160[] memory,
-                            uint32[] memory initializedTicksCrossedList,
-                            uint256
-                ) {
-                    if (topSellAmount == 0 || topSellAmount >= sellAmount) {
-                        topSellAmount = sellAmount;
-                        // But the output path should still be encoded for sells.
-                        topUniswapPath = _toUniswapPath(path, poolPaths[j]);
-                        topInitializedTicksCrossedList = initializedTicksCrossedList;
-                    }
-                } catch {}
-            }
             // Break early if we can't complete the buys.
+            (uint256 topSellAmount, bytes memory topUniswapPath, uint32[] memory topInitializedTicksCrossedList) = _topPoolPath(quoter, poolPaths, reversedPath, makerTokenAmounts[i], path);
             if (topSellAmount == 0) {
                 break;
             }
@@ -216,6 +189,65 @@ contract UniswapV3Sampler
             uniswapPaths[i] = topUniswapPath;
             uniswapTotalIntitializedTicksCrossed[i] = _sumTotalInitializedTicksCrossed(topInitializedTicksCrossedList);
         }
+    }
+
+    // TODO: hack for stack too deep error
+    function _topPoolPath(
+        IUniswapV3QuoterV2 quoter,
+        IUniswapV3Pool[][] memory poolPaths,
+        IERC20TokenV06[] memory reversedPath,
+        uint256 makerTokenAmount,
+        IERC20TokenV06[] memory path
+    )
+        private
+        returns (
+            uint256 topSellAmount,
+            bytes memory topUniswapPath,
+            uint32[] memory topInitializedTicksCrossedList)
+    {
+        // Pick the best result from all the paths.
+        bytes memory topUniswapPath;
+        uint256 topSellAmount = 0;
+        uint32[] memory topInitializedTicksCrossedList;
+        for (uint256 j = 0; j < poolPaths.length; ++j) {
+            (uint256 sellAmount, uint32[] memory initializedTicksCrossedList) = _quoteExactOutput(quoter, reversedPath, poolPaths[j], makerTokenAmount);
+            if (topSellAmount == 0 || topSellAmount >= sellAmount) {
+                topSellAmount = sellAmount;
+                // But the output path should still be encoded for sells.
+                topUniswapPath = _toUniswapPath(path, poolPaths[j]);
+                topInitializedTicksCrossedList = initializedTicksCrossedList;
+            }
+        }
+
+    }
+
+    function _quoteExactOutput(
+        IUniswapV3QuoterV2 quoter,
+        IERC20TokenV06[] memory reversedPath,
+        IUniswapV3Pool[] memory poolPath,
+        uint256 makerTokenAmount
+    )
+        private
+        returns (uint256 sellAmount, uint32[] memory initializedTicksCrossedList)
+    {
+        // quoter requires path to be reversed for buys.
+        bytes memory uniswapPath = _toUniswapPath(
+            reversedPath,
+            _reversePoolPath(poolPath)
+        );
+        try
+            quoter.quoteExactOutput
+                { gas: QUOTE_GAS }
+                (uniswapPath, makerTokenAmount)
+                returns (
+                    uint256 _sellAmount,
+                    uint160[] memory,
+                    uint32[] memory _initializedTicksCrossedList,
+                    uint256
+        ) {
+            sellAmount = _sellAmount;
+            initializedTicksCrossedList = _initializedTicksCrossedList;
+        } catch {}
     }
 
     function _sumTotalInitializedTicksCrossed(uint32[] memory topInitializedTicksCrossedList)
