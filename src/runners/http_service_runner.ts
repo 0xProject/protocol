@@ -6,16 +6,10 @@ import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
 import { defaultHttpServiceWithRateLimiterConfig } from '../config';
-import { META_TRANSACTION_PATH, ORDERBOOK_PATH, SRA_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
-import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
-import { createOrderBookRouter } from '../routers/orderbook_router';
-import { createSRARouter } from '../routers/sra_router';
-import { createSwapRouter } from '../routers/swap_router';
-import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
@@ -70,38 +64,7 @@ export async function runHttpServiceAsync(
     // transform all values of `req.query.[xx]Address` to lowercase
     app.use(addressNormalizer);
 
-    // SRA http service
-    app.use(SRA_PATH, createSRARouter(dependencies.orderBookService));
-
-    // OrderBook http service
-    app.use(ORDERBOOK_PATH, createOrderBookRouter(dependencies.orderBookService));
-
-    // Meta transaction http service
-    if (dependencies.metaTransactionService) {
-        app.use(
-            META_TRANSACTION_PATH,
-            createMetaTransactionRouter(dependencies.metaTransactionService, dependencies.rateLimiter),
-        );
-    } else {
-        logger.error(`API running without meta transactions service`);
-    }
-
-    // swap/quote http service
-    if (dependencies.swapService) {
-        app.use(SWAP_PATH, createSwapRouter(dependencies.swapService));
-    } else {
-        logger.error(`API running without swap service`);
-    }
-
     app.use(errorHandler);
-
-    // optional websocket service
-    if (dependencies.kafkaClient) {
-        const wsService = new WebsocketService(server, dependencies.kafkaClient, dependencies.websocketOpts);
-        wsService.startAsync().catch((error) => logger.error(error.stack));
-    } else {
-        logger.warn('Could not establish kafka connection, websocket service will not start');
-    }
 
     server.listen(config.httpPort);
     return {

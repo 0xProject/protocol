@@ -12,28 +12,13 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { Web3Wrapper } from '@0x/dev-utils';
 import * as express from 'express';
 import { Server } from 'http';
-import { Kafka } from 'kafkajs';
 import { Connection } from 'typeorm';
 
-import { CHAIN_ID, ORDER_WATCHER_KAFKA_TOPIC, RFQT_TX_ORIGIN_BLACKLIST, WEBSOCKET_ORDER_UPDATES_PATH } from './config';
-import { RFQ_DYNAMIC_BLACKLIST_TTL, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from './constants';
+import { CHAIN_ID } from './config';
 import { getDBConnectionAsync } from './db_connection';
-import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
 import { logger } from './logger';
 import { runHttpServiceAsync } from './runners/http_service_runner';
-import { MetaTransactionService } from './services/meta_transaction_service';
-import { OrderBookService } from './services/orderbook_service';
-import { PostgresRfqtFirmQuoteValidator } from './services/postgres_rfqt_firm_quote_validator';
-import { SwapService } from './services/swap_service';
-import { TransactionWatcherSignerService } from './services/transaction_watcher_signer_service';
-import {
-    HttpServiceConfig,
-    MetaTransactionDailyLimiterConfig,
-    MetaTransactionRollingLimiterConfig,
-    WebsocketSRAOpts,
-} from './types';
-import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
-import { OrderWatcher } from './utils/order_watcher';
+import { HttpServiceConfig, MetaTransactionDailyLimiterConfig, MetaTransactionRollingLimiterConfig } from './types';
 import {
     AvailableRateLimiter,
     DatabaseKeysUsedForRateLimiter,
@@ -42,18 +27,11 @@ import {
     MetaTransactionRollingLimiter,
 } from './utils/rate-limiters';
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
-import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
     connection: Connection;
-    kafkaClient?: Kafka;
-    orderBookService: OrderBookService;
-    swapService?: SwapService;
-    metaTransactionService?: MetaTransactionService;
     provider: SupportedProvider;
-    websocketOpts: Partial<WebsocketSRAOpts>;
-    transactionWatcherService?: TransactionWatcherSignerService;
     rateLimiter?: MetaTransactionRateLimiter;
 }
 
@@ -121,64 +99,15 @@ export async function getDefaultAppDependenciesAsync(
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const connection = await getDBConnectionAsync();
 
-    let kafkaClient: Kafka | undefined;
-    if (config.kafkaBrokers !== undefined) {
-        kafkaClient = new Kafka({
-            clientId: 'sra-client',
-            brokers: config.kafkaBrokers,
-        });
-    } else {
-        logger.warn(`skipping kafka client creation because no kafkaBrokers were passed in`);
-    }
-
     let rateLimiter: MetaTransactionRateLimiter | undefined;
     if (config.metaTxnRateLimiters !== undefined) {
         rateLimiter = createMetaTransactionRateLimiterFromConfig(connection, config);
     }
 
-    const orderBookService = new OrderBookService(connection, new OrderWatcher());
-
-    const rfqtFirmQuoteValidator = new PostgresRfqtFirmQuoteValidator(
-        connection.getRepository(MakerBalanceChainCacheEntity),
-        RFQ_FIRM_QUOTE_CACHE_EXPIRY,
-    );
-
-    let swapService: SwapService | undefined;
-    let metaTransactionService: MetaTransactionService | undefined;
-    try {
-        const rfqDynamicBlacklist = new RfqDynamicBlacklist(
-            connection,
-            RFQT_TX_ORIGIN_BLACKLIST,
-            RFQ_DYNAMIC_BLACKLIST_TTL,
-        );
-        swapService = new SwapService(
-            new AssetSwapperOrderbook(orderBookService),
-            provider,
-            contractAddresses,
-            rfqtFirmQuoteValidator,
-            rfqDynamicBlacklist,
-        );
-        metaTransactionService = createMetaTxnServiceFromSwapService(
-            provider,
-            connection,
-            swapService,
-            contractAddresses,
-        );
-    } catch (err) {
-        logger.error(err.stack);
-    }
-
-    const websocketOpts = { path: WEBSOCKET_ORDER_UPDATES_PATH, kafkaTopic: ORDER_WATCHER_KAFKA_TOPIC };
-
     return {
         contractAddresses,
         connection,
-        kafkaClient,
-        orderBookService,
-        swapService,
-        metaTransactionService,
         provider,
-        websocketOpts,
         rateLimiter,
     };
 }
@@ -241,17 +170,4 @@ function createMetaTransactionRateLimiterFromConfig(
             return prev.concat(...cur);
         }, []);
     return new MetaTransactionComposableLimiter(configuredRateLimiters);
-}
-
-/**
- * Instantiates MetaTransactionService using the provided OrderBookService,
- * ethereum RPC provider and db connection.
- */
-export function createMetaTxnServiceFromSwapService(
-    provider: SupportedProvider,
-    dbConnection: Connection,
-    swapService: SwapService,
-    contractAddresses: ContractAddresses,
-): MetaTransactionService {
-    return new MetaTransactionService(provider, dbConnection, swapService, contractAddresses);
 }

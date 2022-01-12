@@ -8,8 +8,6 @@ import {
 } from '@0x/subproviders';
 import { providerUtils } from '@0x/utils';
 
-import { utils } from './utils';
-
 export class SubproviderAdapter extends Subprovider {
     private readonly _provider: ZeroExProvider;
     constructor(provider: SupportedProvider) {
@@ -19,7 +17,7 @@ export class SubproviderAdapter extends Subprovider {
     // tslint:disable-next-line:async-suffix
     public async handleRequest(payload: JSONRPCRequestPayload, _next: Callback, end: ErrorCallback): Promise<void> {
         this._provider.sendAsync(payload, (err, result) => {
-            !utils.isNil(result) && !utils.isNil(result!.result)
+            result != null && result!.result != null
                 ? end(null, result!.result)
                 : end(err || new Error(result!.error?.message));
         });
