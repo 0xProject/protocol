@@ -160,14 +160,15 @@ contract UniswapV3Sampler
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromUniswapV3(
-        IUniswapV3Quoter quoter,
+        IUniswapV3QuoterV2 quoter,
         IERC20TokenV06[] memory path,
         uint256[] memory makerTokenAmounts
     )
         public
         returns (
             bytes[] memory uniswapPaths,
-            uint256[] memory takerTokenAmounts
+            uint256[] memory takerTokenAmounts,
+            uint256[] memory uniswapTotalIntitializedTicksCrossed
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -176,11 +177,13 @@ contract UniswapV3Sampler
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         uniswapPaths = new bytes[](makerTokenAmounts.length);
+        uniswapTotalIntitializedTicksCrossed = new uint256[](takerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topSellAmount = 0;
+            uint32[] memory topInitializedTicksCrossedList;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 // quoter requires path to be reversed for buys.
                 bytes memory uniswapPath = _toUniswapPath(
@@ -191,12 +194,17 @@ contract UniswapV3Sampler
                     quoter.quoteExactOutput
                         { gas: QUOTE_GAS }
                         (uniswapPath, makerTokenAmounts[i])
-                        returns (uint256 sellAmount)
-                {
+                        returns (
+                            uint256 sellAmount,
+                            uint160[] memory,
+                            uint32[] memory initializedTicksCrossedList,
+                            uint256
+                ) {
                     if (topSellAmount == 0 || topSellAmount >= sellAmount) {
                         topSellAmount = sellAmount;
                         // But the output path should still be encoded for sells.
                         topUniswapPath = _toUniswapPath(path, poolPaths[j]);
+                        topInitializedTicksCrossedList = initializedTicksCrossedList;
                     }
                 } catch {}
             }
@@ -206,6 +214,7 @@ contract UniswapV3Sampler
             }
             takerTokenAmounts[i] = topSellAmount;
             uniswapPaths[i] = topUniswapPath;
+            uniswapTotalIntitializedTicksCrossed[i] = _sumTotalInitializedTicksCrossed(topInitializedTicksCrossedList);
         }
     }
 
