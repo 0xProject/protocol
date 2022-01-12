@@ -377,7 +377,6 @@ export class SwapHandlers {
                     },
                 ]);
             }
-            req.log.info('Uncaught error', e.message, e.stack);
             throw new InternalServerError(e.message);
         }
     }
