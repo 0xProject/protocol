@@ -82,9 +82,9 @@ export class OrderNotFillableError extends RevertError {
     }
 }
 
-export class ERC721TokenIdMismatchError extends RevertError {
+export class TokenIdMismatchError extends RevertError {
     constructor(tokenId?: Numberish, orderTokenId?: Numberish) {
-        super('ERC721TokenIdMismatchError', 'ERC721TokenIdMismatchError(uint256 tokenId, uint256 orderTokenId)', {
+        super('TokenIdMismatchError', 'TokenIdMismatchError(uint256 tokenId, uint256 orderTokenId)', {
             tokenId,
             orderTokenId,
         });
@@ -94,18 +94,18 @@ export class ERC721TokenIdMismatchError extends RevertError {
 export class PropertyValidationFailedError extends RevertError {
     constructor(
         propertyValidator?: string,
-        erc721Token?: string,
-        erc721TokenId?: Numberish,
+        token?: string,
+        tokenId?: Numberish,
         propertyData?: string,
         errorData?: string,
     ) {
         super(
             'PropertyValidationFailedError',
-            'PropertyValidationFailedError(address propertyValidator, address erc721Token, uint256 erc721TokenId, bytes propertyData, bytes errorData)',
+            'PropertyValidationFailedError(address propertyValidator, address token, uint256 tokenId, bytes propertyData, bytes errorData)',
             {
                 propertyValidator,
-                erc721Token,
-                erc721TokenId,
+                token,
+                tokenId,
                 propertyData,
                 errorData,
             },
@@ -122,7 +122,7 @@ const types = [
     SellOrderFeesExceedSpreadError,
     OnlyTakerError,
     OrderNotFillableError,
-    ERC721TokenIdMismatchError,
+    TokenIdMismatchError,
     PropertyValidationFailedError,
 ];
 

@@ -310,7 +310,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 otherMaker,
             );
             const tx = zeroEx.validateERC721OrderSignature(order, signature).callAsync();
-            expect(tx).to.revertWith(new RevertErrors.ERC721Orders.InvalidSignerError(maker, otherMaker));
+            expect(tx).to.revertWith(new RevertErrors.NFTOrders.InvalidSignerError(maker, otherMaker));
         });
         it('succeeds for a valid EIP-712 signature', async () => {
             const order = getTestERC721Order();
@@ -321,7 +321,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const order = getTestERC721Order();
             const signature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EIP712, otherMaker);
             const tx = zeroEx.validateERC721OrderSignature(order, signature).callAsync();
-            expect(tx).to.revertWith(new RevertErrors.ERC721Orders.InvalidSignerError(maker, otherMaker));
+            expect(tx).to.revertWith(new RevertErrors.NFTOrders.InvalidSignerError(maker, otherMaker));
         });
     });
 
@@ -396,7 +396,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
+                new RevertErrors.NFTOrders.OrderNotFillableError(
                     maker,
                     order.nonce,
                     ERC721Order.OrderStatus.Unfillable,
@@ -444,7 +444,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
+                new RevertErrors.NFTOrders.OrderNotFillableError(
                     maker,
                     order.nonce,
                     ERC721Order.OrderStatus.Unfillable,
@@ -463,7 +463,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
-            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED');
+            return expect(tx).to.revertWith('NFTOrders::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED');
         });
         it('cannot fill an expired order', async () => {
             const order = getTestERC721Order({
@@ -478,11 +478,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Expired,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, ERC721Order.OrderStatus.Expired),
             );
         });
         it('reverts if a sell order is provided', async () => {
@@ -496,7 +492,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
-            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateBuyOrder/WRONG_TRADE_DIRECTION');
+            return expect(tx).to.revertWith('NFTOrders::_validateBuyOrder/WRONG_TRADE_DIRECTION');
         });
         it('reverts if the taker is not the taker address specified in the order', async () => {
             const order = getTestERC721Order({
@@ -510,7 +506,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: otherTaker,
                 });
-            return expect(tx).to.revertWith(new RevertErrors.ERC721Orders.OnlyTakerError(otherTaker, taker));
+            return expect(tx).to.revertWith(new RevertErrors.NFTOrders.OnlyTakerError(otherTaker, taker));
         });
         it('succeeds if the taker is the taker address specified in the order', async () => {
             const order = getTestERC721Order({
@@ -537,7 +533,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
-            return expect(tx).to.revertWith(new RevertErrors.ERC721Orders.InvalidSignerError(maker, otherMaker));
+            return expect(tx).to.revertWith(new RevertErrors.NFTOrders.InvalidSignerError(maker, otherMaker));
         });
         it('reverts if `unwrapNativeToken` is true and `erc20Token` is not WETH', async () => {
             const order = getTestERC721Order({
@@ -551,7 +547,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC20TokenMismatchError(order.erc20Token, weth.address),
+                new RevertErrors.NFTOrders.ERC20TokenMismatchError(order.erc20Token, weth.address),
             );
         });
         it('sends ETH to taker if `unwrapNativeToken` is true and `erc20Token` is WETH', async () => {
@@ -651,7 +647,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     .awaitTransactionSuccessAsync({
                         from: taker,
                     });
-                return expect(tx).to.revertWith('ERC721OrdersFeature::_payFees/CALLBACK_FAILED');
+                return expect(tx).to.revertWith('NFTOrders::_payFees/CALLBACK_FAILED');
             });
             it('multiple fees to EOAs', async () => {
                 const order = getTestERC721Order({
@@ -702,10 +698,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                         from: taker,
                     });
                 return expect(tx).to.revertWith(
-                    new RevertErrors.ERC721Orders.ERC721TokenIdMismatchError(
-                        order.erc721TokenId.plus(1),
-                        order.erc721TokenId,
-                    ),
+                    new RevertErrors.NFTOrders.TokenIdMismatchError(order.erc721TokenId.plus(1), order.erc721TokenId),
                 );
             });
             it('Null property', async () => {
@@ -747,7 +740,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                         from: taker,
                     });
                 return expect(tx).to.revertWith(
-                    new RevertErrors.ERC721Orders.PropertyValidationFailedError(
+                    new RevertErrors.NFTOrders.PropertyValidationFailedError(
                         propertyValidator.address,
                         order.erc721Token,
                         tokenId,
@@ -849,7 +842,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC721TokenMismatchError(taker, order.erc721Token),
+                new RevertErrors.NFTOrders.ERC721TokenMismatchError(taker, order.erc721Token),
             );
         });
         it('reverts if transferred tokenId does not match order.erc721TokenId', async () => {
@@ -874,10 +867,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC721TokenIdMismatchError(
-                    order.erc721TokenId.plus(1),
-                    order.erc721TokenId,
-                ),
+                new RevertErrors.NFTOrders.TokenIdMismatchError(order.erc721TokenId.plus(1), order.erc721TokenId),
             );
         });
         it('can sell ERC721 without approval', async () => {
@@ -939,7 +929,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
+                new RevertErrors.NFTOrders.OrderNotFillableError(
                     maker,
                     order.nonce,
                     ERC721Order.OrderStatus.Unfillable,
@@ -959,7 +949,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
+                new RevertErrors.NFTOrders.OrderNotFillableError(
                     maker,
                     order.nonce,
                     ERC721Order.OrderStatus.Unfillable,
@@ -977,11 +967,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Expired,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, ERC721Order.OrderStatus.Expired),
             );
         });
         it('reverts if a buy order is provided', async () => {
@@ -993,7 +979,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const tx = zeroEx.buyERC721(order, signature, NULL_BYTES).awaitTransactionSuccessAsync({
                 from: taker,
             });
-            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateSellOrder/WRONG_TRADE_DIRECTION');
+            return expect(tx).to.revertWith('NFTOrders::_validateSellOrder/WRONG_TRADE_DIRECTION');
         });
         it('reverts if the taker is not the taker address specified in the order', async () => {
             const order = getTestERC721Order({
@@ -1005,7 +991,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const tx = zeroEx.buyERC721(order, signature, NULL_BYTES).awaitTransactionSuccessAsync({
                 from: otherTaker,
             });
-            return expect(tx).to.revertWith(new RevertErrors.ERC721Orders.OnlyTakerError(otherTaker, taker));
+            return expect(tx).to.revertWith(new RevertErrors.NFTOrders.OnlyTakerError(otherTaker, taker));
         });
         it('succeeds if the taker is the taker address specified in the order', async () => {
             const order = getTestERC721Order({
@@ -1028,7 +1014,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const tx = zeroEx.buyERC721(order, signature, NULL_BYTES).awaitTransactionSuccessAsync({
                 from: taker,
             });
-            return expect(tx).to.revertWith(new RevertErrors.ERC721Orders.InvalidSignerError(maker, otherMaker));
+            return expect(tx).to.revertWith(new RevertErrors.NFTOrders.InvalidSignerError(maker, otherMaker));
         });
         describe('ETH', () => {
             it('can fill an order with ETH (and refunds excess ETH)', async () => {
@@ -1239,7 +1225,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     value: order.erc20TokenAmount,
                 });
                 return expect(tx).to.revertWith(
-                    new RevertErrors.ERC721Orders.OverspentEthError(
+                    new RevertErrors.NFTOrders.OverspentEthError(
                         order.erc20TokenAmount.plus(order.fees[0].amount),
                         order.erc20TokenAmount,
                     ),
@@ -1344,7 +1330,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
-            return expect(tx).to.revertWith(new RevertErrors.ERC721Orders.InvalidSignerError(order2.maker, otherMaker));
+            return expect(tx).to.revertWith(new RevertErrors.NFTOrders.InvalidSignerError(order2.maker, otherMaker));
         });
         it('can fill multiple orders with ETH, refund excess ETH', async () => {
             const order1 = getTestERC721Order({
@@ -1421,7 +1407,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.InvalidSignerError(contractMaker.address, NULL_ADDRESS),
+                new RevertErrors.NFTOrders.InvalidSignerError(contractMaker.address, NULL_ADDRESS),
             );
         });
         it('cannot fill order that was presigned then cancelled', async () => {
@@ -1438,7 +1424,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.OrderNotFillableError(
+                new RevertErrors.NFTOrders.OrderNotFillableError(
                     contractMaker.address,
                     order.nonce,
                     ERC721Order.OrderStatus.Unfillable,
@@ -1459,7 +1445,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const tx = zeroEx.matchERC721Orders(order1, order2, signature1, signature2).awaitTransactionSuccessAsync({
                 from: matcher,
             });
-            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateBuyOrder/WRONG_TRADE_DIRECTION');
+            return expect(tx).to.revertWith('NFTOrders::_validateBuyOrder/WRONG_TRADE_DIRECTION');
         });
         it('cannot match two buy orders', async () => {
             const order1 = getTestERC721Order({
@@ -1473,7 +1459,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const tx = zeroEx.matchERC721Orders(order1, order2, signature1, signature2).awaitTransactionSuccessAsync({
                 from: matcher,
             });
-            return expect(tx).to.revertWith('ERC721OrdersFeature::_validateSellOrder/WRONG_TRADE_DIRECTION');
+            return expect(tx).to.revertWith('NFTOrders::_validateSellOrder/WRONG_TRADE_DIRECTION');
         });
         it('erc721TokenId must match', async () => {
             const sellOrder = getTestERC721Order({
@@ -1490,10 +1476,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC721TokenIdMismatchError(
-                    sellOrder.erc721TokenId,
-                    buyOrder.erc721TokenId,
-                ),
+                new RevertErrors.NFTOrders.TokenIdMismatchError(sellOrder.erc721TokenId, buyOrder.erc721TokenId),
             );
         });
         it('erc721Token must match', async () => {
@@ -1513,7 +1496,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC721TokenMismatchError(sellOrder.erc721Token, buyOrder.erc721Token),
+                new RevertErrors.NFTOrders.ERC721TokenMismatchError(sellOrder.erc721Token, buyOrder.erc721Token),
             );
         });
         it('erc20Token must match', async () => {
@@ -1533,7 +1516,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.ERC20TokenMismatchError(sellOrder.erc20Token, buyOrder.erc20Token),
+                new RevertErrors.NFTOrders.ERC20TokenMismatchError(sellOrder.erc20Token, buyOrder.erc20Token),
             );
         });
         it('reverts if spread is negative', async () => {
@@ -1553,10 +1536,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.NegativeSpreadError(
-                    sellOrder.erc20TokenAmount,
-                    buyOrder.erc20TokenAmount,
-                ),
+                new RevertErrors.NFTOrders.NegativeSpreadError(sellOrder.erc20TokenAmount, buyOrder.erc20TokenAmount),
             );
         });
         it('matches two orders and sends profit to matcher', async () => {
@@ -1713,7 +1693,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.SellOrderFeesExceedSpreadError(sellOrder.fees[0].amount, spread),
+                new RevertErrors.NFTOrders.SellOrderFeesExceedSpreadError(sellOrder.fees[0].amount, spread),
             );
         });
         it('reverts if sell order fees exceed spread (ETH/WETH)', async () => {
@@ -1749,7 +1729,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: matcher,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.ERC721Orders.SellOrderFeesExceedSpreadError(sellOrder.fees[0].amount, spread),
+                new RevertErrors.NFTOrders.SellOrderFeesExceedSpreadError(sellOrder.fees[0].amount, spread),
             );
         });
     });
