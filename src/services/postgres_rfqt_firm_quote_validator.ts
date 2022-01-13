@@ -17,12 +17,12 @@ const ORDER_FULLY_FILLABLE = new Counter({
 const ORDER_PARTIALLY_FILLABLE = new Counter({
     name: 'rfqtv_validator_order_partially_fillable',
     help: 'Number of orders validated to be partially fillable',
-    labelNames: ['workerId'],
+    labelNames: ['workerId', 'maker', 'makerToken'],
 });
 const ORDER_NOT_FILLABLE = new Counter({
     name: 'rfqtv_validator_order_not_fillable',
     help: 'Number of orders validated to be not fillable',
-    labelNames: ['workerId'],
+    labelNames: ['workerId', 'maker', 'makerToken'],
 });
 const ORDER_NOT_VALIDATED = new Counter({
     name: 'rfqtv_validator_order_not_validated',
@@ -159,7 +159,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
 
             // Order is empty, return zero
             if (quote.makerAmount.lte(0)) {
-                ORDER_NOT_FILLABLE.labels(this._workerId).inc();
+                ORDER_NOT_FILLABLE.labels(this._workerId, quote.maker, quote.makerToken).inc();
                 return ZERO;
             }
 
@@ -169,9 +169,17 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
                 .div(quote.makerAmount)
                 .integerValue(BigNumber.ROUND_DOWN);
             logger.warn(
-                `Maker ${
-                    quote.maker
-                } balance is ${makerTokenBalanceForMaker.toString()} and can only partially cover order size ${quote.makerAmount.toString()}. takerAssetAmount was reduced from ${quote.takerAmount.toString()} to ${partialFillableAmount.toString()}`,
+                {
+                    maker: quote.maker,
+                    makerToken: quote.makerToken,
+                    makerAmount: quote.makerAmount.toString(),
+                    makerBalance: makerTokenBalanceForMaker.toString(),
+                    taker: quote.taker,
+                    takerToken: quote.takerToken,
+                    takerAmount: quote.takerAmount.toString(),
+                    partialFillableAmount: partialFillableAmount.toString(),
+                },
+                `Maker can only partially cover order size. Effective taker amount will be reduced to partialFillableAmount`,
             );
             if (!partialFillableAmount.isFinite()) {
                 logger.error(
@@ -179,7 +187,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
                 );
                 return ZERO;
             }
-            ORDER_PARTIALLY_FILLABLE.labels(this._workerId).inc();
+            ORDER_PARTIALLY_FILLABLE.labels(this._workerId, quote.maker, quote.makerToken).inc();
             return partialFillableAmount;
         });
         const makerAddressesToAddToCache = Array.from(makerAddressesToAddToCacheSet);
