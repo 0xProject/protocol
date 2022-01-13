@@ -7,7 +7,7 @@ import {
     randomAddress,
     verifyEventsFromLogs,
 } from '@0x/contracts-test-utils';
-import { ERC721Order, RevertErrors, SIGNATURE_ABI, SignatureType } from '@0x/protocol-utils';
+import { ERC721Order, NFTOrder, RevertErrors, SIGNATURE_ABI, SignatureType } from '@0x/protocol-utils';
 import { AbiEncoder, BigNumber, hexUtils, NULL_BYTES, StringRevertError } from '@0x/utils';
 
 import {
@@ -150,7 +150,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         _taker: string = taker,
     ): Promise<void> {
         const totalFeeAmount = order.fees.length > 0 ? BigNumber.sum(...order.fees.map(fee => fee.amount)) : ZERO;
-        if (order.direction === ERC721Order.TradeDirection.Sell721) {
+        if (order.direction === NFTOrder.TradeDirection.SellNFT) {
             await erc721Token.mint(order.maker, tokenId).awaitTransactionSuccessAsync();
             if (order.erc20Token !== ETH_TOKEN_ADDRESS) {
                 await erc20Token
@@ -178,7 +178,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         _taker: string = taker,
     ): Promise<void> {
         const token = order.erc20Token === weth.address ? weth : erc20Token;
-        if (order.direction === ERC721Order.TradeDirection.Sell721) {
+        if (order.direction === NFTOrder.TradeDirection.SellNFT) {
             const makerBalance = await token.balanceOf(order.maker).callAsync();
             expect(makerBalance).to.bignumber.equal(order.erc20TokenAmount);
             const erc721Owner = await erc721Token.ownerOf(tokenId).callAsync();
@@ -333,7 +333,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             verifyEventsFromLogs(tx.logs, [{ maker, nonce: order.nonce }], IZeroExEvents.ERC721OrderCancelled);
             const orderStatus = await zeroEx.getERC721OrderStatus(order).callAsync();
-            expect(orderStatus).to.equal(ERC721Order.OrderStatus.Unfillable);
+            expect(orderStatus).to.equal(NFTOrder.OrderStatus.Unfillable);
             const bitVector = await zeroEx
                 .getERC721OrderStatusBitVector(maker, order.nonce.dividedToIntegerBy(256))
                 .callAsync();
@@ -350,7 +350,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             verifyEventsFromLogs(tx.logs, [{ maker, nonce: order.nonce }], IZeroExEvents.ERC721OrderCancelled);
             const orderStatus = await zeroEx.getERC721OrderStatus(order).callAsync();
-            expect(orderStatus).to.equal(ERC721Order.OrderStatus.Unfillable);
+            expect(orderStatus).to.equal(NFTOrder.OrderStatus.Unfillable);
             const bitVector = await zeroEx
                 .getERC721OrderStatusBitVector(maker, order.nonce.dividedToIntegerBy(256))
                 .callAsync();
@@ -362,7 +362,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     describe('sellERC721', () => {
         it('can fill a ERC721 buy order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -381,7 +381,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('cannot fill the same order twice', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -396,16 +396,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Unfillable,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Unfillable),
             );
         });
         it('can fill two orders from the same maker with different nonces', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 nonce: ZERO,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
@@ -416,7 +412,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 nonce: new BigNumber(1),
             });
             const signature2 = await order2.getSignatureWithProviderAsync(env.provider);
@@ -431,7 +427,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('cannot fill a cancelled order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -444,16 +440,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Unfillable,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Unfillable),
             );
         });
         it('cannot fill an invalid order (erc20Token == ETH)', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: ETH_TOKEN_ADDRESS,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -467,7 +459,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('cannot fill an expired order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 expiry: new BigNumber(Math.floor(Date.now() / 1000 - 1)),
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -478,12 +470,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                     from: taker,
                 });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, ERC721Order.OrderStatus.Expired),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Expired),
             );
         });
         it('reverts if a sell order is provided', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -496,7 +488,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if the taker is not the taker address specified in the order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 taker,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -510,7 +502,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('succeeds if the taker is the taker address specified in the order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 taker,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -524,7 +516,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if an invalid signature is provided', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EIP712, otherMaker);
             await mintAssetsAsync(order);
@@ -537,7 +529,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if `unwrapNativeToken` is true and `erc20Token` is not WETH', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -552,7 +544,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('sends ETH to taker if `unwrapNativeToken` is true and `erc20Token` is WETH', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -571,7 +563,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         describe('fees', () => {
             it('single fee to EOA', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     fees: [
                         {
                             recipient: otherMaker,
@@ -591,7 +583,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('single fee, successful callback', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     fees: [
                         {
                             recipient: feeRecipient.address,
@@ -611,7 +603,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('single fee, callback reverts', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     fees: [
                         {
                             recipient: feeRecipient.address,
@@ -631,7 +623,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('single fee, callback returns invalid value', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     fees: [
                         {
                             recipient: feeRecipient.address,
@@ -651,7 +643,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('multiple fees to EOAs', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     fees: [
                         {
                             recipient: otherMaker,
@@ -688,7 +680,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('Checks tokenId if no properties are provided', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                 });
                 const signature = await order.getSignatureWithProviderAsync(env.provider);
                 await mintAssetsAsync(order, order.erc721TokenId.plus(1));
@@ -703,7 +695,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('Null property', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     erc721TokenId: ZERO,
                     erc721TokenProperties: [
                         {
@@ -722,7 +714,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('Reverts if property validation fails', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     erc721TokenId: ZERO,
                     erc721TokenProperties: [
                         {
@@ -751,7 +743,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('Successful property validation', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Buy721,
+                    direction: NFTOrder.TradeDirection.BuyNFT,
                     erc721TokenId: ZERO,
                     erc721TokenProperties: [
                         {
@@ -811,7 +803,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('throws if data is not encoded correctly', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             await mintAssetsAsync(order);
             const tx = erc721Token
@@ -823,7 +815,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if msg.sender != order.erc721Token', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -847,7 +839,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if transferred tokenId does not match order.erc721TokenId', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order, order.erc721TokenId.plus(1));
@@ -872,7 +864,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('can sell ERC721 without approval', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -901,7 +893,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     describe('buyERC721', () => {
         it('can fill a ERC721 sell order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -918,7 +910,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('cannot fill the same order twice', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -929,16 +921,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Unfillable,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Unfillable),
             );
         });
         it('cannot fill a cancelled order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -949,16 +937,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(
-                    maker,
-                    order.nonce,
-                    ERC721Order.OrderStatus.Unfillable,
-                ),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Unfillable),
             );
         });
         it('cannot fill an expired order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 expiry: new BigNumber(Math.floor(Date.now() / 1000 - 1)),
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -967,12 +951,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 from: taker,
             });
             return expect(tx).to.revertWith(
-                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, ERC721Order.OrderStatus.Expired),
+                new RevertErrors.NFTOrders.OrderNotFillableError(maker, order.nonce, NFTOrder.OrderStatus.Expired),
             );
         });
         it('reverts if a buy order is provided', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -983,7 +967,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if the taker is not the taker address specified in the order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 taker,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -995,7 +979,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('succeeds if the taker is the taker address specified in the order', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 taker,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
@@ -1007,7 +991,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if an invalid signature is provided', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider, SignatureType.EIP712, otherMaker);
             await mintAssetsAsync(order);
@@ -1020,7 +1004,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             it('can fill an order with ETH (and refunds excess ETH)', async () => {
                 const order = getTestERC721Order({
                     erc20Token: ETH_TOKEN_ADDRESS,
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                 });
                 const signature = await order.getSignatureWithProviderAsync(env.provider);
                 await mintAssetsAsync(order);
@@ -1049,7 +1033,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             it('can fill a WETH order with ETH', async () => {
                 const order = getTestERC721Order({
                     erc20Token: weth.address,
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                 });
                 const signature = await order.getSignatureWithProviderAsync(env.provider);
                 await erc721Token.mint(maker, order.erc721TokenId).awaitTransactionSuccessAsync();
@@ -1065,7 +1049,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             it('uses WETH if not enough ETH to fill WETH order', async () => {
                 const order = getTestERC721Order({
                     erc20Token: weth.address,
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                 });
                 const signature = await order.getSignatureWithProviderAsync(env.provider);
                 await weth.deposit().awaitTransactionSuccessAsync({
@@ -1086,7 +1070,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         describe('fees', () => {
             it('single fee to EOA', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                     fees: [
                         {
                             recipient: otherMaker,
@@ -1104,7 +1088,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('pays fees in ETH if erc20Token == ETH', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                     erc20Token: ETH_TOKEN_ADDRESS,
                     fees: [
                         {
@@ -1138,7 +1122,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('pays fees in ETH if erc20Token == WETH but taker uses ETH', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                     erc20Token: weth.address,
                     fees: [
                         {
@@ -1184,7 +1168,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('pays fees in WETH if taker uses WETH', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                     erc20Token: weth.address,
                     fees: [
                         {
@@ -1207,7 +1191,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             });
             it('reverts if overspent ETH', async () => {
                 const order = getTestERC721Order({
-                    direction: ERC721Order.TradeDirection.Sell721,
+                    direction: NFTOrder.TradeDirection.SellNFT,
                     erc20Token: ETH_TOKEN_ADDRESS,
                     fees: [
                         {
@@ -1236,7 +1220,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     describe('batchBuyERC721s', () => {
         it('reverts if arrays are different lengths', async () => {
             const order = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
@@ -1247,12 +1231,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('successfully fills multiple orders', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order1);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: weth.address,
             });
             const signature2 = await order2.getSignatureWithProviderAsync(env.provider);
@@ -1271,12 +1255,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('catches revert if one order fails', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order1);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: weth.address,
             });
             // invalid signature
@@ -1306,12 +1290,12 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('bubbles up revert if one order fails and `revertIfIncomplete == true`', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order1);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: weth.address,
             });
             // invalid signature
@@ -1334,13 +1318,13 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('can fill multiple orders with ETH, refund excess ETH', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: ETH_TOKEN_ADDRESS,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order1);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: weth.address,
             });
             const signature2 = await order2.getSignatureWithProviderAsync(env.provider);
@@ -1384,7 +1368,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('can fill order that has been presigned by the maker', async () => {
             const order = getTestERC721Order({
                 maker: contractMaker.address,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             await mintAssetsAsync(order);
             await contractMaker.preSignOrder(order).awaitTransactionSuccessAsync();
@@ -1398,7 +1382,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('cannot fill order that has not been presigned by the maker', async () => {
             const order = getTestERC721Order({
                 maker: contractMaker.address,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             await mintAssetsAsync(order);
             const tx = zeroEx
@@ -1413,7 +1397,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('cannot fill order that was presigned then cancelled', async () => {
             const order = getTestERC721Order({
                 maker: contractMaker.address,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             await mintAssetsAsync(order);
             await contractMaker.preSignOrder(order).awaitTransactionSuccessAsync();
@@ -1427,7 +1411,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
                 new RevertErrors.NFTOrders.OrderNotFillableError(
                     contractMaker.address,
                     order.nonce,
-                    ERC721Order.OrderStatus.Unfillable,
+                    NFTOrder.OrderStatus.Unfillable,
                 ),
             );
         });
@@ -1435,11 +1419,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     describe('matchERC721Orders', () => {
         it('cannot match two sell orders', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const signature2 = await order2.getSignatureWithProviderAsync(env.provider);
             const tx = zeroEx.matchERC721Orders(order1, order2, signature1, signature2).awaitTransactionSuccessAsync({
@@ -1449,11 +1433,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('cannot match two buy orders', async () => {
             const order1 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature1 = await order1.getSignatureWithProviderAsync(env.provider);
             const order2 = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const signature2 = await order2.getSignatureWithProviderAsync(env.provider);
             const tx = zeroEx.matchERC721Orders(order1, order2, signature1, signature2).awaitTransactionSuccessAsync({
@@ -1463,11 +1447,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('erc721TokenId must match', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
             });
             const buySignature = await buyOrder.getSignatureWithProviderAsync(env.provider);
             const tx = zeroEx
@@ -1481,11 +1465,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('erc721Token must match', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc721Token: erc20Token.address,
                 erc721TokenId: sellOrder.erc721TokenId,
             });
@@ -1501,11 +1485,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('erc20Token must match', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
                 erc721TokenId: sellOrder.erc721TokenId,
             });
@@ -1521,11 +1505,11 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('reverts if spread is negative', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.minus(1),
             });
@@ -1541,13 +1525,13 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('matches two orders and sends profit to matcher', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const spread = getRandomInteger(1, '1e18');
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),
             });
@@ -1564,14 +1548,14 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         });
         it('matches two ETH/WETH orders and sends profit to matcher', async () => {
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: ETH_TOKEN_ADDRESS,
             });
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const spread = getRandomInteger(1, '1e18');
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),
@@ -1595,7 +1579,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('matches two orders (with fees) and sends profit to matcher', async () => {
             const spread = getRandomInteger(1, '1e18');
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 fees: [
                     {
                         recipient: otherTaker,
@@ -1607,7 +1591,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),
             });
@@ -1626,7 +1610,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('matches two ETH/WETH (with fees) orders and sends profit to matcher', async () => {
             const spread = getRandomInteger(1, '1e18');
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: ETH_TOKEN_ADDRESS,
                 fees: [
                     {
@@ -1639,7 +1623,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),
@@ -1668,7 +1652,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('reverts if sell order fees exceed spread', async () => {
             const spread = getRandomInteger(1, '1e18');
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 fees: [
                     {
                         recipient: otherTaker,
@@ -1680,7 +1664,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),
             });
@@ -1699,7 +1683,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
         it('reverts if sell order fees exceed spread (ETH/WETH)', async () => {
             const spread = getRandomInteger(1, '1e18');
             const sellOrder = getTestERC721Order({
-                direction: ERC721Order.TradeDirection.Sell721,
+                direction: NFTOrder.TradeDirection.SellNFT,
                 erc20Token: ETH_TOKEN_ADDRESS,
                 fees: [
                     {
@@ -1713,7 +1697,7 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
             const sellSignature = await sellOrder.getSignatureWithProviderAsync(env.provider);
             const buyOrder = getTestERC721Order({
                 maker: otherMaker,
-                direction: ERC721Order.TradeDirection.Buy721,
+                direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
                 erc721TokenId: sellOrder.erc721TokenId,
                 erc20TokenAmount: sellOrder.erc20TokenAmount.plus(spread),

@@ -19,7 +19,140 @@ import {
     SignatureType,
 } from './signature_utils';
 
-export class ERC721Order {
+export enum TradeDirection {
+    SellNFT = 0,
+    BuyNFT = 1,
+}
+
+export enum OrderStatus {
+    Invalid = 0,
+    Fillable = 1,
+    Unfillable = 2,
+    Expired = 3,
+}
+
+export interface Fee {
+    recipient: string;
+    amount: BigNumber;
+    feeData: string;
+}
+
+export interface Property {
+    propertyValidator: string;
+    propertyData: string;
+}
+
+const NFT_ORDER_DEFAULT_VALUES = {
+    direction: TradeDirection.SellNFT,
+    maker: NULL_ADDRESS,
+    taker: NULL_ADDRESS,
+    expiry: ZERO,
+    nonce: ZERO,
+    erc20Token: NULL_ADDRESS,
+    erc20TokenAmount: ZERO,
+    fees: [] as Fee[],
+    chainId: 1,
+    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
+};
+
+const ERC721_ORDER_DEFAULT_VALUES = {
+    direction: TradeDirection.SellNFT,
+    maker: NULL_ADDRESS,
+    taker: NULL_ADDRESS,
+    expiry: ZERO,
+    nonce: ZERO,
+    erc20Token: NULL_ADDRESS,
+    erc20TokenAmount: ZERO,
+    fees: [] as Fee[],
+    erc721Token: NULL_ADDRESS,
+    erc721TokenId: ZERO,
+    erc721TokenProperties: [] as Property[],
+    chainId: 1,
+    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
+};
+
+export type CommonNFTOrderFields = typeof NFT_ORDER_DEFAULT_VALUES;
+export type ERC721OrderFields = typeof ERC721_ORDER_DEFAULT_VALUES;
+
+export abstract class NFTOrder {
+    public static readonly FEE_ABI = [
+        { type: 'address', name: 'recipient' },
+        { type: 'uint256', name: 'amount' },
+        { type: 'bytes', name: 'feeData' },
+    ];
+    public static readonly PROPERTY_ABI = [
+        { type: 'address', name: 'propertyValidator' },
+        { type: 'bytes', name: 'propertyData' },
+    ];
+    public static readonly FEE_TYPE_HASH = getTypeHash('Fee', NFTOrder.FEE_ABI);
+    public static readonly PROPERTY_TYPE_HASH = getTypeHash('Property', NFTOrder.PROPERTY_ABI);
+
+    public direction: TradeDirection;
+    public maker: string;
+    public taker: string;
+    public expiry: BigNumber;
+    public nonce: BigNumber;
+    public erc20Token: string;
+    public erc20TokenAmount: BigNumber;
+    public fees: Fee[];
+    public chainId: number;
+    public verifyingContract: string;
+
+    protected constructor(fields: Partial<CommonNFTOrderFields> = {}) {
+        const _fields = { ...NFT_ORDER_DEFAULT_VALUES, ...fields };
+        this.direction = _fields.direction;
+        this.maker = _fields.maker;
+        this.taker = _fields.taker;
+        this.expiry = _fields.expiry;
+        this.nonce = _fields.nonce;
+        this.erc20Token = _fields.erc20Token;
+        this.erc20TokenAmount = _fields.erc20TokenAmount;
+        this.fees = _fields.fees;
+        this.chainId = _fields.chainId;
+        this.verifyingContract = _fields.verifyingContract;
+    }
+
+    public abstract getStructHash(): string;
+    public abstract getEIP712TypedData(): EIP712TypedData;
+
+    public willExpire(secondsFromNow: number = 0): boolean {
+        const millisecondsInSecond = 1000;
+        const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
+        return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
+    }
+
+    public getHash(): string {
+        return getExchangeProxyEIP712Hash(this.getStructHash(), this.chainId, this.verifyingContract);
+    }
+
+    public async getSignatureWithProviderAsync(
+        provider: SupportedProvider,
+        type: SignatureType = SignatureType.EthSign,
+        signer: string = this.maker,
+    ): Promise<Signature> {
+        switch (type) {
+            case SignatureType.EIP712:
+                return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), signer, provider);
+            case SignatureType.EthSign:
+                return ethSignHashWithProviderAsync(this.getHash(), signer, provider);
+            default:
+                throw new Error(`Cannot sign with signature type: ${type}`);
+        }
+    }
+
+    public getSignatureWithKey(key: string, type: SignatureType = SignatureType.EthSign): Signature {
+        switch (type) {
+            case SignatureType.EIP712:
+                return eip712SignHashWithKey(this.getHash(), key);
+            case SignatureType.EthSign:
+                return ethSignHashWithKey(this.getHash(), key);
+            default:
+                throw new Error(`Cannot sign with signature type: ${type}`);
+        }
+    }
+}
+
+export class ERC721Order extends NFTOrder {
     public static readonly STRUCT_NAME = 'ERC721Order';
     public static readonly STRUCT_ABI = [
         { type: 'uint8', name: 'direction' },
@@ -34,55 +167,22 @@ export class ERC721Order {
         { type: 'uint256', name: 'erc721TokenId' },
         { type: 'Property[]', name: 'erc721TokenProperties' },
     ];
-    public static readonly REFERENCED_STRUCT_ABIS = {
-        ['Fee']: [
-            { type: 'address', name: 'recipient' },
-            { type: 'uint256', name: 'amount' },
-            { type: 'bytes', name: 'feeData' },
-        ],
-        ['Property']: [
-            { type: 'address', name: 'propertyValidator' },
-            { type: 'bytes', name: 'propertyData' },
-        ],
-    };
 
-    public static readonly TYPE_HASH = getTypeHash(
-        ERC721Order.STRUCT_NAME,
-        ERC721Order.STRUCT_ABI,
-        ERC721Order.REFERENCED_STRUCT_ABIS,
-    );
-    public static readonly FEE_TYPE_HASH = getTypeHash('Fee', ERC721Order.REFERENCED_STRUCT_ABIS.Fee);
-    public static readonly PROPERTY_TYPE_HASH = getTypeHash('Property', ERC721Order.REFERENCED_STRUCT_ABIS.Property);
+    public static readonly TYPE_HASH = getTypeHash(ERC721Order.STRUCT_NAME, ERC721Order.STRUCT_ABI, {
+        ['Fee']: NFTOrder.FEE_ABI,
+        ['Property']: NFTOrder.PROPERTY_ABI,
+    });
 
-    public direction: ERC721Order.TradeDirection;
-    public maker: string;
-    public taker: string;
-    public expiry: BigNumber;
-    public nonce: BigNumber;
-    public erc20Token: string;
-    public erc20TokenAmount: BigNumber;
-    public fees: ERC721Order.Fee[];
     public erc721Token: string;
     public erc721TokenId: BigNumber;
-    public erc721TokenProperties: ERC721Order.Property[];
-    public chainId: number;
-    public verifyingContract: string;
+    public erc721TokenProperties: Property[];
 
     constructor(fields: Partial<ERC721OrderFields> = {}) {
         const _fields = { ...ERC721_ORDER_DEFAULT_VALUES, ...fields };
-        this.direction = _fields.direction;
-        this.maker = _fields.maker;
-        this.taker = _fields.taker;
-        this.expiry = _fields.expiry;
-        this.nonce = _fields.nonce;
-        this.erc20Token = _fields.erc20Token;
-        this.erc20TokenAmount = _fields.erc20TokenAmount;
-        this.fees = _fields.fees;
+        super(_fields);
         this.erc721Token = _fields.erc721Token;
         this.erc721TokenId = _fields.erc721TokenId;
         this.erc721TokenProperties = _fields.erc721TokenProperties;
-        this.chainId = _fields.chainId;
-        this.verifyingContract = _fields.verifyingContract;
     }
 
     public clone(fields: Partial<ERC721OrderFields> = {}): ERC721Order {
@@ -155,7 +255,8 @@ export class ERC721Order {
             types: {
                 EIP712Domain: EIP712_DOMAIN_PARAMETERS,
                 [ERC721Order.STRUCT_NAME]: ERC721Order.STRUCT_ABI,
-                ...ERC721Order.REFERENCED_STRUCT_ABIS,
+                ['Fee']: NFTOrder.FEE_ABI,
+                ['Property']: NFTOrder.PROPERTY_ABI,
             },
             domain: createExchangeProxyEIP712Domain(this.chainId, this.verifyingContract) as any,
             primaryType: ERC721Order.STRUCT_NAME,
@@ -178,83 +279,4 @@ export class ERC721Order {
             },
         };
     }
-
-    public willExpire(secondsFromNow: number = 0): boolean {
-        const millisecondsInSecond = 1000;
-        const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
-        return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
-    }
-
-    public getHash(): string {
-        return getExchangeProxyEIP712Hash(this.getStructHash(), this.chainId, this.verifyingContract);
-    }
-
-    public async getSignatureWithProviderAsync(
-        provider: SupportedProvider,
-        type: SignatureType = SignatureType.EthSign,
-        signer: string = this.maker,
-    ): Promise<Signature> {
-        switch (type) {
-            case SignatureType.EIP712:
-                return eip712SignTypedDataWithProviderAsync(this.getEIP712TypedData(), signer, provider);
-            case SignatureType.EthSign:
-                return ethSignHashWithProviderAsync(this.getHash(), signer, provider);
-            default:
-                throw new Error(`Cannot sign with signature type: ${type}`);
-        }
-    }
-
-    public getSignatureWithKey(key: string, type: SignatureType = SignatureType.EthSign): Signature {
-        switch (type) {
-            case SignatureType.EIP712:
-                return eip712SignHashWithKey(this.getHash(), key);
-            case SignatureType.EthSign:
-                return ethSignHashWithKey(this.getHash(), key);
-            default:
-                throw new Error(`Cannot sign with signature type: ${type}`);
-        }
-    }
 }
-
-export namespace ERC721Order {
-    export interface Property {
-        propertyValidator: string;
-        propertyData: string;
-    }
-
-    export interface Fee {
-        recipient: string;
-        amount: BigNumber;
-        feeData: string;
-    }
-
-    export enum TradeDirection {
-        Sell721 = 0,
-        Buy721 = 1,
-    }
-
-    export enum OrderStatus {
-        Invalid = 0,
-        Fillable = 1,
-        Unfillable = 2,
-        Expired = 3,
-    }
-}
-
-const ERC721_ORDER_DEFAULT_VALUES = {
-    direction: ERC721Order.TradeDirection.Sell721,
-    maker: NULL_ADDRESS,
-    taker: NULL_ADDRESS,
-    expiry: ZERO,
-    nonce: ZERO,
-    erc20Token: NULL_ADDRESS,
-    erc20TokenAmount: ZERO,
-    fees: [] as ERC721Order.Fee[],
-    erc721Token: NULL_ADDRESS,
-    erc721TokenId: ZERO,
-    erc721TokenProperties: [] as ERC721Order.Property[],
-    chainId: 1,
-    verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
-};
-
-export type ERC721OrderFields = typeof ERC721_ORDER_DEFAULT_VALUES;

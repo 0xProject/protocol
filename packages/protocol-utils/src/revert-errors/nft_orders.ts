@@ -1,7 +1,7 @@
 // tslint:disable: max-classes-per-file
 import { Numberish, RevertError } from '@0x/utils';
 
-import { ERC721Order } from '../erc721_orders';
+import { OrderStatus } from '../nft_orders';
 
 export class OverspentEthError extends RevertError {
     constructor(ethSpent?: Numberish, msgValue?: Numberish) {
@@ -73,7 +73,7 @@ export class OnlyTakerError extends RevertError {
 export { InvalidSignerError } from './native_orders';
 
 export class OrderNotFillableError extends RevertError {
-    constructor(maker?: string, nonce?: Numberish, orderStatus?: ERC721Order.OrderStatus) {
+    constructor(maker?: string, nonce?: Numberish, orderStatus?: OrderStatus) {
         super('OrderNotFillableError', 'OrderNotFillableError(address maker, uint256 nonce, uint8 orderStatus)', {
             maker,
             nonce,

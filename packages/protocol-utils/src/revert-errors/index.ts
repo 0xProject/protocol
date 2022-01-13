@@ -13,8 +13,8 @@ import {
     Wallet,
 } from './inherited';
 import * as NativeOrders from './native_orders';
-import * as Signatures from './signatures';
 import * as NFTOrders from './nft_orders';
+import * as Signatures from './signatures';
 
 export {
     Common,
