@@ -624,8 +624,7 @@ contract ERC721OrdersFeature is
             "ERC721OrdersFeature::preSignERC721Order/ONLY_MAKER"
         );
         bytes32 orderHash = getERC721OrderHash(order);
-        LibERC721OrdersStorage.getStorage()
-            .preSigned[orderHash][msg.sender] = true;
+        LibERC721OrdersStorage.getStorage().preSigned[orderHash] = true;
 
         emit ERC721OrderPreSigned(
             order.direction,
@@ -746,8 +745,7 @@ contract ERC721OrdersFeature is
     {
         if (signature.signatureType == LibSignature.SignatureType.PRESIGNED) {
             // Check if order hash has been pre-signed by the maker.
-            bool isPreSigned = LibERC721OrdersStorage.getStorage()
-                .preSigned[orderHash][maker];
+            bool isPreSigned = LibERC721OrdersStorage.getStorage().preSigned[orderHash];
             if (!isPreSigned) {
                 LibNFTOrdersRichErrors.InvalidSignerError(maker, address(0)).rrevert();
             }
