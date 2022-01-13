@@ -23,16 +23,16 @@ export class ERC721Order {
     public static readonly STRUCT_NAME = 'ERC721Order';
     public static readonly STRUCT_ABI = [
         { type: 'uint8', name: 'direction' },
-        { type: 'address', name: 'erc20Token' },
-        { type: 'uint256', name: 'erc20TokenAmount' },
-        { type: 'address', name: 'erc721Token' },
-        { type: 'uint256', name: 'erc721TokenId' },
-        { type: 'Property[]', name: 'erc721TokenProperties' },
-        { type: 'Fee[]', name: 'fees' },
         { type: 'address', name: 'maker' },
         { type: 'address', name: 'taker' },
         { type: 'uint256', name: 'expiry' },
         { type: 'uint256', name: 'nonce' },
+        { type: 'address', name: 'erc20Token' },
+        { type: 'uint256', name: 'erc20TokenAmount' },
+        { type: 'Fee[]', name: 'fees' },
+        { type: 'address', name: 'erc721Token' },
+        { type: 'uint256', name: 'erc721TokenId' },
+        { type: 'Property[]', name: 'erc721TokenProperties' },
     ];
     public static readonly REFERENCED_STRUCT_ABIS = {
         ['Fee']: [
@@ -55,32 +55,32 @@ export class ERC721Order {
     public static readonly PROPERTY_TYPE_HASH = getTypeHash('Property', ERC721Order.REFERENCED_STRUCT_ABIS.Property);
 
     public direction: ERC721Order.TradeDirection;
-    public erc20Token: string;
-    public erc20TokenAmount: BigNumber;
-    public erc721Token: string;
-    public erc721TokenId: BigNumber;
-    public erc721TokenProperties: ERC721Order.Property[];
-    public fees: ERC721Order.Fee[];
     public maker: string;
     public taker: string;
     public expiry: BigNumber;
     public nonce: BigNumber;
+    public erc20Token: string;
+    public erc20TokenAmount: BigNumber;
+    public fees: ERC721Order.Fee[];
+    public erc721Token: string;
+    public erc721TokenId: BigNumber;
+    public erc721TokenProperties: ERC721Order.Property[];
     public chainId: number;
     public verifyingContract: string;
 
     constructor(fields: Partial<ERC721OrderFields> = {}) {
         const _fields = { ...ERC721_ORDER_DEFAULT_VALUES, ...fields };
         this.direction = _fields.direction;
-        this.erc20Token = _fields.erc20Token;
-        this.erc20TokenAmount = _fields.erc20TokenAmount;
-        this.erc721Token = _fields.erc721Token;
-        this.erc721TokenId = _fields.erc721TokenId;
-        this.erc721TokenProperties = _fields.erc721TokenProperties;
-        this.fees = _fields.fees;
         this.maker = _fields.maker;
         this.taker = _fields.taker;
         this.expiry = _fields.expiry;
         this.nonce = _fields.nonce;
+        this.erc20Token = _fields.erc20Token;
+        this.erc20TokenAmount = _fields.erc20TokenAmount;
+        this.fees = _fields.fees;
+        this.erc721Token = _fields.erc721Token;
+        this.erc721TokenId = _fields.erc721TokenId;
+        this.erc721TokenProperties = _fields.erc721TokenProperties;
         this.chainId = _fields.chainId;
         this.verifyingContract = _fields.verifyingContract;
     }
@@ -88,16 +88,16 @@ export class ERC721Order {
     public clone(fields: Partial<ERC721OrderFields> = {}): ERC721Order {
         return new ERC721Order({
             direction: this.direction,
-            erc20Token: this.erc20Token,
-            erc20TokenAmount: this.erc20TokenAmount,
-            erc721Token: this.erc721Token,
-            erc721TokenId: this.erc721TokenId,
-            erc721TokenProperties: this.erc721TokenProperties,
-            fees: this.fees,
             maker: this.maker,
             taker: this.taker,
             expiry: this.expiry,
             nonce: this.nonce,
+            erc20Token: this.erc20Token,
+            erc20TokenAmount: this.erc20TokenAmount,
+            fees: this.fees,
+            erc721Token: this.erc721Token,
+            erc721TokenId: this.erc721TokenId,
+            erc721TokenProperties: this.erc721TokenProperties,
             chainId: this.chainId,
             verifyingContract: this.verifyingContract,
             ...fields,
@@ -136,16 +136,16 @@ export class ERC721Order {
             hexUtils.concat(
                 hexUtils.leftPad(ERC721Order.TYPE_HASH),
                 hexUtils.leftPad(this.direction),
-                hexUtils.leftPad(this.erc20Token),
-                hexUtils.leftPad(this.erc20TokenAmount),
-                hexUtils.leftPad(this.erc721Token),
-                hexUtils.leftPad(this.erc721TokenId),
-                propertiesHash,
-                feesHash,
                 hexUtils.leftPad(this.maker),
                 hexUtils.leftPad(this.taker),
                 hexUtils.leftPad(this.expiry),
                 hexUtils.leftPad(this.nonce),
+                hexUtils.leftPad(this.erc20Token),
+                hexUtils.leftPad(this.erc20TokenAmount),
+                feesHash,
+                hexUtils.leftPad(this.erc721Token),
+                hexUtils.leftPad(this.erc721TokenId),
+                propertiesHash,
             ),
         );
     }
@@ -161,20 +161,20 @@ export class ERC721Order {
             primaryType: ERC721Order.STRUCT_NAME,
             message: {
                 direction: this.direction,
+                maker: this.maker,
+                taker: this.taker,
+                expiry: this.expiry.toString(10),
+                nonce: this.nonce.toString(10),
                 erc20Token: this.erc20Token,
                 erc20TokenAmount: this.erc20TokenAmount.toString(10),
-                erc721Token: this.erc721Token,
-                erc721TokenId: this.erc721TokenId.toString(10),
-                erc721TokenProperties: this.erc721TokenProperties as any,
                 fees: this.fees.map(fee => ({
                     recipient: fee.recipient,
                     amount: fee.amount.toString(10),
                     feeData: fee.feeData,
                 })) as any,
-                maker: this.maker,
-                taker: this.taker,
-                expiry: this.expiry.toString(10),
-                nonce: this.nonce.toString(10),
+                erc721Token: this.erc721Token,
+                erc721TokenId: this.erc721TokenId.toString(10),
+                erc721TokenProperties: this.erc721TokenProperties as any,
             },
         };
     }
@@ -243,16 +243,16 @@ export namespace ERC721Order {
 
 const ERC721_ORDER_DEFAULT_VALUES = {
     direction: ERC721Order.TradeDirection.Sell721,
-    erc20Token: NULL_ADDRESS,
-    erc20TokenAmount: ZERO,
-    erc721Token: NULL_ADDRESS,
-    erc721TokenId: ZERO,
-    erc721TokenProperties: [] as ERC721Order.Property[],
-    fees: [] as ERC721Order.Fee[],
     maker: NULL_ADDRESS,
     taker: NULL_ADDRESS,
     expiry: ZERO,
     nonce: ZERO,
+    erc20Token: NULL_ADDRESS,
+    erc20TokenAmount: ZERO,
+    fees: [] as ERC721Order.Fee[],
+    erc721Token: NULL_ADDRESS,
+    erc721TokenId: ZERO,
+    erc721TokenProperties: [] as ERC721Order.Property[],
     chainId: 1,
     verifyingContract: getContractAddressesForChainOrThrow(1).exchangeProxy,
 };

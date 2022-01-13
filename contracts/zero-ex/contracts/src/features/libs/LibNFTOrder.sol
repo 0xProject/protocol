@@ -105,16 +105,16 @@ library LibNFTOrder {
     // keccak256(abi.encodePacked(
     //     "ERC721Order(",
     //       "uint8 direction,",
-    //       "address erc20Token,",
-    //       "uint256 erc20TokenAmount,",
-    //       "address erc721Token,",
-    //       "uint256 erc721TokenId,",
-    //       "Property[] erc721TokenProperties,",
-    //       "Fee[] fees,",
     //       "address maker,",
     //       "address taker,",
     //       "uint256 expiry,",
-    //       "uint256 nonce",
+    //       "uint256 nonce,",
+    //       "address erc20Token,",
+    //       "uint256 erc20TokenAmount,",
+    //       "Fee[] fees,",
+    //       "address erc721Token,",
+    //       "uint256 erc721TokenId,",
+    //       "Property[] erc721TokenProperties",
     //     ")",
     //     "Fee(",
     //       "address recipient,",
@@ -127,23 +127,23 @@ library LibNFTOrder {
     //     ")"
     // ))
     uint256 private constant _ERC_721_ORDER_TYPEHASH =
-        0x7af652c2504c5c7d806f4f25edc3762dd8478099f694981f8802db656a9ba9d8;
+        0x2de32b2b090da7d8ab83ca4c85ba2eb6957bc7f6c50cb4ae1995e87560d808ed;
 
     // The type hash for ERC1155 orders, which is:
     // keccak256(abi.encodePacked(
     //     "ERC1155Order(",
     //       "uint8 direction,",
-    //       "address erc20Token,",
-    //       "uint256 erc20TokenAmount,",
-    //       "address erc1155Token,",
-    //       "uint256 erc1155TokenId,",
-    //       "uint128 erc1155TokenAmount,",
-    //       "Property[] erc1155TokenProperties,",
-    //       "Fee[] fees,",
     //       "address maker,",
     //       "address taker,",
     //       "uint256 expiry,",
-    //       "uint256 nonce",
+    //       "uint256 nonce,",
+    //       "address erc20Token,",
+    //       "uint256 erc20TokenAmount,",
+    //       "Fee[] fees,",
+    //       "address erc1155Token,",
+    //       "uint256 erc1155TokenId,",
+    //       "Property[] erc1155TokenProperties,",
+    //       "uint128 erc1155TokenAmount",
     //     ")",
     //     "Fee(",
     //       "address recipient,",
@@ -156,7 +156,7 @@ library LibNFTOrder {
     //     ")"
     // ))
     uint256 private constant _ERC_1155_ORDER_TYPEHASH =
-        0xa3eda4c7db3c9b6e39713fae70a50e840b420b920eff22c4c6abc8e940cfac3b;
+        0x930490b1bcedd2e5139e22c761fafd52e533960197c2283f3922c7fd8c880be9;
 
     // keccak256(abi.encodePacked(
     //     "Fee(",
@@ -345,36 +345,36 @@ library LibNFTOrder {
         // return keccak256(abi.encode(
         //     _ERC_721_ORDER_TYPEHASH,
         //     order.direction,
-        //     order.erc20Token,
-        //     order.erc20TokenAmount,
-        //     order.erc721Token,
-        //     order.erc721TokenId,
-        //     propertiesHash,
-        //     feesHash,
         //     order.maker,
         //     order.taker,
         //     order.expiry,
-        //     order.nonce
+        //     order.nonce,
+        //     order.erc20Token,
+        //     order.erc20TokenAmount,
+        //     feesHash,
+        //     order.erc721Token,
+        //     order.erc721TokenId,
+        //     propertiesHash
         // ));
         assembly {
             if lt(order, 32) { invalid() } // Don't underflow memory.
 
             let typeHashPos := sub(order, 32) // order - 32
-            let propertiesHashPos := add(order, 160) // order + (32 * 5)
-            let feesHashPos := add(order, 192) // order + (32 * 6)
+            let feesHashPos := add(order, 224) // order + (32 * 7)
+            let propertiesHashPos := add(order, 320) // order + (32 * 10)
 
             let temp1 := mload(typeHashPos)
-            let temp2 := mload(propertiesHashPos)
-            let temp3 := mload(feesHashPos)
+            let temp2 := mload(feesHashPos)
+            let temp3 := mload(propertiesHashPos)
 
             mstore(typeHashPos, _ERC_721_ORDER_TYPEHASH)
-            mstore(propertiesHashPos, propertiesHash)
             mstore(feesHashPos, feesHash)
+            mstore(propertiesHashPos, propertiesHash)
             structHash := keccak256(typeHashPos, 384 /* 32 * 12 */ )
 
             mstore(typeHashPos, temp1)
-            mstore(propertiesHashPos, temp2)
-            mstore(feesHashPos, temp3)
+            mstore(feesHashPos, temp2)
+            mstore(propertiesHashPos, temp3)
         }
         return structHash;
     }
@@ -479,37 +479,37 @@ library LibNFTOrder {
         // return keccak256(abi.encode(
         //     _ERC_1155_ORDER_TYPEHASH,
         //     order.direction,
-        //     order.erc20Token,
-        //     order.erc20TokenAmount,
-        //     order.erc1155Token,
-        //     order.erc1155TokenId,
-        //     order.erc1155TokenAmount,
-        //     propertiesHash,
-        //     feesHash,
         //     order.maker,
         //     order.taker,
         //     order.expiry,
-        //     order.nonce
+        //     order.nonce,
+        //     order.erc20Token,
+        //     order.erc20TokenAmount,
+        //     feesHash,
+        //     order.erc1155Token,
+        //     order.erc1155TokenId,
+        //     propertiesHash,
+        //     order.erc1155TokenAmount
         // ));
         assembly {
             if lt(order, 32) { invalid() } // Don't underflow memory.
 
             let typeHashPos := sub(order, 32) // order - 32
-            let propertiesHashPos := add(order, 192) // order + (32 * 6)
             let feesHashPos := add(order, 224) // order + (32 * 7)
+            let propertiesHashPos := add(order, 320) // order + (32 * 10)
 
             let temp1 := mload(typeHashPos)
-            let temp2 := mload(propertiesHashPos)
-            let temp3 := mload(feesHashPos)
+            let temp2 := mload(feesHashPos)
+            let temp3 := mload(propertiesHashPos)
 
             mstore(typeHashPos, _ERC_1155_ORDER_TYPEHASH)
-            mstore(propertiesHashPos, propertiesHash)
             mstore(feesHashPos, feesHash)
+            mstore(propertiesHashPos, propertiesHash)
             structHash := keccak256(typeHashPos, 416 /* 32 * 12 */ )
 
             mstore(typeHashPos, temp1)
-            mstore(propertiesHashPos, temp2)
-            mstore(feesHashPos, temp3)
+            mstore(feesHashPos, temp2)
+            mstore(propertiesHashPos, temp3)
         }
         return structHash;
     }
