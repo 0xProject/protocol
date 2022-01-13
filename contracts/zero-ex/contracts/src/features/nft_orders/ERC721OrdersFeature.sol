@@ -524,7 +524,7 @@ contract ERC721OrdersFeature is
             sellOrders.length == buyOrders.length &&
             sellOrderSignatures.length == buyOrderSignatures.length &&
             sellOrders.length == sellOrderSignatures.length,
-            "Array length mismatch"
+            "ERC721OrdersFeature::batchMatchERC721Orders/ARRAY_LENGTH_MISMATCH"
         );
         profits = new uint256[](sellOrders.length);
         successes = new bool[](sellOrders.length);
@@ -621,7 +621,7 @@ contract ERC721OrdersFeature is
     {
         require(
             order.maker == msg.sender,
-            "ERC721OrdersFeature::preSignERC721Order/MAKER_MISMATCH"
+            "ERC721OrdersFeature::preSignERC721Order/ONLY_MAKER"
         );
         bytes32 orderHash = getERC721OrderHash(order);
         LibERC721OrdersStorage.getStorage()

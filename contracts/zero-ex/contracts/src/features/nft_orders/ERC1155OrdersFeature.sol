@@ -530,7 +530,7 @@ contract ERC1155OrdersFeature is
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.
-    /// @return orderInfo Infor about the order.
+    /// @return orderInfo Info about the order.
     function getERC1155OrderInfo(LibNFTOrder.ERC1155Order memory order)
         public
         override
