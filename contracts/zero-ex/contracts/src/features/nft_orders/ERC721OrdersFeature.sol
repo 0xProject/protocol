@@ -476,25 +476,25 @@ contract ERC721OrdersFeature is
 
         emit ERC721OrderFilled(
             sellOrder.direction,
+            sellOrder.maker,
+            buyOrder.maker, // taker
+            sellOrder.nonce,
             sellOrder.erc20Token,
             sellOrder.erc20TokenAmount,
             sellOrder.erc721Token,
             sellOrder.erc721TokenId,
-            sellOrder.maker,
-            buyOrder.maker, // taker
-            sellOrder.nonce,
             msg.sender
         );
 
         emit ERC721OrderFilled(
             buyOrder.direction,
+            buyOrder.maker,
+            sellOrder.maker, // taker
+            buyOrder.nonce,
             buyOrder.erc20Token,
             buyOrder.erc20TokenAmount,
             buyOrder.erc721Token,
             sellOrder.erc721TokenId,
-            buyOrder.maker,
-            sellOrder.maker, // taker
-            buyOrder.nonce,
             msg.sender
         );
     }
@@ -627,16 +627,16 @@ contract ERC721OrdersFeature is
 
         emit ERC721OrderPreSigned(
             order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc721Token,
-            order.erc721TokenId,
-            order.erc721TokenProperties,
-            order.fees,
             order.maker,
             order.taker,
             order.expiry,
-            order.nonce
+            order.nonce,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.fees,
+            order.erc721Token,
+            order.erc721TokenId,
+            order.erc721TokenProperties
         );
     }
 
@@ -668,13 +668,13 @@ contract ERC721OrdersFeature is
 
         emit ERC721OrderFilled(
             buyOrder.direction,
+            buyOrder.maker,
+            taker,
+            buyOrder.nonce,
             buyOrder.erc20Token,
             buyOrder.erc20TokenAmount,
             buyOrder.erc721Token,
             erc721TokenId,
-            buyOrder.maker,
-            taker,
-            buyOrder.nonce,
             address(0)
         );
     }
@@ -703,13 +703,13 @@ contract ERC721OrdersFeature is
 
         emit ERC721OrderFilled(
             sellOrder.direction,
+            sellOrder.maker,
+            msg.sender,
+            sellOrder.nonce,
             sellOrder.erc20Token,
             sellOrder.erc20TokenAmount,
             sellOrder.erc721Token,
             sellOrder.erc721TokenId,
-            sellOrder.maker,
-            msg.sender,
-            sellOrder.nonce,
             address(0)
         );
     }

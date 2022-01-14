@@ -357,17 +357,17 @@ contract ERC1155OrdersFeature is
 
         emit ERC1155OrderPreSigned(
             order.direction,
-            order.erc20Token,
-            order.erc20TokenAmount,
-            order.erc1155Token,
-            order.erc1155TokenId,
-            order.erc1155TokenAmount,
-            order.erc1155TokenProperties,
-            order.fees,
             order.maker,
             order.taker,
             order.expiry,
-            order.nonce
+            order.nonce,
+            order.erc20Token,
+            order.erc20TokenAmount,
+            order.fees,
+            order.erc1155Token,
+            order.erc1155TokenId,
+            order.erc1155TokenProperties,
+            order.erc1155TokenAmount
         );
     }
 
@@ -388,14 +388,14 @@ contract ERC1155OrdersFeature is
 
         emit ERC1155OrderFilled(
             buyOrder.direction,
+            buyOrder.maker,
+            params.taker,
+            buyOrder.nonce,
             buyOrder.erc20Token,
             erc20FillAmount,
             buyOrder.erc1155Token,
             params.tokenId,
             params.sellAmount,
-            buyOrder.maker,
-            params.taker,
-            buyOrder.nonce,
             address(0)
         );
     }
@@ -420,14 +420,14 @@ contract ERC1155OrdersFeature is
 
         emit ERC1155OrderFilled(
             sellOrder.direction,
+            sellOrder.maker,
+            msg.sender,
+            sellOrder.nonce,
             sellOrder.erc20Token,
             erc20FillAmount,
             sellOrder.erc1155Token,
             sellOrder.erc1155TokenId,
             params.buyAmount,
-            sellOrder.maker,
-            msg.sender,
-            sellOrder.nonce,
             address(0)
         );
     }

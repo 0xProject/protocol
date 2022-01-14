@@ -32,25 +32,25 @@ interface IERC1155OrdersFeature {
     /// @dev Emitted whenever an `ERC1155Order` is filled.
     /// @param direction Whether the order is selling or
     ///        buying the ERC1155 token.
+    /// @param maker The maker of the order.
+    /// @param taker The taker of the order.
+    /// @param nonce The unique maker nonce in the order.
     /// @param erc20Token The address of the ERC20 token.
     /// @param erc20FillAmount The amount of ERC20 token filled.
     /// @param erc1155Token The address of the ERC1155 token.
     /// @param erc1155TokenId The ID of the ERC1155 asset.
     /// @param erc1155FillAmount The amount of ERC1155 asset filled.
-    /// @param maker The maker of the order.
-    /// @param taker The taker of the order.
-    /// @param nonce The unique maker nonce in the order.
     /// @param matcher Currently unused.
     event ERC1155OrderFilled(
         LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 nonce,
         IERC20TokenV06 erc20Token,
         uint256 erc20FillAmount,
         IERC1155Token erc1155Token,
         uint256 erc1155TokenId,
         uint128 erc1155FillAmount,
-        address maker,
-        address taker,
-        uint256 nonce,
         address matcher
     );
 
@@ -66,17 +66,17 @@ interface IERC1155OrdersFeature {
     ///      Contains all the fields of the order.
     event ERC1155OrderPreSigned(
         LibNFTOrder.TradeDirection direction,
-        IERC20TokenV06 erc20Token,
-        uint256 erc20TokenAmount,
-        IERC1155Token erc1155Token,
-        uint256 erc1155TokenId,
-        uint128 erc1155TokenAmount,
-        LibNFTOrder.Property[] erc1155TokenProperties,
-        LibNFTOrder.Fee[] fees,
         address maker,
         address taker,
         uint256 expiry,
-        uint256 nonce
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        LibNFTOrder.Fee[] fees,
+        IERC1155Token erc1155Token,
+        uint256 erc1155TokenId,
+        LibNFTOrder.Property[] erc1155TokenProperties,
+        uint128 erc1155TokenAmount
     );
 
     /// @dev Sells an ERC1155 asset to fill the given order.

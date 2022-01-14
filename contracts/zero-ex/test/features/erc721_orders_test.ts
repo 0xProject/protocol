@@ -218,13 +218,13 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     ): IZeroExERC721OrderFilledEventArgs {
         return {
             direction: order.direction,
+            maker: order.maker,
+            taker,
+            nonce: order.nonce,
             erc20Token: order.erc20Token,
             erc20TokenAmount: order.erc20TokenAmount,
             erc721Token: order.erc721Token,
             erc721TokenId,
-            maker: order.maker,
-            taker,
-            nonce: order.nonce,
             matcher: NULL_ADDRESS,
         };
     }

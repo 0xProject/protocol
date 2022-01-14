@@ -32,25 +32,25 @@ interface IERC721OrdersFeature {
     /// @dev Emitted whenever an `ERC721Order` is filled.
     /// @param direction Whether the order is selling or
     ///        buying the ERC721 token.
+    /// @param maker The maker of the order.
+    /// @param taker The taker of the order.
+    /// @param nonce The unique maker nonce in the order.
     /// @param erc20Token The address of the ERC20 token.
     /// @param erc20TokenAmount The amount of ERC20 token
     ///        to sell or buy.
     /// @param erc721Token The address of the ERC721 token.
     /// @param erc721TokenId The ID of the ERC721 asset.
-    /// @param maker The maker of the order.
-    /// @param taker The taker of the order.
-    /// @param nonce The unique maker nonce in the order.
     /// @param matcher If this order was matched with another using `matchERC721Orders()`,
     ///                this will be the address of the caller. If not, this will be `address(0)`.
     event ERC721OrderFilled(
         LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 nonce,
         IERC20TokenV06 erc20Token,
         uint256 erc20TokenAmount,
         IERC721Token erc721Token,
         uint256 erc721TokenId,
-        address maker,
-        address taker,
-        uint256 nonce,
         address matcher
     );
 
@@ -66,16 +66,16 @@ interface IERC721OrdersFeature {
     ///      Contains all the fields of the order.
     event ERC721OrderPreSigned(
         LibNFTOrder.TradeDirection direction,
-        IERC20TokenV06 erc20Token,
-        uint256 erc20TokenAmount,
-        IERC721Token erc721Token,
-        uint256 erc721TokenId,
-        LibNFTOrder.Property[] erc721TokenProperties,
-        LibNFTOrder.Fee[] fees,
         address maker,
         address taker,
         uint256 expiry,
-        uint256 nonce
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        LibNFTOrder.Fee[] fees,
+        IERC721Token erc721Token,
+        uint256 erc721TokenId,
+        LibNFTOrder.Property[] erc721TokenProperties
     );
 
     /// @dev Sells an ERC721 asset to fill the given order.
