@@ -278,7 +278,6 @@ contract ERC1155OrdersFeature is
     ///      are encoded in `data`. This allows takers to sell their
     ///      ERC1155 asset without first calling `setApprovalForAll`.
     /// @param operator The address which called `safeTransferFrom`.
-    /// @param from The address which previously owned the token.
     /// @param tokenId The ID of the asset being transferred.
     /// @param value The amount being transferred.
     /// @param data Additional data with no specified format. If a
@@ -289,7 +288,7 @@ contract ERC1155OrdersFeature is
     ///         indicating that the callback succeeded.
     function onERC1155Received(
         address operator,
-        address from,
+        address /* from */,
         uint256 tokenId,
         uint256 value,
         bytes calldata data
@@ -448,6 +447,12 @@ contract ERC1155OrdersFeature is
         _validateOrderSignature(orderHash, signature, order.maker);
     }
 
+    /// @dev Validates that the given signature is valid for the
+    ///      given maker and order hash. Reverts if the signature
+    ///      is not valid.
+    /// @param orderHash The hash of the order that was signed.
+    /// @param signature The signature to check.
+    /// @param maker The maker of the order.
     function _validateOrderSignature(
         bytes32 orderHash,
         LibSignature.Signature memory signature,
@@ -473,6 +478,13 @@ contract ERC1155OrdersFeature is
         }
     }
 
+    /// @dev Transfers an NFT asset.
+    /// @param token The address of the NFT contract.
+    /// @param from The address currently holding the asset.
+    /// @param to The address to transfer the asset to.
+    /// @param tokenId The ID of the asset to transfer.
+    /// @param amount The amount of the asset to transfer. Always
+    ///        1 for ERC721 assets.
     function _transferNFTAssetFrom(
         address token,
         address from,
@@ -486,6 +498,11 @@ contract ERC1155OrdersFeature is
         _transferERC1155AssetFrom(IERC1155Token(token), from, to, tokenId, amount);
     }
 
+    /// @dev Updates storage to indicate that the given order
+    ///      has been filled by the given amount.
+    /// @param orderHash The hash of `order`.
+    /// @param fillAmount The amount (denominated in the NFT asset)
+    ///        that the order has been filled by.
     function _updateOrderState(
         LibNFTOrder.NFTOrder memory /* order */,
         bytes32 orderHash,
@@ -496,6 +513,7 @@ contract ERC1155OrdersFeature is
     {
         LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
         uint128 currentFilledAmount = uint128(stor.orderState[orderHash]);
+        // Filled amount should never overflow 128 bits
         assert(currentFilledAmount + fillAmount > currentFilledAmount);
         stor.orderState[orderHash] += fillAmount;
     }
@@ -581,6 +599,9 @@ contract ERC1155OrdersFeature is
         orderInfo.status = LibNFTOrder.OrderStatus.FILLABLE;
     }
 
+    /// @dev Get the order info for an NFT order.
+    /// @param order The NFT order.
+    /// @return orderInfo Info about the order.
     function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
         internal
         override

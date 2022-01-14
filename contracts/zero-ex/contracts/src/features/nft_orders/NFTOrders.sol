@@ -535,6 +535,12 @@ abstract contract NFTOrders is
         }
     }
 
+    /// @dev Validates that the given signature is valid for the
+    ///      given maker and order hash. Reverts if the signature
+    ///      is not valid.
+    /// @param orderHash The hash of the order that was signed.
+    /// @param signature The signature to check.
+    /// @param maker The maker of the order.
     function _validateOrderSignature(
         bytes32 orderHash,
         LibSignature.Signature memory signature,
@@ -544,6 +550,13 @@ abstract contract NFTOrders is
         virtual
         view;
 
+    /// @dev Transfers an NFT asset.
+    /// @param token The address of the NFT contract.
+    /// @param from The address currently holding the asset.
+    /// @param to The address to transfer the asset to.
+    /// @param tokenId The ID of the asset to transfer.
+    /// @param amount The amount of the asset to transfer. Always
+    ///        1 for ERC721 assets.
     function _transferNFTAssetFrom(
         address token,
         address from,
@@ -554,6 +567,12 @@ abstract contract NFTOrders is
         internal
         virtual;
 
+    /// @dev Updates storage to indicate that the given order
+    ///      has been filled by the given amount.
+    /// @param order The order that has been filled.
+    /// @param orderHash The hash of `order`.
+    /// @param fillAmount The amount (denominated in the NFT asset)
+    ///        that the order has been filled by.
     function _updateOrderState(
         LibNFTOrder.NFTOrder memory order,
         bytes32 orderHash,

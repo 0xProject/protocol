@@ -52,6 +52,8 @@ library LibNFTOrder {
         bytes feeData;
     }
 
+    // "Base struct" for ERC721Order and ERC1155, used
+    // by the abstract contract `NFTOrders`.
     struct NFTOrder {
         TradeDirection direction;
         address maker;
@@ -102,7 +104,11 @@ library LibNFTOrder {
     struct OrderInfo {
         bytes32 orderHash;
         OrderStatus status;
+        // `orderAmount` is 1 for all ERC721Orders, and
+        // `erc1155TokenAmount` for ERC1155Orders.
         uint128 orderAmount;
+        // The remaining amount of the ERC721/ERC1155 asset
+        // that can be filled for the order.
         uint128 remainingAmount;
     }
 
@@ -196,6 +202,8 @@ library LibNFTOrder {
 
     uint256 private constant ADDRESS_MASK = (1 << 160) - 1;
 
+    // ERC721Order and NFTOrder fields are aligned, so
+    // we can safely cast an ERC721Order to an NFTOrder.
     function asNFTOrder(ERC721Order memory erc721Order)
         internal
         pure
@@ -206,6 +214,10 @@ library LibNFTOrder {
         }
     }
 
+    // ERC1155Order and NFTOrder fields are aligned with
+    // the exception of the last field `erc1155TokenAmount`
+    // in ERC1155Order, so we can safely cast an ERC1155Order
+    // to an NFTOrder.
     function asNFTOrder(ERC1155Order memory erc1155Order)
         internal
         pure
@@ -216,6 +228,8 @@ library LibNFTOrder {
         }
     }
 
+    // ERC721Order and NFTOrder fields are aligned, so
+    // we can safely cast an MFTOrder to an ERC721Order.
     function asERC721Order(NFTOrder memory nftOrder)
         internal
         pure
@@ -226,6 +240,9 @@ library LibNFTOrder {
         }
     }
 
+    // NOTE: This is only safe if `nftOrder` was previously
+    // cast from an `ERC1155Order` and the original
+    // `erc1155TokenAmount` memory word has not been corrupted!
     function asERC1155Order(
         NFTOrder memory nftOrder
     )
