@@ -1,0 +1,39 @@
+{
+    "id": "/rfqMakerConfig",
+    "properties": {
+        "makerId": {
+            "type": "string"
+        },
+        "apiKeyHashes": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "label": {
+            "type": "string"
+        },
+        "rfqmMakerUri": {
+            "type": "string"
+        },
+        "rfqmOrderTypes": {
+            "items": {
+                "type": "string",
+                "enum": ["rfq", "otc"]
+            },
+            "type": "array"
+        },
+        "rfqtMakerUri": {
+            "type": "string"
+        },
+        "rfqtOrderTypes": {
+            "items": {
+                "type": "string",
+                "enum": ["rfq", "otc"]
+            },
+            "type": "array"
+        }
+    },
+    "required": ["label", "rfqmMakerUri", "rfqmOrderTypes", "rfqtMakerUri", "rfqtOrderTypes"],
+    "type": "object"
+}
