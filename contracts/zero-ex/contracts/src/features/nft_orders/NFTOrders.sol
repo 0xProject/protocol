@@ -78,14 +78,13 @@ abstract contract NFTOrders is
     // Core settlement logic for selling an NFT asset.
     function _sellNFT(
         LibNFTOrder.NFTOrder memory buyOrder,
-        uint128 orderAmount,
         LibSignature.Signature memory signature,
         SellParams memory params
     )
         internal
         returns (uint256 erc20FillAmount)
     {
-        LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(buyOrder, orderAmount);
+        LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(buyOrder);
         // Check that the order can be filled.
         _validateBuyOrder(
             buyOrder,
@@ -104,13 +103,13 @@ abstract contract NFTOrders is
 
         _updateOrderState(buyOrder, orderInfo.orderHash, params.sellAmount);
 
-        if (params.sellAmount == orderAmount) {
+        if (params.sellAmount == orderInfo.orderAmount) {
             erc20FillAmount = buyOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
             erc20FillAmount = LibMathV06.safeGetPartialAmountFloor(
                 params.sellAmount,
-                orderAmount,
+                orderInfo.orderAmount,
                 buyOrder.erc20TokenAmount
             );
         }
@@ -180,7 +179,7 @@ abstract contract NFTOrders is
             buyOrder,
             buyOrder.maker,
             params.sellAmount,
-            orderAmount,
+            orderInfo.orderAmount,
             false
         );
     }
@@ -188,14 +187,13 @@ abstract contract NFTOrders is
     // Core settlement logic for buying an NFT asset.
     function _buyNFT(
         LibNFTOrder.NFTOrder memory sellOrder,
-        uint128 orderAmount,
         LibSignature.Signature memory signature,
         BuyParams memory params
     )
         internal
         returns (uint256 erc20FillAmount, uint256 ethSpent)
     {
-        LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(sellOrder, orderAmount);
+        LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(sellOrder);
         // Check that the order can be filled.
         _validateSellOrder(
             sellOrder,
@@ -213,13 +211,13 @@ abstract contract NFTOrders is
 
         _updateOrderState(sellOrder, orderInfo.orderHash, params.buyAmount);
 
-        if (params.buyAmount == orderAmount) {
+        if (params.buyAmount == orderInfo.orderAmount) {
             erc20FillAmount = sellOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
             erc20FillAmount = LibMathV06.safeGetPartialAmountCeil(
                 params.buyAmount,
-                orderAmount,
+                orderInfo.orderAmount,
                 sellOrder.erc20TokenAmount
             );
         }
@@ -267,7 +265,7 @@ abstract contract NFTOrders is
                 sellOrder,
                 address(this),
                 params.buyAmount,
-                orderAmount,
+                orderInfo.orderAmount,
                 true
             );
             // Sum the amount of ETH spent.
@@ -292,7 +290,7 @@ abstract contract NFTOrders is
                     sellOrder,
                     address(this),
                     params.buyAmount,
-                    orderAmount,
+                    orderInfo.orderAmount,
                     true
                 );
                 // Sum the amount of ETH spent.
@@ -310,7 +308,7 @@ abstract contract NFTOrders is
                     sellOrder,
                     msg.sender,
                     params.buyAmount,
-                    orderAmount,
+                    orderInfo.orderAmount,
                     false
                 );
             }
@@ -327,7 +325,7 @@ abstract contract NFTOrders is
                 sellOrder,
                 msg.sender,
                 params.buyAmount,
-                orderAmount,
+                orderInfo.orderAmount,
                 false
             );
         }
@@ -440,6 +438,10 @@ abstract contract NFTOrders is
 
             if (useNativeToken) {
                 assert(payer == address(this));
+                assert(
+                    order.erc20Token == WETH ||
+                    address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
+                );
                 // Transfer ETH to the fee recipient.
                 _transferEth(payable(fee.recipient), feeFillAmount);
             } else {
@@ -563,7 +565,7 @@ abstract contract NFTOrders is
     /// @dev Get the order info for an NFT order.
     /// @param order The NFT order.
     /// @return orderInfo Info about the order.
-    function _getOrderInfo(LibNFTOrder.NFTOrder memory order, uint128 orderAmount)
+    function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
         internal
         virtual
         view

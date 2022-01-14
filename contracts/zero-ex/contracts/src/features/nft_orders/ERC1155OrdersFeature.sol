@@ -298,9 +298,6 @@ contract ERC1155OrdersFeature is
         override
         returns (bytes4 success)
     {
-        // TODO: Throw helpful reverts for malformed `data` before
-        //       attempting to decode?
-
         // Decode the order, signature, and `unwrapNativeToken` from
         // `data`. If `data` does not encode such parameters, this
         // will throw.
@@ -385,7 +382,6 @@ contract ERC1155OrdersFeature is
     {
         uint256 erc20FillAmount = _sellNFT(
             buyOrder.asNFTOrder(),
-            buyOrder.erc1155TokenAmount,
             signature,
             params
         );
@@ -418,7 +414,6 @@ contract ERC1155OrdersFeature is
         uint256 erc20FillAmount;
         (erc20FillAmount, ethSpent) = _buyNFT(
             sellOrder.asNFTOrder(),
-            sellOrder.erc1155TokenAmount,
             signature,
             params
         );
@@ -502,7 +497,7 @@ contract ERC1155OrdersFeature is
         LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
         uint128 currentFilledAmount = uint128(stor.orderState[orderHash]);
         assert(currentFilledAmount + fillAmount > currentFilledAmount);
-        stor.orderState[orderHash] = currentFilledAmount + fillAmount;
+        stor.orderState[orderHash] += fillAmount;
     }
 
     /// @dev If the given order is buying an ERC1155 asset, checks
@@ -537,6 +532,7 @@ contract ERC1155OrdersFeature is
         view
         returns (LibNFTOrder.OrderInfo memory orderInfo)
     {
+        orderInfo.orderAmount = order.erc1155TokenAmount;
         orderInfo.orderHash = getERC1155OrderHash(order);
 
         {
@@ -585,16 +581,13 @@ contract ERC1155OrdersFeature is
         orderInfo.status = LibNFTOrder.OrderStatus.FILLABLE;
     }
 
-    function _getOrderInfo(
-        LibNFTOrder.NFTOrder memory order,
-        uint128 orderAmount
-    )
+    function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
         internal
         override
         view
         returns (LibNFTOrder.OrderInfo memory orderInfo)
     {
-        return getERC1155OrderInfo(order.asERC1155Order(orderAmount));
+        return getERC1155OrderInfo(order.asERC1155Order());
     }
 
     /// @dev Get the canonical hash of an ERC1155 order.

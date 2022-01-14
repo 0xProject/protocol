@@ -271,21 +271,28 @@ contract ERC721OrdersFeature is
         LibNFTOrder.NFTOrder memory sellNFTOrder = sellOrder.asNFTOrder();
         LibNFTOrder.NFTOrder memory buyNFTOrder = buyOrder.asNFTOrder();
 
-        LibNFTOrder.OrderInfo memory sellOrderInfo = _getOrderInfo(sellNFTOrder, 1);
-        LibNFTOrder.OrderInfo memory buyOrderInfo = _getOrderInfo(buyNFTOrder, 1);
-        _validateSellOrder(
-            sellNFTOrder,
-            sellOrderSignature,
-            sellOrderInfo,
-            buyOrder.maker
-        );
-        _validateBuyOrder(
-            buyNFTOrder,
-            buyOrderSignature,
-            buyOrderInfo,
-            sellOrder.maker,
-            sellOrder.erc721TokenId
-        );
+        {
+            LibNFTOrder.OrderInfo memory sellOrderInfo = _getOrderInfo(sellNFTOrder);
+            LibNFTOrder.OrderInfo memory buyOrderInfo = _getOrderInfo(buyNFTOrder);
+
+            _validateSellOrder(
+                sellNFTOrder,
+                sellOrderSignature,
+                sellOrderInfo,
+                buyOrder.maker
+            );
+            _validateBuyOrder(
+                buyNFTOrder,
+                buyOrderSignature,
+                buyOrderInfo,
+                sellOrder.maker,
+                sellOrder.erc721TokenId
+            );
+
+            // Mark both orders as filled.
+            _updateOrderState(sellNFTOrder, sellOrderInfo.orderHash, 1);
+            _updateOrderState(buyNFTOrder, buyOrderInfo.orderHash, 1);
+        }
 
         // The ERC721 tokens must match
         if (sellOrder.erc721Token != buyOrder.erc721Token) {
@@ -320,10 +327,6 @@ contract ERC721OrdersFeature is
 
         // The difference in ERC20 token amounts is the spread.
         uint256 spread = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount;
-
-        // Mark both orders as filled.
-        _updateOrderState(sellNFTOrder, sellOrderInfo.orderHash, 1);
-        _updateOrderState(buyNFTOrder, buyOrderInfo.orderHash, 1);
 
         // Transfer the ERC721 asset from seller to buyer.
         _transferERC721AssetFrom(
@@ -471,30 +474,29 @@ contract ERC721OrdersFeature is
             }
         }
 
-        // TODO: stack too deep
-        // emit ERC721OrderFilled(
-        //     sellOrder.direction,
-        //     sellOrder.erc20Token,
-        //     sellOrder.erc20TokenAmount,
-        //     sellOrder.erc721Token,
-        //     sellOrder.erc721TokenId,
-        //     sellOrder.maker,
-        //     buyOrder.maker, // taker
-        //     sellOrder.nonce,
-        //     msg.sender
-        // );
+        emit ERC721OrderFilled(
+            sellOrder.direction,
+            sellOrder.erc20Token,
+            sellOrder.erc20TokenAmount,
+            sellOrder.erc721Token,
+            sellOrder.erc721TokenId,
+            sellOrder.maker,
+            buyOrder.maker, // taker
+            sellOrder.nonce,
+            msg.sender
+        );
 
-        // emit ERC721OrderFilled(
-        //     buyOrder.direction,
-        //     buyOrder.erc20Token,
-        //     buyOrder.erc20TokenAmount,
-        //     buyOrder.erc721Token,
-        //     sellOrder.erc721TokenId,
-        //     buyOrder.maker,
-        //     sellOrder.maker, // taker
-        //     buyOrder.nonce,
-        //     msg.sender
-        // );
+        emit ERC721OrderFilled(
+            buyOrder.direction,
+            buyOrder.erc20Token,
+            buyOrder.erc20TokenAmount,
+            buyOrder.erc721Token,
+            sellOrder.erc721TokenId,
+            buyOrder.maker,
+            sellOrder.maker, // taker
+            buyOrder.nonce,
+            msg.sender
+        );
     }
 
     /// @dev Matches pairs of complementary orders that have
@@ -574,9 +576,6 @@ contract ERC721OrdersFeature is
         override
         returns (bytes4 success)
     {
-        // TODO: Throw helpful reverts for malformed `data` before
-        //       attempting to decode?
-
         // Decode the order, signature, and `unwrapNativeToken` from
         // `data`. If `data` does not encode such parameters, this
         // will throw.
@@ -656,7 +655,6 @@ contract ERC721OrdersFeature is
     {
         _sellNFT(
             buyOrder.asNFTOrder(),
-            1, // order amount
             signature,
             SellParams(
                 1, // sell amount
@@ -695,7 +693,6 @@ contract ERC721OrdersFeature is
     {
         (, ethSpent) = _buyNFT(
             sellOrder.asNFTOrder(),
-            1, // order amount
             signature,
             BuyParams(
                 1, // buy amount
@@ -762,22 +759,24 @@ contract ERC721OrdersFeature is
         address from,
         address to,
         uint256 tokenId,
-        uint256 /* amount */
+        uint256 amount
     )
         internal
         override
     {
+        assert(amount == 1);
         _transferERC721AssetFrom(IERC721Token(token), from, to, tokenId);
     }
 
     function _updateOrderState(
         LibNFTOrder.NFTOrder memory order,
         bytes32 /* orderHash */,
-        uint128 /* fillAmount */
+        uint128 fillAmount
     )
         internal
         override
     {
+        assert(fillAmount == 1);
         _setOrderStatusBit(order.maker, order.nonce);
     }
 
@@ -867,11 +866,7 @@ contract ERC721OrdersFeature is
 
     /// @dev Get the order info for an NFT order.
     /// @param order The NFT order.
-    /// @return orderInfo Info about the order.
-    function _getOrderInfo(
-        LibNFTOrder.NFTOrder memory order,
-        uint128 /* orderAmount */
-    )
+    function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
         internal
         override
         view
@@ -880,6 +875,7 @@ contract ERC721OrdersFeature is
         LibNFTOrder.ERC721Order memory erc721Order = order.asERC721Order();
         orderInfo.orderHash = getERC721OrderHash(erc721Order);
         orderInfo.status = getERC721OrderStatus(erc721Order);
+        orderInfo.orderAmount = 1;
         orderInfo.remainingAmount = orderInfo.status == LibNFTOrder.OrderStatus.FILLABLE ? 1 : 0;
     }
 

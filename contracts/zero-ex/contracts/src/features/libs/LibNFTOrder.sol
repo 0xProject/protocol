@@ -66,6 +66,7 @@ library LibNFTOrder {
         Property[] nftProperties;
     }
 
+    // All fields align with those of NFTOrder
     struct ERC721Order {
         TradeDirection direction;
         address maker;
@@ -80,6 +81,8 @@ library LibNFTOrder {
         Property[] erc721TokenProperties;
     }
 
+    // All fields except `erc1155TokenAmount` align
+    // with those of NFTOrder
     struct ERC1155Order {
         TradeDirection direction;
         address maker;
@@ -92,12 +95,14 @@ library LibNFTOrder {
         IERC1155Token erc1155Token;
         uint256 erc1155TokenId;
         Property[] erc1155TokenProperties;
+        // End of fields shared with NFTOrder
         uint128 erc1155TokenAmount;
     }
 
     struct OrderInfo {
         bytes32 orderHash;
         OrderStatus status;
+        uint128 orderAmount;
         uint128 remainingAmount;
     }
 
@@ -222,27 +227,15 @@ library LibNFTOrder {
     }
 
     function asERC1155Order(
-        NFTOrder memory nftOrder,
-        uint128 erc1155TokenAmount
+        NFTOrder memory nftOrder
     )
         internal
         pure
         returns (ERC1155Order memory erc1155Order)
     {
-        return ERC1155Order(
-            nftOrder.direction,
-            nftOrder.maker,
-            nftOrder.taker,
-            nftOrder.expiry,
-            nftOrder.nonce,
-            nftOrder.erc20Token,
-            nftOrder.erc20TokenAmount,
-            nftOrder.fees,
-            IERC1155Token(nftOrder.nft),
-            nftOrder.nftId,
-            nftOrder.nftProperties,
-            erc1155TokenAmount
-        );
+        assembly {
+            erc1155Order := nftOrder
+        }
     }
 
     /// @dev Get the struct hash of an ERC721 order.
