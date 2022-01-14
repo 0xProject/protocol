@@ -767,16 +767,17 @@ export class SamplerOperations {
             function: this._samplerContract.sampleSellsFromUniswapV3,
             params: [quoter, tokenAddressPath, takerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
-                    'sampleSellsFromUniswapV3',
-                    callResults,
-                );
+                const [paths, samples, initializedTicksCrossedList] = this._samplerContract.getABIDecodedReturnData<
+                    [string[], BigNumber[], BigNumber[]]
+                >('sampleSellsFromUniswapV3', callResults);
                 fillData.router = router;
                 fillData.tokenAddressPath = tokenAddressPath;
                 fillData.pathAmounts = paths.map((uniswapPath, i) => ({
                     uniswapPath,
                     inputAmount: takerFillAmounts[i],
+                    initializedTicksCrossed: initializedTicksCrossedList[i].toNumber(),
                 }));
+
                 return samples;
             },
         });
@@ -795,15 +796,15 @@ export class SamplerOperations {
             function: this._samplerContract.sampleBuysFromUniswapV3,
             params: [quoter, tokenAddressPath, makerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
-                    'sampleBuysFromUniswapV3',
-                    callResults,
-                );
+                const [paths, samples, initializedTicksCrossedList] = this._samplerContract.getABIDecodedReturnData<
+                    [string[], BigNumber[], BigNumber[]]
+                >('sampleBuysFromUniswapV3', callResults);
                 fillData.router = router;
                 fillData.tokenAddressPath = tokenAddressPath;
                 fillData.pathAmounts = paths.map((uniswapPath, i) => ({
                     uniswapPath,
                     inputAmount: makerFillAmounts[i],
+                    initializedTicksCrossed: initializedTicksCrossedList[i].toNumber(),
                 }));
                 return samples;
             },

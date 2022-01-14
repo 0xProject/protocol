@@ -268,19 +268,29 @@ export interface HopInfo {
     returnData: string;
 }
 
+export interface UniswapV3PathAmount {
+    uniswapPath: string;
+    inputAmount: BigNumber;
+    initializedTicksCrossed: number;
+}
 export interface UniswapV3FillData extends FillData {
     tokenAddressPath: string[];
     router: string;
-    pathAmounts: Array<{ uniswapPath: string; inputAmount: BigNumber }>;
+    pathAmounts: UniswapV3PathAmount[];
 }
 
 export interface KyberDmmFillData extends UniswapV2FillData {
     poolsPath: string[];
 }
 
-export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'uniswapPaths'> {
+export const isFinalUniswapV3FillData = (
+    data: UniswapV3FillData | FinalUniswapV3FillData,
+): data is FinalUniswapV3FillData => !!(data as FinalUniswapV3FillData).uniswapPath;
+
+export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmounts'> {
     // The uniswap-encoded path that can fll the maximum input amount.
     uniswapPath: string;
+    initializedTicksCrossed: number;
 }
 
 export interface LidoFillData extends FillData {

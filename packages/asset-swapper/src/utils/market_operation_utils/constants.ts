@@ -2,6 +2,7 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
+import * as _ from 'lodash';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -17,7 +18,9 @@ import {
     ERC20BridgeSource,
     FeeSchedule,
     FillData,
+    FinalUniswapV3FillData,
     GetMarketOrdersOpts,
+    isFinalUniswapV3FillData,
     KyberSamplerOpts,
     LidoInfo,
     LiquidityProviderFillData,
@@ -2039,19 +2042,19 @@ export const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
-            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Ropsten]: {
-            quoter: '0x2f9e608fd881861b8916257b76613cb22ee0652c',
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0x03782388516e94fcd4c18666303601a12aa729ea',
         },
         [ChainId.Polygon]: {
-            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Optimism]: {
-            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
     },
@@ -2335,10 +2338,26 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
         let gas = 100e3;
-        const path = (fillData as UniswapV3FillData).tokenAddressPath;
+        const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
+        const path = uniFillData.tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 32e3; // +32k for each hop.
         }
+
+        let ticksCrossed = 0;
+        if (isFinalUniswapV3FillData(uniFillData)) {
+            ticksCrossed = uniFillData.initializedTicksCrossed;
+        } else {
+            const sortedPathAmounts = uniFillData.pathAmounts.sort((a, b) => b.inputAmount.comparedTo(a.inputAmount));
+            const uniqPathAmounts = _.uniqBy(sortedPathAmounts, p => p.uniswapPath);
+            ticksCrossed = uniqPathAmounts.reduce((memo, p) => memo + p.initializedTicksCrossed, 0);
+        }
+
+        // Any additional initialized ticks crossed after the first one costs 31k gas
+        if (ticksCrossed > 1) {
+            gas += (ticksCrossed - 1) * 31e3; // 31k per additional tick crossed
+        }
+
         return gas;
     },
     [ERC20BridgeSource.Lido]: () => 226e3,
