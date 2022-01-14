@@ -108,39 +108,34 @@ contract UniswapV3Sampler
         returns (
             bytes[] memory uniswapPaths,
             uint256[] memory makerTokenAmounts,
-            uint256[] memory uniswapTotalIntitializedTicksCrossed
+            uint256[] memory uniswapGasUsed
         )
     {
-        IUniswapV3Pool[][] memory poolPaths =
-            _getValidPoolPaths(quoter.factory(), path, 0);
+        IUniswapV3Pool[][] memory poolPaths = _getValidPoolPaths(quoter.factory(), path, 0);
 
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         uniswapPaths = new bytes[](takerTokenAmounts.length);
-        uniswapTotalIntitializedTicksCrossed = new uint256[](takerTokenAmounts.length);
+        uniswapGasUsed = new uint256[](takerTokenAmounts.length);
 
         for (uint256 i = 0; i < takerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
             bytes memory topUniswapPath;
             uint256 topBuyAmount = 0;
-            uint32[] memory topInitializedTicksCrossedList;
+            uint256 topGasUsed;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
-                try
-                    quoter.quoteExactInput
-                        { gas: QUOTE_GAS }
-                        (uniswapPath, takerTokenAmounts[i])
-                        returns (
-                            uint256 buyAmount,
-                            uint160[] memory,
-                            uint32[] memory initializedTicksCrossedList,
-                            uint256
+                try quoter.quoteExactInput{ gas: QUOTE_GAS }(uniswapPath, takerTokenAmounts[i]) returns (
+                    uint256 buyAmount,
+                    uint160[] memory,
+                    uint32[] memory,
+                    uint256 gasUsed
                 ) {
                     if (topBuyAmount <= buyAmount) {
                         topBuyAmount = buyAmount;
                         topUniswapPath = uniswapPath;
-                        topInitializedTicksCrossedList = initializedTicksCrossedList;
+                        topGasUsed = gasUsed;
                     }
-                } catch { }
+                } catch {}
             }
             // Break early if we can't complete the buys.
             if (topBuyAmount == 0) {
@@ -148,7 +143,7 @@ contract UniswapV3Sampler
             }
             makerTokenAmounts[i] = topBuyAmount;
             uniswapPaths[i] = topUniswapPath;
-            uniswapTotalIntitializedTicksCrossed[i] = _sumTotalInitializedTicksCrossed(topInitializedTicksCrossedList);
+            uniswapGasUsed[i] = topGasUsed;
         }
     }
 
@@ -168,26 +163,31 @@ contract UniswapV3Sampler
         returns (
             bytes[] memory uniswapPaths,
             uint256[] memory takerTokenAmounts,
-            uint256[] memory uniswapTotalIntitializedTicksCrossed
+            uint256[] memory uniswapGasUsed
         )
     {
-        IUniswapV3Pool[][] memory poolPaths =
-            _getValidPoolPaths(quoter.factory(), path, 0);
+        IUniswapV3Pool[][] memory poolPaths = _getValidPoolPaths(quoter.factory(), path, 0);
         IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         uniswapPaths = new bytes[](makerTokenAmounts.length);
-        uniswapTotalIntitializedTicksCrossed = new uint256[](takerTokenAmounts.length);
+        uniswapGasUsed = new uint256[](makerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
             // Break early if we can't complete the buys.
-            (uint256 topSellAmount, bytes memory topUniswapPath, uint32[] memory topInitializedTicksCrossedList) = _topPoolPath(quoter, poolPaths, reversedPath, makerTokenAmounts[i], path);
+            (uint256 topSellAmount, bytes memory topUniswapPath, uint256 topGasUsed) = _topPoolPath(
+                quoter,
+                poolPaths,
+                reversedPath,
+                makerTokenAmounts[i],
+                path
+            );
             if (topSellAmount == 0) {
                 break;
             }
             takerTokenAmounts[i] = topSellAmount;
             uniswapPaths[i] = topUniswapPath;
-            uniswapTotalIntitializedTicksCrossed[i] = _sumTotalInitializedTicksCrossed(topInitializedTicksCrossedList);
+            uniswapGasUsed[i] = topGasUsed;
         }
     }
 
@@ -203,22 +203,24 @@ contract UniswapV3Sampler
         returns (
             uint256 topSellAmount,
             bytes memory topUniswapPath,
-            uint32[] memory topInitializedTicksCrossedList)
+            uint256 topGasUsed
+        )
     {
         // Pick the best result from all the paths.
-        bytes memory topUniswapPath;
-        uint256 topSellAmount = 0;
-        uint32[] memory topInitializedTicksCrossedList;
         for (uint256 j = 0; j < poolPaths.length; ++j) {
-            (uint256 sellAmount, uint32[] memory initializedTicksCrossedList) = _quoteExactOutput(quoter, reversedPath, poolPaths[j], makerTokenAmount);
+            (uint256 sellAmount, uint256 gasUsed) = _quoteExactOutput(
+                quoter,
+                reversedPath,
+                poolPaths[j],
+                makerTokenAmount
+            );
             if (topSellAmount == 0 || topSellAmount >= sellAmount) {
                 topSellAmount = sellAmount;
                 // But the output path should still be encoded for sells.
                 topUniswapPath = _toUniswapPath(path, poolPaths[j]);
-                topInitializedTicksCrossedList = initializedTicksCrossedList;
+                topGasUsed = gasUsed;
             }
         }
-
     }
 
     function _quoteExactOutput(
@@ -226,27 +228,17 @@ contract UniswapV3Sampler
         IERC20TokenV06[] memory reversedPath,
         IUniswapV3Pool[] memory poolPath,
         uint256 makerTokenAmount
-    )
-        private
-        returns (uint256 sellAmount, uint32[] memory initializedTicksCrossedList)
-    {
+    ) private returns (uint256 sellAmount, uint256 gasUsed) {
         // quoter requires path to be reversed for buys.
-        bytes memory uniswapPath = _toUniswapPath(
-            reversedPath,
-            _reversePoolPath(poolPath)
-        );
-        try
-            quoter.quoteExactOutput
-                { gas: QUOTE_GAS }
-                (uniswapPath, makerTokenAmount)
-                returns (
-                    uint256 _sellAmount,
-                    uint160[] memory,
-                    uint32[] memory _initializedTicksCrossedList,
-                    uint256
+        bytes memory uniswapPath = _toUniswapPath(reversedPath, _reversePoolPath(poolPath));
+        try quoter.quoteExactOutput{ gas: QUOTE_GAS }(uniswapPath, makerTokenAmount) returns (
+            uint256 _sellAmount,
+            uint160[] memory,
+            uint32[] memory, /*_initializedTicksCrossedList, */
+            uint256 _gasUsed
         ) {
             sellAmount = _sellAmount;
-            initializedTicksCrossedList = _initializedTicksCrossedList;
+            gasUsed = _gasUsed;
         } catch {}
     }
 

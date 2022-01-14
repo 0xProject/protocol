@@ -388,12 +388,12 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): F
     switch (fill.source) {
         case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as UniswapV3FillData;
-            const { uniswapPath, initializedTicksCrossed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
+            const { uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
             const finalFillData: FinalUniswapV3FillData = {
                 router: fd.router,
                 tokenAddressPath: fd.tokenAddressPath,
                 uniswapPath,
-                initializedTicksCrossed,
+                gasUsed,
             };
             return finalFillData;
         }

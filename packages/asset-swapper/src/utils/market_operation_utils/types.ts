@@ -271,7 +271,7 @@ export interface HopInfo {
 export interface UniswapV3PathAmount {
     uniswapPath: string;
     inputAmount: BigNumber;
-    initializedTicksCrossed: number;
+    gasUsed: number;
 }
 export interface UniswapV3FillData extends FillData {
     tokenAddressPath: string[];
@@ -290,7 +290,7 @@ export const isFinalUniswapV3FillData = (
 export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmounts'> {
     // The uniswap-encoded path that can fll the maximum input amount.
     uniswapPath: string;
-    initializedTicksCrossed: number;
+    gasUsed: number;
 }
 
 export interface LidoFillData extends FillData {

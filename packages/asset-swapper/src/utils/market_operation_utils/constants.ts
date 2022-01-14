@@ -2337,25 +2337,17 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 100e3;
         const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
-        const path = uniFillData.tokenAddressPath;
-        if (path.length > 2) {
-            gas += (path.length - 2) * 32e3; // +32k for each hop.
-        }
-
-        let ticksCrossed = 0;
+        // NOTE: This value was picked by just looking at commonly occurring amounts for underestimations
+        let gas = 34e3; // 34k base
         if (isFinalUniswapV3FillData(uniFillData)) {
-            ticksCrossed = uniFillData.initializedTicksCrossed;
+            gas += uniFillData.gasUsed;
         } else {
+            // Base gas usage estimate on all unique paths sorted in descending order by amount
             const sortedPathAmounts = uniFillData.pathAmounts.sort((a, b) => b.inputAmount.comparedTo(a.inputAmount));
             const uniqPathAmounts = _.uniqBy(sortedPathAmounts, p => p.uniswapPath);
-            ticksCrossed = uniqPathAmounts.reduce((memo, p) => memo + p.initializedTicksCrossed, 0);
-        }
-
-        // Any additional initialized ticks crossed after the first one costs 31k gas
-        if (ticksCrossed > 1) {
-            gas += (ticksCrossed - 1) * 31e3; // 31k per additional tick crossed
+            const totalGasUsed = uniqPathAmounts.reduce((memo, p) => memo + p.gasUsed, 0);
+            gas += totalGasUsed;
         }
 
         return gas;
