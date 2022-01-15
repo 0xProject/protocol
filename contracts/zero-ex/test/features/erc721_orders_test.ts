@@ -765,41 +765,45 @@ blockchainTests.resets.only('ERC721OrdersFeature', env => {
     describe('onERC721Received', () => {
         let dataEncoder: AbiEncoder.DataType;
         before(() => {
-            AbiEncoder.create({
-                name: 'property',
-                type: 'tuple',
-                internalType: 'Property',
-                components: [
+            dataEncoder = AbiEncoder.create(
+                [
                     {
-                        name: 'propertyValidator',
-                        type: 'address',
+                        name: 'order',
+                        type: 'tuple',
+                        components: ERC721Order.STRUCT_ABI,
                     },
-                    { name: 'propertyData', type: 'bytes' },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: SIGNATURE_ABI,
+                    },
+                    { name: 'unwrapNativeToken', type: 'bool' },
                 ],
-            });
-            AbiEncoder.create({
-                name: 'fee',
-                type: 'tuple',
-                internalType: 'Fee',
-                components: [
-                    { name: 'recipient', type: 'address' },
-                    { name: 'amount', type: 'uint256' },
-                    { name: 'feeData', type: 'bytes' },
+                [
+                    {
+                        name: 'property',
+                        type: 'tuple',
+                        internalType: 'Property',
+                        components: [
+                            {
+                                name: 'propertyValidator',
+                                type: 'address',
+                            },
+                            { name: 'propertyData', type: 'bytes' },
+                        ],
+                    },
+                    {
+                        name: 'fee',
+                        type: 'tuple',
+                        internalType: 'Fee',
+                        components: [
+                            { name: 'recipient', type: 'address' },
+                            { name: 'amount', type: 'uint256' },
+                            { name: 'feeData', type: 'bytes' },
+                        ],
+                    },
                 ],
-            });
-            dataEncoder = AbiEncoder.create([
-                {
-                    name: 'order',
-                    type: 'tuple',
-                    components: ERC721Order.STRUCT_ABI,
-                },
-                {
-                    name: 'signature',
-                    type: 'tuple',
-                    components: SIGNATURE_ABI,
-                },
-                { name: 'unwrapNativeToken', type: 'bool' },
-            ]);
+            );
         });
         it('throws if data is not encoded correctly', async () => {
             const order = getTestERC721Order({
