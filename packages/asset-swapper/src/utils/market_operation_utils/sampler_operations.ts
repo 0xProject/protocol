@@ -8,6 +8,7 @@ import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { AaveV2ReservesCache } from './aave_reserves_cache';
+import { GeistReservesCache } from './geist_reserves_cache';
 import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
@@ -29,6 +30,7 @@ import {
     COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
+    GEIST_INFO_ADDRESS_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
@@ -66,6 +68,8 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    GeistFillData,
+    GeistInfo,
     GenericRouterFillData,
     HopInfo,
     KyberDmmFillData,
@@ -86,6 +90,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
 } from './types';
+import { GeistSampler } from '../../noop_samplers/GeistSampler';
 
 /**
  * Source filters for `getTwoHopBuyQuotes()` and `getTwoHopSellQuotes()`.
@@ -110,6 +115,7 @@ export class SamplerOperations {
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
     public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
     public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
+    public readonly geistReservesCache: GeistReservesCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -146,6 +152,10 @@ export class SamplerOperations {
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
         if (aaveSubgraphUrl) {
             this.aaveReservesCache = new AaveV2ReservesCache(aaveSubgraphUrl);
+        }
+        const geistSubgraphUrl = GEIST_INFO_ADDRESS_BY_CHAIN_ID[chainId];
+        if (geistSubgraphUrl) {
+            this.geistReservesCache = new GeistReservesCache(geistSubgraphUrl);
         }
 
         const compoundApiUrl = COMPOUND_API_URL_BY_CHAIN_ID[chainId];
@@ -1151,6 +1161,34 @@ export class SamplerOperations {
         });
     }
 
+    // tslint:disable-next-line:prefer-function-over-method
+    public getGeistSellQuotes(
+        geistInfo: GeistInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GeistFillData> {
+        return new SamplerNoOperation({
+            source: ERC20BridgeSource.Geist,
+            fillData: { ...geistInfo, takerToken },
+            callback: () => GeistSampler.sampleSellsFromGeist(geistInfo, takerToken, makerToken, takerFillAmounts),
+        });
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    public getGeistBuyQuotes(
+        geistInfo: GeistInfo,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GeistFillData> {
+        return new SamplerNoOperation({
+            source: ERC20BridgeSource.Geist,
+            fillData: { ...geistInfo, takerToken },
+            callback: () => GeistSampler.sampleBuysFromGeist(geistInfo, takerToken, makerToken, makerFillAmounts),
+        });
+    }
+
     public getCompoundSellQuotes(
         cToken: string,
         makerToken: string,
@@ -1548,6 +1586,23 @@ export class SamplerOperations {
                         };
                         return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
+
+                    case ERC20BridgeSource.Geist: {
+                        if (!this.geistReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.geistReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+
+                        const info: GeistInfo = {
+                            lendingPool: reserve.pool.lendingPool,
+                            gToken: reserve.gToken.id,
+                            underlyingToken: reserve.underlyingAsset,
+                        };
+                        return this.getGeistSellQuotes(info, makerToken, takerToken, takerFillAmounts);
+                    }
                     case ERC20BridgeSource.Compound: {
                         if (!this.compoundCTokenCache) {
                             return [];
@@ -1848,6 +1903,21 @@ export class SamplerOperations {
                             underlyingToken: reserve.underlyingAsset,
                         };
                         return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.Geist: {
+                        if (!this.geistReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.geistReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+                        const info: GeistInfo = {
+                            lendingPool: reserve.pool.lendingPool,
+                            gToken: reserve.gToken.id,
+                            underlyingToken: reserve.underlyingAsset,
+                        };
+                        return this.getGeistBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {
                         if (!this.compoundCTokenCache) {

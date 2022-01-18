@@ -17,6 +17,7 @@ import {
     ERC20BridgeSource,
     FeeSchedule,
     FillData,
+    GeistFillData,
     GetMarketOrdersOpts,
     KyberSamplerOpts,
     LidoInfo,
@@ -187,6 +188,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.Geist,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
@@ -331,6 +333,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.Geist,
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
@@ -686,6 +689,18 @@ export const CURVE_FANTOM_POOLS = {
     tri_v2: '0x2dd7c9371965472e5a5fd28fbe165007c61439e1',
     geist: '0x0fa949783947bf6c1b171db13aeacbb488845b3f',
     FRAX_twoPool: '0x7a656b342e14f745e2b164890e88017e27ae7320',
+};
+
+export const GEIST_FANTOM_POOLS = {
+    gFTM: '0x39b3bd37208cbade74d0fcbdbb12d606295b430a',
+    gFUSDT: '0x940f41f0ec9ba1a34cf001cc03347ac092f5f6b5',
+    gDAI: '0x07e6332dd090d287d3489245038daf987955dcfb',
+    gUSD: '0xe578c856933d8e1082740bf7661e379aa2a30b26',
+    gETH: '0x25c130b2624cf12a4ea30143ef50c5d68cefa22f',
+    gWBTC: '0x38aca5484b8603373acc6961ecd57a6a594510a3',
+    gWFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+    gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
+    gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
 };
 
 export const CURVE_V2_FANTOM_POOLS = {
@@ -1996,6 +2011,13 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
+export const GEIST_INFO_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0xd8321AA83Fb0a4ECd6348D4577431310A6E0814d', // TODO(Cece)
+    },
+    NULL_ADDRESS,
+);
+
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
@@ -2361,6 +2383,10 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const aaveFillData = fillData as AaveV2FillData;
         // NOTE: The Aave deposit method is more expensive than the withdraw
         return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
+    },
+    [ERC20BridgeSource.Geist]: (fillData?: FillData) => {
+        const geistFillData = fillData as GeistFillData;
+        return geistFillData.takerToken === geistFillData.underlyingToken ? 400e3 : 300e3; // TODO(Cece)
     },
     [ERC20BridgeSource.Compound]: (fillData?: FillData) => {
         // NOTE: cETH is handled differently than other cTokens

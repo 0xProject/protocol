@@ -18,6 +18,7 @@ import {
     ERC20BridgeSource,
     FillData,
     FinalUniswapV3FillData,
+    GeistFillData,
     GenericRouterFillData,
     KyberDmmFillData,
     KyberFillData,
@@ -202,6 +203,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
         case ERC20BridgeSource.Compound:
             return encodeBridgeSourceId(BridgeProtocol.Compound, 'Compound');
+        case ERC20BridgeSource.Geist:
+            return encodeBridgeSourceId(BridgeProtocol.Geist, 'Geist');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -355,6 +358,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Compound:
             const compoundFillData = (order as OptimizedMarketBridgeOrder<CompoundFillData>).fillData;
             bridgeData = encoder.encode([compoundFillData.cToken]);
+            break;
+        case ERC20BridgeSource.Geist:
+            const geistFillData = (order as OptimizedMarketBridgeOrder<GeistFillData>).fillData;
+            bridgeData = encoder.encode([geistFillData.lendingPool, geistFillData.gToken]);
             break;
 
         default:
@@ -525,6 +532,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {
