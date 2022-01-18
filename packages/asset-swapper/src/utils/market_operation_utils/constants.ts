@@ -108,7 +108,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
-            // ERC20BridgeSource.Compound,
+            // ERC20BridgeSource.Compound, // TODO(Cece): why?
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -591,6 +591,22 @@ export const FANTOM_TOKENS = {
     FRAX: '0xdc301622e621166bd8e82f2ca0a26c13ad0be355',
 };
 
+export const GEIST_FANTOM_TOKENS = {
+    gFTM: '0x39b3bd37208cbade74d0fcbdbb12d606295b430a',
+    gFUSDT: '0x940f41f0ec9ba1a34cf001cc03347ac092f5f6b5',
+    gDAI: '0x07e6332dd090d287d3489245038daf987955dcfb',
+    gUSD: '0xe578c856933d8e1082740bf7661e379aa2a30b26',
+    gETH: '0x25c130b2624cf12a4ea30143ef50c5d68cefa22f',
+    gWBTC: '0x38aca5484b8603373acc6961ecd57a6a594510a3',
+    gWFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+    gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
+    gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
+};
+
+export const GEIST_FANTOM_POOLS = {
+    lendingPool: '0x9FAD24f572045c7869117160A571B2e50b10d068',
+};
+
 export const OPTIMISM_TOKENS = {
     WETH: '0x4200000000000000000000000000000000000006',
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
@@ -689,18 +705,6 @@ export const CURVE_FANTOM_POOLS = {
     tri_v2: '0x2dd7c9371965472e5a5fd28fbe165007c61439e1',
     geist: '0x0fa949783947bf6c1b171db13aeacbb488845b3f',
     FRAX_twoPool: '0x7a656b342e14f745e2b164890e88017e27ae7320',
-};
-
-export const GEIST_FANTOM_POOLS = {
-    gFTM: '0x39b3bd37208cbade74d0fcbdbb12d606295b430a',
-    gFUSDT: '0x940f41f0ec9ba1a34cf001cc03347ac092f5f6b5',
-    gDAI: '0x07e6332dd090d287d3489245038daf987955dcfb',
-    gUSD: '0xe578c856933d8e1082740bf7661e379aa2a30b26',
-    gETH: '0x25c130b2624cf12a4ea30143ef50c5d68cefa22f',
-    gWBTC: '0x38aca5484b8603373acc6961ecd57a6a594510a3',
-    gWFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
-    gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
-    gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
 };
 
 export const CURVE_V2_FANTOM_POOLS = {

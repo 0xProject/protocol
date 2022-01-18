@@ -4,11 +4,11 @@ import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
+import { GeistSampler } from '../../noop_samplers/GeistSampler';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { AaveV2ReservesCache } from './aave_reserves_cache';
-import { GeistReservesCache } from './geist_reserves_cache';
 import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
@@ -29,7 +29,7 @@ import {
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
-    DODOV2_FACTORIES_BY_CHAIN_ID,
+    DODOV2_FACTORIES_BY_CHAIN_ID, GEIST_FANTOM_POOLS, GEIST_FANTOM_TOKENS,
     GEIST_INFO_ADDRESS_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
@@ -48,6 +48,7 @@ import {
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
+import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
@@ -90,7 +91,6 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
 } from './types';
-import { GeistSampler } from '../../noop_samplers/GeistSampler';
 
 /**
  * Source filters for `getTwoHopBuyQuotes()` and `getTwoHopSellQuotes()`.
@@ -115,7 +115,6 @@ export class SamplerOperations {
     public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
     public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
     public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
-    public readonly geistReservesCache: GeistReservesCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
         return {
@@ -152,10 +151,6 @@ export class SamplerOperations {
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
         if (aaveSubgraphUrl) {
             this.aaveReservesCache = new AaveV2ReservesCache(aaveSubgraphUrl);
-        }
-        const geistSubgraphUrl = GEIST_INFO_ADDRESS_BY_CHAIN_ID[chainId];
-        if (geistSubgraphUrl) {
-            this.geistReservesCache = new GeistReservesCache(geistSubgraphUrl);
         }
 
         const compoundApiUrl = COMPOUND_API_URL_BY_CHAIN_ID[chainId];
@@ -1588,19 +1583,7 @@ export class SamplerOperations {
                     }
 
                     case ERC20BridgeSource.Geist: {
-                        if (!this.geistReservesCache) {
-                            return [];
-                        }
-                        const reserve = this.geistReservesCache.get(takerToken, makerToken);
-                        if (!reserve) {
-                            return [];
-                        }
-
-                        const info: GeistInfo = {
-                            lendingPool: reserve.pool.lendingPool,
-                            gToken: reserve.gToken.id,
-                            underlyingToken: reserve.underlyingAsset,
-                        };
+                        const info: GeistInfo = getGeistInfoForPair(takerToken, makerToken);
                         return this.getGeistSellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {
@@ -1905,18 +1888,7 @@ export class SamplerOperations {
                         return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Geist: {
-                        if (!this.geistReservesCache) {
-                            return [];
-                        }
-                        const reserve = this.geistReservesCache.get(takerToken, makerToken);
-                        if (!reserve) {
-                            return [];
-                        }
-                        const info: GeistInfo = {
-                            lendingPool: reserve.pool.lendingPool,
-                            gToken: reserve.gToken.id,
-                            underlyingToken: reserve.underlyingAsset,
-                        };
+                        const info: GeistInfo = getGeistInfoForPair(takerToken, makerToken);
                         return this.getGeistBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {
