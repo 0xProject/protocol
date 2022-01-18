@@ -663,7 +663,7 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything())).thenResolve(undefined);
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(undefined);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -739,7 +739,9 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything())).thenReject(new Error('fake timeout'));
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenReject(
+                new Error('fake timeout'),
+            );
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -816,7 +818,7 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything())).thenResolve({
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
                 signatureType: SignatureType.EthSign,
                 v: 1,
                 r: '',
@@ -914,7 +916,7 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything())).thenResolve({
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
                 signatureType: SignatureType.EthSign,
                 v: 1,
                 r: '',

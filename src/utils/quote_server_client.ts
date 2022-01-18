@@ -214,11 +214,16 @@ export class QuoteServerClient {
      * Request a signature from a MM for a given OtcOrder
      *
      * @param makerUri - the MM's uri
+     * @param integratorId - the integrator id
      * @param payload - the payload of the request
      * @returns - The signature if successful, undefined otherwise
      * @throws - Will throw an error if a 4xx or 5xx is returned
      */
-    public async signV2Async(makerUri: string, payload: SignRequest): Promise<Signature | undefined> {
+    public async signV2Async(
+        makerUri: string,
+        integratorId: string,
+        payload: SignRequest,
+    ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.labels(makerUri).startTimer();
         const requestUuid = uuid.v4();
         const rawResponse = await this._axiosInstance.post(
@@ -234,8 +239,10 @@ export class QuoteServerClient {
             {
                 timeout: ONE_SECOND_MS * 2,
                 headers: {
-                    'Content-Type': 'application/json',
+                    '0x-api-key': integratorId,
+                    '0x-integrator-id': integratorId,
                     '0x-request-uuid': requestUuid,
+                    'Content-Type': 'application/json',
                 },
             },
         );

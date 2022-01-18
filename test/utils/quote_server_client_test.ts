@@ -228,7 +228,7 @@ describe('QuoteServerClient', () => {
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
-                const signature = await client.signV2Async(makerUri, request);
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
                 expect(signature).to.deep.eq(makerSignature);
@@ -259,7 +259,7 @@ describe('QuoteServerClient', () => {
 
                 try {
                     // When
-                    await client.signV2Async(makerUri, request);
+                    await client.signV2Async(makerUri, 'dummy-integrator-id', request);
                     expect.fail('Should not succeed');
                 } catch (err) {
                     // Then
@@ -302,7 +302,7 @@ describe('QuoteServerClient', () => {
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
-                const signature = await client.signV2Async(makerUri, request);
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
                 expect(signature).to.be.undefined();
@@ -343,7 +343,7 @@ describe('QuoteServerClient', () => {
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
-                const signature = await client.signV2Async(makerUri, request);
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
                 expect(signature).to.be.undefined();
@@ -382,7 +382,7 @@ describe('QuoteServerClient', () => {
                     .replyOnce(HttpStatus.OK, response);
 
                 // When
-                const signature = await client.signV2Async(makerUri, request);
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
                 expect(signature).to.be.undefined();

@@ -1231,7 +1231,10 @@ export class RfqmService {
             const signAttemptTimeMs = Date.now();
             try {
                 makerSignature = await retry(
-                    async () => this._quoteServerClient.signV2Async(makerUri, signRequest).then((s) => s ?? null),
+                    async () =>
+                        this._quoteServerClient
+                            .signV2Async(makerUri, _job.integratorId ?? '', signRequest)
+                            .then((s) => s ?? null),
                     {
                         delay: ONE_SECOND_MS,
                         factor: 2,
