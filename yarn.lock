@@ -2,9 +2,10 @@
 # yarn lockfile v1
 
 
-"@0x/api-utils@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@0x/api-utils/-/api-utils-0.0.1.tgz#731d06fa2a646e8075c4f9503d13cece2fa49ab9"
+"@0x/api-utils@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@0x/api-utils/-/api-utils-0.0.2.tgz#731f9a46f4701572286db0be85dba12794622f31"
+  integrity sha512-c1QBvFCUzjMKZ+RDK0NhpweswoOPnUKqs+5618zeZkodDvDN5oeTal25jQcL2ZqIzmajDm2aVNVd5drRksZ/1Q==
   dependencies:
     "@0x/json-schemas" "^5.4.1"
     "@0x/types" "^3.3.1"
