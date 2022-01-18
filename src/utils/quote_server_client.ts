@@ -282,9 +282,10 @@ export class QuoteServerClient {
         if (signerAddress !== makerAddress) {
             logger.warn(
                 { signerAddress, makerAddress, orderHash: payload.orderHash, makerUri },
-                'Signature is invalid',
+                'Signature is invalid. Possible use of smart contract wallet',
             );
-            return undefined;
+            // TODO - currently disabled until we do a isValidOrderSigner when signer != maker
+            // return undefined;
         }
 
         timerStopFn();
