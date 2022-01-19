@@ -228,7 +228,7 @@ export class SwapHandlers {
     // tslint:disable-next-line:prefer-function-over-method
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'price');
-        const quote = await this._getSwapQuoteAsync({ ...params }, req);
+        const quote = await this._getSwapQuoteAsync({ ...params, skipValidation: true }, req);
         req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
