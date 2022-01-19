@@ -22,11 +22,12 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../src/IZeroEx.sol";
+import "../src/vendor/IERC1155Token.sol";
 import "../src/vendor/IERC721Token.sol";
 import "../src/features/libs/LibNFTOrder.sol";
 
 
-contract TestERC721OrderPresigner {
+contract TestNFTOrderPresigner {
     IZeroEx private immutable zeroEx;
 
     constructor(IZeroEx _zeroEx)
@@ -35,7 +36,26 @@ contract TestERC721OrderPresigner {
         zeroEx = _zeroEx;
     }
 
+    function onERC1155Received(
+        address operator,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes calldata data
+    )
+        external
+        returns(bytes4 success)
+    {
+        return 0xf23a6e61;
+    }
+
     function approveERC721(IERC721Token token)
+        external
+    {
+        token.setApprovalForAll(address(zeroEx), true);
+    }
+
+    function approveERC1155(IERC1155Token token)
         external
     {
         token.setApprovalForAll(address(zeroEx), true);
@@ -47,15 +67,27 @@ contract TestERC721OrderPresigner {
         token.approve(address(zeroEx), uint256(-1));
     }
 
-    function preSignOrder(LibNFTOrder.ERC721Order calldata order)
+    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order)
         external
     {
         zeroEx.preSignERC721Order(order);
     }
 
-    function cancelOrder(uint256 orderNonce)
+    function preSignERC1155Order(LibNFTOrder.ERC1155Order calldata order)
+        external
+    {
+        zeroEx.preSignERC1155Order(order);
+    }
+
+    function cancelERC721Order(uint256 orderNonce)
         external
     {
         zeroEx.cancelERC721Order(orderNonce);
+    }
+
+    function cancelERC1155Order(LibNFTOrder.ERC1155Order calldata order)
+        external
+    {
+        zeroEx.cancelERC1155Order(order);
     }
 }

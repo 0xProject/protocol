@@ -145,7 +145,6 @@ import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
 import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
-import * as TestERC721OrderPresigner from '../test/generated-artifacts/TestERC721OrderPresigner.json';
 import * as TestFeeCollectorController from '../test/generated-artifacts/TestFeeCollectorController.json';
 import * as TestFeeRecipient from '../test/generated-artifacts/TestFeeRecipient.json';
 import * as TestFillQuoteTransformerBridge from '../test/generated-artifacts/TestFillQuoteTransformerBridge.json';
@@ -161,11 +160,13 @@ import * as TestLiquidityProvider from '../test/generated-artifacts/TestLiquidit
 import * as TestMetaTransactionsNativeOrdersFeature from '../test/generated-artifacts/TestMetaTransactionsNativeOrdersFeature.json';
 import * as TestMetaTransactionsTransformERC20Feature from '../test/generated-artifacts/TestMetaTransactionsTransformERC20Feature.json';
 import * as TestMigrator from '../test/generated-artifacts/TestMigrator.json';
+import * as TestMintableERC1155Token from '../test/generated-artifacts/TestMintableERC1155Token.json';
 import * as TestMintableERC20Token from '../test/generated-artifacts/TestMintableERC20Token.json';
 import * as TestMintableERC721Token from '../test/generated-artifacts/TestMintableERC721Token.json';
 import * as TestMintTokenERC20Transformer from '../test/generated-artifacts/TestMintTokenERC20Transformer.json';
 import * as TestMooniswap from '../test/generated-artifacts/TestMooniswap.json';
 import * as TestNativeOrdersFeature from '../test/generated-artifacts/TestNativeOrdersFeature.json';
+import * as TestNFTOrderPresigner from '../test/generated-artifacts/TestNFTOrderPresigner.json';
 import * as TestNoEthRecipient from '../test/generated-artifacts/TestNoEthRecipient.json';
 import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
@@ -344,7 +345,6 @@ export const artifacts = {
     TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
     TestDelegateCaller: TestDelegateCaller as ContractArtifact,
-    TestERC721OrderPresigner: TestERC721OrderPresigner as ContractArtifact,
     TestFeeCollectorController: TestFeeCollectorController as ContractArtifact,
     TestFeeRecipient: TestFeeRecipient as ContractArtifact,
     TestFillQuoteTransformerBridge: TestFillQuoteTransformerBridge as ContractArtifact,
@@ -360,6 +360,7 @@ export const artifacts = {
     TestMetaTransactionsTransformERC20Feature: TestMetaTransactionsTransformERC20Feature as ContractArtifact,
     TestMigrator: TestMigrator as ContractArtifact,
     TestMintTokenERC20Transformer: TestMintTokenERC20Transformer as ContractArtifact,
+    TestNFTOrderPresigner: TestNFTOrderPresigner as ContractArtifact,
     TestNativeOrdersFeature: TestNativeOrdersFeature as ContractArtifact,
     TestNoEthRecipient: TestNoEthRecipient as ContractArtifact,
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
@@ -384,6 +385,7 @@ export const artifacts = {
     TestUniswapV2Pool: TestUniswapV2Pool as ContractArtifact,
     TestUniswapV3Factory: TestUniswapV3Factory as ContractArtifact,
     TestUniswapV3Pool: TestUniswapV3Pool as ContractArtifact,
+    TestMintableERC1155Token: TestMintableERC1155Token as ContractArtifact,
     TestMintableERC20Token: TestMintableERC20Token as ContractArtifact,
     TestMintableERC721Token: TestMintableERC721Token as ContractArtifact,
     TestTokenSpenderERC20Token: TestTokenSpenderERC20Token as ContractArtifact,

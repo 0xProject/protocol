@@ -30,6 +30,15 @@ export class ERC721TokenMismatchError extends RevertError {
     }
 }
 
+export class ERC1155TokenMismatchError extends RevertError {
+    constructor(token1?: string, token2?: string) {
+        super('ERC1155TokenMismatchError', 'ERC1155TokenMismatchError(address token1, address token2)', {
+            token1,
+            token2,
+        });
+    }
+}
+
 export class ERC20TokenMismatchError extends RevertError {
     constructor(token1?: string, token2?: string) {
         super('ERC20TokenMismatchError', 'ERC20TokenMismatchError(address token1, address token2)', {
@@ -117,6 +126,7 @@ const types = [
     OverspentEthError,
     InsufficientEthError,
     ERC721TokenMismatchError,
+    ERC1155TokenMismatchError,
     ERC20TokenMismatchError,
     NegativeSpreadError,
     SellOrderFeesExceedSpreadError,

@@ -50,19 +50,21 @@ abstract contract FixinERC1155Spender {
         assembly {
             let ptr := mload(0x40) // free memory pointer
 
-            // selector for transferFrom(address,address,uint256,uin256)
-            mstore(ptr, 0x2716439b00000000000000000000000000000000000000000000000000000000)
+            // selector for safeTransferFrom(address,address,uint256,uint256,bytes)
+            mstore(ptr, 0xf242432a00000000000000000000000000000000000000000000000000000000)
             mstore(add(ptr, 0x04), and(owner, ADDRESS_MASK))
             mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), tokenId)
             mstore(add(ptr, 0x64), amount)
+            mstore(add(ptr, 0x84), 0xa0)
+            mstore(add(ptr, 0xa4), 0)
 
             let success := call(
                 gas(),
                 and(token, ADDRESS_MASK),
                 0,
                 ptr,
-                0x84,
+                0xc4,
                 0,
                 0
             )

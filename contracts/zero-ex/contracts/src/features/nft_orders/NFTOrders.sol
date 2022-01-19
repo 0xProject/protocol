@@ -107,7 +107,7 @@ abstract contract NFTOrders is
             erc20FillAmount = buyOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
-            erc20FillAmount = LibMathV06.safeGetPartialAmountFloor(
+            erc20FillAmount = LibMathV06.getPartialAmountFloor(
                 params.sellAmount,
                 orderInfo.orderAmount,
                 buyOrder.erc20TokenAmount
@@ -215,7 +215,7 @@ abstract contract NFTOrders is
             erc20FillAmount = sellOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
-            erc20FillAmount = LibMathV06.safeGetPartialAmountCeil(
+            erc20FillAmount = LibMathV06.getPartialAmountCeil(
                 params.buyAmount,
                 orderInfo.orderAmount,
                 sellOrder.erc20TokenAmount
@@ -426,7 +426,7 @@ abstract contract NFTOrders is
                 feeFillAmount = fee.amount;
             } else {
                 // Round in favor of the taker or maker
-                feeFillAmount = LibMathV06.safeGetPartialAmountFloor(
+                feeFillAmount = LibMathV06.getPartialAmountFloor(
                     fillAmount,
                     orderAmount,
                     fee.amount
