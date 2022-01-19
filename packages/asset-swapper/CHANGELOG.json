@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.46.0",
+        "changes": [
+            {
+                "note": "Adding support for Synapse on all networks"
+            }
+        ]
+    },
+    {
         "version": "16.45.1",
         "changes": [
             {
