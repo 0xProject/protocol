@@ -98,7 +98,8 @@ contract UniswapV3Sampler
             uint256[] memory uniswapGasUsed
         )
     {
-        IUniswapV3Pool[][] memory poolPaths = _getValidPoolPaths(quoter.factory(), path, 0);
+        IUniswapV3Pool[][] memory poolPaths =
+            _getValidPoolPaths(quoter.factory(), path, 0);
 
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         uniswapPaths = new bytes[](takerTokenAmounts.length);
@@ -106,9 +107,7 @@ contract UniswapV3Sampler
 
         for (uint256 i = 0; i < takerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
-            bytes memory topUniswapPath;
             uint256 topBuyAmount = 0;
-            uint256 topGasUsed;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
                 try quoter.quoteExactInput
@@ -123,18 +122,20 @@ contract UniswapV3Sampler
                 {
                     if (topBuyAmount <= buyAmount) {
                         topBuyAmount = buyAmount;
-                        topUniswapPath = uniswapPath;
-                        topGasUsed = gasUsed;
+                        uniswapPaths[i] = uniswapPath;
+                        uniswapGasUsed[i] = gasUsed;
                     }
                 } catch {}
             }
-            // Break early if we can't complete the buys.
+            // Break early if we can't complete the sells.
             if (topBuyAmount == 0) {
+                // HACK(kimpers): To avoid too many local variables, paths and gas used is set directly in the loop
+                // then reset if no valid valid quote was found
+                uniswapPaths[i] = "";
+                uniswapGasUsed[i] = 0;
                 break;
             }
             makerTokenAmounts[i] = topBuyAmount;
-            uniswapPaths[i] = topUniswapPath;
-            uniswapGasUsed[i] = topGasUsed;
         }
     }
 
@@ -157,7 +158,8 @@ contract UniswapV3Sampler
             uint256[] memory uniswapGasUsed
         )
     {
-        IUniswapV3Pool[][] memory poolPaths = _getValidPoolPaths(quoter.factory(), path, 0);
+        IUniswapV3Pool[][] memory poolPaths =
+            _getValidPoolPaths(quoter.factory(), path, 0);
         IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
@@ -165,77 +167,44 @@ contract UniswapV3Sampler
         uniswapGasUsed = new uint256[](makerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
+            uint256 topSellAmount;
+
+            // Pick the best result from all the paths.
+            for (uint256 j = 0; j < poolPaths.length; ++j) {
+                // quoter requires path to be reversed for buys.
+                bytes memory uniswapPath = _toUniswapPath(
+                    reversedPath,
+                    _reversePoolPath(poolPaths[j])
+                );
+                try
+                    quoter.quoteExactOutput
+                        { gas: QUOTE_GAS }
+                        (uniswapPath, makerTokenAmounts[i])
+                        returns (
+                            uint256 sellAmount,
+                            uint160[] memory, /* sqrtPriceX96AfterList */
+                            uint32[] memory, /* initializedTicksCrossedList */
+                            uint256 gasUsed
+                        )
+                {
+                    if (topSellAmount == 0 || topSellAmount >= sellAmount) {
+                        topSellAmount = sellAmount;
+                        // But the output path should still be encoded for sells.
+                        uniswapPaths[i] = _toUniswapPath(path, poolPaths[j]);
+                        uniswapGasUsed[i] = gasUsed;
+                    }
+                } catch {}
+            }
             // Break early if we can't complete the buys.
-            (uint256 topSellAmount, bytes memory topUniswapPath, uint256 topGasUsed) = _topPoolPath(
-                quoter,
-                poolPaths,
-                reversedPath,
-                makerTokenAmounts[i],
-                path
-            );
             if (topSellAmount == 0) {
+                // HACK(kimpers): To avoid too many local variables, paths and gas used is set directly in the loop
+                // then reset if no valid valid quote was found
+                uniswapPaths[i] = "";
+                uniswapGasUsed[i] = 0;
                 break;
             }
             takerTokenAmounts[i] = topSellAmount;
-            uniswapPaths[i] = topUniswapPath;
-            uniswapGasUsed[i] = topGasUsed;
         }
-    }
-
-    // TODO: hack for stack too deep error
-    function _topPoolPath(
-        IUniswapV3QuoterV2 quoter,
-        IUniswapV3Pool[][] memory poolPaths,
-        IERC20TokenV06[] memory reversedPath,
-        uint256 makerTokenAmount,
-        IERC20TokenV06[] memory path
-    )
-        private
-        returns (
-            uint256 topSellAmount,
-            bytes memory topUniswapPath,
-            uint256 topGasUsed
-        )
-    {
-        // Pick the best result from all the paths.
-        for (uint256 j = 0; j < poolPaths.length; ++j) {
-            (uint256 sellAmount, uint256 gasUsed) = _quoteExactOutput(
-                quoter,
-                reversedPath,
-                poolPaths[j],
-                makerTokenAmount
-            );
-            if (topSellAmount == 0 || topSellAmount >= sellAmount) {
-                topSellAmount = sellAmount;
-                // But the output path should still be encoded for sells.
-                topUniswapPath = _toUniswapPath(path, poolPaths[j]);
-                topGasUsed = gasUsed;
-            }
-        }
-    }
-
-    function _quoteExactOutput(
-        IUniswapV3QuoterV2 quoter,
-        IERC20TokenV06[] memory reversedPath,
-        IUniswapV3Pool[] memory poolPath,
-        uint256 makerTokenAmount
-    ) private returns (uint256 sellAmount, uint256 gasUsed) {
-        // quoter requires path to be reversed for buys.
-        bytes memory uniswapPath = _toUniswapPath(reversedPath, _reversePoolPath(poolPath));
-        try
-            quoter.quoteExactOutput
-                { gas: QUOTE_GAS }
-                (uniswapPath, makerTokenAmount)
-                returns (
-                    uint256 _sellAmount,
-                    uint160[] memory, /* sqrtPriceX96AfterList */
-                    uint32[] memory, /* initializedTicksCrossedList */
-                    uint256 _gasUsed
-                )
-        {
-            sellAmount = _sellAmount;
-            gasUsed = _gasUsed;
-        } catch {}
     }
 
     function _getValidPoolPaths(

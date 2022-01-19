@@ -2338,7 +2338,8 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
         const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
-        // NOTE: This value was picked by just looking at commonly occurring amounts for underestimations
+        // NOTE: This base value was heuristically chosen by looking at how much it generally
+        // underestimated gas usage
         let gas = 34e3; // 34k base
         if (isFinalUniswapV3FillData(uniFillData)) {
             gas += uniFillData.gasUsed;
