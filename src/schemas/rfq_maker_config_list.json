@@ -1,7 +1,0 @@
-{
-    "id": "/rfqMakerConfigList",
-    "type": "array",
-    "items": {
-        "$ref": "/rfqMakerConfig"
-    }
-}

@@ -5,13 +5,13 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import 'mocha';
 import { Connection } from 'typeorm';
 
+import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmJobStatus } from '../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
 import { feeToStoredFee, RfqmDbUtils, v4RfqOrderToStoredOrder } from '../src/utils/rfqm_db_utils';
 
 import { MATCHA_AFFILIATE_ADDRESS } from './constants';
-import { initDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -64,19 +64,22 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        connection = await initDBConnectionAsync();
+        connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
         dbUtils = new RfqmDbUtils(connection);
     });
 
     after(async () => {
         // reset DB
-        connection = await initDBConnectionAsync();
+        connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
     beforeEach(async () => {
         // reset DB
-        connection = await initDBConnectionAsync();
+        connection = await getDBConnectionAsync();
+        await connection.synchronize(true);
         dbUtils = new RfqmDbUtils(connection);
     });
 

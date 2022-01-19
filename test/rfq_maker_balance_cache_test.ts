@@ -9,11 +9,11 @@ import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
 import { RFQ_ALLOWANCE_TARGET } from '../src/constants';
+import { getDBConnectionAsync } from '../src/db_connection';
 import { MakerBalanceChainCacheEntity } from '../src/entities';
 import { cacheRfqBalancesAsync } from '../src/runners/rfq_maker_balance_cache_runner';
 
 import { getProvider } from './constants';
-import { initDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 const SUITE_NAME = 'RFQ Maker Balance Cache Tests';
@@ -65,7 +65,8 @@ describe(SUITE_NAME, () => {
             {},
         );
 
-        dbConnection = await initDBConnectionAsync();
+        dbConnection = await getDBConnectionAsync();
+        await dbConnection.synchronize(true);
 
         // save some balance cache entities
         const maker1 = new MakerBalanceChainCacheEntity();

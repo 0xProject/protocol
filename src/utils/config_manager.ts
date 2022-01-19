@@ -1,15 +1,5 @@
 // tslint:disable: prefer-function-over-method
-import { ChainId } from '@0x/contract-addresses';
-
-import {
-    CHAIN_ID,
-    getIntegratorByIdOrThrow,
-    getIntegratorIdForApiKey,
-    Integrator,
-    MakerIdsToConfigs,
-    RFQM_API_KEY_WHITELIST,
-    RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER,
-} from '../config';
+import { getIntegratorByIdOrThrow, getIntegratorIdForApiKey, Integrator, RFQM_API_KEY_WHITELIST } from '../config';
 
 /**
  * ConfigManager is a simple wrapper around configs.
@@ -27,17 +17,5 @@ export class ConfigManager {
 
     public getIntegratorIdForApiKey(apiKey: string): string | undefined {
         return getIntegratorIdForApiKey(apiKey);
-    }
-
-    /**
-     * Get a map of makers that support RFQt workflow with rfq order type
-     * @returns a map from makerIds to makers' configuration object
-     */
-    public getRfqtMakerConfigMapForRfqOrder(): MakerIdsToConfigs {
-        return RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER;
-    }
-
-    public getChainId(): ChainId {
-        return CHAIN_ID;
     }
 }

@@ -33,9 +33,7 @@ import {
     WebsocketSRAOpts,
 } from './types';
 import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
-import { ConfigManager } from './utils/config_manager';
 import { OrderWatcher } from './utils/order_watcher';
-import { PairsManager } from './utils/pairs_manager';
 import {
     AvailableRateLimiter,
     DatabaseKeysUsedForRateLimiter,
@@ -45,7 +43,6 @@ import {
 } from './utils/rate-limiters';
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
 import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
-import { RfqMakerDbUtils } from './utils/rfq_maker_db_utils';
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
@@ -114,18 +111,6 @@ export async function getContractAddressesForNetworkOrThrowAsync(
 }
 
 /**
- * Create and initialize a PairsManager instance
- */
-async function createAndInitializePairsManagerAsync(
-    configManager: ConfigManager,
-    rfqMakerDbUtils: RfqMakerDbUtils,
-): Promise<PairsManager> {
-    const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-    await pairsManager.initializeAsync();
-    return pairsManager;
-}
-
-/**
  * Instantiates dependencies required to run the app. Uses default settings based on config
  * @param config should the ethereum RPC URL
  */
@@ -166,17 +151,12 @@ export async function getDefaultAppDependenciesAsync(
             RFQT_TX_ORIGIN_BLACKLIST,
             RFQ_DYNAMIC_BLACKLIST_TTL,
         );
-
-        const configManager: ConfigManager = new ConfigManager();
-        const rfqMakerDbUtils: RfqMakerDbUtils = new RfqMakerDbUtils(connection);
-        const pairsManager = await createAndInitializePairsManagerAsync(configManager, rfqMakerDbUtils);
         swapService = new SwapService(
             new AssetSwapperOrderbook(orderBookService),
             provider,
             contractAddresses,
             rfqtFirmQuoteValidator,
             rfqDynamicBlacklist,
-            pairsManager,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(
             provider,

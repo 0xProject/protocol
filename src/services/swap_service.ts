@@ -71,7 +71,6 @@ import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { METRICS_PROXY } from '../utils/metrics_service';
 import { paginationUtils } from '../utils/pagination_utils';
-import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { SAMPLER_METRICS } from '../utils/sampler_metrics';
@@ -81,14 +80,13 @@ import { utils } from '../utils/utils';
 export class SwapService {
     private readonly _provider: SupportedProvider;
     private readonly _fakeTaker: FakeTakerContract;
+    private readonly _swapQuoter: SwapQuoter;
     private readonly _swapQuoteConsumer: SwapQuoteConsumer;
     private readonly _web3Wrapper: Web3Wrapper;
     private readonly _wethContract: WETH9Contract;
     private readonly _contractAddresses: ContractAddresses;
     private readonly _firmQuoteValidator: RfqFirmQuoteValidator | undefined;
-    private readonly _swapQuoterOpts: Partial<SwapQuoterOpts>;
     private _altRfqMarketsCache: any;
-    private _swapQuoter: SwapQuoter;
 
     private static _getSwapQuotePrice(
         buyAmount: BigNumber | undefined,
@@ -140,7 +138,6 @@ export class SwapService {
         contractAddresses: AssetSwapperContractAddresses,
         firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
         rfqDynamicBlacklist?: RfqDynamicBlacklist,
-        private readonly _pairsManager?: PairsManager,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -154,7 +151,7 @@ export class SwapService {
                 },
             };
         }
-        this._swapQuoterOpts = {
+        const swapQuoterOpts: Partial<SwapQuoterOpts> = {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
                 ...SWAP_QUOTER_OPTS.rfqt!,
@@ -166,25 +163,20 @@ export class SwapService {
             contractAddresses,
         };
 
-        if (this._swapQuoterOpts.rfqt !== undefined && rfqDynamicBlacklist !== undefined) {
-            this._swapQuoterOpts.rfqt.txOriginBlacklist = rfqDynamicBlacklist;
+        if (swapQuoterOpts.rfqt !== undefined && rfqDynamicBlacklist !== undefined) {
+            swapQuoterOpts.rfqt.txOriginBlacklist = rfqDynamicBlacklist;
         }
 
         if (CHAIN_ID === ChainId.Ganache) {
-            this._swapQuoterOpts.samplerOverrides = {
+            swapQuoterOpts.samplerOverrides = {
                 block: BlockParamLiteral.Latest,
                 overrides: {},
                 to: contractAddresses.erc20BridgeSampler,
-                ...(this._swapQuoterOpts.samplerOverrides || {}),
+                ...(swapQuoterOpts.samplerOverrides || {}),
             };
         }
-        this._swapQuoter = new SwapQuoter(this._provider, orderbook, this._swapQuoterOpts);
-        this._renewSwapQuoter();
-        this._pairsManager?.on(PairsManager.REFRESHED_EVENT, () => {
-            this._renewSwapQuoter();
-        });
-
-        this._swapQuoteConsumer = new SwapQuoteConsumer(this._swapQuoterOpts);
+        this._swapQuoter = new SwapQuoter(this._provider, orderbook, swapQuoterOpts);
+        this._swapQuoteConsumer = new SwapQuoteConsumer(swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;
@@ -760,20 +752,6 @@ export class SwapService {
         }
 
         return (await this._altRfqMarketsCache.getResultAsync()).result;
-    }
-
-    /**
-     * Update to a new SwapQuoter instance with the newest RFQt assets offerings
-     */
-    private _renewSwapQuoter(): void {
-        if (this._pairsManager !== undefined && this._swapQuoterOpts.rfqt !== undefined) {
-            this._swapQuoterOpts.rfqt.makerAssetOfferings = this._pairsManager.getRfqtMakerOfferingsForRfqOrder();
-            this._swapQuoter = new SwapQuoter(
-                this._swapQuoter.provider,
-                this._swapQuoter.orderbook,
-                this._swapQuoterOpts,
-            );
-        }
     }
 }
 
