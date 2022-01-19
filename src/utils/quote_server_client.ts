@@ -200,7 +200,7 @@ export class QuoteServerClient {
                         {
                             errorMessage: err?.message,
                             makerUri: uri,
-                            status: err?.isAxiosError ? err.response.status : undefined,
+                            status: err?.response?.status ?? 'unknown',
                         },
                         'Encountered an error requesting an indicative quote',
                     );
