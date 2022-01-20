@@ -2344,11 +2344,12 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         if (isFinalUniswapV3FillData(uniFillData)) {
             gas += uniFillData.gasUsed;
         } else {
-            // Base gas usage estimate on all unique paths sorted in descending order by amount
-            const sortedPathAmounts = uniFillData.pathAmounts.sort((a, b) => b.inputAmount.comparedTo(a.inputAmount));
-            const uniqPathAmounts = _.uniqBy(sortedPathAmounts, p => p.uniswapPath);
-            const totalGasUsed = uniqPathAmounts.reduce((memo, p) => memo + p.gasUsed, 0);
-            gas += totalGasUsed;
+            // NOTE: We don't actually know which of the paths would be used in the router
+            // therefore we estimate using the mean of gas prices returned from UniswapV3
+            // For the best case scenario (least amount of hops & ticks) this will
+            // over estimate the gas usage
+            const meanGasUsedForPath = Math.round(_.meanBy(uniFillData.pathAmounts, p => p.gasUsed));
+            gas += meanGasUsedForPath;
         }
 
         return gas;
