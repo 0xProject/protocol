@@ -1592,6 +1592,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'EIP712_EXCHANGE_DOMAIN_HASH()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1612,6 +1613,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'chaiBridgeAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1639,6 +1641,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeAssetProxyId(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -1673,6 +1676,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeERC1155AssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1709,6 +1713,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeERC20AssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<[string, string]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -1741,6 +1746,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeERC20BridgeAssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1776,6 +1782,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeERC721AssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1810,6 +1817,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeMultiAssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1845,6 +1853,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeStaticCallAssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1904,6 +1913,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'decodeZeroExTransactionData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1976,6 +1986,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'dydxBridgeAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2015,6 +2026,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'encodeERC1155AssetData(address,uint256[],uint256[],bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2052,6 +2064,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'encodeERC20AssetData(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2086,6 +2099,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'encodeERC721AssetData(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2120,6 +2134,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'encodeMultiAssetData(uint256[],bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2161,6 +2176,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'encodeStaticCallAssetData(address,bytes,bytes32)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2190,6 +2206,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'erc1155ProxyAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2210,6 +2227,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'erc20ProxyAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2230,6 +2248,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'erc721ProxyAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2250,6 +2269,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'exchangeAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2279,6 +2299,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getAssetProxyAllowance(address,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2344,6 +2365,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getBalance(address,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2412,6 +2434,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getBalanceAndAssetProxyAllowance(address,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2480,6 +2503,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getBatchAssetProxyAllowances(address,bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2545,6 +2569,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getBatchBalances(address,bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2613,6 +2638,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getBatchBalancesAndAssetProxyAllowances(address,bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2678,6 +2704,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getEthBalances(address[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber[]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -2721,6 +2748,7 @@ export class DevUtilsContract extends BaseContract {
             'getOrderHash((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes),uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -2777,6 +2805,7 @@ export class DevUtilsContract extends BaseContract {
             'getOrderRelevantState((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes),bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2879,6 +2908,7 @@ export class DevUtilsContract extends BaseContract {
             'getOrderRelevantStates((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes)[],bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -2981,6 +3011,7 @@ export class DevUtilsContract extends BaseContract {
             'getSimulatedOrderMakerTransferResults((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes),address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -3072,6 +3103,7 @@ export class DevUtilsContract extends BaseContract {
             'getSimulatedOrderTransferResults((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes),address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -3164,6 +3196,7 @@ export class DevUtilsContract extends BaseContract {
             'getSimulatedOrdersTransferResults((address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes)[],address[],uint256[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -3233,6 +3266,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getTransactionHash((uint256,uint256,uint256,address,bytes),uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -3267,6 +3301,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'getTransferableAssetAmount(address,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -3328,6 +3363,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'revertIfInvalidAssetData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;
@@ -3353,6 +3389,7 @@ export class DevUtilsContract extends BaseContract {
         const functionSignature = 'staticCallProxyAddress()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
