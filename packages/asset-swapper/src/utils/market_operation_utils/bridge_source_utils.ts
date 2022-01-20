@@ -54,6 +54,7 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    CURVE_OPTIMISM_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -152,6 +153,15 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
             );
         case ChainId.Avalanche:
             return Object.values(CURVE_AVALANCHE_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Optimism:
+            return Object.values(CURVE_OPTIMISM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||

@@ -115,7 +115,7 @@ export type SourcesWithPoolsCache =
 export enum CurveFunctionSelectors {
     None = '0x00000000',
     exchange = '0x3df02124',
-    exchange_underlying = '0xa6417ed6',
+    exchange_underlying = '0xa6417ed6', // exchange_underlying(int128 i, int128 j, uint256 dx, uint256 min_dy)
     get_dy_underlying = '0x07211ef7',
     get_dx_underlying = '0x0e71d1b9',
     get_dy = '0x5e0d443f', // get_dy(int128,int128,uint256)

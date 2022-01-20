@@ -194,7 +194,12 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -327,7 +332,12 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -463,6 +473,8 @@ export const MAINNET_TOKENS = {
     MIM: '0x99d8a9c45b2eca8864373a26d1459e3dff1e17f3',
     EURT: '0xc581b735a1688071a1746c968e0798d642ede491',
     CVX: '0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b',
+    UST_WORMHOLE: '0xa693b19d2931d498c5b318df961919bb4aee87a5',
+    RAI: '0x03ab458634910aad20ef5f1c8ee96f1d6ac54919',
 };
 
 export const BSC_TOKENS = {
@@ -508,6 +520,7 @@ export const AVALANCHE_TOKENS = {
     aDAI: '0x47afa96cdc9fab46904a55a6ad4bf6660b53c38a',
     aUSDC: '0x46a51127c3ce23fb7ab1de06226147f446e4a857',
     aUSDT: '0x532e6537fea298397212f09a61e03311686f548e',
+    MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
 };
 
 export const CELO_TOKENS = {
@@ -594,6 +607,10 @@ export const CURVE_POOLS = {
     eurt: '0xfd5db7463a3ab53fd211b4af195c5bccc1a03890',
     ethcrv: '0x8301ae4fc9c624d1d396cbdaa1ed877821d7c511',
     ethcvx: '0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4',
+    mimust: '0x55a8a39bc9694714e2874c1ce77aa1e599461e18',
+    usttri_wormhole: '0xceaf7747579696a2f0bb206a14210e3c9e6fb269',
+    fei_tri: '0x06cb22615ba53e60d67bf6c341a0fd5e718e1655',
+    rai_tri: '0x618788357d0ebd8a37e763adab3bc575d54c2c7d',
 };
 
 export const CURVE_V2_POOLS = {
@@ -607,12 +624,12 @@ export const CURVE_POLYGON_POOLS = {
 };
 
 export const CURVE_V2_POLYGON_POOLS = {
-    atricrypto: '0x3fcd5de6a9fc8a99995c406c77dda3ed7e406f81',
-    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
+    atricrypto: '0x92215849c439e1f8612b6646060b4e3e5ef822cc',
 };
 
 export const CURVE_AVALANCHE_POOLS = {
     aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
+    mim: '0xaea2e71b631fa93683bcf256a8689dfa0e094fcd',
 };
 
 export const CURVE_V2_AVALANCHE_POOLS = {
@@ -627,6 +644,10 @@ export const CURVE_FANTOM_POOLS = {
 
 export const CURVE_V2_FANTOM_POOLS = {
     tricrypto: '0x3a1659ddcf2339be3aea159ca010979fb49155ff',
+};
+
+export const CURVE_OPTIMISM_POOLS = {
+    tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
 };
 
 export const SWERVE_POOLS = {
@@ -730,7 +751,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         ],
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
         [ChainId.Celo]: [CELO_TOKENS.WCELO, CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.amCUSD, CELO_TOKENS.WBTC],
-        [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC],
+        [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC, OPTIMISM_TOKENS.USDT],
     },
     [],
 );
@@ -1086,6 +1107,26 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_uint256,
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_uint256,
     },
+    [CURVE_POOLS.mimust]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.MIM, MAINNET_TOKENS.UST],
+        pool: CURVE_POOLS.mimust,
+        gasSchedule: 105e3,
+    }),
+    [CURVE_POOLS.usttri_wormhole]: createCurveMetaTriPool({
+        tokens: [MAINNET_TOKENS.UST_WORMHOLE],
+        pool: CURVE_POOLS.usttri_wormhole,
+        gasSchedule: 340e3,
+    }),
+    [CURVE_POOLS.fei_tri]: createCurveMetaTriPool({
+        tokens: [MAINNET_TOKENS.FEI],
+        pool: CURVE_POOLS.fei_tri,
+        gasSchedule: 340e3,
+    }),
+    [CURVE_POOLS.rai_tri]: createCurveMetaTriPool({
+        tokens: [MAINNET_TOKENS.RAI],
+        pool: CURVE_POOLS.rai_tri,
+        gasSchedule: 340e3,
+    }),
 };
 
 export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
@@ -1125,11 +1166,6 @@ export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_V2_POLYGON_POOLS.atricrypto,
         gasSchedule: 300e3,
     }),
-    [CURVE_V2_POLYGON_POOLS.atricrypto3]: createCurveV2MetaTriPool({
-        tokens: [POLYGON_TOKENS.WBTC, POLYGON_TOKENS.WETH],
-        pool: CURVE_V2_POLYGON_POOLS.atricrypto3,
-        gasSchedule: 300e3,
-    }),
 };
 
 export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
@@ -1141,6 +1177,11 @@ export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
     ['aave_exchange']: createCurveExchangePool({
         tokens: [AVALANCHE_TOKENS.aDAI, AVALANCHE_TOKENS.aUSDC, AVALANCHE_TOKENS.aUSDT],
         pool: CURVE_AVALANCHE_POOLS.aave,
+        gasSchedule: 150e3,
+    }),
+    [CURVE_AVALANCHE_POOLS.mim]: createCurveExchangePool({
+        tokens: [AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.USDT, AVALANCHE_TOKENS.USDC],
+        pool: CURVE_AVALANCHE_POOLS.mim,
         gasSchedule: 150e3,
     }),
 };
@@ -1187,6 +1228,14 @@ export const CURVE_V2_FANTOM_INFOS: { [name: string]: CurveInfo } = {
         tokens: [FANTOM_TOKENS.fUSDT, FANTOM_TOKENS.WBTC, FANTOM_TOKENS.WETH],
         pool: CURVE_V2_FANTOM_POOLS.tricrypto,
         gasSchedule: 300e3,
+    }),
+};
+
+export const CURVE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_OPTIMISM_POOLS.tri]: createCurveExchangePool({
+        tokens: [OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC, OPTIMISM_TOKENS.USDT],
+        pool: CURVE_OPTIMISM_POOLS.tri,
+        gasSchedule: 150e3,
     }),
 };
 
