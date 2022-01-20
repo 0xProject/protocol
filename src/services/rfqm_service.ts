@@ -140,6 +140,11 @@ const RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS = new Counter({
     name: 'rfqm_signed_quote_taker_and_takertoken_trade_exists',
     help: 'A trade was submitted when the system already had a pending trade for the same taker and takertoken',
 });
+const RFQM_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
+    name: 'rfqm_submit_balance_check_failed',
+    labelNames: ['makerAddress'],
+    help: 'A trade was submitted but our on-chain balance check failed',
+});
 const RFQM_JOB_FAILED_ETHCALL_VALIDATION = new Counter({
     name: 'rfqm_job_failed_ethcall_validation',
     help: 'A job failed eth_call validation before being queued',
@@ -861,6 +866,10 @@ export class RfqmService {
     ): Promise<OtcOrderSubmitRfqmSignedQuoteResponse> {
         const { order, signature: takerSignature } = params;
         const orderHash = params.order.getHash();
+        const takerAddress = order.taker.toLowerCase();
+        const makerAddress = order.maker.toLowerCase();
+        const takerToken = order.takerToken.toLowerCase();
+        const makerToken = order.makerToken.toLowerCase();
 
         // check that the orderHash is indeed a recognized quote
         const quote = await this._dbUtils.findV2QuoteByOrderHashAsync(orderHash);
@@ -905,7 +914,6 @@ export class RfqmService {
 
         // validate that the given taker signature is valid
         const signerAddress = getSignerFromHash(orderHash, takerSignature).toLowerCase();
-        const takerAddress = order.taker.toLowerCase();
         if (signerAddress !== takerAddress) {
             logger.warn({ signerAddress, takerAddress, orderHash }, 'Signature is invalid');
             throw new ValidationError([
@@ -919,10 +927,20 @@ export class RfqmService {
 
         // validate that order is fillable by both the maker and the taker according to balances and allowances
         const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
-            [order.maker, order.taker],
-            [order.makerToken, order.takerToken],
+            [makerAddress, takerAddress],
+            [makerToken, takerToken],
         );
         if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
+            RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress).inc();
+            logger.warn(
+                {
+                    makerBalance,
+                    takerBalance,
+                    makerAddress,
+                    takerAddress,
+                },
+                'Balance check failed while user was submitting',
+            );
             throw new ValidationError([
                 {
                     field: 'n/a',
