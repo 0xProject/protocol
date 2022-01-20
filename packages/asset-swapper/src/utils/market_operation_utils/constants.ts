@@ -834,7 +834,14 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         }).build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
-        }).build(),
+        })
+            .tap(builder => {
+                // Synape nETH/aWETH pool
+                builder
+                    .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
+                    .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
+            })
+            .build(),
         [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
         }).build(),
@@ -1478,8 +1485,8 @@ export const SYNAPSE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_AVALANCHE_POOLS.nETHLP,
-        tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.WETH],
-        metaTokens: undefined,
+        tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.WETH],
+        metaTokens: [AVALANCHE_TOKENS.aWETH],
         gasSchedule: 140e3,
     },
 };
@@ -1490,7 +1497,7 @@ export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: FIREBIRDONESWAP_BSC_POOLS.oneswap,
-        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC],
+        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.nUSD, BSC_TOKENS.USDC],
         metaTokens: undefined,
         gasSchedule: 100e3,
     },
