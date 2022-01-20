@@ -204,6 +204,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
         ]),
     },
@@ -348,6 +350,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
         ]),
     },
@@ -540,6 +544,7 @@ export const AVALANCHE_TOKENS = {
     nETH: '0x19e1ae0ee35c0404f835521146206595d37981ae',
     nUSD: '0xcfc37a6ab183dd4aed08c204d1c2773c0b1bdf46',
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
+    MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
 };
 
 export const CELO_TOKENS = {
