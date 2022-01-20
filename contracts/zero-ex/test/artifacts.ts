@@ -12,6 +12,7 @@ import * as BridgeAdapter from '../test/generated-artifacts/BridgeAdapter.json';
 import * as BridgeProtocols from '../test/generated-artifacts/BridgeProtocols.json';
 import * as CurveLiquidityProvider from '../test/generated-artifacts/CurveLiquidityProvider.json';
 import * as ERC1155OrdersFeature from '../test/generated-artifacts/ERC1155OrdersFeature.json';
+import * as ERC165Feature from '../test/generated-artifacts/ERC165Feature.json';
 import * as ERC721OrdersFeature from '../test/generated-artifacts/ERC721OrdersFeature.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
@@ -31,6 +32,7 @@ import * as IBootstrapFeature from '../test/generated-artifacts/IBootstrapFeatur
 import * as IBridgeAdapter from '../test/generated-artifacts/IBridgeAdapter.json';
 import * as IERC1155OrdersFeature from '../test/generated-artifacts/IERC1155OrdersFeature.json';
 import * as IERC1155Token from '../test/generated-artifacts/IERC1155Token.json';
+import * as IERC165Feature from '../test/generated-artifacts/IERC165Feature.json';
 import * as IERC20Bridge from '../test/generated-artifacts/IERC20Bridge.json';
 import * as IERC20Transformer from '../test/generated-artifacts/IERC20Transformer.json';
 import * as IERC721OrdersFeature from '../test/generated-artifacts/IERC721OrdersFeature.json';
@@ -223,6 +225,7 @@ export const artifacts = {
     TransformerDeployer: TransformerDeployer as ContractArtifact,
     BatchFillNativeOrdersFeature: BatchFillNativeOrdersFeature as ContractArtifact,
     BootstrapFeature: BootstrapFeature as ContractArtifact,
+    ERC165Feature: ERC165Feature as ContractArtifact,
     FundRecoveryFeature: FundRecoveryFeature as ContractArtifact,
     LiquidityProviderFeature: LiquidityProviderFeature as ContractArtifact,
     MetaTransactionsFeature: MetaTransactionsFeature as ContractArtifact,
@@ -237,6 +240,7 @@ export const artifacts = {
     IBatchFillNativeOrdersFeature: IBatchFillNativeOrdersFeature as ContractArtifact,
     IBootstrapFeature: IBootstrapFeature as ContractArtifact,
     IERC1155OrdersFeature: IERC1155OrdersFeature as ContractArtifact,
+    IERC165Feature: IERC165Feature as ContractArtifact,
     IERC721OrdersFeature: IERC721OrdersFeature as ContractArtifact,
     IFeature: IFeature as ContractArtifact,
     IFundRecoveryFeature: IFundRecoveryFeature as ContractArtifact,
