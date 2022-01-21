@@ -1,89 +1,71 @@
 name: Deploy
 on:
-    issue_comment:
-        types: [created, edited]
-    workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Commit SHA to deploy. Default to main branch's commit.
+      environment:
+        type: choice
+        options:
+        - ropsten
+        - staging
+        - production
+        required: true
+
+env:
+  IMAGE_NAME: 883408475785.dkr.ecr.us-east-1.amazonaws.com/0x-rfq-api
+
 jobs:
-    deploy:
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.comment.body, 'deploy')
-        runs-on: ubuntu-latest
-        steps:
-            # Grab the PR branch name; workflow sets github.ref to master by default
-            # Short version of branch name is set to ${{ env.trimmed_branch_name }}
-            - id: comment-branch
-              if: github.event.issue.pull_request
-              uses: xt0rted/pull-request-comment-branch@v1
-              with:
-                  repo_token: ${{ github.token }}
-            - name: trim and save branch name
-              env:
-                  BRANCH: ${{ steps.comment-branch.outputs.head_ref }}
-              run: echo "$BRANCH" | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            - name: save branch sha
-              env:
-                  BRANCH_SHA: ${{ steps.comment-branch.outputs.head_sha }}
-              run: echo "$BRANCH_SHA" | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            # Different deploy scenarios
-            # Ethereum: folder_chain=''
-            - name: deploy from master to production (Ethereum)
-              if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV; echo ${{ github.sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            - name: deploy from branch to staging (Ethereum)
-              if: github.event.issue.pull_request && github.event.comment.body == 'deploy staging'
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
-            - name: deploy from branch to production (Ethereum)
-              if: github.event.issue.pull_request && github.event.comment.body == 'deploy production'
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
-            # BSC: folder_chain=bsc
-            - name: deploy from branch to staging (BSC)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging bsc' || github.event.comment.body == 'deploy bsc staging')
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
-            - name: deploy from branch to production (BSC)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production bsc' || github.event.comment.body == 'deploy bsc production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
-            # Polygon: folder_chain=polygon
-            - name: deploy from branch to staging (Polygon)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging polygon' || github.event.comment.body == 'deploy polygon staging')
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
-            - name: deploy from branch to production (Polygon)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production polygon' || github.event.comment.body == 'deploy polygon production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
-            # Avalanche: folder_chain=avalanche
-            - name: deploy from branch to production (Avalanche)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production avalanche' || github.event.comment.body == 'deploy avalanche production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=avalanche" >> $GITHUB_ENV;
-            # Make the changes to 0x-main-infra
-            - name: Checkout 0x-main-infra
-              uses: actions/checkout@v2
-              with:
-                  token: ${{ secrets.PAT }}
-                  repository: 0xProject/0x-main-infra
-            - name: Update API configs (Ethereum)
-              if: env.chain == 'ethereum'
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
-            - name: Update API configs (BSC)
-              if: env.chain == 'bsc'
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
-            - name: Update API configs (Polygon)
-              if: env.chain == 'polygon'
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
-            - name: Update API configs (Avalanche)
-              if: env.chain == 'avalanche'
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/avalanche/*.yml
-            - name: Create Pull Request
-              uses: peter-evans/create-pull-request@v3.5.0
-              with:
-                  token: ${{ secrets.PAT }}
-                  author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
-                  commit-message: '0x-api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ env.trimmed_branch_name }}'
-                  title: '[0xApi][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ env.trimmed_branch_name }}'
-                  branch: '0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ env.trimmed_branch_name }}'
-                  body: |
-                      ## Automated deploy action
-                      Triggered by @${{ github.event.sender.login }}
-                      PR: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
-                      SHA: https://github.com/${{ github.repository }}/tree/${{ env.branch_sha }}
-                      Comparison: https://github.com/${{ github.repository }}/compare/master...refs/heads/${{ env.trimmed_branch_name }}
-            - name: Check outputs
-              run: |
-                  echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Input
+        id: validate_input
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const { environment, commit } = context.payload.inputs
+            core.setOutput('environment', environment)
+            core.setOutput('commit', commit ? commit : context.sha)
+      - uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+        with:
+          state: closed
+      - name: Checkout 0x-main-infra repo
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT }}
+          repository: 0xProject/0x-main-infra
+      - name: Update GitOps repo
+        id: update_gitops_repo
+        run: |
+          cd 'clusters/main-cluster/kubernetes/rfq-${{ steps.validate_input.outputs.environment }}'
+          # Read current image tag
+          current_image_tag=$(yq e '.images[] | select(.name == "0x-rfq-api") | .newTag' kustomization.yaml)
+
+          # Update image tags
+          kustomize edit set image 0x-rfq-api=${IMAGE_NAME}:${{ steps.validate_input.outputs.commit }}
+          kustomize edit set image 0x-rfq-api-worker=${IMAGE_NAME}:${{ steps.validate_input.outputs.commit }}
+
+          # Output for next steps
+          echo "##[set-output name=current_image_tag;]${current_image_tag}"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.PAT }}
+          author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
+          commit-message: 'rfqm deploy to ${{ steps.validate_input.outputs.environment }}: ${{ steps.validate_input.outputs.commit }}'
+          title: '[rfqm][deploy][${{ steps.validate_input.outputs.environment }}] Revision ${{ steps.validate_input.outputs.commit }}'
+          branch: 'rfqm/deploy/${{ steps.validate_input.outputs.environment }}'
+          body: |
+            ### Deployment Details
+            Triggered by @${{ github.event.sender.login }}
+            PR: https://github.com/${{ github.repository }}/pull/${{ steps.findPr.outputs.number }}
+
+            **Current version:** https://github.com/${{ github.repository }}/commit/${{ steps.update_gitops_repo.outputs.current_image_tag }}
+            **Target version:** https://github.com/${{ github.repository }}/commit/${{ steps.validate_input.outputs.commit }}
+
+            Comparison: https://github.com/${{ github.repository }}/compare/${{ steps.update_gitops_repo.outputs.current_image_tag }}...${{ steps.validate_input.outputs.commit }}
+      - name: Check outputs
+        run: |
+          echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
