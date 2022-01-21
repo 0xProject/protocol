@@ -1,12 +1,32 @@
 [
     {
-        "version": "16.46.0",
+        "version": "16.47.0",
         "changes": [
             {
                 "note": "Adding support for Synapse on all networks",
                 "pr": 400
             }
         ]
+    },
+    {
+        "version": "16.46.0",
+        "changes": [
+            {
+                "note": "Enable `Curve` ETH/CVX pool",
+                "pr": 394
+            }
+        ],
+        "timestamp": 1641863395
+    },
+    {
+        "version": "16.45.2",
+        "changes": [
+            {
+                "note": "Handle 0 output samples and negative adjusted rate native orders in routing",
+                "pr": 387
+            }
+        ],
+        "timestamp": 1641827361
     },
     {
         "version": "16.45.1",

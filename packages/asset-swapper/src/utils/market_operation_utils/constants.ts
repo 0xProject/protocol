@@ -475,6 +475,7 @@ export const MAINNET_TOKENS = {
     // Synapse ecosystem
     nUSD: '0x1B84765dE8B7566e4cEAF4D0fD3c5aF52D3DdE4F',
     SYN: '0x0f2d719407fdbeff09d87557abb7232601fd9f29',
+    CVX: '0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b',
 };
 
 export const BSC_TOKENS = {
