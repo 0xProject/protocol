@@ -28,7 +28,6 @@ import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
 import { ETH_DECIMALS, RFQM_PATH } from '../src/constants';
-import { getDBConnectionAsync } from '../src/db_connection';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOrder } from '../src/entities/RfqmJobEntity';
 import { RfqmTransactionSubmissionStatus } from '../src/entities/RfqmTransactionSubmissionEntity';
@@ -49,6 +48,7 @@ import {
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
+import { initDBConnectionAsync } from './utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './utils/deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -258,8 +258,7 @@ describe(SUITE_NAME, () => {
         ];
 
         // Create the dbUtils
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         dbUtils = new RfqmDbUtils(connection);
 
         // Create the mock sqsProducer

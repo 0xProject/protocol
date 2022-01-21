@@ -2,10 +2,10 @@ import { expect } from '@0x/contracts-test-utils';
 import 'mocha';
 import { Connection } from 'typeorm';
 
-import { getDBConnectionAsync } from '../../src/db_connection';
 import { BlockedAddressEntity } from '../../src/entities/BlockedAddressEntity';
 import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_utils';
 
+import { initDBConnectionAsync } from './db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './deployment';
 
 // Force reload of the app avoid variables being polluted between test suites
@@ -20,22 +20,19 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
     });
 
     after(async () => {
         // reset DB
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         await teardownDependenciesAsync(SUITE_NAME);
     });
 
     beforeEach(async () => {
         // reset DB
-        connection = await getDBConnectionAsync();
-        await connection.synchronize(true);
+        connection = await initDBConnectionAsync();
         rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
     });
 
