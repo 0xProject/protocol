@@ -356,6 +356,7 @@ describe(SUITE_NAME, () => {
             configManager,
             config.defaultHttpServiceConfig,
             connection,
+            false,
         );
         app = res.app;
         server = res.server;

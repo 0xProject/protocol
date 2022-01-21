@@ -8,6 +8,7 @@ import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import * as express from 'express';
+import * as promBundle from 'express-prom-bundle';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
@@ -235,9 +236,28 @@ export async function runHttpRfqmServiceAsync(
     configManager: ConfigManager,
     config: HttpServiceConfig,
     connection: Connection,
+    useMetricsMiddleware: boolean = true,
     _app?: core.Express,
 ): Promise<{ app: express.Application; server: Server }> {
     const app = _app || express();
+
+    if (useMetricsMiddleware) {
+        /**
+         * express-prom-bundle will create a histogram metric called "http_request_duration_seconds"
+         * The official prometheus docs describe how to use this exact histogram metric: https://prometheus.io/docs/practices/histograms/
+         * We use the following labels: statusCode, path
+         */
+        const metricsMiddleware = promBundle({
+            autoregister: false,
+            includeStatusCode: true,
+            includePath: true,
+            normalizePath: [
+                ['/status/.*', '/status/#orderHash'], // converts all /status/0xdeadbeef... => /status/#orderHash
+                ['/api-docs.*', '/api-docs'], // converts all /api-docs/favicon... => /api-docs
+            ],
+        });
+        app.use(metricsMiddleware);
+    }
     app.use(addressNormalizer);
     app.get('/', rootHandler);
     const server = createDefaultServer(config, app, logger, async () => {

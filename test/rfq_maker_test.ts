@@ -50,6 +50,7 @@ describe('RFQ maker API tests', () => {
             configManagerMock,
             config.defaultHttpServiceConfig,
             connection,
+            false,
         );
         app = res.app;
         server = res.server;

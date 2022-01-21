@@ -5627,6 +5627,14 @@ express-async-handler@^1.1.4:
   resolved "https://registry.npmjs.org/express-async-handler/-/express-async-handler-1.1.4.tgz"
   integrity sha512-HdmbVF4V4w1q/iz++RV7bUxIeepTukWewiJGkoCKQMtvPF11MLTa7It9PRc/reysXXZSEyD4Pthchju+IUbMiQ==
 
+express-prom-bundle@^6.4.1:
+  version "6.4.1"
+  resolved "https://registry.yarnpkg.com/express-prom-bundle/-/express-prom-bundle-6.4.1.tgz#a688050b9e090f6969825c33143106d3e0e5a70e"
+  integrity sha512-Sg0svLQe/SS5z1tHDTVfZVjNumobiDlXM0jmemt5Dm9K6BX8z9yCwEr93zbko6fNMR4zKav77iPfxUWi6gAjNA==
+  dependencies:
+    on-finished "^2.3.0"
+    url-value-parser "^2.0.0"
+
 express@^4.14.0, express@^4.17.1:
   version "4.17.1"
   resolved "https://registry.npmjs.org/express/-/express-4.17.1.tgz"
@@ -8629,7 +8637,7 @@ oboe@2.1.5:
   dependencies:
     http-https "^1.0.0"
 
-on-finished@~2.3.0:
+on-finished@^2.3.0, on-finished@~2.3.0:
   version "2.3.0"
   resolved "https://registry.npmjs.org/on-finished/-/on-finished-2.3.0.tgz"
   integrity sha1-IPEzZIGwg811M3mSoWlxqi2QaUc=
@@ -11443,6 +11451,11 @@ url-to-options@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/url-to-options/-/url-to-options-1.0.1.tgz"
   integrity sha1-FQWgOiiaSMvXpDTvuu7FBV9WM6k=
+
+url-value-parser@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/url-value-parser/-/url-value-parser-2.1.0.tgz#fe1ae776122b2eea4bbf284896bbdcd7fc75e1fa"
+  integrity sha512-gIYPWXujdUdwd/9TGCHTf5Vvgw6lOxjE5Q/k+7WNByYyS0vW5WX0k+xuVlhvPq6gRNhzXVv/ezC+OfeAet5Kcw==
 
 url@0.10.3:
   version "0.10.3"
