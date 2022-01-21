@@ -1485,8 +1485,8 @@ export const SYNAPSE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_AVALANCHE_POOLS.nETHLP,
-        tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.WETH],
-        metaTokens: [AVALANCHE_TOKENS.aWETH],
+        tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH],
+        metaTokens: undefined,
         gasSchedule: 140e3,
     },
 };

@@ -3,7 +3,8 @@
         "version": "16.46.0",
         "changes": [
             {
-                "note": "Adding support for Synapse on all networks"
+                "note": "Adding support for Synapse on all networks",
+                "pr": 400
             }
         ]
     },
