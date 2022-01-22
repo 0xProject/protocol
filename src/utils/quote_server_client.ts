@@ -10,6 +10,7 @@ import {
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
+import { OK } from 'http-status-codes';
 import * as _ from 'lodash';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
@@ -20,7 +21,7 @@ import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { IndicativeQuote } from '../types';
 
-import { METRICS_PROXY } from './metrics_service';
+import { logRfqMarketMakerRequest } from './metrics_service';
 import { getSignerFromHash } from './signature_utils';
 
 const MARKET_MAKER_LAST_LOOK_LATENCY = new Summary({
@@ -151,17 +152,18 @@ export class QuoteServerClient {
             params: parameters,
         });
         const latencyMs = Date.now() - startTime;
-        METRICS_PROXY.logRfqMakerNetworkInteraction({
-            isLastLook: parameters.isLastLook === 'true',
-            integrator,
-            url: makerUri,
-            quoteType: 'indicative',
-            statusCode: response.status,
+
+        logRfqMarketMakerRequest({
             latencyMs,
-            included: true,
-            sellTokenAddress: parameters.sellTokenAddress,
-            buyTokenAddress: parameters.buyTokenAddress,
+            makerUri,
+            rawRequest: JSON.stringify(response?.request ?? ''),
+            responseBody: JSON.stringify(response.data),
+            statusCode: response.status,
         });
+
+        if (response.status !== OK) {
+            return;
+        }
 
         const validationResult = schemaValidator.validate(response.data, schemas.indicativeOtcQuoteResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
@@ -170,13 +172,13 @@ export class QuoteServerClient {
         }
 
         return {
-            makerUri,
+            expiry: new BigNumber(response.data.expiry),
             maker: response.data.maker,
             makerAmount: new BigNumber(response.data.makerAmount),
-            takerAmount: new BigNumber(response.data.takerAmount),
             makerToken: response.data.makerToken,
+            makerUri,
+            takerAmount: new BigNumber(response.data.takerAmount),
             takerToken: response.data.takerToken,
-            expiry: new BigNumber(response.data.expiry),
         };
     }
 
@@ -254,6 +256,9 @@ export class QuoteServerClient {
             },
             'Sign response received from MM',
         );
+
+        // TODO (rhinodavid): Filter out non-successful statuses from validation step
+
         const validationResult = schemaValidator.validate(rawResponse.data, schemas.signResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const errorsMsg = validationResult.errors.map((err) => err.message).join(',');

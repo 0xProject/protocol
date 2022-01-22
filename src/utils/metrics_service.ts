@@ -3,6 +3,8 @@ import { MetricsProxy } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { BigNumber } from '@0x/utils';
 import { Counter, Histogram, Summary } from 'prom-client';
 
+import { logger } from '../logger';
+
 const ORDER_EXPIRED_TOO_SOON = new Counter({
     name: 'rfq_order_expired_too_soon',
     help: 'RFQ Order expired too soon',
@@ -25,16 +27,32 @@ const ORDER_FILL_RATIO_WARNING_RANGE = new Counter({
     labelNames: ['maker', 'isLastLook'],
 });
 
+// TODO (MKR-282): Remove when v1 deprecated
+// Legacy counter used by requests that go through @0x/asset-swapper quote server
 const RFQ_MAKER_NETWORK_INTERACTION_COUNTER = new Counter({
     name: 'rfq_maker_network_interaction_counter',
     help: 'Provides stats around market maker network interactions',
     labelNames: ['isLastLook', 'integratorLabel', 'url', 'quoteType', 'included', 'statusCode', 'market'],
 });
 
+// TODO (MKR-282): Remove when v1 deprecated
+// Legacy summary used by requests that go through @0x/asset-swapper quote server
 const RFQ_MAKER_NETWORK_INTERACTION_SUMMARY = new Summary({
     name: 'rfq_maker_network_interaction_summary',
     help: 'Provides stats around market maker network interactions',
     labelNames: ['isLastLook', 'integratorLabel', 'url', 'quoteType', 'included', 'statusCode', 'market'],
+});
+
+const RFQ_MARKET_MAKER_REQUEST_COUNTER = new Counter({
+    name: 'rfq_market_maker_request_counter',
+    help: 'Volume and status of requests from 0x to a market maker. Currently only used in RFQMv2.',
+    labelNames: ['url', 'statusCode'],
+});
+
+const RFQ_MARKET_MAKER_REQUEST_LATENCY = new Summary({
+    name: 'rfq_maker_network_interaction_latency',
+    help: 'Latency of requests from 0x to a market maker. Currently only used in RFQMv2.',
+    labelNames: ['url'],
 });
 
 // NOTE: Do not use this map for anything sensitive. This is only used for
@@ -66,6 +84,31 @@ function getMarketLabel(tokenSold: string, tokenPurchased: string): string {
         return 'Other';
     }
     return `${tokenA}-${tokenB}`;
+}
+
+/**
+ * Logs and meters a request from 0x to a market maker.
+ *
+ * `makerUri` and `statusCode` are dimensions for the counter.
+ * `makerUri` is used as a dimension for the latency meter.
+ *
+ * All parameters are logged.
+ *
+ * Currently only used for RFQM v2.
+ */
+export function logRfqMarketMakerRequest(interaction: {
+    latencyMs: number;
+    makerUri: string;
+    rawRequest: string;
+    responseBody: string;
+    statusCode: number | undefined;
+}): void {
+    logger.info({ ...interaction }, 'Rfq maker network interaction');
+    RFQ_MARKET_MAKER_REQUEST_COUNTER.labels(
+        interaction.makerUri,
+        interaction.statusCode?.toString() ?? 'unknown',
+    ).inc();
+    RFQ_MARKET_MAKER_REQUEST_LATENCY.labels(interaction.makerUri).observe(interaction.latencyMs);
 }
 
 export const METRICS_PROXY: MetricsProxy = {
