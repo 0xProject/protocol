@@ -1,6 +1,7 @@
 import { Integrator } from '@0x/asset-swapper';
 import { MetricsProxy } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { BigNumber } from '@0x/utils';
+import { OutgoingHttpHeaders } from 'http';
 import { Counter, Histogram, Summary } from 'prom-client';
 
 import { logger } from '../logger';
@@ -99,11 +100,14 @@ function getMarketLabel(tokenSold: string, tokenPurchased: string): string {
 export function logRfqMarketMakerRequest(interaction: {
     latencyMs: number;
     makerUri: string;
-    rawRequest: string;
+    method: string;
+    path: string;
+    requestHeaders: OutgoingHttpHeaders;
     responseBody: string;
+    responseHeaders: Record<string, string>;
     statusCode: number | undefined;
 }): void {
-    logger.info({ ...interaction }, 'Rfq maker network interaction');
+    logger.info({ ...interaction }, 'Rfq market maker request');
     RFQ_MARKET_MAKER_REQUEST_COUNTER.labels(
         interaction.makerUri,
         interaction.statusCode?.toString() ?? 'unknown',

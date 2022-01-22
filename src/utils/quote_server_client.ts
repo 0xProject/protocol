@@ -153,13 +153,20 @@ export class QuoteServerClient {
         });
         const latencyMs = Date.now() - startTime;
 
-        logRfqMarketMakerRequest({
-            latencyMs,
-            makerUri,
-            rawRequest: JSON.stringify(response?.request ?? ''),
-            responseBody: JSON.stringify(response.data),
-            statusCode: response.status,
-        });
+        try {
+            logRfqMarketMakerRequest({
+                latencyMs,
+                makerUri,
+                method: response.request?.method ?? '',
+                path: response.request?.path ?? '',
+                responseBody: JSON.stringify(response.data),
+                requestHeaders: response.request?.getHeaders(),
+                responseHeaders: response.headers,
+                statusCode: response.status,
+            });
+        } catch ({ message }) {
+            logger.error({ errorMsg: message }, 'Failed to log rfq maker reqeust');
+        }
 
         if (response.status !== OK) {
             return;

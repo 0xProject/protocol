@@ -1535,6 +1535,7 @@ describe('RfqmService Worker Logic', () => {
                 wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
             };
             const mockMinedBlock: providers.Block = {
+                _difficulty: EthersBigNumber.from(2),
                 difficulty: 2,
                 extraData: '',
                 gasLimit: EthersBigNumber.from(1000),

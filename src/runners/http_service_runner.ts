@@ -27,7 +27,7 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (err) => {
     if (err) {
-        logger.error(err);
+        logger.error(err as Error);
     }
 });
 
