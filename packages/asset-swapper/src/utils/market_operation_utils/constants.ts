@@ -1498,7 +1498,7 @@ export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: FIREBIRDONESWAP_BSC_POOLS.oneswap,
-        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.nUSD, BSC_TOKENS.USDC],
+        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC],
         metaTokens: undefined,
         gasSchedule: 100e3,
     },
