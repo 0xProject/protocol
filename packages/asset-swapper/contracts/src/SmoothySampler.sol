@@ -24,6 +24,7 @@ pragma experimental ABIEncoderV2;
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 import "./interfaces/ISmoothy.sol";
+import "./SamplerBase.sol";
 
 contract SmoothySampler is
     SamplerUtils,
@@ -38,6 +39,29 @@ contract SmoothySampler is
 
     /// @dev Base gas limit for Smoothy calls.
     uint256 constant private SMOOTHY_CALL_GAS = 600e3;
+
+    /// @dev Sample sell quotes from Smoothy.
+    /// @param smoothyInfo Smoothy information specific to this token pair.
+    /// @param fromTokenIdx Index of the taker token (what to sell).
+    /// @param toTokenIdx Index of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromSmoothyGlobal(
+        SmoothyInfo memory smoothyInfo,
+        int128 fromTokenIdx,
+        int128 toTokenIdx
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromSmoothy(
+            smoothyInfo,
+            fromTokenIdx,
+            toTokenIdx,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from Smoothy.
     /// @param smoothyInfo Smoothy information specific to this token pair.

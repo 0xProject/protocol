@@ -21,12 +21,33 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IUniswapV2Router01.sol";
+import "./SamplerBase.sol";
 
 
 contract UniswapV2Sampler
 {
     /// @dev Gas limit for UniswapV2 calls.
     uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k
+
+    /// @dev Sample sell quotes from UniswapV2.
+    /// @param router Router to look up tokens and amounts
+    /// @param path Token route. Should be takerToken -> makerToken
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromUniswapV2Global(
+        address router,
+        address[] memory path
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromUniswapV2(
+            router,
+            path,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from UniswapV2.
     /// @param router Router to look up tokens and amounts

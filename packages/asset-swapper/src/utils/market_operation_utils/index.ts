@@ -1,6 +1,7 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
+import { sample } from 'lodash';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
@@ -164,6 +165,7 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
+            this._sampler.setSampleValues([this._nativeFeeTokenAmount]),
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 makerToken,
@@ -178,7 +180,9 @@ export class MarketOperationUtils {
                 this._nativeFeeTokenAmount,
             ),
             // Get sell quotes for taker -> maker.
+            this._sampler.setSampleValues(sampleAmounts),
             this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+            this._sampler.setSampleValues([takerAmount]),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
                 makerToken,
@@ -198,9 +202,12 @@ export class MarketOperationUtils {
                 gasBefore,
                 tokenDecimals,
                 orderFillableTakerAmounts,
+                _setSample1,
                 outputAmountPerEth,
                 inputAmountPerEth,
+                _setSample2,
                 dexQuotes,
+                _setSample3,
                 rawTwoHopQuotes,
                 isTxOriginContract,
                 gasAfter,

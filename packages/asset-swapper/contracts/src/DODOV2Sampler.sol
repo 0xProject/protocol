@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 interface IDODOV2Registry {
     function getDODOPool(address baseToken, address quoteToken)
@@ -49,6 +50,34 @@ contract DODOV2Sampler is
 
     /// @dev Gas limit for DODO V2 calls.
     uint256 constant private DODO_V2_CALL_GAS = 300e3; // 300k
+
+    /// @dev Sample sell quotes from DODO V2.
+    /// @param registry Address of the registry to look up.
+    /// @param offset offset index for the pool in the registry.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return sellBase whether the bridge needs to sell the base token
+    /// @return pool the DODO pool address
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromDODOV2Global(
+        address registry,
+        uint256 offset,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts)
+    {
+        (sellBase, pool, makerTokenAmounts) = this.sampleSellsFromDODOV2(
+            registry,
+            offset,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from DODO V2.
     /// @param registry Address of the registry to look up.

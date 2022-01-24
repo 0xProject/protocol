@@ -35,6 +35,7 @@ export * from '../test/generated-wrappers/maker_p_s_m_sampler';
 export * from '../test/generated-wrappers/mooniswap_sampler';
 export * from '../test/generated-wrappers/multi_bridge_sampler';
 export * from '../test/generated-wrappers/native_order_sampler';
+export * from '../test/generated-wrappers/sampler_base';
 export * from '../test/generated-wrappers/sampler_utils';
 export * from '../test/generated-wrappers/shell_sampler';
 export * from '../test/generated-wrappers/smoothy_sampler';

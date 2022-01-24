@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "./SamplerBase.sol";
 
 // Minimal CToken interface
 interface ICToken {
@@ -34,6 +35,23 @@ interface ICToken {
 
 contract CompoundSampler is SamplerUtils {
     uint256 constant private EXCHANGE_RATE_SCALE = 1e10;
+
+    function sampleSellsFromCompoundGlobal(
+        ICToken cToken,
+        IERC20TokenV06 takerToken,
+        IERC20TokenV06 makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromCompound(
+            cToken,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     function sampleSellsFromCompound(
         ICToken cToken,

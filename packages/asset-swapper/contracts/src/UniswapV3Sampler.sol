@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "./SamplerBase.sol";
 
 interface IUniswapV3Quoter {
     function factory()
@@ -53,6 +54,28 @@ contract UniswapV3Sampler
     /// @dev Gas limit for UniswapV3 calls. This is 100% a guess.
     uint256 constant private QUOTE_GAS = 600e3;
 
+    /// @dev Sample sell quotes from UniswapV3.
+    /// @param quoter UniswapV3 Quoter contract.
+    /// @param path Token route. Should be takerToken -> makerToken
+    /// @return uniswapPaths The encoded uniswap path for each sample.
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromUniswapV3Global(
+        IUniswapV3Quoter quoter,
+        IERC20TokenV06[] memory path
+    )
+        public
+        returns (
+            bytes[] memory uniswapPaths,
+            uint256[] memory makerTokenAmounts
+        )
+    {
+        (uniswapPaths, makerTokenAmounts) = this.sampleSellsFromUniswapV3(
+            quoter,
+            path,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
     /// @dev Sample sell quotes from UniswapV3.
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken

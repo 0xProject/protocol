@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./ApproximateBuys.sol";
 import "./interfaces/IShell.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 contract ShellSampler is
@@ -36,6 +37,29 @@ contract ShellSampler is
 
     /// @dev Default gas limit for Shell calls.
     uint256 constant private DEFAULT_CALL_GAS = 300e3; // 300k
+
+    /// @dev Sample sell quotes from the Shell pool contract
+    /// @param pool Address of the Shell pool contract
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromShellGlobal(
+        address pool,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromShell(
+            pool,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from the Shell pool contract
     /// @param pool Address of the Shell pool contract

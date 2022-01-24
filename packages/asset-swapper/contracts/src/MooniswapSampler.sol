@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/IMooniswap.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 contract MooniswapSampler is
@@ -31,6 +32,30 @@ contract MooniswapSampler is
 {
     /// @dev Gas limit for Mooniswap calls.
     uint256 constant private MOONISWAP_CALL_GAS = 150e3; // 150k
+
+    /// @dev Sample sell quotes from Mooniswap.
+    /// @param registry Address of the Mooniswap Registry.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return pool The contract address for the pool
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromMooniswapGlobal(
+        address registry,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (IMooniswap pool, uint256[] memory makerTokenAmounts)
+    {
+        (pool, makerTokenAmounts) = this.sampleSellsFromMooniswap(
+            registry,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from Mooniswap.
     /// @param registry Address of the Mooniswap Registry.
