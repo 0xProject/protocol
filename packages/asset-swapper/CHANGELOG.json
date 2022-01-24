@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.48.1",
+        "changes": [
+            {
+                "note": "Bump asset swapper fast-abi dependency version"
+            }
+        ],
+        "timestamp": 1643148887
+    },
+    {
         "version": "16.48.0",
         "changes": [
             {
