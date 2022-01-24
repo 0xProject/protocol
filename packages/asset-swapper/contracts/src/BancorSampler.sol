@@ -55,7 +55,7 @@ contract BancorSampler is
         view
         returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts)
     {
-        (bancorNetwork, path, makerTokenAmounts) = this.sampleSellsFromBancor(
+        (bancorNetwork, path, makerTokenAmounts) = _sampleSellsFromBancor(
             opts,
             takerToken,
             makerToken,
@@ -71,13 +71,13 @@ contract BancorSampler is
     /// @return path the selected conversion path from bancor
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromBancor(
+    function _sampleSellsFromBancor(
         BancorSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         view
         returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts)
     {

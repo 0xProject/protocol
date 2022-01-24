@@ -71,7 +71,7 @@ contract UniswapV3Sampler is
             uint256[] memory makerTokenAmounts
         )
     {
-        (uniswapPaths, makerTokenAmounts) = this.sampleSellsFromUniswapV3(
+        (uniswapPaths, makerTokenAmounts) = _sampleSellsFromUniswapV3(
             quoter,
             path,
             SAMPLE_VALUES
@@ -84,12 +84,12 @@ contract UniswapV3Sampler is
     /// @return uniswapPaths The encoded uniswap path for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromUniswapV3(
+    function _sampleSellsFromUniswapV3(
         IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         returns (
             bytes[] memory uniswapPaths,
             uint256[] memory makerTokenAmounts

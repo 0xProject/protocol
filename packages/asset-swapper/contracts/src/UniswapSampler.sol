@@ -58,7 +58,7 @@ contract UniswapSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
-        makerTokenAmounts = this.sampleSellsFromUniswap(
+        makerTokenAmounts = _sampleSellsFromUniswap(
             router,
             takerToken,
             makerToken,
@@ -72,13 +72,13 @@ contract UniswapSampler is
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromUniswap(
+    function _sampleSellsFromUniswap(
         address router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory makerTokenAmounts)
     {

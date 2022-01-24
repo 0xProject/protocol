@@ -48,7 +48,7 @@ contract CompoundSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
-        makerTokenAmounts = this.sampleSellsFromCompound(
+        makerTokenAmounts = _sampleSellsFromCompound(
             cToken,
             takerToken,
             makerToken,
@@ -56,13 +56,13 @@ contract CompoundSampler is
         );
     }
 
-    function sampleSellsFromCompound(
+    function _sampleSellsFromCompound(
         ICToken cToken,
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal 
         view
         returns (uint256[] memory makerTokenAmounts)
     {

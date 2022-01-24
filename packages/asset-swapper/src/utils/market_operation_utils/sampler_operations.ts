@@ -272,7 +272,7 @@ export class SamplerOperations {
             callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
                 const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string, BigNumber[]]
-                >('sampleSellsFromKyberNetwork', callResults);
+                >('sampleSellsFromKyberNetworkGlobal', callResults);
                 fillData.hint = hint;
                 fillData.reserveId = reserveId;
                 fillData.networkProxy = kyberOpts.networkProxy;
@@ -317,7 +317,7 @@ export class SamplerOperations {
             params: [router, tokenAddressPath],
             callback: (callResults: string, fillData: KyberDmmFillData): BigNumber[] => {
                 const [pools, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
-                    'sampleSellsFromKyberDmm',
+                    'sampleSellsFromKyberDmmGlobal',
                     callResults,
                 );
                 fillData.poolsPath = pools;
@@ -678,7 +678,7 @@ export class SamplerOperations {
             callback: (callResults: string, fillData: BancorFillData): BigNumber[] => {
                 const [networkAddress, path, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string, string[], BigNumber[]]
-                >('sampleSellsFromBancor', callResults);
+                >('sampleSellsFromBancorGlobal', callResults);
                 fillData.networkAddress = networkAddress;
                 fillData.path = path;
                 return samples;
@@ -727,7 +727,7 @@ export class SamplerOperations {
             params: [registry, mooniswapTakerToken, mooniswapMakerToken],
             callback: (callResults: string, fillData: MooniswapFillData): BigNumber[] => {
                 const [poolAddress, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
-                    'sampleSellsFromMooniswap',
+                    'sampleSellsFromMooniswapGlobal',
                     callResults,
                 );
                 fillData.poolAddress = poolAddress;
@@ -777,7 +777,7 @@ export class SamplerOperations {
             params: [quoter, tokenAddressPath],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
                 const [paths, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
-                    'sampleSellsFromUniswapV3',
+                    'sampleSellsFromUniswapV3Global',
                     callResults,
                 );
                 fillData.router = router;
@@ -1025,7 +1025,7 @@ export class SamplerOperations {
             callback: (callResults: string, fillData: DODOFillData): BigNumber[] => {
                 const [isSellBase, pool, samples] = this._samplerContract.getABIDecodedReturnData<
                     [boolean, string, BigNumber[]]
-                >('sampleSellsFromDODOV2', callResults);
+                >('sampleSellsFromDODOV2Global', callResults);
                 fillData.isSellBase = isSellBase;
                 fillData.poolAddress = pool;
                 return samples;

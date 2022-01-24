@@ -78,7 +78,7 @@ contract BalancerV2Sampler is
         public
         returns (uint256[] memory makerTokenAmounts)
     {
-        makerTokenAmounts = this.sampleSellsFromBalancerV2(
+        makerTokenAmounts = _sampleSellsFromBalancerV2(
             poolInfo,
             takerToken,
             makerToken,
@@ -93,13 +93,13 @@ contract BalancerV2Sampler is
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromBalancerV2(
+    function _sampleSellsFromBalancerV2(
         BalancerV2PoolInfo memory poolInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         returns (uint256[] memory makerTokenAmounts)
     {
         _assertValidPair(makerToken, takerToken);
