@@ -30,4 +30,11 @@ contract SamplerBase
     {
         SAMPLE_VALUES = sampleValues;
     }
+
+    modifier resetsSampleValues
+    {
+        uint256[] memory sampleValues = SAMPLE_VALUES;
+        _;
+        SAMPLE_VALUES = sampleValues;
+    }
 }

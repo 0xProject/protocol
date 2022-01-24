@@ -116,7 +116,7 @@ contract MakerPSMSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
-        makerTokenAmounts = this.sampleSellsFromMakerPsm(
+        makerTokenAmounts = _sampleSellsFromMakerPsm(
             psmInfo,
             takerToken,
             makerToken,
@@ -125,13 +125,13 @@ contract MakerPSMSampler is
     }
 
     /// @dev Sample sell quotes from Maker PSM
-    function sampleSellsFromMakerPsm(
+    function _sampleSellsFromMakerPsm(
         MakerPsmInfo memory psmInfo,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory makerTokenAmounts)
     {

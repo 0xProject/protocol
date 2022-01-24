@@ -21,9 +21,12 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "./SamplerBase.sol";
 
 
-contract TwoHopSampler {
+contract TwoHopSampler is
+    SamplerBase
+{
     using LibBytesV06 for bytes;
 
     struct HopInfo {
@@ -36,6 +39,7 @@ contract TwoHopSampler {
         bytes[] memory secondHopCalls,
         uint256 sellAmount
     )
+        resetsSampleValues()
         public
         returns (
             HopInfo memory firstHop,
@@ -44,8 +48,11 @@ contract TwoHopSampler {
         )
     {
         uint256 intermediateAssetAmount = 0;
+        uint256[] memory tmpSampleValues = new uint256[](1);
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
+            // Set the temporary global sample values
+            tmpSampleValues[0] = sellAmount;
+            SAMPLE_VALUES = tmpSampleValues;
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
@@ -60,7 +67,9 @@ contract TwoHopSampler {
             return (firstHop, secondHop, buyAmount);
         }
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, intermediateAssetAmount);
+            // Set the temporary global sample values
+            tmpSampleValues[0] = intermediateAssetAmount;
+            SAMPLE_VALUES = tmpSampleValues;
             (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);

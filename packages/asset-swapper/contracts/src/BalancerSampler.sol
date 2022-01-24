@@ -60,7 +60,7 @@ contract BalancerSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
-        makerTokenAmounts = this.sampleSellsFromBalancer(
+        makerTokenAmounts = _sampleSellsFromBalancer(
             poolAddress,
             takerToken,
             makerToken,
@@ -75,13 +75,13 @@ contract BalancerSampler is
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromBalancer(
+    function _sampleSellsFromBalancer(
         address poolAddress,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory makerTokenAmounts)
     {

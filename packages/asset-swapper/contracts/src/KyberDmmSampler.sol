@@ -75,7 +75,7 @@ contract KyberDmmSampler is
         view
         returns (address[] memory pools, uint256[] memory makerTokenAmounts)
     {
-        (pools, makerTokenAmounts) = this.sampleSellsFromKyberDmm(
+        (pools, makerTokenAmounts) = _sampleSellsFromKyberDmm(
             router,
             path,
             SAMPLE_VALUES
@@ -88,12 +88,12 @@ contract KyberDmmSampler is
     /// @return pools The pool addresses involved in the multi path trade
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    function sampleSellsFromKyberDmm(
+    function _sampleSellsFromKyberDmm(
         address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
     )
-        public
+        internal 
         view
         returns (address[] memory pools, uint256[] memory makerTokenAmounts)
     {
