@@ -618,6 +618,7 @@ export const CURVE_POOLS = {
     mim: '0x5a6a4d54456819380173272a5e8e9b9904bdf41b',
     eurt: '0xfd5db7463a3ab53fd211b4af195c5bccc1a03890',
     ethcrv: '0x8301ae4fc9c624d1d396cbdaa1ed877821d7c511',
+    ethcvx: '0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4',
 };
 
 export const CURVE_V2_POOLS = {
@@ -1148,6 +1149,17 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
             // This pool uses ETH
             tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.CRV],
             pool: CURVE_POOLS.ethcrv,
+            gasSchedule: 350e3,
+        }),
+        // This pool has a custom get_dy and exchange selector with uint256
+        sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_uint256,
+        exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_uint256,
+    },
+    [CURVE_POOLS.ethcvx]: {
+        ...createCurveExchangePool({
+            // This pool uses ETH
+            tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.CVX],
+            pool: CURVE_POOLS.ethcvx,
             gasSchedule: 350e3,
         }),
         // This pool has a custom get_dy and exchange selector with uint256
