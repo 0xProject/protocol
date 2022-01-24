@@ -27,6 +27,7 @@ import "./interfaces/ISmoothy.sol";
 import "./SamplerBase.sol";
 
 contract SmoothySampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -59,7 +60,7 @@ contract SmoothySampler is
             smoothyInfo,
             fromTokenIdx,
             toTokenIdx,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

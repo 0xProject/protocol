@@ -33,7 +33,10 @@ interface ICToken {
     function decimals() external view returns (uint8);
 }
 
-contract CompoundSampler is SamplerUtils {
+contract CompoundSampler is
+    SamplerBase,
+    SamplerUtils
+{
     uint256 constant private EXCHANGE_RATE_SCALE = 1e10;
 
     function sampleSellsFromCompoundGlobal(
@@ -49,7 +52,7 @@ contract CompoundSampler is SamplerUtils {
             cToken,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

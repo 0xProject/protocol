@@ -24,7 +24,8 @@ import "./interfaces/IUniswapV2Router01.sol";
 import "./SamplerBase.sol";
 
 
-contract UniswapV2Sampler
+contract UniswapV2Sampler is
+    SamplerBase
 {
     /// @dev Gas limit for UniswapV2 calls.
     uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k
@@ -45,7 +46,7 @@ contract UniswapV2Sampler
         makerTokenAmounts = this.sampleSellsFromUniswapV2(
             router,
             path,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

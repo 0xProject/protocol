@@ -27,6 +27,7 @@ import "./SamplerBase.sol";
 
 
 contract MooniswapSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -53,7 +54,7 @@ contract MooniswapSampler is
             registry,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

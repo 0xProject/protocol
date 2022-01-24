@@ -27,6 +27,7 @@ import "./SamplerBase.sol";
 
 
 contract ShellSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -57,7 +58,7 @@ contract ShellSampler is
             pool,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

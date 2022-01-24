@@ -188,7 +188,7 @@ export class SamplerOperations {
             handleCallResults: (_callResults: string) => true,
             handleRevert: () => {
                 /* should never happen */
-                throw new Error('Invalid address for isAddressContract');
+                throw new Error('Invalid result for setting sample values');
             },
         };
     }
@@ -421,7 +421,7 @@ export class SamplerOperations {
         providerAddress: string,
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
         gasCost: number,
         source: ERC20BridgeSource = ERC20BridgeSource.LiquidityProvider,
     ): SourceQuoteOperation<LiquidityProviderFillData> {
@@ -432,8 +432,8 @@ export class SamplerOperations {
                 gasCost,
             },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromLiquidityProvider,
-            params: [providerAddress, takerToken, makerToken, takerFillAmounts],
+            function: this._samplerContract.sampleSellsFromLiquidityProviderGlobal,
+            params: [providerAddress, takerToken, makerToken],
         });
     }
 
@@ -936,15 +936,15 @@ export class SamplerOperations {
         poolAddress: string,
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
         source: ERC20BridgeSource = ERC20BridgeSource.Shell,
     ): SourceQuoteOperation<ShellFillData> {
         return new SamplerContractOperation({
             source,
             fillData: { poolAddress },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromShell,
-            params: [poolAddress, takerToken, makerToken, takerFillAmounts],
+            function: this._samplerContract.sampleSellsFromShellGlobal,
+            params: [poolAddress, takerToken, makerToken],
         });
     }
 
@@ -1060,7 +1060,7 @@ export class SamplerOperations {
         psmInfo: PsmInfo,
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<MakerPsmFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.MakerPsm,
@@ -1071,8 +1071,8 @@ export class SamplerOperations {
                 ...psmInfo,
             },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromMakerPsm,
-            params: [psmInfo, takerToken, makerToken, takerFillAmounts],
+            function: this._samplerContract.sampleSellsFromMakerPsmGlobal,
+            params: [psmInfo, takerToken, makerToken],
         });
     }
 
@@ -1100,7 +1100,7 @@ export class SamplerOperations {
         lidoInfo: LidoInfo,
         makerToken: string,
         takerToken: string,
-        takerFillAmounts: BigNumber[],
+        _takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<LidoFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
@@ -1109,8 +1109,8 @@ export class SamplerOperations {
                 stEthTokenAddress: lidoInfo.stEthToken,
             },
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromLido,
-            params: [lidoInfo, takerToken, makerToken, takerFillAmounts],
+            function: this._samplerContract.sampleSellsFromLidoGlobal,
+            params: [lidoInfo, takerToken, makerToken],
         });
     }
 

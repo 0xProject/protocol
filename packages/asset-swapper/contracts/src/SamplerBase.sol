@@ -23,15 +23,7 @@ pragma experimental ABIEncoderV2;
 contract SamplerBase
 {
     /// @dev Stored Sample values for each Sampler to pull
-    uint256[] private SAMPLE_VALUES = new uint256[](0);
-
-    function getSampleValues()
-        public
-        view
-        returns (uint256[] memory sampleValues)
-    {
-        sampleValues = SAMPLE_VALUES;
-    }
+    uint256[] internal SAMPLE_VALUES = new uint256[](0);
 
     function setSampleValues(uint256[] memory sampleValues)
         public

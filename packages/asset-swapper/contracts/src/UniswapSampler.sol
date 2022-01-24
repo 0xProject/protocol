@@ -37,6 +37,7 @@ interface IUniswapExchangeFactory {
 
 
 contract UniswapSampler is
+    SamplerBase,
     SamplerUtils
 {
     /// @dev Gas limit for Uniswap calls.
@@ -61,7 +62,7 @@ contract UniswapSampler is
             router,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
     /// @dev Sample sell quotes from Uniswap.

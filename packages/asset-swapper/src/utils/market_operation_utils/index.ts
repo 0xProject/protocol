@@ -1,7 +1,6 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
-import { sample } from 'lodash';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
@@ -165,6 +164,7 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
+            // Set the global sample value to discover the network fee token in maker token
             this._sampler.setSampleValues([this._nativeFeeTokenAmount]),
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
@@ -173,6 +173,7 @@ export class MarketOperationUtils {
                 this._nativeFeeTokenAmount,
             ),
             // Get ETH -> taker token price.
+            // Set the global sample value to discover the network fee token in taker token
             this._sampler.getMedianSellRate(
                 feeSourceFilters.sources,
                 takerToken,
@@ -180,8 +181,10 @@ export class MarketOperationUtils {
                 this._nativeFeeTokenAmount,
             ),
             // Get sell quotes for taker -> maker.
+            // Set the global sample values to the increasing sized samples up to takerAmount
             this._sampler.setSampleValues(sampleAmounts),
             this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
+            // Set the global sample values to just the entire amount for MultiHop
             this._sampler.setSampleValues([takerAmount]),
             this._sampler.getTwoHopSellQuotes(
                 quoteSourceFilters.isAllowed(ERC20BridgeSource.MultiHop) ? quoteSourceFilters.sources : [],
@@ -202,12 +205,12 @@ export class MarketOperationUtils {
                 gasBefore,
                 tokenDecimals,
                 orderFillableTakerAmounts,
-                _setSample1,
+                _setFeeTokenSample,
                 outputAmountPerEth,
                 inputAmountPerEth,
-                _setSample2,
+                _setSampleValues,
                 dexQuotes,
-                _setSample3,
+                _setMultiHopSample,
                 rawTwoHopQuotes,
                 isTxOriginContract,
                 gasAfter,

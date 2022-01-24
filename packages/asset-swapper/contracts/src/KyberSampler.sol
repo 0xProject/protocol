@@ -27,6 +27,7 @@ import "./SamplerBase.sol";
 
 
 contract KyberSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -63,7 +64,7 @@ contract KyberSampler is
             opts,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

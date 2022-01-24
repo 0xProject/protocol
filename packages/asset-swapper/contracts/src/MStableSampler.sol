@@ -27,6 +27,7 @@ import "./SamplerBase.sol";
 
 
 contract MStableSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -52,7 +53,7 @@ contract MStableSampler is
             router,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
     /// @dev Sample sell quotes from the mStable contract
