@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBalancer.sol";
+import "./SamplerBase.sol";
 
 
 contract BalancerSampler {
@@ -40,6 +41,29 @@ contract BalancerSampler {
         uint256 takerTokenWeight;
         uint256 makerTokenWeight;
         uint256 swapFee;
+    }
+
+    /// @dev Sample sell quotes from Balancer.
+    /// @param poolAddress Address of the Balancer pool to query.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromBalancerGlobal(
+        address poolAddress,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromBalancer(
+            poolAddress,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
     }
 
     /// @dev Sample sell quotes from Balancer.

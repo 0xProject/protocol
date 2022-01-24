@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IUniswapExchangeQuotes.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 interface IUniswapExchangeFactory {
@@ -41,6 +42,28 @@ contract UniswapSampler is
     /// @dev Gas limit for Uniswap calls.
     uint256 constant private UNISWAP_CALL_GAS = 150e3; // 150k
 
+    /// @dev Sample sell quotes from Uniswap.
+    /// @param router Address of the Uniswap Router
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromUniswapGlobal(
+        address router,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromUniswap(
+            router,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
     /// @dev Sample sell quotes from Uniswap.
     /// @param router Address of the Uniswap Router
     /// @param takerToken Address of the taker token (what to sell).

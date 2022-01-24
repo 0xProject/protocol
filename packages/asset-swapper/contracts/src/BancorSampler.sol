@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBancor.sol";
+import "./SamplerBase.sol";
 
 contract CompilerHack {}
 
@@ -38,7 +39,31 @@ contract BancorSampler is CompilerHack {
     /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
-    /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return bancorNetwork the Bancor Network address
+    /// @return path the selected conversion path from bancor
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromBancorGlobal(
+        BancorSamplerOpts memory opts,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts)
+    {
+        (bancorNetwork, path, makerTokenAmounts) = this.sampleSellsFromBancor(
+            opts,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
+
+    /// @dev Sample sell quotes from Bancor.
+    /// @param opts BancorSamplerOpts The Bancor registry contract address and paths
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @return bancorNetwork the Bancor Network address
     /// @return path the selected conversion path from bancor
     /// @return makerTokenAmounts Maker amounts bought at each taker token

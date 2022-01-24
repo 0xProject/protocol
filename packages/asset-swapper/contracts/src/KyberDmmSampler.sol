@@ -20,6 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
+import "./SamplerBase.sol";
+
 interface IKyberDmmPool {
 
     function totalSupply()
@@ -58,6 +60,26 @@ contract KyberDmmSampler
     /// @dev Gas limit for KyberDmm calls.
     uint256 constant private KYBER_DMM_CALL_GAS = 150e3; // 150k
 
+    /// @dev Sample sell quotes from KyberDmm.
+    /// @param router Router to look up tokens and amounts
+    /// @param path Token route. Should be takerToken -> makerToken
+    /// @return pools The pool addresses involved in the multi path trade
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromKyberDmmGlobal(
+        address router,
+        address[] memory path
+    )
+        public
+        view
+        returns (address[] memory pools, uint256[] memory makerTokenAmounts)
+    {
+        (pools, makerTokenAmounts) = this.sampleSellsFromKyberDmm(
+            router,
+            path,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
     /// @dev Sample sell quotes from KyberDmm.
     /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken

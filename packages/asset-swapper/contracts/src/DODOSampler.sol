@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 interface IDODOZoo {
@@ -47,6 +48,31 @@ contract DODOSampler is
     struct DODOSamplerOpts {
         address registry;
         address helper;
+    }
+
+    /// @dev Sample sell quotes from DODO.
+    /// @param opts DODOSamplerOpts DODO Registry and helper addresses
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return sellBase whether the bridge needs to sell the base token
+    /// @return pool the DODO pool address
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromDODOGlobal(
+        DODOSamplerOpts memory opts,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts)
+    {
+        (sellBase, pool, makerTokenAmounts) = this.sampleSellsFromDODO(
+            opts,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
     }
 
     /// @dev Sample sell quotes from DODO.

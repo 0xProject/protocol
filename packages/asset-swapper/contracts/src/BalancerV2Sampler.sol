@@ -21,6 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 /// @dev Minimal Balancer V2 Vault interface
 ///      for documentation refer to https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
@@ -58,6 +59,28 @@ contract BalancerV2Sampler is SamplerUtils {
     struct BalancerV2PoolInfo {
         bytes32 poolId;
         address vault;
+    }
+
+    /// @dev Sample sell quotes from Balancer V2.
+    /// @param poolInfo Struct with pool related data
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromBalancerV2Global(
+        BalancerV2PoolInfo memory poolInfo,
+        address takerToken,
+        address makerToken
+    )
+        public
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromBalancerV2(
+            poolInfo,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
     }
 
     /// @dev Sample sell quotes from Balancer V2.

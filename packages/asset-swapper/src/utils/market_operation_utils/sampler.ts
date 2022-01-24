@@ -162,6 +162,25 @@ export class DexOrderSampler extends SamplerOperations {
         BatchedOperationResult<T10>,
     ]>;
 
+    // prettier-ignore
+    public async executeAsync<
+        T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13
+    >(...ops: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]): Promise<[
+        BatchedOperationResult<T1>,
+        BatchedOperationResult<T2>,
+        BatchedOperationResult<T3>,
+        BatchedOperationResult<T4>,
+        BatchedOperationResult<T5>,
+        BatchedOperationResult<T6>,
+        BatchedOperationResult<T7>,
+        BatchedOperationResult<T8>,
+        BatchedOperationResult<T9>,
+        BatchedOperationResult<T10>,
+        BatchedOperationResult<T11>,
+        BatchedOperationResult<T12>,
+        BatchedOperationResult<T13>,
+    ]>;
+
     /**
      * Run a series of operations from `DexOrderSampler.ops` in a single transaction.
      */

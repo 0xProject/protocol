@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/ICurve.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 contract CurveSampler is
@@ -39,6 +40,29 @@ contract CurveSampler is
     /// @dev Base gas limit for Curve calls. Some Curves have multiple tokens
     ///      So a reasonable ceil is 150k per token. Biggest Curve has 4 tokens.
     uint256 constant private CURVE_CALL_GAS = 2000e3; // Was 600k for Curve but SnowSwap is using 1500k+
+
+    /// @dev Sample sell quotes from Curve.
+    /// @param curveInfo Curve information specific to this token pair.
+    /// @param fromTokenIdx Index of the taker token (what to sell).
+    /// @param toTokenIdx Index of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromCurveGlobal(
+        CurveInfo memory curveInfo,
+        int128 fromTokenIdx,
+        int128 toTokenIdx
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromCurve(
+            curveInfo,
+            fromTokenIdx,
+            toTokenIdx,
+            SamplerBase(address(this)).getSampleValues()
+        );
+    }
 
     /// @dev Sample sell quotes from Curve.
     /// @param curveInfo Curve information specific to this token pair.

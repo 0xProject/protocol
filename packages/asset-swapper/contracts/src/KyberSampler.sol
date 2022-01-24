@@ -23,6 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./interfaces/IKyberNetwork.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 contract KyberSampler is
@@ -40,6 +41,30 @@ contract KyberSampler is
         address networkProxy;
         address weth;
         bytes hint;
+    }
+
+    /// @dev Sample sell quotes from Kyber.
+    /// @param opts KyberSamplerOpts The nth reserve
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return reserveId The id of the reserve found at reserveOffset
+    /// @return hint The hint for the selected reserve
+    /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
+    function sampleSellsFromKyberNetworkGlobal(
+        KyberSamplerOpts memory opts,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (bytes32 reserveId, bytes memory hint, uint256[] memory makerTokenAmounts)
+    {
+        (reserveId, hint, makerTokenAmounts) = this.sampleSellsFromKyberNetwork(
+            opts,
+            takerToken,
+            makerToken,
+            SamplerBase(address(this)).getSampleValues()
+        );
     }
 
     /// @dev Sample sell quotes from Kyber.

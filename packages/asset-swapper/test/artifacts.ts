@@ -37,6 +37,7 @@ import * as MooniswapSampler from '../test/generated-artifacts/MooniswapSampler.
 import * as MStableSampler from '../test/generated-artifacts/MStableSampler.json';
 import * as MultiBridgeSampler from '../test/generated-artifacts/MultiBridgeSampler.json';
 import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
+import * as SamplerBase from '../test/generated-artifacts/SamplerBase.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
 import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
@@ -68,6 +69,7 @@ export const artifacts = {
     MooniswapSampler: MooniswapSampler as ContractArtifact,
     MultiBridgeSampler: MultiBridgeSampler as ContractArtifact,
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,
+    SamplerBase: SamplerBase as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
     SmoothySampler: SmoothySampler as ContractArtifact,
