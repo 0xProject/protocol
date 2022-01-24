@@ -44,6 +44,7 @@ interface IDODOV2Pool {
 }
 
 contract DODOV2Sampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -75,7 +76,7 @@ contract DODOV2Sampler is
             offset,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

@@ -49,7 +49,8 @@ interface IUniswapV3Pool {
     function fee() external view returns (uint24);
 }
 
-contract UniswapV3Sampler
+contract UniswapV3Sampler is
+    SamplerBase
 {
     /// @dev Gas limit for UniswapV3 calls. This is 100% a guess.
     uint256 constant private QUOTE_GAS = 600e3;
@@ -73,7 +74,7 @@ contract UniswapV3Sampler
         (uniswapPaths, makerTokenAmounts) = this.sampleSellsFromUniswapV3(
             quoter,
             path,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
     /// @dev Sample sell quotes from UniswapV3.

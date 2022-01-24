@@ -39,6 +39,7 @@ interface IDODO {
 }
 
 contract DODOSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -71,7 +72,7 @@ contract DODOSampler is
             opts,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

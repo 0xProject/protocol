@@ -54,7 +54,10 @@ interface IAsset {
     // solhint-disable-previous-line no-empty-blocks
 }
 
-contract BalancerV2Sampler is SamplerUtils {
+contract BalancerV2Sampler is
+    SamplerBase,
+    SamplerUtils
+{
 
     struct BalancerV2PoolInfo {
         bytes32 poolId;
@@ -79,7 +82,7 @@ contract BalancerV2Sampler is SamplerUtils {
             poolInfo,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

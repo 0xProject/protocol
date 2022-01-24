@@ -25,7 +25,10 @@ import "./SamplerBase.sol";
 
 contract CompilerHack {}
 
-contract BancorSampler is CompilerHack {
+contract BancorSampler is
+    SamplerBase,
+    CompilerHack
+{
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k
@@ -56,7 +59,7 @@ contract BancorSampler is CompilerHack {
             opts,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

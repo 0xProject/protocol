@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "./SamplerBase.sol";
 
 interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM
@@ -80,6 +81,7 @@ interface IVAT {
 }
 
 contract MakerPSMSampler is
+    SamplerBase,
     SamplerUtils
 {
     using LibSafeMathV06 for uint256;
@@ -103,6 +105,24 @@ contract MakerPSMSampler is
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
     uint256 constant private RAD = 10 ** 45;
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.m
+
+    /// @dev Sample sell quotes from Maker PSM
+    function sampleSellsFromMakerPsmGlobal(
+        MakerPsmInfo memory psmInfo,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromMakerPsm(
+            psmInfo,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
 
     /// @dev Sample sell quotes from Maker PSM
     function sampleSellsFromMakerPsm(

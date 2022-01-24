@@ -24,7 +24,9 @@ import "./interfaces/IBalancer.sol";
 import "./SamplerBase.sol";
 
 
-contract BalancerSampler {
+contract BalancerSampler is
+    SamplerBase
+{
 
     /// @dev Base gas limit for Balancer calls.
     uint256 constant private BALANCER_CALL_GAS = 300e3; // 300k
@@ -62,7 +64,7 @@ contract BalancerSampler {
             poolAddress,
             takerToken,
             makerToken,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

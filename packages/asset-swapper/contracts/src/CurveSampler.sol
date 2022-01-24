@@ -27,6 +27,7 @@ import "./SamplerBase.sol";
 
 
 contract CurveSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
@@ -60,7 +61,7 @@ contract CurveSampler is
             curveInfo,
             fromTokenIdx,
             toTokenIdx,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
 

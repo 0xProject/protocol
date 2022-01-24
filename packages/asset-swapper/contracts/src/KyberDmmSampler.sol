@@ -55,7 +55,8 @@ interface IKyberDmmRouter {
 
 
 
-contract KyberDmmSampler
+contract KyberDmmSampler is
+    SamplerBase
 {
     /// @dev Gas limit for KyberDmm calls.
     uint256 constant private KYBER_DMM_CALL_GAS = 150e3; // 150k
@@ -77,7 +78,7 @@ contract KyberDmmSampler
         (pools, makerTokenAmounts) = this.sampleSellsFromKyberDmm(
             router,
             path,
-            SamplerBase(address(this)).getSampleValues()
+            SAMPLE_VALUES
         );
     }
     /// @dev Sample sell quotes from KyberDmm.

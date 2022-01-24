@@ -21,11 +21,38 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
-contract LidoSampler is SamplerUtils {
+
+contract LidoSampler is
+    SamplerBase,
+    SamplerUtils
+{
     struct LidoInfo {
         address stEthToken;
         address wethToken;
+    }
+
+    /// @dev Sample sell quotes from Lido
+    /// @param lidoInfo Info regarding a specific Lido deployment
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromLidoGlobal(
+        LidoInfo memory lidoInfo,
+        address takerToken,
+        address makerToken
+    )
+        public
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromLido(
+            lidoInfo,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
     }
 
     /// @dev Sample sell quotes from Lido

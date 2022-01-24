@@ -24,14 +24,39 @@ import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-zero-ex/contracts/src/vendor/ILiquidityProvider.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
+import "./SamplerBase.sol";
 
 
 contract LiquidityProviderSampler is
+    SamplerBase,
     SamplerUtils,
     ApproximateBuys
 {
     /// @dev Default gas limit for liquidity provider calls.
     uint256 constant private DEFAULT_CALL_GAS = 400e3; // 400k
+
+    /// @dev Sample sell quotes from an arbitrary on-chain liquidity provider.
+    /// @param providerAddress Address of the liquidity provider.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
+    /// @return makerTokenAmounts Maker amounts bought at each taker token
+    ///         amount.
+    function sampleSellsFromLiquidityProviderGlobal(
+        address providerAddress,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        makerTokenAmounts = this.sampleSellsFromLiquidityProvider(
+            providerAddress,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
 
     /// @dev Sample sell quotes from an arbitrary on-chain liquidity provider.
     /// @param providerAddress Address of the liquidity provider.
