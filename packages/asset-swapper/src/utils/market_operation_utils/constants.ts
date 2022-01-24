@@ -1426,7 +1426,7 @@ export const SYNAPSE_BSC_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_BSC_POOLS.nUSDLP,
-        tokens: [BSC_TOKENS.nUSD, BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC],
+        tokens: [BSC_TOKENS.nUSD, BSC_TOKENS.BUSD, BSC_TOKENS.USDC, BSC_TOKENS.USDT],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
