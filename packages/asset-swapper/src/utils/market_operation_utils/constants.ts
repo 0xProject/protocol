@@ -203,7 +203,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MultiHop,
-         ]),
+        ]),
     },
     new SourceFilters([]),
 );
@@ -345,7 +345,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MultiHop,
-         ]),
+        ]),
     },
     new SourceFilters([]),
 );
