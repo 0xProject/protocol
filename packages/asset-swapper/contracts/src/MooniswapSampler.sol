@@ -142,17 +142,41 @@ contract MooniswapSampler is
     /// @param registry Address of the Mooniswap Registry.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return pool The contract address for the pool
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromMooniswapGlobal(
+        address registry,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (IMooniswap pool, uint256[] memory takerTokenAmounts)
+    {
+        (pool, takerTokenAmounts) = _sampleBuysFromMooniswap(
+            registry,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from Mooniswap.
+    /// @param registry Address of the Mooniswap Registry.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
     /// @return pool The contract address for the pool
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromMooniswap(
+    function _sampleBuysFromMooniswap(
         address registry,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (IMooniswap pool, uint256[] memory takerTokenAmounts)
     {

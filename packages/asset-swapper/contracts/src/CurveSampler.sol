@@ -109,16 +109,39 @@ contract CurveSampler is
     /// @param curveInfo Curve information specific to this token pair.
     /// @param fromTokenIdx Index of the taker token (what to sell).
     /// @param toTokenIdx Index of the maker token (what to buy).
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromCurveGlobal(
+        CurveInfo memory curveInfo,
+        int128 fromTokenIdx,
+        int128 toTokenIdx
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        takerTokenAmounts = _sampleBuysFromCurve(
+            curveInfo,
+            fromTokenIdx,
+            toTokenIdx,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from Curve.
+    /// @param curveInfo Curve information specific to this token pair.
+    /// @param fromTokenIdx Index of the taker token (what to sell).
+    /// @param toTokenIdx Index of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromCurve(
+    function _sampleBuysFromCurve(
         CurveInfo memory curveInfo,
         int128 fromTokenIdx,
         int128 toTokenIdx,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

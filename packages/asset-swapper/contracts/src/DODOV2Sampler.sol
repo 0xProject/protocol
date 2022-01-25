@@ -130,19 +130,47 @@ contract DODOV2Sampler is
     /// @param offset offset index for the pool in the registry.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return sellBase whether the bridge needs to sell the base token
+    /// @return pool the DODO pool address
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromDODOV2Global(
+        address registry,
+        uint256 offset,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts)
+    {
+        (sellBase, pool, takerTokenAmounts) = _sampleBuysFromDODOV2(
+            registry,
+            offset,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from DODO.
+    /// @param registry Address of the registry to look up.
+    /// @param offset offset index for the pool in the registry.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample.
     /// @return sellBase whether the bridge needs to sell the base token
     /// @return pool the DODO pool address
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromDODOV2(
+    function _sampleBuysFromDODOV2(
         address registry,
         uint256 offset,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts)
     {

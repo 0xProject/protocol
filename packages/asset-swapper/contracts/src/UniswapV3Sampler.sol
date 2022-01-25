@@ -131,16 +131,39 @@ contract UniswapV3Sampler is
     /// @dev Sample buy quotes from UniswapV3.
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken.
+    /// @return uniswapPaths The encoded uniswap path for each sample.
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromUniswapV3Global(
+        IUniswapV3Quoter quoter,
+        IERC20TokenV06[] memory path
+    )
+        public
+        returns (
+            bytes[] memory uniswapPaths,
+            uint256[] memory takerTokenAmounts
+        )
+    {
+        (uniswapPaths, takerTokenAmounts) = _sampleBuysFromUniswapV3(
+            quoter,
+            path,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from UniswapV3.
+    /// @param quoter UniswapV3 Quoter contract.
+    /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return uniswapPaths The encoded uniswap path for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromUniswapV3(
+    function _sampleBuysFromUniswapV3(
         IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         returns (
             bytes[] memory uniswapPaths,
             uint256[] memory takerTokenAmounts

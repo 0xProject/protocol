@@ -134,16 +134,39 @@ contract BalancerSampler is
     /// @param poolAddress Address of the Balancer pool to query.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromBalancerGlobal(
+        address poolAddress,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        takerTokenAmounts = _sampleBuysFromBalancer(
+            poolAddress,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from Balancer.
+    /// @param poolAddress Address of the Balancer pool to query.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromBalancer(
+    function _sampleBuysFromBalancer(
         address poolAddress,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

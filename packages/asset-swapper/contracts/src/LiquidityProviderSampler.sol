@@ -106,16 +106,39 @@ contract LiquidityProviderSampler is
     /// @param providerAddress Address of the liquidity provider.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromLiquidityProviderGlobal(
+        address providerAddress,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        (takerTokenAmounts) = _sampleBuysFromLiquidityProvider(
+            providerAddress,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from an arbitrary on-chain liquidity provider.
+    /// @param providerAddress Address of the liquidity provider.
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromLiquidityProvider(
+    function _sampleBuysFromLiquidityProvider(
         address providerAddress,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

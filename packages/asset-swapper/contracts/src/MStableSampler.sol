@@ -101,16 +101,39 @@ contract MStableSampler is
     /// @param router Address of the mStable contract
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromMStableGlobal(
+        address router,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        (takerTokenAmounts) = _sampleBuysFromMStable(
+            router,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from MStable contract
+    /// @param router Address of the mStable contract
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromMStable(
+    function _sampleBuysFromMStable(
         address router,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

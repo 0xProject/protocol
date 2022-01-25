@@ -86,7 +86,8 @@ contract TwoHopSampler is
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
         uint256 buyAmount
-    )
+    ) 
+        resetsSampleValues()
         public
         returns (
             HopInfo memory firstHop,
@@ -96,8 +97,11 @@ contract TwoHopSampler is
     {
         sellAmount = uint256(-1);
         uint256 intermediateAssetAmount = uint256(-1);
+        uint256[] memory tmpSampleValues = new uint256[](1);
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, buyAmount);
+            // Set the temporary global sample values
+            tmpSampleValues[0] = buyAmount;
+            SAMPLE_VALUES = tmpSampleValues;
             (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
@@ -115,7 +119,9 @@ contract TwoHopSampler is
             return (firstHop, secondHop, sellAmount);
         }
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, intermediateAssetAmount);
+            // Set the temporary global sample values
+            tmpSampleValues[0] = intermediateAssetAmount;
+            SAMPLE_VALUES = tmpSampleValues;
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);

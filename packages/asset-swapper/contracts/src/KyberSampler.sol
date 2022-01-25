@@ -115,17 +115,41 @@ contract KyberSampler is
     /// @param opts KyberSamplerOpts The nth reserve
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
+    /// @return reserveId The id of the reserve found at reserveOffset
+    /// @return hint The hint for the selected reserve
+    /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
+    function sampleBuysFromKyberNetworkGlobal(
+        KyberSamplerOpts memory opts,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (bytes32 reserveId, bytes memory hint, uint256[] memory takerTokenAmounts)
+    {
+        (reserveId, hint, takerTokenAmounts) = _sampleBuysFromKyberNetwork(
+            opts,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from Kyber.
+    /// @param opts KyberSamplerOpts The nth reserve
+    /// @param takerToken Address of the taker token (what to sell).
+    /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return reserveId The id of the reserve found at reserveOffset
     /// @return hint The hint for the selected reserve
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
-    function sampleBuysFromKyberNetwork(
+    function _sampleBuysFromKyberNetwork(
         KyberSamplerOpts memory opts,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (bytes32 reserveId, bytes memory hint, uint256[] memory takerTokenAmounts)
     {
