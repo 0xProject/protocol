@@ -157,13 +157,30 @@ contract MakerPSMSampler is
         }
     }
 
-    function sampleBuysFromMakerPsm(
+    function sampleBuysFromMakerPsmGlobal(
+        MakerPsmInfo memory psmInfo,
+        address takerToken,
+        address makerToken
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        (takerTokenAmounts) = _sampleBuysFromMakerPsm(
+            psmInfo,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    function _sampleBuysFromMakerPsm(
         MakerPsmInfo memory psmInfo,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

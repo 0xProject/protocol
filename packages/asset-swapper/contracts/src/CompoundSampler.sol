@@ -86,13 +86,30 @@ contract CompoundSampler is
         }
     }
 
-    function sampleBuysFromCompound(
+    function sampleBuysFromCompoundGlobal(
+        ICToken cToken,
+        IERC20TokenV06 takerToken,
+        IERC20TokenV06 makerToken
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        takerTokenAmounts = _sampleBuysFromCompound(
+            cToken,
+            takerToken,
+            makerToken,
+            SAMPLE_VALUES
+        );
+    }
+
+    function _sampleBuysFromCompound(
         ICToken cToken,
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {

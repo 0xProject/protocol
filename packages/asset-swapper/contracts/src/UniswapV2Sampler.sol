@@ -89,15 +89,35 @@ contract UniswapV2Sampler is
     /// @dev Sample buy quotes from UniswapV2.
     /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken.
+    /// @return takerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
+    function sampleBuysFromUniswapV2Global(
+        address router,
+        address[] memory path
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        takerTokenAmounts = _sampleBuysFromUniswapV2(
+            router,
+            path,
+            SAMPLE_VALUES
+        );
+    }
+
+    /// @dev Sample buy quotes from UniswapV2.
+    /// @param router Router to look up tokens and amounts
+    /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
-    function sampleBuysFromUniswapV2(
+    function _sampleBuysFromUniswapV2(
         address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
     )
-        public
+        internal
         view
         returns (uint256[] memory takerTokenAmounts)
     {
