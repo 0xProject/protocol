@@ -134,6 +134,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BakerySwap');
         case ERC20BridgeSource.Nerve:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Nerve');
+        case ERC20BridgeSource.Synapse:
+            return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Synapse');
         case ERC20BridgeSource.Belt:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Belt');
         case ERC20BridgeSource.Ellipsis:
@@ -226,6 +228,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Swerve:
         case ERC20BridgeSource.SnowSwap:
         case ERC20BridgeSource.Nerve:
+        case ERC20BridgeSource.Synapse:
         case ERC20BridgeSource.Belt:
         case ERC20BridgeSource.Ellipsis:
         case ERC20BridgeSource.Smoothy:
@@ -463,6 +466,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Swerve]: curveEncoder,
     [ERC20BridgeSource.SnowSwap]: curveEncoder,
     [ERC20BridgeSource.Nerve]: curveEncoder,
+    [ERC20BridgeSource.Synapse]: curveEncoder,
     [ERC20BridgeSource.Belt]: curveEncoder,
     [ERC20BridgeSource.Ellipsis]: curveEncoder,
     [ERC20BridgeSource.Smoothy]: curveEncoder,
