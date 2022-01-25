@@ -199,7 +199,11 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3, ERC20BridgeSource.Synapse]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+         ]),
     },
     new SourceFilters([]),
 );
@@ -337,7 +341,11 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3, ERC20BridgeSource.Synapse]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+         ]),
     },
     new SourceFilters([]),
 );
@@ -473,8 +481,7 @@ export const MAINNET_TOKENS = {
     MIM: '0x99d8a9c45b2eca8864373a26d1459e3dff1e17f3',
     EURT: '0xc581b735a1688071a1746c968e0798d642ede491',
     // Synapse ecosystem
-    nUSD: '0x1B84765dE8B7566e4cEAF4D0fD3c5aF52D3DdE4F',
-    SYN: '0x0f2d719407fdbeff09d87557abb7232601fd9f29',
+    nUSD: '0x1b84765de8b7566e4ceaf4d0fd3c5af52d3dde4f',
     CVX: '0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b',
 };
 
@@ -493,7 +500,6 @@ export const BSC_TOKENS = {
     renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
     pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
     nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
-    SYN: '0xa4080f1778e69467e905b8d6f72f6e441f9e9484',
 };
 
 export const POLYGON_TOKENS = {
@@ -558,7 +564,6 @@ export const FANTOM_TOKENS = {
     WBTC: '0x321162cd933e2be498cd2267a90534a804051b11',
     renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
     MIM: '0x82f0b8b456c1a451378467398982d4834b6829c1',
-    SYN: '0xe55e19fb4f2d85af758950957714292dac1e25b2',
     nUSD: '0xed2a7edd7413021d440b09d654f3b87712abab66',
     nETH: '0x67c10c397dd0ba417329543c1a40eb48aaa7cd00',
 };
@@ -689,7 +694,7 @@ export const NERVE_POOLS = {
 };
 
 export const SYNAPSE_MAINNET_POOLS = {
-    nUSDLP: '0x1116898DdA4015eD8dDefb84b6e8Bc24528Af2d8',
+    nUSDLP: '0x1116898dda4015ed8ddefb84b6e8bc24528af2d8',
 };
 
 export const SYNAPSE_OPTIMISM_POOLS = {
@@ -701,7 +706,7 @@ export const SYNAPSE_BSC_POOLS = {
 };
 
 export const SYNAPSE_POLYGON_POOLS = {
-    nUSDLP: '0x85fCD7Dd0a1e1A9FCD5FD886ED522dE8221C3EE5',
+    nUSDLP: '0x85fcd7dd0a1e1a9fcd5fd886ed522de8221c3ee5',
 };
 
 export const SYNAPSE_FANTOM_POOLS = {
@@ -710,8 +715,8 @@ export const SYNAPSE_FANTOM_POOLS = {
 };
 
 export const SYNAPSE_AVALANCHE_POOLS = {
-    nUSDLP: '0xED2a7edd7413021d440b09D654f3b87712abAB66',
-    nETHLP: '0x77a7e60555bC18B4Be44C181b2575eee46212d44',
+    nUSDLP: '0xed2a7edd7413021d440b09d654f3b87712abab66',
+    nETHLP: '0x77a7e60555bc18b4be44c181b2575eee46212d44',
 };
 
 export const SYNAPSE_ARBITRUM_POOLS = {
@@ -1429,7 +1434,7 @@ export const SYNAPSE_BSC_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_BSC_POOLS.nUSDLP,
-        tokens: [BSC_TOKENS.nUSD, BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC],
+        tokens: [BSC_TOKENS.nUSD, BSC_TOKENS.BUSD, BSC_TOKENS.USDC, BSC_TOKENS.USDT],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
