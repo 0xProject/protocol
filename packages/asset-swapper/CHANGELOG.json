@@ -6,7 +6,8 @@
                 "note": "Use `MIM` as an intermediate asset on `Fantom`",
                 "pr": 405
             }
-        ]
+        ],
+        "timestamp": 1643148019
     },
     {
         "version": "16.47.0",

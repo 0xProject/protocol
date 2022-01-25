@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.48.0 - _January 25, 2022_
+
+    * Use `MIM` as an intermediate asset on `Fantom` (#405)
+
 ## v16.47.0 - _January 25, 2022_
 
     * Adding support for Synapse on all networks (#400)
