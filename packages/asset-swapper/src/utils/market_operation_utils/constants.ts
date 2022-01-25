@@ -104,6 +104,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            ERC20BridgeSource.Synapse,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -130,6 +131,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Nerve,
+            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
@@ -167,6 +169,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -177,6 +180,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -188,6 +192,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.BalancerV2,
@@ -203,7 +208,11 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -246,6 +255,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
+            ERC20BridgeSource.Synapse,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -286,6 +296,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -309,6 +320,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -319,6 +331,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -330,6 +343,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.BalancerV2,
@@ -345,7 +359,11 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
         ]),
-        [ChainId.Optimism]: new SourceFilters([ERC20BridgeSource.UniswapV3]),
+        [ChainId.Optimism]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -484,6 +502,8 @@ export const MAINNET_TOKENS = {
     CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
     MIM: '0x99d8a9c45b2eca8864373a26d1459e3dff1e17f3',
     EURT: '0xc581b735a1688071a1746c968e0798d642ede491',
+    // Synapse ecosystem
+    nUSD: '0x1b84765de8b7566e4ceaf4d0fd3c5af52d3dde4f',
     CVX: '0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b',
 };
 
@@ -501,6 +521,7 @@ export const BSC_TOKENS = {
     BTCB: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
     renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
     pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
+    nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
 };
 
 export const POLYGON_TOKENS = {
@@ -518,6 +539,7 @@ export const POLYGON_TOKENS = {
     DFYN: '0xc168e40227e4ebd8c1cae80f7a55a4f0e6d66c97',
     BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
+    nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -530,6 +552,9 @@ export const AVALANCHE_TOKENS = {
     aDAI: '0x47afa96cdc9fab46904a55a6ad4bf6660b53c38a',
     aUSDC: '0x46a51127c3ce23fb7ab1de06226147f446e4a857',
     aUSDT: '0x532e6537fea298397212f09a61e03311686f548e',
+    nETH: '0x19e1ae0ee35c0404f835521146206595d37981ae',
+    nUSD: '0xcfc37a6ab183dd4aed08c204d1c2773c0b1bdf46',
+    aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
 };
 
 export const CELO_TOKENS = {
@@ -560,6 +585,9 @@ export const FANTOM_TOKENS = {
     fUSDT: '0x049d68029688eabf473097a2fc38ef61633a3c7a',
     WBTC: '0x321162cd933e2be498cd2267a90534a804051b11',
     renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+    MIM: '0x82f0b8b456c1a451378467398982d4834b6829c1',
+    nUSD: '0xed2a7edd7413021d440b09d654f3b87712abab66',
+    nETH: '0x67c10c397dd0ba417329543c1a40eb48aaa7cd00',
 };
 
 export const ARBITRUM_TOKENS = {
@@ -577,6 +605,8 @@ export const OPTIMISM_TOKENS = {
     USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
     DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
+    nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
+    sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
 };
 
 export const CURVE_POOLS = {
@@ -703,6 +733,37 @@ export const NERVE_POOLS = {
     threePool: '0x1b3771a66ee31180906972580ade9b81afc5fcdc',
 };
 
+export const SYNAPSE_MAINNET_POOLS = {
+    nUSDLP: '0x1116898dda4015ed8ddefb84b6e8bc24528af2d8',
+};
+
+export const SYNAPSE_OPTIMISM_POOLS = {
+    nETHLP: '0xe27bff97ce92c3e1ff7aa9f86781fdd6d48f5ee9',
+};
+
+export const SYNAPSE_BSC_POOLS = {
+    nUSDLP: '0x28ec0b36f0819ecb5005cab836f4ed5a2eca4d13',
+};
+
+export const SYNAPSE_POLYGON_POOLS = {
+    nUSDLP: '0x85fcd7dd0a1e1a9fcd5fd886ed522de8221c3ee5',
+};
+
+export const SYNAPSE_FANTOM_POOLS = {
+    nUSDLP: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
+    nETHLP: '0x8d9ba570d6cb60c7e3e0f31343efe75ab8e65fb1',
+};
+
+export const SYNAPSE_AVALANCHE_POOLS = {
+    nUSDLP: '0xed2a7edd7413021d440b09d654f3b87712abab66',
+    nETHLP: '0x77a7e60555bc18b4be44c181b2575eee46212d44',
+};
+
+export const SYNAPSE_ARBITRUM_POOLS = {
+    nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
+    nETHLP: '0xd70a52248e546a3b260849386410c7170c7bd1e9',
+};
+
 export const BELT_POOLS = {
     vPool: '0xf16d312d119c13dd27fd0dc814b0bcdcaaa62dfd',
 };
@@ -760,6 +821,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.DAI,
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
+            POLYGON_TOKENS.nUSD,
         ],
         [ChainId.Avalanche]: [
             AVALANCHE_TOKENS.WAVAX,
@@ -767,7 +829,19 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
             AVALANCHE_TOKENS.USDC,
+            AVALANCHE_TOKENS.nUSD,
+            AVALANCHE_TOKENS.nETH,
+            AVALANCHE_TOKENS.aWETH,
         ],
+        [ChainId.Fantom]: [
+            FANTOM_TOKENS.WFTM,
+            FANTOM_TOKENS.WETH,
+            FANTOM_TOKENS.DAI,
+            FANTOM_TOKENS.USDC,
+            FANTOM_TOKENS.nUSD,
+            FANTOM_TOKENS.nETH,
+        ],
+<<<<<<< HEAD
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -782,6 +856,16 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
 >>>>>>> 1993929be (chore: Celo Update certain tokens since Optics v2 (#390))
         [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC],
 >>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
+=======
+        [ChainId.Celo]: [CELO_TOKENS.WCELO, CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.amCUSD, CELO_TOKENS.WBTC],
+        [ChainId.Optimism]: [
+            OPTIMISM_TOKENS.WETH,
+            OPTIMISM_TOKENS.DAI,
+            OPTIMISM_TOKENS.USDC,
+            OPTIMISM_TOKENS.nETH,
+            OPTIMISM_TOKENS.sWETH,
+        ],
+>>>>>>> 9d08fefa1 (Feat/synapse (#400))
     },
     [],
 );
@@ -814,7 +898,14 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         }).build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
-        }).build(),
+        })
+            .tap(builder => {
+                // Synape nETH/aWETH pool
+                builder
+                    .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
+                    .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
+            })
+            .build(),
         [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
         }).build(),
@@ -1422,6 +1513,87 @@ export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: NERVE_POOLS.threePool,
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_BSC_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_BSC_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_BSC_POOLS.nUSDLP,
+        tokens: [BSC_TOKENS.nUSD, BSC_TOKENS.BUSD, BSC_TOKENS.USDC, BSC_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_FANTOM_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_FANTOM_POOLS.nUSDLP,
+        tokens: [FANTOM_TOKENS.nUSD, FANTOM_TOKENS.MIM, FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_MAINNET_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_MAINNET_POOLS.nUSDLP,
+        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_OPTIMISM_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_OPTIMISM_POOLS.nETHLP,
+        tokens: [OPTIMISM_TOKENS.nETH, OPTIMISM_TOKENS.sWETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_POLYGON_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_POLYGON_POOLS.nUSDLP,
+        tokens: [POLYGON_TOKENS.nUSD, POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_AVALANCHE_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_AVALANCHE_POOLS.nUSDLP,
+        tokens: [AVALANCHE_TOKENS.nUSD, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_AVALANCHE_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_AVALANCHE_POOLS.nETHLP,
+        tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
@@ -2093,6 +2265,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Synapse]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Belt]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
