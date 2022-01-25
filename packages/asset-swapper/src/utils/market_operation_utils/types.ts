@@ -70,6 +70,7 @@ export enum ERC20BridgeSource {
     ShibaSwap = 'ShibaSwap',
     AaveV2 = 'Aave_V2',
     Compound = 'Compound',
+    Synapse = 'Synapse',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -130,7 +131,7 @@ export enum CurveFunctionSelectors {
     // Smoothy
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
-    // Nerve BSC, Saddle Mainnet
+    // Nerve BSC, Saddle Mainnet, Synapse
     swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
     calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
 }
