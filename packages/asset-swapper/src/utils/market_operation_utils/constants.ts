@@ -840,6 +840,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             FANTOM_TOKENS.USDC,
             FANTOM_TOKENS.nUSD,
             FANTOM_TOKENS.nETH,
+            FANTOM_TOKENS.MIM,
         ],
 <<<<<<< HEAD
         [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
