@@ -6399,10 +6399,10 @@ fake-merkle-patricia-tree@^1.0.1:
   dependencies:
     checkpoint-store "^1.1.0"
 
-fast-abi@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/fast-abi/-/fast-abi-0.0.2.tgz#da5f796fd7c7b0c966d916ee21daae3eca61c07c"
-  integrity sha512-k/2s63SkFf6jU2LyF6oQC5/N+L90q6VD1wkp2NXo+DSHoTeOJD2Q6Egpcs+bTPODik0CHxjb7lORgsG+QCRq/Q==
+fast-abi@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/fast-abi/-/fast-abi-0.0.3.tgz#b6da674cbbc699e6ccc32888642eb26dd09de1f4"
+  integrity sha512-3LhvfQQCbi9f+j4c6hNU7mIIX6Sn1Gj5fWVji90LmVj4cXLfF6kBi70SqcsTsW6YjzuhzFDHqXXb5/udFKNThg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.4"
     neon-cli "^0.8.0"
