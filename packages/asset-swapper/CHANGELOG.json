@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.48.0",
+        "changes": [
+            {
+                "note": "Use `MIM` as an intermediate asset on `Fantom`",
+                "pr": 405
+            }
+        ]
+    },
+    {
         "version": "16.47.0",
         "changes": [
             {

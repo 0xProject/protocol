@@ -800,6 +800,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             FANTOM_TOKENS.USDC,
             FANTOM_TOKENS.nUSD,
             FANTOM_TOKENS.nETH,
+            FANTOM_TOKENS.MIM,
         ],
         [ChainId.Celo]: [CELO_TOKENS.WCELO, CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.amCUSD, CELO_TOKENS.WBTC],
         [ChainId.Optimism]: [
