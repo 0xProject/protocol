@@ -6,7 +6,8 @@
                 "note": "Adding support for Synapse on all networks",
                 "pr": 400
             }
-        ]
+        ],
+        "timestamp": 1643136662
     },
     {
         "version": "16.46.0",
