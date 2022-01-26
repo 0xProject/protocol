@@ -938,6 +938,8 @@ export class RfqmService {
                     takerBalance,
                     makerAddress,
                     takerAddress,
+                    orderHash,
+                    order,
                 },
                 'Balance check failed while user was submitting',
             );
@@ -1381,6 +1383,20 @@ export class RfqmService {
             _job.status = RfqmJobStatus.FailedEthCallFailed;
             await this._dbUtils.updateRfqmJobAsync(_job);
             logger.error({ orderHash, error: error.message }, 'eth_call validation failed');
+
+            // Attempt to gather more information upon eth_call failure
+            try {
+                const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+                    [otcOrder.maker, otcOrder.taker],
+                    [otcOrder.makerToken, otcOrder.takerToken],
+                );
+                logger.info(
+                    { makerBalance, takerBalance, orderHash, order: otcOrder },
+                    'Balances after eth_call validation failed',
+                );
+            } catch (error) {
+                logger.warn({ orderHash }, 'Failed to get balances after eth_call validation failed');
+            }
             throw new Error('Eth call validation failed');
         }
 
