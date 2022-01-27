@@ -664,7 +664,7 @@ export const CURVE_POLYGON_POOLS = {
 };
 
 export const CURVE_V2_POLYGON_POOLS = {
-    atricrypto3: '0x1d8b86e3D88cDb2d34688e87E72F388Cb541B7C8',
+    atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
 };
 
 export const CURVE_AVALANCHE_POOLS = {
@@ -1368,12 +1368,12 @@ export const CURVE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_FANTOM_POOLS.tri_v2,
         gasSchedule: 176e3,
     }),
-    ['aave_exchangeunderlying']: createCurveExchangeUnderlyingPool({
+    ['geist_exchangeunderlying']: createCurveExchangeUnderlyingPool({
         tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT],
         pool: CURVE_FANTOM_POOLS.geist,
         gasSchedule: 850e3,
     }),
-    ['aave_exchange']: createCurveExchangePool({
+    ['geist_exchange']: createCurveExchangePool({
         tokens: [FANTOM_TOKENS.gDAI, FANTOM_TOKENS.gUSDC, FANTOM_TOKENS.gfUSDT],
         pool: CURVE_FANTOM_POOLS.geist,
         gasSchedule: 150e3,
