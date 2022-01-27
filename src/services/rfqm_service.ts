@@ -345,6 +345,24 @@ export class RfqmService {
         // Fetch all indicative quotes
         const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice);
 
+        // Log any quotes that are for the incorrect amount
+        indicativeQuotes.forEach((quote) => {
+            const quotedAmount = isSelling ? quote.takerAmount : quote.makerAmount;
+            if (quotedAmount.eq(assetFillAmount)) {
+                return;
+            }
+            logger.warn(
+                {
+                    isSelling,
+                    overOrUnder: quotedAmount.gt(assetFillAmount) ? 'overfill' : 'underfill',
+                    requestedAmount: assetFillAmount,
+                    quotedAmount,
+                    quote,
+                },
+                'Maker returned an incorrect amount',
+            );
+        });
+
         // Get the best quote
         const bestQuote = getBestQuote(
             indicativeQuotes,
