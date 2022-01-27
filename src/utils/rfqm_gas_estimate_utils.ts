@@ -18,7 +18,7 @@ const TOKEN_GAS_PREMIUM: Record<string, number> = {
 };
 
 // If the buy token is native, an unwrap operation is needed which cost us additional gas.
-const UNWRAP_PREMIUM: number = 10e3;
+const UNWRAP_PREMIUM: number = 0;
 
 /**
  * Prepares the gas estimate for an RFQM trade
