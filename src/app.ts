@@ -119,7 +119,12 @@ export async function getContractAddressesForNetworkOrThrowAsync(
 async function createAndInitializePairsManagerAsync(
     configManager: ConfigManager,
     rfqMakerDbUtils: RfqMakerDbUtils,
-): Promise<PairsManager> {
+): Promise<PairsManager | undefined> {
+    const chainId = configManager.getChainId();
+    if (chainId !== ChainId.Mainnet && chainId !== ChainId.Ropsten) {
+        return undefined;
+    }
+
     const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
     await pairsManager.initializeAsync();
     return pairsManager;
