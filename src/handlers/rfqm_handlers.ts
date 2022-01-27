@@ -268,7 +268,6 @@ export class RfqmHandlers {
         const sellTokenRaw = req.query.sellToken as string;
         const buyTokenRaw = req.query.buyToken as string;
         validateNotNativeTokenOrThrow(sellTokenRaw, 'sellToken');
-        validateNotNativeTokenOrThrow(buyTokenRaw, 'buyToken');
 
         let buyTokenDecimals: number;
         let sellTokenDecimals: number;

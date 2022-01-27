@@ -14,7 +14,13 @@ import {
     SwapQuoterRfqOpts,
 } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
-import { nativeWrappedTokenSymbol, TokenMetadatasForChains } from '@0x/token-metadata';
+import {
+    getTokenMetadataIfExists,
+    nativeTokenSymbol,
+    nativeWrappedTokenSymbol,
+    TokenMetadata,
+    TokenMetadatasForChains,
+} from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -594,7 +600,13 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     }
 };
 
+export const NATIVE_TOKEN_SYMBOL = nativeTokenSymbol(CHAIN_ID);
+export const NATIVE_TOKEN_ADDRESS = (getTokenMetadataIfExists(NATIVE_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata)
+    .tokenAddress;
 export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
+export const NATIVE_WRAPPED_TOKEN_ADDRESS = (
+    getTokenMetadataIfExists(NATIVE_WRAPPED_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata
+).tokenAddress;
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,

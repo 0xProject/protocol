@@ -5,7 +5,7 @@
 .vscode
 
 # dotenv environment variables file
-.env
+*.env
 
 # Generated metadata file
 metadata.json

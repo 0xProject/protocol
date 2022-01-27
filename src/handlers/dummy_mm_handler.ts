@@ -10,13 +10,14 @@ import * as HttpStatus from 'http-status-codes';
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../constants';
 import { stringsToOtcOrderFields, stringsToSignature } from '../utils/rfqm_request_utils';
 
+const WETH_ROPSTEN = '0xc778417e063141139fce010982780140aa0cd5ab';
 const TOKEN_A = '0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7';
 const TOKEN_B = '0xF84830B73b2ED3C7267E7638f500110eA47FDf30';
 const MM_PRIVATE_KEY = '0xf0d8f376ca991256ddb256fb7cd28d68d971b07f5c0cf62cf0294c1ff8078a90';
 const MM_ADDRESS = '0x06754422cf9f54ae0e67D42FD788B33D8eb4c5D5';
 const ROPSTEN_CHAIN_ID = 3;
 const ONE_TOKEN = 1e18;
-const TOKEN_SET = new Set([TOKEN_A.toLowerCase(), TOKEN_B.toLowerCase()]);
+const TOKEN_SET = new Set([WETH_ROPSTEN.toLocaleLowerCase(), TOKEN_A.toLowerCase(), TOKEN_B.toLowerCase()]);
 
 /**
  * This class implements handlers that are used to satisfy the MM Quote Server spec

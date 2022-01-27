@@ -17,13 +17,22 @@ const TOKEN_GAS_PREMIUM: Record<string, number> = {
     /* YFI    */ '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e': 10e3,
 };
 
+// If the buy token is native, an unwrap operation is needed which cost us additional gas.
+const UNWRAP_PREMIUM: number = 10e3;
+
 /**
  * Prepares the gas estimate for an RFQM trade
  */
-export function calculateGasEstimate(makerToken: string, takerToken: string, orderType: 'rfq' | 'otc'): number {
+export function calculateGasEstimate(
+    makerToken: string,
+    takerToken: string,
+    orderType: 'rfq' | 'otc',
+    isUnwrap: boolean,
+): number {
     const makerTokenPremium: number = TOKEN_GAS_PREMIUM[makerToken.toLowerCase()] || 0;
     const takerTokenPremium: number = TOKEN_GAS_PREMIUM[takerToken.toLowerCase()] || 0;
+    const unwrapPremium: number = isUnwrap ? UNWRAP_PREMIUM : 0;
     const baseGas = orderType === 'otc' ? RFQM_TX_OTC_ORDER_GAS_ESTIMATE : RFQM_TX_GAS_ESTIMATE;
 
-    return baseGas + makerTokenPremium + takerTokenPremium;
+    return baseGas + makerTokenPremium + takerTokenPremium + unwrapPremium;
 }

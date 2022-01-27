@@ -44,6 +44,7 @@ if (require.main === module) {
         const config: HttpServiceConfig = {
             ...defaultHttpServiceWithRateLimiterConfig,
             httpPort: 3001,
+            healthcheckHttpPort: 3001,
         };
 
         const app = express();

@@ -20,6 +20,8 @@ import {
     CHAIN_ID,
     Integrator,
     META_TX_WORKER_REGISTRY,
+    NATIVE_TOKEN_ADDRESS,
+    NATIVE_WRAPPED_TOKEN_ADDRESS,
     RFQM_MAINTENANCE_MODE,
     RFQM_WORKER_INDEX,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -330,10 +332,18 @@ export class RfqmService {
             sellAmount,
             buyAmount,
             sellToken: takerToken,
-            buyToken: makerToken,
+            buyToken: originalMakerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
         } = params;
+        let makerToken = originalMakerToken;
+
+        // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
+        const isUnwrap = originalMakerToken === NATIVE_TOKEN_ADDRESS;
+        if (isUnwrap) {
+            makerToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+            params.buyToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+        }
 
         // Get desired fill amount
         const isSelling = sellAmount !== undefined;
@@ -343,7 +353,7 @@ export class RfqmService {
         const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Fetch all indicative quotes
-        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice);
+        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
 
         // Log any quotes that are for the incorrect amount
         indicativeQuotes.forEach((quote) => {
@@ -378,7 +388,7 @@ export class RfqmService {
             quoteReportUtils.publishRFQMQuoteReport(
                 {
                     taker: params.takerAddress,
-                    buyTokenAddress: makerToken,
+                    buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
                     buyAmount: params.buyAmount,
                     sellAmount: params.sellAmount,
@@ -408,7 +418,7 @@ export class RfqmService {
             price: roundedPrice,
             gas: gasPrice,
             buyAmount: bestQuote.makerAmount,
-            buyTokenAddress: bestQuote.makerToken,
+            buyTokenAddress: originalMakerToken,
             sellAmount: bestQuote.takerAmount,
             sellTokenAddress: bestQuote.takerToken,
             allowanceTarget: this._contractAddresses.exchangeProxy,
@@ -424,13 +434,21 @@ export class RfqmService {
             sellAmount,
             buyAmount,
             sellToken: takerToken,
-            buyToken: makerToken,
+            buyToken: originalMakerToken,
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
             integrator,
             takerAddress,
             affiliateAddress,
         } = params;
+        let makerToken = originalMakerToken;
+
+        // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
+        const isUnwrap = originalMakerToken === NATIVE_TOKEN_ADDRESS;
+        if (isUnwrap) {
+            makerToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+            params.buyToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+        }
 
         // Quote Requestor specific params
         const isSelling = sellAmount !== undefined;
@@ -440,7 +458,11 @@ export class RfqmService {
         const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Fetch all firm quotes and fee
-        const { quotes: firmQuotes, otcOrderFee, rfqOrderFee } = await this._fetchFirmQuotesAsync(params, gasPrice);
+        const {
+            quotes: firmQuotes,
+            otcOrderFee,
+            rfqOrderFee,
+        } = await this._fetchFirmQuotesAsync(params, gasPrice, isUnwrap);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -457,7 +479,7 @@ export class RfqmService {
             quoteReportUtils.publishRFQMQuoteReport(
                 {
                     taker: params.takerAddress,
-                    buyTokenAddress: makerToken,
+                    buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
                     buyAmount: params.buyAmount,
                     sellAmount: params.sellAmount,
@@ -547,7 +569,7 @@ export class RfqmService {
                 price: roundedPrice,
                 gas: gasPrice,
                 buyAmount: makerAmount,
-                buyTokenAddress: bestQuote.order.makerToken,
+                buyTokenAddress: originalMakerToken,
                 sellAmount: takerAmount,
                 sellTokenAddress: bestQuote.order.takerToken,
                 allowanceTarget: this._contractAddresses.exchangeProxy,
@@ -567,6 +589,7 @@ export class RfqmService {
             makerUri,
             affiliateAddress,
             integratorId: integrator.integratorId,
+            isUnwrap,
         });
         RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
@@ -574,7 +597,7 @@ export class RfqmService {
             price: roundedPrice,
             gas: gasPrice,
             buyAmount: makerAmount,
-            buyTokenAddress: bestQuote.order.makerToken,
+            buyTokenAddress: originalMakerToken,
             sellAmount: takerAmount,
             sellTokenAddress: bestQuote.order.takerToken,
             allowanceTarget: this._contractAddresses.exchangeProxy,
@@ -983,6 +1006,7 @@ export class RfqmService {
             order: quote.order,
             takerSignature,
             affiliateAddress: quote.affiliateAddress,
+            isUnwrap: quote.isUnwrap,
         };
 
         // this insert will fail if a job has already been created, ensuring
@@ -1610,6 +1634,7 @@ export class RfqmService {
     private async _fetchIndicativeQuotesAsync(
         params: FetchIndicativeQuoteParams,
         gasPrice: BigNumber,
+        isUnwrap: boolean,
     ): Promise<V4RFQIndicativeQuoteMM[]> {
         // Extract params
         const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
@@ -1620,10 +1645,10 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Prepare gas estimate and fee
-        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq');
+        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq', isUnwrap);
         const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
 
-        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc');
+        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
         const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
 
         // Create Rfq Order request options
@@ -1661,14 +1686,16 @@ export class RfqmService {
         // Fetch quotes
         const quoteRequestor = this._quoteRequestorManager.getInstance();
         const [rfqOrderQuotes, otcOrderQuotes] = await Promise.all([
-            quoteRequestor.requestRfqmIndicativeQuotesAsync(
-                makerToken,
-                takerToken,
-                assetFillAmount,
-                marketOperation,
-                undefined,
-                rfqOrderOpts,
-            ),
+            isUnwrap
+                ? Promise.resolve([]) // RFQm v1 does not support unwrapping
+                : quoteRequestor.requestRfqmIndicativeQuotesAsync(
+                      makerToken,
+                      takerToken,
+                      assetFillAmount,
+                      marketOperation,
+                      undefined,
+                      rfqOrderOpts,
+                  ),
             otcOrderMakerUris.length > 0
                 ? this._quoteServerClient.batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
                 : Promise.resolve([]),
@@ -1683,6 +1710,7 @@ export class RfqmService {
     private async _fetchFirmQuotesAsync(
         params: FetchFirmQuoteParams,
         gasPrice: BigNumber,
+        isUnwrap: boolean = false,
     ): Promise<{
         quotes: FirmQuote[];
         otcOrderFee: Fee;
@@ -1697,7 +1725,7 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Prepare gas estimate and fee
-        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq');
+        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq', isUnwrap);
         const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
         const rfqOrderFee: Fee = {
             amount: rfqOrderFeeAmount,
@@ -1705,7 +1733,7 @@ export class RfqmService {
             type: 'fixed',
         };
 
-        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc');
+        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
         const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
         const otcOrderFee: Fee = {
             amount: otcOrderFeeAmount,
@@ -1745,18 +1773,27 @@ export class RfqmService {
         // Fetch quotes
         const quoteRequestor = this._quoteRequestorManager.getInstance();
         const [rfqQuotes, otcQuotes] = await Promise.all([
-            quoteRequestor
-                .requestRfqmFirmQuotesAsync(makerToken, takerToken, assetFillAmount, marketOperation, undefined, opts)
-                .then((quotes) =>
-                    quotes.map((q): FirmQuote => {
-                        return {
-                            order: new RfqOrder(q.order),
-                            kind: 'rfq',
-                            makerSignature: q.signature,
-                            makerUri: quoteRequestor.getMakerUriForSignature(q.signature)!,
-                        };
-                    }),
-                ),
+            isUnwrap
+                ? Promise.resolve([]) // RFQm v1 does not support unwrapping
+                : quoteRequestor
+                      .requestRfqmFirmQuotesAsync(
+                          makerToken,
+                          takerToken,
+                          assetFillAmount,
+                          marketOperation,
+                          undefined,
+                          opts,
+                      )
+                      .then((quotes) =>
+                          quotes.map((q): FirmQuote => {
+                              return {
+                                  order: new RfqOrder(q.order),
+                                  kind: 'rfq',
+                                  makerSignature: q.signature,
+                                  makerUri: quoteRequestor.getMakerUriForSignature(q.signature)!,
+                              };
+                          }),
+                      ),
             otcOrderMakerUris.length > 0
                 ? this._quoteServerClient
                       .batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
