@@ -1,12 +1,32 @@
 [
     {
-        "version": "16.47.1",
+        "version": "16.49.1",
         "changes": [
             {
                 "note": "Fix WorstCaseQuoteInfo encoding bug",
                 "pr": 402
             }
         ]
+    },
+    {
+        "version": "16.49.0",
+        "changes": [
+            {
+                "note": "Add more curve pools",
+                "pr": 409
+            }
+        ],
+        "timestamp": 1643407900
+    },
+    {
+        "version": "16.48.0",
+        "changes": [
+            {
+                "note": "Use `MIM` as an intermediate asset on `Fantom`",
+                "pr": 405
+            }
+        ],
+        "timestamp": 1643148019
     },
     {
         "version": "16.47.0",
