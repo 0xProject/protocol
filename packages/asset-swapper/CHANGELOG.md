@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.0 - _January 28, 2022_
+
+    * Add more curve pools (#409)
+
 ## v16.48.0 - _January 25, 2022_
 
     * Use `MIM` as an intermediate asset on `Fantom` (#405)
