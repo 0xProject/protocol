@@ -13,7 +13,9 @@ import {
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_AVALANCHE_INFOS,
     CURVE_FANTOM_INFOS,
+    CURVE_ARBITRUM_INFOS,
     CURVE_MAINNET_INFOS,
+    CURVE_OPTIMISM_INFOS,
     CURVE_POLYGON_INFOS,
     CURVE_V2_AVALANCHE_INFOS,
     CURVE_V2_FANTOM_INFOS,
@@ -166,8 +168,17 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                             [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
+        case ChainId.Optimism:
+            return Object.values(CURVE_OPTIMISM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
         case ChainId.Arbitrum:
-            return Object.values(CURVE_V2_ARBITRUM_INFOS).filter(c =>
+            return Object.values(CURVE_OPTIMISM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -220,7 +231,7 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
                 ),
             );
         case ChainId.Arbitrum:
-            return Object.values(CURVE_V2_ARBITRUM_INFOS).filter(c =>
+            return Object.values(CURVE_ARBITRUM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
