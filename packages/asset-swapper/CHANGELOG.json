@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.47.1",
+        "changes": [
+            {
+                "note": "Fix WorstCaseQuoteInfo encoding bug",
+                "pr": 402
+            }
+        ]
+    },
+    {
         "version": "16.47.0",
         "changes": [
             {
