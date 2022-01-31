@@ -61,8 +61,9 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
             it('samples buys from Curve DAI->USDC', async () => {
                 // From DAI to USDC
                 // I want to buy 1 USDC
+                await testContract.setSampleValues([toBaseUnitAmount(1, 6)]).awaitTransactionSuccessAsync();
                 const samples = await testContract
-                    .sampleBuysFromCurve(CURVE_INFO, DAI_TOKEN_INDEX, USDC_TOKEN_INDEX, [toBaseUnitAmount(1, 6)])
+                    .sampleBuysFromCurveGlobal(CURVE_INFO, DAI_TOKEN_INDEX, USDC_TOKEN_INDEX)
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -71,8 +72,9 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
             it('samples buys from Curve USDC->DAI', async () => {
                 // From USDC to DAI
                 // I want to buy 1 DAI
+                await testContract.setSampleValues([toBaseUnitAmount(1)]).awaitTransactionSuccessAsync();
                 const samples = await testContract
-                    .sampleBuysFromCurve(CURVE_INFO, USDC_TOKEN_INDEX, DAI_TOKEN_INDEX, [toBaseUnitAmount(1)])
+                    .sampleBuysFromCurveGlobal(CURVE_INFO, USDC_TOKEN_INDEX, DAI_TOKEN_INDEX)
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -117,8 +119,9 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
             it('samples buys from Kyber WETH->DAI', async () => {
                 // From ETH to DAI
                 // I want to buy 1 DAI
+                await testContract.setSampleValues([toBaseUnitAmount(1)]).awaitTransactionSuccessAsync();
                 const [, samples] = await testContract
-                    .sampleBuysFromKyberNetwork(KYBER_OPTS, WETH, DAI, [toBaseUnitAmount(1)])
+                    .sampleBuysFromKyberNetworkGlobal(KYBER_OPTS, WETH, DAI)
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
@@ -127,8 +130,9 @@ blockchainTests.skip('Mainnet Sampler Tests', env => {
             it('samples buys from Kyber DAI->WETH', async () => {
                 // From USDC to DAI
                 // I want to buy 1 WETH
+                await testContract.setSampleValues([toBaseUnitAmount(1)]).awaitTransactionSuccessAsync();
                 const [, samples] = await testContract
-                    .sampleBuysFromKyberNetwork(KYBER_OPTS, DAI, WETH, [toBaseUnitAmount(1)])
+                    .sampleBuysFromKyberNetworkGlobal(KYBER_OPTS, DAI, WETH)
                     .callAsync({ overrides });
                 expect(samples.length).to.be.bignumber.greaterThan(0);
                 expect(samples[0]).to.be.bignumber.greaterThan(0);
