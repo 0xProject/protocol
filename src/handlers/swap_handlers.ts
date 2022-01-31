@@ -248,6 +248,7 @@ export class SwapHandlers {
             quote,
             'chainId',
             'price',
+            'estimatedPriceImpact',
             'value',
             'gasPrice',
             'gas',
