@@ -701,8 +701,16 @@ function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): O
         return {
             ...o,
             ...(quote.type === MarketOperation.Sell
-                ? { makerAmount: o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN) }
-                : { takerAmount: o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP) }),
+                ? {
+                      makerAmount: o.makerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN),
+                  }
+                : {
+                      takerAmount: o.takerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
+                  }),
         };
     });
 }
