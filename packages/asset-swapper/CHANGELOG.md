@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.2 - _January 31, 2022_
+
+    * Fix ABI encoding error with two hop buys due to applying slippage to uint(-1) values (#410)
+
 ## v16.49.1 - _January 31, 2022_
 
     * Fix WorstCaseQuoteInfo encoding bug (#402)
