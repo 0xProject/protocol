@@ -1406,20 +1406,36 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(_job);
         }
 
-        // Maker signature must already be defined here -- refine the type
-        if (!makerSignature) {
-            throw new Error('Maker signature does not exist');
-        }
-
         // With the Market Maker signature, execute a full eth_call to validate the
         // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
         try {
-            await this._blockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
-                otcOrder,
-                makerSignature,
-                takerSignature,
-                workerAddress,
-                _job.isUnwrap,
+            await retry(
+                async () => {
+                    // Maker signature must already be defined here -- refine the type
+                    if (!makerSignature) {
+                        throw new Error('Maker signature does not exist');
+                    }
+
+                    return this._blockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                        otcOrder,
+                        makerSignature,
+                        takerSignature,
+                        workerAddress,
+                        _job.isUnwrap,
+                    );
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
+                            'Error during eth_call validation. Retrying.',
+                        );
+                    },
+                },
             );
         } catch (error) {
             _job.status = RfqmJobStatus.FailedEthCallFailed;
@@ -1441,7 +1457,10 @@ export class RfqmService {
             }
             throw new Error('Eth call validation failed');
         }
-
+        // Maker signature must already be defined here -- refine the type
+        if (!makerSignature) {
+            throw new Error('Maker signature does not exist');
+        }
         const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
             otcOrder,
             makerSignature,
