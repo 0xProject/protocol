@@ -6,7 +6,8 @@
                 "note": "Fix ABI encoding error with two hop buys due to applying slippage to uint(-1) values",
                 "pr": 410
             }
-        ]
+        ],
+        "timestamp": 1643653482
     },
     {
         "version": "16.49.1",
