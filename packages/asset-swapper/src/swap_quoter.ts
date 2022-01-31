@@ -599,24 +599,25 @@ function calculateTwoHopQuoteInfo(
             secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
         }),
     ).toNumber();
+    const isSell = operation === MarketOperation.Sell;
     return {
         bestCaseQuoteInfo: {
-            makerAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,
-            takerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
+            makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
+            takerAmount: isSell ? firstHopFill.input : firstHopFill.output,
+            totalTakerAmount: isSell ? firstHopFill.input : firstHopFill.output,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
         },
         // TODO jacob consolidate this with quote simulation worstCase
         worstCaseQuoteInfo: {
-            makerAmount: MarketOperation.Sell
+            makerAmount: isSell
                 ? secondHopOrder.makerAmount.times(1 - slippage).integerValue()
                 : secondHopOrder.makerAmount,
-            takerAmount: MarketOperation.Sell
+            takerAmount: isSell
                 ? firstHopOrder.takerAmount
                 : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
-            totalTakerAmount: MarketOperation.Sell
+            totalTakerAmount: isSell
                 ? firstHopOrder.takerAmount
                 : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
