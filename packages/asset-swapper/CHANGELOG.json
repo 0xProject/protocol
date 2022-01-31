@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.2",
+        "changes": [
+            {
+                "note": "Fix ABI encoding error with two hop buys due to applying slippage to uint(-1) values",
+                "pr": 410
+            }
+        ]
+    },
+    {
         "version": "16.49.1",
         "changes": [
             {
