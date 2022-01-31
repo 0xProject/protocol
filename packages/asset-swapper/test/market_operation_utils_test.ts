@@ -430,6 +430,8 @@ describe('MarketOperationUtils tests', () => {
         isAddressContract: (..._params: any[]) => false,
         getGasLeft: () => ZERO_AMOUNT,
         getBlockNumber: () => ZERO_AMOUNT,
+        // tslint:disable-next-line:no-empty
+        setSampleValues: () => {},
     };
 
     const MOCK_SAMPLER = ({

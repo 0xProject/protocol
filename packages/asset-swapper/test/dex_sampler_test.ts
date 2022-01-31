@@ -148,10 +148,9 @@ describe('DexSampler tests', () => {
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const sampler = new MockSamplerContract({
-                sampleSellsFromKyberNetwork: (_reserveOffset, takerToken, makerToken, fillAmounts) => {
+                sampleSellsFromKyberNetworkGlobal: (_reserveOffset, takerToken, makerToken) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return ['0x', '0x', expectedMakerFillAmounts];
                 },
             });
@@ -182,7 +181,7 @@ describe('DexSampler tests', () => {
             const poolAddress = randomAddress();
             const gasCost = 123;
             const sampler = new MockSamplerContract({
-                sampleSellsFromLiquidityProvider: (providerAddress, takerToken, makerToken, _fillAmounts) => {
+                sampleSellsFromLiquidityProviderGlobal: (providerAddress, takerToken, makerToken) => {
                     expect(providerAddress).to.eq(poolAddress);
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
@@ -226,7 +225,7 @@ describe('DexSampler tests', () => {
             const poolAddress = randomAddress();
             const gasCost = 321;
             const sampler = new MockSamplerContract({
-                sampleBuysFromLiquidityProvider: (providerAddress, takerToken, makerToken, _fillAmounts) => {
+                sampleBuysFromLiquidityProviderGlobal: (providerAddress, takerToken, makerToken) => {
                     expect(providerAddress).to.eq(poolAddress);
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
@@ -270,10 +269,9 @@ describe('DexSampler tests', () => {
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const sampler = new MockSamplerContract({
-                sampleSellsFromUniswap: (_router, takerToken, makerToken, fillAmounts) => {
+                sampleSellsFromUniswapGlobal: (_router, takerToken, makerToken) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return expectedMakerFillAmounts;
                 },
             });
@@ -303,9 +301,8 @@ describe('DexSampler tests', () => {
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const sampler = new MockSamplerContract({
-                sampleSellsFromUniswapV2: (_router, path, fillAmounts) => {
+                sampleSellsFromUniswapV2Global: (_router, path) => {
                     expect(path).to.deep.eq([expectedMakerToken, expectedTakerToken]);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
                     return expectedMakerFillAmounts;
                 },
             });
@@ -334,10 +331,9 @@ describe('DexSampler tests', () => {
             const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
             const sampler = new MockSamplerContract({
-                sampleBuysFromUniswap: (_router, takerToken, makerToken, fillAmounts) => {
+                sampleBuysFromUniswapGlobal: (_router, takerToken, makerToken) => {
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
                     return expectedTakerFillAmounts;
                 },
             });
@@ -378,14 +374,15 @@ describe('DexSampler tests', () => {
             let uniswapRouter: string;
             let uniswapV2Router: string;
             const sampler = new MockSamplerContract({
-                sampleSellsFromUniswap: (router, takerToken, makerToken, fillAmounts) => {
+                sampleSellsFromUniswapGlobal: (router, takerToken, makerToken) => {
                     uniswapRouter = router;
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
+                    return expectedTakerFillAmounts.map(a =>
+                        a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue(),
+                    );
                 },
-                sampleSellsFromUniswapV2: (router, path, fillAmounts) => {
+                sampleSellsFromUniswapV2Global: (router, path) => {
                     uniswapV2Router = router;
                     if (path.length === 2) {
                         expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
@@ -394,8 +391,9 @@ describe('DexSampler tests', () => {
                     } else {
                         expect(path).to.have.lengthOf.within(2, 3);
                     }
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
+                    return expectedTakerFillAmounts.map(a =>
+                        a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue(),
+                    );
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
@@ -463,14 +461,15 @@ describe('DexSampler tests', () => {
             let uniswapRouter: string;
             let uniswapV2Router: string;
             const sampler = new MockSamplerContract({
-                sampleBuysFromUniswap: (router, takerToken, makerToken, fillAmounts) => {
+                sampleBuysFromUniswapGlobal: (router, takerToken, makerToken) => {
                     uniswapRouter = router;
                     expect(takerToken).to.eq(expectedTakerToken);
                     expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue());
+                    return expectedMakerFillAmounts.map(a =>
+                        a.times(ratesBySource[ERC20BridgeSource.Uniswap]).integerValue(),
+                    );
                 },
-                sampleBuysFromUniswapV2: (router, path, fillAmounts) => {
+                sampleBuysFromUniswapV2Global: (router, path) => {
                     uniswapV2Router = router;
                     if (path.length === 2) {
                         expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
@@ -479,8 +478,9 @@ describe('DexSampler tests', () => {
                     } else {
                         expect(path).to.have.lengthOf.within(2, 3);
                     }
-                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
-                    return fillAmounts.map(a => a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue());
+                    return expectedMakerFillAmounts.map(a =>
+                        a.times(ratesBySource[ERC20BridgeSource.UniswapV2]).integerValue(),
+                    );
                 },
             });
             const dexOrderSampler = new DexOrderSampler(
