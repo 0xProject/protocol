@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.1 - _January 31, 2022_
+
+    * Fix WorstCaseQuoteInfo encoding bug (#402)
+
 ## v16.49.0 - _January 28, 2022_
 
     * Add more curve pools (#409)
