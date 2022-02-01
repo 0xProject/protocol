@@ -34,6 +34,7 @@ import {
     DEFAULT_LOCAL_REDIS_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    DEFAULT_SENTRY_ENVIRONMENT,
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
@@ -58,6 +59,7 @@ enum EnvVarType {
     ChainId,
     ETHAddressHex,
     UnitAmount,
+    Rate,
     Url,
     UrlList,
     WhitelistAllTokens,
@@ -296,6 +298,21 @@ export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
 export const POSTGRES_READ_REPLICA_URIS: string[] | undefined = _.isEmpty(process.env.POSTGRES_READ_REPLICA_URIS)
     ? undefined
     : assertEnvVarType('POSTGRES_READ_REPLICA_URIS', process.env.POSTGRES_READ_REPLICA_URIS, EnvVarType.UrlList);
+
+// Environment name Sentry used to categorize issues and traces.
+export const SENTRY_ENVIRONMENT = _.isEmpty(process.env.SENTRY_ENVIRONMENT)
+    ? DEFAULT_SENTRY_ENVIRONMENT
+    : assertEnvVarType('SENTRY_ENVIRONMENT', process.env.SENTRY_ENVIRONMENT, EnvVarType.NonEmptyString);
+
+// An Url with client key to access Sentry from client SDK.
+export const SENTRY_DSN = _.isEmpty(process.env.SENTRY_DSN)
+    ? undefined
+    : assertEnvVarType('SENTRY_DSN', process.env.SENTRY_DSN, EnvVarType.Url);
+
+// Sampling rate of traces reported to Sentry. Should be a number between 0.0 and 1.0 (inclusive).
+export const SENTRY_TRACES_SAMPLE_RATE = _.isEmpty(process.env.SENTRY_TRACES_SAMPLE_RATE)
+    ? 0
+    : assertEnvVarType('SENTRY_TRACES_SAMPLE_RATE', process.env.SENTRY_TRACES_SAMPLE_RATE, EnvVarType.Rate);
 
 export const REDIS_URI = _.isEmpty(process.env.REDIS_URI) ? DEFAULT_LOCAL_REDIS_URI : process.env.REDIS_URI;
 
@@ -795,6 +812,12 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             returnValue = new BigNumber(parseFloat(value));
             if (returnValue.isNaN() || returnValue.isNegative()) {
                 throw new Error(`${name} must be valid number greater than 0.`);
+            }
+            return returnValue;
+        case EnvVarType.Rate:
+            returnValue = parseFloat(value);
+            if (returnValue < 0 || returnValue > 1) {
+                throw new Error(`${name} must be valid number between 0.0 and 1.0.`);
             }
             return returnValue;
         case EnvVarType.AddressList:

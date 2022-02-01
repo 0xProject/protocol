@@ -5,6 +5,8 @@ import { createDefaultServer } from '@0x/api-utils';
 import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { SupportedProvider } from '@0x/dev-utils';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import * as express from 'express';
@@ -12,6 +14,7 @@ import * as promBundle from 'express-prom-bundle';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import { Agent as HttpAgent, Server } from 'http';
+import * as HttpStatus from 'http-status-codes';
 import { Agent as HttpsAgent } from 'https';
 import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 import * as redis from 'redis';
@@ -33,6 +36,9 @@ import {
     RFQM_WORKER_INDEX,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
+    SENTRY_DSN,
+    SENTRY_ENVIRONMENT,
+    SENTRY_TRACES_SAMPLE_RATE,
     SWAP_QUOTER_OPTS,
 } from '../config';
 import {
@@ -241,6 +247,30 @@ export async function runHttpRfqmServiceAsync(
 ): Promise<{ app: express.Application; server: Server }> {
     const app = _app || express();
 
+    if (SENTRY_DSN) {
+        Sentry.init({
+            dsn: SENTRY_DSN,
+            integrations: [
+                // enable HTTP calls tracing
+                new Sentry.Integrations.Http({ tracing: true }),
+                // enable Express.js middleware tracing
+                new Tracing.Integrations.Express({ app }),
+            ],
+            environment: SENTRY_ENVIRONMENT,
+
+            // Set tracesSampleRate to 1.0 to capture 100%
+            // of transactions for performance monitoring.
+            // We recommend adjusting this value in production
+            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+        });
+
+        // RequestHandler creates a separate execution context using domains, so that every
+        // transaction/span/breadcrumb is attached to its own Hub instance
+        app.use(Sentry.Handlers.requestHandler());
+        // TracingHandler creates a trace for every incoming request
+        app.use(Sentry.Handlers.tracingHandler());
+    }
+
     if (useMetricsMiddleware) {
         /**
          * express-prom-bundle will create a histogram metric called "http_request_duration_seconds"
@@ -270,6 +300,20 @@ export async function runHttpRfqmServiceAsync(
     } else {
         logger.error(`Could not run rfqm service, exiting`);
         process.exit(1);
+    }
+
+    if (SENTRY_DSN) {
+        // The error handler must be before any other error middleware and after all controllers
+        app.use(
+            Sentry.Handlers.errorHandler({
+                shouldHandleError(error: any): boolean {
+                    if (error.status === undefined || error.status >= HttpStatus.BAD_REQUEST) {
+                        return true;
+                    }
+                    return false;
+                },
+            }),
+        );
     }
 
     app.use(errorHandler);
