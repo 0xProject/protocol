@@ -20,11 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-
+import "./interfaces/IERC20TokenV06.sol";
+import "./LibSafeMath.sol";
 
 interface IExchange {
 
@@ -123,8 +120,8 @@ interface IExchange {
 }
 
 contract NativeOrderSampler {
-    using LibSafeMathV06 for uint256;
-    using LibBytesV06 for bytes;
+    using LibSafeMath for uint256;
+    // using LibBytesV06 for bytes;
 
     /// @dev Gas limit for calls to `getOrderFillableTakerAmount()`.
     uint256 constant internal DEFAULT_CALL_GAS = 200e3; // 200k
@@ -191,7 +188,7 @@ contract NativeOrderSampler {
         // convert them to maker asset amounts.
         for (uint256 i = 0; i < orders.length; ++i) {
             if (orderFillableMakerAssetAmounts[i] != 0) {
-                orderFillableMakerAssetAmounts[i] = LibMathV06.getPartialAmountCeil(
+                orderFillableMakerAssetAmounts[i] = LibSafeMath.getPartialAmountCeil(
                     orderFillableMakerAssetAmounts[i],
                     orders[i].takerAmount,
                     orders[i].makerAmount

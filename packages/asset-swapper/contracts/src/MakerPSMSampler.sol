@@ -21,7 +21,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
+import "./LibSafeMath.sol";
 import "./SamplerBase.sol";
 
 interface IPSM {
@@ -84,7 +84,7 @@ contract MakerPSMSampler is
     SamplerBase,
     SamplerUtils
 {
-    using LibSafeMathV06 for uint256;
+    using LibSafeMath for uint256;
 
     /// @dev Information about which PSM module to use
     struct MakerPsmInfo {

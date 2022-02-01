@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
+import "./interfaces/IERC20TokenV06.sol";
 import "./SamplerBase.sol";
 
 interface IUniswapV3Quoter {

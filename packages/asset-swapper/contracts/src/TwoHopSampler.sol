@@ -20,14 +20,14 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
+import "./LibBytes.sol";
 import "./SamplerBase.sol";
 
 
 contract TwoHopSampler is
     SamplerBase
 {
-    using LibBytesV06 for bytes;
+    using LibBytes for bytes;
 
     struct HopInfo {
         uint256 sourceIndex;

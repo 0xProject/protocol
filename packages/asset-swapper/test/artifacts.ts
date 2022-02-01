@@ -20,7 +20,9 @@ import * as FakeTaker from '../test/generated-artifacts/FakeTaker.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
 import * as IBancor from '../test/generated-artifacts/IBancor.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
+import * as IERC20TokenV06 from '../test/generated-artifacts/IERC20TokenV06.json';
 import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
+import * as ILiquidityProvider from '../test/generated-artifacts/ILiquidityProvider.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
@@ -30,6 +32,8 @@ import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExc
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberDmmSampler from '../test/generated-artifacts/KyberDmmSampler.json';
 import * as KyberSampler from '../test/generated-artifacts/KyberSampler.json';
+import * as LibBytes from '../test/generated-artifacts/LibBytes.json';
+import * as LibSafeMath from '../test/generated-artifacts/LibSafeMath.json';
 import * as LidoSampler from '../test/generated-artifacts/LidoSampler.json';
 import * as LiquidityProviderSampler from '../test/generated-artifacts/LiquidityProviderSampler.json';
 import * as MakerPSMSampler from '../test/generated-artifacts/MakerPSMSampler.json';
@@ -62,6 +66,8 @@ export const artifacts = {
     FakeTaker: FakeTaker as ContractArtifact,
     KyberDmmSampler: KyberDmmSampler as ContractArtifact,
     KyberSampler: KyberSampler as ContractArtifact,
+    LibBytes: LibBytes as ContractArtifact,
+    LibSafeMath: LibSafeMath as ContractArtifact,
     LidoSampler: LidoSampler as ContractArtifact,
     LiquidityProviderSampler: LiquidityProviderSampler as ContractArtifact,
     MStableSampler: MStableSampler as ContractArtifact,
@@ -81,7 +87,9 @@ export const artifacts = {
     IBalancer: IBalancer as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
+    IERC20TokenV06: IERC20TokenV06 as ContractArtifact,
     IKyberNetwork: IKyberNetwork as ContractArtifact,
+    ILiquidityProvider: ILiquidityProvider as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,

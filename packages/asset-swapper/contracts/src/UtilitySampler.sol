@@ -21,11 +21,9 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "./interfaces/IERC20TokenV06.sol";
 
 contract UtilitySampler {
-
-    using LibERC20TokenV06 for IERC20TokenV06;
 
     IERC20TokenV06 private immutable UTILITY_ETH_ADDRESS = IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
@@ -38,7 +36,7 @@ contract UtilitySampler {
         for (uint256 i = 0; i != tokens.length; i++) {
             decimals[i] = tokens[i] == UTILITY_ETH_ADDRESS
                 ? 18
-                : tokens[i].compatDecimals();
+                : tokens[i].decimals();
         }
     }
 
@@ -51,7 +49,7 @@ contract UtilitySampler {
         for (uint256 i = 0; i != tokens.length; i++) {
             balances[i] = tokens[i] == UTILITY_ETH_ADDRESS
                 ? account.balance
-                : tokens[i].compatBalanceOf(account);
+                : tokens[i].balanceOf(account);
         }
     }
 
@@ -64,7 +62,7 @@ contract UtilitySampler {
         for (uint256 i = 0; i != tokens.length; i++) {
             allowances[i] = tokens[i] == UTILITY_ETH_ADDRESS
                 ? 0
-                : tokens[i].compatAllowance(account, spender);
+                : tokens[i].allowance(account, spender);
         }
     }
 

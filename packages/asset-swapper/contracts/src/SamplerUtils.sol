@@ -20,7 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
+import "./interfaces/IERC20TokenV06.sol";
 
 
 contract SamplerUtils {
@@ -34,7 +34,7 @@ contract SamplerUtils {
         view
         returns (uint8 decimals)
     {
-        return LibERC20TokenV06.compatDecimals(IERC20TokenV06(tokenAddress));
+        return IERC20TokenV06(tokenAddress).decimals();
     }
 
     function _toSingleValueArray(uint256 v)
