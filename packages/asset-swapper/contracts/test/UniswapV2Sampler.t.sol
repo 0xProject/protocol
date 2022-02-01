@@ -2,7 +2,7 @@
 pragma solidity ^0.6;
 
 import "./TestBase.sol";
-import "../ERC20BridgeSampler.sol";
+import "../src/ERC20BridgeSampler.sol";
 
 contract UniswapV2SamplerTest is
     TestBase 

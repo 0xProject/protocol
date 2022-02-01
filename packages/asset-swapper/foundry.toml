@@ -1,6 +1,0 @@
-[default]
-src = 'contracts/src'
-test = 'contracts/test'
-out = 'out'
-libs = ['contracts/lib']
-remappings = ['ds-test/=contracts/lib/ds-test/src/']
