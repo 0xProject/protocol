@@ -1406,6 +1406,20 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(_job);
         }
 
+        // Maker signature must already be defined here -- refine the type
+        if (!makerSignature) {
+            throw new Error('Maker signature does not exist');
+        }
+
+        // Generate the calldata
+        const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
+            otcOrder,
+            makerSignature,
+            takerSignature,
+            _job.isUnwrap,
+            _job.affiliateAddress,
+        );
+
         // With the Market Maker signature, execute a full eth_call to validate the
         // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
         try {
@@ -1440,34 +1454,35 @@ export class RfqmService {
         } catch (error) {
             _job.status = RfqmJobStatus.FailedEthCallFailed;
             await this._dbUtils.updateRfqmJobAsync(_job);
+
             logger.error({ orderHash, error: error.message }, 'eth_call validation failed');
 
-            // Attempt to gather more information upon eth_call failure
+            // Attempt to gather extra context upon eth_call failure
             try {
                 const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
                     [otcOrder.maker, otcOrder.taker],
                     [otcOrder.makerToken, otcOrder.takerToken],
                 );
+                const blockNumber = await this._blockchainUtils.getCurrentBlockAsync();
                 logger.info(
-                    { makerBalance, takerBalance, orderHash, order: otcOrder },
-                    'Balances after eth_call validation failed',
+                    {
+                        makerBalance,
+                        takerBalance,
+                        calldata,
+                        blockNumber,
+                        orderHash,
+                        order: otcOrder,
+                        bucket: otcOrder.nonceBucket,
+                        nonce: otcOrder.nonce,
+                    },
+                    'Extra context after eth_call validation failed',
                 );
             } catch (error) {
-                logger.warn({ orderHash }, 'Failed to get balances after eth_call validation failed');
+                logger.warn({ orderHash }, 'Failed to get extra context after eth_call validation failed');
             }
             throw new Error('Eth call validation failed');
         }
-        // Maker signature must already be defined here -- refine the type
-        if (!makerSignature) {
-            throw new Error('Maker signature does not exist');
-        }
-        const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
-            otcOrder,
-            makerSignature,
-            takerSignature,
-            _job.isUnwrap,
-            _job.affiliateAddress,
-        );
+
         return { job: _job, calldata };
     }
 
