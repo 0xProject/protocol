@@ -14,6 +14,7 @@ import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.js
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
+import * as DSTest from '../test/generated-artifacts/DSTest.json';
 import * as DummyLiquidityProvider from '../test/generated-artifacts/DummyLiquidityProvider.json';
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../test/generated-artifacts/FakeTaker.json';
@@ -45,11 +46,13 @@ import * as SamplerBase from '../test/generated-artifacts/SamplerBase.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
 import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
+import * as TestBase from '../test/generated-artifacts/TestBase.json';
 import * as TestERC20BridgeSampler from '../test/generated-artifacts/TestERC20BridgeSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
+import * as UniswapV2SamplerTest from '../test/generated-artifacts/UniswapV2SamplerTest.json';
 import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
 import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
 export const artifacts = {
@@ -97,7 +100,10 @@ export const artifacts = {
     ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
+    DSTest: DSTest as ContractArtifact,
     DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,
+    TestBase: TestBase as ContractArtifact,
     TestERC20BridgeSampler: TestERC20BridgeSampler as ContractArtifact,
     TestNativeOrderSampler: TestNativeOrderSampler as ContractArtifact,
+    UniswapV2SamplerTest: UniswapV2SamplerTest as ContractArtifact,
 };

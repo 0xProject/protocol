@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6;
 
-import "../lib/ds-test/src/test.sol";
+import "./DSTest.sol";
 
 contract TestBase is 
     DSTest
