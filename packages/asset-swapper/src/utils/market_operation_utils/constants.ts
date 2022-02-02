@@ -108,7 +108,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
-            // ERC20BridgeSource.Compound, // TODO(Cece): why?
+            // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
             ERC20BridgeSource.Kyber,
@@ -2017,7 +2017,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 
 export const GEIST_INFO_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Fantom]: '0xd8321AA83Fb0a4ECd6348D4577431310A6E0814d', // TODO(Cece)
+        [ChainId.Fantom]: '0xd8321AA83Fb0a4ECd6348D4577431310A6E0814d',
     },
     NULL_ADDRESS,
 );
