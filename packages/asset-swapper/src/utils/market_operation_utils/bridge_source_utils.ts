@@ -249,17 +249,16 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
 }
 
 export function getMobiusInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId == ChainId.Celo) {
-        return Object.values(MOBIUS_CELO_INFOS).filter(c =>
-            [makerToken, takerToken].every(
-                t =>
-                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                    (c.tokens.includes(t) &&
-                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
-            ),
-        );
+    if (chainId !== ChainId.Celo) {
+        return [];
     }
-    return [];
+    return Object.values(MOBIUS_CELO_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
 }
 
 export function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
