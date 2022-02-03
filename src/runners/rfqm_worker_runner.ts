@@ -2,6 +2,7 @@
  * Runs the RFQM MetaTransaction Consumer
  */
 import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
+import * as Sentry from '@sentry/node';
 import { SQS } from 'aws-sdk';
 import * as express from 'express';
 import { Counter } from 'prom-client';
@@ -12,6 +13,9 @@ import {
     PROMETHEUS_PORT,
     RFQM_META_TX_SQS_URL,
     RFQM_WORKER_INDEX,
+    SENTRY_DSN,
+    SENTRY_ENVIRONMENT,
+    SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
 import { METRICS_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
@@ -78,6 +82,18 @@ if (require.main === module) {
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const rfqmService = await buildRfqmServiceAsync(true, rfqmDbUtils, rfqMakerDbUtils);
+
+        if (SENTRY_DSN) {
+            Sentry.init({
+                dsn: SENTRY_DSN,
+                environment: SENTRY_ENVIRONMENT,
+
+                // Set tracesSampleRate to 1.0 to capture 100%
+                // of transactions for performance monitoring.
+                // We recommend adjusting this value in production
+                tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+            });
+        }
 
         // Run the worker
         const worker = createRfqmWorker(rfqmService, workerAddress);

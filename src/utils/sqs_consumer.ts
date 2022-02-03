@@ -1,7 +1,10 @@
 // tslint:disable: max-classes-per-file
+import * as Sentry from '@sentry/node';
+import { Transaction as SentryTransaction } from '@sentry/types';
 import { SQS } from 'aws-sdk';
 import delay from 'delay';
 
+import { SENTRY_DSN } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 
@@ -49,6 +52,27 @@ export class SqsConsumer {
     }
 
     public async consumeOnceAsync(): Promise<void> {
+        let transaction: SentryTransaction | undefined;
+        if (SENTRY_DSN) {
+            transaction = Sentry.startTransaction({
+                name: 'Worker Transaction',
+            });
+        }
+
+        try {
+            await this._consumeOnceInternalAsync();
+        } catch (e) {
+            if (SENTRY_DSN) {
+                Sentry.captureException(e);
+            }
+        } finally {
+            if (SENTRY_DSN) {
+                transaction?.finish();
+            }
+        }
+    }
+
+    private async _consumeOnceInternalAsync(): Promise<void> {
         // Run the before hook
         if (this._beforeHandle) {
             let beforeCheck;
@@ -56,13 +80,14 @@ export class SqsConsumer {
                 beforeCheck = await this._beforeHandle();
             } catch (e) {
                 logger.error({ id: this._id, errorMessage: e.message }, 'Error encountered in the preHandle check');
-                return;
+                throw e;
             }
 
             if (!beforeCheck) {
-                logger.warn({ id: this._id }, 'Before validation failed');
+                const errorMessage = 'Before validation failed';
+                logger.warn({ id: this._id }, errorMessage);
                 await delay(ONE_SECOND_MS);
-                return;
+                throw new Error(errorMessage);
             }
         }
 
@@ -90,7 +115,7 @@ export class SqsConsumer {
                 // Retry message
                 await this._sqsClient.changeMessageVisibilityAsync(message.ReceiptHandle!, 0);
                 await delay(ONE_SECOND_MS);
-                return;
+                throw err;
             }
         }
 
@@ -100,6 +125,10 @@ export class SqsConsumer {
         // Run the after hook
         if (this._afterHandle) {
             await this._afterHandle(message, error);
+        }
+
+        if (error) {
+            throw error;
         }
     }
 }
