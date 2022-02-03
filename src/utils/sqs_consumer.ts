@@ -87,7 +87,7 @@ export class SqsConsumer {
                 const errorMessage = 'Before validation failed';
                 logger.warn({ id: this._id }, errorMessage);
                 await delay(ONE_SECOND_MS);
-                throw new Error(errorMessage);
+                return;
             }
         }
 
