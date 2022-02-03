@@ -125,6 +125,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 gas: Math.floor(Math.random() * 8e6),
                 protocolFeeInWeiAmount: getRandomAmount(),
                 feeTakerTokenAmount: getRandomAmount(),
+                slippage: 0,
             },
             worstCaseQuoteInfo: {
                 makerAmount: makerTokenFillAmount,
@@ -133,6 +134,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 gas: Math.floor(Math.random() * 8e6),
                 protocolFeeInWeiAmount: getRandomAmount(),
                 feeTakerTokenAmount: getRandomAmount(),
+                slippage: 0,
             },
             makerAmountPerEth: getRandomInteger(1, 1e9),
             takerAmountPerEth: getRandomInteger(1, 1e9),
