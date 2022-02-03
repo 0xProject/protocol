@@ -51,6 +51,9 @@ export class SqsConsumer {
         }
     }
 
+    /**
+     * Decorates _consumeOnceInternalAsync with Sentry observability
+     */
     public async consumeOnceAsync(): Promise<void> {
         let transaction: SentryTransaction | undefined;
         if (SENTRY_DSN) {
