@@ -34,6 +34,7 @@ contract DSTest {
     event log_named_uint         (string key, uint val);
     event log_named_bytes        (string key, bytes val);
     event log_named_string       (string key, string val);
+    event log_named_expected_uints        (string key, uint expected, uint actual);
 
     bool public IS_TEST = true;
     bool public failed;

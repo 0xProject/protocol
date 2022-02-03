@@ -19,7 +19,7 @@ contract TestBase is
     {
         if (chainId != _chainId())
         {
-            emit log_string("skip: wrong chain id");
+            emit log_named_expected_uints("skip: wrong chain id", chainId, _chainId());
             return;
         }
         _;
@@ -29,10 +29,17 @@ contract TestBase is
     {
         if (block.number < blockNumber)
         {
-            emit log_string("skip: block.number < blockNumber");
+            emit log_named_expected_uints("skip: block.number < blockNumber", blockNumber, block.number);
             return;
         }
         _;
+    }
+
+    modifier measureGasUsed()
+    {
+        uint256 gasBefore = gasleft();
+        _;
+        emit log_named_uint("gas used:", gasBefore - gasleft());
     }
 
     function _chainId()

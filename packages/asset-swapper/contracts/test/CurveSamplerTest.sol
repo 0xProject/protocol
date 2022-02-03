@@ -37,6 +37,7 @@ contract CurveSamplerTest is
     function testCurveSamplerOptimism()
         public
         requiresChainId(10)
+        measureGasUsed()
     {
 
         uint256[] memory values = sampler.sampleSellsFromCurveGlobal(
