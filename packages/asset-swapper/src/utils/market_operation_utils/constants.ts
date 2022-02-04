@@ -2224,7 +2224,14 @@ export const SPOOKYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
+        [ChainId.Mainnet]: [
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.Native,
+        ],
         [ChainId.BSC]: [
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
@@ -2234,6 +2241,8 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.Native,
         ],
     },
     [],
