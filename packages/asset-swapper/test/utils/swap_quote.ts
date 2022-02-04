@@ -24,6 +24,7 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
         totalTakerAmount: takerAmount,
         protocolFeeInWeiAmount: protocolFeePerOrder.times(orders.length),
         gas: 200e3,
+        slippage: 0,
     };
 
     const breakdown = {

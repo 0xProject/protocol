@@ -578,8 +578,8 @@ function calculateQuoteInfo(
     });
 
     return {
-        bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult),
-        worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult),
+        bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult, 0),
+        worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult, slippage),
         sourceBreakdown: getSwapQuoteOrdersBreakdown(bestCaseFillResult.fillAmountBySource),
     };
 }
@@ -600,6 +600,7 @@ function calculateTwoHopQuoteInfo(
         }),
     ).toNumber();
     const isSell = operation === MarketOperation.Sell;
+
     return {
         bestCaseQuoteInfo: {
             makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
@@ -608,6 +609,7 @@ function calculateTwoHopQuoteInfo(
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
+            slippage: 0,
         },
         // TODO jacob consolidate this with quote simulation worstCase
         worstCaseQuoteInfo: {
@@ -616,13 +618,14 @@ function calculateTwoHopQuoteInfo(
                 : secondHopOrder.makerAmount,
             takerAmount: isSell
                 ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
+                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
             totalTakerAmount: isSell
                 ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
+                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
+            slippage,
         },
         sourceBreakdown: {
             [ERC20BridgeSource.MultiHop]: {
@@ -648,7 +651,7 @@ function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: Big
     return breakdown;
 }
 
-function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
+function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuoteInfo {
     return {
         makerAmount: fr.totalMakerAssetAmount,
         takerAmount: fr.takerAssetAmount,
@@ -656,6 +659,7 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
         feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
+        slippage,
     };
 }
 
