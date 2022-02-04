@@ -97,6 +97,7 @@ export enum ERC20BridgeSource {
     TraderJoe = 'TraderJoe',
     // Celo only
     UbeSwap = 'UbeSwap',
+    MobiusMoney = 'MobiusMoney',
     // Fantom
     SpiritSwap = 'SpiritSwap',
     SpookySwap = 'SpookySwap',
@@ -131,7 +132,7 @@ export enum CurveFunctionSelectors {
     // Smoothy
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
-    // Nerve BSC, Saddle Mainnet, Synapse
+    // Nerve BSC, Saddle Mainnet, Synapse, MobiusMoney
     swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
     calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
 }

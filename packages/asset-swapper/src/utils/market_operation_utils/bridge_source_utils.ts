@@ -491,7 +491,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
-        | ERC20BridgeSource.ACryptos,
+        | ERC20BridgeSource.ACryptos
+        | ERC20BridgeSource.MobiusMoney,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {

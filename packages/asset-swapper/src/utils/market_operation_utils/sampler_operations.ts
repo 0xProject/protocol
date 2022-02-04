@@ -1350,6 +1350,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.FirebirdOneSwap:
                     case ERC20BridgeSource.IronSwap:
                     case ERC20BridgeSource.ACryptos:
+                    case ERC20BridgeSource.MobiusMoney:
                         return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                             this.getCurveSellQuotes(
                                 pool,
@@ -1656,6 +1657,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.FirebirdOneSwap:
                     case ERC20BridgeSource.IronSwap:
                     case ERC20BridgeSource.ACryptos:
+                    case ERC20BridgeSource.MobiusMoney:
                         return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
                             this.getCurveBuyQuotes(
                                 pool,
