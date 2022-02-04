@@ -208,6 +208,7 @@ export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
  * makerTokenAmount: The amount of makerAsset that will be acquired through the swap.
  * protocolFeeInWeiAmount: The amount of ETH to pay (in WEI) as protocol fee to perform the swap for desired asset.
  * gas: Amount of estimated gas needed to fill the quote.
+ * slippage: Amount of slippage to allow for.
  */
 export interface SwapQuoteInfo {
     feeTakerTokenAmount: BigNumber;
@@ -216,6 +217,7 @@ export interface SwapQuoteInfo {
     makerAmount: BigNumber;
     protocolFeeInWeiAmount: BigNumber;
     gas: number;
+    slippage: number;
 }
 
 /**

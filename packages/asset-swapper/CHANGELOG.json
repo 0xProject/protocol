@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.3",
+        "changes": [
+            {
+                "note": "Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer",
+                "pr": 412
+            }
+        ]
+    },
+    {
         "version": "16.49.2",
         "changes": [
             {
