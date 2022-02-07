@@ -401,8 +401,13 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Arbitrum]: [ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
+<<<<<<< HEAD
         [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
         [ChainId.Arbitrum]: [ERC20BridgeSource.UniswapV3, ERC20BridgeSource.SushiSwap],
+=======
+        [ChainId.Arbitrum]: [ERC20BridgeSource.UniswapV3, ERC20BridgeSource.SushiSwap],
+        [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
+>>>>>>> 732b2ba24 (arbitrum setup)
     },
     [],
 );
@@ -617,6 +622,7 @@ export const FANTOM_TOKENS = {
     FRAX: '0xdc301622e621166bd8e82f2ca0a26c13ad0be355',
 };
 
+<<<<<<< HEAD
 export const ARBITRUM_TOKENS = {
     WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
@@ -626,12 +632,25 @@ export const ARBITRUM_TOKENS = {
     renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
 };
 
+=======
+<<<<<<< HEAD
+=======
+export const ARBITRUM_TOKENS = {
+    WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    WBTC: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
+    USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+};
+
+>>>>>>> 732b2ba24 (arbitrum setup)
+>>>>>>> 5eaa4f825 (arbitrum setup)
 export const OPTIMISM_TOKENS = {
     WETH: '0x4200000000000000000000000000000000000006',
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
     USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
     DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
+<<<<<<< HEAD
     nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
 };
@@ -641,6 +660,8 @@ export const ARBITRUM_TOKENS = {
     WBTC: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+=======
+>>>>>>> 732b2ba24 (arbitrum setup)
 };
 
 export const CURVE_POOLS = {
@@ -919,10 +940,20 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             OPTIMISM_TOKENS.sWETH,
         ],
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9d08fefa1 (Feat/synapse (#400))
 =======
         [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC,ARBITRUM_TOKENS.USDC,ARBITRUM_TOKENS.DAI],
 >>>>>>> ebd39d2b0 (arbitrum asset swapper)
+=======
+        [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC,ARBITRUM_TOKENS.USDC,ARBITRUM_TOKENS.DAI],
+=======
+        [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.DAI],
+        [ChainId.Fantom]: [FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC],
+        [ChainId.Celo]: [CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.WCELO],
+        [ChainId.Optimism]: [OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC],
+>>>>>>> 732b2ba24 (arbitrum setup)
+>>>>>>> 5eaa4f825 (arbitrum setup)
     },
     [],
 );
@@ -974,11 +1005,19 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
 >>>>>>> 602290925 (fix celo rebase)
         }).build(),
+<<<<<<< HEAD
         [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
         }).build(),
         [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+=======
+        [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+        }).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+>>>>>>> 732b2ba24 (arbitrum setup)
         }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
@@ -1000,14 +1039,24 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
 =======
         [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 602290925 (fix celo rebase)
 =======
+=======
+>>>>>>> 5eaa4f825 (arbitrum setup)
         [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
 <<<<<<< HEAD
 >>>>>>> a3c912c2a (feat/optimism [TKR-280] (#385))
 =======
         [ChainId.Arbitrum]: getContractAddressesForChainOrThrow(ChainId.Arbitrum).etherToken,
+<<<<<<< HEAD
 >>>>>>> ebd39d2b0 (arbitrum asset swapper)
+=======
+=======
+        [ChainId.Arbitrum]: getContractAddressesForChainOrThrow(ChainId.Arbitrum).etherToken,
+        [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
+>>>>>>> 732b2ba24 (arbitrum setup)
+>>>>>>> 5eaa4f825 (arbitrum setup)
     },
     NULL_ADDRESS,
 );
@@ -2183,18 +2232,30 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0x03782388516e94fcd4c18666303601a12aa729ea',
         },
 <<<<<<< HEAD
+<<<<<<< HEAD
         [ChainId.Arbitrum]: {
 =======
+=======
+=======
+        [ChainId.Arbitrum]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+>>>>>>> 732b2ba24 (arbitrum setup)
+>>>>>>> 5eaa4f825 (arbitrum setup)
         [ChainId.Polygon]: {
 >>>>>>> 813d703d1 (feat: UniswapV3 on Polygon (#382))
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Optimism]: {
+<<<<<<< HEAD
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Arbitrum]: {
+=======
+>>>>>>> 732b2ba24 (arbitrum setup)
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
@@ -2382,7 +2443,7 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
 
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     // TODO: Different base cost if to/from ETH.
-    let gas = 90e3;
+    let gas = 209e3;
     const path = (fillData as UniswapV2FillData).tokenAddressPath;
     if (path.length > 2) {
         gas += (path.length - 2) * 60e3; // +60k for each hop.
@@ -2478,7 +2539,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.UniswapV3]: (fillData?: FillData) => {
-        let gas = 100e3;
+        let gas = 280e3;
         const path = (fillData as UniswapV3FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 32e3; // +32k for each hop.

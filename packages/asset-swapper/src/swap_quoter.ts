@@ -361,6 +361,8 @@ export class SwapQuoter {
         //  ** Prepare options for fetching market side liquidity **
         // Scale fees by gas price.
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
+        // tslint:disable-next-line: custom-no-magic-numbers
+        gasPrice = gasPrice.times(10);
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,

@@ -3,7 +3,7 @@
         "version": "16.50.0",
         "changes": [
             {
-                "note": "Add support for Arbitrum one mainnet".
+                "note": "Add support for Arbitrum one mainnet"
             }
         ]
     },
