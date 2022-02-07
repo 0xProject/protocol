@@ -23,7 +23,7 @@ export const rfqtMocker = {
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
     ): Promise<void> => {
-        const mockedAxios = new AxiosMockAdapter(axiosClient);
+        const mockedAxios = new AxiosMockAdapter(axiosClient as any); // TODO (lawrence): why ts?
         try {
             // Mock out RFQT responses
             for (const mockedResponse of mockedResponses) {

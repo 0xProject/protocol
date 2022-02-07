@@ -363,10 +363,13 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 gasOverhead: ZERO_AMOUNT,
             };
         }
+
+        // Sort hops so they always flow taker -> maker
+        const orderedHops = isBuyQuote(quote) ? quote.hops.slice().reverse() : quote.hops;
         if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexMultiHopFillCalldata(
-                    quote.hops,
+                    orderedHops,
                     optsWithDefaults,
                 ),
                 ethAmount,
@@ -389,14 +392,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             });
         }
 
-        // Sort hops so they always flow taker -> maker
-        const orderedHops = isBuyQuote(quote) ? quote.hops.slice().reverse() : quote.hops;
         for (const [i, hop] of orderedHops.entries()) {
             let fillAmount = !isBuyQuote(quote)
                 ? shouldSellEntireBalance ? MAX_UINT256 : hop.takerAmount
                 : hop.makerAmount;
             let side = !isBuyQuote(quote) ? FillQuoteTransformerSide.Sell : FillQuoteTransformerSide.Buy;
-            if (quote.hops.length > 1) { // Multi-hop.
+            if (orderedHops.length > 1) { // Multi-hop.
                 // Multi-hop is always a sell.
                 side = FillQuoteTransformerSide.Sell;
                 // Subsequent multi-hops always sell entire balance.
@@ -550,8 +551,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             if (hop.orders.length !== 1) {
                 subcalls.push({
                     id: MultiplexSubcall.BatchSell,
-                    sellAmount: hop.maxTakerAmount,
-                    data: multiplexBatchSellEncoder.encode(this._getMultiplexBatchSellSubcalls(hop.orders)),
+                    data: multiplexBatchSellEncoder.encode({ subcalls: this._getMultiplexBatchSellSubcalls(hop.orders) }),
                 });
                 continue;
             }
@@ -591,6 +591,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const tokenPath = getTokenPathFromHops(hops);
         const firstHop = hops[0];
         const lastHop = hops[hops.length - 1];
+        console.log(tokenPath, firstHop, lastHop)
         if (opts.isFromETH) {
             return this._exchangeProxy
                 .multiplexMultiHopSellEthForToken(tokenPath, subcalls, lastHop.minMakerAmount)
@@ -696,6 +697,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     break for_loop;
             }
         }
+        console.log(subcalls);
         return subcalls;
     }
 }

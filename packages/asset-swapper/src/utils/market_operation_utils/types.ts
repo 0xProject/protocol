@@ -478,6 +478,7 @@ export interface MarketSideLiquidity {
 }
 
 export interface RawHopQuotes {
+    tokenPath: Address[];
     inputToken: Address;
     outputToken: Address;
     nativeOrders: NativeOrderWithFillableAmounts[];
