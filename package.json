@@ -186,5 +186,8 @@
         "uuid-validate": "^0.0.3",
         "ws": "^7.4.6",
         "zen-observable": "^0.8.15"
+    },
+    "resolutions": {
+        "fast-abi": "^0.0.3"
     }
 }
