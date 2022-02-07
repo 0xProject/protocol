@@ -26,6 +26,7 @@ export interface LiquidityRequest {
     inputAmount: BigNumber;
     source: string;
     demand?: boolean;
+    numSamples?: number;
 }
 
 type RpcLiquidityRequest = Omit<LiquidityRequest, 'inputAmount'> & {

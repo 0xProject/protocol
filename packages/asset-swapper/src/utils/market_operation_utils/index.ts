@@ -169,6 +169,8 @@ export class MarketOperationUtils {
                     hopPath,
                     sampleAmounts[i],
                     samplerSourceFilters.sources,
+                    // Fetch fewer samples for multihop legs.
+                    isDirectTokenPath(hopPath, makerToken, takerToken) ? undefined : 4,
                 )
             )),
         ]);
@@ -378,7 +380,6 @@ export class MarketOperationUtils {
             sampleAmounts = [...directLegs.map(_ => makerAmount), ...multiHopAmounts];
         }
         const terminalTokens = getTerminalTokensFromPaths(sampleLegs);
-        console.log(sampleLegs, sampleAmounts, terminalTokens);
 
         const [
             tokenInfos,
@@ -397,6 +398,8 @@ export class MarketOperationUtils {
                     hopPath,
                     sampleAmounts[i],
                     samplerSourceFilters.sources,
+                    // Fetch fewer samples for multihop legs.
+                    isDirectTokenPath(hopPath, makerToken, takerToken) ? undefined : 4,
                 )
             )),
         ]);
@@ -524,7 +527,6 @@ export class MarketOperationUtils {
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
         const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
-        console.log(marketSideLiquidity.quotes);
         let optimizerResult: OptimizerResult | undefined;
         try {
             optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
@@ -850,8 +852,7 @@ export class MarketOperationUtils {
         const hopRoutes = (await Promise.all(routes.map(async route => {
             let hopInputAmount = inputAmount;
             const hops = [];
-            // const _route = side === MarketOperation.Sell ? route : route.slice().reverse();
-            for (const currentHop of route) {
+            for (const routeHop of route) {
                 const hop = await this._createOptimizedHopAsync({
                     side,
                     slippage,
@@ -860,12 +861,12 @@ export class MarketOperationUtils {
                     runLimit,
                     maxFallbackSlippage,
                     inputAmount: hopInputAmount,
-                    dexQuotes: currentHop.dexQuotes,
-                    nativeOrders: currentHop.nativeOrders,
-                    inputToken: currentHop.inputToken,
-                    outputToken: currentHop.outputToken,
-                    inputAmountPerEth: tokenAmountPerEth[currentHop.inputToken] || ZERO_AMOUNT,
-                    outputAmountPerEth: tokenAmountPerEth[currentHop.outputToken] || ZERO_AMOUNT,
+                    dexQuotes: routeHop.dexQuotes,
+                    nativeOrders: routeHop.nativeOrders,
+                    inputToken: routeHop.inputToken,
+                    outputToken: routeHop.outputToken,
+                    inputAmountPerEth: tokenAmountPerEth[routeHop.inputToken] || ZERO_AMOUNT,
+                    outputAmountPerEth: tokenAmountPerEth[routeHop.outputToken] || ZERO_AMOUNT,
                 });
                 if (!hop) {
                     // This hop could not satisfy the input amount so the
@@ -1008,3 +1009,8 @@ function doesRawHopQuotesHaveLiquidity(hopQuotes: RawHopQuotes): boolean {
 function isSameTokenPath(a: Address[], b: Address[]): boolean {
     return a.length === b.length && a.every((v, idx) => v === b[idx]);
 }
+
+ function isDirectTokenPath(tokenPath: Address[], makerToken: Address, takerToken: Address): boolean {
+     const [pathTakerToken, pathMakerToken] = getTakerMakerTokenFromTokenPath(tokenPath);
+     return pathTakerToken === takerToken && pathMakerToken === makerToken;
+ }

@@ -6,6 +6,8 @@ import { Address } from '../../types';
 import { DexSample, ERC20BridgeSource, TokenAdjacencyGraph } from './types';
 import { SamplerServiceRpcClient } from './sampler_service_rpc_client';
 
+const DEFAULT_LIQUIDITY_SAMPLES = 16;
+
 interface TokenInfo {
     decimals: number;
     address: Address;
@@ -17,8 +19,8 @@ export interface Sampler {
     chainId: ChainId;
     getTokenInfosAsync(tokens: Address[]): Promise<TokenInfo[]>;
     getPricesAsync(paths: Address[][], sources: ERC20BridgeSource[]): Promise<BigNumber[]>;
-    getSellLiquidityAsync(path: Address[], takerAmount: BigNumber, sources: ERC20BridgeSource[]): Promise<DexSample[][]>;
-    getBuyLiquidityAsync(path: Address[], makerAmount: BigNumber, sources: ERC20BridgeSource[]): Promise<DexSample[][]>;
+    getSellLiquidityAsync(path: Address[], takerAmount: BigNumber, sources: ERC20BridgeSource[], numSamples?: number): Promise<DexSample[][]>;
+    getBuyLiquidityAsync(path: Address[], makerAmount: BigNumber, sources: ERC20BridgeSource[], numSamples?: number): Promise<DexSample[][]>;
 }
 
 export class SamplerClient implements Sampler {
@@ -63,9 +65,11 @@ export class SamplerClient implements Sampler {
         path: Address[],
         takerAmount: BigNumber,
         sources: ERC20BridgeSource[],
+        numSamples: number = DEFAULT_LIQUIDITY_SAMPLES,
     ): Promise<DexSample[][]> {
         const liquidity = await this._service.getSellLiquidityAsync(
             sources.map(s => ({
+                numSamples,
                 tokenPath: path,
                 inputAmount: takerAmount,
                 source: s,
@@ -90,9 +94,11 @@ export class SamplerClient implements Sampler {
         path: Address[],
         makerAmount: BigNumber,
         sources: ERC20BridgeSource[],
+        numSamples: number = DEFAULT_LIQUIDITY_SAMPLES,
     ): Promise<DexSample[][]> {
         const liquidity = await this._service.getBuyLiquidityAsync(
             sources.map(s => ({
+                numSamples,
                 tokenPath: path,
                 inputAmount: makerAmount,
                 source: s,

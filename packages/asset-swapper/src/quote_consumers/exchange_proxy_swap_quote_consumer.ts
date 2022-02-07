@@ -591,7 +591,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         const tokenPath = getTokenPathFromHops(hops);
         const firstHop = hops[0];
         const lastHop = hops[hops.length - 1];
-        console.log(tokenPath, firstHop, lastHop)
         if (opts.isFromETH) {
             return this._exchangeProxy
                 .multiplexMultiHopSellEthForToken(tokenPath, subcalls, lastHop.minMakerAmount)
@@ -697,7 +696,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     break for_loop;
             }
         }
-        console.log(subcalls);
         return subcalls;
     }
 }

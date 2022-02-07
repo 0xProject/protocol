@@ -92,7 +92,6 @@ function findRoutesAndCreateOptimalPath(
     opts: PathPenaltyOpts,
     gasPrice: BigNumber,
 ): Path | undefined {
-    console.log(samples);
     const createFill = (sample: DexSample) =>
         dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)[0];
     // Track sample id's to integers (required by rust router)
