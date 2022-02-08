@@ -585,19 +585,6 @@ contract ERC1155OrdersFeature is
         orderInfo.orderAmount = order.erc1155TokenAmount;
         orderInfo.orderHash = getERC1155OrderHash(order);
 
-        {
-            LibERC1155OrdersStorage.Storage storage stor =
-                LibERC1155OrdersStorage.getStorage();
-            uint256 orderState = stor.orderState[orderInfo.orderHash];
-            orderInfo.remainingAmount = order.erc1155TokenAmount
-                .safeSub128(uint128(orderState));
-
-            if (orderInfo.remainingAmount == 0 || orderState & CANCEL_BIT != 0) {
-                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
-                return orderInfo;
-            }
-        }
-
         // Only buy orders with `erc1155TokenId` == 0 can be property
         // orders.
         if (order.erc1155TokenProperties.length > 0 &&
@@ -621,6 +608,19 @@ contract ERC1155OrdersFeature is
         if (order.expiry <= block.timestamp) {
             orderInfo.status = LibNFTOrder.OrderStatus.EXPIRED;
             return orderInfo;
+        }
+
+        {
+            LibERC1155OrdersStorage.Storage storage stor =
+                LibERC1155OrdersStorage.getStorage();
+            uint256 orderState = stor.orderState[orderInfo.orderHash];
+            orderInfo.remainingAmount = order.erc1155TokenAmount
+                .safeSub128(uint128(orderState));
+
+            if (orderInfo.remainingAmount == 0 || orderState & CANCEL_BIT != 0) {
+                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
+                return orderInfo;
+            }
         }
 
         // Otherwise, the order is fillable.
