@@ -544,10 +544,10 @@ contract ERC1155OrdersFeature is
         override
     {
         LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
-        uint128 currentFilledAmount = uint128(stor.orderState[orderHash]);
+        uint256 currentOrderState = stor.orderState[orderHash];
         // Filled amount should never overflow 128 bits
-        assert(currentFilledAmount + fillAmount > currentFilledAmount);
-        stor.orderState[orderHash] += fillAmount;
+        assert(uint128(currentOrderState) + fillAmount > uint128(currentOrderState));
+        stor.orderState[orderHash] = currentOrderState + fillAmount;
     }
 
     /// @dev If the given order is buying an ERC1155 asset, checks
