@@ -592,11 +592,7 @@ contract ERC1155OrdersFeature is
             orderInfo.remainingAmount = order.erc1155TokenAmount
                 .safeSub128(uint128(orderState));
 
-            if (orderInfo.remainingAmount == 0) {
-                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
-                return orderInfo;
-            }
-            if (orderState & CANCEL_BIT != 0) {
+            if (orderInfo.remainingAmount == 0 || orderState & CANCEL_BIT != 0) {
                 orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
                 return orderInfo;
             }
