@@ -28,6 +28,7 @@ library LibERC1155OrdersStorage {
 
     /// @dev Storage bucket for this feature.
     struct Storage {
+        // Mapping from order hash to order state:
         // The lower `uint128` is the taker token fill amount.
         // The highest bit will be `1` if the order was cancelled.
         // The second-highest bit will be `1` if the order was pre-signed.
