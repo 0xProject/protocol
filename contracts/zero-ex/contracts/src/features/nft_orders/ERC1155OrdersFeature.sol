@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";

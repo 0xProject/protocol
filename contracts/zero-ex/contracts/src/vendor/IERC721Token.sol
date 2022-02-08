@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 
 
 interface IERC721Token {
@@ -143,11 +143,11 @@ interface IERC721Token {
     /// @dev Throws if `_tokenId` is not a valid NFT.
     /// @param _tokenId The NFT to find the approved address for
     /// @return The approved address for this NFT, or the zero address if there is none
-    function getApproved(uint256 _tokenId) 
+    function getApproved(uint256 _tokenId)
         external
         view
         returns (address);
-    
+
     /// @notice Query if an address is an authorized operator for another address
     /// @param _owner The address that owns the NFTs
     /// @param _operator The address that acts on behalf of the owner
