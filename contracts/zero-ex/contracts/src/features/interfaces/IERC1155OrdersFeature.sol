@@ -230,7 +230,7 @@ interface IERC1155OrdersFeature {
         view
         returns (LibNFTOrder.OrderInfo memory orderInfo);
 
-    /// @dev Get the canonical hash of an ERC1155 order.
+    /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderHash The order hash.
     function getERC1155OrderHash(LibNFTOrder.ERC1155Order calldata order)
