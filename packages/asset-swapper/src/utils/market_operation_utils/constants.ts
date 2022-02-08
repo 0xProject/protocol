@@ -219,6 +219,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MultiHop,
         ]),
     },
@@ -377,6 +378,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MultiHop,
         ]),
     },
@@ -657,6 +659,10 @@ export const ARBITRUM_TOKENS = {
     WBTC: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    nETH: '0x3ea9b0ab55f34fb188824ee288ceaefc63cf908e',
+    nUSD: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
+    USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
+    MIM: ' 0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a',
 };
 
 export const CURVE_POOLS = {
@@ -827,7 +833,7 @@ export const SYNAPSE_AVALANCHE_POOLS = {
 };
 
 export const SYNAPSE_ARBITRUM_POOLS = {
-    nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
+    nUSDLP: '0xadeac0343c2ac62dfe5a5f51e896aefff5ab513e',
     nETHLP: '0xd70a52248e546a3b260849386410c7170c7bd1e9',
 };
 
@@ -937,6 +943,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9d08fefa1 (Feat/synapse (#400))
 =======
         [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC,ARBITRUM_TOKENS.USDC,ARBITRUM_TOKENS.DAI],
@@ -953,6 +960,15 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
 =======
         [ChainId.Arbitrum]: [ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.DAI],
 >>>>>>> ec4e5bfe5 (rebased dev->arbitrum)
+=======
+        [ChainId.Arbitrum]: [
+            ARBITRUM_TOKENS.WETH,
+            ARBITRUM_TOKENS.WBTC,
+            ARBITRUM_TOKENS.USDC,
+            ARBITRUM_TOKENS.DAI,
+            ARBITRUM_TOKENS.USDT,
+        ],
+>>>>>>> 7f8ee74ff (arbitrum pls work)
     },
     [],
 );
@@ -1752,6 +1768,27 @@ export const SYNAPSE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_OPTIMISM_POOLS.nETHLP,
         tokens: [OPTIMISM_TOKENS.nETH, OPTIMISM_TOKENS.sWETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_ARBITRUM_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nETHLP,
+        tokens: [ARBITRUM_TOKENS.nETH, ARBITRUM_TOKENS.WETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_ARBITRUM_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nUSDLP,
+        tokens: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.nUSD],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
