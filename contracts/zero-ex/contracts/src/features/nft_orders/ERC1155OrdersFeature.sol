@@ -238,24 +238,19 @@ contract ERC1155OrdersFeature is
 
         uint256 ethBalanceBefore = address(this).balance
             .safeSub(msg.value);
-        for (uint256 i = 0; i < sellOrders.length; i++) {
-            // Cannot use pre-existing ETH balance
-            uint256 currentEthBalance = address(this).balance;
-            if (currentEthBalance < ethBalanceBefore) {
-                LibNFTOrdersRichErrors.OverspentEthError(
-                    msg.value + (ethBalanceBefore - currentEthBalance),
-                    msg.value
-                ).rrevert();
-            }
+        if (revertIfIncomplete) {
+            for (uint256 i = 0; i < sellOrders.length; i++) {
+                // Cannot use pre-existing ETH balance
+                uint256 currentEthBalance = address(this).balance;
+                if (currentEthBalance < ethBalanceBefore) {
+                    LibNFTOrdersRichErrors.OverspentEthError(
+                        msg.value + (ethBalanceBefore - currentEthBalance),
+                        msg.value
+                    ).rrevert();
+                }
 
-            bytes memory returnData;
-            // Delegatecall `_buyERC1155` to track ETH consumption while
-            // preserving execution context.
-            // Note that `_buyERC1155` is a public function but should _not_
-            // be registered in the Exchange Proxy.
-            (successes[i], returnData) = _implementation.delegatecall(
-                abi.encodeWithSelector(
-                    this._buyERC1155.selector,
+                // Will revert if _buyERC1155 reverts.
+                _buyERC1155(
                     sellOrders[i],
                     signatures[i],
                     BuyParams(
@@ -263,11 +258,36 @@ contract ERC1155OrdersFeature is
                         currentEthBalance - ethBalanceBefore, // Remaining ETH available
                         callbackData[i]
                     )
-                )
-            );
-            if (!successes[i] && revertIfIncomplete) {
-                // Bubble up revert
-                returnData.rrevert();
+                );
+                successes[i] = true;
+            }
+        } else {
+            for (uint256 i = 0; i < sellOrders.length; i++) {
+                // Cannot use pre-existing ETH balance
+                uint256 currentEthBalance = address(this).balance;
+                if (currentEthBalance < ethBalanceBefore) {
+                    LibNFTOrdersRichErrors.OverspentEthError(
+                        msg.value + (ethBalanceBefore - currentEthBalance),
+                        msg.value
+                    ).rrevert();
+                }
+
+                // Delegatecall `_buyERC1155` to catch swallow reverts while
+                // preserving execution context.
+                // Note that `_buyERC1155` is a public function but should _not_
+                // be registered in the Exchange Proxy.
+                (successes[i], ) = _implementation.delegatecall(
+                    abi.encodeWithSelector(
+                        this._buyERC1155.selector,
+                        sellOrders[i],
+                        signatures[i],
+                        BuyParams(
+                            erc1155FillAmounts[i],
+                            currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                            callbackData[i]
+                        )
+                    )
+                );
             }
         }
 
