@@ -2340,7 +2340,8 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
         // NOTE: This base value was heuristically chosen by looking at how much it generally
         // underestimated gas usage
-        let gas = 34e3; // 34k base
+        const base = 34e3; // 34k base
+        let gas = base;
         if (isFinalUniswapV3FillData(uniFillData)) {
             gas += uniFillData.gasUsed;
         } else {
@@ -2348,8 +2349,19 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             // therefore we estimate using the mean of gas prices returned from UniswapV3
             // For the best case scenario (least amount of hops & ticks) this will
             // over estimate the gas usage
-            const meanGasUsedForPath = Math.round(_.meanBy(uniFillData.pathAmounts, p => p.gasUsed));
+            const pathAmountsWithGasUsed = uniFillData.pathAmounts.filter(p => p.gasUsed > 0);
+            const meanGasUsedForPath = Math.round(_.meanBy(pathAmountsWithGasUsed, p => p.gasUsed));
             gas += meanGasUsedForPath;
+        }
+
+        // If we for some reason could not read `gasUsed` when sampling
+        // fall back to legacy gas estimation
+        if (gas === base) {
+            gas = 100e3;
+            const path = uniFillData.tokenAddressPath;
+            if (path.length > 2) {
+                gas += (path.length - 2) * 32e3; // +32k for each hop.
+            }
         }
 
         return gas;
