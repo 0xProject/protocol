@@ -209,6 +209,9 @@ contract ERC1155OrdersFeature is
     /// @param signatures The order signatures.
     /// @param erc1155FillAmounts The amounts of the ERC1155 assets
     ///        to buy for each order.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC1155`.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
@@ -217,6 +220,7 @@ contract ERC1155OrdersFeature is
         LibNFTOrder.ERC1155Order[] memory sellOrders,
         LibSignature.Signature[] memory signatures,
         uint128[] calldata erc1155FillAmounts,
+        bytes[] memory callbackData,
         bool revertIfIncomplete
     )
         public
@@ -226,13 +230,24 @@ contract ERC1155OrdersFeature is
     {
         require(
             sellOrders.length == signatures.length &&
-            sellOrders.length == erc1155FillAmounts.length,
+            sellOrders.length == erc1155FillAmounts.length &&
+            sellOrders.length == callbackData.length,
             "ERC1155OrdersFeature::batchBuyERC1155s/ARRAY_LENGTH_MISMATCH"
         );
         successes = new bool[](sellOrders.length);
 
-        uint256 ethSpent = 0;
+        uint256 ethBalanceBefore = address(this).balance
+            .safeSub(msg.value);
         for (uint256 i = 0; i < sellOrders.length; i++) {
+            // Cannot use pre-existing ETH balance
+            uint256 currentEthBalance = address(this).balance;
+            if (currentEthBalance < ethBalanceBefore) {
+                LibNFTOrdersRichErrors.OverspentEthError(
+                    msg.value + (ethBalanceBefore - currentEthBalance),
+                    msg.value
+                ).rrevert();
+            }
+
             bytes memory returnData;
             // Delegatecall `_buyERC1155` to track ETH consumption while
             // preserving execution context.
@@ -245,31 +260,28 @@ contract ERC1155OrdersFeature is
                     signatures[i],
                     BuyParams(
                         erc1155FillAmounts[i],
-                        msg.value - ethSpent, // Remaining ETH available
-                        new bytes(0)          // No taker callback; allowing a
-                                              // callback would potentially mess
-                                              // up the ETH accounting here.
+                        currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                        callbackData[i]
                     )
                 )
             );
-            if (successes[i]) {
-                (uint256 _ethSpent) = abi.decode(returnData, (uint256));
-                ethSpent = ethSpent.safeAdd(_ethSpent);
-            } else if (revertIfIncomplete) {
+            if (!successes[i] && revertIfIncomplete) {
                 // Bubble up revert
                 returnData.rrevert();
             }
         }
 
-        if (ethSpent > msg.value) {
+        // Cannot use pre-existing ETH balance
+        uint256 ethBalanceAfter = address(this).balance;
+        if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
-                ethSpent,
+                msg.value + (ethBalanceBefore - ethBalanceAfter),
                 msg.value
             ).rrevert();
         }
 
         // Refund
-        _transferEth(msg.sender, msg.value - ethSpent);
+        _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
     /// @dev Callback for the ERC1155 `safeTransferFrom` function.

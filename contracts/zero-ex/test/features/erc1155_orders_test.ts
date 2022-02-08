@@ -32,7 +32,7 @@ import {
     TestWethContract,
 } from '../wrappers';
 
-blockchainTests.resets.only('ERC1155OrdersFeature', env => {
+blockchainTests.resets('ERC1155OrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT: ZERO } = constants;
     const ETH_TOKEN_ADDRESS = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
@@ -1352,6 +1352,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order],
                     [signature, signature],
                     [order.erc1155TokenAmount, order.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     false,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1382,6 +1383,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     false,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1417,6 +1419,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                 [order1, order2],
                 [signature1, signature2],
                 [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                [NULL_BYTES, NULL_BYTES],
                 false,
             );
             const successes = await tx.callAsync({
@@ -1460,6 +1463,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     true,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1488,6 +1492,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     true,
                 )
                 .awaitTransactionSuccessAsync({

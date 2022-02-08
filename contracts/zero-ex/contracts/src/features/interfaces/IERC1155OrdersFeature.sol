@@ -145,6 +145,9 @@ interface IERC1155OrdersFeature {
     /// @param signatures The order signatures.
     /// @param erc1155TokenAmounts The amounts of the ERC1155 assets
     ///        to buy for each order.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC1155`.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
@@ -153,6 +156,7 @@ interface IERC1155OrdersFeature {
         LibNFTOrder.ERC1155Order[] calldata sellOrders,
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata erc1155TokenAmounts,
+        bytes[] calldata callbackData,
         bool revertIfIncomplete
     )
         external
