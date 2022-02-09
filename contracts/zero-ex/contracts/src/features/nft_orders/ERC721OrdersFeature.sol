@@ -480,7 +480,7 @@ contract ERC721OrdersFeature is
                 ).rrevert();
             }
 
-            // Step 7: We calculate the profit as:
+            // Step 5: We calculate the profit as:
             //         profit = buyOrder.erc20TokenAmount - sellOrder.erc20TokenAmount - sellOrderFees
             //                = spread - sellOrderFees
             //         I.e. the buyer would've been willing to pay up to `profit`
