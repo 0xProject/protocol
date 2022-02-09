@@ -2112,7 +2112,7 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
-        [ChainId.Optimism]: {
+        [ChainId.Arbitrum]: {
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
