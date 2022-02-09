@@ -35,11 +35,13 @@ contract TestBase is
         _;
     }
 
-    modifier measureGasUsed()
+    modifier skip()
     {
-        uint256 gasBefore = gasleft();
+        if (true) {
+            emit log_string("skip");
+            return;
+        }
         _;
-        emit log_named_uint("gas used:", gasBefore - gasleft());
     }
 
     function _chainId()

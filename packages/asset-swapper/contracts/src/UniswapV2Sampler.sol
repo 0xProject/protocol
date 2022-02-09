@@ -61,7 +61,7 @@ contract UniswapV2Sampler is
         address[] memory path,
         uint256[] memory takerTokenAmounts
     )
-        internal 
+        public
         view
         returns (uint256[] memory makerTokenAmounts)
     {

@@ -17,6 +17,7 @@ contract CurveSamplerTest is
 
     function testCurveSampler()
         public
+        skip()
         requiresChainId(1)
         requiresBlockNumberGte(14000000)
     {
@@ -37,7 +38,7 @@ contract CurveSamplerTest is
     function testCurveSamplerOptimism()
         public
         requiresChainId(10)
-        measureGasUsed()
+        logs_gas()
     {
 
         uint256[] memory values = sampler.sampleSellsFromCurveGlobal(

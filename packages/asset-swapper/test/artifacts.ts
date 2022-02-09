@@ -12,6 +12,7 @@ import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sample
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
 import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
+import * as CurveSamplerTest from '../test/generated-artifacts/CurveSamplerTest.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
 import * as DSTest from '../test/generated-artifacts/DSTest.json';
@@ -100,6 +101,7 @@ export const artifacts = {
     ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
+    CurveSamplerTest: CurveSamplerTest as ContractArtifact,
     DSTest: DSTest as ContractArtifact,
     DummyLiquidityProvider: DummyLiquidityProvider as ContractArtifact,
     TestBase: TestBase as ContractArtifact,
