@@ -262,7 +262,7 @@ interface IERC721OrdersFeature {
         view
         returns (LibNFTOrder.OrderStatus status);
 
-    /// @dev Get the canonical hash of an ERC721 order.
+    /// @dev Get the EIP-712 hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return orderHash The order hash.
     function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order)

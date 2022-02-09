@@ -920,7 +920,7 @@ contract ERC721OrdersFeature is
         orderInfo.remainingAmount = orderInfo.status == LibNFTOrder.OrderStatus.FILLABLE ? 1 : 0;
     }
 
-    /// @dev Get the canonical hash of an ERC721 order.
+    /// @dev Get the EIP-712 hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return orderHash The order hash.
     function getERC721OrderHash(LibNFTOrder.ERC721Order memory order)
