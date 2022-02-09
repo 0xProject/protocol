@@ -390,10 +390,10 @@ contract ERC721OrdersFeature is
             //         the `erc20Token`, which in this case is WETH.
             _payFees(
                 buyNFTOrder,
-                buyOrder.maker,
-                1,
-                1,
-                false
+                buyOrder.maker, // payer
+                1,              // fillAmount
+                1,              // orderAmount
+                false           // useNativeToken
             );
 
             // Step 5: Pay fees for the sell order. The `erc20Token` of the
@@ -403,10 +403,10 @@ contract ERC721OrdersFeature is
             //         sell order fees.
             uint256 sellOrderFees = _payFees(
                 sellNFTOrder,
-                address(this),
-                1,
-                1,
-                true
+                address(this), // payer
+                1,             // fillAmount
+                1,             // orderAmount
+                true           // useNativeToken
             );
 
             // Step 6: The spread must be enough to cover the sell order fees.
@@ -451,10 +451,10 @@ contract ERC721OrdersFeature is
             //         `buyOrder.erc20TokenAmount` _plus_ `buyOrder.fees`.
             _payFees(
                 buyNFTOrder,
-                buyOrder.maker,
-                1,
-                1,
-                false
+                buyOrder.maker, // payer
+                1,              // fillAmount
+                1,              // orderAmount
+                false           // useNativeToken
             );
 
             // Step 3: Pay fees for the sell order. These are paid by the buyer
@@ -463,10 +463,10 @@ contract ERC721OrdersFeature is
             //         so, we revert in the following step.
             uint256 sellOrderFees = _payFees(
                 sellNFTOrder,
-                buyOrder.maker,
-                1,
-                1,
-                false
+                buyOrder.maker, // payer
+                1,              // fillAmount
+                1,              // orderAmount
+                false           // useNativeToken
             );
 
             // Step 4: The spread must be enough to cover the sell order fees.
