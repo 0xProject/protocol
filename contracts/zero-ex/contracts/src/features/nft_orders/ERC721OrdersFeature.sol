@@ -145,7 +145,7 @@ contract ERC721OrdersFeature is
         // Cannot use pre-existing ETH balance
         if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
-                ethBalanceBefore - ethBalanceAfter + msg.value,
+                msg.value + (ethBalanceBefore - ethBalanceAfter),
                 msg.value
             ).rrevert();
         }
@@ -218,35 +218,17 @@ contract ERC721OrdersFeature is
             .safeSub(msg.value);
         if (revertIfIncomplete) {
             for (uint256 i = 0; i < sellOrders.length; i++) {
-                // Cannot use pre-existing ETH balance
-                uint256 currentEthBalance = address(this).balance;
-                if (currentEthBalance < ethBalanceBefore) {
-                    LibNFTOrdersRichErrors.OverspentEthError(
-                        msg.value + (ethBalanceBefore - currentEthBalance),
-                        msg.value
-                    ).rrevert();
-                }
-
                 // Will revert if _buyERC721 reverts.
                 _buyERC721(
                     sellOrders[i],
                     signatures[i],
-                    currentEthBalance - ethBalanceBefore,
+                    address(this).balance.safeSub(ethBalanceBefore),
                     callbackData[i]
                 );
                 successes[i] = true;
             }
         } else {
             for (uint256 i = 0; i < sellOrders.length; i++) {
-                // Cannot use pre-existing ETH balance
-                uint256 currentEthBalance = address(this).balance;
-                if (currentEthBalance < ethBalanceBefore) {
-                    LibNFTOrdersRichErrors.OverspentEthError(
-                        msg.value + (ethBalanceBefore - currentEthBalance),
-                        msg.value
-                    ).rrevert();
-                }
-
                 // Delegatecall `_buyERC721` to swallow reverts while
                 // preserving execution context.
                 // Note that `_buyERC721` is a public function but should _not_
@@ -256,7 +238,7 @@ contract ERC721OrdersFeature is
                         this._buyERC721.selector,
                         sellOrders[i],
                         signatures[i],
-                        currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                        address(this).balance.safeSub(ethBalanceBefore), // Remaining ETH available
                         callbackData[i]
                     )
                 );
@@ -711,9 +693,8 @@ contract ERC721OrdersFeature is
     )
         public
         payable
-        returns (uint256 ethSpent)
     {
-        (, ethSpent) = _buyNFT(
+        _buyNFT(
             sellOrder.asNFTOrder(),
             signature,
             BuyParams(

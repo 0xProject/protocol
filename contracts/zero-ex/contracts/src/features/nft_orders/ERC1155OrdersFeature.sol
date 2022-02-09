@@ -240,22 +240,13 @@ contract ERC1155OrdersFeature is
             .safeSub(msg.value);
         if (revertIfIncomplete) {
             for (uint256 i = 0; i < sellOrders.length; i++) {
-                // Cannot use pre-existing ETH balance
-                uint256 currentEthBalance = address(this).balance;
-                if (currentEthBalance < ethBalanceBefore) {
-                    LibNFTOrdersRichErrors.OverspentEthError(
-                        msg.value + (ethBalanceBefore - currentEthBalance),
-                        msg.value
-                    ).rrevert();
-                }
-
                 // Will revert if _buyERC1155 reverts.
                 _buyERC1155(
                     sellOrders[i],
                     signatures[i],
                     BuyParams(
                         erc1155FillAmounts[i],
-                        currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                        address(this).balance.safeSub(ethBalanceBefore), // Remaining ETH available
                         callbackData[i]
                     )
                 );
@@ -263,15 +254,6 @@ contract ERC1155OrdersFeature is
             }
         } else {
             for (uint256 i = 0; i < sellOrders.length; i++) {
-                // Cannot use pre-existing ETH balance
-                uint256 currentEthBalance = address(this).balance;
-                if (currentEthBalance < ethBalanceBefore) {
-                    LibNFTOrdersRichErrors.OverspentEthError(
-                        msg.value + (ethBalanceBefore - currentEthBalance),
-                        msg.value
-                    ).rrevert();
-                }
-
                 // Delegatecall `_buyERC1155` to catch swallow reverts while
                 // preserving execution context.
                 // Note that `_buyERC1155` is a public function but should _not_
@@ -283,7 +265,7 @@ contract ERC1155OrdersFeature is
                         signatures[i],
                         BuyParams(
                             erc1155FillAmounts[i],
-                            currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                            address(this).balance.safeSub(ethBalanceBefore), // Remaining ETH available
                             callbackData[i]
                         )
                     )
@@ -440,10 +422,8 @@ contract ERC1155OrdersFeature is
     )
         public
         payable
-        returns (uint256 ethSpent)
     {
-        uint256 erc20FillAmount;
-        (erc20FillAmount, ethSpent) = _buyNFT(
+        uint256 erc20FillAmount = _buyNFT(
             sellOrder.asNFTOrder(),
             signature,
             params

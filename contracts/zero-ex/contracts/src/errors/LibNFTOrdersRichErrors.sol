@@ -26,7 +26,7 @@ library LibNFTOrdersRichErrors {
 
     function OverspentEthError(
         uint256 ethSpent,
-        uint256 msgValue
+        uint256 ethAvailable
     )
         internal
         pure
@@ -35,7 +35,7 @@ library LibNFTOrdersRichErrors {
         return abi.encodeWithSelector(
             bytes4(keccak256("OverspentEthError(uint256,uint256)")),
             ethSpent,
-            msgValue
+            ethAvailable
         );
     }
 
