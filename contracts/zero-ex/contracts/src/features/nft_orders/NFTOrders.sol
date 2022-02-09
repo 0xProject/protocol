@@ -510,31 +510,31 @@ abstract contract NFTOrders is
                     order.nftId
                 ).rrevert();
             }
-        }
+        } else {
+            // Validate each property
+            for (uint256 i = 0; i < order.nftProperties.length; i++) {
+                LibNFTOrder.Property memory property = order.nftProperties[i];
+                // `address(0)` is interpreted as a no-op. Any token ID
+                // will satisfy a property with `propertyValidator == address(0)`.
+                if (address(property.propertyValidator) == address(0)) {
+                    continue;
+                }
 
-        // Validate each property
-        for (uint256 i = 0; i < order.nftProperties.length; i++) {
-            LibNFTOrder.Property memory property = order.nftProperties[i];
-            // `address(0)` is interpreted as a no-op. Any token ID
-            // will satisfy a property with `propertyValidator == address(0)`.
-            if (address(property.propertyValidator) == address(0)) {
-                continue;
-            }
-
-            // Call the property validator and throw a descriptive error
-            // if the call reverts.
-            try property.propertyValidator.validateProperty(
-                order.nft,
-                tokenId,
-                property.propertyData
-            ) {} catch (bytes memory errorData) {
-                LibNFTOrdersRichErrors.PropertyValidationFailedError(
-                    address(property.propertyValidator),
+                // Call the property validator and throw a descriptive error
+                // if the call reverts.
+                try property.propertyValidator.validateProperty(
                     order.nft,
                     tokenId,
-                    property.propertyData,
-                    errorData
-                ).rrevert();
+                    property.propertyData
+                ) {} catch (bytes memory errorData) {
+                    LibNFTOrdersRichErrors.PropertyValidationFailedError(
+                        address(property.propertyValidator),
+                        order.nft,
+                        tokenId,
+                        property.propertyData,
+                        errorData
+                    ).rrevert();
+                }
             }
         }
     }
