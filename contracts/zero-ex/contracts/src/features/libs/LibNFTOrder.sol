@@ -288,18 +288,18 @@ library LibNFTOrder {
             let feesHashPos := add(order, 224) // order + (32 * 7)
             let propertiesHashPos := add(order, 320) // order + (32 * 10)
 
-            let temp1 := mload(typeHashPos)
-            let temp2 := mload(feesHashPos)
-            let temp3 := mload(propertiesHashPos)
+            let typeHashMemBefore := mload(typeHashPos)
+            let feeHashMemBefore := mload(feesHashPos)
+            let propertiesHashMemBefore := mload(propertiesHashPos)
 
             mstore(typeHashPos, _ERC_721_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
             structHash := keccak256(typeHashPos, 384 /* 32 * 12 */ )
 
-            mstore(typeHashPos, temp1)
-            mstore(feesHashPos, temp2)
-            mstore(propertiesHashPos, temp3)
+            mstore(typeHashPos, typeHashMemBefore)
+            mstore(feesHashPos, feeHashMemBefore)
+            mstore(propertiesHashPos, propertiesHashMemBefore)
         }
         return structHash;
     }
@@ -338,18 +338,18 @@ library LibNFTOrder {
             let feesHashPos := add(order, 224) // order + (32 * 7)
             let propertiesHashPos := add(order, 320) // order + (32 * 10)
 
-            let temp1 := mload(typeHashPos)
-            let temp2 := mload(feesHashPos)
-            let temp3 := mload(propertiesHashPos)
+            let typeHashMemBefore := mload(typeHashPos)
+            let feesHashMemBefore := mload(feesHashPos)
+            let propertiesHashMemBefore := mload(propertiesHashPos)
 
             mstore(typeHashPos, _ERC_1155_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
             structHash := keccak256(typeHashPos, 416 /* 32 * 12 */ )
 
-            mstore(typeHashPos, temp1)
-            mstore(feesHashPos, temp2)
-            mstore(propertiesHashPos, temp3)
+            mstore(typeHashPos, typeHashMemBefore)
+            mstore(feesHashPos, feesHashMemBefore)
+            mstore(propertiesHashPos, propertiesHashMemBefore)
         }
         return structHash;
     }
