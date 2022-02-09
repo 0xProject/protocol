@@ -297,6 +297,29 @@ contract ERC721OrdersFeature is
         override
         returns (uint256 profit)
     {
+        // The ERC721 tokens must match
+        if (sellOrder.erc721Token != buyOrder.erc721Token) {
+            LibNFTOrdersRichErrors.ERC721TokenMismatchError(
+                address(sellOrder.erc721Token),
+                address(buyOrder.erc721Token)
+            ).rrevert();
+        }
+
+        {
+            // The ERC20 tokens must match. Okay if the sell order specifies ETH
+            // and the buy order specifies WETH; we will unwrap the WETH before
+            // sending it to `sellOrder.maker`.
+            bool isWethBuyEthSell =
+                address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS &&
+                buyOrder.erc20Token == WETH;
+            if (sellOrder.erc20Token != buyOrder.erc20Token && !isWethBuyEthSell) {
+                LibNFTOrdersRichErrors.ERC20TokenMismatchError(
+                    address(sellOrder.erc20Token),
+                    address(buyOrder.erc20Token)
+                ).rrevert();
+            }
+        }
+
         LibNFTOrder.NFTOrder memory sellNFTOrder = sellOrder.asNFTOrder();
         LibNFTOrder.NFTOrder memory buyNFTOrder = buyOrder.asNFTOrder();
 
@@ -323,28 +346,6 @@ contract ERC721OrdersFeature is
             _updateOrderState(buyNFTOrder, buyOrderInfo.orderHash, 1);
         }
 
-        // The ERC721 tokens must match
-        if (sellOrder.erc721Token != buyOrder.erc721Token) {
-            LibNFTOrdersRichErrors.ERC721TokenMismatchError(
-                address(sellOrder.erc721Token),
-                address(buyOrder.erc721Token)
-            ).rrevert();
-        }
-
-        {
-            // The ERC20 tokens must match. Okay if the sell order specifies ETH
-            // and the buy order specifies WETH; we will unwrap the WETH before
-            // sending it to `sellOrder.maker`.
-            bool isWethBuyEthSell =
-                address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS &&
-                buyOrder.erc20Token == WETH;
-            if (sellOrder.erc20Token != buyOrder.erc20Token && !isWethBuyEthSell) {
-                LibNFTOrdersRichErrors.ERC20TokenMismatchError(
-                    address(sellOrder.erc20Token),
-                    address(buyOrder.erc20Token)
-                ).rrevert();
-            }
-        }
         // The buyer must be willing to pay at least the amount that the
         // seller is asking.
         if (buyOrder.erc20TokenAmount < sellOrder.erc20TokenAmount) {
