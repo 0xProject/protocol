@@ -207,6 +207,12 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
         ]),
+        [ChainId.Arbitrum]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -351,6 +357,12 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
         ]),
+        [ChainId.Arbitrum]: new SourceFilters([
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.MultiHop,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -373,6 +385,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
+        [ChainId.Arbitrum]: [ERC20BridgeSource.UniswapV3, ERC20BridgeSource.SushiSwap],
     },
     [],
 );
@@ -597,6 +610,17 @@ export const OPTIMISM_TOKENS = {
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
 };
 
+export const ARBITRUM_TOKENS = {
+    WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
+    WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
+    renBTC: '0xdbf31df14b66535af65aac99c32e9ea844e14501',
+    nETH: '0x3ea9b0ab55f34fb188824ee288ceaefc63cf908e',
+    nUSD: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
+};
+
 export const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
@@ -756,7 +780,7 @@ export const SYNAPSE_AVALANCHE_POOLS = {
 };
 
 export const SYNAPSE_ARBITRUM_POOLS = {
-    nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
+    nUSDLP: '0xadeac0343c2ac62dfe5a5f51e896aefff5ab513e',
     nETHLP: '0xd70a52248e546a3b260849386410c7170c7bd1e9',
 };
 
@@ -847,6 +871,13 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             OPTIMISM_TOKENS.nETH,
             OPTIMISM_TOKENS.sWETH,
         ],
+        [ChainId.Arbitrum]: [
+            ARBITRUM_TOKENS.WETH,
+            ARBITRUM_TOKENS.DAI,
+            ARBITRUM_TOKENS.USDC,
+            ARBITRUM_TOKENS.USDT,
+            ARBITRUM_TOKENS.WBTC,
+        ],
     },
     [],
 );
@@ -896,6 +927,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
         }).build(),
+        [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder({
+            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+        }).build(),
     },
     new TokenAdjacencyGraphBuilder({ default: [] }).build(),
 );
@@ -913,6 +947,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Fantom]: getContractAddressesForChainOrThrow(ChainId.Fantom).etherToken,
         [ChainId.Celo]: getContractAddressesForChainOrThrow(ChainId.Celo).etherToken,
         [ChainId.Optimism]: getContractAddressesForChainOrThrow(ChainId.Optimism).etherToken,
+        [ChainId.Arbitrum]: getContractAddressesForChainOrThrow(ChainId.Arbitrum).etherToken,
     },
     NULL_ADDRESS,
 );
@@ -1636,6 +1671,27 @@ export const SYNAPSE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+export const SYNAPSE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_ARBITRUM_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nETHLP,
+        tokens: [ARBITRUM_TOKENS.nETH, ARBITRUM_TOKENS.WETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_ARBITRUM_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nUSDLP,
+        tokens: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.nUSD],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
 export const FIREBIRDONESWAP_BSC_INFOS: { [name: string]: CurveInfo } = {
     [FIREBIRDONESWAP_BSC_POOLS.oneswap]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
@@ -1778,6 +1834,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Celo]: '0x1421bde4b10e8dd459b3bcb598810b1337d56842',
+        [ChainId.Arbitrum]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
     },
     NULL_ADDRESS,
 );
@@ -2048,6 +2105,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0x03782388516e94fcd4c18666303601a12aa729ea',
         },
         [ChainId.Polygon]: {
+            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.Optimism]: {
             quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
