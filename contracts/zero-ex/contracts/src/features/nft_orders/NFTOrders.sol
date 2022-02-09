@@ -413,6 +413,15 @@ abstract contract NFTOrders is
         internal
         returns (uint256 totalFeesPaid)
     {
+        // Make assertions about ETH case
+        if (useNativeToken) {
+            assert(payer == address(this));
+            assert(
+                order.erc20Token == WETH ||
+                address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
+            );
+        }
+
         for (uint256 i = 0; i < order.fees.length; i++) {
             LibNFTOrder.Fee memory fee = order.fees[i];
 
@@ -437,11 +446,6 @@ abstract contract NFTOrders is
             }
 
             if (useNativeToken) {
-                assert(payer == address(this));
-                assert(
-                    order.erc20Token == WETH ||
-                    address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
-                );
                 // Transfer ETH to the fee recipient.
                 _transferEth(payable(fee.recipient), feeFillAmount);
             } else {
