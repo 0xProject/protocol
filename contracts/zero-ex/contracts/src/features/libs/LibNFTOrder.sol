@@ -414,11 +414,12 @@ library LibNFTOrder {
         pure
         returns (bytes32 feesHash)
     {
+        uint256 numFees = fees.length;
         // We give `fees.length == 0` and `fees.length == 1`
         // special treatment because we expect these to be the most common.
-        if (fees.length == 0) {
+        if (numFees == 0) {
             feesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (fees.length == 1) {
+        } else if (numFees == 1) {
             // feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
             //     _FEE_TYPEHASH,
             //     fees[0].recipient,
@@ -441,8 +442,8 @@ library LibNFTOrder {
                 feesHash := keccak256(mem, 32)
             }
         } else {
-            bytes32[] memory feeStructHashArray = new bytes32[](fees.length);
-            for (uint256 i = 0; i < fees.length; i++) {
+            bytes32[] memory feeStructHashArray = new bytes32[](numFees);
+            for (uint256 i = 0; i < numFees; i++) {
                 feeStructHashArray[i] = keccak256(abi.encode(
                     _FEE_TYPEHASH,
                     fees[i].recipient,
@@ -450,7 +451,9 @@ library LibNFTOrder {
                     keccak256(fees[i].feeData)
                 ));
             }
-            feesHash = keccak256(abi.encodePacked(feeStructHashArray));
+            assembly {
+                feesHash := keccak256(add(feeStructHashArray, 32), mul(numFees, 32))
+            }
         }
     }
 }
