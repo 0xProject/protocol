@@ -361,11 +361,12 @@ library LibNFTOrder {
         pure
         returns (bytes32 propertiesHash)
     {
+        uint256 numProperties = properties.length;
         // We give `properties.length == 0` and `properties.length == 1`
         // special treatment because we expect these to be the most common.
-        if (properties.length == 0) {
+        if (numProperties == 0) {
             propertiesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (properties.length == 1) {
+        } else if (numProperties == 1) {
             Property memory property = properties[0];
             if (
                 address(property.propertyValidator) == address(0) &&
@@ -392,15 +393,17 @@ library LibNFTOrder {
                 }
             }
         } else {
-            bytes32[] memory propertyStructHashArray = new bytes32[](properties.length);
-            for (uint256 i = 0; i < properties.length; i++) {
+            bytes32[] memory propertyStructHashArray = new bytes32[](numProperties);
+            for (uint256 i = 0; i < numProperties; i++) {
                 propertyStructHashArray[i] = keccak256(abi.encode(
                     _PROPERTY_TYPEHASH,
                     properties[i].propertyValidator,
                     keccak256(properties[i].propertyData)
                 ));
             }
-            propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
+            assembly {
+                propertiesHash := keccak256(add(propertyStructHashArray, 32), mul(numProperties, 32))
+            }
         }
     }
 
