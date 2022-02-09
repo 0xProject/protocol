@@ -263,93 +263,8 @@ library LibNFTOrder {
         pure
         returns (bytes32 structHash)
     {
-        // We give `order.erc721TokenProperties.length == 0` and
-        // `order.erc721TokenProperties.length == 1` special treatment
-        // because we expect these to be the most common.
-        bytes32 propertiesHash;
-        if (order.erc721TokenProperties.length == 0) {
-            propertiesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (order.erc721TokenProperties.length == 1) {
-            Property memory property = order
-                .erc721TokenProperties[0];
-            if (
-                address(property.propertyValidator) == address(0) &&
-                property.propertyData.length == 0
-            ) {
-                propertiesHash = _NULL_PROPERTY_STRUCT_HASH;
-            } else {
-                // propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-                //     _PROPERTY_TYPEHASH,
-                //     order.erc721TokenProperties[0].propertyValidator,
-                //     keccak256(order.erc721TokenProperties[0].propertyData)
-                // ))));
-                bytes32 dataHash = keccak256(property.propertyData);
-                assembly {
-                    // Load free memory pointer
-                    let mem := mload(64)
-                    mstore(mem, _PROPERTY_TYPEHASH)
-                    // property.propertyValidator
-                    mstore(add(mem, 32), and(ADDRESS_MASK, mload(property)))
-                    // keccak256(property.propertyData)
-                    mstore(add(mem, 64), dataHash)
-                    mstore(mem, keccak256(mem, 96))
-                    propertiesHash := keccak256(mem, 32)
-                }
-            }
-        } else {
-            bytes32[] memory propertyStructHashArray = new bytes32[](
-                order.erc721TokenProperties.length
-            );
-            for (uint256 i = 0; i < order.erc721TokenProperties.length; i++) {
-                propertyStructHashArray[i] = keccak256(abi.encode(
-                    _PROPERTY_TYPEHASH,
-                    order.erc721TokenProperties[i].propertyValidator,
-                    keccak256(order.erc721TokenProperties[i].propertyData)
-                ));
-            }
-            propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
-        }
-
-        // We give `order.fees.length == 0` and
-        // `order.fees.length == 1` special treatment
-        // because we expect these to be the most common.
-        bytes32 feesHash;
-        if (order.fees.length == 0) {
-            feesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (order.fees.length == 1) {
-            // feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-            //     _FEE_TYPEHASH,
-            //     order.fees[0].recipient,
-            //     order.fees[0].amount,
-            //     keccak256(order.fees[0].feeData)
-            // ))));
-            Fee memory fee = order.fees[0];
-            bytes32 dataHash = keccak256(fee.feeData);
-            assembly {
-                // Load free memory pointer
-                let mem := mload(64)
-                mstore(mem, _FEE_TYPEHASH)
-                // fee.recipient
-                mstore(add(mem, 32), and(ADDRESS_MASK, mload(fee)))
-                // fee.amount
-                mstore(add(mem, 64), mload(add(fee, 32)))
-                // keccak256(fee.feeData)
-                mstore(add(mem, 96), dataHash)
-                mstore(mem, keccak256(mem, 128))
-                feesHash := keccak256(mem, 32)
-            }
-        } else {
-            bytes32[] memory feeStructHashArray = new bytes32[](order.fees.length);
-            for (uint256 i = 0; i < order.fees.length; i++) {
-                feeStructHashArray[i] = keccak256(abi.encode(
-                    _FEE_TYPEHASH,
-                    order.fees[i].recipient,
-                    order.fees[i].amount,
-                    keccak256(order.fees[i].feeData)
-                ));
-            }
-            feesHash = keccak256(abi.encodePacked(feeStructHashArray));
-        }
+        bytes32 propertiesHash = _propertiesHash(order.erc721TokenProperties);
+        bytes32 feesHash = _feesHash(order.fees);
 
         // Hash in place, equivalent to:
         // return keccak256(abi.encode(
@@ -397,93 +312,8 @@ library LibNFTOrder {
         pure
         returns (bytes32 structHash)
     {
-        // We give `order.erc1155TokenProperties.length == 0` and
-        // `order.erc1155TokenProperties.length == 1` special treatment
-        // because we expect these to be the most common.
-        bytes32 propertiesHash;
-        if (order.erc1155TokenProperties.length == 0) {
-            propertiesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (order.erc1155TokenProperties.length == 1) {
-            Property memory property = order
-                .erc1155TokenProperties[0];
-            if (
-                address(property.propertyValidator) == address(0) &&
-                property.propertyData.length == 0
-            ) {
-                propertiesHash = _NULL_PROPERTY_STRUCT_HASH;
-            } else {
-                // propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-                //     _PROPERTY_TYPEHASH,
-                //     order.erc1155TokenProperties[0].propertyValidator,
-                //     keccak256(order.erc1155TokenProperties[0].propertyData)
-                // ))));
-                bytes32 dataHash = keccak256(property.propertyData);
-                assembly {
-                    // Load free memory pointer
-                    let mem := mload(64)
-                    mstore(mem, _PROPERTY_TYPEHASH)
-                    // property.propertyValidator
-                    mstore(add(mem, 32), and(ADDRESS_MASK, mload(property)))
-                    // keccak256(property.propertyData)
-                    mstore(add(mem, 64), dataHash)
-                    mstore(mem, keccak256(mem, 96))
-                    propertiesHash := keccak256(mem, 32)
-                }
-            }
-        } else {
-            bytes32[] memory propertyStructHashArray = new bytes32[](
-                order.erc1155TokenProperties.length
-            );
-            for (uint256 i = 0; i < order.erc1155TokenProperties.length; i++) {
-                propertyStructHashArray[i] = keccak256(abi.encode(
-                    _PROPERTY_TYPEHASH,
-                    order.erc1155TokenProperties[i].propertyValidator,
-                    keccak256(order.erc1155TokenProperties[i].propertyData)
-                ));
-            }
-            propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
-        }
-
-        // We give `order.fees.length == 0` and
-        // `order.fees.length == 1` special treatment
-        // because we expect these to be the most common.
-        bytes32 feesHash;
-        if (order.fees.length == 0) {
-            feesHash = _EMPTY_ARRAY_KECCAK256;
-        } else if (order.fees.length == 1) {
-            // feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
-            //     _FEE_TYPEHASH,
-            //     order.fees[0].recipient,
-            //     order.fees[0].amount,
-            //     keccak256(order.fees[0].feeData)
-            // ))));
-            Fee memory fee = order.fees[0];
-            bytes32 dataHash = keccak256(fee.feeData);
-            assembly {
-                // Load free memory pointer
-                let mem := mload(64)
-                mstore(mem, _FEE_TYPEHASH)
-                // fee.recipient
-                mstore(add(mem, 32), and(ADDRESS_MASK, mload(fee)))
-                // fee.amount
-                mstore(add(mem, 64), mload(add(fee, 32)))
-                // keccak256(fee.feeData)
-                mstore(add(mem, 96), dataHash)
-                mstore(mem, keccak256(mem, 128))
-                feesHash := keccak256(mem, 32)
-            }
-        } else {
-            bytes32[] memory feeStructHashArray = new bytes32[](order.fees.length);
-            for (uint256 i = 0; i < order.fees.length; i++) {
-                feeStructHashArray[i] = keccak256(abi.encode(
-                    _FEE_TYPEHASH,
-                    order.fees[i].recipient,
-                    order.fees[i].amount,
-                    keccak256(order.fees[i].feeData)
-                ));
-            }
-            feesHash = keccak256(abi.encodePacked(feeStructHashArray));
-        }
+        bytes32 propertiesHash = _propertiesHash(order.erc1155TokenProperties);
+        bytes32 feesHash = _feesHash(order.fees);
 
         // Hash in place, equivalent to:
         // return keccak256(abi.encode(
@@ -522,5 +352,102 @@ library LibNFTOrder {
             mstore(propertiesHashPos, temp3)
         }
         return structHash;
+    }
+
+    // Hashes the `properties` array as part of computing the
+    // EIP-712 hash of an `ERC721Order` or `ERC1155Order`.
+    function _propertiesHash(Property[] memory properties)
+        private
+        pure
+        returns (bytes32 propertiesHash)
+    {
+        // We give `properties.length == 0` and `properties.length == 1`
+        // special treatment because we expect these to be the most common.
+        if (properties.length == 0) {
+            propertiesHash = _EMPTY_ARRAY_KECCAK256;
+        } else if (properties.length == 1) {
+            Property memory property = properties[0];
+            if (
+                address(property.propertyValidator) == address(0) &&
+                property.propertyData.length == 0
+            ) {
+                propertiesHash = _NULL_PROPERTY_STRUCT_HASH;
+            } else {
+                // propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
+                //     _PROPERTY_TYPEHASH,
+                //     properties[0].propertyValidator,
+                //     keccak256(properties[0].propertyData)
+                // ))));
+                bytes32 dataHash = keccak256(property.propertyData);
+                assembly {
+                    // Load free memory pointer
+                    let mem := mload(64)
+                    mstore(mem, _PROPERTY_TYPEHASH)
+                    // property.propertyValidator
+                    mstore(add(mem, 32), and(ADDRESS_MASK, mload(property)))
+                    // keccak256(property.propertyData)
+                    mstore(add(mem, 64), dataHash)
+                    mstore(mem, keccak256(mem, 96))
+                    propertiesHash := keccak256(mem, 32)
+                }
+            }
+        } else {
+            bytes32[] memory propertyStructHashArray = new bytes32[](properties.length);
+            for (uint256 i = 0; i < properties.length; i++) {
+                propertyStructHashArray[i] = keccak256(abi.encode(
+                    _PROPERTY_TYPEHASH,
+                    properties[i].propertyValidator,
+                    keccak256(properties[i].propertyData)
+                ));
+            }
+            propertiesHash = keccak256(abi.encodePacked(propertyStructHashArray));
+        }
+    }
+
+    // Hashes the `fees` array as part of computing the
+    // EIP-712 hash of an `ERC721Order` or `ERC1155Order`.
+    function _feesHash(Fee[] memory fees)
+        private
+        pure
+        returns (bytes32 feesHash)
+    {
+        // We give `fees.length == 0` and `fees.length == 1`
+        // special treatment because we expect these to be the most common.
+        if (fees.length == 0) {
+            feesHash = _EMPTY_ARRAY_KECCAK256;
+        } else if (fees.length == 1) {
+            // feesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
+            //     _FEE_TYPEHASH,
+            //     fees[0].recipient,
+            //     fees[0].amount,
+            //     keccak256(fees[0].feeData)
+            // ))));
+            Fee memory fee = fees[0];
+            bytes32 dataHash = keccak256(fee.feeData);
+            assembly {
+                // Load free memory pointer
+                let mem := mload(64)
+                mstore(mem, _FEE_TYPEHASH)
+                // fee.recipient
+                mstore(add(mem, 32), and(ADDRESS_MASK, mload(fee)))
+                // fee.amount
+                mstore(add(mem, 64), mload(add(fee, 32)))
+                // keccak256(fee.feeData)
+                mstore(add(mem, 96), dataHash)
+                mstore(mem, keccak256(mem, 128))
+                feesHash := keccak256(mem, 32)
+            }
+        } else {
+            bytes32[] memory feeStructHashArray = new bytes32[](fees.length);
+            for (uint256 i = 0; i < fees.length; i++) {
+                feeStructHashArray[i] = keccak256(abi.encode(
+                    _FEE_TYPEHASH,
+                    fees[i].recipient,
+                    fees[i].amount,
+                    keccak256(fees[i].feeData)
+                ));
+            }
+            feesHash = keccak256(abi.encodePacked(feeStructHashArray));
+        }
     }
 }
