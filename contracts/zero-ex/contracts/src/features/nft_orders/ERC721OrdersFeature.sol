@@ -191,11 +191,15 @@ contract ERC721OrdersFeature is
     /// @param signatures The order signatures.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC721`.
     /// @return successes An array of booleans corresponding to whether
     ///         each order in `orders` was successfully filled.
     function batchBuyERC721s(
         LibNFTOrder.ERC721Order[] memory sellOrders,
         LibSignature.Signature[] memory signatures,
+        bytes[] memory callbackData,
         bool revertIfIncomplete
     )
         public
@@ -204,13 +208,24 @@ contract ERC721OrdersFeature is
         returns (bool[] memory successes)
     {
         require(
-            sellOrders.length == signatures.length,
+            sellOrders.length == signatures.length &&
+            sellOrders.length == callbackData.length,
             "ERC721OrdersFeature::batchBuyERC721s/ARRAY_LENGTH_MISMATCH"
         );
         successes = new bool[](sellOrders.length);
 
-        uint256 ethSpent = 0;
+        uint256 ethBalanceBefore = address(this).balance
+            .safeSub(msg.value);
         for (uint256 i = 0; i < sellOrders.length; i++) {
+            // Cannot use pre-existing ETH balance
+            uint256 currentEthBalance = address(this).balance;
+            if (currentEthBalance < ethBalanceBefore) {
+                LibNFTOrdersRichErrors.OverspentEthError(
+                    msg.value + (ethBalanceBefore - currentEthBalance),
+                    msg.value
+                ).rrevert();
+            }
+
             bytes memory returnData;
             // Delegatecall `_buyERC721` to track ETH consumption while
             // preserving execution context.
@@ -221,30 +236,27 @@ contract ERC721OrdersFeature is
                     this._buyERC721.selector,
                     sellOrders[i],
                     signatures[i],
-                    msg.value - ethSpent, // Remaining ETH available
-                    new bytes(0)          // No taker callback; allowing a
-                                          // callback would potentially mess
-                                          // up the ETH accounting here.
+                    currentEthBalance - ethBalanceBefore, // Remaining ETH available
+                    callbackData[i]
                 )
             );
-            if (successes[i]) {
-                (uint256 _ethSpent) = abi.decode(returnData, (uint256));
-                ethSpent = ethSpent.safeAdd(_ethSpent);
-            } else if (revertIfIncomplete) {
+            if (!successes[i] && revertIfIncomplete) {
                 // Bubble up revert
                 returnData.rrevert();
             }
         }
 
-        if (ethSpent > msg.value) {
+        // Cannot use pre-existing ETH balance
+        uint256 ethBalanceAfter = address(this).balance;
+        if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
-                ethSpent,
+                msg.value + (ethBalanceBefore - ethBalanceAfter),
                 msg.value
             ).rrevert();
         }
 
         // Refund
-        _transferEth(msg.sender, msg.value - ethSpent);
+        _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
     /// @dev Matches a pair of complementary orders that have

@@ -138,6 +138,9 @@ interface IERC721OrdersFeature {
     ///      given orders.
     /// @param sellOrders The ERC721 sell orders.
     /// @param signatures The order signatures.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC721`.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
@@ -145,6 +148,7 @@ interface IERC721OrdersFeature {
     function batchBuyERC721s(
         LibNFTOrder.ERC721Order[] calldata sellOrders,
         LibSignature.Signature[] calldata signatures,
+        bytes[] calldata callbackData,
         bool revertIfIncomplete
     )
         external
