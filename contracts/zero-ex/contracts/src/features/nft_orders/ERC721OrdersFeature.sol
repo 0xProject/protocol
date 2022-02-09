@@ -824,7 +824,7 @@ contract ERC721OrdersFeature is
         private
     {
         // The bitvector is indexed by the lower 8 bits of the nonce.
-        uint256 flag = 1 << (nonce % 256);
+        uint256 flag = 1 << (nonce & 255);
         // Update order status bit vector to indicate that the given order
         // has been cancelled/filled by setting the designated bit to 1.
         LibERC721OrdersStorage.getStorage().orderStatusByMaker
@@ -893,7 +893,7 @@ contract ERC721OrdersFeature is
         uint256 orderStatusBitVector =
             stor.orderStatusByMaker[order.maker][uint248(order.nonce >> 8)];
         // The bitvector is indexed by the lower 8 bits of the nonce.
-        uint256 flag = 1 << (order.nonce % 256);
+        uint256 flag = 1 << (order.nonce & 255);
         // If the designated bit is set, the order has been cancelled or
         // previously filled, so it is now unfillable.
         if (orderStatusBitVector & flag != 0) {
