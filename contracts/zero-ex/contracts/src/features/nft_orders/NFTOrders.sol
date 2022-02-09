@@ -425,7 +425,7 @@ abstract contract NFTOrders is
             if (fillAmount == orderAmount) {
                 feeFillAmount = fee.amount;
             } else {
-                // Round in favor of the taker or maker
+                // Round against the fee recipient
                 feeFillAmount = LibMathV06.getPartialAmountFloor(
                     fillAmount,
                     orderAmount,
