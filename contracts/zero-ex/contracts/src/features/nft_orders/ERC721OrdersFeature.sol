@@ -305,21 +305,6 @@ contract ERC721OrdersFeature is
             ).rrevert();
         }
 
-        {
-            // The ERC20 tokens must match. Okay if the sell order specifies ETH
-            // and the buy order specifies WETH; we will unwrap the WETH before
-            // sending it to `sellOrder.maker`.
-            bool isWethBuyEthSell =
-                address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS &&
-                buyOrder.erc20Token == WETH;
-            if (sellOrder.erc20Token != buyOrder.erc20Token && !isWethBuyEthSell) {
-                LibNFTOrdersRichErrors.ERC20TokenMismatchError(
-                    address(sellOrder.erc20Token),
-                    address(buyOrder.erc20Token)
-                ).rrevert();
-            }
-        }
-
         LibNFTOrder.NFTOrder memory sellNFTOrder = sellOrder.asNFTOrder();
         LibNFTOrder.NFTOrder memory buyNFTOrder = buyOrder.asNFTOrder();
 
@@ -442,6 +427,14 @@ contract ERC721OrdersFeature is
                 _transferEth(msg.sender, profit);
             }
         } else {
+            // ERC20 tokens must match
+            if (sellOrder.erc20Token != buyOrder.erc20Token) {
+                LibNFTOrdersRichErrors.ERC20TokenMismatchError(
+                    address(sellOrder.erc20Token),
+                    address(buyOrder.erc20Token)
+                ).rrevert();
+            }
+
             // Step 1: Transfer the ERC20 token from the buyer to the seller.
             //         Note that we transfer `sellOrder.erc20TokenAmount`, which
             //         is at most `buyOrder.erc20TokenAmount`.
