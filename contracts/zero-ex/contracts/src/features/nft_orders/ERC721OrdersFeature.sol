@@ -142,7 +142,7 @@ contract ERC721OrdersFeature is
             callbackData
         );
         uint256 ethBalanceAfter = address(this).balance;
-        // Cannot spent more than `msg.value`
+        // Cannot use pre-existing ETH balance
         if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
                 ethBalanceBefore - ethBalanceAfter + msg.value,
