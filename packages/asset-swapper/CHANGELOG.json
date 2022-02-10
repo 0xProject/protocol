@@ -5,6 +5,10 @@
             {
                 "note": "Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer",
                 "pr": 412
+            },
+            {
+                "note": "Fix incorrect output scaling when input is less than desired amount, update fast-abi",
+                "pr": 401
             }
         ]
     },
