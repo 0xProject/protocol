@@ -10,13 +10,11 @@ import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/
 
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
-import { getRate } from './rate_utils';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetrics } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
-const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
 
@@ -293,7 +291,7 @@ function findRoutesAndCreateOptimalPath(
         return undefined;
     }
 
-    const pathFromRustInputs = Path.create(side, adjustedFills, input);
+    const pathFromRustInputs = Path.create(side, adjustedFills, input, opts);
 
     return pathFromRustInputs;
 }
@@ -358,17 +356,7 @@ export function findOptimalRustPathFromSamples(
                     timingMs: performance.now() - beforeTimeMs,
                 });
 
-            const { input: allSourcesInput, output: allSourcesOutput } = allSourcesPath.adjustedSize();
-            // NOTE: For sell quotes input is the taker asset and for buy quotes input is the maker asset
-            const gasCostInWei = FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD.times(opts.gasPrice);
-            const fqtOverheadInOutputToken = gasCostInWei.times(opts.outputAmountPerEth);
-            const outputWithFqtOverhead =
-                side === MarketOperation.Sell
-                    ? allSourcesOutput.minus(fqtOverheadInOutputToken)
-                    : allSourcesOutput.plus(fqtOverheadInOutputToken);
-            const allSourcesAdjustedRateWithFqtOverhead = getRate(side, allSourcesInput, outputWithFqtOverhead);
-
-            if (vipSourcesPath?.adjustedRate().isGreaterThan(allSourcesAdjustedRateWithFqtOverhead)) {
+            if (vipSourcesPath?.isBetterThan(allSourcesPath)) {
                 return vipSourcesPath;
             }
         }

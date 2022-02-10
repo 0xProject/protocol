@@ -13,6 +13,10 @@
             {
                 "note": "Improve Uniswap V3 gas schedule",
                 "pr": 397
+            },
+            {
+                "note": "Fix add Native as VIP and use Path to compare all sources vs vip only",
+                "pr": 413
             }
         ]
     },
