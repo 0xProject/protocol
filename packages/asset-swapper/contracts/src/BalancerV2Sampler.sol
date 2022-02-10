@@ -54,6 +54,8 @@ interface IAsset {
 }
 
 contract BalancerV2Sampler is SamplerUtils {
+    /// @dev Gas limit for BalancerV2 calls. This is 100% a guess.
+    uint256 constant private QUOTE_GAS = 600e3;
 
     struct BalancerV2PoolInfo {
         bytes32 poolId;
@@ -93,9 +95,12 @@ contract BalancerV2Sampler is SamplerUtils {
 
             try
                 // For sells we specify the takerToken which is what the vault will receive from the trade
-                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
-            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
-            returns (int256[] memory amounts) {
+                vault.queryBatchSwap
+                    { gas: QUOTE_GAS }
+                    (IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
+                    // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+                    returns (int256[] memory amounts)
+            {
                 // Outgoing balance is negative so we need to flip the sign
                 int256 amountOutFromPool = amounts[1] * -1;
                 if (amountOutFromPool <= 0) {
@@ -142,8 +147,11 @@ contract BalancerV2Sampler is SamplerUtils {
 
             try
                 // For buys we specify the makerToken which is what taker will receive from the trade
-                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
-            returns (int256[] memory amounts) {
+                vault.queryBatchSwap
+                    { gas: QUOTE_GAS }
+                    (IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
+                    returns (int256[] memory amounts)
+            {
                 int256 amountIntoPool = amounts[0];
                 if (amountIntoPool <= 0) {
                     break;
