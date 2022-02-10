@@ -22,43 +22,17 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-interface IUniswapV3QuoterV2 {
+interface IUniswapV3Quoter {
     function factory()
         external
         view
         returns (IUniswapV3Factory factory);
-
-    // @notice Returns the amount out received for a given exact input swap without executing the swap
-    // @param path The path of the swap, i.e. each token pair and the pool fee
-    // @param amountIn The amount of the first token to swap
-    // @return amountOut The amount of the last token that would be received
-    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
-    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
-    // @return gasEstimate The estimate of the gas that the swap consumes
     function quoteExactInput(bytes memory path, uint256 amountIn)
         external
-        returns (
-            uint256 amountOut,
-            uint160[] memory sqrtPriceX96AfterList,
-            uint32[] memory initializedTicksCrossedList,
-            uint256 gasEstimate
-        );
-
-    // @notice Returns the amount in required for a given exact output swap without executing the swap
-    // @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
-    // @param amountOut The amount of the last token to receive
-    // @return amountIn The amount of first token required to be paid
-    // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
-    // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
-    // @return gasEstimate The estimate of the gas that the swap consumes
+        returns (uint256 amountOut);
     function quoteExactOutput(bytes memory path, uint256 amountOut)
         external
-        returns (
-            uint256 amountIn,
-            uint160[] memory sqrtPriceX96AfterList,
-            uint32[] memory initializedTicksCrossedList,
-            uint256 gasEstimate
-        );
+        returns (uint256 amountIn);
 }
 
 interface IUniswapV3Factory {
@@ -87,15 +61,14 @@ contract UniswapV3Sampler
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromUniswapV3(
-        IUniswapV3QuoterV2 quoter,
+        IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
         uint256[] memory takerTokenAmounts
     )
         public
         returns (
             bytes[] memory uniswapPaths,
-            uint256[] memory makerTokenAmounts,
-            uint256[] memory uniswapGasUsed
+            uint256[] memory makerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -103,39 +76,31 @@ contract UniswapV3Sampler
 
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         uniswapPaths = new bytes[](takerTokenAmounts.length);
-        uniswapGasUsed = new uint256[](takerTokenAmounts.length);
 
         for (uint256 i = 0; i < takerTokenAmounts.length; ++i) {
             // Pick the best result from all the paths.
+            bytes memory topUniswapPath;
             uint256 topBuyAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
-                try quoter.quoteExactInput
-                    { gas: QUOTE_GAS }
-                    (uniswapPath, takerTokenAmounts[i])
-                    returns (
-                        uint256 buyAmount,
-                        uint160[] memory, /* sqrtPriceX96AfterList */
-                        uint32[] memory, /* initializedTicksCrossedList */
-                        uint256 gasUsed
-                    )
+                try
+                    quoter.quoteExactInput
+                        { gas: QUOTE_GAS }
+                        (uniswapPath, takerTokenAmounts[i])
+                        returns (uint256 buyAmount)
                 {
                     if (topBuyAmount <= buyAmount) {
                         topBuyAmount = buyAmount;
-                        uniswapPaths[i] = uniswapPath;
-                        uniswapGasUsed[i] = gasUsed;
+                        topUniswapPath = uniswapPath;
                     }
-                } catch {}
+                } catch { }
             }
-            // Break early if we can't complete the sells.
+            // Break early if we can't complete the buys.
             if (topBuyAmount == 0) {
-                // HACK(kimpers): To avoid too many local variables, paths and gas used is set directly in the loop
-                // then reset if no valid valid quote was found
-                uniswapPaths[i] = "";
-                uniswapGasUsed[i] = 0;
                 break;
             }
             makerTokenAmounts[i] = topBuyAmount;
+            uniswapPaths[i] = topUniswapPath;
         }
     }
 
@@ -147,15 +112,14 @@ contract UniswapV3Sampler
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromUniswapV3(
-        IUniswapV3QuoterV2 quoter,
+        IUniswapV3Quoter quoter,
         IERC20TokenV06[] memory path,
         uint256[] memory makerTokenAmounts
     )
         public
         returns (
             bytes[] memory uniswapPaths,
-            uint256[] memory takerTokenAmounts,
-            uint256[] memory uniswapGasUsed
+            uint256[] memory takerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -164,12 +128,11 @@ contract UniswapV3Sampler
 
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         uniswapPaths = new bytes[](makerTokenAmounts.length);
-        uniswapGasUsed = new uint256[](makerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
-            uint256 topSellAmount;
-
             // Pick the best result from all the paths.
+            bytes memory topUniswapPath;
+            uint256 topSellAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 // quoter requires path to be reversed for buys.
                 bytes memory uniswapPath = _toUniswapPath(
@@ -180,30 +143,21 @@ contract UniswapV3Sampler
                     quoter.quoteExactOutput
                         { gas: QUOTE_GAS }
                         (uniswapPath, makerTokenAmounts[i])
-                        returns (
-                            uint256 sellAmount,
-                            uint160[] memory, /* sqrtPriceX96AfterList */
-                            uint32[] memory, /* initializedTicksCrossedList */
-                            uint256 gasUsed
-                        )
+                        returns (uint256 sellAmount)
                 {
                     if (topSellAmount == 0 || topSellAmount >= sellAmount) {
                         topSellAmount = sellAmount;
                         // But the output path should still be encoded for sells.
-                        uniswapPaths[i] = _toUniswapPath(path, poolPaths[j]);
-                        uniswapGasUsed[i] = gasUsed;
+                        topUniswapPath = _toUniswapPath(path, poolPaths[j]);
                     }
                 } catch {}
             }
             // Break early if we can't complete the buys.
             if (topSellAmount == 0) {
-                // HACK(kimpers): To avoid too many local variables, paths and gas used is set directly in the loop
-                // then reset if no valid valid quote was found
-                uniswapPaths[i] = "";
-                uniswapGasUsed[i] = 0;
                 break;
             }
             takerTokenAmounts[i] = topSellAmount;
+            uniswapPaths[i] = topUniswapPath;
         }
     }
 
@@ -282,7 +236,6 @@ contract UniswapV3Sampler
 
     function _reverseTokenPath(IERC20TokenV06[] memory tokenPath)
         private
-        pure
         returns (IERC20TokenV06[] memory reversed)
     {
         reversed = new IERC20TokenV06[](tokenPath.length);
@@ -293,7 +246,6 @@ contract UniswapV3Sampler
 
     function _reversePoolPath(IUniswapV3Pool[] memory poolPath)
         private
-        pure
         returns (IUniswapV3Pool[] memory reversed)
     {
         reversed = new IUniswapV3Pool[](poolPath.length);
