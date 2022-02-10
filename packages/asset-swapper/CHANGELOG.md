@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.3 - _February 10, 2022_
+
+    * Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer (#412)
+    * Fix incorrect output scaling when input is less than desired amount, update fast-abi (#401)
+    * Improve Uniswap V3 gas schedule (#397)
+    * Fix add Native as VIP and use Path to compare all sources vs vip only (#413)
+
 ## v16.49.2 - _January 31, 2022_
 
     * Fix ABI encoding error with two hop buys due to applying slippage to uint(-1) values (#410)
