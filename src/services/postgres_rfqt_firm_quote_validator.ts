@@ -142,11 +142,11 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
     ): { makerAddressesToAddToCache: string[]; takerFillableAmounts: BigNumber[] } {
         const makerAddressesToAddToCacheSet: Set<string> = new Set();
         const takerFillableAmounts = quotes.map((quote) => {
-            const makerTokenBalanceForMaker: BigNumber | undefined = makerLookup[quote.maker];
+            const makerTokenBalanceForMaker: BigNumber | undefined = makerLookup[quote.maker.toLowerCase()];
 
             // TODO: Add Prometheus hooks
             if (makerTokenBalanceForMaker === undefined) {
-                makerAddressesToAddToCacheSet.add(quote.maker);
+                makerAddressesToAddToCacheSet.add(quote.maker.toLowerCase());
                 ORDER_NOT_VALIDATED.labels(this._workerId).inc();
                 return quote.takerAmount;
             }
