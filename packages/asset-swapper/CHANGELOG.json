@@ -9,6 +9,10 @@
             {
                 "note": "Fix incorrect output scaling when input is less than desired amount, update fast-abi",
                 "pr": 401
+            },
+            {
+                "note": "Improve Uniswap V3 gas schedule",
+                "pr": 397
             }
         ]
     },
