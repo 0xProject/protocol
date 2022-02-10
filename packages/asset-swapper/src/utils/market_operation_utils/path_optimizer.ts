@@ -275,16 +275,14 @@ function findRoutesAndCreateOptimalPath(
         }
 
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
-        const scaleOutput = (fillInput: BigNumber, output: BigNumber) =>
-            output
-                .dividedBy(fillInput)
-                .times(rustInputAdjusted)
-                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+        const maxSampledOutput = BigNumber.max(...routeSamples.map(s => s.output));
+        const scaleOutput = (output: BigNumber) => BigNumber.min(output.times(scale), maxSampledOutput);
+
         adjustedFills.push({
             ...fill,
             input: rustInputAdjusted,
-            output: scaleOutput(fill.input, fill.output),
-            adjustedOutput: scaleOutput(fill.input, fill.adjustedOutput),
+            output: scaleOutput(fill.output),
+            adjustedOutput: scaleOutput(fill.adjustedOutput),
             index: 0,
             parent: undefined,
             sourcePathId: sourcePathId ?? hexUtils.random(),
