@@ -164,11 +164,7 @@ contract ERC721OrdersFeature is
     {
         // Mark order as cancelled
         _setOrderStatusBit(msg.sender, orderNonce);
-
-        emit ERC721OrderCancelled(
-            msg.sender,
-            orderNonce
-        );
+        emit ERC721OrderCancelled(msg.sender, orderNonce);
     }
 
     /// @dev Cancel multiple ERC721 orders by their nonces. The caller

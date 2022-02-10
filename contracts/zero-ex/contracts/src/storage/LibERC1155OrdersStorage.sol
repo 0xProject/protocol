@@ -26,13 +26,20 @@ import "./LibStorage.sol";
 /// @dev Storage helpers for `ERC1155OrdersFeature`.
 library LibERC1155OrdersStorage {
 
+    struct OrderState {
+        // The amount (denominated in the ERC1155 asset)
+        // that the order has been filled by.
+        uint128 filledAmount;
+        // Whether the order has been pre-signed.
+        bool preSigned;
+    }
+
     /// @dev Storage bucket for this feature.
     struct Storage {
         // Mapping from order hash to order state:
-        // The lower `uint128` is the taker token fill amount.
-        // The highest bit will be `1` if the order was cancelled.
-        // The second-highest bit will be `1` if the order was pre-signed.
-        mapping(bytes32 => uint256) orderState;
+        mapping(bytes32 => OrderState) orderState;
+        // maker => nonce range => order cancellation bit vector
+        mapping(address => mapping(uint248 => uint256)) orderCancellationByMaker;
     }
 
     /// @dev Get the storage bucket for this contract.

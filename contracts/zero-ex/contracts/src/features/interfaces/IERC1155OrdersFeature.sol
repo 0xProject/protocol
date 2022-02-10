@@ -55,11 +55,11 @@ interface IERC1155OrdersFeature {
     );
 
     /// @dev Emitted whenever an `ERC1155Order` is cancelled.
-    /// @param orderHash The hash the order.
     /// @param maker The maker of the order.
+    /// @param nonce The nonce of the order that was cancelled.
     event ERC1155OrderCancelled(
-        bytes32 orderHash,
-        address maker
+        address maker,
+        uint256 nonce
     );
 
     /// @dev Emitted when an `ERC1155Order` is pre-signed.
@@ -125,18 +125,20 @@ interface IERC1155OrdersFeature {
         external
         payable;
 
-    /// @dev Cancel a single ERC1155 order. The caller should be the
-    ///      maker of the order. Silently succeeds if the order has
-    ///      already been filled or cancelled.
-    /// @param order The order to cancel.
-    function cancelERC1155Order(LibNFTOrder.ERC1155Order calldata order)
+    /// @dev Cancel a single ERC1155 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC1155Order(uint256 orderNonce)
         external;
 
-    /// @dev Cancel multiple ERC1155 orders. The caller should be the
-    ///      maker of the orders. Silently succeeds if an order has
-    ///      already been filled or cancelled.
-    /// @param orders The orders to cancel.
-    function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] calldata orders)
+    /// @dev Cancel multiple ERC1155 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
         external;
 
     /// @dev Buys multiple ERC1155 assets by filling the

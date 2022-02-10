@@ -85,9 +85,9 @@ contract TestNFTOrderPresigner {
         zeroEx.cancelERC721Order(orderNonce);
     }
 
-    function cancelERC1155Order(LibNFTOrder.ERC1155Order calldata order)
+    function cancelERC1155Order(uint256 orderNonce)
         external
     {
-        zeroEx.cancelERC1155Order(order);
+        zeroEx.cancelERC1155Order(orderNonce);
     }
 }

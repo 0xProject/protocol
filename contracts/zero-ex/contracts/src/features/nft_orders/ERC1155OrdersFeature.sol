@@ -51,10 +51,6 @@ contract ERC1155OrdersFeature is
 
     /// @dev The magic return value indicating the success of a `onERC1155Received`.
     bytes4 private constant ERC1155_RECEIVED_MAGIC_BYTES = this.onERC1155Received.selector;
-    /// @dev Highest bit of a uint256, used to flag cancelled orders.
-    uint256 private constant CANCEL_BIT = 1 << 255;
-    /// @dev Second-highest bit of a uint256, used to flag pre-signed orders.
-    uint256 private constant PRESIGN_BIT = 1 << 254;
 
 
     constructor(address zeroExAddress, IEtherTokenV06 weth)
@@ -167,39 +163,36 @@ contract ERC1155OrdersFeature is
         _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
-    /// @dev Cancel a single ERC1155 order. The caller should be the
-    ///      maker of the order. Silently succeeds if the order has
-    ///      already been filled or cancelled.
-    /// @param order The order to cancel.
-    function cancelERC1155Order(LibNFTOrder.ERC1155Order memory order)
+    /// @dev Cancel a single ERC1155 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC1155Order(uint256 orderNonce)
         public
         override
     {
-        require(
-            order.maker == msg.sender,
-            "ERC1155OrdersFeature::cancelERC1155Order/ONLY_MAKER"
-        );
+        // The bitvector is indexed by the lower 8 bits of the nonce.
+        uint256 flag = 1 << (orderNonce & 255);
+        // Update order cancellation bit vector to indicate that the order
+        // has been cancelled/filled by setting the designated bit to 1.
+        LibERC1155OrdersStorage.getStorage().orderCancellationByMaker
+            [msg.sender][uint248(orderNonce >> 8)] |= flag;
 
-        bytes32 orderHash = getERC1155OrderHash(order);
-        // Set the high bit on the order state variable to indicate
-        // a cancel. It's OK to cancel twice.
-        LibERC1155OrdersStorage.Storage storage stor =
-            LibERC1155OrdersStorage.getStorage();
-        stor.orderState[orderHash] |= CANCEL_BIT;
-
-        emit ERC1155OrderCancelled(orderHash, msg.sender);
+        emit ERC1155OrderCancelled(msg.sender, orderNonce);
     }
 
-    /// @dev Cancel multiple ERC1155 orders. The caller should be the
-    ///      maker of the orders. Silently succeeds if an order has
-    ///      already been filled or cancelled.
-    /// @param orders The orders to cancel.
-    function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] memory orders)
-        public
+    /// @dev Cancel multiple ERC1155 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
+        external
         override
     {
-        for (uint256 i = 0; i < orders.length; i++) {
-            cancelERC1155Order(orders[i]);
+        for (uint256 i = 0; i < orderNonces.length; i++) {
+            cancelERC1155Order(orderNonces[i]);
         }
     }
 
@@ -364,9 +357,9 @@ contract ERC1155OrdersFeature is
 
         LibERC1155OrdersStorage.Storage storage stor =
             LibERC1155OrdersStorage.getStorage();
-        // Set the second-highest bit on the order state variable
+        // Set `preSigned` to true on the order state variable
         // to indicate that the order has been pre-signed.
-        stor.orderState[orderHash] |= PRESIGN_BIT;
+        stor.orderState[orderHash].preSigned = true;
 
         emit ERC1155OrderPreSigned(
             order.direction,
@@ -476,9 +469,8 @@ contract ERC1155OrdersFeature is
     {
         if (signature.signatureType == LibSignature.SignatureType.PRESIGNED) {
             // Check if order hash has been pre-signed by the maker.
-            uint256 orderState = LibERC1155OrdersStorage.getStorage()
-                .orderState[orderHash];
-            bool isPreSigned = orderState & PRESIGN_BIT != 0;
+            bool isPreSigned = LibERC1155OrdersStorage.getStorage()
+                .orderState[orderHash].preSigned;
             if (!isPreSigned) {
                 LibNFTOrdersRichErrors.InvalidSignerError(maker, address(0)).rrevert();
             }
@@ -524,10 +516,10 @@ contract ERC1155OrdersFeature is
         override
     {
         LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
-        uint256 currentOrderState = stor.orderState[orderHash];
+        uint128 filledAmount = stor.orderState[orderHash].filledAmount;
         // Filled amount should never overflow 128 bits
-        assert(uint128(currentOrderState) + fillAmount > uint128(currentOrderState));
-        stor.orderState[orderHash] = currentOrderState + fillAmount;
+        assert(filledAmount + fillAmount > filledAmount);
+        stor.orderState[orderHash].filledAmount = filledAmount + fillAmount;
     }
 
     /// @dev If the given order is buying an ERC1155 asset, checks
@@ -593,11 +585,21 @@ contract ERC1155OrdersFeature is
         {
             LibERC1155OrdersStorage.Storage storage stor =
                 LibERC1155OrdersStorage.getStorage();
-            uint256 orderState = stor.orderState[orderInfo.orderHash];
-            orderInfo.remainingAmount = order.erc1155TokenAmount
-                .safeSub128(uint128(orderState));
 
-            if (orderInfo.remainingAmount == 0 || orderState & CANCEL_BIT != 0) {
+            LibERC1155OrdersStorage.OrderState storage orderState =
+                stor.orderState[orderInfo.orderHash];
+            orderInfo.remainingAmount = order.erc1155TokenAmount
+                .safeSub128(orderState.filledAmount);
+
+            // `orderCancellationByMaker` is indexed by maker and nonce.
+            uint256 orderCancellationBitVector =
+                stor.orderCancellationByMaker[order.maker][uint248(order.nonce >> 8)];
+            // The bitvector is indexed by the lower 8 bits of the nonce.
+            uint256 flag = 1 << (order.nonce & 255);
+
+            if (orderInfo.remainingAmount == 0 ||
+                orderCancellationBitVector & flag != 0)
+            {
                 orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
                 return orderInfo;
             }
