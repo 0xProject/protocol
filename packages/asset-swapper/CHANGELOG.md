@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.4 - _February 10, 2022_
+
+    * Reverts 'Improve Uniswap V3 gas schedule' due to issue with buys (#419)
+
 ## v16.49.3 - _February 10, 2022_
 
     * Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer (#412)

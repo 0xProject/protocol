@@ -6,7 +6,8 @@
                 "note": "Reverts 'Improve Uniswap V3 gas schedule' due to issue with buys",
                 "pr": 419
             }
-        ]
+        ],
+        "timestamp": 1644507275
     },
     {
         "version": "16.49.3",
