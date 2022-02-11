@@ -17,3 +17,10 @@ Known tokens:
 - LINK
 - sUSD
 - USDT
+
+Tokens with Fees on Transfer
+----------------------------
+These tokens do not follow the ERC20 specification. As such the protocol expects the transfer to transfer
+the specified amount, or revert. Since tokens with transfer fees do not meet this criteria, the behaviour
+of the protocol with these tokens is unspecified. In most cases it will result in an overall transaction failure
+due to various slippage protections.

@@ -57,18 +57,22 @@ Liquidity Aggregation
 
 Liquidity can be pulled from other Decentralized Exchanges (DEX) to supplement native liquidity (0x orders). This is currently used by 0x API to provide the aggregate the best prices across the entire DEX Ecosystem. Check out `https://matcha.xyz <https://matcha.xyz>`_ to see this in action!
 
-Supported DEX's:
+Below are just a few of the Supported DEX's on Ethereum:
 
-* Balancer
+* Balancer v1/v2
+* Bancor v1/v2
 * Curve
-* DoDo
+* Dodo v1/v2
 * Kyber
+* MakerPSM
 * MStable
 * Mooniswap
 * Oasis
 * Shell
 * Sushiswap
-* Uniswap v1/v2
+* Shibaswap
+* Smoothy
+* Uniswap v1/v2/v3
 
 This transformation is implemented by the `FillQuoteTransformer <../architecture/transformers.html>`_. Abi-Encode the following struct to get the ``data``:
 
