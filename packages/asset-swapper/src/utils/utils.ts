@@ -14,6 +14,8 @@ export function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaul
         [ChainId.PolygonMumbai]: defaultValue,
         [ChainId.Avalanche]: defaultValue,
         [ChainId.Fantom]: defaultValue,
+        [ChainId.Celo]: defaultValue,
+        [ChainId.Optimism]: defaultValue,
         ...(rest || {}),
     };
 }
