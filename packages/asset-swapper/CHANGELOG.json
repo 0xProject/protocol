@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.5",
+        "changes": [
+            {
+                "note": "Fix BalancerV2/BeethovenX loading too many pools on startup",
+                "pr": 420
+            }
+        ]
+    },
+    {
         "version": "16.49.4",
         "changes": [
             {
