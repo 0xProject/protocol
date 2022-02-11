@@ -89,8 +89,21 @@ The ``RFQOrder`` struct has the following fields:
 +-----------------+-------------+----------------------------------------------------------------------------------------------------------------------------+
 
 
+NFT Orders
+===========
+
+NFT orders in 0x V4 are optimized for this specific use case. They are up to 54% cheaper than alternatives currently on Ethereum.
+Unlike 0x Limit orders, there is a `direction` of the trade, either buy or sell. ERC20's can be exchanged for either ERC721 or ERC1155.
+
+Property based orders can also be created by specifying the properties field in the respective order. 
+
+A number of fees can be embedded in the order.
+
+`NFT Swap SDK <https://docs.swapsdk.xyz/0x-v4>`__ is a friendly library that will help you easily create and consume NFT orders in 0x V4. You can find their `documentation here <https://docs.swapsdk.xyz/0x-v4>`__.
+
+
 ERC721 Orders
-==============
+*************
 
 The ``ERC721Order`` struct has the following fields:
 
@@ -121,7 +134,7 @@ The ``ERC721Order`` struct has the following fields:
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
 
 ERC1155 Orders
-==============
+***************
 
 The ``ERC1155Order`` struct has the following fields:
 
@@ -154,7 +167,7 @@ The ``ERC1155Order`` struct has the following fields:
 +----------------------------+-----------------+------------------------------------------------------------------------------------------+
 
 NFT Order Property
-===================
+******************
 
 For Property based NFT orders, the properties have the following fields:
 
@@ -184,7 +197,7 @@ The property validator contract must implement the following interface when Prop
         view;
 
 NFT Order Fee
-==============
+**************
 
 For NFT orders with fees, the fees have the following fields:
 
