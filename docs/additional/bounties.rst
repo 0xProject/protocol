@@ -53,18 +53,18 @@ Bounties
 --------
 The bounty program will pay out rewards according to the severity of a vulnerability. The severity of reported vulnerabilities will be graded according to the `CVSS <https://www.first.org/cvss/>`__ (Common Vulnerability Scoring Standard).
 
-The final reward amount is at the sole discretion of 0x Labs and will be paid in the specified sum of either USD or ETH. 
+The final reward amount is at the sole discretion of 0x Labs and will be paid in the specified sum in either USD or ETH. 
 
 +----------------------------+---------------------+
 | **Exploit Score**          | **Reward**          |
 +----------------------------+---------------------+
-| Critical (CVSS 9.0 - 10.0) | $1,000,000          |
+| Critical (CVSS 9.0 - 10.0) | up to $1,000,000    |
 +----------------------------+---------------------+
-| High (CVSS 7.0 - 8.9)      | $350,000            |
+| High (CVSS 7.0 - 8.9)      | up to $350,000      |
 +----------------------------+---------------------+
-| Medium (CVSS 4.0 - 6.9)    | $35,000             |
+| Medium (CVSS 4.0 - 6.9)    | up to $35,000       |
 +----------------------------+---------------------+
-| Low (CVSS 0.0 - 3.9)       | $5,000              |
+| Low (CVSS 0.0 - 3.9)       | up to $5,000        |
 +----------------------------+---------------------+
 
 Recent Inclusions 
