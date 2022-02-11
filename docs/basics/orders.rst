@@ -89,10 +89,147 @@ The ``RFQOrder`` struct has the following fields:
 +-----------------+-------------+----------------------------------------------------------------------------------------------------------------------------+
 
 
+ERC721 Orders
+==============
+
+The ``ERC721Order`` struct has the following fields:
+
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| Field                      | Type            | Description                                                                              |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``direction``              | ``enum``        | The trade direction, either sell the NFT or buy the NFT                                  |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``maker``                  | ``address``     | The address of the maker, and signer, of this order. [required]                          |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``taker``                  | ``address``     | Allowed taker address. Set to zero to allow any taker. [optional; default 0]             |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``expiry``                 | ``uint256``     | The Unix timestamp in seconds when this order expires. [required]                        |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``nonce``                  | ``uint256``     | Number used to uniquiely represent this order. Used for cancellations. [required]        |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc20Token``             | ``address``     | The ERC20 token used to pay for the ERC721 token. [required]                             |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc20TokenAmount``       | ``uint256``     | The amount of erc20Token being sold. [required]                                          |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``fees``                   | ``Fees[]``      | An array of structs containing the fee data  [optional]                                  |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc721Token``            | ``address``     | The ERC721 token. [required]                                                             |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc721TokenId``          | ``uint256``     | The ERC721 token id. [required]                                                          |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc721TokenProperties``  | ``Property[]``  | Properties to validate for a property based order. [optional]                            |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+
+ERC1155 Orders
+==============
+
+The ``ERC1155Order`` struct has the following fields:
+
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| Field                      | Type            | Description                                                                              |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``direction``              | ``enum``        | The trade direction, either sell the NFT or buy the NFT                                  |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``maker``                  | ``address``     | The address of the maker, and signer, of this order. [required]                          |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``taker``                  | ``address``     | Allowed taker address. Set to zero to allow any taker. [optional; default 0]             |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``expiry``                 | ``uint256``     | The Unix timestamp in seconds when this order expires. [required]                        |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``nonce``                  | ``uint256``     | Number used to uniquiely represent this order. Used for cancellations. [required]        |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc20Token``             | ``address``     | The ERC20 token used to pay for the ERC721 token. [required]                             |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc20TokenAmount``       | ``uint256``     | The amount of erc20Token being sold. [required]                                          |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``fees``                   | ``Fees[]``      | An array of structs containing the fee data  [optional]                                  |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc1155Token``           | ``address``     | The ERC1155 token. [required]                                                            |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc1155TokenId``         | ``uint256``     | The ERC1155 token id. [required]                                                         |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc1155TokenProperties`` | ``Property[]``  | Properties to validate for a property based order. [optional]                            |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``erc1155TokenAmount``     | ``uin128``      | The ERC1155 amount. [required]                                                           |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+
+NFT Order Property
+===================
+
+For Property based NFT orders, the properties have the following fields:
+
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| Field                      | Type            | Description                                                                              |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``propertyValidator``      | ``address``     | The address of the contract which implements `IPropertyValidator`.                       |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``propertyData``           | ``bytes``       | The address of the maker, and signer, of this order.                                     |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+
+The property validator contract must implement the following interface when Property based orders are used.
+
+.. code-block:: solidity
+
+    /// @dev Checks that the given ERC721/ERC1155 asset satisfies the properties encoded in `propertyData`.
+    ///      Should revert if the asset does not satisfy the specified properties.
+    /// @param tokenAddress The ERC721/ERC1155 token contract address.
+    /// @param tokenId The ERC721/ERC1155 tokenId of the asset to check.
+    /// @param propertyData Encoded properties or auxiliary data needed to perform the check.
+    function validateProperty(
+        address tokenAddress,
+        uint256 tokenId,
+        bytes calldata propertyData
+    )
+        external
+        view;
+
+NFT Order Fee
+==============
+
+For NFT orders with fees, the fees have the following fields:
+
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| Field                      | Type            | Description                                                                              |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``receipient``             | ``address``     | The receipient of the fees.                                                              |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``amount``                 | ``uint256``     | The amount of fee to be paid to recipient.                                               |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+| ``feeData``                | ``bytes``       | If provided the recipient (contract) will be called with this feeData [optional]         |
++----------------------------+-----------------+------------------------------------------------------------------------------------------+
+
+The contract must implement the following interface when the `feeData` is present.
+
+.. code-block:: solidity
+
+    interface IFeeRecipient {
+
+        /// @dev A callback function invoked in the ERC721Feature for each ERC721 
+        ///      order fee that get paid. Integrators can make use of this callback
+        ///      to implement arbitrary fee-handling logic, e.g. splitting the fee 
+        ///      between multiple parties. 
+        /// @param tokenAddress The address of the token in which the received fee is 
+        ///        denominated. `0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE` indicates 
+        ///        that the fee was paid in the native token (e.g. ETH).
+        /// @param amount The amount of the given token received.
+        /// @param feeData Arbitrary data encoded in the `Fee` used by this callback.
+        /// @return success The selector of this function (0x0190805e), 
+        ///         indicating that the callback succeeded.
+        function receiveFeeCallback(
+            address tokenAddress,
+            uint256 amount,
+            bytes calldata feeData
+        )
+            external
+            returns (bytes4 success);
+    }
+
+
+
 How To Sign
 ==============
 
-Both Limit & RFQ orders must be signed by the `maker` or a registered order signer (`registerAllowedOrderSigner <./functions.html#registerallowedrfqorigins>`_). This signature is needed to fill an order, see `Basic Functionality <./functions.html>`_.
+Orders must be signed by the `maker` or a registered order signer (`registerAllowedOrderSigner <./functions.html#registerallowedrfqorigins>`_). This signature is needed to fill an order, see `Basic Functionality <./functions.html>`_.
 
 The protocol accepts signatures defined by the following struct:
 
