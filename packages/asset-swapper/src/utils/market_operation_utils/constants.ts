@@ -393,6 +393,13 @@ export const MAINNET_TOKENS = {
     ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
     cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
     CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
+    // Fei Ecosystem
+    FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
+    TRIBE: '0xc7283b66eb1eb5fb86327f08e1b5816b0720212b',
+    // Frax ecosystem
+    FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
+    FXS: '0x3432b6a60d23ca0dfca7761b7ab56459d9c964d0',
+    OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
 };
 
 export const BSC_TOKENS = {
@@ -413,6 +420,7 @@ export const POLYGON_TOKENS = {
     WBTC: '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6',
     WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
     WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+    nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -432,7 +440,6 @@ export const AVALANCHE_TOKENS = {
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
     MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
-    USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
 };
 
 export const CELO_TOKENS = {
@@ -633,5 +640,4 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     shouldGenerateQuoteReport: true,
     shouldIncludePriceComparisonsReport: false,
     tokenAdjacencyGraph: { default: [] },
-    neonRouterNumSamples: 14,
 };

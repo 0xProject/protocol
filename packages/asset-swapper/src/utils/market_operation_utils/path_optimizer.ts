@@ -5,7 +5,6 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
-import { DEFAULT_INFO_LOGGER } from '../../constants';
 import { NativeOrderWithFillableAmounts } from '../native_orders';
 import { MarketOperation } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
@@ -14,7 +13,7 @@ import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { getRate } from './rate_utils';
-import { DexSample, ERC20BridgeSource, Fill } from './types';
+import { DexSample, ERC20BridgeSource, Fill, SamplerMetrics } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
 
@@ -258,7 +257,7 @@ function findRoutesAndCreateOptimalPath(
                 rustInputAdjusted,
                 opts.outputAmountPerEth,
                 opts.inputAmountPerEth,
-                fees,
+                gasPrice,
                 false,
             )[0] as Fill | undefined;
             // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
@@ -358,8 +357,8 @@ export function findOptimalRustPathFromSamples(
         nativeOrders,
         input,
         opts,
-        fees,
         neonRouterNumSamples,
+        gasPrice,
     );
     // tslint:disable-next-line: no-unused-expression
     samplerMetrics &&
@@ -388,8 +387,8 @@ export function findOptimalRustPathFromSamples(
                 [],
                 input,
                 opts,
-                fees,
                 neonRouterNumSamples,
+                gasPrice,
             );
             // tslint:disable-next-line: no-unused-expression
             samplerMetrics &&

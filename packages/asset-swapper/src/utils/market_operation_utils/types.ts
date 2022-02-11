@@ -1,7 +1,5 @@
 import {
-    FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
-    FillQuoteTransformerRfqOrderInfo,
     LimitOrderFields,
     RfqOrderFields,
     Signature,
@@ -12,7 +10,7 @@ import { BigNumber } from '@0x/utils';
 import { Address, Bytes, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { NativeOrderWithFillableAmounts } from '../native_orders';
 import { QuoteRequestor } from '../../utils/quote_requestor';
-import { PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
+import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
@@ -424,6 +422,37 @@ export interface GetMarketOrdersOpts {
      * Gas price to use for quote
      */
     gasPrice: BigNumber;
+
+    /**
+     * Sampler metrics for recording data on the sampler service and operations
+     */
+    samplerMetrics?: SamplerMetrics;
+}
+
+export interface SamplerMetrics {
+    /**
+     * Logs the gas information performed during a sampler call.
+     *
+     * @param data.gasBefore The gas remaining measured before any operations have been performed
+     * @param data.gasAfter The gas remaining measured after all operations have been performed
+     */
+    logGasDetails(data: { gasBefore: BigNumber; gasAfter: BigNumber }): void;
+
+    /**
+     * Logs the block number
+     *
+     * @param blockNumber block number of the sampler call
+     */
+    logBlockNumber(blockNumber: BigNumber): void;
+
+    /**
+     * Logs the routing timings
+     *
+     * @param data.router The router type (neon-router or js)
+     * @param data.type The type of timing being recorded (e.g total timing, all sources timing or vip timing)
+     * @param data.timingMs The timing in milliseconds
+     */
+    logRouterDetails(data: { router: 'neon-router' | 'js'; type: 'all' | 'vip' | 'total'; timingMs: number }): void;
 }
 
 /**
@@ -456,6 +485,7 @@ export interface OptimizerResult {
 
 export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
+    extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
 }
 

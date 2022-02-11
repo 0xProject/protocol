@@ -23,7 +23,6 @@ import {
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
-    MarketOperation,
     MarketSellSwapQuote,
     SwapQuote,
     SwapQuoteConsumerBase,
@@ -39,7 +38,6 @@ import {
     SwapQuoteGenericBridgeOrder,
     SwapQuoteOrder,
 } from '../types';
-import { assert } from '../utils/assert';
 import { valueByChainId } from '../utils/utils';
 import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
