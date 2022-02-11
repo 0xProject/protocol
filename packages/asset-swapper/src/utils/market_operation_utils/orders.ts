@@ -206,6 +206,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Compound, 'Compound');
         case ERC20BridgeSource.Geist:
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'Geist');
+        case ERC20BridgeSource.MobiusMoney:
+            return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -241,6 +243,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.FirebirdOneSwap:
         case ERC20BridgeSource.IronSwap:
         case ERC20BridgeSource.ACryptos:
+        case ERC20BridgeSource.MobiusMoney:
             const curveFillData = (order as OptimizedMarketBridgeOrder<CurveFillData>).fillData;
             bridgeData = encoder.encode([
                 curveFillData.pool.poolAddress,
@@ -489,6 +492,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.FirebirdOneSwap]: curveEncoder,
     [ERC20BridgeSource.IronSwap]: curveEncoder,
     [ERC20BridgeSource.ACryptos]: curveEncoder,
+    [ERC20BridgeSource.MobiusMoney]: curveEncoder,
     // UniswapV2 like, (router, address[])
     [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
