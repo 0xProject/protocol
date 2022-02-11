@@ -202,6 +202,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.MobiusMoney,
         ]),
         [ChainId.Optimism]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
@@ -347,6 +348,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UbeSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.MobiusMoney,
         ]),
         [ChainId.Optimism]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
@@ -562,11 +564,11 @@ export const CELO_TOKENS = {
     // Some of these tokens are Optics bridge? tokens which
     // had an issue and migrated from v1 to v2
     WETHv1: '0xe919f65739c26a42616b7b8eedc6b5524d1e3ac4',
-    WETH: '0x122013fd7df1c6f636a5bb8f03108e876548b455',
+    oWETH: '0x122013fd7df1c6f636a5bb8f03108e876548b455',
     WBTC: '0xbaab46e28388d2779e6e31fd00cf0e5ad95e327b',
     cUSD: '0x765de816845861e75a25fca122bb6898b8b1282a',
     // ??
-    WBTCv1: '0xd629eb00deced2a080b7ec630ef6ac117e614f1b',
+    cBTC: '0xd629eb00deced2a080b7ec630ef6ac117e614f1b',
     cETH: '0x2def4285787d58a2f811af24755a8150622f4361',
     UBE: '0x00be915b9dcf56a3cbe739d9b9c202ca692409ec',
     // Moolah
@@ -575,6 +577,21 @@ export const CELO_TOKENS = {
     mCEUR: '0xe273ad7ee11dcfaa87383ad5977ee1504ac07568',
     amCUSD: '0x64defa3544c695db8c535d289d843a189aa26b98',
     MOO: '0x17700282592d6917f6a73d0bf8accf4d578c131e',
+
+    //
+    wBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    wETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    wBTCO: '0xbe50a3013a1c94768a1abb78c3cb79ab28fc1ace',
+    pUSDC: '0xcc82628f6a8defa1e2b0ad7ed448bef3647f7941',
+    cUSDC: '0x2a3684e9dc20b857375ea04235f2f7edbe818fa7',
+    cUSDC_V2: '0xef4229c8c3250c675f21bcefa42f58efbff6002a',
+    pUSDC_V2: '0x1bfc26ce035c368503fae319cc2596716428ca44',
+    pUSD: '0xeadf4a7168a82d30ba0619e64d5bcf5b30b45226',
+    pCELO: '0x301a61d01a63c8d670c2b8a43f37d12ef181f997',
+    aaUSDC: '0xb70e0a782b058bfdb0d109a3599bec1f19328e36',
+    asUSDC: '0xcd7d7ff64746c1909e44db8e95331f9316478817',
+    mcUSDT: '0xcfffe0c89a779c09df3df5624f54cdf7ef5fdd5d',
+    mcUSDC: '0x93db49be12b864019da9cb147ba75cdc0506190e',
 };
 
 export const FANTOM_TOKENS = {
@@ -798,6 +815,13 @@ export const FIREBIRDONESWAP_BSC_POOLS = {
 export const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
+export const MOBIUSMONEY_CELO_POOLS = {
+    poof_cusd_v2: '0xa2f0e57d4ceacf025e81c76f28b9ad6e9fbe8735',
+    poof_celo_v2: '0xfc9e2c63370d8deb3521922a7b2b60f4cff7e75a',
+    usdc_optics_v2: '0x9906589ea8fd27504974b7e8201df5bbde986b03',
+    dai_optics_v2: '0xf3f65dfe0c8c8f2986da0fec159abe6fd4e700b4',
+    weth_optics_v2: '0x74ef28d635c6c5800dd3cd62d4c4f8752daacb09',
+};
 
 export const ACRYPTOS_POOLS = {
     acs4usd: '0xb3f0c9ea1f05e312093fdb031e789a756659b0ac',
@@ -857,7 +881,13 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             FANTOM_TOKENS.nETH,
             FANTOM_TOKENS.MIM,
         ],
-        [ChainId.Celo]: [CELO_TOKENS.WCELO, CELO_TOKENS.mCUSD, CELO_TOKENS.WETH, CELO_TOKENS.amCUSD, CELO_TOKENS.WBTC],
+        [ChainId.Celo]: [
+            CELO_TOKENS.WCELO,
+            CELO_TOKENS.mCUSD,
+            CELO_TOKENS.WETHv1,
+            CELO_TOKENS.amCUSD,
+            CELO_TOKENS.WBTC,
+        ],
         [ChainId.Optimism]: [
             OPTIMISM_TOKENS.WETH,
             OPTIMISM_TOKENS.DAI,
@@ -1703,6 +1733,36 @@ export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
+    [MOBIUSMONEY_CELO_POOLS.poof_cusd_v2]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: MOBIUSMONEY_CELO_POOLS.poof_cusd_v2,
+        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.pUSD],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+    [MOBIUSMONEY_CELO_POOLS.poof_celo_v2]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: MOBIUSMONEY_CELO_POOLS.poof_celo_v2,
+        tokens: [CELO_TOKENS.WCELO, CELO_TOKENS.pCELO],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+    [MOBIUSMONEY_CELO_POOLS.usdc_optics_v2]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_optics_v2,
+        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.cUSDC_V2],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+};
+
 const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
 
 const createAcryptosMetaUsdPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
@@ -2342,6 +2402,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.IronSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.FirebirdOneSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.MobiusMoney]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,

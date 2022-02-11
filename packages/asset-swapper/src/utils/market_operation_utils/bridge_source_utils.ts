@@ -61,6 +61,7 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    MOBIUSMONEY_CELO_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource } from './types';
 
@@ -449,6 +450,18 @@ export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, ma
         ),
     );
 }
+export function getMobiusMoneyInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Celo) {
+        return [];
+    }
+    return Object.values(MOBIUSMONEY_CELO_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
 
 export function getShellLikeInfosForPair(
     chainId: ChainId,
@@ -491,7 +504,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
-        | ERC20BridgeSource.ACryptos,
+        | ERC20BridgeSource.ACryptos
+        | ERC20BridgeSource.MobiusMoney,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -536,6 +550,9 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.ACryptos:
             pools = getAcryptosInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.MobiusMoney:
+            pools = getMobiusMoneyInfoForPair(chainId, takerToken, makerToken);
             break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);

@@ -96,6 +96,7 @@ export enum ERC20BridgeSource {
     TraderJoe = 'TraderJoe',
     // Celo only
     UbeSwap = 'UbeSwap',
+    MobiusMoney = 'MobiusMoney',
     // Fantom
     SpiritSwap = 'SpiritSwap',
     SpookySwap = 'SpookySwap',
