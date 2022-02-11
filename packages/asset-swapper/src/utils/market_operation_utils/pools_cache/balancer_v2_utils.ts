@@ -130,7 +130,13 @@ export class BalancerV2PoolsCache extends PoolsCache {
                         );
                         // Cache this as we progress through
                         const expiresAt = Date.now() + this._cacheTimeMs;
-                        this._cachePoolsForPair(from, to, fromToPools[from][to], expiresAt);
+                        this._cachePoolsForPair(
+                            from,
+                            to,
+                            // Clamp the amount of pools in this pair direction to the max
+                            fromToPools[from][to].slice(0, this.maxPoolsFetched),
+                            expiresAt,
+                        );
                     } catch (err) {
                         this._warningLogger(err, `Failed to load Balancer V2 top pools`);
                         // soldier on
@@ -144,6 +150,8 @@ export class BalancerV2PoolsCache extends PoolsCache {
         query getPools {
             pools(
               first: ${this.maxPoolsFetched},
+              orderBy: swapsCount
+              orderDirection: desc
               where: {
                 tokensList_contains: ["${takerToken}", "${makerToken}"]
               }
