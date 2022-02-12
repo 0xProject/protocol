@@ -63,7 +63,7 @@ import {
 import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
-import { getSignerFromHash } from '../utils/signature_utils';
+import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { SubmissionContext } from '../utils/SubmissionContext';
 
 import {
@@ -1400,7 +1400,17 @@ export class RfqmService {
                 throw new Error('Market Maker declined to sign');
             }
 
-            _job.makerSignature = makerSignature;
+            // Certain market makers are returning signature components which are missing
+            // leading bytes. Add them if they don't exist.
+            const paddedSignature = padSignature(makerSignature);
+            if (paddedSignature.r !== makerSignature.r || paddedSignature.s !== makerSignature.s) {
+                logger.warn(
+                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                    'Got market maker signature with missing bytes',
+                );
+            }
+
+            _job.makerSignature = paddedSignature;
             _job.lastLookResult = true;
             _job.status = RfqmJobStatus.PendingLastLookAccepted;
             await this._dbUtils.updateRfqmJobAsync(_job);
