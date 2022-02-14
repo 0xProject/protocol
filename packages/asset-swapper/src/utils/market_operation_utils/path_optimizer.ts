@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID } from '../market_operation_utils/constants';
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
@@ -274,7 +274,19 @@ function findRoutesAndCreateOptimalPath(
 
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const maxSampledOutput = BigNumber.max(...routeSamples.map(s => s.output));
-        const scaleOutput = (output: BigNumber) => BigNumber.min(output.times(scale), maxSampledOutput);
+        // Scale output by scale factor but never go above the largest sample (unknown liquidity) or below 1 base unit (unfillable)
+        const scaleOutput = (output: BigNumber) => {
+            // Don't try to scale 0 output as it will be clamped to 1
+            if (output.eq(ZERO_AMOUNT)) {
+                return output;
+            }
+
+            const scaled = output
+                .times(scale)
+                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+
+            return BigNumber.max(BigNumber.min(scaled, maxSampledOutput), 1);
+        };
 
         adjustedFills.push({
             ...fill,

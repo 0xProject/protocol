@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.5",
+        "changes": [
+            {
+                "note": "Fix scaling 1 base unit to 0, round output to base units",
+                "pr": 422
+            }
+        ]
+    },
+    {
         "version": "16.49.4",
         "changes": [
             {
