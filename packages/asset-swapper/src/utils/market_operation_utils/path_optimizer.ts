@@ -281,10 +281,11 @@ function findRoutesAndCreateOptimalPath(
                 return output;
             }
 
-            return BigNumber.max(BigNumber.min(output.times(scale), maxSampledOutput), 1).decimalPlaces(
-                0,
-                side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL,
-            );
+            const scaled = output
+                .times(scale)
+                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+
+            return BigNumber.max(BigNumber.min(scaled, maxSampledOutput), 1);
         };
 
         adjustedFills.push({
