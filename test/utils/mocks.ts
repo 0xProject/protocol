@@ -54,6 +54,7 @@ const bestCaseQuoteInfo = {
     protocolFeeInWeiAmount: new BigNumber('569793054675519573'),
     takerAmount: new BigNumber('933887973800245567'),
     totalTakerAmount: new BigNumber('709708376093637456'),
+    slippage: 0,
 };
 
 export const randomSellQuote: SwapQuote = {
@@ -70,6 +71,7 @@ export const randomSellQuote: SwapQuote = {
         protocolFeeInWeiAmount: new BigNumber('526097088876239888'),
         takerAmount: new BigNumber('227180691057406275'),
         totalTakerAmount: new BigNumber('858719009621193719'),
+        slippage: 0,
     },
     sourceBreakdown: {},
     takerTokenFillAmount: new BigNumber('401019713908867904'),
