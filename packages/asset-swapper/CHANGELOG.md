@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.5 - _February 14, 2022_
+
+    * Fix scaling 1 base unit to 0, round output to base units (#422)
+
 ## v16.49.4 - _February 10, 2022_
 
     * Reverts 'Improve Uniswap V3 gas schedule' due to issue with buys (#419)
