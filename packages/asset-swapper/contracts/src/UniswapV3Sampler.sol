@@ -84,6 +84,7 @@ contract UniswapV3Sampler
     /// @param path Token route. Should be takerToken -> makerToken
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     /// @return uniswapPaths The encoded uniswap path for each sample.
+    /// @return uniswapGasUsed Estimated amount of gas used
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromUniswapV3(
@@ -94,8 +95,8 @@ contract UniswapV3Sampler
         public
         returns (
             bytes[] memory uniswapPaths,
-            uint256[] memory makerTokenAmounts,
-            uint256[] memory uniswapGasUsed
+            uint256[] memory uniswapGasUsed,
+            uint256[] memory makerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -144,6 +145,7 @@ contract UniswapV3Sampler
     /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return uniswapPaths The encoded uniswap path for each sample.
+    /// @return uniswapGasUsed Estimated amount of gas used
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromUniswapV3(
@@ -154,8 +156,8 @@ contract UniswapV3Sampler
         public
         returns (
             bytes[] memory uniswapPaths,
-            uint256[] memory takerTokenAmounts,
-            uint256[] memory uniswapGasUsed
+            uint256[] memory uniswapGasUsed,
+            uint256[] memory takerTokenAmounts
         )
     {
         IUniswapV3Pool[][] memory poolPaths =
@@ -167,9 +169,8 @@ contract UniswapV3Sampler
         uniswapGasUsed = new uint256[](makerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; ++i) {
-            uint256 topSellAmount;
-
             // Pick the best result from all the paths.
+            uint256 topSellAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
                 // quoter requires path to be reversed for buys.
                 bytes memory uniswapPath = _toUniswapPath(

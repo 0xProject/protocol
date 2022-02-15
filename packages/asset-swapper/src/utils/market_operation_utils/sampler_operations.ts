@@ -771,7 +771,7 @@ export class SamplerOperations {
             function: this._samplerContract.sampleSellsFromUniswapV3,
             params: [quoter, tokenAddressPath, takerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, samples, gasUsed] = this._samplerContract.getABIDecodedReturnData<
+                const [paths, gasUsed, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string[], BigNumber[], BigNumber[]]
                 >('sampleSellsFromUniswapV3', callResults);
                 fillData.router = router;
@@ -800,7 +800,7 @@ export class SamplerOperations {
             function: this._samplerContract.sampleBuysFromUniswapV3,
             params: [quoter, tokenAddressPath, makerFillAmounts],
             callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, samples, gasUsed] = this._samplerContract.getABIDecodedReturnData<
+                const [paths, gasUsed, samples] = this._samplerContract.getABIDecodedReturnData<
                     [string[], BigNumber[], BigNumber[]]
                 >('sampleBuysFromUniswapV3', callResults);
                 fillData.router = router;
