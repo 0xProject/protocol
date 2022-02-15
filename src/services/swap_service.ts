@@ -250,6 +250,7 @@ export class SwapService {
 
     public async calculateSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         const {
+            endpoint,
             takerAddress,
             sellAmount,
             buyAmount,
@@ -379,30 +380,52 @@ export class SwapService {
             .plus(isETHSell ? WRAP_ETH_GAS : 0)
             .plus(isETHBuy ? UNWRAP_WETH_GAS : 0);
 
-        // Cannot eth_gasEstimate for indicative quotes when RFQ Native liquidity is included
+        // Cannot eth_gasEstimate for /price when RFQ Native liquidity is included
         const isNativeIncluded = swapQuote.sourceBreakdown.Native !== undefined;
-        const isFirmQuote = !_rfqt?.isIndicative;
-        const canEstimateGas = isFirmQuote || !isNativeIncluded;
+        const isQuote = endpoint === 'quote';
+        const canEstimateGas = isQuote || !isNativeIncluded;
 
         // If the taker address is provided we can provide a more accurate gas estimate
         // using eth_gasEstimate
         // If an error occurs we attempt to provide a better message then "Transaction Reverted"
         if (takerAddress && !skipValidation && canEstimateGas) {
-            let estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
-                to,
-                data,
-                from: takerAddress,
-                value,
-                gasPrice,
-            });
-            // Add any underterministic gas overhead the encoded transaction has detected
-            estimateGasCallResult = estimateGasCallResult.plus(gasOverhead);
-            // Take the max of the faux estimate or the real estimate
-            conservativeBestCaseGasEstimate = BigNumber.max(
+            try {
+                // Record the faux gas estimate
+                const fauxGasEstimate = conservativeBestCaseGasEstimate;
+                let estimateGasCallResult = await this._estimateGasOrThrowRevertErrorAsync({
+                    to,
+                    data,
+                    from: takerAddress,
+                    value,
+                    gasPrice,
+                });
+                // Add any underterministic gas overhead the encoded transaction has detected
+                estimateGasCallResult = estimateGasCallResult.plus(gasOverhead);
                 // Add a little buffer to eth_estimateGas as it is not always correct
-                estimateGasCallResult.times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue(),
-                conservativeBestCaseGasEstimate,
-            );
+                const realGasEstimate = estimateGasCallResult.times(GAS_LIMIT_BUFFER_MULTIPLIER).integerValue();
+                // Take the max of the faux estimate or the real estimate
+                conservativeBestCaseGasEstimate = BigNumber.max(fauxGasEstimate, realGasEstimate);
+                logger.info(
+                    {
+                        fauxGasEstimate,
+                        realGasEstimate,
+                        delta: realGasEstimate.minus(fauxGasEstimate),
+                        buyToken,
+                        sellToken,
+                        sources: Object.keys(swapQuote.sourceBreakdown),
+                    },
+                    'Improved gas estimate',
+                );
+            } catch (error) {
+                if (isQuote) {
+                    // On /quote, when skipValidation=false, we want to raise an error
+                    throw error;
+                }
+                logger.warn(
+                    { takerAddress, data, value, gasPrice, error: error?.message },
+                    'Unable to use eth_estimateGas. Falling back to faux estimate',
+                );
+            }
         }
         // If any sources can be undeterministic in gas costs, we add a buffer
         const hasUndeterministicFills = _.flatten(swapQuote.orders.map((order) => order.fills)).some((fill) =>

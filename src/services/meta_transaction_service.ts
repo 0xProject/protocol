@@ -103,13 +103,13 @@ export class MetaTransactionService {
     public async calculateMetaTransactionPriceAsync(
         params: CalculateMetaTransactionQuoteParams,
     ): Promise<CalculateMetaTransactionQuoteResponse> {
-        return this._calculateMetaTransactionQuoteAsync(params, false);
+        return this._calculateMetaTransactionQuoteAsync(params, 'price');
     }
 
     public async calculateMetaTransactionQuoteAsync(
         params: CalculateMetaTransactionQuoteParams,
     ): Promise<GetMetaTransactionQuoteResponse & { quoteReport?: QuoteReport }> {
-        const quote = await this._calculateMetaTransactionQuoteAsync(params, true);
+        const quote = await this._calculateMetaTransactionQuoteAsync(params, 'quote');
         const { sellTokenToEthRate, buyTokenToEthRate } = quote;
         const commonQuoteFields = {
             chainId: quote.chainId,
@@ -344,9 +344,11 @@ export class MetaTransactionService {
 
     private async _calculateMetaTransactionQuoteAsync(
         params: CalculateMetaTransactionQuoteParams,
-        isQuote: boolean = true,
+        endpoint: 'price' | 'quote',
     ): Promise<CalculateMetaTransactionQuoteResponse> {
+        const isQuote = endpoint === 'quote';
         const quoteParams = {
+            endpoint,
             skipValidation: true,
             rfqt: {
                 apiKey: params.apiKey,

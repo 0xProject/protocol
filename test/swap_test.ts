@@ -12,6 +12,7 @@ import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 import 'mocha';
+import supertest from 'supertest';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
@@ -193,6 +194,22 @@ describe(SUITE_NAME, () => {
                         : CONTRACT_ADDRESSES.exchangeProxy,
                 });
             });
+        });
+    });
+
+    describe('/price', async () => {
+        it('should respond with 200 OK even if the the takerAddress cannot complete a trade', async () => {
+            // The taker does not have an allowance
+            await priceAndExpectAsync(
+                app,
+                {
+                    takerAddress: invalidTakerAddress,
+                    sellToken: 'WETH',
+                    buyToken: 'ZRX',
+                    sellAmount: '10000',
+                },
+                {},
+            );
         });
     });
 
@@ -493,19 +510,20 @@ describe(SUITE_NAME, () => {
     });
 });
 
-interface QuoteAssertion extends GetSwapQuoteResponse {
+interface SwapAssertion extends GetSwapQuoteResponse {
     validationErrors: ValidationErrorItem[];
     revertErrorReason: string;
     generalUserError: boolean;
 }
 
-async function quoteAndExpectAsync(
+async function requestAndExpectAsync(
     app: Express.Application,
+    endpoint: 'price' | 'quote',
     queryParams: ObjectMap<string>,
-    quoteAssertions: Partial<QuoteAssertion>,
-): Promise<void> {
+    swapAssertions: Partial<SwapAssertion>,
+): Promise<supertest.Response> {
     const route = constructRoute({
-        baseRoute: `${SWAP_PATH}/quote`,
+        baseRoute: `${SWAP_PATH}/${endpoint}`,
         queryParams: {
             ...DEFAULT_QUERY_PARAMS,
             ...queryParams,
@@ -513,43 +531,60 @@ async function quoteAndExpectAsync(
     });
     const response = await httpGetAsync({ app, route });
     expect(response.type).to.be.eq('application/json');
-    if (quoteAssertions.revertErrorReason) {
+    if (swapAssertions.revertErrorReason) {
         expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.code).to.eq(105);
-        expect(response.body.reason).to.be.eql(quoteAssertions.revertErrorReason);
-        return;
+        expect(response.body.reason).to.be.eql(swapAssertions.revertErrorReason);
+        return response;
     }
-    if (quoteAssertions.validationErrors) {
+    if (swapAssertions.validationErrors) {
         expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.code).to.eq(100);
-        expect(response.body.validationErrors).to.be.eql(quoteAssertions.validationErrors);
-        return;
+        expect(response.body.validationErrors).to.be.eql(swapAssertions.validationErrors);
+        return response;
     }
-    if (quoteAssertions.generalUserError) {
+    if (swapAssertions.generalUserError) {
         expect(response.status).to.be.eq(HttpStatus.BAD_REQUEST);
-        return;
+        return response;
     }
     if (response.status !== HttpStatus.OK) {
         logger.warn(response.body);
     }
     expect(response.status).to.be.eq(HttpStatus.OK);
-    expectCorrectQuote(response.body, quoteAssertions);
+    return response;
+}
+
+async function priceAndExpectAsync(
+    app: Express.Application,
+    queryParams: ObjectMap<string>,
+    swapAssertions: Partial<SwapAssertion>,
+): Promise<void> {
+    await requestAndExpectAsync(app, 'price', queryParams, swapAssertions);
+}
+
+async function quoteAndExpectAsync(
+    app: Express.Application,
+    queryParams: ObjectMap<string>,
+    swapAssertions: Partial<SwapAssertion>,
+): Promise<void> {
+    const response = await requestAndExpectAsync(app, 'quote', queryParams, swapAssertions);
+    expectCorrectQuote(response.body, swapAssertions);
 }
 
 const PRECISION = 2;
-function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, quoteAssertions: Partial<QuoteAssertion>): void {
+function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, assertions: Partial<SwapAssertion>): void {
     try {
-        for (const property of Object.keys(quoteAssertions)) {
-            if (BigNumber.isBigNumber(quoteAssertions[property as keyof QuoteAssertion])) {
-                assertRoughlyEquals((quoteResponse as any)[property], (quoteAssertions as any)[property], PRECISION);
+        for (const property of Object.keys(assertions)) {
+            if (BigNumber.isBigNumber(assertions[property as keyof SwapAssertion])) {
+                assertRoughlyEquals((quoteResponse as any)[property], (assertions as any)[property], PRECISION);
             } else {
-                expect((quoteResponse as any)[property], property).to.eql((quoteAssertions as any)[property]);
+                expect((quoteResponse as any)[property], property).to.eql((assertions as any)[property]);
             }
         }
         // Only have 0x liquidity for now.
         expect(quoteResponse.sources).to.be.eql(liquiditySources0xOnly);
     } catch (err) {
         // tslint:disable-next-line:no-console
-        console.log(`should return a valid quote matching ${quoteAssertions}`);
+        console.log(`should return a valid quote matching ${assertions}`);
     }
 }

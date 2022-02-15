@@ -228,7 +228,7 @@ export class SwapHandlers {
     // tslint:disable-next-line:prefer-function-over-method
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'price');
-        const quote = await this._getSwapQuoteAsync({ ...params, skipValidation: true }, req);
+        const quote = await this._getSwapQuoteAsync({ ...params }, req);
         req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
@@ -397,14 +397,20 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
 
     // Parse boolean params and defaults
     // tslint:disable:boolean-naming
-    let skipValidation: boolean;
-    skipValidation = req.query.skipValidation === undefined ? false : req.query.skipValidation === 'true';
+
+    // The /quote and /price endpoints should have different default behavior on skip validation
+    const defaultSkipValidation = endpoint === 'quote' ? false : true;
+
+    // Allow the query parameter skipValidation to override the default
+    let skipValidation =
+        req.query.skipValidation === undefined ? defaultSkipValidation : req.query.skipValidation === 'true';
 
     if (endpoint === 'quote' && integratorId !== undefined && integratorId === MATCHA_INTEGRATOR_ID) {
         // NOTE: force skip validation to false if the quote comes from Matcha
         // NOTE: allow skip validation param if the quote comes from unknown integrators (without API keys or Simbot)
         skipValidation = false;
     }
+
     const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
     // Whether the entire callers balance should be sold, used for contracts where the
     // amount available is non-deterministic
@@ -540,6 +546,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const integrator = integratorId ? getIntegratorByIdOrThrow(integratorId) : undefined;
 
     return {
+        endpoint,
         takerAddress: takerAddress as string,
         sellToken,
         buyToken,
