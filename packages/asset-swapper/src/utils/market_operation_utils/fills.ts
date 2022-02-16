@@ -96,6 +96,7 @@ export function nativeOrdersToFills(
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
     fees: FeeSchedule,
+    filterNegativeAdjustedRateOrders: boolean = true,
 ): Fill[] {
     const sourcePathId = hexUtils.random();
     // Create a single path from all orders.
@@ -126,8 +127,8 @@ export function nativeOrdersToFills(
             side === MarketOperation.Sell ? clippedOutput.minus(outputPenalty) : clippedOutput.plus(outputPenalty);
         const adjustedRate =
             side === MarketOperation.Sell ? adjustedOutput.div(clippedInput) : clippedInput.div(adjustedOutput);
-        // Skip orders with rates that are <= 0.
-        if (adjustedRate.lte(0)) {
+        // Optionally skip orders with rates that are <= 0.
+        if (filterNegativeAdjustedRateOrders && adjustedRate.lte(0)) {
             continue;
         }
         fills.push({
