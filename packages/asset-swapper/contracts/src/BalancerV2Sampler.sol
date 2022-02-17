@@ -84,12 +84,11 @@ contract BalancerV2Sampler is SamplerUtils {
         swapAssets[0] = IAsset(takerToken);
         swapAssets[1] = IAsset(makerToken);
 
-        uint256 numSamples = takerTokenAmounts.length;
-        makerTokenAmounts = new uint256[](numSamples);
+        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         IBalancerV2Vault.FundManagement memory swapFunds =
             _createSwapFunds();
 
-        for (uint256 i = 0; i < numSamples; i++) {
+        for (uint256 i = 0; i < takerTokenAmounts.length; i++) {
             IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
                 _createSwapSteps(poolInfo, takerTokenAmounts[i]);
 
@@ -136,12 +135,11 @@ contract BalancerV2Sampler is SamplerUtils {
         swapAssets[0] = IAsset(takerToken);
         swapAssets[1] = IAsset(makerToken);
 
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
+        takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         IBalancerV2Vault.FundManagement memory swapFunds =
             _createSwapFunds();
 
-        for (uint256 i = 0; i < numSamples; i++) {
+        for (uint256 i = 0; i < makerTokenAmounts.length; i++) {
             IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
                 _createSwapSteps(poolInfo, makerTokenAmounts[i]);
 
