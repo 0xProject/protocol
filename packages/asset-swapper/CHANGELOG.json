@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.6",
+        "changes": [
+            {
+                "note": "Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools",
+                "pr": 427
+            }
+        ]
+    },
+    {
         "version": "16.49.5",
         "changes": [
             {
