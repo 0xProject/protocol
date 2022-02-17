@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.6 - _February 17, 2022_
+
+    * Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools (#427)
+
 ## v16.49.5 - _February 14, 2022_
 
     * Fix scaling 1 base unit to 0, round output to base units (#422)
