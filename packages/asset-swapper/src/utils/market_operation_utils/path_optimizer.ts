@@ -5,9 +5,10 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
+import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetrics } from './types';
@@ -212,7 +213,11 @@ function findRoutesAndCreateOptimalPath(
 
     const scale = input.dividedBy(totalRoutedAmount);
     for (const [routeInput, routeSamplesAndNativeOrders, outputAmount, sourcePathId] of routesAndSamplesAndOutputs) {
-        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
+        if (!Number.isFinite(outputAmount)) {
+            DEFAULT_WARNING_LOGGER(rustArgs, `neon-router: invalid route outputAmount ${outputAmount}`);
+            return undefined;
+        }
+        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount) {
             continue;
         }
         // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
