@@ -204,7 +204,7 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.Compound:
             return encodeBridgeSourceId(BridgeProtocol.Compound, 'Compound');
         case ERC20BridgeSource.Geist:
-            return encodeBridgeSourceId(BridgeProtocol.Geist, 'Geist');
+            return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'Geist');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }

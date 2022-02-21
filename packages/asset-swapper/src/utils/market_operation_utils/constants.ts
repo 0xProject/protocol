@@ -604,7 +604,7 @@ export const GEIST_FANTOM_TOKENS = {
 };
 
 export const GEIST_FANTOM_POOLS = {
-    lendingPool: '0x9FAD24f572045c7869117160A571B2e50b10d068',
+    lendingPool: '0x9fad24f572045c7869117160a571b2e50b10d068',
 };
 
 export const OPTIMISM_TOKENS = {
