@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.7",
+        "changes": [
+            {
+                "note": "Fix native order handling for very small quotes and bump `neon-router` dependency",
+                "pr": 425
+            }
+        ]
+    },
+    {
         "version": "16.49.6",
         "changes": [
             {
