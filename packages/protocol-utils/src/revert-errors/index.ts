@@ -13,6 +13,7 @@ import {
     Wallet,
 } from './inherited';
 import * as NativeOrders from './native_orders';
+import * as NFTOrders from './nft_orders';
 import * as Signatures from './signatures';
 
 export {
@@ -28,4 +29,5 @@ export {
     LiquidityProvider,
     NativeOrders,
     Signatures,
+    NFTOrders,
 };

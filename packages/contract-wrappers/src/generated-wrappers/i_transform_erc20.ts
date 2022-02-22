@@ -506,6 +506,7 @@ export class ITransformERC20Contract extends BaseContract {
             '_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bool,address))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -567,6 +568,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'createTransformWallet()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -626,6 +628,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'getQuoteSigner()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -686,6 +689,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'getTransformWallet()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -745,6 +749,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'getTransformerDeployer()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -807,6 +812,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'setQuoteSigner(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -870,6 +876,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'setTransformerDeployer(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -950,6 +957,7 @@ export class ITransformERC20Contract extends BaseContract {
         const functionSignature = 'transformERC20(address,address,uint256,uint256,(uint32,bytes)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
