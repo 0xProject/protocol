@@ -1581,7 +1581,10 @@ export class SamplerOperations {
                         return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.Geist: {
-                        const info: GeistInfo = getGeistInfoForPair(takerToken, makerToken);
+                        const info: GeistInfo | undefined = getGeistInfoForPair(takerToken, makerToken);
+                        if (!info) {
+                            return [];
+                        }
                         return this.getGeistSellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {
@@ -1886,7 +1889,10 @@ export class SamplerOperations {
                         return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Geist: {
-                        const info: GeistInfo = getGeistInfoForPair(takerToken, makerToken);
+                        const info: GeistInfo | undefined = getGeistInfoForPair(takerToken, makerToken);
+                        if (!info) {
+                            return [];
+                        }
                         return this.getGeistBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {

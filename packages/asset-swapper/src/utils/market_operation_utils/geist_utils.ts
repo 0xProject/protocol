@@ -15,7 +15,7 @@ const gTokenToUnderlyingToken = new Map<string, string>([
 export function getGeistInfoForPair(
     takerToken: string,
     makerToken: string,
-): GeistInfo {
+): GeistInfo | undefined {
     let gToken;
     let underlyingToken;
     if (gTokenToUnderlyingToken.get(takerToken) === makerToken) {
@@ -25,7 +25,7 @@ export function getGeistInfoForPair(
         gToken = makerToken;
         underlyingToken = takerToken;
     } else {
-        throw new Error(`Invalid takerToken or makerToken, takerToken: ${takerToken}, makerToken: ${makerToken}`);
+        return undefined;
     }
 
     return {
