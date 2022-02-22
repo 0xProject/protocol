@@ -14,6 +14,7 @@ import {
     CURVE_AVALANCHE_INFOS,
     CURVE_FANTOM_INFOS,
     CURVE_MAINNET_INFOS,
+    CURVE_OPTIMISM_INFOS,
     CURVE_POLYGON_INFOS,
     CURVE_V2_AVALANCHE_INFOS,
     CURVE_V2_FANTOM_INFOS,
@@ -49,6 +50,12 @@ import {
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
     SWERVE_MAINNET_INFOS,
+    SYNAPSE_AVALANCHE_INFOS,
+    SYNAPSE_BSC_INFOS,
+    SYNAPSE_FANTOM_INFOS,
+    SYNAPSE_MAINNET_INFOS,
+    SYNAPSE_OPTIMISM_INFOS,
+    SYNAPSE_POLYGON_INFOS,
     TRADER_JOE_ROUTER_BY_CHAIN_ID,
     UBESWAP_ROUTER_BY_CHAIN_ID,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
@@ -159,6 +166,15 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                             [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
+        case ChainId.Optimism:
+            return Object.values(CURVE_OPTIMISM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
         default:
             return [];
     }
@@ -245,6 +261,67 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
                 (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
         ),
     );
+}
+
+export function getSynapseInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    switch (chainId) {
+        case ChainId.Mainnet:
+            return Object.values(SYNAPSE_MAINNET_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Optimism:
+            return Object.values(SYNAPSE_OPTIMISM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.BSC:
+            return Object.values(SYNAPSE_BSC_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Polygon:
+            return Object.values(SYNAPSE_POLYGON_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Fantom:
+            return Object.values(SYNAPSE_FANTOM_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Avalanche:
+            return Object.values(SYNAPSE_AVALANCHE_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        default:
+            return [];
+    }
 }
 
 export function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
@@ -406,6 +483,7 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Swerve
         | ERC20BridgeSource.SnowSwap
         | ERC20BridgeSource.Nerve
+        | ERC20BridgeSource.Synapse
         | ERC20BridgeSource.Belt
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Smoothy
@@ -431,6 +509,9 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.Nerve:
             pools = getNerveInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.Synapse:
+            pools = getSynapseInfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.Belt:
             pools = getBeltInfosForPair(chainId, takerToken, makerToken);

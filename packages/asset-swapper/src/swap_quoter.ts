@@ -578,8 +578,8 @@ function calculateQuoteInfo(
     });
 
     return {
-        bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult),
-        worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult),
+        bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult, 0),
+        worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult, slippage),
         sourceBreakdown: getSwapQuoteOrdersBreakdown(bestCaseFillResult.fillAmountBySource),
     };
 }
@@ -599,29 +599,33 @@ function calculateTwoHopQuoteInfo(
             secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
         }),
     ).toNumber();
+    const isSell = operation === MarketOperation.Sell;
+
     return {
         bestCaseQuoteInfo: {
-            makerAmount: operation === MarketOperation.Sell ? secondHopFill.output : secondHopFill.input,
-            takerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAmount: operation === MarketOperation.Sell ? firstHopFill.input : firstHopFill.output,
+            makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
+            takerAmount: isSell ? firstHopFill.input : firstHopFill.output,
+            totalTakerAmount: isSell ? firstHopFill.input : firstHopFill.output,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
+            slippage: 0,
         },
         // TODO jacob consolidate this with quote simulation worstCase
         worstCaseQuoteInfo: {
-            makerAmount: MarketOperation.Sell
+            makerAmount: isSell
                 ? secondHopOrder.makerAmount.times(1 - slippage).integerValue()
                 : secondHopOrder.makerAmount,
-            takerAmount: MarketOperation.Sell
+            takerAmount: isSell
                 ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
-            totalTakerAmount: MarketOperation.Sell
+                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
+            totalTakerAmount: isSell
                 ? firstHopOrder.takerAmount
-                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(),
+                : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
+            slippage,
         },
         sourceBreakdown: {
             [ERC20BridgeSource.MultiHop]: {
@@ -647,7 +651,7 @@ function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: Big
     return breakdown;
 }
 
-function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
+function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuoteInfo {
     return {
         makerAmount: fr.totalMakerAssetAmount,
         takerAmount: fr.takerAssetAmount,
@@ -655,6 +659,7 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
         feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
+        slippage,
     };
 }
 

@@ -61,6 +61,18 @@ illustrates how events are emitted when trading through the Exchange Proxy.
 +-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 | `TransformerMetadata`_        | A general, customizable event emitted that can be emitted by transformers as-needed.                                                                      | FlashWallet         |
 +-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC1155OrderFilled`_         | Emitted when a `V4 ERC1155 Order <./orders.html#erc1155-orders>`_ is filled.                                                                              | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC721OrderFilled`_          | Emitted when a `V4 ERC721 Order <./orders.html#erc721-orders>`_ is filled.                                                                                | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC1155OrderCancelled`_      | Emitted when a `V4 ERC1155 Order <./orders.html#erc1155-orders>`_ is cancelled.                                                                           | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC721OrderCancelled`_       | Emitted when a `V4 ERC721 Order <./orders.html#erc721-orders>`_ is cancelled.                                                                             | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC1155OrderPreSigned`_      | Emitted when a `V4 ERC1155 Order <./orders.html#erc1155-orders>`_ is signed on-chain.                                                                     | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
+| `ERC721OrderPreSigned`_       | Emitted when a `V4 ERC721 Order <./orders.html#erc721-orders>`_ is signed on-chain.                                                                       | ExchangeProxy       |
++-------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 
 
 Deployed
@@ -372,6 +384,143 @@ TransformerMetadata
         address taker,
         bytes data
     );
+
+
+ERC721OrderFilled
+-------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted whenever an `ERC721Order` is filled.
+    /// @param direction Whether the order is selling or
+    ///        buying the ERC721 token.
+    /// @param maker The maker of the order.
+    /// @param taker The taker of the order.
+    /// @param nonce The unique maker nonce in the order.
+    /// @param erc20Token The address of the ERC20 token.
+    /// @param erc20TokenAmount The amount of ERC20 token
+    ///        to sell or buy.
+    /// @param erc721Token The address of the ERC721 token.
+    /// @param erc721TokenId The ID of the ERC721 asset.
+    /// @param matcher If this order was matched with another using `matchERC721Orders()`,
+    ///                this will be the address of the caller. If not, this will be `address(0)`.
+    event ERC721OrderFilled(
+        LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        IERC721Token erc721Token,
+        uint256 erc721TokenId,
+        address matcher
+    );
+
+ERC721OrderCancelled
+---------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted whenever an `ERC721Order` is cancelled.
+    /// @param maker The maker of the order.
+    /// @param nonce The nonce of the order that was cancelled.
+    event ERC721OrderCancelled(
+        address maker,
+        uint256 nonce
+    );
+
+ERC721OrderPreSigned
+---------------------
+
+.. code-block:: solidity
+
+
+    /// @dev Emitted when an `ERC721Order` is pre-signed.
+    ///      Contains all the fields of the order.
+    event ERC721OrderPreSigned(
+        LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 expiry,
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        LibNFTOrder.Fee[] fees,
+        IERC721Token erc721Token,
+        uint256 erc721TokenId,
+        LibNFTOrder.Property[] erc721TokenProperties
+    );
+
+ERC1155OrderFilled
+-------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted whenever an `ERC1155Order` is filled.
+    /// @param direction Whether the order is selling or
+    ///        buying the ERC1155 token.
+    /// @param maker The maker of the order.
+    /// @param taker The taker of the order.
+    /// @param nonce The unique maker nonce in the order.
+    /// @param erc20Token The address of the ERC20 token.
+    /// @param erc20FillAmount The amount of ERC20 token filled.
+    /// @param erc1155Token The address of the ERC1155 token.
+    /// @param erc1155TokenId The ID of the ERC1155 asset.
+    /// @param erc1155FillAmount The amount of ERC1155 asset filled.
+    /// @param matcher Currently unused.
+    event ERC1155OrderFilled(
+        LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20FillAmount,
+        IERC1155Token erc1155Token,
+        uint256 erc1155TokenId,
+        uint128 erc1155FillAmount,
+        address matcher
+    );
+
+ERC1155OrderCancelled
+---------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted whenever an `ERC1155Order` is cancelled.
+    /// @param orderHash The hash the order.
+    /// @param maker The maker of the order.
+    event ERC1155OrderCancelled(
+        bytes32 orderHash,
+        address maker
+    );
+
+ERC1155OrderPreSigned
+---------------------
+
+.. code-block:: solidity
+
+    /// @dev Emitted when an `ERC1155Order` is pre-signed.
+    ///      Contains all the fields of the order.
+    event ERC1155OrderPreSigned(
+        LibNFTOrder.TradeDirection direction,
+        address maker,
+        address taker,
+        uint256 expiry,
+        uint256 nonce,
+        IERC20TokenV06 erc20Token,
+        uint256 erc20TokenAmount,
+        LibNFTOrder.Fee[] fees,
+        IERC1155Token erc1155Token,
+        uint256 erc1155TokenId,
+        LibNFTOrder.Property[] erc1155TokenProperties,
+        uint128 erc1155TokenAmount
+    );
+
+
+
+
+
+
 
 
 

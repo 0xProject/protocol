@@ -5,6 +5,49 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.7 - _February 22, 2022_
+
+    * Fix native order handling for very small quotes and bump `neon-router` dependency (#425)
+
+## v16.49.6 - _February 17, 2022_
+
+    * Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools (#427)
+
+## v16.49.5 - _February 14, 2022_
+
+    * Fix scaling 1 base unit to 0, round output to base units (#422)
+
+## v16.49.4 - _February 10, 2022_
+
+    * Reverts 'Improve Uniswap V3 gas schedule' due to issue with buys (#419)
+
+## v16.49.3 - _February 10, 2022_
+
+    * Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer (#412)
+    * Fix incorrect output scaling when input is less than desired amount, update fast-abi (#401)
+    * Improve Uniswap V3 gas schedule (#397)
+    * Fix add Native as VIP and use Path to compare all sources vs vip only (#413)
+
+## v16.49.2 - _January 31, 2022_
+
+    * Fix ABI encoding error with two hop buys due to applying slippage to uint(-1) values (#410)
+
+## v16.49.1 - _January 31, 2022_
+
+    * Fix WorstCaseQuoteInfo encoding bug (#402)
+
+## v16.49.0 - _January 28, 2022_
+
+    * Add more curve pools (#409)
+
+## v16.48.0 - _January 25, 2022_
+
+    * Use `MIM` as an intermediate asset on `Fantom` (#405)
+
+## v16.47.0 - _January 25, 2022_
+
+    * Adding support for Synapse on all networks (#400)
+
 ## v16.46.0 - _January 11, 2022_
 
     * Enable `Curve` ETH/CVX pool (#394)

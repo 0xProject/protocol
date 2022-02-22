@@ -691,7 +691,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
 function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): OptimizedMarketOrder[] {
     const slippage = getMaxQuoteSlippageRate(quote);
-    if (!slippage) {
+    if (slippage === 0) {
         return quote.orders;
     }
     return quote.orders.map(o => {
@@ -701,25 +701,20 @@ function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): O
         return {
             ...o,
             ...(quote.type === MarketOperation.Sell
-                ? { makerAmount: o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN) }
-                : { takerAmount: o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP) }),
+                ? {
+                      makerAmount: o.makerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN),
+                  }
+                : {
+                      takerAmount: o.takerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
+                  }),
         };
     });
 }
 
 function getMaxQuoteSlippageRate(quote: MarketBuySwapQuote | MarketSellSwapQuote): number {
-    if (quote.type === MarketOperation.Buy) {
-        // (worstCaseTaker - bestCaseTaker) / bestCaseTaker
-        // where worstCaseTaker >= bestCaseTaker
-        return quote.worstCaseQuoteInfo.takerAmount
-            .minus(quote.bestCaseQuoteInfo.takerAmount)
-            .div(quote.bestCaseQuoteInfo.takerAmount)
-            .toNumber();
-    }
-    // (bestCaseMaker - worstCaseMaker) / bestCaseMaker
-    // where bestCaseMaker >= worstCaseMaker
-    return quote.bestCaseQuoteInfo.makerAmount
-        .minus(quote.worstCaseQuoteInfo.makerAmount)
-        .div(quote.bestCaseQuoteInfo.makerAmount)
-        .toNumber();
+    return quote.worstCaseQuoteInfo.slippage;
 }
