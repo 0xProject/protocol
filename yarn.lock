@@ -959,10 +959,10 @@
     typedoc "~0.16.11"
     yargs "^10.0.3"
 
-"@0x/neon-router@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.1.tgz#4ec13e750d1435357c4928d7f2521a2b4376f27e"
-  integrity sha512-M4ypTov9KyxsGJpYwobrld3Y2JOlR7U0XjR6BEQE2gQ1k3nie/1wNEI2J4ZjKw++RLDxdv/RCqhgA5VnINzjxA==
+"@0x/neon-router@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.2.tgz#dc68d0a108060d607b48e3d32ce0ff46f8dc0cc2"
+  integrity sha512-AdSPeCxRcjdpmWDkJI1wg+X4q14tmLE21vM0AixtMQQI5+f22sIeUCrPqU9FFKqMQTOW0/3d8tVXzxdollahbA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
