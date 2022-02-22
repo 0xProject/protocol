@@ -35,10 +35,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.49.6":
-  version "16.49.6"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.49.6.tgz#aa917fd47749648df07c8647c710059e5fa0ea48"
-  integrity sha512-73Key5M6MPrgCuV4V5cwCnhAHjNX2kXO359atSxpb1dV4rHWKxLGdXALkeRsjM9g6hGtxTH/Dggb9dNqHj1sSg==
+"@0x/asset-swapper@^16.49.7":
+  version "16.49.7"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.49.7.tgz#d6f44adcd317d175883e8d5c1a999a2430c82bed"
+  integrity sha512-+SuvRolAxsXncRHqCuf/nKinsoi/lwcMMQ8DHqg8WnnQxCzFECFkV2iq/6VtrZ4ZkozQzS1K1s7SmmUoFQ1VAg==
   dependencies:
     "@0x/assert" "^3.0.29"
     "@0x/base-contract" "^6.4.2"
@@ -48,7 +48,7 @@
     "@0x/contracts-zero-ex" "^0.30.1"
     "@0x/dev-utils" "^4.2.9"
     "@0x/json-schemas" "^6.3.0"
-    "@0x/neon-router" "^0.3.1"
+    "@0x/neon-router" "^0.3.2"
     "@0x/protocol-utils" "^1.10.1"
     "@0x/quote-server" "^6.0.6"
     "@0x/types" "^3.3.4"
@@ -381,9 +381,10 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/neon-router@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.1.tgz#4ec13e750d1435357c4928d7f2521a2b4376f27e"
+"@0x/neon-router@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.2.tgz#dc68d0a108060d607b48e3d32ce0ff46f8dc0cc2"
+  integrity sha512-AdSPeCxRcjdpmWDkJI1wg+X4q14tmLE21vM0AixtMQQI5+f22sIeUCrPqU9FFKqMQTOW0/3d8tVXzxdollahbA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
