@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.8 - _February 22, 2022_
+
+    * Dependencies updated
+
 ## v16.49.7 - _February 22, 2022_
 
     * Fix native order handling for very small quotes and bump `neon-router` dependency (#425)

@@ -8,6 +8,15 @@
         ]
     },
     {
+        "timestamp": 1645569128,
+        "version": "16.49.8",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "version": "16.49.7",
         "changes": [
             {
