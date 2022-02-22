@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.7 - _February 22, 2022_
+
+    * Fix native order handling for very small quotes and bump `neon-router` dependency (#425)
+
 ## v16.49.6 - _February 17, 2022_
 
     * Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools (#427)
