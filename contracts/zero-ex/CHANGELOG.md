@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.31.0 - _February 22, 2022_
+
+    * Add ERC721OrdersFeature, ERC1155OrdersFeature, and ERC165Feature (#429)
+
 ## v0.30.1 - _December 24, 2021_
 
     * Dependencies updated
