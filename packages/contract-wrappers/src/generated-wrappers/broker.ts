@@ -612,6 +612,7 @@ export class BrokerContract extends BaseContract {
             'batchBrokerTrade(uint256[],(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes)[],uint256[],bytes[],bytes4,uint256[],address[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -754,6 +755,7 @@ export class BrokerContract extends BaseContract {
             'brokerTrade(uint256[],(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,bytes,bytes,bytes,bytes),uint256,bytes,bytes4,uint256[],address[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -854,6 +856,7 @@ export class BrokerContract extends BaseContract {
         const functionSignature = 'safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },

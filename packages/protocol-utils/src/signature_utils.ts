@@ -12,6 +12,7 @@ export enum SignatureType {
     Invalid = 1,
     EIP712 = 2,
     EthSign = 3,
+    PreSigned = 4,
 }
 
 /**

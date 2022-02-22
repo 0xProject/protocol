@@ -8,13 +8,66 @@
         ]
     },
     {
+        "version": "16.49.7",
+        "changes": [
+            {
+                "note": "Fix native order handling for very small quotes and bump `neon-router` dependency",
+                "pr": 425
+            }
+        ],
+        "timestamp": 1645534245
+    },
+    {
+        "version": "16.49.6",
+        "changes": [
+            {
+                "note": "Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools",
+                "pr": 427
+            }
+        ],
+        "timestamp": 1645113751
+    },
+    {
+        "version": "16.49.5",
+        "changes": [
+            {
+                "note": "Fix scaling 1 base unit to 0, round output to base units",
+                "pr": 422
+            }
+        ],
+        "timestamp": 1644844353
+    },
+    {
+        "version": "16.49.4",
+        "changes": [
+            {
+                "note": "Reverts 'Improve Uniswap V3 gas schedule' due to issue with buys",
+                "pr": 419
+            }
+        ],
+        "timestamp": 1644507275
+    },
+    {
         "version": "16.49.3",
         "changes": [
             {
                 "note": "Fix `slippage` inconsistency when recalculated in exchange proxy quote consumer",
                 "pr": 412
+            },
+            {
+                "note": "Fix incorrect output scaling when input is less than desired amount, update fast-abi",
+                "pr": 401
+            },
+            {
+                "note": "Improve Uniswap V3 gas schedule",
+                "pr": 397
+            },
+            {
+                "note": "Fix add Native as VIP and use Path to compare all sources vs vip only",
+                "pr": 413
             }
-        ]
+        ],
+        "timestamp": 1644495123
     },
     {
         "version": "16.49.2",

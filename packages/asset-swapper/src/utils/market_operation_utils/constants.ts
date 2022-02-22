@@ -486,6 +486,8 @@ export const MAINNET_TOKENS = {
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
     FXS: '0x3432b6a60d23ca0dfca7761b7ab56459d9c964d0',
     OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
+    OHMV2: '0x64aa3364f17a4d01c6f1751fd97c2bd3d7e7f1d5',
+    BTRFLY: '0xc0d4ceb216b3ba9c3701b291766fdcba977cec3a',
     //
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
     // Fei Ecosystem
@@ -899,6 +901,10 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 // FRAX ecosystem
                 builder.add(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.FXS).add(MAINNET_TOKENS.FXS, MAINNET_TOKENS.FRAX);
                 builder.add(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.OHM).add(MAINNET_TOKENS.OHM, MAINNET_TOKENS.FRAX);
+                // REDACTED CARTEL
+                builder
+                    .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
+                    .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
             })
             // Build
             .build(),
@@ -2283,7 +2289,14 @@ export const SPOOKYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
+        [ChainId.Mainnet]: [
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.Native,
+        ],
         [ChainId.BSC]: [
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
@@ -2293,6 +2306,8 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
+            ERC20BridgeSource.LiquidityProvider,
+            ERC20BridgeSource.Native,
         ],
     },
     [],

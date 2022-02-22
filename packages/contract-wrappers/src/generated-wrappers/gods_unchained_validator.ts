@@ -286,6 +286,7 @@ export class GodsUnchainedValidatorContract extends BaseContract {
         const functionSignature = 'checkBrokerAsset(uint256,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(

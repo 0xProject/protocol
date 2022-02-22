@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
+import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 
@@ -138,6 +138,20 @@ abstract contract FixinTokenSpender {
                 returndatacopy(ptr, 0, rdsize)
                 revert(ptr, rdsize)
             }
+        }
+    }
+
+
+    /// @dev Transfers some amount of ETH to the given recipient and
+    ///      reverts if the transfer fails.
+    /// @param recipient The recipient of the ETH.
+    /// @param amount The amount of ETH to transfer.
+    function _transferEth(address payable recipient, uint256 amount)
+        internal
+    {
+        if (amount > 0) {
+            (bool success,) = recipient.call{value: amount}("");
+            require(success, "FixinTokenSpender::_transferEth/TRANSFER_FAILED");
         }
     }
 

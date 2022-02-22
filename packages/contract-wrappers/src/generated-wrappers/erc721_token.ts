@@ -522,6 +522,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'approve(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -585,6 +586,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'balanceOf(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -611,6 +613,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'getApproved(uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -633,6 +636,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'isApprovedForAll(address,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -660,6 +664,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'ownerOf(uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -690,6 +695,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'safeTransferFrom(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -772,6 +778,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'safeTransferFrom(address,address,uint256,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -841,6 +848,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'setApprovalForAll(address,bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -909,6 +917,7 @@ export class ERC721TokenContract extends BaseContract {
         const functionSignature = 'transferFrom(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
