@@ -1580,7 +1580,6 @@ export class SamplerOperations {
                         };
                         return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
-
                     case ERC20BridgeSource.Geist: {
                         const info: GeistInfo = getGeistInfoForPair(takerToken, makerToken);
                         return this.getGeistSellQuotes(info, makerToken, takerToken, takerFillAmounts);
@@ -1615,7 +1614,7 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation[] {
-        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
