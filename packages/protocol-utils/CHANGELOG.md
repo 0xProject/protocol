@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v1.11.0 - _February 22, 2022_
+
+    * Add utils and errors for NFT orders (#429)
+    * Update getTypeHash to support nested structs (#429)
+
 ## v1.10.1 - _December 24, 2021_
 
     * Dependencies updated

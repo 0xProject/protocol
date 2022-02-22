@@ -10,7 +10,8 @@
                 "note": "Update getTypeHash to support nested structs",
                 "pr": 429
             }
-        ]
+        ],
+        "timestamp": 1645569128
     },
     {
         "timestamp": 1640364306,
