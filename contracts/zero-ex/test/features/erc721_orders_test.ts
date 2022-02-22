@@ -1228,7 +1228,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
-            const tx = zeroEx.batchBuyERC721s([order], [signature, signature], false).awaitTransactionSuccessAsync({
+            const tx = zeroEx.batchBuyERC721s([order], [signature, signature], [], false).awaitTransactionSuccessAsync({
                 from: taker,
             });
             return expect(tx).to.revertWith('ERC721OrdersFeature::batchBuyERC721s/ARRAY_LENGTH_MISMATCH');
@@ -1250,7 +1250,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 value: order2.erc20TokenAmount,
             });
             await zeroEx
-                .batchBuyERC721s([order1, order2], [signature1, signature2], false)
+                .batchBuyERC721s([order1, order2], [signature1, signature2], [NULL_BYTES, NULL_BYTES], false)
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
@@ -1278,7 +1278,12 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 from: taker,
                 value: order2.erc20TokenAmount,
             });
-            const tx = zeroEx.batchBuyERC721s([order1, order2], [signature1, signature2], false);
+            const tx = zeroEx.batchBuyERC721s(
+                [order1, order2],
+                [signature1, signature2],
+                [NULL_BYTES, NULL_BYTES],
+                false,
+            );
             const successes = await tx.callAsync({
                 from: taker,
             });
@@ -1314,7 +1319,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
                 value: order2.erc20TokenAmount,
             });
             const tx = zeroEx
-                .batchBuyERC721s([order1, order2], [signature1, signature2], true)
+                .batchBuyERC721s([order1, order2], [signature1, signature2], [NULL_BYTES, NULL_BYTES], true)
                 .awaitTransactionSuccessAsync({
                     from: taker,
                 });
@@ -1335,7 +1340,7 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
             await erc721Token.mint(maker, order2.erc721TokenId).awaitTransactionSuccessAsync();
             const takerEthBalanceBefore = await env.web3Wrapper.getBalanceInWeiAsync(taker);
             await zeroEx
-                .batchBuyERC721s([order1, order2], [signature1, signature2], true)
+                .batchBuyERC721s([order1, order2], [signature1, signature2], [NULL_BYTES, NULL_BYTES], true)
                 .awaitTransactionSuccessAsync({
                     from: taker,
                     value: order1.erc20TokenAmount.plus(order2.erc20TokenAmount).plus(1),
@@ -1495,9 +1500,11 @@ blockchainTests.resets('ERC721OrdersFeature', env => {
             const buyOrder = getTestERC721Order({
                 direction: NFTOrder.TradeDirection.BuyNFT,
                 erc20Token: weth.address,
+                erc20TokenAmount: sellOrder.erc20TokenAmount,
                 erc721TokenId: sellOrder.erc721TokenId,
             });
             const buySignature = await buyOrder.getSignatureWithProviderAsync(env.provider);
+            await mintAssetsAsync(buyOrder, sellOrder.erc721TokenId, sellOrder.maker);
             const tx = zeroEx
                 .matchERC721Orders(sellOrder, buyOrder, sellSignature, buySignature)
                 .awaitTransactionSuccessAsync({

@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -191,7 +191,7 @@ abstract contract NFTOrders is
         BuyParams memory params
     )
         internal
-        returns (uint256 erc20FillAmount, uint256 ethSpent)
+        returns (uint256 erc20FillAmount)
     {
         LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(sellOrder);
         // Check that the order can be filled.
@@ -231,6 +231,7 @@ abstract contract NFTOrders is
             params.buyAmount
         );
 
+        uint256 ethAvailable = params.ethAvailable;
         if (params.takerCallbackData.length > 0) {
             require(
                 msg.sender != address(this),
@@ -240,7 +241,9 @@ abstract contract NFTOrders is
             // Invoke the callback
             bytes4 callbackResult = ITakerCallback(msg.sender)
                 .zeroExTakerCallback(orderInfo.orderHash, params.takerCallbackData);
-            params.ethAvailable = params.ethAvailable.safeAdd(
+            // Update `ethAvailable` with amount acquired during
+            // the callback
+            ethAvailable = ethAvailable.safeAdd(
                 address(this).balance.safeSub(ethBalanceBeforeCallback)
             );
             // Check for the magic success bytes
@@ -251,30 +254,21 @@ abstract contract NFTOrders is
         }
 
         if (address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS) {
-            // Check that we have enough ETH.
-            if (params.ethAvailable < erc20FillAmount) {
-                LibNFTOrdersRichErrors.InsufficientEthError(
-                    params.ethAvailable,
-                    erc20FillAmount
-                ).rrevert();
-            }
             // Transfer ETH to the seller.
             _transferEth(payable(sellOrder.maker), erc20FillAmount);
             // Fees are paid from the EP's current balance of ETH.
-            uint256 ethFees = _payFees(
+            _payEthFees(
                 sellOrder,
-                address(this),
                 params.buyAmount,
                 orderInfo.orderAmount,
-                true
+                erc20FillAmount,
+                ethAvailable
             );
-            // Sum the amount of ETH spent.
-            ethSpent = erc20FillAmount.safeAdd(ethFees);
         } else if (sellOrder.erc20Token == WETH) {
             // If there is enough ETH available, fill the WETH order
             // (including fees) using that ETH.
             // Otherwise, transfer WETH from the taker.
-            if (params.ethAvailable >= erc20FillAmount) {
+            if (ethAvailable >= erc20FillAmount) {
                 // Wrap ETH.
                 WETH.deposit{value: erc20FillAmount}();
                 // TODO: Probably safe to just use WETH.transfer for some
@@ -285,16 +279,14 @@ abstract contract NFTOrders is
                     sellOrder.maker,
                     erc20FillAmount
                 );
-                // Pay fees using ETH.
-                uint256 ethFees = _payFees(
+                // Fees are paid from the EP's current balance of ETH.
+                _payEthFees(
                     sellOrder,
-                    address(this),
                     params.buyAmount,
                     orderInfo.orderAmount,
-                    true
+                    erc20FillAmount,
+                    ethAvailable
                 );
-                // Sum the amount of ETH spent.
-                ethSpent = erc20FillAmount.safeAdd(ethFees);
             } else {
                 // Transfer WETH from the buyer to the seller.
                 _transferERC20TokensFrom(
@@ -403,6 +395,33 @@ abstract contract NFTOrders is
         _validateOrderSignature(orderInfo.orderHash, signature, buyOrder.maker);
     }
 
+    function _payEthFees(
+        LibNFTOrder.NFTOrder memory order,
+        uint128 fillAmount,
+        uint128 orderAmount,
+        uint256 ethSpent,
+        uint256 ethAvailable
+    )
+        private
+    {
+        // Pay fees using ETH.
+        uint256 ethFees = _payFees(
+            order,
+            address(this),
+            fillAmount,
+            orderAmount,
+            true
+        );
+        // Update amount of ETH spent.
+        ethSpent = ethSpent.safeAdd(ethFees);
+        if (ethSpent > ethAvailable) {
+            LibNFTOrdersRichErrors.OverspentEthError(
+                ethSpent,
+                ethAvailable
+            ).rrevert();
+        }
+    }
+
     function _payFees(
         LibNFTOrder.NFTOrder memory order,
         address payer,
@@ -413,6 +432,15 @@ abstract contract NFTOrders is
         internal
         returns (uint256 totalFeesPaid)
     {
+        // Make assertions about ETH case
+        if (useNativeToken) {
+            assert(payer == address(this));
+            assert(
+                order.erc20Token == WETH ||
+                address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
+            );
+        }
+
         for (uint256 i = 0; i < order.fees.length; i++) {
             LibNFTOrder.Fee memory fee = order.fees[i];
 
@@ -425,7 +453,7 @@ abstract contract NFTOrders is
             if (fillAmount == orderAmount) {
                 feeFillAmount = fee.amount;
             } else {
-                // Round in favor of the taker or maker
+                // Round against the fee recipient
                 feeFillAmount = LibMathV06.getPartialAmountFloor(
                     fillAmount,
                     orderAmount,
@@ -437,11 +465,6 @@ abstract contract NFTOrders is
             }
 
             if (useNativeToken) {
-                assert(payer == address(this));
-                assert(
-                    order.erc20Token == WETH ||
-                    address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
-                );
                 // Transfer ETH to the fee recipient.
                 _transferEth(payable(fee.recipient), feeFillAmount);
             } else {
@@ -506,31 +529,31 @@ abstract contract NFTOrders is
                     order.nftId
                 ).rrevert();
             }
-        }
+        } else {
+            // Validate each property
+            for (uint256 i = 0; i < order.nftProperties.length; i++) {
+                LibNFTOrder.Property memory property = order.nftProperties[i];
+                // `address(0)` is interpreted as a no-op. Any token ID
+                // will satisfy a property with `propertyValidator == address(0)`.
+                if (address(property.propertyValidator) == address(0)) {
+                    continue;
+                }
 
-        // Validate each property
-        for (uint256 i = 0; i < order.nftProperties.length; i++) {
-            LibNFTOrder.Property memory property = order.nftProperties[i];
-            // `address(0)` is interpreted as a no-op. Any token ID
-            // will satisfy a property with `propertyValidator == address(0)`.
-            if (address(property.propertyValidator) == address(0)) {
-                continue;
-            }
-
-            // Call the property validator and throw a descriptive error
-            // if the call reverts.
-            try property.propertyValidator.validateProperty(
-                order.nft,
-                tokenId,
-                property.propertyData
-            ) {} catch (bytes memory errorData) {
-                LibNFTOrdersRichErrors.PropertyValidationFailedError(
-                    address(property.propertyValidator),
+                // Call the property validator and throw a descriptive error
+                // if the call reverts.
+                try property.propertyValidator.validateProperty(
                     order.nft,
                     tokenId,
-                    property.propertyData,
-                    errorData
-                ).rrevert();
+                    property.propertyData
+                ) {} catch (bytes memory errorData) {
+                    LibNFTOrdersRichErrors.PropertyValidationFailedError(
+                        address(property.propertyValidator),
+                        order.nft,
+                        tokenId,
+                        property.propertyData,
+                        errorData
+                    ).rrevert();
+                }
             }
         }
     }

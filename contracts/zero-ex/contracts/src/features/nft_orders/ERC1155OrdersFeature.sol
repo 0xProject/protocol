@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
@@ -51,10 +51,6 @@ contract ERC1155OrdersFeature is
 
     /// @dev The magic return value indicating the success of a `onERC1155Received`.
     bytes4 private constant ERC1155_RECEIVED_MAGIC_BYTES = this.onERC1155Received.selector;
-    /// @dev Highest bit of a uint256, used to flag cancelled orders.
-    uint256 private constant CANCEL_BIT = 1 << 255;
-    /// @dev Second-highest bit of a uint256, used to flag pre-signed orders.
-    uint256 private constant PRESIGN_BIT = 1 << 254;
 
 
     constructor(address zeroExAddress, IEtherTokenV06 weth)
@@ -156,7 +152,7 @@ contract ERC1155OrdersFeature is
             )
         );
         uint256 ethBalanceAfter = address(this).balance;
-        // Cannot spent more than `msg.value`
+        // Cannot use pre-existing ETH balance
         if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
                 ethBalanceBefore - ethBalanceAfter + msg.value,
@@ -167,39 +163,36 @@ contract ERC1155OrdersFeature is
         _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
-    /// @dev Cancel a single ERC1155 order. The caller should be the
-    ///      maker of the order. Silently succeeds if the order has
-    ///      already been filled or cancelled.
-    /// @param order The order to cancel.
-    function cancelERC1155Order(LibNFTOrder.ERC1155Order memory order)
+    /// @dev Cancel a single ERC1155 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC1155Order(uint256 orderNonce)
         public
         override
     {
-        require(
-            order.maker == msg.sender,
-            "ERC1155OrdersFeature::cancelERC1155Order/ONLY_MAKER"
-        );
+        // The bitvector is indexed by the lower 8 bits of the nonce.
+        uint256 flag = 1 << (orderNonce & 255);
+        // Update order cancellation bit vector to indicate that the order
+        // has been cancelled/filled by setting the designated bit to 1.
+        LibERC1155OrdersStorage.getStorage().orderCancellationByMaker
+            [msg.sender][uint248(orderNonce >> 8)] |= flag;
 
-        bytes32 orderHash = getERC1155OrderHash(order);
-        // Set the high bit on the order state variable to indicate
-        // a cancel. It's OK to cancel twice.
-        LibERC1155OrdersStorage.Storage storage stor =
-            LibERC1155OrdersStorage.getStorage();
-        stor.orderState[orderHash] |= CANCEL_BIT;
-
-        emit ERC1155OrderCancelled(orderHash, msg.sender);
+        emit ERC1155OrderCancelled(msg.sender, orderNonce);
     }
 
-    /// @dev Cancel multiple ERC1155 orders. The caller should be the
-    ///      maker of the orders. Silently succeeds if an order has
-    ///      already been filled or cancelled.
-    /// @param orders The orders to cancel.
-    function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] memory orders)
-        public
+    /// @dev Cancel multiple ERC1155 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
+        external
         override
     {
-        for (uint256 i = 0; i < orders.length; i++) {
-            cancelERC1155Order(orders[i]);
+        for (uint256 i = 0; i < orderNonces.length; i++) {
+            cancelERC1155Order(orderNonces[i]);
         }
     }
 
@@ -209,6 +202,9 @@ contract ERC1155OrdersFeature is
     /// @param signatures The order signatures.
     /// @param erc1155FillAmounts The amounts of the ERC1155 assets
     ///        to buy for each order.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC1155`.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
@@ -217,6 +213,7 @@ contract ERC1155OrdersFeature is
         LibNFTOrder.ERC1155Order[] memory sellOrders,
         LibSignature.Signature[] memory signatures,
         uint128[] calldata erc1155FillAmounts,
+        bytes[] memory callbackData,
         bool revertIfIncomplete
     )
         public
@@ -226,50 +223,60 @@ contract ERC1155OrdersFeature is
     {
         require(
             sellOrders.length == signatures.length &&
-            sellOrders.length == erc1155FillAmounts.length,
+            sellOrders.length == erc1155FillAmounts.length &&
+            sellOrders.length == callbackData.length,
             "ERC1155OrdersFeature::batchBuyERC1155s/ARRAY_LENGTH_MISMATCH"
         );
         successes = new bool[](sellOrders.length);
 
-        uint256 ethSpent = 0;
-        for (uint256 i = 0; i < sellOrders.length; i++) {
-            bytes memory returnData;
-            // Delegatecall `_buyERC1155` to track ETH consumption while
-            // preserving execution context.
-            // Note that `_buyERC1155` is a public function but should _not_
-            // be registered in the Exchange Proxy.
-            (successes[i], returnData) = _implementation.delegatecall(
-                abi.encodeWithSelector(
-                    this._buyERC1155.selector,
+        uint256 ethBalanceBefore = address(this).balance
+            .safeSub(msg.value);
+        if (revertIfIncomplete) {
+            for (uint256 i = 0; i < sellOrders.length; i++) {
+                // Will revert if _buyERC1155 reverts.
+                _buyERC1155(
                     sellOrders[i],
                     signatures[i],
                     BuyParams(
                         erc1155FillAmounts[i],
-                        msg.value - ethSpent, // Remaining ETH available
-                        new bytes(0)          // No taker callback; allowing a
-                                              // callback would potentially mess
-                                              // up the ETH accounting here.
+                        address(this).balance.safeSub(ethBalanceBefore), // Remaining ETH available
+                        callbackData[i]
                     )
-                )
-            );
-            if (successes[i]) {
-                (uint256 _ethSpent) = abi.decode(returnData, (uint256));
-                ethSpent = ethSpent.safeAdd(_ethSpent);
-            } else if (revertIfIncomplete) {
-                // Bubble up revert
-                returnData.rrevert();
+                );
+                successes[i] = true;
+            }
+        } else {
+            for (uint256 i = 0; i < sellOrders.length; i++) {
+                // Delegatecall `_buyERC1155` to catch swallow reverts while
+                // preserving execution context.
+                // Note that `_buyERC1155` is a public function but should _not_
+                // be registered in the Exchange Proxy.
+                (successes[i], ) = _implementation.delegatecall(
+                    abi.encodeWithSelector(
+                        this._buyERC1155.selector,
+                        sellOrders[i],
+                        signatures[i],
+                        BuyParams(
+                            erc1155FillAmounts[i],
+                            address(this).balance.safeSub(ethBalanceBefore), // Remaining ETH available
+                            callbackData[i]
+                        )
+                    )
+                );
             }
         }
 
-        if (ethSpent > msg.value) {
+        // Cannot use pre-existing ETH balance
+        uint256 ethBalanceAfter = address(this).balance;
+        if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors.OverspentEthError(
-                ethSpent,
+                msg.value + (ethBalanceBefore - ethBalanceAfter),
                 msg.value
             ).rrevert();
         }
 
         // Refund
-        _transferEth(msg.sender, msg.value - ethSpent);
+        _transferEth(msg.sender, ethBalanceAfter - ethBalanceBefore);
     }
 
     /// @dev Callback for the ERC1155 `safeTransferFrom` function.
@@ -350,9 +357,9 @@ contract ERC1155OrdersFeature is
 
         LibERC1155OrdersStorage.Storage storage stor =
             LibERC1155OrdersStorage.getStorage();
-        // Set the second-highest bit on the order state variable
+        // Set `preSigned` to true on the order state variable
         // to indicate that the order has been pre-signed.
-        stor.orderState[orderHash] |= PRESIGN_BIT;
+        stor.orderState[orderHash].preSigned = true;
 
         emit ERC1155OrderPreSigned(
             order.direction,
@@ -408,10 +415,8 @@ contract ERC1155OrdersFeature is
     )
         public
         payable
-        returns (uint256 ethSpent)
     {
-        uint256 erc20FillAmount;
-        (erc20FillAmount, ethSpent) = _buyNFT(
+        uint256 erc20FillAmount = _buyNFT(
             sellOrder.asNFTOrder(),
             signature,
             params
@@ -464,9 +469,8 @@ contract ERC1155OrdersFeature is
     {
         if (signature.signatureType == LibSignature.SignatureType.PRESIGNED) {
             // Check if order hash has been pre-signed by the maker.
-            uint256 orderState = LibERC1155OrdersStorage.getStorage()
-                .orderState[orderHash];
-            bool isPreSigned = orderState & PRESIGN_BIT != 0;
+            bool isPreSigned = LibERC1155OrdersStorage.getStorage()
+                .orderState[orderHash].preSigned;
             if (!isPreSigned) {
                 LibNFTOrdersRichErrors.InvalidSignerError(maker, address(0)).rrevert();
             }
@@ -512,10 +516,10 @@ contract ERC1155OrdersFeature is
         override
     {
         LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
-        uint128 currentFilledAmount = uint128(stor.orderState[orderHash]);
+        uint128 filledAmount = stor.orderState[orderHash].filledAmount;
         // Filled amount should never overflow 128 bits
-        assert(currentFilledAmount + fillAmount > currentFilledAmount);
-        stor.orderState[orderHash] += fillAmount;
+        assert(filledAmount + fillAmount > filledAmount);
+        stor.orderState[orderHash].filledAmount = filledAmount + fillAmount;
     }
 
     /// @dev If the given order is buying an ERC1155 asset, checks
@@ -553,23 +557,6 @@ contract ERC1155OrdersFeature is
         orderInfo.orderAmount = order.erc1155TokenAmount;
         orderInfo.orderHash = getERC1155OrderHash(order);
 
-        {
-            LibERC1155OrdersStorage.Storage storage stor =
-                LibERC1155OrdersStorage.getStorage();
-            uint256 orderState = stor.orderState[orderInfo.orderHash];
-            orderInfo.remainingAmount = order.erc1155TokenAmount
-                .safeSub128(uint128(orderState));
-
-            if (orderInfo.remainingAmount == 0) {
-                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
-                return orderInfo;
-            }
-            if (orderState & CANCEL_BIT != 0) {
-                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
-                return orderInfo;
-            }
-        }
-
         // Only buy orders with `erc1155TokenId` == 0 can be property
         // orders.
         if (order.erc1155TokenProperties.length > 0 &&
@@ -595,6 +582,29 @@ contract ERC1155OrdersFeature is
             return orderInfo;
         }
 
+        {
+            LibERC1155OrdersStorage.Storage storage stor =
+                LibERC1155OrdersStorage.getStorage();
+
+            LibERC1155OrdersStorage.OrderState storage orderState =
+                stor.orderState[orderInfo.orderHash];
+            orderInfo.remainingAmount = order.erc1155TokenAmount
+                .safeSub128(orderState.filledAmount);
+
+            // `orderCancellationByMaker` is indexed by maker and nonce.
+            uint256 orderCancellationBitVector =
+                stor.orderCancellationByMaker[order.maker][uint248(order.nonce >> 8)];
+            // The bitvector is indexed by the lower 8 bits of the nonce.
+            uint256 flag = 1 << (order.nonce & 255);
+
+            if (orderInfo.remainingAmount == 0 ||
+                orderCancellationBitVector & flag != 0)
+            {
+                orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
+                return orderInfo;
+            }
+        }
+
         // Otherwise, the order is fillable.
         orderInfo.status = LibNFTOrder.OrderStatus.FILLABLE;
     }
@@ -611,7 +621,7 @@ contract ERC1155OrdersFeature is
         return getERC1155OrderInfo(order.asERC1155Order());
     }
 
-    /// @dev Get the canonical hash of an ERC1155 order.
+    /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderHash The order hash.
     function getERC1155OrderHash(LibNFTOrder.ERC1155Order memory order)

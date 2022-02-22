@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -55,11 +55,11 @@ interface IERC1155OrdersFeature {
     );
 
     /// @dev Emitted whenever an `ERC1155Order` is cancelled.
-    /// @param orderHash The hash the order.
     /// @param maker The maker of the order.
+    /// @param nonce The nonce of the order that was cancelled.
     event ERC1155OrderCancelled(
-        bytes32 orderHash,
-        address maker
+        address maker,
+        uint256 nonce
     );
 
     /// @dev Emitted when an `ERC1155Order` is pre-signed.
@@ -125,18 +125,20 @@ interface IERC1155OrdersFeature {
         external
         payable;
 
-    /// @dev Cancel a single ERC1155 order. The caller should be the
-    ///      maker of the order. Silently succeeds if the order has
-    ///      already been filled or cancelled.
-    /// @param order The order to cancel.
-    function cancelERC1155Order(LibNFTOrder.ERC1155Order calldata order)
+    /// @dev Cancel a single ERC1155 order by its nonce. The caller
+    ///      should be the maker of the order. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonce The order nonce.
+    function cancelERC1155Order(uint256 orderNonce)
         external;
 
-    /// @dev Cancel multiple ERC1155 orders. The caller should be the
-    ///      maker of the orders. Silently succeeds if an order has
-    ///      already been filled or cancelled.
-    /// @param orders The orders to cancel.
-    function batchCancelERC1155Orders(LibNFTOrder.ERC1155Order[] calldata orders)
+    /// @dev Cancel multiple ERC1155 orders by their nonces. The caller
+    ///      should be the maker of the orders. Silently succeeds if
+    ///      an order with the same nonce has already been filled or
+    ///      cancelled.
+    /// @param orderNonces The order nonces.
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
         external;
 
     /// @dev Buys multiple ERC1155 assets by filling the
@@ -145,6 +147,9 @@ interface IERC1155OrdersFeature {
     /// @param signatures The order signatures.
     /// @param erc1155TokenAmounts The amounts of the ERC1155 assets
     ///        to buy for each order.
+    /// @param callbackData The data (if any) to pass to the taker
+    ///        callback for each order. Refer to the `callbackData`
+    ///        parameter to for `buyERC1155`.
     /// @param revertIfIncomplete If true, reverts if this
     ///        function fails to fill any individual order.
     /// @return successes An array of booleans corresponding to whether
@@ -153,6 +158,7 @@ interface IERC1155OrdersFeature {
         LibNFTOrder.ERC1155Order[] calldata sellOrders,
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata erc1155TokenAmounts,
+        bytes[] calldata callbackData,
         bool revertIfIncomplete
     )
         external
@@ -226,7 +232,7 @@ interface IERC1155OrdersFeature {
         view
         returns (LibNFTOrder.OrderInfo memory orderInfo);
 
-    /// @dev Get the canonical hash of an ERC1155 order.
+    /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderHash The order hash.
     function getERC1155OrderHash(LibNFTOrder.ERC1155Order calldata order)

@@ -32,7 +32,7 @@ import {
     TestWethContract,
 } from '../wrappers';
 
-blockchainTests.resets.only('ERC1155OrdersFeature', env => {
+blockchainTests.resets('ERC1155OrdersFeature', env => {
     const { NULL_ADDRESS, MAX_UINT256, ZERO_AMOUNT: ZERO } = constants;
     const ETH_TOKEN_ADDRESS = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 
@@ -347,22 +347,22 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
     describe('cancelERC1155Order', () => {
         it('can cancel an order', async () => {
             const order = getTestERC1155Order();
-            const tx = await zeroEx.cancelERC1155Order(order).awaitTransactionSuccessAsync({
+            const tx = await zeroEx.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync({
                 from: maker,
             });
-            verifyEventsFromLogs(tx.logs, [{ orderHash: order.getHash(), maker }], IZeroExEvents.ERC1155OrderCancelled);
+            verifyEventsFromLogs(tx.logs, [{ maker, nonce: order.nonce }], IZeroExEvents.ERC1155OrderCancelled);
             const orderInfo = await zeroEx.getERC1155OrderInfo(order).callAsync();
             expect(orderInfo.status).to.equal(NFTOrder.OrderStatus.Unfillable);
         });
         it('cancelling an order twice silently succeeds', async () => {
             const order = getTestERC1155Order();
-            await zeroEx.cancelERC1155Order(order).awaitTransactionSuccessAsync({
+            await zeroEx.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync({
                 from: maker,
             });
-            const tx = await zeroEx.cancelERC1155Order(order).awaitTransactionSuccessAsync({
+            const tx = await zeroEx.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync({
                 from: maker,
             });
-            verifyEventsFromLogs(tx.logs, [{ orderHash: order.getHash(), maker }], IZeroExEvents.ERC1155OrderCancelled);
+            verifyEventsFromLogs(tx.logs, [{ maker, nonce: order.nonce }], IZeroExEvents.ERC1155OrderCancelled);
             const orderInfo = await zeroEx.getERC1155OrderInfo(order).callAsync();
             expect(orderInfo.status).to.equal(NFTOrder.OrderStatus.Unfillable);
         });
@@ -427,7 +427,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
-            await zeroEx.cancelERC1155Order(order).awaitTransactionSuccessAsync({
+            await zeroEx.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync({
                 from: maker,
             });
             const tx = zeroEx
@@ -990,7 +990,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
             });
             const signature = await order.getSignatureWithProviderAsync(env.provider);
             await mintAssetsAsync(order);
-            await zeroEx.cancelERC1155Order(order).awaitTransactionSuccessAsync({
+            await zeroEx.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync({
                 from: maker,
             });
             const tx = zeroEx
@@ -1352,6 +1352,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order],
                     [signature, signature],
                     [order.erc1155TokenAmount, order.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     false,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1382,6 +1383,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     false,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1417,6 +1419,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                 [order1, order2],
                 [signature1, signature2],
                 [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                [NULL_BYTES, NULL_BYTES],
                 false,
             );
             const successes = await tx.callAsync({
@@ -1460,6 +1463,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     true,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1488,6 +1492,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
                     [order1, order2],
                     [signature1, signature2],
                     [order1.erc1155TokenAmount, order2.erc1155TokenAmount],
+                    [NULL_BYTES, NULL_BYTES],
                     true,
                 )
                 .awaitTransactionSuccessAsync({
@@ -1573,7 +1578,7 @@ blockchainTests.resets.only('ERC1155OrdersFeature', env => {
             });
             await mintAssetsAsync(order);
             await contractMaker.preSignERC1155Order(order).awaitTransactionSuccessAsync();
-            await contractMaker.cancelERC1155Order(order).awaitTransactionSuccessAsync();
+            await contractMaker.cancelERC1155Order(order.nonce).awaitTransactionSuccessAsync();
             const tx = zeroEx
                 .sellERC1155(
                     order,
