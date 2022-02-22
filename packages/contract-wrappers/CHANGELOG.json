@@ -1,5 +1,18 @@
 [
     {
+        "version": "13.19.0",
+        "changes": [
+            {
+                "note": "Regenerate wrappers to add ContractTxFunctionObj.selector",
+                "pr": 429
+            },
+            {
+                "note": "Update IZeroEx wrapper",
+                "pr": 429
+            }
+        ]
+    },
+    {
         "timestamp": 1640364306,
         "version": "13.18.5",
         "changes": [
