@@ -17,7 +17,7 @@
 
 */
 
-pragma solidity ^0.6.5;
+pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 
@@ -39,7 +39,9 @@ library LibStorage {
         MetaTransactions,
         ReentrancyGuard,
         NativeOrders,
-        OtcOrders
+        OtcOrders,
+        ERC721Orders,
+        ERC1155Orders
     }
 
     /// @dev Get the storage slot given a storage ID. We assign unique, well-spaced

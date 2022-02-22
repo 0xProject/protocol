@@ -253,6 +253,7 @@ export class MaximumGasPriceContract extends BaseContract {
         const functionSignature = 'checkGasPrice()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -280,6 +281,7 @@ export class MaximumGasPriceContract extends BaseContract {
         const functionSignature = 'checkGasPrice(uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(

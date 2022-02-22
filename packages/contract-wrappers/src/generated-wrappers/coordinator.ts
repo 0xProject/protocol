@@ -575,6 +575,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'EIP712_COORDINATOR_APPROVAL_SCHEMA_HASH()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -595,6 +596,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'EIP712_COORDINATOR_DOMAIN_HASH()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -615,6 +617,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'EIP712_COORDINATOR_DOMAIN_NAME()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -635,6 +638,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'EIP712_COORDINATOR_DOMAIN_VERSION()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -655,6 +659,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'EIP712_EXCHANGE_DOMAIN_HASH()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -703,6 +708,7 @@ export class CoordinatorContract extends BaseContract {
             'assertValidCoordinatorApprovals((uint256,uint256,uint256,address,bytes),address,bytes,bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -753,6 +759,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'decodeOrdersFromFillData(bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -842,6 +849,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'executeTransaction((uint256,uint256,uint256,address,bytes),address,bytes,bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -915,6 +923,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'getCoordinatorApprovalHash((address,bytes32,bytes))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -943,6 +952,7 @@ export class CoordinatorContract extends BaseContract {
         const functionSignature = 'getSignerAddress(bytes32,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 let rawCallResult;

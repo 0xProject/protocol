@@ -425,6 +425,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'allowance(address,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -453,6 +454,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'approve(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -515,6 +517,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'balanceOf(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -539,6 +542,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'totalSupply()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -567,6 +571,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'transfer(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -633,6 +638,7 @@ export class ERC20TokenContract extends BaseContract {
         const functionSignature = 'transferFrom(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },

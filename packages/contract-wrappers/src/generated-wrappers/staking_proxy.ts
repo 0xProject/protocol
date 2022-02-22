@@ -824,6 +824,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'addAuthorizedAddress(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -883,6 +884,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'aggregatedStatsByEpoch(uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -911,6 +913,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'assertValidStorageParams()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -936,6 +939,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'attachStakingContract(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -993,6 +997,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'authorities(uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1014,6 +1019,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'authorized(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1040,6 +1046,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'batchExecute(bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -1096,6 +1103,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'cobbDouglasAlphaDenominator()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1116,6 +1124,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'cobbDouglasAlphaNumerator()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1136,6 +1145,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'currentEpoch()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1156,6 +1166,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'currentEpochStartTimeInSeconds()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1179,6 +1190,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'detachStakingContract()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -1235,6 +1247,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'epochDurationInSeconds()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1259,6 +1272,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'getAuthorizedAddresses()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string[]> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1279,6 +1293,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'lastPoolId()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1299,6 +1314,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'minimumPoolStake()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1319,6 +1335,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'owner()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1340,6 +1357,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'poolIdByMaker(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1365,6 +1383,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'poolStatsByEpoch(bytes32,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(
                 callData: Partial<CallData> = {},
                 defaultBlock?: BlockParam,
@@ -1393,6 +1412,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'removeAuthorizedAddress(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -1456,6 +1476,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'removeAuthorizedAddressAtIndex(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -1512,6 +1533,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'rewardDelegatedStakeWeight()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1533,6 +1555,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'rewardsByPoolId(bytes32)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1553,6 +1576,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'stakingContract()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1578,6 +1602,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'transferOwnership(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -1635,6 +1660,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'validExchanges(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -1655,6 +1681,7 @@ export class StakingProxyContract extends BaseContract {
         const functionSignature = 'wethReservedForPoolRewards()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(

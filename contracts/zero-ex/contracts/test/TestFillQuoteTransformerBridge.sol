@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../src/vendor/v3/IERC20Bridge.sol";
-import "./TestMintableERC20Token.sol";
+import "./tokens/TestMintableERC20Token.sol";
 
 
 contract TestFillQuoteTransformerBridge {

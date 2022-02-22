@@ -347,6 +347,7 @@ export class ILiquidityProviderContract extends BaseContract {
         const functionSignature = 'bridgeTransferFrom(address,address,address,uint256,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -420,6 +421,7 @@ export class ILiquidityProviderContract extends BaseContract {
         const functionSignature = 'getBuyQuote(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(
@@ -455,6 +457,7 @@ export class ILiquidityProviderContract extends BaseContract {
         const functionSignature = 'getSellQuote(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
                 BaseContract._assertCallParams(callData, defaultBlock);
                 const rawCallResult = await self._performCallAsync(

@@ -21,7 +21,7 @@ import { generatePseudoRandomSalt } from './utils/utils';
 const CHAIN_ID = 1;
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 // tslint:disable: custom-no-magic-numbers
-describe('DexSampler tests', () => {
+describe.skip('DexSampler tests', () => {
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
     const chainId = ChainId.Mainnet;

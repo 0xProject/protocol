@@ -365,6 +365,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'ERC1155Assets(address,uint256[],uint256[],bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -435,6 +436,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'ERC20Bridge(address,address,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -500,6 +502,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'ERC20Token(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -563,6 +566,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'ERC721Token(address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -629,6 +633,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'MultiAsset(uint256[],bytes[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -700,6 +705,7 @@ export class IAssetDataContract extends BaseContract {
         const functionSignature = 'StaticCall(address,bytes,bytes32)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },

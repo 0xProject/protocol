@@ -1,5 +1,18 @@
 [
     {
+        "version": "1.11.0",
+        "changes": [
+            {
+                "note": "Add utils and errors for NFT orders",
+                "pr": 429
+            },
+            {
+                "note": "Update getTypeHash to support nested structs",
+                "pr": 429
+            }
+        ]
+    },
+    {
         "timestamp": 1640364306,
         "version": "1.10.1",
         "changes": [
