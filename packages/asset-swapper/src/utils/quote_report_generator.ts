@@ -184,8 +184,8 @@ export function generateQuoteReport(opts: {
  * swap quote, the sources ultimately included in the computed quote. This
  * extende version incudes all considered quotes, not only native liquidity.
  */
-export function generateExtendedQuoteReportSources(
-    marketOperation: MarketOperation,
+export function generateExtendedQuoteReportSources(opts: {
+    side: MarketOperation,
     inputToken: Address,
     outputToken: Address,
     rawHopQuotes: RawHopQuotes[],
@@ -193,40 +193,32 @@ export function generateExtendedQuoteReportSources(
     amount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
-): ExtendedQuoteReportSources {
+}): ExtendedQuoteReportSources {
+    const { inputToken, outputToken, side } = opts;
+    const directHops = opts.rawHopQuotes
+        .filter(h => h.inputToken === inputToken && h.outputToken === outputToken)
+        .flat(1)
+        .reduce((a, q) => ({ ...a, dexQuotes: a.dexQuotes.concat(q.dexQuotes), nativeOrders: a.nativeOrders.concat(q.nativeOrders)}));
     const sourcesConsidered: ExtendedQuoteReportEntry[] = [];
 
-    // NativeOrders
+    // Native orders.
     sourcesConsidered.push(
-        ...quotes.nativeOrders.map(order =>
-            nativeOrderToReportEntry(
-                order.type,
-                order as any,
-                order.fillableTakerAmount,
-                comparisonPrice,
-                quoteRequestor,
-            ),
-        ),
+        ...directHops.nativeOrders
+            .filter(o => o.type === FillQuoteTransformerOrderType.Rfq)
+            .map(o => nativeOrderToReportEntry(side, o, opts.comparisonPrice, opts.quoteRequestor)),
     );
 
-    // IndicativeQuotes
+    // Dex quotes.
     sourcesConsidered.push(
-        ...quotes.rfqtIndicativeQuotes.map(order => indicativeQuoteToReportEntry(order, comparisonPrice)),
+        // Only add the last sample that can satisfy the full input amount.
+        ...directHops.dexQuotes.map(samples => samples[samples.length - 1])
+        .flat(1)
+        .filter(s => s.input.gte(opts.amount))
+        .map(s => dexSampleToReportSource(side, s)),
     );
 
-    // MultiHop
-    sourcesConsidered.push(...quotes.twoHopQuotes.map(quote => multiHopSampleToReportSource(quote, marketOperation)));
+    // TODO: MultiHop
 
-    // Dex Quotes
-    sourcesConsidered.push(
-        ..._.flatten(
-            quotes.dexQuotes.map(dex =>
-                dex
-                    .filter(quote => isDexSampleForTotalAmount(quote, marketOperation, amount))
-                    .map(quote => dexSampleToReportSource(quote, marketOperation)),
-            ),
-        ),
-    );
     const sourcesConsideredIndexed = sourcesConsidered.map(
         (quote, index): ExtendedQuoteReportIndexedEntry => {
             return {
@@ -236,32 +228,45 @@ export function generateExtendedQuoteReportSources(
             };
         },
     );
+
     let sourcesDelivered;
-    if (Array.isArray(liquidityDelivered)) {
-        // create easy way to look up fillable amounts
-        const nativeOrderSignaturesToFillableAmounts = _.fromPairs(
-            quotes.nativeOrders.map(o => {
-                return [_nativeDataToId(o), o.fillableTakerAmount];
-            }),
-        );
-        // map sources delivered
-        sourcesDelivered = liquidityDelivered.map(collapsedFill => {
-            if (_isNativeOrderFromCollapsedFill(collapsedFill)) {
-                return nativeOrderToReportEntry(
-                    collapsedFill.type,
-                    collapsedFill.fillData,
-                    nativeOrderSignaturesToFillableAmounts[_nativeDataToId(collapsedFill.fillData)],
-                    comparisonPrice,
-                    quoteRequestor,
-                );
-            } else {
-                return dexSampleToReportSource(collapsedFill, marketOperation);
+    if (opts.hops.length === 1) {
+        // Single-hop.
+        const [hop] = opts.hops;
+        sourcesDelivered = hop.orders.map(o => {
+            switch (o.type) {
+                default: {
+                    const [makerAmount, takerAmount] = side === MarketOperation.Sell
+                    ? [o.outputAmount, o.inputAmount]
+                    : [o.inputAmount, o.outputAmount];
+                    return {
+                        makerAmount,
+                        takerAmount,
+                        liquiditySource: o.source,
+                        fillData: {}, // Does this matter?
+                    } as BridgeQuoteReportEntry;
+                }
+                case FillQuoteTransformerOrderType.Limit:
+                case FillQuoteTransformerOrderType.Rfq: {
+                    return nativeOrderToReportEntry(side, o, opts.comparisonPrice, opts.quoteRequestor);
+                }
             }
         });
     } else {
+        // Multi-hop.
+        const firstHop = opts.hops[0];
+        const lastHop = opts.hops[opts.hops.length - 1];
+        const [makerAmount, takerAmount] = side === MarketOperation.Sell
+            ? [lastHop.outputAmount, firstHop.inputAmount]
+            : [firstHop.inputAmount, lastHop.outputAmount];
         sourcesDelivered = [
-            // tslint:disable-next-line: no-unnecessary-type-assertion
-            multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
+            {
+                makerAmount,
+                takerAmount,
+                liquiditySource: ERC20BridgeSource.MultiHop,
+                fillData: {},
+                hopSources: opts.hops.map(h => h.orders.map(o => o.source)).flat(1),
+            } as MultiHopQuoteReportEntry,
         ];
     }
     const sourcesDeliveredIndexed = sourcesDelivered.map(
