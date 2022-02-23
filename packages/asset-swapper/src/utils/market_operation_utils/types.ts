@@ -393,6 +393,10 @@ export interface GetMarketOrdersOpts {
      * percentage, no fallback quote will be provided.
      */
     maxFallbackSlippage: number;
+    /**
+     * Number of samples to use when creating fill curves with neon-router
+     */
+    neonRouterNumSamples: number;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different
