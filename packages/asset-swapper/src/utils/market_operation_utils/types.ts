@@ -545,6 +545,8 @@ export interface GenerateOptimizedOrdersOpts {
     allowFallback?: boolean;
     shouldBatchBridgeOrders?: boolean;
     gasPrice: BigNumber;
+    neonRouterNumSamples: number;
+    samplerMetrics?: SamplerMetrics;
 }
 
 export interface ComparisonPrice {

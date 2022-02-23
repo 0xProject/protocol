@@ -8,6 +8,7 @@ import {
     Address,
     AssetSwapperContractAddresses,
     MarketOperation,
+    SamplerMetrics,
     SignedNativeOrder,
     SignedRfqOrder,
 } from '../../types';
@@ -104,6 +105,7 @@ export class MarketOperationUtils {
             quoteRequestor: opts.quoteRequestor,
         });
     }
+
     private static _computePriceComparisonsReport(
         quoteRequestor: QuoteRequestor | undefined,
         marketSideLiquidity: MarketSideLiquidity,
@@ -134,8 +136,6 @@ export class MarketOperationUtils {
 
     constructor(
         private readonly _sampler: Sampler,
-        private readonly contractAddresses: AssetSwapperContractAddresses,
-        private readonly _orderDomain: OrderDomain,
     ) {
         this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
@@ -510,6 +510,8 @@ export class MarketOperationUtils {
                 gasPrice: opts.gasPrice,
                 runLimit: opts.runLimit,
                 maxFallbackSlippage: opts.maxFallbackSlippage,
+                neonRouterNumSamples: opts.neonRouterNumSamples,
+                samplerMetrics: opts.samplerMetrics,
             },
         );
         if (!bestHopRoute) {
@@ -548,6 +550,7 @@ export class MarketOperationUtils {
             allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
+            neonRouterNumSamples: _opts.ne
         };
 
         if (nativeOrders.length === 0) {
@@ -710,6 +713,8 @@ export class MarketOperationUtils {
         exchangeProxyOverhead: ExchangeProxyOverhead;
         runLimit?: number;
         maxFallbackSlippage: number;
+        neonRouterNumSamples: number;
+        samplerMetrics?: SamplerMetrics;
     }): Promise<OptimizedHop | null> {
 
         let path = await this._findOptimalPathFromSamples({
@@ -722,6 +727,8 @@ export class MarketOperationUtils {
             gasPrice: opts.gasPrice,
             runLimit: opts.runLimit,
             exchangeProxyOverhead: opts.exchangeProxyOverhead,
+            neonRouterNumSamples: opts.neonRouterNumSamples,
+            samplerMetrics: opts.samplerMetrics,
         });
         // Convert native orders and dex quotes into `Fill` objects.
         if (!path) {
@@ -740,6 +747,8 @@ export class MarketOperationUtils {
                 runLimit: opts.runLimit,
                 maxFallbackSlippage: opts.maxFallbackSlippage,
                 exchangeProxyOverhead: opts.exchangeProxyOverhead,
+                neonRouterNumSamples: opts.neonRouterNumSamples,
+                samplerMetrics: opts.samplerMetrics,
             });
         }
 
@@ -770,6 +779,8 @@ export class MarketOperationUtils {
         gasPrice: BigNumber;
         exchangeProxyOverhead: ExchangeProxyOverhead;
         runLimit?: number;
+        neonRouterNumSamples: number;
+        samplerMetrics?: SamplerMetrics;
     }): Promise<Path | undefined | null> {
         // Find the optimal path.
         const penaltyOpts: PathPenaltyOpts = {
@@ -789,6 +800,8 @@ export class MarketOperationUtils {
                 penaltyOpts,
                 opts.gasPrice,
                 this._sampler.chainId,
+                opts.neonRouterNumSamples,
+                opts.samplerMetrics,
             );
         };
 
@@ -801,7 +814,7 @@ export class MarketOperationUtils {
             inputAmountPerEth: opts.inputAmountPerEth,
             gasPrice: opts.gasPrice,
         });
-        return findOptimalPathJSAsync(opts.side, fills, opts.inputAmount, opts.runLimit, penaltyOpts);
+        return findOptimalPathJSAsync(opts.side, fills, opts.inputAmount, opts.runLimit, opts.samplerMetrics, penaltyOpts);
     }
 
     private async _addFallbackToPath(opts: {
@@ -815,6 +828,8 @@ export class MarketOperationUtils {
         exchangeProxyOverhead: ExchangeProxyOverhead;
         runLimit?: number;
         maxFallbackSlippage: number;
+        neonRouterNumSamples: number;
+        samplerMetrics?: SamplerMetrics;
     }): Promise<Path> {
         const { path } = opts;
         const pathRate = path ? path.adjustedRate() : ZERO_AMOUNT;
@@ -838,6 +853,8 @@ export class MarketOperationUtils {
             runLimit: opts.runLimit,
             exchangeProxyOverhead: (sourceFlags: bigint) =>
                 opts.exchangeProxyOverhead(sourceFlags | path.sourceFlags),
+            neonRouterNumSamples: opts.neonRouterNumSamples,
+            samplerMetrics: opts.samplerMetrics,
         });
         // Calculate the slippage of on-chain sources compared to the most optimal path
         // if within an acceptable threshold we enable a fallback to prevent reverts
@@ -864,7 +881,9 @@ export class MarketOperationUtils {
             gasPrice?: BigNumber,
             runLimit?: number,
             maxFallbackSlippage?: number,
-        } = {},
+            neonRouterNumSamples: number;
+            samplerMetrics?: SamplerMetrics;
+        },
     ): Promise<OptimizedHop[] | undefined> {
         const findRoutes = (firstHop: RawHopQuotes, _hopQuotes: RawHopQuotes[] = hopQuotes): RawHopQuotes[][] => {
             if (firstHop.inputToken === inputToken && firstHop.outputToken === outputToken) {
@@ -910,6 +929,8 @@ export class MarketOperationUtils {
                     outputToken: routeHop.outputToken,
                     inputAmountPerEth: tokenAmountPerEth[routeHop.inputToken] || ZERO_AMOUNT,
                     outputAmountPerEth: tokenAmountPerEth[routeHop.outputToken] || ZERO_AMOUNT,
+                    neonRouterNumSamples: opts.neonRouterNumSamples,
+                    samplerMetrics: opts.samplerMetrics,
                 });
                 if (!hop) {
                     // This hop could not satisfy the input amount so the
