@@ -2017,7 +2017,7 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
 
 export const GEIST_INFO_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Fantom]: '0xd8321AA83Fb0a4ECd6348D4577431310A6E0814d',
+        [ChainId.Fantom]: '0xd8321aa83fb0a4ecd6348d4577431310a6e0814d',
     },
     NULL_ADDRESS,
 );
