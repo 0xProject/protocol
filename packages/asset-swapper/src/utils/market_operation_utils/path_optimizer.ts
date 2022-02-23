@@ -155,12 +155,24 @@ function findRoutesAndCreateOptimalPath(
         const inputs = [];
         const outputs = [];
         const outputFees = [];
-        // NOTE: We start at 0 here because the native order might be much larger than the amount
-        // By starting at 0 we make sure we can always use a portion of the native order to fill/partial fill
-        for (let i = 0; i <= 12; i++) {
-            const fraction = i / 12;
-            const currentInput = BigNumber.min(normalizedOrderInput.times(fraction), normalizedOrderInput);
-            const currentOutput = BigNumber.min(normalizedOrderOutput.times(fraction), normalizedOrderOutput);
+
+        // NOTE: Limit orders can be both larger or smaller than the input amount
+        // If the order is larger than the input we can scale the order to the size of
+        // the quote input (order pricing is constant) and then create 13 "samples" up to
+        // and including the full quote input amount.
+        // If the order is smaller we don't need to scale anything, we will just end up
+        // with trailing duplicate samples for the order input as we cannot go higher
+        const scaleToInput = BigNumber.min(input.dividedBy(normalizedOrderInput), 1);
+        for (let i = 1; i <= 13; i++) {
+            const fraction = i / 13;
+            const currentInput = BigNumber.min(
+                normalizedOrderInput.times(scaleToInput).times(fraction),
+                normalizedOrderInput,
+            );
+            const currentOutput = BigNumber.min(
+                normalizedOrderOutput.times(scaleToInput).times(fraction),
+                normalizedOrderOutput,
+            );
             const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}-${i}`;
             inputs.push(currentInput.integerValue().toNumber());
             outputs.push(currentOutput.integerValue().toNumber());
