@@ -21,6 +21,8 @@ const MIN_NUM_SAMPLE_INPUTS = 3;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
 
+const ONE_BASE_UNIT = new BigNumber(1);
+
 function nativeOrderToNormalizedAmounts(
     side: MarketOperation,
     nativeOrder: NativeOrderWithFillableAmounts,
@@ -75,6 +77,13 @@ function findRoutesAndCreateOptimalPath(
     fees: FeeSchedule,
     neonRouterNumSamples: number,
 ): Path | undefined {
+    // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
+    // To avoid flooding the logs with these errors we just return an insufficient liquidity error
+    // which is how the JS router handles these quotes today
+    if (input.eq(ONE_BASE_UNIT)) {
+        return undefined;
+    }
+
     const createFill = (sample: DexSample): Fill | undefined => {
         const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees);
         // NOTE: If the sample has 0 output dexSamplesToFills will return [] because no fill can be created
