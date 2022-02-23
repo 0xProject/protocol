@@ -118,11 +118,6 @@ export class SwapQuoter {
                 this.chainId,
                 options.samplerServiceUrl,
             ),
-            this._contractAddresses,
-            {
-                chainId,
-                exchangeAddress: this._contractAddresses.exchange,
-            },
         );
 
         this._quoteRequestorHttpClient = Axios.create({
@@ -714,7 +709,7 @@ function getSwapQuoteOrdersBreakdown(side: MarketOperation, tokenPath: Address[]
     return breakdown;
 }
 
-function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuoteInfo {
+function fillResultsToQuoteInfo(fr: QuoteFillResult): SwapQuoteInfo {
     return {
         makerAmount: fr.totalMakerAssetAmount,
         takerAmount: fr.takerAssetAmount,
@@ -722,7 +717,6 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuot
         feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
-        slippage,
     };
 }
 

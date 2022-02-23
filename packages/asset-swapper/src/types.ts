@@ -271,7 +271,6 @@ export interface SwapQuoteInfo {
     makerAmount: BigNumber;
     protocolFeeInWeiAmount: BigNumber;
     gas: number;
-    slippage: number;
 }
 
 /**

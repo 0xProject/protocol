@@ -550,7 +550,7 @@ export class MarketOperationUtils {
             allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
-            neonRouterNumSamples: _opts.ne
+            neonRouterNumSamples: _opts.neonRouterNumSamples,
         };
 
         if (nativeOrders.length === 0) {
