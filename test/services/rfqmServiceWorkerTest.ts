@@ -12,7 +12,7 @@ import { BigNumber } from '@0x/utils';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
-import { anything, capture, deepEqual, instance, mock, spy, when } from 'ts-mockito';
+import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
 
 import { ETH_DECIMALS } from '../../src/constants';
 import {
@@ -800,7 +800,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '',
+                orderHash: '0xorderhash',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -817,6 +817,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
                 signatureType: SignatureType.EthSign,
@@ -864,7 +865,7 @@ describe('RfqmService Worker Logic', () => {
             }
         });
 
-        it.only('updates market maker signatures missing bytes', async () => {
+        it('updates market maker signatures missing bytes', async () => {
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
                 chainId: 1,
@@ -898,7 +899,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '',
+                orderHash: '0xorderhash',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -915,6 +916,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
                 signatureType: SignatureType.EthSign,
@@ -966,6 +968,119 @@ describe('RfqmService Worker Logic', () => {
             });
         });
 
+        it('skips the eth_call for jobs with existing submissions', async () => {
+            const job = new RfqmV2JobEntity({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                expiry: new BigNumber(fakeFiveMinutesLater),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                lastLookResult: null,
+                makerUri: 'http://foo.bar',
+                makerSignature: null,
+                order: {
+                    order: {
+                        chainId: '1',
+                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                            new BigNumber(fakeFiveMinutesLater.toString()),
+                            new BigNumber(1),
+                            new BigNumber(1),
+                        ).toString(),
+                        maker: '0xmaker',
+                        makerAmount: '1000000',
+                        makerToken: '0xmakertoken',
+                        taker: '0xtaker',
+                        takerAmount: '10000000',
+                        takerToken: '0xtakertoken',
+                        txOrigin: '',
+                        verifyingContract: '',
+                    },
+                    type: RfqmOrderTypes.Otc,
+                },
+                orderHash: '0xorderhash',
+                status: RfqmJobStatus.PendingEnqueued,
+                takerSignature: {
+                    signatureType: SignatureType.EthSign,
+                    v: 1,
+                    r: '',
+                    s: '',
+                },
+                updatedAt: new Date(),
+                workerAddress: '',
+            });
+            const transaction = new RfqmV2TransactionSubmissionEntity({
+                orderHash: '0xorderhash',
+                to: '0xexchangeproxyaddress',
+                from: '0xworkeraddress',
+                transactionHash: '0xsignedtransactionhash',
+                maxFeePerGas: new BigNumber(100000),
+                maxPriorityFeePerGas: new BigNumber(100),
+                nonce: 21,
+            });
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([transaction]);
+            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+            });
+            const mockQuoteServerClient = mock(QuoteServerClient);
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
+                signatureType: SignatureType.EthSign,
+                v: 1,
+                r: '',
+                s: '',
+            });
+
+            const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+                new BigNumber(1000000000),
+            ]);
+            when(
+                mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).thenReturn('0xvalidcalldata');
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqBlockchainUtils: instance(mockBlockchainUtils),
+                quoteServerClient: instance(mockQuoteServerClient),
+            });
+
+            const result = await rfqmService.prepareV2JobAsync(job, '0xworkeraddress', new Date(fakeClockMs));
+            expect(result.job).to.deep.equal({
+                ...job,
+                lastLookResult: true,
+                makerSignature: {
+                    signatureType: SignatureType.EthSign,
+                    v: 1,
+                    r: '',
+                    s: '',
+                },
+                status: RfqmJobStatus.PendingLastLookAccepted,
+            });
+            expect(result.calldata).to.equal('0xvalidcalldata');
+            verify(
+                mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
+        });
+
         it('successfully prepares a job', async () => {
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
@@ -1000,7 +1115,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '',
+                orderHash: '0xorderhash',
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -1014,6 +1129,7 @@ describe('RfqmService Worker Logic', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });

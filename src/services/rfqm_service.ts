@@ -1430,6 +1430,13 @@ export class RfqmService {
             _job.affiliateAddress,
         );
 
+        // If we have already submitted a transaction, short circuit here and
+        // continue to submission monitoring
+        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(_job.orderHash);
+        if (transactionSubmissions.length) {
+            return { calldata, job: _job };
+        }
+
         // With the Market Maker signature, execute a full eth_call to validate the
         // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
         try {
