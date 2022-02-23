@@ -704,7 +704,7 @@ function getTokenPathFromHops(hops: SwapQuoteHop[]): Address[] {
     const path = [];
     for (const [i, hop] of hops.entries()) {
         path.push(hop.takerToken);
-        if (i === path.length - 1) {
+        if (i === hops.length - 1) {
             path.push(hop.makerToken);
         }
     }
