@@ -5,6 +5,7 @@ import _ = require('lodash');
 import { artifacts } from '../artifacts';
 import { CURVE_MAINNET_INFOS } from '../utils/market_operation_utils/constants';
 import { CurvePoolFactoryReaderContract } from '../wrappers';
+import { inspect } from 'util';
 
 const PROVIDER = new Web3ProviderEngine();
 PROVIDER.addProvider(new RPCSubprovider(process.env.ETHEREUM_RPC_URL!));
@@ -23,6 +24,7 @@ const getCurveCryptoFactoryPools = async (
     symbols: string[];
     pool: string;
     hasBalance: boolean;
+    codeHash: string;
 }[]> => {
     const pools = await FACTORY_READER.getCryptoFactoryPools(address).callAsync(
         { overrides },
@@ -41,12 +43,13 @@ const CURVE_META_FACTORY = '0xb9fc157394af804a3578134a6585c0dc9cc990d4';
         const otherFactoryPools = await getCurveCryptoFactoryPools(CURVE_META_FACTORY);
         const factoryPools = [...cryptoFactoryPools, ...otherFactoryPools];
 
-        const mappedAddresses = Object.values(CURVE_MAINNET_INFOS).map(info => info.poolAddress);
+        const currentlyMappedAddresses = Object.values(CURVE_MAINNET_INFOS).map(info => info.poolAddress);
 
         const missingPools = factoryPools.filter(pool => {
-            return !mappedAddresses.includes(pool.pool) && pool.hasBalance;
+            return !currentlyMappedAddresses.includes(pool.pool) && pool.hasBalance;
         });
-        console.log(missingPools);
+
+        console.log(inspect(_.groupBy(missingPools, 'codeHash'), { showHidden: false, depth: null, colors: true }));
         console.log(`Found ${missingPools.length} missing pools`);
     } catch (e) {
         console.log(e);

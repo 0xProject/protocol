@@ -42,52 +42,97 @@ interface ICurvePoolFactory {
 
 contract CurvePoolFactoryReader {
 
-    struct CurveFactoryPool {
+    struct CurveFactoryPoolInfo {
         address[] coins;
         string[] symbols;
         address pool;
         bool hasBalance;
+        bytes32 codeHash;
     }
 
     function getCryptoFactoryPools(ICurvePoolFactory factory)
         external
         view
-        returns (CurveFactoryPool[] memory pools)
+        returns (CurveFactoryPoolInfo[] memory poolInfos)
     {
         uint256 poolCount = factory.pool_count();
-        pools = new CurveFactoryPool[](poolCount);
+        poolInfos = new CurveFactoryPoolInfo[](poolCount);
         for (uint256 i = 0; i < poolCount; i++) {
             ICurveFactoryPool pool = ICurveFactoryPool(factory.pool_list(i));
-            pools[i].pool = address(pool);
             try
                 CurvePoolFactoryReader(address(this)).getCryptoFactoryPoolInfo
                     (pool)
-                    returns (CurveFactoryPool memory poolInfo)
+                    returns (CurveFactoryPoolInfo memory poolInfo)
             {
-                pools[i] = poolInfo;
+                poolInfos[i] = poolInfo;
             } catch { }
- }
+            // Set regardless, failed pools will have an address but no data
+            poolInfos[i].pool = address(pool);
+            bytes32 codeHash;    
+            assembly { codeHash := extcodehash(pool) }
+            poolInfos[i].codeHash = codeHash;
+        }
     }
 
     function getCryptoFactoryPoolInfo(ICurveFactoryPool pool)
         external
         view
-        returns (CurveFactoryPool memory poolInfo)
+        returns (CurveFactoryPoolInfo memory poolInfo)
     {
         poolInfo.pool = address(pool);
 
-        // All pools seem to have 2 tokens
-        poolInfo.coins = new address[](2);
-        poolInfo.coins[0] = pool.coins(0);
-        poolInfo.coins[1] = pool.coins(1);
+        // Fetch all of the coins in the pool, no consistent way
+        // to determine how many there are, so we'll just try
+        uint256 count = 0;
+        address lastAddress = pool.coins(count);
+        do {
+            poolInfo.coins = _append(poolInfo.coins, lastAddress);
+            count++;
+            try
+                pool.coins(count)
+                    returns (address nextAddress)
+            {
+                lastAddress = nextAddress;
+            } catch {
+                break;
+            }
+        } while (lastAddress != address(0));
 
-        poolInfo.symbols = new string[](2);
-        poolInfo.symbols[0] = IERC20Reader(poolInfo.coins[0]).symbol();
-        poolInfo.symbols[1] = IERC20Reader(poolInfo.coins[1]).symbol();
+        // Fetch all of the symbols in the pool, some may fail
+        poolInfo.symbols = new string[](poolInfo.coins.length);
+        // Also fetch the accumulated balances, so we can reject anything that's
+        // basically uninitialized (balance 0)
+        uint256 totalBalance = 0;
+        for (uint256 i = 0; i < poolInfo.coins.length; i++) {
+            IERC20Reader coin = IERC20Reader(poolInfo.coins[i]);
+            try
+                coin.symbol()
+                    returns (string memory symbol)
+            {
+                poolInfo.symbols[i] = symbol;
+            } catch { }
 
-        // Check if the pool has any balance, we just accumulate to handle WETH stored as ETH
-        // as it can also be in any order
-        uint256 totalBalanceOf = IERC20Reader(poolInfo.coins[0]).balanceOf(address(pool)) + IERC20Reader(poolInfo.coins[1]).balanceOf(address(pool)); 
-        poolInfo.hasBalance = totalBalanceOf > 0;
+            try
+                coin.balanceOf(address(pool))
+                    returns (uint256 balance)
+            {
+                totalBalance += balance;
+            } catch { }
+        }
+
+        // If theres some tokens in there
+        poolInfo.hasBalance = totalBalance > 0;
+    }
+
+    function _append(address[] memory addressArray, address addr)
+        internal
+        view
+        returns (address[] memory newArray)
+    {
+        newArray = new address[](addressArray.length + 1);
+        for (uint256 i = 0; i < addressArray.length; i++) {
+            newArray[i] = addressArray[i];
+        }
+        newArray[newArray.length-1] = addr;
     }
 }
