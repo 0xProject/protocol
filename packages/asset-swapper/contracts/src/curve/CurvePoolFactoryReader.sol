@@ -20,6 +20,10 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
+interface IERC20Symbol {
+    function symbol() external view returns (string memory);
+}
+
 interface ICurveFactoryPool {
     function coins(uint256) external view returns (address);
 }
@@ -33,8 +37,10 @@ interface ICurvePoolFactory {
 }
 
 contract CurvePoolFactoryReader {
+
     struct CurveFactoryPool {
         address[] coins;
+        string[] symbols;
         address pool;
     }
 
@@ -44,9 +50,14 @@ contract CurvePoolFactoryReader {
         for (uint256 i = 0; i < poolCount; i++) {
             ICurveFactoryPool pool = ICurveFactoryPool(factory.pool_list(i));
             pools[i].pool = address(pool);
+
             pools[i].coins = new address[](2);
             pools[i].coins[0] = pool.coins(0);
             pools[i].coins[1] = pool.coins(1);
+
+            pools[i].symbols = new string[](2);
+            pools[i].symbols[0] = IERC20Symbol(pools[i].coins[0]).symbol();
+            pools[i].symbols[1] = IERC20Symbol(pools[i].coins[1]).symbol();
         }
     }
 }
