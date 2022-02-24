@@ -49,27 +49,45 @@ contract CurvePoolFactoryReader {
         bool hasBalance;
     }
 
-    function getFactoryPools(ICurvePoolFactory factory) external view returns (CurveFactoryPool[] memory pools) {
+    function getCryptoFactoryPools(ICurvePoolFactory factory)
+        external
+        view
+        returns (CurveFactoryPool[] memory pools)
+    {
         uint256 poolCount = factory.pool_count();
         pools = new CurveFactoryPool[](poolCount);
         for (uint256 i = 0; i < poolCount; i++) {
             ICurveFactoryPool pool = ICurveFactoryPool(factory.pool_list(i));
             pools[i].pool = address(pool);
+            try
+                CurvePoolFactoryReader(address(this)).getCryptoFactoryPoolInfo
+                    (pool)
+                    returns (CurveFactoryPool memory poolInfo)
+            {
+                pools[i] = poolInfo;
+            } catch { }
+ }
+    }
 
-            // All pools seem to have 2 tokens
-            pools[i].coins = new address[](2);
-            pools[i].coins[0] = pool.coins(0);
-            pools[i].coins[1] = pool.coins(1);
+    function getCryptoFactoryPoolInfo(ICurveFactoryPool pool)
+        external
+        view
+        returns (CurveFactoryPool memory poolInfo)
+    {
+        poolInfo.pool = address(pool);
 
-            pools[i].symbols = new string[](2);
-            pools[i].symbols[0] = IERC20Reader(pools[i].coins[0]).symbol();
-            pools[i].symbols[1] = IERC20Reader(pools[i].coins[1]).symbol();
+        // All pools seem to have 2 tokens
+        poolInfo.coins = new address[](2);
+        poolInfo.coins[0] = pool.coins(0);
+        poolInfo.coins[1] = pool.coins(1);
 
-            // Check if the pool has any balance, we just accumulate to handle WETH stored as ETH
-            // as it can also be in any order
-            uint256 totalBalanceOf = IERC20Reader(pools[i].coins[0]).balanceOf(address(pool)) + IERC20Reader(pools[i].coins[1]).balanceOf(address(pool)); 
-            pools[i].hasBalance = totalBalanceOf > 0;
+        poolInfo.symbols = new string[](2);
+        poolInfo.symbols[0] = IERC20Reader(poolInfo.coins[0]).symbol();
+        poolInfo.symbols[1] = IERC20Reader(poolInfo.coins[1]).symbol();
 
-        }
+        // Check if the pool has any balance, we just accumulate to handle WETH stored as ETH
+        // as it can also be in any order
+        uint256 totalBalanceOf = IERC20Reader(poolInfo.coins[0]).balanceOf(address(pool)) + IERC20Reader(poolInfo.coins[1]).balanceOf(address(pool)); 
+        poolInfo.hasBalance = totalBalanceOf > 0;
     }
 }
