@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.9 - _February 24, 2022_
+
+    * Fix native order scaling & filter out 1 wei quotes (#430)
+
 ## v16.49.8 - _February 22, 2022_
 
     * Dependencies updated

@@ -6,7 +6,8 @@
                 "note": "Fix native order scaling & filter out 1 wei quotes",
                 "pr": "430"
             }
-        ]
+        ],
+        "timestamp": 1645696356
     },
     {
         "timestamp": 1645569128,
