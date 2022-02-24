@@ -11,6 +11,7 @@ import * as BalancerSampler from '../test/generated-artifacts/BalancerSampler.js
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
 import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.json';
+import * as CurvePoolFactoryReader from '../test/generated-artifacts/CurvePoolFactoryReader.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
@@ -76,6 +77,7 @@ export const artifacts = {
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
     UtilitySampler: UtilitySampler as ContractArtifact,
+    CurvePoolFactoryReader: CurvePoolFactoryReader as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
