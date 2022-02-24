@@ -36,12 +36,18 @@ const CURVE_META_FACTORY = '0xb9fc157394af804a3578134a6585c0dc9cc990d4';
 
 (async () => {
     try {
-        const factoryPools = await getCurveCryptoFactoryPools(CURVE_META_FACTORY);
+        // Appears to be 2 different factories, cryptoFactory pools looks like the latest and greatest
+        const cryptoFactoryPools = await getCurveCryptoFactoryPools(CURVE_CRYPTO_FACTORY);
+        const otherFactoryPools = await getCurveCryptoFactoryPools(CURVE_META_FACTORY);
+        const factoryPools = [...cryptoFactoryPools, ...otherFactoryPools];
+
         const mappedAddresses = Object.values(CURVE_MAINNET_INFOS).map(info => info.poolAddress);
+
         const missingPools = factoryPools.filter(pool => {
             return !mappedAddresses.includes(pool.pool) && pool.hasBalance;
         });
         console.log(missingPools);
+        console.log(`Found ${missingPools.length} missing pools`);
     } catch (e) {
         console.log(e);
         throw e;
