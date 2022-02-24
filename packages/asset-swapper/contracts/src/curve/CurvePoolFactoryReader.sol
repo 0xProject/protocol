@@ -20,8 +20,12 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-interface IERC20Symbol {
+interface IERC20Reader {
     function symbol() external view returns (string memory);
+    function balanceOf(address owner)
+        external
+        view
+        returns (uint256);
 }
 
 interface ICurveFactoryPool {
@@ -42,6 +46,7 @@ contract CurvePoolFactoryReader {
         address[] coins;
         string[] symbols;
         address pool;
+        bool hasBalance;
     }
 
     function getFactoryPools(ICurvePoolFactory factory) external view returns (CurveFactoryPool[] memory pools) {
@@ -51,13 +56,20 @@ contract CurvePoolFactoryReader {
             ICurveFactoryPool pool = ICurveFactoryPool(factory.pool_list(i));
             pools[i].pool = address(pool);
 
+            // All pools seem to have 2 tokens
             pools[i].coins = new address[](2);
             pools[i].coins[0] = pool.coins(0);
             pools[i].coins[1] = pool.coins(1);
 
             pools[i].symbols = new string[](2);
-            pools[i].symbols[0] = IERC20Symbol(pools[i].coins[0]).symbol();
-            pools[i].symbols[1] = IERC20Symbol(pools[i].coins[1]).symbol();
+            pools[i].symbols[0] = IERC20Reader(pools[i].coins[0]).symbol();
+            pools[i].symbols[1] = IERC20Reader(pools[i].coins[1]).symbol();
+
+            // Check if the pool has any balance, we just accumulate to handle WETH stored as ETH
+            // as it can also be in any order
+            uint256 totalBalanceOf = IERC20Reader(pools[i].coins[0]).balanceOf(address(pool)) + IERC20Reader(pools[i].coins[1]).balanceOf(address(pool)); 
+            pools[i].hasBalance = totalBalanceOf > 0;
+
         }
     }
 }
