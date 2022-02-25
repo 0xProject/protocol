@@ -29,6 +29,7 @@ import {
 import {
     ETH_DECIMALS,
     NULL_ADDRESS,
+    ONE_MINUTE_S,
     ONE_SECOND_MS,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
@@ -1104,11 +1105,14 @@ export class RfqmService {
                 job.isCompleted = true;
             }
             await this._dbUtils.updateRfqmJobAsync(job);
+            if (finalStatus === RfqmJobStatus.FailedExpired) {
+                throw new Error('Job expired');
+            }
             logger.info({ orderHash, workerAddress }, 'Job completed without errors');
             RFQM_JOB_COMPLETED.labels(workerAddress).inc();
         } catch (error) {
-            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
             logger.error({ workerAddress, orderHash, errorMessage: error.message }, 'Job completed with error');
+            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
         } finally {
             timerStopFunction();
         }
@@ -1135,6 +1139,15 @@ export class RfqmService {
     ): Promise<{ calldata: string; job: RfqmJobEntity }> {
         const _job = _.cloneDeep(job);
         const { orderHash } = _job;
+
+        // Check to see if we have already submitted a transaction for this job.
+        // If we have, the job is already prepared and we can skip ahead.
+        const transactionSubmissions = await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(
+            _job.orderHash,
+        );
+        if (transactionSubmissions.length) {
+            return { calldata: _job.calldata, job: _job };
+        }
 
         const errorStatus = RfqmService.validateJob(_job, now);
         if (errorStatus !== null) {
@@ -1231,6 +1244,29 @@ export class RfqmService {
         const { makerUri, order, orderHash } = _job;
         const otcOrder = storedOtcOrderToOtcOrder(order);
         let makerSignature: Signature | null = _job.makerSignature;
+        const takerSignature: Signature | null = _job.takerSignature;
+
+        // Check to see if we have already submitted a transaction for this job.
+        // If we have, the job is already prepared and we can skip ahead.
+        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(_job.orderHash);
+        if (transactionSubmissions.length) {
+            if (!makerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no maker signature');
+            }
+            if (!takerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no taker signature');
+            }
+            const existingSubmissionCalldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
+                otcOrder,
+                makerSignature,
+                takerSignature,
+                _job.isUnwrap,
+                _job.affiliateAddress,
+            );
+            return { calldata: existingSubmissionCalldata, job: _job };
+        }
 
         const errorStatus = RfqmService.validateJob(_job, now);
         if (errorStatus !== null) {
@@ -1246,7 +1282,6 @@ export class RfqmService {
 
         // Existence of taker signature has already been checked by
         // `RfqmService.validateJob(job)`. Refine the type.
-        const { takerSignature } = _job;
         if (!takerSignature) {
             throw new Error('No taker signature present');
         }
@@ -1430,13 +1465,6 @@ export class RfqmService {
             _job.affiliateAddress,
         );
 
-        // If we have already submitted a transaction, short circuit here and
-        // continue to submission monitoring
-        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(_job.orderHash);
-        if (transactionSubmissions.length) {
-            return { calldata, job: _job };
-        }
-
         // With the Market Maker signature, execute a full eth_call to validate the
         // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
         try {
@@ -1445,6 +1473,10 @@ export class RfqmService {
                     // Maker signature must already be defined here -- refine the type
                     if (!makerSignature) {
                         throw new Error('Maker signature does not exist');
+                    }
+                    // Taker signature must already be defined here -- refine the type
+                    if (!takerSignature) {
+                        throw new Error('Taker signature does not exist');
                     }
 
                     return this._blockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -1519,7 +1551,7 @@ export class RfqmService {
         job: RfqmJobEntity | RfqmV2JobEntity,
         workerAddress: string,
         calldata: string,
-    ): Promise<RfqmJobStatus.FailedRevertedConfirmed | RfqmJobStatus.SucceededConfirmed> {
+    ): Promise<RfqmJobStatus.FailedRevertedConfirmed | RfqmJobStatus.FailedExpired | RfqmJobStatus.SucceededConfirmed> {
         const _job = _.cloneDeep(job);
         const { orderHash } = _job;
         const previousSubmissionsWithPresubmits = await (job.kind === 'rfqm_v1_job'
@@ -1602,6 +1634,27 @@ export class RfqmService {
 
             switch (jobStatus) {
                 case RfqmJobStatus.PendingSubmitted:
+                    // We've put in at least one transaction but none have been mined yet.
+                    // Check to make sure we haven't passed the expiry window.
+                    const { expiry } = _job;
+                    const now = new Date();
+                    const nowSeconds = new BigNumber(now.getTime() / ONE_SECOND_MS);
+
+                    const secondsPastExpiration = nowSeconds.minus(expiry);
+
+                    // If we're more than 120 seconds past expiration, give up.
+                    // See https://github.com/rolandkofler/blocktime for some
+                    // analysis of expected block times. Two minutes was selected
+                    // to cover most cases without locking up the worker for too long.
+                    if (secondsPastExpiration.isGreaterThan(ONE_MINUTE_S * 2)) {
+                        return RfqmJobStatus.FailedExpired;
+                    }
+                    // If we're past expiration by less than a minute, don't put in any new transactions
+                    // but keep watching in case a receipt shows up
+                    if (secondsPastExpiration.isGreaterThan(0)) {
+                        continue;
+                    }
+
                     // "Fast" gas price estimation; used to approximate the base fee
                     const newGasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
