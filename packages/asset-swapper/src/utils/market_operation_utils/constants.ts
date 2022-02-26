@@ -378,7 +378,6 @@ export const MAINNET_TOKENS = {
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
-    ...MIRROR_WRAPPED_TOKENS,
     // StableSwap "open pools" (crv.finance)
     STABLEx: '0xcd91538b91b4ba7797d39a2f66e63810b50a33d0',
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',

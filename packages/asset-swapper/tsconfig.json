@@ -4,7 +4,6 @@
     "include": ["./src/**/*", "./generated-wrappers/**/*"],
     "files": [
         "generated-artifacts/BalanceChecker.json",
-        "generated-artifacts/ERC20BridgeSampler.json",
         "generated-artifacts/FakeTaker.json",
         "test/generated-artifacts/BalanceChecker.json",
         "test/generated-artifacts/FakeTaker.json"
