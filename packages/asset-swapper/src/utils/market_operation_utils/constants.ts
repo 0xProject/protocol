@@ -373,7 +373,6 @@ export const MAINNET_TOKENS = {
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
-    ...MIRROR_WRAPPED_TOKENS,
     // StableSwap "open pools" (crv.finance)
     STABLEx: '0xcd91538b91b4ba7797d39a2f66e63810b50a33d0',
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
@@ -393,13 +392,6 @@ export const MAINNET_TOKENS = {
     ESS: '0x24ae124c4cc33d6791f8e8b63520ed7107ac8b3e',
     cvxCRV: '0x62b9c7356a2dc64a1969e19c23e4f579f9810aa7',
     CRV: '0xd533a949740bb3306d119cc777fa900ba034cd52',
-    // Fei Ecosystem
-    FEI: '0x956f47f50a910163d8bf957cf5846d573e7f87ca',
-    TRIBE: '0xc7283b66eb1eb5fb86327f08e1b5816b0720212b',
-    // Frax ecosystem
-    FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
-    FXS: '0x3432b6a60d23ca0dfca7761b7ab56459d9c964d0',
-    OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
 };
 
 export const BSC_TOKENS = {

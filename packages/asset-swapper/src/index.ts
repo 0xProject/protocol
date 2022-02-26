@@ -154,7 +154,7 @@ export {
     PriceComparisonsReport,
 } from './utils/quote_report_generator';
 export { QuoteRequestor, V4RFQIndicativeQuoteMM } from './utils/quote_requestor';
-export { ERC20BridgeSamplerContract, BalanceCheckerContract, FakeTakerContract } from './wrappers';
+export { BalanceCheckerContract, FakeTakerContract } from './wrappers';
 import { ERC20BridgeSource } from './utils/market_operation_utils/types';
 export type Native = ERC20BridgeSource.Native;
 export type MultiHop = ERC20BridgeSource.MultiHop;
