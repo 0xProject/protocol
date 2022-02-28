@@ -38,6 +38,12 @@ import * as ethers from 'ethers';
 // tslint:enable:no-unused-variable
 
 export type IZeroExEventArgs =
+    | IZeroExERC1155OrderCancelledEventArgs
+    | IZeroExERC1155OrderFilledEventArgs
+    | IZeroExERC1155OrderPreSignedEventArgs
+    | IZeroExERC721OrderCancelledEventArgs
+    | IZeroExERC721OrderFilledEventArgs
+    | IZeroExERC721OrderPreSignedEventArgs
     | IZeroExLimitOrderFilledEventArgs
     | IZeroExLiquidityProviderSwapEventArgs
     | IZeroExMetaTransactionExecutedEventArgs
@@ -56,6 +62,12 @@ export type IZeroExEventArgs =
     | IZeroExTransformerDeployerUpdatedEventArgs;
 
 export enum IZeroExEvents {
+    ERC1155OrderCancelled = 'ERC1155OrderCancelled',
+    ERC1155OrderFilled = 'ERC1155OrderFilled',
+    ERC1155OrderPreSigned = 'ERC1155OrderPreSigned',
+    ERC721OrderCancelled = 'ERC721OrderCancelled',
+    ERC721OrderFilled = 'ERC721OrderFilled',
+    ERC721OrderPreSigned = 'ERC721OrderPreSigned',
     LimitOrderFilled = 'LimitOrderFilled',
     LiquidityProviderSwap = 'LiquidityProviderSwap',
     MetaTransactionExecuted = 'MetaTransactionExecuted',
@@ -72,6 +84,70 @@ export enum IZeroExEvents {
     RfqOrderOriginsAllowed = 'RfqOrderOriginsAllowed',
     TransformedERC20 = 'TransformedERC20',
     TransformerDeployerUpdated = 'TransformerDeployerUpdated',
+}
+
+export interface IZeroExERC1155OrderCancelledEventArgs extends DecodedLogArgs {
+    maker: string;
+    nonce: BigNumber;
+}
+
+export interface IZeroExERC1155OrderFilledEventArgs extends DecodedLogArgs {
+    direction: number;
+    maker: string;
+    taker: string;
+    nonce: BigNumber;
+    erc20Token: string;
+    erc20FillAmount: BigNumber;
+    erc1155Token: string;
+    erc1155TokenId: BigNumber;
+    erc1155FillAmount: BigNumber;
+    matcher: string;
+}
+
+export interface IZeroExERC1155OrderPreSignedEventArgs extends DecodedLogArgs {
+    direction: number;
+    maker: string;
+    taker: string;
+    expiry: BigNumber;
+    nonce: BigNumber;
+    erc20Token: string;
+    erc20TokenAmount: BigNumber;
+    fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+    erc1155Token: string;
+    erc1155TokenId: BigNumber;
+    erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+    erc1155TokenAmount: BigNumber;
+}
+
+export interface IZeroExERC721OrderCancelledEventArgs extends DecodedLogArgs {
+    maker: string;
+    nonce: BigNumber;
+}
+
+export interface IZeroExERC721OrderFilledEventArgs extends DecodedLogArgs {
+    direction: number;
+    maker: string;
+    taker: string;
+    nonce: BigNumber;
+    erc20Token: string;
+    erc20TokenAmount: BigNumber;
+    erc721Token: string;
+    erc721TokenId: BigNumber;
+    matcher: string;
+}
+
+export interface IZeroExERC721OrderPreSignedEventArgs extends DecodedLogArgs {
+    direction: number;
+    maker: string;
+    taker: string;
+    expiry: BigNumber;
+    nonce: BigNumber;
+    erc20Token: string;
+    erc20TokenAmount: BigNumber;
+    fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+    erc721Token: string;
+    erc721TokenId: BigNumber;
+    erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
 }
 
 export interface IZeroExLimitOrderFilledEventArgs extends DecodedLogArgs {
@@ -294,6 +370,332 @@ export class IZeroExContract extends BaseContract {
      */
     public static ABI(): ContractAbi {
         const abi = [
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                ],
+                name: 'ERC1155OrderCancelled',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'direction',
+                        type: 'uint8',
+                        indexed: false,
+                    },
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'taker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20FillAmount',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc1155Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc1155TokenId',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc1155FillAmount',
+                        type: 'uint128',
+                        indexed: false,
+                    },
+                    {
+                        name: 'matcher',
+                        type: 'address',
+                        indexed: false,
+                    },
+                ],
+                name: 'ERC1155OrderFilled',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'direction',
+                        type: 'uint8',
+                        indexed: false,
+                    },
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'taker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'expiry',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20TokenAmount',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'fees',
+                        type: 'tuple[]',
+                        indexed: false,
+                        components: [
+                            {
+                                name: 'recipient',
+                                type: 'address',
+                            },
+                            {
+                                name: 'amount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'feeData',
+                                type: 'bytes',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc1155TokenId',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc1155TokenProperties',
+                        type: 'tuple[]',
+                        indexed: false,
+                        components: [
+                            {
+                                name: 'propertyValidator',
+                                type: 'address',
+                            },
+                            {
+                                name: 'propertyData',
+                                type: 'bytes',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155TokenAmount',
+                        type: 'uint128',
+                        indexed: false,
+                    },
+                ],
+                name: 'ERC1155OrderPreSigned',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                ],
+                name: 'ERC721OrderCancelled',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'direction',
+                        type: 'uint8',
+                        indexed: false,
+                    },
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'taker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20TokenAmount',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc721Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc721TokenId',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'matcher',
+                        type: 'address',
+                        indexed: false,
+                    },
+                ],
+                name: 'ERC721OrderFilled',
+                outputs: [],
+                type: 'event',
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        name: 'direction',
+                        type: 'uint8',
+                        indexed: false,
+                    },
+                    {
+                        name: 'maker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'taker',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'expiry',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'nonce',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc20TokenAmount',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'fees',
+                        type: 'tuple[]',
+                        indexed: false,
+                        components: [
+                            {
+                                name: 'recipient',
+                                type: 'address',
+                            },
+                            {
+                                name: 'amount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'feeData',
+                                type: 'bytes',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc721Token',
+                        type: 'address',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc721TokenId',
+                        type: 'uint256',
+                        indexed: false,
+                    },
+                    {
+                        name: 'erc721TokenProperties',
+                        type: 'tuple[]',
+                        indexed: false,
+                        components: [
+                            {
+                                name: 'propertyValidator',
+                                type: 'address',
+                            },
+                            {
+                                name: 'propertyData',
+                                type: 'bytes',
+                            },
+                        ],
+                    },
+                ],
+                name: 'ERC721OrderPreSigned',
+                outputs: [],
+                type: 'event',
+            },
             {
                 anonymous: false,
                 inputs: [
@@ -1149,6 +1551,272 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'sellOrders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155TokenAmounts',
+                        type: 'uint128[]',
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes[]',
+                    },
+                    {
+                        name: 'revertIfIncomplete',
+                        type: 'bool',
+                    },
+                ],
+                name: 'batchBuyERC1155s',
+                outputs: [
+                    {
+                        name: 'successes',
+                        type: 'bool[]',
+                    },
+                ],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'sellOrders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes[]',
+                    },
+                    {
+                        name: 'revertIfIncomplete',
+                        type: 'bool',
+                    },
+                ],
+                name: 'batchBuyERC721s',
+                outputs: [
+                    {
+                        name: 'successes',
+                        type: 'bool[]',
+                    },
+                ],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'orderNonces',
+                        type: 'uint256[]',
+                    },
+                ],
+                name: 'batchCancelERC1155Orders',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'orderNonces',
+                        type: 'uint256[]',
+                    },
+                ],
+                name: 'batchCancelERC721Orders',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'orders',
                         type: 'tuple[]',
                         components: [
@@ -1936,6 +2604,463 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'sellOrders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'buyOrders',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'sellOrderSignatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'buyOrderSignatures',
+                        type: 'tuple[]',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'batchMatchERC721Orders',
+                outputs: [
+                    {
+                        name: 'profits',
+                        type: 'uint256[]',
+                    },
+                    {
+                        name: 'successes',
+                        type: 'bool[]',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'sellOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155BuyAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'buyERC1155',
+                outputs: [],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'sellOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'buyERC721',
+                outputs: [],
+                stateMutability: 'payable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'orderNonce',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'cancelERC1155Order',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'orderNonce',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'cancelERC721Order',
+                outputs: [],
+                stateMutability: 'nonpayable',
                 type: 'function',
             },
             {
@@ -3041,6 +4166,401 @@ export class IZeroExContract extends BaseContract {
                         type: 'tuple',
                         components: [
                             {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getERC1155OrderHash',
+                outputs: [
+                    {
+                        name: 'orderHash',
+                        type: 'bytes32',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                ],
+                name: 'getERC1155OrderInfo',
+                outputs: [
+                    {
+                        name: 'orderInfo',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'orderHash',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 'status',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'orderAmount',
+                                type: 'uint128',
+                            },
+                            {
+                                name: 'remainingAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                name: 'getERC721OrderHash',
+                outputs: [
+                    {
+                        name: 'orderHash',
+                        type: 'bytes32',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                name: 'getERC721OrderStatus',
+                outputs: [
+                    {
+                        name: 'status',
+                        type: 'uint8',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'maker',
+                        type: 'address',
+                    },
+                    {
+                        name: 'nonceRange',
+                        type: 'uint248',
+                    },
+                ],
+                name: 'getERC721OrderStatusBitVector',
+                outputs: [
+                    {
+                        name: 'bitVector',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
                                 name: 'makerToken',
                                 type: 'address',
                             },
@@ -3906,6 +5426,211 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'sellOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'buyOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'sellOrderSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'buyOrderSignature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'matchERC721Orders',
+                outputs: [
+                    {
+                        name: 'profit',
+                        type: 'uint256',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'target',
                         type: 'address',
                     },
@@ -4166,6 +5891,68 @@ export class IZeroExContract extends BaseContract {
                 type: 'function',
             },
             {
+                inputs: [
+                    {
+                        name: 'operator',
+                        type: 'address',
+                    },
+                    {
+                        name: 'from',
+                        type: 'address',
+                    },
+                    {
+                        name: 'tokenId',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'value',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'data',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'onERC1155Received',
+                outputs: [
+                    {
+                        name: 'success',
+                        type: 'bytes4',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'operator',
+                        type: 'address',
+                    },
+                    {
+                        name: 'from',
+                        type: 'address',
+                    },
+                    {
+                        name: 'tokenId',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'data',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'onERC721Received',
+                outputs: [
+                    {
+                        name: 'success',
+                        type: 'bytes4',
+                    },
+                ],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
                 inputs: [],
                 name: 'owner',
                 outputs: [
@@ -4175,6 +5962,174 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                ],
+                name: 'preSignERC1155Order',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                name: 'preSignERC721Order',
+                outputs: [],
+                stateMutability: 'nonpayable',
                 type: 'function',
             },
             {
@@ -4221,6 +6176,246 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'rollback',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'buyOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155TokenId',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'erc1155SellAmount',
+                        type: 'uint128',
+                    },
+                    {
+                        name: 'unwrapNativeToken',
+                        type: 'bool',
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'sellERC1155',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'buyOrder',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc721TokenId',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'unwrapNativeToken',
+                        type: 'bool',
+                    },
+                    {
+                        name: 'callbackData',
+                        type: 'bytes',
+                    },
+                ],
+                name: 'sellERC721',
                 outputs: [],
                 stateMutability: 'nonpayable',
                 type: 'function',
@@ -4434,6 +6629,23 @@ export class IZeroExContract extends BaseContract {
             {
                 inputs: [
                     {
+                        name: 'interfaceId',
+                        type: 'bytes4',
+                    },
+                ],
+                name: 'supportInterface',
+                outputs: [
+                    {
+                        name: 'isSupported',
+                        type: 'bool',
+                    },
+                ],
+                stateMutability: 'pure',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
                         name: 'newOwner',
                         type: 'address',
                     },
@@ -4451,6 +6663,26 @@ export class IZeroExContract extends BaseContract {
                     },
                 ],
                 name: 'transferProtocolFeesForPools',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'erc20',
+                        type: 'address',
+                    },
+                    {
+                        name: 'amountOut',
+                        type: 'uint256',
+                    },
+                    {
+                        name: 'recipientWallet',
+                        type: 'address',
+                    },
+                ],
+                name: 'transferTrappedTokensTo',
                 outputs: [],
                 stateMutability: 'nonpayable',
                 type: 'function',
@@ -4516,6 +6748,394 @@ export class IZeroExContract extends BaseContract {
                 name: 'uniswapV3SwapCallback',
                 outputs: [],
                 stateMutability: 'nonpayable',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc1155TokenId',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'validateERC1155OrderProperties',
+                outputs: [],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc1155TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc1155TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc1155TokenAmount',
+                                type: 'uint128',
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'validateERC1155OrderSignature',
+                outputs: [],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'erc721TokenId',
+                        type: 'uint256',
+                    },
+                ],
+                name: 'validateERC721OrderProperties',
+                outputs: [],
+                stateMutability: 'view',
+                type: 'function',
+            },
+            {
+                inputs: [
+                    {
+                        name: 'order',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'direction',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'maker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'taker',
+                                type: 'address',
+                            },
+                            {
+                                name: 'expiry',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'nonce',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc20Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc20TokenAmount',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'fees',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'recipient',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'amount',
+                                        type: 'uint256',
+                                    },
+                                    {
+                                        name: 'feeData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                            {
+                                name: 'erc721Token',
+                                type: 'address',
+                            },
+                            {
+                                name: 'erc721TokenId',
+                                type: 'uint256',
+                            },
+                            {
+                                name: 'erc721TokenProperties',
+                                type: 'tuple[]',
+                                components: [
+                                    {
+                                        name: 'propertyValidator',
+                                        type: 'address',
+                                    },
+                                    {
+                                        name: 'propertyData',
+                                        type: 'bytes',
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        name: 'signature',
+                        type: 'tuple',
+                        components: [
+                            {
+                                name: 'signatureType',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'v',
+                                type: 'uint8',
+                            },
+                            {
+                                name: 'r',
+                                type: 'bytes32',
+                            },
+                            {
+                                name: 's',
+                                type: 'bytes32',
+                            },
+                        ],
+                    },
+                ],
+                name: 'validateERC721OrderSignature',
+                outputs: [],
+                stateMutability: 'view',
                 type: 'function',
             },
         ] as ContractAbi;
@@ -4639,6 +7259,7 @@ export class IZeroExContract extends BaseContract {
             '_fillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -4738,6 +7359,7 @@ export class IZeroExContract extends BaseContract {
             '_fillOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,bool,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -4838,6 +7460,7 @@ export class IZeroExContract extends BaseContract {
             '_fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128,address,bool,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -4921,6 +7544,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = '_sellHeldTokenForTokenToUniswapV3(bytes,uint256,uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -4997,6 +7621,7 @@ export class IZeroExContract extends BaseContract {
             '_transformERC20((address,address,address,uint256,uint256,(uint32,bytes)[],bool,address))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5049,6 +7674,332 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Buys multiple ERC1155 assets by filling the
+     * given orders.
+     * @param sellOrders The ERC1155 sell orders.
+     * @param signatures The order signatures.
+     * @param erc1155TokenAmounts The amounts of the ERC1155 assets        to buy
+     *     for each order.
+     * @param callbackData The data (if any) to pass to the taker        callback
+     *     for each order. Refer to the `callbackData`        parameter to for
+     *     `buyERC1155`.
+     * @param revertIfIncomplete If true, reverts if this        function fails to
+     *     fill any individual order.
+     */
+    public batchBuyERC1155s(
+        sellOrders: Array<{
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc1155Token: string;
+            erc1155TokenId: BigNumber;
+            erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+            erc1155TokenAmount: BigNumber;
+        }>,
+        signatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+        erc1155TokenAmounts: BigNumber[],
+        callbackData: string[],
+        revertIfIncomplete: boolean,
+    ): ContractTxFunctionObj<boolean[]> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('sellOrders', sellOrders);
+        assert.isArray('signatures', signatures);
+        assert.isArray('erc1155TokenAmounts', erc1155TokenAmounts);
+        assert.isArray('callbackData', callbackData);
+        assert.isBoolean('revertIfIncomplete', revertIfIncomplete);
+        const functionSignature =
+            'batchBuyERC1155s((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bytes[],bool)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean[]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<boolean[]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    sellOrders,
+                    signatures,
+                    erc1155TokenAmounts,
+                    callbackData,
+                    revertIfIncomplete,
+                ]);
+            },
+        };
+    }
+    /**
+     * Buys multiple ERC721 assets by filling the
+     * given orders.
+     * @param sellOrders The ERC721 sell orders.
+     * @param signatures The order signatures.
+     * @param callbackData The data (if any) to pass to the taker        callback
+     *     for each order. Refer to the `callbackData`        parameter to for
+     *     `buyERC721`.
+     * @param revertIfIncomplete If true, reverts if this        function fails to
+     *     fill any individual order.
+     */
+    public batchBuyERC721s(
+        sellOrders: Array<{
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        }>,
+        signatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+        callbackData: string[],
+        revertIfIncomplete: boolean,
+    ): ContractTxFunctionObj<boolean[]> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('sellOrders', sellOrders);
+        assert.isArray('signatures', signatures);
+        assert.isArray('callbackData', callbackData);
+        assert.isBoolean('revertIfIncomplete', revertIfIncomplete);
+        const functionSignature =
+            'batchBuyERC721s((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[])[],(uint8,uint8,bytes32,bytes32)[],bytes[],bool)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean[]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<boolean[]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    sellOrders,
+                    signatures,
+                    callbackData,
+                    revertIfIncomplete,
+                ]);
+            },
+        };
+    }
+    /**
+     * Cancel multiple ERC1155 orders by their nonces. The caller
+     * should be the maker of the orders. Silently succeeds if
+     * an order with the same nonce has already been filled or
+     * cancelled.
+     * @param orderNonces The order nonces.
+     */
+    public batchCancelERC1155Orders(orderNonces: BigNumber[]): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('orderNonces', orderNonces);
+        const functionSignature = 'batchCancelERC1155Orders(uint256[])';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orderNonces]);
+            },
+        };
+    }
+    /**
+     * Cancel multiple ERC721 orders by their nonces. The caller
+     * should be the maker of the orders. Silently succeeds if
+     * an order with the same nonce has already been filled or
+     * cancelled.
+     * @param orderNonces The order nonces.
+     */
+    public batchCancelERC721Orders(orderNonces: BigNumber[]): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('orderNonces', orderNonces);
+        const functionSignature = 'batchCancelERC721Orders(uint256[])';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orderNonces]);
+            },
+        };
+    }
+    /**
      * Cancel multiple limit orders. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param orders The limit orders.
@@ -5075,6 +8026,7 @@ export class IZeroExContract extends BaseContract {
             'batchCancelLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5147,6 +8099,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'batchCancelPairLimitOrders(address[],address[],uint256[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5222,6 +8175,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'batchCancelPairLimitOrdersWithSigner(address,address[],address[],uint256[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5299,6 +8253,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'batchCancelPairRfqOrders(address[],address[],uint256[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5374,6 +8329,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'batchCancelPairRfqOrdersWithSigner(address,address[],address[],uint256[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5455,6 +8411,7 @@ export class IZeroExContract extends BaseContract {
             'batchCancelRfqOrders((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5533,6 +8490,7 @@ export class IZeroExContract extends BaseContract {
             'batchExecuteMetaTransactions((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256)[],(uint8,uint8,bytes32,bytes32)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5620,6 +8578,7 @@ export class IZeroExContract extends BaseContract {
             'batchFillLimitOrders((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5713,6 +8672,7 @@ export class IZeroExContract extends BaseContract {
             'batchFillRfqOrders((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[],uint128[],bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5805,6 +8765,7 @@ export class IZeroExContract extends BaseContract {
             'batchFillTakerSignedOtcOrders((address,address,uint128,uint128,address,address,address,uint256)[],(uint8,uint8,bytes32,bytes32)[],(uint8,uint8,bytes32,bytes32)[],bool[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5894,6 +8855,7 @@ export class IZeroExContract extends BaseContract {
             'batchGetLimitOrderRelevantStates((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -5991,6 +8953,7 @@ export class IZeroExContract extends BaseContract {
             'batchGetRfqOrderRelevantStates((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256)[],(uint8,uint8,bytes32,bytes32)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6058,6 +9021,426 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Matches pairs of complementary orders that have
+     * non-negative spreads. Each order is filled at
+     * their respective price, and the matcher receives
+     * a profit denominated in the ERC20 token.
+     * @param sellOrders Orders selling ERC721 assets.
+     * @param buyOrders Orders buying ERC721 assets.
+     * @param sellOrderSignatures Signatures for the sell orders.
+     * @param buyOrderSignatures Signatures for the buy orders.
+     */
+    public batchMatchERC721Orders(
+        sellOrders: Array<{
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        }>,
+        buyOrders: Array<{
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        }>,
+        sellOrderSignatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+        buyOrderSignatures: Array<{ signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string }>,
+    ): ContractTxFunctionObj<[BigNumber[], boolean[]]> {
+        const self = (this as any) as IZeroExContract;
+        assert.isArray('sellOrders', sellOrders);
+        assert.isArray('buyOrders', buyOrders);
+        assert.isArray('sellOrderSignatures', sellOrderSignatures);
+        assert.isArray('buyOrderSignatures', buyOrderSignatures);
+        const functionSignature =
+            'batchMatchERC721Orders((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[])[],(uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[])[],(uint8,uint8,bytes32,bytes32)[],(uint8,uint8,bytes32,bytes32)[])';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<[BigNumber[], boolean[]]> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<[BigNumber[], boolean[]]>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    sellOrders,
+                    buyOrders,
+                    sellOrderSignatures,
+                    buyOrderSignatures,
+                ]);
+            },
+        };
+    }
+    /**
+     * Buys an ERC1155 asset by filling the given order.
+     * @param sellOrder The ERC1155 sell order.
+     * @param signature The order signature.
+     * @param erc1155BuyAmount The amount of the ERC1155 asset        to buy.
+     * @param callbackData If this parameter is non-zero, invokes
+     *     `zeroExERC1155OrderCallback` on `msg.sender` after        the ERC1155
+     *     asset has been transferred to `msg.sender`        but before
+     *     transferring the ERC20 tokens to the seller.        Native tokens
+     *     acquired during the callback can be used        to fill the order.
+     */
+    public buyERC1155(
+        sellOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc1155Token: string;
+            erc1155TokenId: BigNumber;
+            erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+            erc1155TokenAmount: BigNumber;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        erc1155BuyAmount: BigNumber,
+        callbackData: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('erc1155BuyAmount', erc1155BuyAmount);
+        assert.isString('callbackData', callbackData);
+        const functionSignature =
+            'buyERC1155((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128),(uint8,uint8,bytes32,bytes32),uint128,bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    sellOrder,
+                    signature,
+                    erc1155BuyAmount,
+                    callbackData,
+                ]);
+            },
+        };
+    }
+    /**
+     * Buys an ERC721 asset by filling the given order.
+     * @param sellOrder The ERC721 sell order.
+     * @param signature The order signature.
+     * @param callbackData If this parameter is non-zero, invokes
+     *     `zeroExERC721OrderCallback` on `msg.sender` after        the ERC721
+     *     asset has been transferred to `msg.sender`        but before
+     *     transferring the ERC20 tokens to the seller.        Native tokens
+     *     acquired during the callback can be used        to fill the order.
+     */
+    public buyERC721(
+        sellOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        callbackData: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isString('callbackData', callbackData);
+        const functionSignature =
+            'buyERC721((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),(uint8,uint8,bytes32,bytes32),bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [sellOrder, signature, callbackData]);
+            },
+        };
+    }
+    /**
+     * Cancel a single ERC1155 order by its nonce. The caller
+     * should be the maker of the order. Silently succeeds if
+     * an order with the same nonce has already been filled or
+     * cancelled.
+     * @param orderNonce The order nonce.
+     */
+    public cancelERC1155Order(orderNonce: BigNumber): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isBigNumber('orderNonce', orderNonce);
+        const functionSignature = 'cancelERC1155Order(uint256)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orderNonce]);
+            },
+        };
+    }
+    /**
+     * Cancel a single ERC721 order by its nonce. The caller
+     * should be the maker of the order. Silently succeeds if
+     * an order with the same nonce has already been filled or
+     * cancelled.
+     * @param orderNonce The order nonce.
+     */
+    public cancelERC721Order(orderNonce: BigNumber): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isBigNumber('orderNonce', orderNonce);
+        const functionSignature = 'cancelERC721Order(uint256)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [orderNonce]);
+            },
+        };
+    }
+    /**
      * Cancel a single limit order. The caller must be the maker or a valid order signer.
      * Silently succeeds if the order has already been cancelled.
      * @param order The limit order.
@@ -6082,6 +9465,7 @@ export class IZeroExContract extends BaseContract {
             'cancelLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6154,6 +9538,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'cancelPairLimitOrders(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6233,6 +9618,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'cancelPairLimitOrdersWithSigner(address,address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6310,6 +9696,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'cancelPairRfqOrders(address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6389,6 +9776,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'cancelPairRfqOrdersWithSigner(address,address,address,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6468,6 +9856,7 @@ export class IZeroExContract extends BaseContract {
             'cancelRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6529,6 +9918,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'createTransformWallet()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6606,6 +9996,7 @@ export class IZeroExContract extends BaseContract {
             'executeMetaTransaction((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6669,6 +10060,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'extend(bytes4,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6753,6 +10145,7 @@ export class IZeroExContract extends BaseContract {
             'fillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6841,6 +10234,7 @@ export class IZeroExContract extends BaseContract {
             'fillOrKillLimitOrder((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -6922,6 +10316,7 @@ export class IZeroExContract extends BaseContract {
             'fillOrKillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7001,6 +10396,7 @@ export class IZeroExContract extends BaseContract {
             'fillOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7085,6 +10481,7 @@ export class IZeroExContract extends BaseContract {
             'fillOtcOrderForEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7164,6 +10561,7 @@ export class IZeroExContract extends BaseContract {
             'fillOtcOrderWithEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7249,6 +10647,7 @@ export class IZeroExContract extends BaseContract {
             'fillRfqOrder((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32),uint128)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7330,6 +10729,7 @@ export class IZeroExContract extends BaseContract {
             'fillTakerSignedOtcOrder((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7410,6 +10810,7 @@ export class IZeroExContract extends BaseContract {
             'fillTakerSignedOtcOrderForEth((address,address,uint128,uint128,address,address,address,uint256),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7462,6 +10863,388 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Get the EIP-712 hash of an ERC1155 order.
+     * @param order The ERC1155 order.
+     */
+    public getERC1155OrderHash(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc1155Token: string;
+        erc1155TokenId: BigNumber;
+        erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        erc1155TokenAmount: BigNumber;
+    }): ContractTxFunctionObj<string> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getERC1155OrderHash((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get the order info for an ERC1155 order.
+     * @param order The ERC1155 order.
+     */
+    public getERC1155OrderInfo(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc1155Token: string;
+        erc1155TokenId: BigNumber;
+        erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        erc1155TokenAmount: BigNumber;
+    }): ContractTxFunctionObj<{
+        orderHash: string;
+        status: number;
+        orderAmount: BigNumber;
+        remainingAmount: BigNumber;
+    }> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getERC1155OrderInfo((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(
+                callData: Partial<CallData> = {},
+                defaultBlock?: BlockParam,
+            ): Promise<{ orderHash: string; status: number; orderAmount: BigNumber; remainingAmount: BigNumber }> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<{
+                    orderHash: string;
+                    status: number;
+                    orderAmount: BigNumber;
+                    remainingAmount: BigNumber;
+                }>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get the EIP-712 hash of an ERC721 order.
+     * @param order The ERC721 order.
+     */
+    public getERC721OrderHash(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc721Token: string;
+        erc721TokenId: BigNumber;
+        erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+    }): ContractTxFunctionObj<string> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getERC721OrderHash((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get the current status of an ERC721 order.
+     * @param order The ERC721 order.
+     */
+    public getERC721OrderStatus(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc721Token: string;
+        erc721TokenId: BigNumber;
+        erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+    }): ContractTxFunctionObj<number> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'getERC721OrderStatus((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<number> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<number>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Get the order status bit vector for the given
+     * maker address and nonce range.
+     * @param maker The maker of the order.
+     * @param nonceRange Order status bit vectors are indexed        by maker
+     *     address and the upper 248 bits of the        order nonce. We define
+     *     `nonceRange` to be these        248 bits.
+     */
+    public getERC721OrderStatusBitVector(maker: string, nonceRange: BigNumber): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('maker', maker);
+        assert.isBigNumber('nonceRange', nonceRange);
+        const functionSignature = 'getERC721OrderStatusBitVector(address,uint248)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [maker.toLowerCase(), nonceRange]);
+            },
+        };
+    }
+    /**
      * Get the canonical hash of a limit order.
      * @param order The limit order.
      */
@@ -7485,6 +11268,7 @@ export class IZeroExContract extends BaseContract {
             'getLimitOrderHash((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7560,6 +11344,7 @@ export class IZeroExContract extends BaseContract {
             'getLimitOrderInfo((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7649,6 +11434,7 @@ export class IZeroExContract extends BaseContract {
             'getLimitOrderRelevantState((address,address,uint128,uint128,uint128,address,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7727,6 +11513,7 @@ export class IZeroExContract extends BaseContract {
             'getMetaTransactionExecutedBlock((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7800,6 +11587,7 @@ export class IZeroExContract extends BaseContract {
             'getMetaTransactionHash((address,address,uint256,uint256,uint256,uint256,bytes,uint256,address,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7861,6 +11649,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getMetaTransactionHashExecutedBlock(bytes32)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -7931,6 +11720,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getOtcOrderHash((address,address,uint128,uint128,address,address,address,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8001,6 +11791,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getOtcOrderInfo((address,address,uint128,uint128,address,address,address,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8064,6 +11855,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getProtocolFeeMultiplier()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8123,6 +11915,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getQuoteSigner()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8196,6 +11989,7 @@ export class IZeroExContract extends BaseContract {
             'getRfqOrderHash((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8269,6 +12063,7 @@ export class IZeroExContract extends BaseContract {
             'getRfqOrderInfo((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8356,6 +12151,7 @@ export class IZeroExContract extends BaseContract {
             'getRfqOrderRelevantState((address,address,uint128,uint128,address,address,address,bytes32,uint64,uint256),(uint8,uint8,bytes32,bytes32))';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8424,6 +12220,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getRollbackEntryAtIndex(bytes4,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8485,6 +12282,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getRollbackLength(bytes4)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8545,6 +12343,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getTransformWallet()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8604,6 +12403,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'getTransformerDeployer()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8667,6 +12467,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'isValidOrderSigner(address,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8731,6 +12532,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'lastOtcTxOriginNonce(address,uint64)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8783,6 +12585,109 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Matches a pair of complementary orders that have
+     * a non-negative spread. Each order is filled at
+     * their respective price, and the matcher receives
+     * a profit denominated in the ERC20 token.
+     * @param sellOrder Order selling an ERC721 asset.
+     * @param buyOrder Order buying an ERC721 asset.
+     * @param sellOrderSignature Signature for the sell order.
+     * @param buyOrderSignature Signature for the buy order.
+     */
+    public matchERC721Orders(
+        sellOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        buyOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        sellOrderSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        buyOrderSignature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<BigNumber> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'matchERC721Orders((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),(uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),(uint8,uint8,bytes32,bytes32),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<BigNumber> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<BigNumber>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    sellOrder,
+                    buyOrder,
+                    sellOrderSignature,
+                    buyOrderSignature,
+                ]);
+            },
+        };
+    }
+    /**
      * Execute a migration function in the context of the ZeroEx contract.
      * The result of the function being called should be the magic bytes
      * 0x2c64c5ef (`keccack('MIGRATE_SUCCESS')`). Only callable by the owner.
@@ -8800,6 +12705,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'migrate(address,bytes,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8875,6 +12781,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'multiplexBatchSellEthForToken(address,(uint8,uint256,bytes)[],uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -8949,6 +12856,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'multiplexBatchSellTokenForEth(address,(uint8,uint256,bytes)[],uint256,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9032,6 +12940,7 @@ export class IZeroExContract extends BaseContract {
             'multiplexBatchSellTokenForToken(address,address,(uint8,uint256,bytes)[],uint256,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9112,6 +13021,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'multiplexMultiHopSellEthForToken(address[],(uint8,bytes)[],uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9187,6 +13097,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'multiplexMultiHopSellTokenForEth(address[],(uint8,bytes)[],uint256,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9263,6 +13174,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'multiplexMultiHopSellTokenForToken(address[],(uint8,bytes)[],uint256,uint256)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9315,6 +13227,180 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Callback for the ERC1155 `safeTransferFrom` function.
+     * This callback can be used to sell an ERC1155 asset if
+     * a valid ERC1155 order, signature and `unwrapNativeToken`
+     * are encoded in `data`. This allows takers to sell their
+     * ERC1155 asset without first calling `setApprovalForAll`.
+     * @param operator The address which called `safeTransferFrom`.
+     * @param from The address which previously owned the token.
+     * @param tokenId The ID of the asset being transferred.
+     * @param value The amount being transferred.
+     * @param data Additional data with no specified format. If a        valid
+     *     ERC1155 order, signature and `unwrapNativeToken`        are encoded in
+     *     `data`, this function will try to fill        the order using the
+     *     received asset.
+     */
+    public onERC1155Received(
+        operator: string,
+        from: string,
+        tokenId: BigNumber,
+        value: BigNumber,
+        data: string,
+    ): ContractTxFunctionObj<string> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('operator', operator);
+        assert.isString('from', from);
+        assert.isBigNumber('tokenId', tokenId);
+        assert.isBigNumber('value', value);
+        assert.isString('data', data);
+        const functionSignature = 'onERC1155Received(address,address,uint256,uint256,bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    operator.toLowerCase(),
+                    from.toLowerCase(),
+                    tokenId,
+                    value,
+                    data,
+                ]);
+            },
+        };
+    }
+    /**
+     * Callback for the ERC721 `safeTransferFrom` function.
+     * This callback can be used to sell an ERC721 asset if
+     * a valid ERC721 order, signature and `unwrapNativeToken`
+     * are encoded in `data`. This allows takers to sell their
+     * ERC721 asset without first calling `setApprovalForAll`.
+     * @param operator The address which called `safeTransferFrom`.
+     * @param from The address which previously owned the token.
+     * @param tokenId The ID of the asset being transferred.
+     * @param data Additional data with no specified format. If a        valid
+     *     ERC721 order, signature and `unwrapNativeToken`        are encoded in
+     *     `data`, this function will try to fill        the order using the
+     *     received asset.
+     */
+    public onERC721Received(
+        operator: string,
+        from: string,
+        tokenId: BigNumber,
+        data: string,
+    ): ContractTxFunctionObj<string> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('operator', operator);
+        assert.isString('from', from);
+        assert.isBigNumber('tokenId', tokenId);
+        assert.isString('data', data);
+        const functionSignature = 'onERC721Received(address,address,uint256,bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<string> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<string>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    operator.toLowerCase(),
+                    from.toLowerCase(),
+                    tokenId,
+                    data,
+                ]);
+            },
+        };
+    }
+    /**
      * The owner of this contract.
      */
     public owner(): ContractTxFunctionObj<string> {
@@ -9322,6 +13408,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'owner()';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9374,6 +13461,161 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Approves an ERC1155 order on-chain. After pre-signing
+     * the order, the `PRESIGNED` signature type will become
+     * valid for that order and signer.
+     * @param order An ERC1155 order.
+     */
+    public preSignERC1155Order(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc1155Token: string;
+        erc1155TokenId: BigNumber;
+        erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        erc1155TokenAmount: BigNumber;
+    }): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'preSignERC1155Order((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
+     * Approves an ERC721 order on-chain. After pre-signing
+     * the order, the `PRESIGNED` signature type will become
+     * valid for that order and signer.
+     * @param order An ERC721 order.
+     */
+    public preSignERC721Order(order: {
+        direction: number | BigNumber;
+        maker: string;
+        taker: string;
+        expiry: BigNumber;
+        nonce: BigNumber;
+        erc20Token: string;
+        erc20TokenAmount: BigNumber;
+        fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+        erc721Token: string;
+        erc721TokenId: BigNumber;
+        erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+    }): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'preSignERC721Order((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order]);
+            },
+        };
+    }
+    /**
      * Register a signer who can sign on behalf of msg.sender
      * This allows one to sign on behalf of a contract that calls this function
      * @param signer The address from which you plan to generate signatures
@@ -9386,6 +13628,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'registerAllowedOrderSigner(address,bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9450,6 +13693,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'registerAllowedRfqOrigins(address[],bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9513,6 +13757,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'rollback(bytes4,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9565,6 +13810,213 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Sells an ERC1155 asset to fill the given order.
+     * @param buyOrder The ERC1155 buy order.
+     * @param signature The order signature from the maker.
+     * @param erc1155TokenId The ID of the ERC1155 asset being        sold. If the
+     *     given order specifies properties,        the asset must satisfy those
+     *     properties. Otherwise,        it must equal the tokenId in the order.
+     * @param erc1155SellAmount The amount of the ERC1155 asset        to sell.
+     * @param unwrapNativeToken If this parameter is true and the        ERC20
+     *     token of the order is e.g. WETH, unwraps the        token before
+     *     transferring it to the taker.
+     * @param callbackData If this parameter is non-zero, invokes
+     *     `zeroExERC1155OrderCallback` on `msg.sender` after        the ERC20
+     *     tokens have been transferred to `msg.sender`        but before
+     *     transferring the ERC1155 asset to the buyer.
+     */
+    public sellERC1155(
+        buyOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc1155Token: string;
+            erc1155TokenId: BigNumber;
+            erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+            erc1155TokenAmount: BigNumber;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        erc1155TokenId: BigNumber,
+        erc1155SellAmount: BigNumber,
+        unwrapNativeToken: boolean,
+        callbackData: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('erc1155TokenId', erc1155TokenId);
+        assert.isBigNumber('erc1155SellAmount', erc1155SellAmount);
+        assert.isBoolean('unwrapNativeToken', unwrapNativeToken);
+        assert.isString('callbackData', callbackData);
+        const functionSignature =
+            'sellERC1155((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128),(uint8,uint8,bytes32,bytes32),uint256,uint128,bool,bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    buyOrder,
+                    signature,
+                    erc1155TokenId,
+                    erc1155SellAmount,
+                    unwrapNativeToken,
+                    callbackData,
+                ]);
+            },
+        };
+    }
+    /**
+     * Sells an ERC721 asset to fill the given order.
+     * @param buyOrder The ERC721 buy order.
+     * @param signature The order signature from the maker.
+     * @param erc721TokenId The ID of the ERC721 asset being        sold. If the
+     *     given order specifies properties,        the asset must satisfy those
+     *     properties. Otherwise,        it must equal the tokenId in the order.
+     * @param unwrapNativeToken If this parameter is true and the        ERC20
+     *     token of the order is e.g. WETH, unwraps the        token before
+     *     transferring it to the taker.
+     * @param callbackData If this parameter is non-zero, invokes
+     *     `zeroExERC721OrderCallback` on `msg.sender` after        the ERC20
+     *     tokens have been transferred to `msg.sender`        but before
+     *     transferring the ERC721 asset to the buyer.
+     */
+    public sellERC721(
+        buyOrder: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+        erc721TokenId: BigNumber,
+        unwrapNativeToken: boolean,
+        callbackData: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('erc721TokenId', erc721TokenId);
+        assert.isBoolean('unwrapNativeToken', unwrapNativeToken);
+        assert.isString('callbackData', callbackData);
+        const functionSignature =
+            'sellERC721((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),(uint8,uint8,bytes32,bytes32),uint256,bool,bytes)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    buyOrder,
+                    signature,
+                    erc721TokenId,
+                    unwrapNativeToken,
+                    callbackData,
+                ]);
+            },
+        };
+    }
+    /**
      * Sell attached ETH directly against uniswap v3.
      * @param encodedPath Uniswap-encoded path, where the first token is WETH.
      * @param minBuyAmount Minimum amount of the last token in the path to buy.
@@ -9582,6 +14034,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellEthForTokenToUniswapV3(bytes,uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9671,6 +14124,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellToLiquidityProvider(address,address,address,address,uint256,uint256,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9751,6 +14205,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellToPancakeSwap(address[],uint256,uint256,uint8)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9823,6 +14278,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellToUniswap(address[],uint256,uint256,bool)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9895,6 +14351,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellTokenForEthToUniswapV3(bytes,uint256,uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -9972,6 +14429,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'sellTokenForTokenToUniswapV3(bytes,uint256,uint256,address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10039,6 +14497,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'setQuoteSigner(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10102,6 +14561,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'setTransformerDeployer(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10154,6 +14614,74 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * Indicates whether the 0x Exchange Proxy implements a particular
+     * ERC165 interface. This function should use at most 30,000 gas.
+     * @param interfaceId The interface identifier, as specified in ERC165.
+     */
+    public supportInterface(interfaceId: string): ContractTxFunctionObj<boolean> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('interfaceId', interfaceId);
+        const functionSignature = 'supportInterface(bytes4)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<boolean> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                let rawCallResult;
+                if (self._deployedBytecodeIfExists) {
+                    rawCallResult = await self._evmExecAsync(this.getABIEncodedTransactionData());
+                } else {
+                    rawCallResult = await self._performCallAsync(
+                        { data: this.getABIEncodedTransactionData(), ...callData },
+                        defaultBlock,
+                    );
+                }
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<boolean>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [interfaceId]);
+            },
+        };
+    }
+    /**
      * Transfers ownership of the contract to a new address.
      * @param newOwner The address that will become the owner.
      */
@@ -10163,6 +14691,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'transferOwnership(address)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10225,6 +14754,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'transferProtocolFeesForPools(bytes32[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10277,6 +14807,80 @@ export class IZeroExContract extends BaseContract {
         };
     }
     /**
+     * calledFrom FundRecoveryFeature.transferTrappedTokensTo() This will be delegatecalled in the context of the Exchange Proxy instance being used.
+     * @param erc20 ERC20 Token Address.
+     * @param amountOut Amount of tokens to withdraw.
+     * @param recipientWallet Recipient wallet address.
+     */
+    public transferTrappedTokensTo(
+        erc20: string,
+        amountOut: BigNumber,
+        recipientWallet: string,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+        assert.isString('erc20', erc20);
+        assert.isBigNumber('amountOut', amountOut);
+        assert.isString('recipientWallet', recipientWallet);
+        const functionSignature = 'transferTrappedTokensTo(address,uint256,address)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [
+                    erc20.toLowerCase(),
+                    amountOut,
+                    recipientWallet.toLowerCase(),
+                ]);
+            },
+        };
+    }
+    /**
      * Executes a series of transformations to convert an ERC20 `inputToken`
      * to an ERC20 `outputToken`.
      * @param inputToken The token being provided by the sender.        If
@@ -10305,6 +14909,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'transformERC20(address,address,uint256,uint256,(uint32,bytes)[])';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10383,6 +14988,7 @@ export class IZeroExContract extends BaseContract {
         const functionSignature = 'uniswapV3SwapCallback(int256,int256,bytes)';
 
         return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
             async sendTransactionAsync(
                 txData?: Partial<TxData> | undefined,
                 opts: SendTransactionOpts = { shouldValidate: true },
@@ -10431,6 +15037,340 @@ export class IZeroExContract extends BaseContract {
             },
             getABIEncodedTransactionData(): string {
                 return self._strictEncodeArguments(functionSignature, [amount0Delta, amount1Delta, data]);
+            },
+        };
+    }
+    /**
+     * If the given order is buying an ERC1155 asset, checks
+     * whether or not the given token ID satisfies the required
+     * properties specified in the order. If the order does not
+     * specify any properties, this function instead checks
+     * whether the given token ID matches the ID in the order.
+     * Reverts if any checks fail, or if the order is selling
+     * an ERC1155 asset.
+     * @param order The ERC1155 order.
+     * @param erc1155TokenId The ID of the ERC1155 asset.
+     */
+    public validateERC1155OrderProperties(
+        order: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc1155Token: string;
+            erc1155TokenId: BigNumber;
+            erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+            erc1155TokenAmount: BigNumber;
+        },
+        erc1155TokenId: BigNumber,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('erc1155TokenId', erc1155TokenId);
+        const functionSignature =
+            'validateERC1155OrderProperties((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128),uint256)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, erc1155TokenId]);
+            },
+        };
+    }
+    /**
+     * Checks whether the given signature is valid for the
+     * the given ERC1155 order. Reverts if not.
+     * @param order The ERC1155 order.
+     * @param signature The signature to validate.
+     */
+    public validateERC1155OrderSignature(
+        order: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc1155Token: string;
+            erc1155TokenId: BigNumber;
+            erc1155TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+            erc1155TokenAmount: BigNumber;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'validateERC1155OrderSignature((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[],uint128),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, signature]);
+            },
+        };
+    }
+    /**
+     * If the given order is buying an ERC721 asset, checks
+     * whether or not the given token ID satisfies the required
+     * properties specified in the order. If the order does not
+     * specify any properties, this function instead checks
+     * whether the given token ID matches the ID in the order.
+     * Reverts if any checks fail, or if the order is selling
+     * an ERC721 asset.
+     * @param order The ERC721 order.
+     * @param erc721TokenId The ID of the ERC721 asset.
+     */
+    public validateERC721OrderProperties(
+        order: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        erc721TokenId: BigNumber,
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        assert.isBigNumber('erc721TokenId', erc721TokenId);
+        const functionSignature =
+            'validateERC721OrderProperties((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),uint256)';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, erc721TokenId]);
+            },
+        };
+    }
+    /**
+     * Checks whether the given signature is valid for the
+     * the given ERC721 order. Reverts if not.
+     * @param order The ERC721 order.
+     * @param signature The signature to validate.
+     */
+    public validateERC721OrderSignature(
+        order: {
+            direction: number | BigNumber;
+            maker: string;
+            taker: string;
+            expiry: BigNumber;
+            nonce: BigNumber;
+            erc20Token: string;
+            erc20TokenAmount: BigNumber;
+            fees: Array<{ recipient: string; amount: BigNumber; feeData: string }>;
+            erc721Token: string;
+            erc721TokenId: BigNumber;
+            erc721TokenProperties: Array<{ propertyValidator: string; propertyData: string }>;
+        },
+        signature: { signatureType: number | BigNumber; v: number | BigNumber; r: string; s: string },
+    ): ContractTxFunctionObj<void> {
+        const self = (this as any) as IZeroExContract;
+
+        const functionSignature =
+            'validateERC721OrderSignature((uint8,address,address,uint256,uint256,address,uint256,(address,uint256,bytes)[],address,uint256,(address,bytes)[]),(uint8,uint8,bytes32,bytes32))';
+
+        return {
+            selector: self._lookupAbiEncoder(functionSignature).getSelector(),
+            async sendTransactionAsync(
+                txData?: Partial<TxData> | undefined,
+                opts: SendTransactionOpts = { shouldValidate: true },
+            ): Promise<string> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync(
+                    { data: this.getABIEncodedTransactionData(), ...txData },
+                    this.estimateGasAsync.bind(this),
+                );
+                if (opts.shouldValidate !== false) {
+                    await this.callAsync(txDataWithDefaults);
+                }
+                return self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+            },
+            awaitTransactionSuccessAsync(
+                txData?: Partial<TxData>,
+                opts: AwaitTransactionSuccessOpts = { shouldValidate: true },
+            ): PromiseWithTransactionHash<TransactionReceiptWithDecodedLogs> {
+                return self._promiseWithTransactionHash(this.sendTransactionAsync(txData, opts), opts);
+            },
+            async estimateGasAsync(txData?: Partial<TxData> | undefined): Promise<number> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+            },
+            async createAccessListAsync(
+                txData?: Partial<TxData> | undefined,
+                defaultBlock?: BlockParam,
+            ): Promise<TxAccessListWithGas> {
+                const txDataWithDefaults = await self._applyDefaultsToTxDataAsync({
+                    data: this.getABIEncodedTransactionData(),
+                    ...txData,
+                });
+                return self._web3Wrapper.createAccessListAsync(txDataWithDefaults, defaultBlock);
+            },
+            async callAsync(callData: Partial<CallData> = {}, defaultBlock?: BlockParam): Promise<void> {
+                BaseContract._assertCallParams(callData, defaultBlock);
+                const rawCallResult = await self._performCallAsync(
+                    { data: this.getABIEncodedTransactionData(), ...callData },
+                    defaultBlock,
+                );
+                const abiEncoder = self._lookupAbiEncoder(functionSignature);
+                BaseContract._throwIfUnexpectedEmptyCallResult(rawCallResult, abiEncoder);
+                return abiEncoder.strictDecodeReturnValue<void>(rawCallResult);
+            },
+            getABIEncodedTransactionData(): string {
+                return self._strictEncodeArguments(functionSignature, [order, signature]);
             },
         };
     }

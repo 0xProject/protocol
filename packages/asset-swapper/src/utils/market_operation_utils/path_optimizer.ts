@@ -5,9 +5,10 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
+import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
-import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from '../market_operation_utils/constants';
 
+import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetrics } from './types';
@@ -19,6 +20,8 @@ const RUN_LIMIT_DECAY_FACTOR = 0.5;
 const MIN_NUM_SAMPLE_INPUTS = 3;
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
+
+const ONE_BASE_UNIT = new BigNumber(1);
 
 function nativeOrderToNormalizedAmounts(
     side: MarketOperation,
@@ -74,6 +77,13 @@ function findRoutesAndCreateOptimalPath(
     fees: FeeSchedule,
     neonRouterNumSamples: number,
 ): Path | undefined {
+    // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
+    // To avoid flooding the logs with these errors we just return an insufficient liquidity error
+    // which is how the JS router handles these quotes today
+    if (input.eq(ONE_BASE_UNIT)) {
+        return undefined;
+    }
+
     const createFill = (sample: DexSample): Fill | undefined => {
         const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees);
         // NOTE: If the sample has 0 output dexSamplesToFills will return [] because no fill can be created
@@ -154,10 +164,24 @@ function findRoutesAndCreateOptimalPath(
         const inputs = [];
         const outputs = [];
         const outputFees = [];
+
+        // NOTE: Limit orders can be both larger or smaller than the input amount
+        // If the order is larger than the input we can scale the order to the size of
+        // the quote input (order pricing is constant) and then create 13 "samples" up to
+        // and including the full quote input amount.
+        // If the order is smaller we don't need to scale anything, we will just end up
+        // with trailing duplicate samples for the order input as we cannot go higher
+        const scaleToInput = BigNumber.min(input.dividedBy(normalizedOrderInput), 1);
         for (let i = 1; i <= 13; i++) {
             const fraction = i / 13;
-            const currentInput = BigNumber.min(normalizedOrderInput.times(fraction), normalizedOrderInput);
-            const currentOutput = BigNumber.min(normalizedOrderOutput.times(fraction), normalizedOrderOutput);
+            const currentInput = BigNumber.min(
+                normalizedOrderInput.times(scaleToInput).times(fraction),
+                normalizedOrderInput,
+            );
+            const currentOutput = BigNumber.min(
+                normalizedOrderOutput.times(scaleToInput).times(fraction),
+                normalizedOrderOutput,
+            );
             const id = `${ERC20BridgeSource.Native}-${serializedPaths.length}-${idx}-${i}`;
             inputs.push(currentInput.integerValue().toNumber());
             outputs.push(currentOutput.integerValue().toNumber());
@@ -210,7 +234,11 @@ function findRoutesAndCreateOptimalPath(
 
     const scale = input.dividedBy(totalRoutedAmount);
     for (const [routeInput, routeSamplesAndNativeOrders, outputAmount, sourcePathId] of routesAndSamplesAndOutputs) {
-        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount || !Number.isFinite(outputAmount)) {
+        if (!Number.isFinite(outputAmount)) {
+            DEFAULT_WARNING_LOGGER(rustArgs, `neon-router: invalid route outputAmount ${outputAmount}`);
+            return undefined;
+        }
+        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount) {
             continue;
         }
         // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
@@ -229,6 +257,7 @@ function findRoutesAndCreateOptimalPath(
                 opts.outputAmountPerEth,
                 opts.inputAmountPerEth,
                 fees,
+                false,
             )[0] as Fill | undefined;
             // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
             // and nativeFill will be `undefined`

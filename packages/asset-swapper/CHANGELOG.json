@@ -1,12 +1,43 @@
 [
     {
+        "version": "16.49.9",
+        "changes": [
+            {
+                "note": "Fix native order scaling & filter out 1 wei quotes",
+                "pr": "430"
+            }
+        ],
+        "timestamp": 1645696356
+    },
+    {
+        "timestamp": 1645569128,
+        "version": "16.49.8",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "16.49.7",
+        "changes": [
+            {
+                "note": "Fix native order handling for very small quotes and bump `neon-router` dependency",
+                "pr": 425
+            }
+        ],
+        "timestamp": 1645534245
+    },
+    {
         "version": "16.49.6",
         "changes": [
             {
                 "note": "Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools",
                 "pr": 427
             }
-        ]
+
+        ],
+        "timestamp": 1645113751
     },
     {
         "version": "16.49.5",

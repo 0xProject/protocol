@@ -44,7 +44,8 @@ library LibSignature {
         ILLEGAL,
         INVALID,
         EIP712,
-        ETHSIGN
+        ETHSIGN,
+        PRESIGNED
     }
 
     /// @dev Encoded EC signature.
@@ -142,6 +143,15 @@ library LibSignature {
         if (signature.signatureType == SignatureType.INVALID) {
             LibSignatureRichErrors.SignatureValidationError(
                 LibSignatureRichErrors.SignatureValidationErrorCodes.ALWAYS_INVALID,
+                hash
+            ).rrevert();
+        }
+
+        // If a feature supports pre-signing, it wouldn't use 
+        // `getSignerOfHash` on a pre-signed order.
+        if (signature.signatureType == SignatureType.PRESIGNED) {
+            LibSignatureRichErrors.SignatureValidationError(
+                LibSignatureRichErrors.SignatureValidationErrorCodes.UNSUPPORTED,
                 hash
             ).rrevert();
         }

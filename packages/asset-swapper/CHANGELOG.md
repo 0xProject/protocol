@@ -5,6 +5,22 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.49.9 - _February 24, 2022_
+
+    * Fix native order scaling & filter out 1 wei quotes (#430)
+
+## v16.49.8 - _February 22, 2022_
+
+    * Dependencies updated
+
+## v16.49.7 - _February 22, 2022_
+
+    * Fix native order handling for very small quotes and bump `neon-router` dependency (#425)
+
+## v16.49.6 - _February 17, 2022_
+
+    * Fixed btrfly routing to include the ohmV2/dai, ohmV2/btfly, and ohmV2/weth pools (#427)
+
 ## v16.49.5 - _February 14, 2022_
 
     * Fix scaling 1 base unit to 0, round output to base units (#422)

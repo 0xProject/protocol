@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.19.0 - _February 22, 2022_
+
+    * Regenerate wrappers to add ContractTxFunctionObj.selector (#429)
+    * Update IZeroEx wrapper (#429)
+
 ## v13.18.5 - _December 24, 2021_
 
     * Dependencies updated
