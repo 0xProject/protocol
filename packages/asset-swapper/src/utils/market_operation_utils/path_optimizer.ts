@@ -80,7 +80,7 @@ function findRoutesAndCreateOptimalPath(
     // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
     // To avoid flooding the logs with these errors we just return an insufficient liquidity error
     // which is how the JS router handles these quotes today
-    if (input.eq(ONE_BASE_UNIT)) {
+    if (input.isLessThanOrEqualTo(ONE_BASE_UNIT)) {
         return undefined;
     }
 
