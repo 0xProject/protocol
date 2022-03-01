@@ -1,4 +1,14 @@
 [
+
+    {
+        "version": "16.52.0",
+        "changes": [
+            {
+                "note": "Adds support for mobius money on celo",
+                "pr": 423
+            }
+        ]
+    },
     {
         "version": "16.51.0",
         "changes": [
