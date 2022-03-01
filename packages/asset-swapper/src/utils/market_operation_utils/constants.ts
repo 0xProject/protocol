@@ -631,7 +631,7 @@ export const CURVE_POOLS = {
     USDP: '0x42d7025938bec20b69cbae5a77421082407f053a', // usdp
     ib: '0x2dded6da1bf5dbdf597c45fcfaa3194e53ecfeaf', // iron bank
     link: '0xf178c0b5bb7e7abf4e12a4838c7b7c5ba2c623c0', // link
-    btrflyweth: '0xf43b15ab692fde1f9c24a9fce700adcc809d5391', //redacted cartel
+    btrflyweth: '0xf43b15ab692fde1f9c24a9fce700adcc809d5391', // redacted cartel
     // StableSwap "open pools" (crv.finance)
     TUSD: '0xecd5e75afb02efa118af914515d6521aabd189f1',
     STABLEx: '0x3252efd4ea2d6c78091a1f43982ee2c3659cc3d1',

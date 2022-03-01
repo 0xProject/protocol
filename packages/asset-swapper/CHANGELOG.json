@@ -1,5 +1,15 @@
 [
     {
+        "version": "16.50.0",
+        "changes": [
+            {
+                "note": "Add BTRFLY/WETH Curve pool on mainnet",
+                "pr": "437"
+            }
+        ],
+        "timestamp": 1645696356
+    },
+    {
         "version": "16.49.9",
         "changes": [
             {
