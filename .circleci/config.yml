@@ -4,7 +4,7 @@ jobs:
     build:
         resource_class: xlarge
         docker:
-            - image: node:12
+            - image: node:12-buster
         environment:
             NODE_OPTIONS: '--max-old-space-size=16384'
         working_directory: ~/repo
@@ -31,7 +31,7 @@ jobs:
     test-exchange-ganache:
         resource_class: medium+
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -41,7 +41,7 @@ jobs:
     test-integrations-ganache:
         resource_class: medium+
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -51,7 +51,7 @@ jobs:
     test-contracts-staking-ganache:
         resource_class: medium+
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -61,7 +61,7 @@ jobs:
     test-contracts-extra-ganache:
         resource_class: medium+
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -71,7 +71,7 @@ jobs:
     test-contracts-rest-ganache:
         resource_class: medium+
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -83,7 +83,7 @@ jobs:
         environment:
             NODE_OPTIONS: '--max-old-space-size=6442'
         docker:
-            - image: node:12
+            - image: node:12-buster
             - image: 0xorg/verdaccio
         working_directory: ~/repo
         steps:
@@ -97,7 +97,7 @@ jobs:
                   path: ~/.npm/_logs
     test-doc-generation:
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -108,7 +108,7 @@ jobs:
                   no_output_timeout: 1200
     test-rest:
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
@@ -136,7 +136,7 @@ jobs:
         resource_class: large
         working_directory: ~/repo
         docker:
-            - image: node:12
+            - image: node:12-buster
         steps:
             - restore_cache:
                   keys:
@@ -147,7 +147,7 @@ jobs:
             - run: yarn diff_md_docs:ci
     submit-coverage:
         docker:
-            - image: node:12
+            - image: node:12-buster
         working_directory: ~/repo
         steps:
             - restore_cache:
