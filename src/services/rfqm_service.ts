@@ -1650,21 +1650,33 @@ export class RfqmService {
                         'Submitting transaction',
                     );
 
-                    const newTransaction = await this._submitTransactionAsync(
-                        _job.kind,
-                        orderHash,
-                        workerAddress,
-                        calldata,
-                        gasFees,
-                        nonce,
-                        gasEstimate,
-                    );
-                    logger.info(
-                        { workerAddress, orderHash, transactionHash: newTransaction.transactionHash },
-                        'Successfully resubmited tx with higher gas price',
-                    );
-                    submissionContext.addTransaction(newTransaction);
+                    try {
+                        const newTransaction = await this._submitTransactionAsync(
+                            _job.kind,
+                            orderHash,
+                            workerAddress,
+                            calldata,
+                            gasFees,
+                            nonce,
+                            gasEstimate,
+                        );
+                        logger.info(
+                            { workerAddress, orderHash, transactionHash: newTransaction.transactionHash },
+                            'Successfully resubmited tx with higher gas price',
+                        );
+                        submissionContext.addTransaction(newTransaction);
+                    } catch (err) {
+                        // TODO(phil) - log error and rethrow for now - in the future only rethrow for some cases
+                        const errorMessage = err.message;
+                        const isNonceTooLow = /nonce too low/.test(errorMessage);
+                        logger.warn(
+                            { workerAddress, orderHash, errorMessage: err.message, isNonceTooLow },
+                            'Encountered an error re-submitting a tx',
+                        );
+                        throw err;
+                    }
                     break;
+
                 case RfqmJobStatus.FailedRevertedUnconfirmed:
                 case RfqmJobStatus.SucceededUnconfirmed:
                     break;
