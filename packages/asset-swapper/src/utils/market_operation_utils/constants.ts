@@ -2,7 +2,6 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
-import * as _ from 'lodash';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
@@ -2381,12 +2380,13 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
             gas += uniFillData.gasUsed;
         } else {
             // NOTE: We don't actually know which of the paths would be used in the router
-            // therefore we estimate using the mean of gas prices returned from UniswapV3
+            // therefore we estimate using the median of gas usage returned from UniswapV3
             // For the best case scenario (least amount of hops & ticks) this will
-            // over estimate the gas usage
+            // overestimate the gas usage
             const pathAmountsWithGasUsed = uniFillData.pathAmounts.filter(p => p.gasUsed > 0);
-            const meanGasUsedForPath = Math.round(_.meanBy(pathAmountsWithGasUsed, p => p.gasUsed));
-            gas += meanGasUsedForPath;
+            const medianGasUsedForPath =
+                pathAmountsWithGasUsed[Math.floor(pathAmountsWithGasUsed.length / 2)]?.gasUsed ?? 0;
+            gas += medianGasUsedForPath;
         }
 
         // If we for some reason could not read `gasUsed` when sampling
