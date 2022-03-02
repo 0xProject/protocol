@@ -102,6 +102,7 @@ export enum ERC20BridgeSource {
     SpookySwap = 'SpookySwap',
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
+    Geist = 'Geist',
 }
 export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Balancer
@@ -178,6 +179,12 @@ export interface BalancerV2PoolInfo {
 export interface AaveV2Info {
     lendingPool: string;
     aToken: string;
+    underlyingToken: string;
+}
+
+export interface GeistInfo {
+    lendingPool: string;
+    gToken: string;
     underlyingToken: string;
 }
 
@@ -299,6 +306,13 @@ export interface CompoundFillData extends FillData {
     cToken: string;
     takerToken: string;
     makerToken: string;
+}
+
+export interface GeistFillData extends FillData {
+    lendingPool: string;
+    gToken: string;
+    underlyingToken: string;
+    takerToken: string;
 }
 
 /**
