@@ -5,7 +5,7 @@
         "version": "v1"
     },
     "basePath": "/maker/v1",
-    "schemes": ["http", "https"],
+    "schemes": ["https", "http"],
     "consumes": ["application/json"],
     "produces": ["application/json"],
     "paths": {
