@@ -1284,7 +1284,7 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.btrflyweth]: createCurveFactoryCryptoExchangePool({
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.BTRFLY],
         pool: CURVE_POOLS.btrflyweth,
-        gasSchedule: 411e3,
+        gasSchedule: 250e3,
     }),
 };
 
