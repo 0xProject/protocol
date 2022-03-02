@@ -65,7 +65,7 @@
         "@0xproject/npm-cli-login": "^0.0.11",
         "async-child-process": "^1.1.1",
         "coveralls": "^3.0.0",
-        "ganache-cli": "6.8.0-istanbul.0",
+        "ganache-cli": "6.12.2",
         "lcov-result-merger": "^3.0.0",
         "lerna": "^3.0.0-beta.25",
         "npm-run-all": "^4.1.2",
@@ -75,6 +75,6 @@
         "wsrun": "^5.2.4"
     },
     "resolutions": {
-        "merkle-patricia-tree": "^2.3.2"
+        "merkle-patricia-tree": "3.0.0"
     }
 }
