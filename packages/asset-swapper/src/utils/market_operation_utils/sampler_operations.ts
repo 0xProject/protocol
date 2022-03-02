@@ -4,6 +4,7 @@ import { BigNumber, logUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
+import { GeistSampler } from '../../noop_samplers/GeistSampler';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
@@ -46,6 +47,7 @@ import {
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
+import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
@@ -66,6 +68,8 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    GeistFillData,
+    GeistInfo,
     GenericRouterFillData,
     HopInfo,
     KyberDmmFillData,
@@ -1151,6 +1155,34 @@ export class SamplerOperations {
         });
     }
 
+    // tslint:disable-next-line:prefer-function-over-method
+    public getGeistSellQuotes(
+        geistInfo: GeistInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GeistFillData> {
+        return new SamplerNoOperation({
+            source: ERC20BridgeSource.Geist,
+            fillData: { ...geistInfo, takerToken },
+            callback: () => GeistSampler.sampleSellsFromGeist(geistInfo, takerToken, makerToken, takerFillAmounts),
+        });
+    }
+
+    // tslint:disable-next-line:prefer-function-over-method
+    public getGeistBuyQuotes(
+        geistInfo: GeistInfo,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GeistFillData> {
+        return new SamplerNoOperation({
+            source: ERC20BridgeSource.Geist,
+            fillData: { ...geistInfo, takerToken },
+            callback: () => GeistSampler.sampleBuysFromGeist(geistInfo, takerToken, makerToken, makerFillAmounts),
+        });
+    }
+
     public getCompoundSellQuotes(
         cToken: string,
         makerToken: string,
@@ -1548,6 +1580,13 @@ export class SamplerOperations {
                         };
                         return this.getAaveV2SellQuotes(info, makerToken, takerToken, takerFillAmounts);
                     }
+                    case ERC20BridgeSource.Geist: {
+                        const info: GeistInfo | undefined = getGeistInfoForPair(takerToken, makerToken);
+                        if (!info) {
+                            return [];
+                        }
+                        return this.getGeistSellQuotes(info, makerToken, takerToken, takerFillAmounts);
+                    }
                     case ERC20BridgeSource.Compound: {
                         if (!this.compoundCTokenCache) {
                             return [];
@@ -1578,7 +1617,7 @@ export class SamplerOperations {
         takerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation[] {
-        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
@@ -1848,6 +1887,13 @@ export class SamplerOperations {
                             underlyingToken: reserve.underlyingAsset,
                         };
                         return this.getAaveV2BuyQuotes(info, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.Geist: {
+                        const info: GeistInfo | undefined = getGeistInfoForPair(takerToken, makerToken);
+                        if (!info) {
+                            return [];
+                        }
+                        return this.getGeistBuyQuotes(info, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.Compound: {
                         if (!this.compoundCTokenCache) {
