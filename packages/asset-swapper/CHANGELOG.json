@@ -1,11 +1,14 @@
 [
-
     {
         "version": "16.50.0",
         "changes": [
             {
                 "note": "Adding support for Geist on `Fantom`",
                 "pr": 398
+            },
+            {
+                "note": "Improve Uniswap V3 gas schedule",
+                "pr": 424
             }
         ]
     },

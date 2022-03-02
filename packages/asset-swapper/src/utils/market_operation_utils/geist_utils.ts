@@ -12,10 +12,10 @@ const gTokenToUnderlyingToken = new Map<string, string>([
     [FANTOM_TOKENS.gMIM, FANTOM_TOKENS.MIM],
 ]);
 
-export function getGeistInfoForPair(
-    takerToken: string,
-    makerToken: string,
-): GeistInfo | undefined {
+/**
+ * Returns GeistInfo for a certain pair if that pair exists on Geist
+ */
+export function getGeistInfoForPair(takerToken: string, makerToken: string): GeistInfo | undefined {
     let gToken;
     let underlyingToken;
     if (gTokenToUnderlyingToken.get(takerToken) === makerToken) {

@@ -37,6 +37,7 @@ import {
     ShellFillData,
     UniswapV2FillData,
     UniswapV3FillData,
+    UniswapV3PathAmount,
 } from './types';
 
 // tslint:disable completed-docs
@@ -394,11 +395,14 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): F
     switch (fill.source) {
         case ERC20BridgeSource.UniswapV3: {
             const fd = fill.fillData as UniswapV3FillData;
-            return {
+            const { uniswapPath, gasUsed } = getBestUniswapV3PathAmountForInputAmount(fd, fill.input);
+            const finalFillData: FinalUniswapV3FillData = {
                 router: fd.router,
                 tokenAddressPath: fd.tokenAddressPath,
-                uniswapPath: getBestUniswapV3PathForInputAmount(fd, fill.input),
+                uniswapPath,
+                gasUsed,
             };
+            return finalFillData;
         }
         default:
             break;
@@ -406,18 +410,21 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: CollapsedFill): F
     return fill.fillData;
 }
 
-function getBestUniswapV3PathForInputAmount(fillData: UniswapV3FillData, inputAmount: BigNumber): string {
+function getBestUniswapV3PathAmountForInputAmount(
+    fillData: UniswapV3FillData,
+    inputAmount: BigNumber,
+): UniswapV3PathAmount {
     if (fillData.pathAmounts.length === 0) {
         throw new Error(`No Uniswap V3 paths`);
     }
     // Find the best path that can satisfy `inputAmount`.
     // Assumes `fillData.pathAmounts` is sorted ascending.
-    for (const { inputAmount: pathInputAmount, uniswapPath } of fillData.pathAmounts) {
-        if (pathInputAmount.gte(inputAmount)) {
-            return uniswapPath;
+    for (const pathAmount of fillData.pathAmounts) {
+        if (pathAmount.inputAmount.gte(inputAmount)) {
+            return pathAmount;
         }
     }
-    return fillData.pathAmounts[fillData.pathAmounts.length - 1].uniswapPath;
+    return fillData.pathAmounts[fillData.pathAmounts.length - 1];
 }
 
 export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): [string, string] {
