@@ -17,8 +17,9 @@ export function createRfqMakerRouter(rfqMakerService: RfqMakerService): express.
     const handlers = new RfqMakerHandlers(rfqMakerService);
 
     // Routes
-    router.get('/chain-id/:chainId', asyncHandler(handlers.getPairsAsync.bind(handlers)));
-    router.put('/chain-id/:chainId', asyncHandler(handlers.putPairsAsync.bind(handlers)));
+    router.get('/chain-id/:chainId', asyncHandler(handlers.getRfqMakerAsync.bind(handlers)));
+    router.put('/chain-id/:chainId', asyncHandler(handlers.putRfqMakerAsync.bind(handlers)));
+    router.patch('/chain-id/:chainId', asyncHandler(handlers.patchRfqMakerAsync.bind(handlers)));
 
     // Swagger
     const swaggerOptions = {

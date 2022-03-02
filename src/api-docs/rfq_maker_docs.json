@@ -12,7 +12,7 @@
         "/chain-id/{chainId}": {
             "get": {
                 "summary": "GET /chain-id/{chainId}",
-                "operationId": "GetPairs",
+                "operationId": "Get",
                 "parameters": [
                     {
                         "name": "chainId",
@@ -33,7 +33,7 @@
                     "200": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/rfqMakerPairs"
+                            "$ref": "#/definitions/rfqMaker"
                         }
                     },
                     "default": {
@@ -46,7 +46,7 @@
             },
             "put": {
                 "summary": "PUT /chain-id/{chainId}",
-                "operationId": "PutPairs",
+                "operationId": "Put",
                 "parameters": [
                     {
                         "name": "chainId",
@@ -67,7 +67,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/inputPairs"
+                            "$ref": "#/definitions/putInput"
                         }
                     }
                 ],
@@ -75,7 +75,49 @@
                     "201": {
                         "description": "",
                         "schema": {
-                            "$ref": "#/definitions/rfqMakerPairs"
+                            "$ref": "#/definitions/rfqMaker"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "PATCH /chain-id/{chainId}",
+                "operationId": "Patch",
+                "parameters": [
+                    {
+                        "name": "chainId",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    },
+                    {
+                        "name": "0x-maker-api-key",
+                        "in": "header",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/patchInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/rfqMaker"
                         }
                     },
                     "default": {
@@ -89,7 +131,7 @@
         }
     },
     "definitions": {
-        "rfqMakerPairs": {
+        "rfqMaker": {
             "type": "object",
             "properties": {
                 "makerId": {
@@ -108,10 +150,16 @@
                     "items": {
                         "$ref": "#/definitions/pair"
                     }
+                },
+                "rfqtUri": {
+                    "type": "string"
+                },
+                "rfqmUri": {
+                    "type": "string"
                 }
             }
         },
-        "inputPairs": {
+        "putInput": {
             "type": "object",
             "properties": {
                 "pairs": {
@@ -119,6 +167,29 @@
                     "items": {
                         "$ref": "#/definitions/pair"
                     }
+                },
+                "rfqtUri": {
+                    "type": "string"
+                },
+                "rfqmUri": {
+                    "type": "string"
+                }
+            }
+        },
+        "patchInput": {
+            "type": "object",
+            "properties": {
+                "pairs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pair"
+                    }
+                },
+                "rfqtUri": {
+                    "type": "string"
+                },
+                "rfqmUri": {
+                    "type": "string"
                 }
             }
         },

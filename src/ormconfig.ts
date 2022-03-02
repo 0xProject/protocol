@@ -8,8 +8,8 @@ import {
     OrderWatcherSignedOrderEntity,
     PersistentSignedOrderEntity,
     PersistentSignedOrderV4Entity,
-    RfqMakerPairs,
-    RfqMakerPairsUpdateTimeHash,
+    RfqMaker,
+    RfqMakerUpdateTimeHash,
     RfqmJobEntity,
     RfqmQuoteEntity,
     RfqmTransactionSubmissionEntity,
@@ -39,8 +39,8 @@ const entities = [
     RfqmV2QuoteEntity,
     RfqmV2TransactionSubmissionEntity,
     OrderWatcherSignedOrderEntity,
-    RfqMakerPairs,
-    RfqMakerPairsUpdateTimeHash,
+    RfqMaker,
+    RfqMakerUpdateTimeHash,
 ];
 
 const config: ConnectionOptions = {

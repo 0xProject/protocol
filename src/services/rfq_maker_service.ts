@@ -2,7 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { addressUtils } from '@0x/utils';
 import { isArray } from 'lodash';
 
-import { RfqMakerPairs } from '../entities';
+import { RfqMaker } from '../entities';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 
@@ -15,6 +15,19 @@ export class RfqMakerService {
      */
     public static isValidChainId(chainId: any): chainId is ChainId {
         return Object.values(ChainId).includes(Number(chainId));
+    }
+
+    /**
+     * Validates that the URIs (either rfqtUri or rfqmUri) specified by client is a valid URI or null.
+     */
+    public static validateUriOrThrow(fieldName: string, uri: string | null | undefined): void {
+        if (uri === null) {
+            return;
+        }
+
+        if (uri === undefined || !uri.startsWith('http')) {
+            throw new Error(`Invalid value of ${fieldName}: ${uri}`);
+        }
     }
 
     /**
@@ -50,25 +63,49 @@ export class RfqMakerService {
     constructor(private readonly _dbUtils: RfqMakerDbUtils, private readonly _configManager: ConfigManager) {}
 
     /**
-     * Get the pairs a maker supports on a given blockchain from DB.
-     * Return a `RfqMakerPairs` entity which specifies makerId, chainId, update time and the pairs array.
-     * If not found in DB, return the default entity for the makerId and chainId with empty pairs array.
+     * Get the config of a maker on a given blockchain from DB.
+     * Return a `RfqMaker` which specifies makerId, chainId, update time, the pairs array, rfqtUri and rfqmUir.
+     * If not found in DB, return the default entity for the makerId and chainId with empty pairs array, and `null` URIs.
      */
-    public async getPairsAsync(makerId: string, chainId: number): Promise<RfqMakerPairs> {
-        const result = await this._dbUtils.getPairsAsync(makerId, chainId);
-        return result ?? new RfqMakerPairs({ makerId, chainId, updatedAt: null, pairs: [] });
+    public async getRfqMakerAsync(makerId: string, chainId: number): Promise<RfqMaker> {
+        const result = await this._dbUtils.getRfqMakerAsync(makerId, chainId);
+        return result ?? new RfqMaker({ makerId, chainId, updatedAt: null, pairs: [], rfqtUri: null, rfqmUri: null });
     }
 
     /**
      * Create or update a record in the `rfq_maker_pairs` DB table for the maker on a given blockchain.
-     * Return the `RfqMakerPairs` entity which represents the new record.
+     * Return the `RfqMaker` entity which represents the new record.
      */
-    public async createOrUpdatePairsAsync(
+    public async createOrUpdateRfqMakerAsync(
         makerId: string,
         chainId: number,
         pairs: [string, string][],
-    ): Promise<RfqMakerPairs> {
-        return this._dbUtils.createOrUpdatePairsAsync(makerId, chainId, pairs);
+        rfqtUri: string | null,
+        rfqmUri: string | null,
+    ): Promise<RfqMaker> {
+        return this._dbUtils.createOrUpdateRfqMakerAsync(makerId, chainId, pairs, rfqtUri, rfqmUri);
+    }
+
+    /**
+     * Update one or more fields of a record in the `rfq_maker_pairs` DB table for the maker on a given blockchain.
+     * Return the `RfqMaker` entity which represents the new record.
+     */
+    public async patchRfqMakerAsync(
+        makerId: string,
+        chainId: number,
+        pairs: [string, string][] | undefined,
+        rfqtUri: string | null | undefined,
+        rfqmUri: string | null | undefined,
+    ): Promise<RfqMaker> {
+        const oldRfqMaker = await this.getRfqMakerAsync(makerId, chainId);
+
+        return this.createOrUpdateRfqMakerAsync(
+            makerId,
+            chainId,
+            pairs ?? oldRfqMaker.pairs,
+            rfqtUri ?? oldRfqMaker.rfqtUri,
+            rfqmUri ?? oldRfqMaker.rfqmUri,
+        );
     }
 
     /**

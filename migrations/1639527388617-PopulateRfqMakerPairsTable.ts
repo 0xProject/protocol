@@ -2,7 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 import { RFQM_MAKER_ASSET_OFFERINGS, RFQT_MAKER_ASSET_OFFERINGS, RFQ_MAKER_CONFIGS } from '../src/config';
-import { RfqMakerPairs } from '../src/entities';
+import { RfqMaker as RfqMakerPairs } from '../src/entities';
 import { pairUtils } from '../src/utils/pair_utils';
 
 const getRfqMakerPairsArray = (): RfqMakerPairs[] => {
@@ -36,6 +36,8 @@ const getRfqMakerPairsArray = (): RfqMakerPairs[] => {
             makerId: makerConfig.makerId,
             chainId,
             pairs,
+            rfqtUri: null,
+            rfqmUri: null,
         });
     });
 };

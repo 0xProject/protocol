@@ -1,7 +1,7 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
 
-export type RfqMakerPairsUpdateTimeHashOpts = Pick<RfqMakerPairsUpdateTimeHash, 'hash' | 'chainId'> &
-    Partial<RfqMakerPairsUpdateTimeHash>;
+export type RfqMakerUpdateTimeHashOpts = Pick<RfqMakerUpdateTimeHash, 'hash' | 'chainId'> &
+    Partial<RfqMakerUpdateTimeHash>;
 
 /**
  * A materialized view for a hash of all makers' last update time for each chain.
@@ -26,7 +26,7 @@ export type RfqMakerPairsUpdateTimeHashOpts = Pick<RfqMakerPairsUpdateTimeHash, 
         GROUP BY chain_id
     `,
 })
-export class RfqMakerPairsUpdateTimeHash {
+export class RfqMakerUpdateTimeHash {
     @ViewColumn({ name: 'chain_id' })
     public chainId: number;
 
@@ -37,7 +37,7 @@ export class RfqMakerPairsUpdateTimeHash {
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
     // tslint:disable-next-line no-object-literal-type-assertion
-    constructor(opts: RfqMakerPairsUpdateTimeHashOpts = {} as RfqMakerPairsUpdateTimeHashOpts) {
+    constructor(opts: RfqMakerUpdateTimeHashOpts = {} as RfqMakerUpdateTimeHashOpts) {
         this.chainId = opts.chainId;
         this.hash = opts.hash;
     }

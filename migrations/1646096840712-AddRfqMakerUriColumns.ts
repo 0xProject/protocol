@@ -14,14 +14,15 @@ const RfqmUriColumn = new TableColumn({
     default: null,
 });
 
+const rfqMakerTableName = 'rfq_maker_pairs';
 export class AddRfqMakerUriColumns1646096840712 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.addColumn('rfq_maker_pairs', RfqtUriColumn);
-        await queryRunner.addColumn('rfq_maker_pairs', RfqmUriColumn);
+        await queryRunner.addColumn(rfqMakerTableName, RfqtUriColumn);
+        await queryRunner.addColumn(rfqMakerTableName, RfqmUriColumn);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropColumn('rfq_maker_pairs', RfqtUriColumn);
-        await queryRunner.dropColumn('rfq_maker_pairs', RfqmUriColumn);
+        await queryRunner.dropColumn(rfqMakerTableName, RfqtUriColumn);
+        await queryRunner.dropColumn(rfqMakerTableName, RfqmUriColumn);
     }
 }

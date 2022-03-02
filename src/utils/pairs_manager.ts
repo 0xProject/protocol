@@ -3,7 +3,7 @@ import * as EventEmitter from 'events';
 import { Counter, Summary } from 'prom-client';
 
 import { MakerIdsToConfigs, RfqMakerConfig, RFQ_PAIR_REFRESH_INTERVAL_MS, RFQ_WORKFLOW } from '../config';
-import { RfqMakerPairs } from '../entities';
+import { RfqMaker } from '../entities';
 import { logger } from '../logger';
 
 import { ConfigManager } from './config_manager';
@@ -60,16 +60,13 @@ type PairsToUris = Record<string, string[]>;
 const RfqMakerUrlField: 'rfqtMakerUri' | 'rfqmMakerUri' = `${RFQ_WORKFLOW}MakerUri`;
 
 /**
- * Returns Asset Offerings from an RfqMakerConfig map and a list of RfqMakerPairs
+ * Returns Asset Offerings from an RfqMakerConfig map and a list of RfqMaker
  */
-const generateAssetOfferings = (
-    makerConfigMap: MakerIdsToConfigs,
-    makerPairsList: RfqMakerPairs[],
-): RfqMakerAssetOfferings => {
-    return makerPairsList.reduce((offering: RfqMakerAssetOfferings, pairs: RfqMakerPairs) => {
-        if (makerConfigMap.has(pairs.makerId)) {
-            const makerConfig: RfqMakerConfig = makerConfigMap.get(pairs.makerId)!;
-            offering[makerConfig[RfqMakerUrlField]] = pairs.pairs;
+const generateAssetOfferings = (makerConfigMap: MakerIdsToConfigs, makers: RfqMaker[]): RfqMakerAssetOfferings => {
+    return makers.reduce((offering: RfqMakerAssetOfferings, maker: RfqMaker) => {
+        if (makerConfigMap.has(maker.makerId)) {
+            const makerConfig: RfqMakerConfig = makerConfigMap.get(maker.makerId)!;
+            offering[makerConfig[RfqMakerUrlField]] = maker.pairs;
         }
         return offering;
     }, {});
@@ -87,7 +84,7 @@ export class PairsManager extends EventEmitter {
     private _rfqmMakerOfferings: RfqMakerAssetOfferings;
     private _rfqmMakerOfferingsForRfqOrder: RfqMakerAssetOfferings;
     private _rfqmPairToMakerUrisForOtcOrder: PairsToUris;
-    private _rfqMakerPairsListUpdateTimeHash: string | null;
+    private _rfqMakerListUpdateTimeHash: string | null;
 
     constructor(private readonly _configManager: ConfigManager, private readonly _dbUtils: RfqMakerDbUtils) {
         super();
@@ -99,7 +96,7 @@ export class PairsManager extends EventEmitter {
         this._rfqmMakerConfigMap = this._configManager.getRfqmMakerConfigMap();
         this._rfqmMakerConfigMapForRfqOrder = this._configManager.getRfqmMakerConfigMapForRfqOrder();
         this._rfqmMakerConfigMapForOtcOrder = this._configManager.getRfqmMakerConfigMapForOtcOrder();
-        this._rfqMakerPairsListUpdateTimeHash = null;
+        this._rfqMakerListUpdateTimeHash = null;
     }
 
     /**
@@ -146,28 +143,28 @@ export class PairsManager extends EventEmitter {
         try {
             logger.info({ chainId, refreshTime }, `Check if refreshing is necessary.`);
 
-            const rfqMakerPairsListUpdateTimeHash = await this._dbUtils.getPairsArrayUpdateTimeHashAsync(chainId);
+            const rfqMakerListUpdateTimeHash = await this._dbUtils.getRfqMakersUpdateTimeHashAsync(chainId);
 
-            if (rfqMakerPairsListUpdateTimeHash === this._rfqMakerPairsListUpdateTimeHash) {
+            if (rfqMakerListUpdateTimeHash === this._rfqMakerListUpdateTimeHash) {
                 logger.info({ chainId, refreshTime }, `Pairs are up to date.`);
                 return;
             }
 
             logger.info({ chainId, refreshTime }, `Start refreshing pairs.`);
 
-            this._rfqMakerPairsListUpdateTimeHash = rfqMakerPairsListUpdateTimeHash;
-            const rfqMakerPairsList = await this._dbUtils.getPairsArrayAsync(chainId);
+            this._rfqMakerListUpdateTimeHash = rfqMakerListUpdateTimeHash;
+            const rfqMakerList = await this._dbUtils.getRfqMakersAsync(chainId);
 
-            this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerConfigMap, rfqMakerPairsList);
+            this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerConfigMap, rfqMakerList);
 
             this._rfqmMakerOfferingsForRfqOrder = generateAssetOfferings(
                 this._rfqmMakerConfigMapForRfqOrder,
-                rfqMakerPairsList,
+                rfqMakerList,
             );
 
             const rfqmMakerOfferingsForOtcOrder = generateAssetOfferings(
                 this._rfqmMakerConfigMapForOtcOrder,
-                rfqMakerPairsList,
+                rfqMakerList,
             );
             this._rfqmPairToMakerUrisForOtcOrder = generatePairToMakerUriMap(rfqmMakerOfferingsForOtcOrder);
 

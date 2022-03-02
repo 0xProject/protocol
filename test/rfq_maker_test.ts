@@ -11,7 +11,7 @@ import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
 import { RFQ_MAKER_API_KEY_HEADER, RFQ_MAKER_PATH } from '../src/constants';
-import { RfqMakerPairs } from '../src/entities';
+import { RfqMaker } from '../src/entities';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerService } from '../src/services/rfq_maker_service';
@@ -27,7 +27,7 @@ describe('RFQ maker API tests', () => {
         ['0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7', '0xf84830b73b2ed3c7267e7638f500110ea47fdf30'],
     ];
     const invalidPairs: [string, string][] = [['0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7', '123']];
-    const rfqMakerPairs = new RfqMakerPairs({ makerId, chainId, updatedAt: null, pairs });
+    const rfqMaker = new RfqMaker({ makerId, chainId, updatedAt: null, pairs, rfqtUri: null, rfqmUri: null });
 
     let app: Express.Application;
     let server: Server;
@@ -40,8 +40,10 @@ describe('RFQ maker API tests', () => {
 
         mockRfqMakerService = mock(RfqMakerService);
         when(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).thenReturn(makerId);
-        when(mockRfqMakerService.getPairsAsync(makerId, chainId)).thenResolve(rfqMakerPairs);
-        when(mockRfqMakerService.createOrUpdatePairsAsync(makerId, chainId, anything())).thenResolve(rfqMakerPairs);
+        when(mockRfqMakerService.getRfqMakerAsync(makerId, chainId)).thenResolve(rfqMaker);
+        when(
+            mockRfqMakerService.createOrUpdateRfqMakerAsync(makerId, chainId, anything(), anything(), anything()),
+        ).thenResolve(rfqMaker);
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(
@@ -80,8 +82,16 @@ describe('RFQ maker API tests', () => {
 
             expect(response.body.error).to.be.eq('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(undefined)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 401 UNAUTHORIZED with an unknown maker api key', async () => {
@@ -93,8 +103,16 @@ describe('RFQ maker API tests', () => {
 
             expect(response.body.error).to.be.eq('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(unknownMakerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 400 BAD_REQUEST with an invalid chainId', async () => {
@@ -106,8 +124,16 @@ describe('RFQ maker API tests', () => {
 
             expect(response.body.error).to.be.eq('Invalid chainId.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 200 OK with active pairs', async () => {
@@ -121,8 +147,16 @@ describe('RFQ maker API tests', () => {
             expect(response.body.chainId).to.be.eq(chainId);
             expect(response.body.pairs).to.deep.equal(pairs);
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(makerId, chainId)).once();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(makerId, chainId)).once();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
     });
 
@@ -130,62 +164,94 @@ describe('RFQ maker API tests', () => {
         it('should return a 401 UNAUTHORIZED without maker api key', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)
-                .send({ pairs })
+                .send({ pairs, rfqtUri: null, rfqmUri: null })
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
             expect(response.body.error).to.be.eq('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(undefined)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 401 UNAUTHORIZED with an unknown maker api key', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)
-                .send({ pairs })
+                .send({ pairs, rfqtUri: null, rfqmUri: null })
                 .set(RFQ_MAKER_API_KEY_HEADER, unknownMakerApiKey)
                 .expect(HttpStatus.UNAUTHORIZED)
                 .expect('Content-Type', /json/);
 
             expect(response.body.error).to.be.eq('Invalid api key.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(unknownMakerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 400 BAD_REQUEST with an invalid chainId', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${invalidChainId}`)
-                .send({ pairs })
+                .send({ pairs, rfqtUri: null, rfqmUri: null })
                 .set(RFQ_MAKER_API_KEY_HEADER, makerApiKey)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
             expect(response.body.error).to.be.eq('Invalid chainId.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
         it('should return a 400 BAD_REQUEST with an invalid pairs payload', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)
-                .send({ pairs: invalidPairs })
+                .send({ pairs: invalidPairs, rfqtUri: null, rfqmUri: null })
                 .set(RFQ_MAKER_API_KEY_HEADER, makerApiKey)
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
             expect(response.body.error).to.be.eq('address of second token for pair 0 is invalid.');
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(anything(), anything(), anything())).never();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).never();
         });
 
-        it('should return a 201 CREATED with active pairs', async () => {
+        it('should return a 201 CREATED on a valid PUT', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)
-                .send({ pairs })
+                .send({ pairs, rfqtUri: null, rfqmUri: null })
                 .set(RFQ_MAKER_API_KEY_HEADER, makerApiKey)
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
@@ -194,8 +260,10 @@ describe('RFQ maker API tests', () => {
             expect(response.body.chainId).to.be.eq(chainId);
             expect(response.body.pairs).to.deep.equal(pairs);
             verify(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).once();
-            verify(mockRfqMakerService.getPairsAsync(anything(), anything())).never();
-            verify(mockRfqMakerService.createOrUpdatePairsAsync(makerId, chainId, anything())).once();
+            verify(mockRfqMakerService.getRfqMakerAsync(anything(), anything())).never();
+            verify(
+                mockRfqMakerService.createOrUpdateRfqMakerAsync(makerId, chainId, anything(), anything(), anything()),
+            ).once();
         });
     });
 });

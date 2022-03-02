@@ -7,7 +7,7 @@ import { expect } from '@0x/contracts-test-utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Connection, Repository } from 'typeorm';
 
-import { RfqMakerPairs } from '../../src/entities';
+import { RfqMaker } from '../../src/entities';
 import { RfqMakerService } from '../../src/services/rfq_maker_service';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
@@ -21,14 +21,21 @@ describe('RfqMakerService', () => {
         ['0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7', '0xf84830b73b2ed3c7267e7638f500110ea47fdf30'],
     ];
 
-    describe('getPairsAsync', () => {
+    describe('getRfqMakerAsync', () => {
         it('should get pairs from db connection', async () => {
             // Given
-            const rfqMakerPairs: RfqMakerPairs = new RfqMakerPairs({ makerId, chainId, updatedAt, pairs });
+            const rfqMaker: RfqMaker = new RfqMaker({
+                makerId,
+                chainId,
+                updatedAt,
+                pairs,
+                rfqtUri: null,
+                rfqmUri: null,
+            });
             const repositoryMock = mock(Repository);
-            when(repositoryMock.findOne(anything())).thenResolve(rfqMakerPairs);
+            when(repositoryMock.findOne(anything())).thenResolve(rfqMaker);
             const connectionMock = mock(Connection);
-            when(connectionMock.getRepository(RfqMakerPairs)).thenReturn(instance(repositoryMock));
+            when(connectionMock.getRepository(RfqMaker)).thenReturn(instance(repositoryMock));
             const rfqDbUtils = new RfqMakerDbUtils(instance(connectionMock));
 
             const configManagerMock = mock(ConfigManager);
@@ -36,13 +43,13 @@ describe('RfqMakerService', () => {
             const rfqMakerService = new RfqMakerService(rfqDbUtils, configManagerMock);
 
             // When
-            const rfqMakerPairsFromSevice = await rfqMakerService.getPairsAsync(makerId, chainId);
+            const rfqMakerFromSevice = await rfqMakerService.getRfqMakerAsync(makerId, chainId);
 
             // Then
-            expect(rfqMakerPairsFromSevice.makerId).to.be.eq(makerId);
-            expect(rfqMakerPairsFromSevice.chainId).to.be.eq(chainId);
-            expect(rfqMakerPairsFromSevice.updatedAt).to.be.eq(updatedAt);
-            expect(rfqMakerPairsFromSevice.pairs).to.be.eq(pairs);
+            expect(rfqMakerFromSevice.makerId).to.be.eq(makerId);
+            expect(rfqMakerFromSevice.chainId).to.be.eq(chainId);
+            expect(rfqMakerFromSevice.updatedAt).to.be.eq(updatedAt);
+            expect(rfqMakerFromSevice.pairs).to.be.eq(pairs);
         });
 
         it('should get default pairs if there is no information in DB', async () => {
@@ -50,7 +57,7 @@ describe('RfqMakerService', () => {
             const repositoryMock = mock(Repository);
             when(repositoryMock.findOne(anything())).thenResolve(undefined);
             const connectionMock = mock(Connection);
-            when(connectionMock.getRepository(RfqMakerPairs)).thenReturn(instance(repositoryMock));
+            when(connectionMock.getRepository(RfqMaker)).thenReturn(instance(repositoryMock));
             const rfqDbUtils = new RfqMakerDbUtils(instance(connectionMock));
 
             const configManagerMock = mock(ConfigManager);
@@ -58,35 +65,35 @@ describe('RfqMakerService', () => {
             const rfqMakerService = new RfqMakerService(rfqDbUtils, configManagerMock);
 
             // When
-            const rfqMakerPairsFromSevice = await rfqMakerService.getPairsAsync(makerId, chainId);
+            const rfqMakerFromSevice = await rfqMakerService.getRfqMakerAsync(makerId, chainId);
 
             // Then
-            expect(rfqMakerPairsFromSevice.makerId).to.be.eq(makerId);
-            expect(rfqMakerPairsFromSevice.chainId).to.be.eq(chainId);
-            expect(rfqMakerPairsFromSevice.updatedAt).to.be.eq(null);
-            expect(rfqMakerPairsFromSevice.pairs.length).to.be.eq(0);
+            expect(rfqMakerFromSevice.makerId).to.be.eq(makerId);
+            expect(rfqMakerFromSevice.chainId).to.be.eq(chainId);
+            expect(rfqMakerFromSevice.updatedAt).to.be.eq(null);
+            expect(rfqMakerFromSevice.pairs.length).to.be.eq(0);
         });
     });
 
-    describe('createOrUpdatePairsAsync', () => {
+    describe('createOrUpdateRfqMakerAsync', () => {
         it('should create or update pairs through db connection', async () => {
             // Given
             const repositoryMock = mock(Repository);
-            when(repositoryMock.save(anything())).thenCall((rfqMakerPairs) => {
+            when(repositoryMock.save(anything())).thenCall((rfqMaker) => {
                 // Then
-                expect(rfqMakerPairs.makerId).to.be.eq(makerId);
-                expect(rfqMakerPairs.chainId).to.be.eq(chainId);
-                expect(rfqMakerPairs.pairs).to.be.eq(pairs);
+                expect(rfqMaker.makerId).to.be.eq(makerId);
+                expect(rfqMaker.chainId).to.be.eq(chainId);
+                expect(rfqMaker.pairs).to.be.eq(pairs);
             });
             const connectionMock = mock(Connection);
-            when(connectionMock.getRepository(RfqMakerPairs)).thenReturn(instance(repositoryMock));
+            when(connectionMock.getRepository(RfqMaker)).thenReturn(instance(repositoryMock));
             const rfqDbUtils = new RfqMakerDbUtils(instance(connectionMock));
             const configManagerMock = mock(ConfigManager);
 
             const rfqMakerService = new RfqMakerService(rfqDbUtils, configManagerMock);
 
             // When
-            await rfqMakerService.createOrUpdatePairsAsync(makerId, chainId, pairs);
+            await rfqMakerService.createOrUpdateRfqMakerAsync(makerId, chainId, pairs, null, null);
         });
     });
 
