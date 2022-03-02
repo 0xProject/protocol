@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.19.1 - _March 2, 2022_
+
+    * Dependencies updated
+
 ## v13.19.0 - _February 22, 2022_
 
     * Regenerate wrappers to add ContractTxFunctionObj.selector (#429)

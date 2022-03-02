@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.50.0 - _March 2, 2022_
+
+    * Adding support for Geist on `Fantom` (#398)
+    * Improve Uniswap V3 gas schedule (#424)
+
 ## v16.49.9 - _February 24, 2022_
 
     * Fix native order scaling & filter out 1 wei quotes (#430)

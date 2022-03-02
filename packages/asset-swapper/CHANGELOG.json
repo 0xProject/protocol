@@ -10,7 +10,8 @@
                 "note": "Improve Uniswap V3 gas schedule",
                 "pr": 424
             }
-        ]
+        ],
+        "timestamp": 1646225739
     },
     {
         "version": "16.49.9",

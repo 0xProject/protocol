@@ -6,7 +6,8 @@
                 "note": "Update fantom fillQuoteTransformer addresses",
                 "pr": 398
             }
-        ]
+        ],
+        "timestamp": 1646225739
     },
     {
         "version": "6.11.0",

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.12.0 - _March 2, 2022_
+
+    * Update fantom fillQuoteTransformer addresses (#398)
+
 ## v6.11.0 - _December 24, 2021_
 
     * Add Optimism addresses (#385)
