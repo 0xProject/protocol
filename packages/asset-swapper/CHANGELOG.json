@@ -4,7 +4,11 @@
         "changes": [
             {
                 "note": "Add BTRFLY/WETH Curve pool on mainnet",
-                "pr": "437"
+                "pr": 437
+            },
+            {
+                "note": "Lower Uniswap V3 Sampler gas allowance",
+                "pr": 438
             }
         ]
     },
