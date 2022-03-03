@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.50.1 - _March 3, 2022_
+
+    * Add BTRFLY/WETH Curve pool on mainnet (#437)
+    * Lower Uniswap V3 Sampler gas allowance (#438)
+
 ## v16.50.0 - _March 2, 2022_
 
     * Adding support for Geist on `Fantom` (#398)

@@ -10,7 +10,8 @@
                 "note": "Lower Uniswap V3 Sampler gas allowance",
                 "pr": 438
             }
-        ]
+        ],
+        "timestamp": 1646312638
     },
     {
         "version": "16.50.0",
