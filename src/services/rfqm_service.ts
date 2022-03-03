@@ -1666,13 +1666,21 @@ export class RfqmService {
                         );
                         submissionContext.addTransaction(newTransaction);
                     } catch (err) {
-                        // TODO(phil) - log error and rethrow for now - in the future only rethrow for some cases
                         const errorMessage = err.message;
                         const isNonceTooLow = /nonce too low/.test(errorMessage);
                         logger.warn(
                             { workerAddress, orderHash, errorMessage: err.message, isNonceTooLow },
                             'Encountered an error re-submitting a tx',
                         );
+                        if (isNonceTooLow) {
+                            logger.info(
+                                { workerAddress, orderHash },
+                                'Ignore nonce too low error on re-submission. A previous submission was successful',
+                            );
+                            break;
+                        }
+
+                        // Rethrow on all other types of errors
                         throw err;
                     }
                     break;
