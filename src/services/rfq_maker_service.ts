@@ -102,9 +102,9 @@ export class RfqMakerService {
         return this.createOrUpdateRfqMakerAsync(
             makerId,
             chainId,
-            pairs ?? oldRfqMaker.pairs,
-            rfqtUri ?? oldRfqMaker.rfqtUri,
-            rfqmUri ?? oldRfqMaker.rfqmUri,
+            pairs !== undefined ? pairs : oldRfqMaker.pairs,
+            rfqtUri !== undefined ? rfqtUri : oldRfqMaker.rfqtUri,
+            rfqmUri !== undefined ? rfqmUri : oldRfqMaker.rfqmUri,
         );
     }
 

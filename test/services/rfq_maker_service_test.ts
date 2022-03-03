@@ -97,6 +97,113 @@ describe('RfqMakerService', () => {
         });
     });
 
+    describe('patchRfqMakerAsync', () => {
+        it('should update pairs', async () => {
+            // Given
+            const originalRfqMaker: RfqMaker = new RfqMaker({
+                makerId,
+                chainId,
+                updatedAt,
+                pairs,
+                rfqtUri: null,
+                rfqmUri: null,
+            });
+            const newPairs: [string, string][] = [];
+            const rfqMakerServiceMock = mock(RfqMakerService);
+            when(rfqMakerServiceMock.getRfqMakerAsync(anything(), anything())).thenResolve(originalRfqMaker);
+
+            // Expect
+            when(
+                rfqMakerServiceMock.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
+                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
+                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
+                expect(pairsToSave).to.be.eq(newPairs);
+                expect(rfqtUriToSave).to.be.eq(originalRfqMaker.rfqtUri);
+                expect(rfqmUriToSave).to.be.eq(originalRfqMaker.rfqmUri);
+            });
+            const rfqMakerService = instance(rfqMakerServiceMock);
+
+            // When
+            await rfqMakerService.patchRfqMakerAsync(makerId, chainId, newPairs, undefined, undefined);
+        });
+        it('should update URIs from null to a valid string', async () => {
+            // Given
+            const originalRfqMaker: RfqMaker = new RfqMaker({
+                makerId,
+                chainId,
+                updatedAt,
+                pairs,
+                rfqtUri: null,
+                rfqmUri: null,
+            });
+            const newRfqtUri: string = 'http://localhost:3001';
+            const rfqMakerServiceMock = mock(RfqMakerService);
+            when(rfqMakerServiceMock.getRfqMakerAsync(anything(), anything())).thenResolve(originalRfqMaker);
+
+            // Expect
+            when(
+                rfqMakerServiceMock.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
+                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
+                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
+                expect(pairsToSave).to.be.eq(originalRfqMaker.pairs);
+                expect(rfqtUriToSave).to.be.eq(newRfqtUri);
+                expect(rfqmUriToSave).to.be.eq(originalRfqMaker.rfqmUri);
+            });
+            const rfqMakerService = instance(rfqMakerServiceMock);
+
+            // When
+            await rfqMakerService.patchRfqMakerAsync(makerId, chainId, undefined, newRfqtUri, undefined);
+        });
+        it('should update URIs from string to null', async () => {
+            // Given
+            const originalRfqMaker: RfqMaker = new RfqMaker({
+                makerId,
+                chainId,
+                updatedAt,
+                pairs,
+                rfqtUri: 'http://localhost:3001',
+                rfqmUri: 'http://localhost:3002',
+            });
+            const rfqMakerServiceMock = mock(RfqMakerService);
+            when(rfqMakerServiceMock.getRfqMakerAsync(anything(), anything())).thenResolve(originalRfqMaker);
+
+            // Expect
+            when(
+                rfqMakerServiceMock.createOrUpdateRfqMakerAsync(
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                    anything(),
+                ),
+            ).thenCall((makerIdToSave, chainIdToSave, pairsToSave, rfqtUriToSave, rfqmUriToSave) => {
+                expect(makerIdToSave).to.be.eq(originalRfqMaker.makerId);
+                expect(chainIdToSave).to.be.eq(originalRfqMaker.chainId);
+                expect(pairsToSave).to.be.eq(originalRfqMaker.pairs);
+                expect(rfqtUriToSave).to.be.eq(originalRfqMaker.rfqtUri);
+                expect(rfqmUriToSave).to.be.eq(null);
+            });
+            const rfqMakerService = instance(rfqMakerServiceMock);
+
+            // When
+            await rfqMakerService.patchRfqMakerAsync(makerId, chainId, undefined, undefined, null);
+        });
+    });
+
     describe('mapMakerApiKeyToId', () => {
         it('should map maker api key to maker id correctly', async () => {
             // Given
