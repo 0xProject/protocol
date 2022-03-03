@@ -77,7 +77,7 @@ interface IUniswapV3Pool {
 contract UniswapV3Sampler
 {
     /// @dev Gas limit for UniswapV3 calls. This is 100% a guess.
-    uint256 constant private QUOTE_GAS = 900e3;
+    uint256 constant private QUOTE_GAS = 700e3;
 
     /// @dev Sample sell quotes from UniswapV3.
     /// @param quoter UniswapV3 Quoter contract.
