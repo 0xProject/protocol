@@ -8,14 +8,12 @@ import {
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     Integrator,
-    MakerIdsToConfigs,
+    MakerIdSet,
     RFQM_API_KEY_WHITELIST,
     RFQM_MAKER_ASSET_OFFERINGS,
-    RFQM_MAKER_CONFIG_MAP,
-    RFQM_MAKER_CONFIG_MAP_FOR_OTC_ORDER,
-    RFQM_MAKER_CONFIG_MAP_FOR_RFQ_ORDER,
-    RFQM_MAKER_SET_FOR_OTC_ORDER,
-    RFQM_MAKER_SET_FOR_RFQ_ORDER,
+    RFQM_MAKER_ID_SET,
+    RFQM_MAKER_ID_SET_FOR_OTC_ORDER,
+    RFQM_MAKER_ID_SET_FOR_RFQ_ORDER,
     RFQT_MAKER_ASSET_OFFERINGS,
     RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
@@ -40,14 +38,6 @@ export class ConfigManager {
         return RFQT_MAKER_ASSET_OFFERINGS;
     }
 
-    public getRfqmMakerSetForOtcOrder(): Set<string> {
-        return RFQM_MAKER_SET_FOR_OTC_ORDER;
-    }
-
-    public getRfqmMakerSetForRfqOrder(): Set<string> {
-        return RFQM_MAKER_SET_FOR_RFQ_ORDER;
-    }
-
     public getRfqMakerIdForApiKey(apiKey: string): string | undefined {
         return RFQ_API_KEY_HASH_TO_MAKER_ID.get(getApiKeyHash(apiKey));
     }
@@ -61,27 +51,24 @@ export class ConfigManager {
     }
 
     /**
-     * Get a map of makers that support RFQm workflow with either rfq or otc order types
-     * @returns a map from makerIds to makers' configuration object
+     * Get a set of makers that support RFQm workflow with either rfq or otc order types
      */
-    public getRfqmMakerConfigMap(): MakerIdsToConfigs {
-        return RFQM_MAKER_CONFIG_MAP;
+    public getRfqmMakerIdSet(): MakerIdSet {
+        return RFQM_MAKER_ID_SET;
     }
 
     /**
-     * Get a map of makers that support RFQm workflow with rfq order type
-     * @returns a map from makerIds to makers' configuration object
+     * Get a set of makers that support RFQm workflow with rfq order type
      */
-    public getRfqmMakerConfigMapForRfqOrder(): MakerIdsToConfigs {
-        return RFQM_MAKER_CONFIG_MAP_FOR_RFQ_ORDER;
+    public getRfqmMakerIdSetForRfqOrder(): MakerIdSet {
+        return RFQM_MAKER_ID_SET_FOR_RFQ_ORDER;
     }
 
     /**
-     * Get a map of makers that support RFQm workflow with otc order type
-     * @returns a map from makerIds to makers' configuration object
+     * Get a set of makers that support RFQm workflow with otc order type
      */
-    public getRfqmMakerConfigMapForOtcOrder(): MakerIdsToConfigs {
-        return RFQM_MAKER_CONFIG_MAP_FOR_OTC_ORDER;
+    public getRfqmMakerIdSetForOtcOrder(): MakerIdSet {
+        return RFQM_MAKER_ID_SET_FOR_OTC_ORDER;
     }
 
     public getChainId(): ChainId {

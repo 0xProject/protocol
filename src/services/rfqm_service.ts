@@ -46,7 +46,6 @@ import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCod
 import { logger } from '../logger';
 import { FirmOtcQuote, FirmQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
-import { PairsManager } from '../utils/pairs_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteRequestorManager } from '../utils/quote_requestor_manager';
@@ -63,6 +62,7 @@ import {
 import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { SubmissionContext } from '../utils/SubmissionContext';
 
@@ -291,7 +291,7 @@ export class RfqmService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _transactionWatcherSleepTimeMs: number,
         private readonly _cacheClient: CacheClient,
-        private readonly _pairsManager: PairsManager,
+        private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _kafkaProducer?: KafkaProducer,
     ) {}
 
@@ -778,7 +778,7 @@ export class RfqmService {
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
             registryBalance,
-            this._pairsManager.getRfqmMakerOfferings(),
+            this._rfqMakerManager.getRfqmMakerOfferings(),
             this._sqsProducer,
             heartbeats,
             gasPrice,
@@ -1744,7 +1744,7 @@ export class RfqmService {
                 type: 'fixed',
             },
         });
-        const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+        const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
         // Fetch quotes
         const quoteRequestor = this._quoteRequestorManager.getInstance();
@@ -1831,7 +1831,7 @@ export class RfqmService {
             isLastLook: true,
             fee: otcOrderFee,
         });
-        const otcOrderMakerUris = this._pairsManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+        const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
         // Fetch quotes
         const quoteRequestor = this._quoteRequestorManager.getInstance();

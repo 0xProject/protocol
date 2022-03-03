@@ -22,7 +22,7 @@ describe('RfqMakerService', () => {
     ];
 
     describe('getRfqMakerAsync', () => {
-        it('should get pairs from db connection', async () => {
+        it('should get RfqMaker entity from db connection', async () => {
             // Given
             const rfqMaker: RfqMaker = new RfqMaker({
                 makerId,
@@ -52,7 +52,7 @@ describe('RfqMakerService', () => {
             expect(rfqMakerFromSevice.pairs).to.be.eq(pairs);
         });
 
-        it('should get default pairs if there is no information in DB', async () => {
+        it('should get default RfqMaker entity if there is no information in DB', async () => {
             // Given
             const repositoryMock = mock(Repository);
             when(repositoryMock.findOne(anything())).thenResolve(undefined);
@@ -76,7 +76,7 @@ describe('RfqMakerService', () => {
     });
 
     describe('createOrUpdateRfqMakerAsync', () => {
-        it('should create or update pairs through db connection', async () => {
+        it('should create or update the RfqMaker entity through db connection', async () => {
             // Given
             const repositoryMock = mock(Repository);
             when(repositoryMock.save(anything())).thenCall((rfqMaker) => {

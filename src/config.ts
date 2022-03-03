@@ -126,7 +126,7 @@ export type RfqWorkFlowType = 'rfqt' | 'rfqm';
 export type RfqOrderType = 'rfq' | 'otc';
 
 export const RFQ_WORKFLOW: RfqWorkFlowType = 'rfqm'; // This code base currently only supports rfqm workflow. rfqt is supported in 0x-api repo.
-export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
+export const RFQ_MAKER_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 
 /**
  * The JSON config for each Market Maker, providing information including URLs, type of order supported and authentication.
@@ -134,9 +134,7 @@ export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 export interface RfqMakerConfig {
     makerId: string;
     label: string;
-    rfqmMakerUri: string;
     rfqmOrderTypes: RfqOrderType[];
-    rfqtMakerUri: string;
     rfqtOrderTypes: RfqOrderType[];
     apiKeyHashes: string[];
 }
@@ -144,35 +142,19 @@ export interface RfqMakerConfig {
 /**
  * A Map type which map the makerId to the config object.
  */
-export type MakerIdsToConfigs = Map</* makerId */ string, RfqMakerConfig>;
+export type MakerIdSet = Set</* makerId */ string>;
 
 /**
- * Generate a map from MakerId to MakerConfig that support a given order type for a given workflow
+ * Generate a set of MakerIds that support a given order type for a given workflow
  */
-export const getMakerConfigMapForOrderType = (
-    orderType: RfqOrderType | 'any',
-    workflow: RfqWorkFlowType,
-): MakerIdsToConfigs => {
+export const getMakerIdSetForOrderType = (orderType: RfqOrderType | 'any', workflow: RfqWorkFlowType): MakerIdSet => {
     const typesField = workflow === 'rfqt' ? 'rfqtOrderTypes' : 'rfqmOrderTypes';
     return RFQ_MAKER_CONFIGS.reduce((acc, curr) => {
         if (orderType === 'any' || curr[typesField].includes(orderType)) {
-            acc.set(curr.makerId, curr);
+            acc.add(curr.makerId);
         }
         return acc;
-    }, new Map</* makerId */ string, RfqMakerConfig>());
-};
-
-/**
- * Generate a set of Maker Uris that support a given order type for a given workflow
- */
-export const getMakerUriSetForOrderType = (orderType: RfqOrderType | 'any', workflow: RfqWorkFlowType): Set<string> => {
-    const uriField = workflow === 'rfqt' ? 'rfqtMakerUri' : 'rfqmMakerUri';
-    const result: Set<string> = new Set<string>();
-
-    getMakerConfigMapForOrderType(orderType, workflow).forEach((makerConfig) => {
-        result.add(makerConfig[uriField]);
-    });
-    return result;
+    }, new Set</* makerId */ string>());
 };
 
 /**
@@ -341,13 +323,9 @@ export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegrator
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
 export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('plp');
 
-export const RFQM_MAKER_CONFIG_MAP: MakerIdsToConfigs = getMakerConfigMapForOrderType('any', 'rfqm');
-export const RFQM_MAKER_CONFIG_MAP_FOR_RFQ_ORDER: MakerIdsToConfigs = getMakerConfigMapForOrderType('rfq', 'rfqm');
-export const RFQM_MAKER_CONFIG_MAP_FOR_OTC_ORDER: MakerIdsToConfigs = getMakerConfigMapForOrderType('otc', 'rfqm');
-export const RFQM_MAKER_SET_FOR_RFQ_ORDER: Set<string> = getMakerUriSetForOrderType('rfq', 'rfqm');
-export const RFQM_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderType('otc', 'rfqm');
-export const RFQT_MAKER_SET_FOR_RFQ_ORDER: Set<string> = getMakerUriSetForOrderType('rfq', 'rfqt');
-export const RFQT_MAKER_SET_FOR_OTC_ORDER: Set<string> = getMakerUriSetForOrderType('otc', 'rfqt');
+export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
+export const RFQM_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqm');
+export const RFQM_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqm');
 
 /**
  * A map from RFQ maker's api key hashes to maker ids.

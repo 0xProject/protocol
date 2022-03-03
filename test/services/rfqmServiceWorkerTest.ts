@@ -25,11 +25,12 @@ import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '
 import { logger } from '../../src/logger';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { CacheClient } from '../../src/utils/cache_client';
-import { PairsManager } from '../../src/utils/pairs_manager';
 import { QuoteRequestorManager } from '../../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
+import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
@@ -50,7 +51,7 @@ const buildRfqmServiceForUnitTest = (
     overrides: {
         cacheClient?: CacheClient;
         dbUtils?: RfqmDbUtils;
-        pairsManager?: PairsManager;
+        rfqMakerManager?: RfqMakerManager;
         producer?: Producer;
         protocolFeeUtils?: ProtocolFeeUtils;
         quoteRequestorManager?: QuoteRequestorManager;
@@ -95,7 +96,7 @@ const buildRfqmServiceForUnitTest = (
 
     const cacheClientMock = mock(CacheClient);
     const defaultDbUtilsMock = mock(RfqmDbUtils);
-    const pairsManagerMock = mock(PairsManager);
+    const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
         overrides.quoteRequestorManager || quoteRequestorManagerInstance,
@@ -108,7 +109,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
-        overrides.pairsManager || pairsManagerMock,
+        overrides.rfqMakerManager || rfqMakerManagerMock,
     );
 };
 

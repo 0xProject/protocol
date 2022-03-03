@@ -6,7 +6,7 @@ export type RfqMakerUpdateTimeHashOpts = Pick<RfqMakerUpdateTimeHash, 'hash' | '
 /**
  * A materialized view for a hash of all makers' last update time for each chain.
  * The materialized view will be updated immidiately after table `rfq_maker_pairs` is updated.
- * The hashes (one per chain) are used by PairsManger to determine whether a refresh is needed.
+ * The hashes (one per chain) are used by RfqMakerManger to determine whether a refresh is needed.
  * The expression of ViewEntity is duplicated with the corresponding mirgation file, and is only used when
  * `synchronize` is set to `true` which is the case when running some test cases.
  */

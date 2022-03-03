@@ -30,12 +30,12 @@ import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '
 import { RfqmService } from '../../src/services/rfqm_service';
 import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmTypes } from '../../src/services/types';
 import { CacheClient } from '../../src/utils/cache_client';
-import { PairsManager } from '../../src/utils/pairs_manager';
 import { QuoteRequestorManager } from '../../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
+import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
@@ -69,7 +69,7 @@ const buildRfqmServiceForUnitTest = (
         producer?: Producer;
         quoteServerClient?: QuoteServerClient;
         cacheClient?: CacheClient;
-        pairsManager?: PairsManager;
+        rfqMakerManager?: RfqMakerManager;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -109,7 +109,7 @@ const buildRfqmServiceForUnitTest = (
     const quoteServerClientMock = mock(QuoteServerClient);
 
     const cacheClientMock = mock(CacheClient);
-    const pairsManagerMock = mock(PairsManager);
+    const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
         overrides.quoteRequestorManager || quoteRequestorManagerInstance,
@@ -122,7 +122,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
-        overrides.pairsManager || pairsManagerMock,
+        overrides.rfqMakerManager || rfqMakerManagerMock,
     );
 };
 
@@ -1295,12 +1295,12 @@ describe('RfqmService HTTP Logic', () => {
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync()).thenResolve([]);
 
-            const pairsManagerMock = mock(PairsManager);
-            when(pairsManagerMock.getRfqmMakerOfferings()).thenReturn(RFQM_MAKER_ASSET_OFFERINGS);
+            const rfqMakerManagerMock = mock(RfqMakerManager);
+            when(rfqMakerManagerMock.getRfqmMakerOfferings()).thenReturn(RFQM_MAKER_ASSET_OFFERINGS);
 
             const service = buildRfqmServiceForUnitTest({
                 dbUtils: instance(dbUtilsMock),
-                pairsManager: instance(pairsManagerMock),
+                rfqMakerManager: instance(rfqMakerManagerMock),
             });
 
             const result = await service.runHealthCheckAsync();

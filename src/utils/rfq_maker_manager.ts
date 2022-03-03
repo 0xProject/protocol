@@ -2,7 +2,7 @@ import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import * as EventEmitter from 'events';
 import { Counter, Summary } from 'prom-client';
 
-import { MakerIdsToConfigs, RfqMakerConfig, RFQ_PAIR_REFRESH_INTERVAL_MS, RFQ_WORKFLOW } from '../config';
+import { MakerIdSet, RFQ_MAKER_REFRESH_INTERVAL_MS, RFQ_WORKFLOW } from '../config';
 import { RfqMaker } from '../entities';
 import { logger } from '../logger';
 
@@ -10,19 +10,19 @@ import { ConfigManager } from './config_manager';
 import { pairUtils } from './pair_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 
-const RFQ_MAKER_PAIRS_REFRESH_FAILED = new Counter({
-    name: 'rfq_maker_pairs_refresh_failed',
-    help: 'A pair refreshing job failed.',
+const RFQ_MAKER_REFRESH_FAILED = new Counter({
+    name: 'rfq_maker_refresh_failed',
+    help: 'A maker refreshing job failed.',
     labelNames: ['chainId', 'workflow'],
 });
-const RFQ_MAKER_PAIRS_REFRESH_SUCCEEDED = new Counter({
-    name: 'rfq_maker_pairs_refresh_succeeded',
-    help: 'A pair refreshing job succeeded.',
+const RFQ_MAKER_REFRESH_SUCCEEDED = new Counter({
+    name: 'rfq_maker_refresh_succeeded',
+    help: 'A maker refreshing job succeeded.',
     labelNames: ['chainId', 'workflow'],
 });
-const RFQ_MAKER_PAIRS_REFRESH_LATENCY = new Summary({
-    name: 'rfq_maker_pairs_refresh_latency',
-    help: 'Latency for the maker pair refreshing job.',
+const RFQ_MAKER_REFRESH_LATENCY = new Summary({
+    name: 'rfq_maker_refresh_latency',
+    help: 'Latency for the maker maker refreshing job.',
     labelNames: ['chainId', 'workflow'],
 });
 
@@ -57,30 +57,28 @@ const generatePairToMakerUriMap = (offerings: RfqMakerAssetOfferings): PairsToUr
 };
 
 type PairsToUris = Record<string, string[]>;
-const RfqMakerUrlField: 'rfqtMakerUri' | 'rfqmMakerUri' = `${RFQ_WORKFLOW}MakerUri`;
 
 /**
  * Returns Asset Offerings from an RfqMakerConfig map and a list of RfqMaker
  */
-const generateAssetOfferings = (makerConfigMap: MakerIdsToConfigs, makers: RfqMaker[]): RfqMakerAssetOfferings => {
+const generateAssetOfferings = (makerIdSet: MakerIdSet, makers: RfqMaker[]): RfqMakerAssetOfferings => {
     return makers.reduce((offering: RfqMakerAssetOfferings, maker: RfqMaker) => {
-        if (makerConfigMap.has(maker.makerId)) {
-            const makerConfig: RfqMakerConfig = makerConfigMap.get(maker.makerId)!;
-            offering[makerConfig[RfqMakerUrlField]] = maker.pairs;
+        if (makerIdSet.has(maker.makerId) && maker.rfqmUri !== null) {
+            offering[maker.rfqmUri] = maker.pairs;
         }
         return offering;
     }, {});
 };
 
 /**
- * PairsManager abstracts away all operations for handling maker pairs
+ * RfqMakersManager abstracts away all operations for handling RfqMaker entities
  */
-export class PairsManager extends EventEmitter {
+export class RfqMakerManager extends EventEmitter {
     public static REFRESHED_EVENT = 'refreshed';
 
-    private readonly _rfqmMakerConfigMap: MakerIdsToConfigs;
-    private readonly _rfqmMakerConfigMapForRfqOrder: MakerIdsToConfigs;
-    private readonly _rfqmMakerConfigMapForOtcOrder: MakerIdsToConfigs;
+    private readonly _rfqmMakerIdSet: MakerIdSet;
+    private readonly _rfqmMakerIdSetForRfqOrder: MakerIdSet;
+    private readonly _rfqmMakerIdSetForOtcOrder: MakerIdSet;
     private _rfqmMakerOfferings: RfqMakerAssetOfferings;
     private _rfqmMakerOfferingsForRfqOrder: RfqMakerAssetOfferings;
     private _rfqmPairToMakerUrisForOtcOrder: PairsToUris;
@@ -93,21 +91,21 @@ export class PairsManager extends EventEmitter {
         this._rfqmMakerOfferingsForRfqOrder = {};
         this._rfqmPairToMakerUrisForOtcOrder = {};
 
-        this._rfqmMakerConfigMap = this._configManager.getRfqmMakerConfigMap();
-        this._rfqmMakerConfigMapForRfqOrder = this._configManager.getRfqmMakerConfigMapForRfqOrder();
-        this._rfqmMakerConfigMapForOtcOrder = this._configManager.getRfqmMakerConfigMapForOtcOrder();
+        this._rfqmMakerIdSet = this._configManager.getRfqmMakerIdSet();
+        this._rfqmMakerIdSetForRfqOrder = this._configManager.getRfqmMakerIdSetForRfqOrder();
+        this._rfqmMakerIdSetForOtcOrder = this._configManager.getRfqmMakerIdSetForOtcOrder();
         this._rfqMakerListUpdateTimeHash = null;
     }
 
     /**
-     * Initialize pairs data and set up periodical refreshing
+     * Initialize RfqMaker entities and set up periodical refreshing
      */
     public async initializeAsync(): Promise<void> {
         await this._refreshAsync();
 
         setInterval(async () => {
             await this._refreshAsync();
-        }, RFQ_PAIR_REFRESH_INTERVAL_MS);
+        }, RFQ_MAKER_REFRESH_INTERVAL_MS);
     }
 
     /**
@@ -132,13 +130,13 @@ export class PairsManager extends EventEmitter {
     }
 
     /**
-     * Refresh the pairs information for each maker by querying database.
+     * Refresh RfqMaker entities by querying database.
      * Emit an 'refreshed' event for subscribers to refresh if the operation is successful.
      */
     private async _refreshAsync(): Promise<void> {
         const chainId = this._configManager.getChainId();
         const refreshTime = new Date();
-        const timerStopFunction = RFQ_MAKER_PAIRS_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
+        const timerStopFunction = RFQ_MAKER_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
 
         try {
             logger.info({ chainId, refreshTime }, `Check if refreshing is necessary.`);
@@ -146,35 +144,29 @@ export class PairsManager extends EventEmitter {
             const rfqMakerListUpdateTimeHash = await this._dbUtils.getRfqMakersUpdateTimeHashAsync(chainId);
 
             if (rfqMakerListUpdateTimeHash === this._rfqMakerListUpdateTimeHash) {
-                logger.info({ chainId, refreshTime }, `Pairs are up to date.`);
+                logger.info({ chainId, refreshTime }, `Makers are up to date.`);
                 return;
             }
 
-            logger.info({ chainId, refreshTime }, `Start refreshing pairs.`);
+            logger.info({ chainId, refreshTime }, `Start refreshing makers.`);
 
             this._rfqMakerListUpdateTimeHash = rfqMakerListUpdateTimeHash;
             const rfqMakerList = await this._dbUtils.getRfqMakersAsync(chainId);
 
-            this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerConfigMap, rfqMakerList);
+            this._rfqmMakerOfferings = generateAssetOfferings(this._rfqmMakerIdSet, rfqMakerList);
 
-            this._rfqmMakerOfferingsForRfqOrder = generateAssetOfferings(
-                this._rfqmMakerConfigMapForRfqOrder,
-                rfqMakerList,
-            );
+            this._rfqmMakerOfferingsForRfqOrder = generateAssetOfferings(this._rfqmMakerIdSetForRfqOrder, rfqMakerList);
 
-            const rfqmMakerOfferingsForOtcOrder = generateAssetOfferings(
-                this._rfqmMakerConfigMapForOtcOrder,
-                rfqMakerList,
-            );
+            const rfqmMakerOfferingsForOtcOrder = generateAssetOfferings(this._rfqmMakerIdSetForOtcOrder, rfqMakerList);
             this._rfqmPairToMakerUrisForOtcOrder = generatePairToMakerUriMap(rfqmMakerOfferingsForOtcOrder);
 
-            this.emit(PairsManager.REFRESHED_EVENT);
+            this.emit(RfqMakerManager.REFRESHED_EVENT);
 
-            logger.info({ chainId, refreshTime }, `Successfully refreshed pairs.`);
-            RFQ_MAKER_PAIRS_REFRESH_SUCCEEDED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
+            logger.info({ chainId, refreshTime }, `Successfully refreshed makers.`);
+            RFQ_MAKER_REFRESH_SUCCEEDED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
         } catch (error) {
-            logger.error({ chainId, refreshTime, errorMessage: error.message }, `Failed to refresh pairs.`);
-            RFQ_MAKER_PAIRS_REFRESH_FAILED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
+            logger.error({ chainId, refreshTime, errorMessage: error.message }, `Failed to refresh makers.`);
+            RFQ_MAKER_REFRESH_FAILED.labels(chainId.toString(), RFQ_WORKFLOW).inc();
         } finally {
             timerStopFunction();
         }

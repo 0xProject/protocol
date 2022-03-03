@@ -127,10 +127,10 @@ export class RfqMakerHandlers {
                 rfqmUri,
             );
             res.status(HttpStatus.CREATED).send(rfqMaker);
-            logger.info({ requestId, makerId, chainId }, 'Successfully created or updated pairs.');
+            logger.info({ requestId, makerId, chainId }, 'Successfully created or updated RfqMaker entity.');
             RFQ_MAKER_UPDATE_SUCCEED.labels(makerId).inc();
         } catch (error) {
-            const message = `Failed to create or update pairs.`;
+            const message = `Failed to create or update RfqMaker entity.`;
             logger.error({ requestId, makerId, chainId, errorMessage: error.message }, message);
             RFQ_MAKER_UPDATE_SEVER_ERROR.labels(makerId).inc();
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message });
@@ -183,10 +183,10 @@ export class RfqMakerHandlers {
                 rfqmUri,
             );
             res.status(HttpStatus.OK).send(rfqMaker);
-            logger.info({ requestId, makerId, chainId }, 'Successfully patched pairs.');
+            logger.info({ requestId, makerId, chainId }, 'Successfully patched RfqMaker entity.');
             RFQ_MAKER_UPDATE_SUCCEED.labels(makerId).inc();
         } catch (error) {
-            const message = `Failed to patch pairs.`;
+            const message = `Failed to patch RfqMaker entity.`;
             logger.error({ requestId, makerId, chainId, errorMessage: error.message }, message);
             RFQ_MAKER_UPDATE_SEVER_ERROR.labels(makerId).inc();
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message });
@@ -222,10 +222,10 @@ export class RfqMakerHandlers {
         try {
             const rfqMaker: RfqMaker = await this._rfqMakerService.getRfqMakerAsync(makerId, chainId);
             res.status(HttpStatus.OK).send(rfqMaker);
-            logger.info({ requestId, makerId, chainId }, 'Successfully get pairs.');
+            logger.info({ requestId, makerId, chainId }, 'Successfully got RfqMaker entity.');
             RFQ_MAKER_GET_SUCCEED.labels(makerId).inc();
         } catch (error) {
-            const message = `Failed to get pairs.`;
+            const message = `Failed to get RfqMaker entity.`;
             logger.error({ requestId, makerId, chainId, errorMessage: error.message }, message);
             RFQ_MAKER_GET_SEVER_ERROR.labels(makerId).inc();
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ message });

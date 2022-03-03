@@ -6,24 +6,24 @@ import { ChainId } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { MakerIdsToConfigs } from '../../src/config';
+import { MakerIdSet } from '../../src/config';
 import { RfqMaker } from '../../src/entities';
 import { ConfigManager } from '../../src/utils/config_manager';
-import { PairsManager } from '../../src/utils/pairs_manager';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
+import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { CHAIN_ID } from '../constants';
 
 const createMockConfigManager = (
     chainId: ChainId,
-    allMakers: MakerIdsToConfigs,
-    rfqMakers: MakerIdsToConfigs,
-    otcMakers: MakerIdsToConfigs,
+    allMakers: MakerIdSet,
+    rfqMakers: MakerIdSet,
+    otcMakers: MakerIdSet,
 ): ConfigManager => {
     const configManagerMock = mock(ConfigManager);
     when(configManagerMock.getChainId()).thenReturn(chainId);
-    when(configManagerMock.getRfqmMakerConfigMap()).thenReturn(allMakers);
-    when(configManagerMock.getRfqmMakerConfigMapForRfqOrder()).thenReturn(rfqMakers);
-    when(configManagerMock.getRfqmMakerConfigMapForOtcOrder()).thenReturn(otcMakers);
+    when(configManagerMock.getRfqmMakerIdSet()).thenReturn(allMakers);
+    when(configManagerMock.getRfqmMakerIdSetForRfqOrder()).thenReturn(rfqMakers);
+    when(configManagerMock.getRfqmMakerIdSetForOtcOrder()).thenReturn(otcMakers);
 
     return instance(configManagerMock);
 };
@@ -36,31 +36,15 @@ const createMockRfqMakerDbUtilsInstance = (rfqMaker: RfqMaker[]): RfqMakerDbUtil
     return instance(rfqMakerDbUtilsMock);
 };
 
-describe('PairsManager', () => {
+describe('RfqMakerManager', () => {
     // Tokens in Checksum representation
     const tokenA = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
     const tokenB = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
     const tokenC = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
 
-    const makerConfigMap: MakerIdsToConfigs = new Map();
-    makerConfigMap.set('maker1', {
-        makerId: 'maker1',
-        label: 'maker1',
-        rfqmMakerUri: 'https://maker1.asdf',
-        rfqmOrderTypes: ['otc'],
-        rfqtMakerUri: 'https://maker1.asdf',
-        rfqtOrderTypes: [],
-        apiKeyHashes: [],
-    });
-    makerConfigMap.set('maker2', {
-        makerId: 'maker2',
-        label: 'maker2',
-        rfqmMakerUri: 'https://maker2.asdf',
-        rfqmOrderTypes: ['otc'],
-        rfqtMakerUri: 'https://maker2.asdf',
-        rfqtOrderTypes: [],
-        apiKeyHashes: [],
-    });
+    const makerIdSet: MakerIdSet = new Set();
+    makerIdSet.add('maker1');
+    makerIdSet.add('maker2');
 
     const rfqMaker: RfqMaker[] = [
         {
@@ -68,16 +52,16 @@ describe('PairsManager', () => {
             chainId: CHAIN_ID,
             pairs: [],
             updatedAt: new Date(),
-            rfqtUri: null,
-            rfqmUri: null,
+            rfqtUri: 'https://maker1.asdf',
+            rfqmUri: 'https://maker1.asdf',
         },
         {
             makerId: 'maker2',
             chainId: CHAIN_ID,
             pairs: [],
             updatedAt: new Date(),
-            rfqtUri: null,
-            rfqmUri: null,
+            rfqtUri: 'https://maker2.asdf',
+            rfqmUri: 'https://maker2.asdf',
         },
     ];
 
@@ -87,13 +71,13 @@ describe('PairsManager', () => {
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenA, tokenB]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerConfigMap, new Map(), makerConfigMap);
+            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
+            const makerUris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
 
             // Then
             expect(makerUris).to.deep.eq(['https://maker1.asdf', 'https://maker2.asdf']);
@@ -104,14 +88,14 @@ describe('PairsManager', () => {
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenB, tokenA]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerConfigMap, new Map(), makerConfigMap);
+            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris1 = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
-            const makerUris2 = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
+            const makerUris1 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
+            const makerUris2 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
 
             // Then
             expect(makerUris1).to.deep.eq(['https://maker1.asdf', 'https://maker2.asdf']);
@@ -127,14 +111,14 @@ describe('PairsManager', () => {
             rfqMaker[0].pairs = [[token_0xd, token_0xF]];
             rfqMaker[1].pairs = [[token_0xd.toLowerCase(), token_0xF.toLowerCase()]]; // case doesn't matter
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerConfigMap, new Map(), makerConfigMap);
+            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris1 = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(token_0xd, token_0xF);
-            const makerUris2 = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(
+            const makerUris1 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(token_0xd, token_0xF);
+            const makerUris2 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(
                 token_0xd.toUpperCase(),
                 token_0xF.toUpperCase(),
             ); // case doesn't matter
@@ -149,20 +133,15 @@ describe('PairsManager', () => {
             rfqMaker[1].pairs = [[tokenA, tokenB]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
 
-            const makerConfigMapForMaker2Only: MakerIdsToConfigs = new Map();
-            makerConfigMapForMaker2Only.set('maker2', makerConfigMap.get('maker2')!);
-            const configManager = createMockConfigManager(
-                CHAIN_ID,
-                makerConfigMap,
-                new Map(),
-                makerConfigMapForMaker2Only,
-            );
+            const makerIdSetForMaker2Only: MakerIdSet = new Set();
+            makerIdSetForMaker2Only.add('maker2');
+            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSetForMaker2Only);
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const uris = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
+            const uris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
 
             // Then
             expect(uris).to.deep.eq(['https://maker2.asdf']);
@@ -174,20 +153,15 @@ describe('PairsManager', () => {
             rfqMaker[1].pairs = [[tokenA, tokenB]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
 
-            const makerConfigMapForMaker2Only: MakerIdsToConfigs = new Map();
-            makerConfigMapForMaker2Only.set('maker2', makerConfigMap.get('maker2')!);
-            const configManager = createMockConfigManager(
-                CHAIN_ID,
-                makerConfigMap,
-                new Map(),
-                makerConfigMapForMaker2Only,
-            );
+            const makerIdSetForMaker2Only: MakerIdSet = new Set();
+            makerIdSetForMaker2Only.add('maker2');
+            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSetForMaker2Only);
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const uris = pairsManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenC);
+            const uris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenC);
 
             // Then
             expect(uris).to.deep.eq([]);
@@ -205,35 +179,27 @@ describe('PairsManager', () => {
                 chainId: CHAIN_ID,
                 pairs: [[tokenA, tokenC]],
                 updatedAt: new Date(),
-                rfqtUri: null,
-                rfqmUri: null,
+                rfqtUri: 'https://maker3.asdf',
+                rfqmUri: 'https://maker3.asdf',
             });
 
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMakerForMaker123);
 
-            const makerConfigMapWithMakers23: MakerIdsToConfigs = new Map();
-            makerConfigMapWithMakers23.set('maker2', makerConfigMap.get('maker2')!);
-            makerConfigMapWithMakers23.set('maker3', {
-                makerId: 'maker3',
-                label: 'maker3',
-                rfqmMakerUri: 'https://maker3.asdf',
-                rfqmOrderTypes: ['rfq'],
-                rfqtMakerUri: 'https://maker3.asdf',
-                rfqtOrderTypes: [],
-                apiKeyHashes: [],
-            });
+            const makerIdSetWithMakers23: MakerIdSet = new Set();
+            makerIdSetWithMakers23.add('maker2');
+            makerIdSetWithMakers23.add('maker3');
             const configManager = createMockConfigManager(
                 CHAIN_ID,
-                makerConfigMapWithMakers23,
-                makerConfigMapWithMakers23,
-                new Map(),
+                makerIdSetWithMakers23,
+                makerIdSetWithMakers23,
+                new Set(),
             );
 
-            const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-            await pairsManager.initializeAsync();
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            await rfqMakerManager.initializeAsync();
 
             // When
-            const assetOfferings = pairsManager.getRfqmMakerOfferingsForRfqOrder();
+            const assetOfferings = rfqMakerManager.getRfqmMakerOfferingsForRfqOrder();
 
             // Then
             expect(assetOfferings).to.deep.eq({

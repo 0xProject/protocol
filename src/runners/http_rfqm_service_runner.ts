@@ -62,13 +62,13 @@ import { BalanceChecker } from '../utils/balance_checker';
 import { CacheClient } from '../utils/cache_client';
 import { ConfigManager } from '../utils/config_manager';
 import { METRICS_PROXY } from '../utils/metrics_service';
-import { PairsManager } from '../utils/pairs_manager';
 import { providerUtils } from '../utils/provider_utils';
 import { QuoteRequestorManager } from '../utils/quote_requestor_manager';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
+import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -141,8 +141,8 @@ export async function buildRfqmServiceAsync(
         provider = rpcProvider;
     }
 
-    const pairsManager = new PairsManager(configManager, rfqMakerDbUtils);
-    await pairsManager.initializeAsync();
+    const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+    await rfqMakerManager.initializeAsync();
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     axiosInstance.defaults.raxConfig = {
@@ -154,7 +154,7 @@ export async function buildRfqmServiceAsync(
 
     // NOTE: QuoteRequestor is only used for RfqOrder
     const quoteRequestorManager = new QuoteRequestorManager(
-        pairsManager,
+        rfqMakerManager,
         {}, // No RFQT offerings
         axiosInstance,
         undefined, // No Alt RFQM offerings at the moment
@@ -203,7 +203,7 @@ export async function buildRfqmServiceAsync(
         quoteServerClient,
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
-        pairsManager,
+        rfqMakerManager,
         kafkaProducer,
     );
 }
