@@ -3,7 +3,7 @@
         "version": "16.50.3",
         "changes": [
             {
-                "note": "router glue optimization",
+                "note": "Routing glue optimization",
                 "pr": 439
             }
         ]
