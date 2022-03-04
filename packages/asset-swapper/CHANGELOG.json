@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.50.2",
+        "changes": [
+            {
+                "note": "Routing glue optimization",
+                "pr": 433
+            }
+        ]
+    },
+    {
         "version": "16.50.1",
         "changes": [
             {

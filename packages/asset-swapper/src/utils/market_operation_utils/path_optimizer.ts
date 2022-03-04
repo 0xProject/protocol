@@ -303,7 +303,7 @@ function findRoutesAndCreateOptimalPath(
 
         // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
         const maxSampledOutput = BigNumber.max(...routeSamples.map(s => s.output));
-        // Scale output by scale factor but never go above the largest sample (unknown liquidity) or below 1 base unit (unfillable)
+        // Scale output by scale factor but never go above the largest sample in sell quotes (unknown liquidity)  or below 1 base unit (unfillable)
         const scaleOutput = (output: BigNumber) => {
             // Don't try to scale 0 output as it will be clamped to 1
             if (output.eq(ZERO_AMOUNT)) {
@@ -313,8 +313,9 @@ function findRoutesAndCreateOptimalPath(
             const scaled = output
                 .times(scale)
                 .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+            const capped = MarketOperation.Sell ? BigNumber.min(scaled, maxSampledOutput) : scaled;
 
-            return BigNumber.max(BigNumber.min(scaled, maxSampledOutput), 1);
+            return BigNumber.max(capped, 1);
         };
 
         adjustedFills.push({
