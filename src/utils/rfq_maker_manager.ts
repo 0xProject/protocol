@@ -139,12 +139,8 @@ export class RfqMakerManager extends EventEmitter {
         const timerStopFunction = RFQ_MAKER_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
 
         try {
-            logger.info({ chainId, refreshTime }, `Check if refreshing is necessary.`);
-
             const rfqMakerListUpdateTimeHash = await this._dbUtils.getRfqMakersUpdateTimeHashAsync(chainId);
-
             if (rfqMakerListUpdateTimeHash === this._rfqMakerListUpdateTimeHash) {
-                logger.info({ chainId, refreshTime }, `Makers are up to date.`);
                 return;
             }
 
