@@ -570,7 +570,10 @@ export class MarketOperationUtils {
         }
 
         // Generate a fallback path if required
-        await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
+        // TODO(kimpers): Will experiment with disabling this and see how it affects revert rate
+        // to avoid yet another router roundtrip
+        // TODO: clean this up if we don't need it
+        // await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
         const collapsedPath = optimalPath.collapse(orderOpts);
 
         return {
