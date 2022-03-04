@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.49.10",
+        "changes": [
+            {
+                "note": "Minor optimization",
+                "pr": "433"
+            }
+        ]
+    },
+    {
         "version": "16.49.9",
         "changes": [
             {
