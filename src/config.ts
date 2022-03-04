@@ -31,6 +31,7 @@ import {
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
+    ONE_HOUR_MS,
     ONE_MINUTE_MS,
     ORDERBOOK_PATH,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
@@ -78,6 +79,7 @@ export interface Integrator {
     plp: boolean;
     rfqm: boolean;
     rfqt: boolean;
+    slippageModel?: boolean;
 }
 export type IntegratorsAcl = Integrator[];
 
@@ -231,6 +233,19 @@ export const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_R
           process.env.ENABLE_RPC_REQUEST_COMPRESSION,
           EnvVarType.Boolean,
       );
+
+// S3 bucket for slippage model file
+export const SLIPPAGE_MODEL_S3_BUCKET_NAME: string | undefined = _.isEmpty(process.env.SLIPPAGE_MODEL_S3_BUCKET_NAME)
+    ? undefined
+    : assertEnvVarType(
+          'SLIPPAGE_MODEL_S3_BUCKET_NAME',
+          process.env.SLIPPAGE_MODEL_S3_BUCKET_NAME,
+          EnvVarType.NonEmptyString,
+      );
+export const SLIPPAGE_MODEL_S3_FILE_NAME: string = `SlippageModel-${CHAIN_ID}.json`;
+export const SLIPPAGE_MODEL_S3_API_VERSION: string = '2006-03-01';
+export const SLIPPAGE_MODEL_S3_FILE_VALID_INTERVAL_MS: number = ONE_HOUR_MS * 2;
+export const SLIPPAGE_MODEL_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 
 export const ORDER_WATCHER_URL = _.isEmpty(process.env.ORDER_WATCHER_URL)
     ? 'http://127.0.0.1:8080'

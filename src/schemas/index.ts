@@ -5,6 +5,8 @@ import * as metaTransactionFillRequestSchema from './meta_transaction_fill_reque
 import * as metaTransactionQuoteRequestSchema from './meta_transaction_quote_request_schema.json';
 import * as rfqMakerConfigSchema from './rfq_maker_config.json';
 import * as rfqMakerConfigListSchema from './rfq_maker_config_list.json';
+import * as slippageModelFileSchema from './slippage_model_file_schema.json';
+import * as slippageModelSchema from './slippage_model_schema.json';
 import * as sraOrderbookQuerySchema from './sra_orderbook_query_schema.json';
 import * as sraOrdersQuerySchema from './sra_orders_query_schema.json';
 import * as sraOrderConfigPayloadSchema from './sra_order_config_payload_schema.json';
@@ -21,6 +23,8 @@ export const schemas = {
     metaTransactionQuoteRequestSchema,
     rfqMakerConfigListSchema,
     rfqMakerConfigSchema,
+    slippageModelFileSchema,
+    slippageModelSchema,
     sraOrderbookQuerySchema,
     sraOrderConfigPayloadSchema,
     sraOrdersChannelSubscribeSchema,

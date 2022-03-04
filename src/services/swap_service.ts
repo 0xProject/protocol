@@ -79,6 +79,7 @@ import { createResultCache } from '../utils/result_cache';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { SAMPLER_METRICS } from '../utils/sampler_metrics';
 import { serviceUtils } from '../utils/service_utils';
+import { SlippageModelManager } from '../utils/slippage_model_manager';
 import { utils } from '../utils/utils';
 
 export class SwapService {
@@ -197,6 +198,7 @@ export class SwapService {
         firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
         rfqDynamicBlacklist?: RfqDynamicBlacklist,
         private readonly _pairsManager?: PairsManager,
+        private readonly _slippageModelManager?: SlippageModelManager,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -497,6 +499,29 @@ export class SwapService {
             quoteReport,
             priceComparisonsReport,
         };
+
+        if (integrator?.slippageModel === true) {
+            if (this._slippageModelManager) {
+                apiSwapQuote.expectedSlippage = this._slippageModelManager.calculateExpectedSlippage(
+                    buyToken,
+                    sellToken,
+                    apiSwapQuote.buyAmount,
+                    apiSwapQuote.sellAmount,
+                    slippagePercentage ?? 0,
+                    apiSwapQuote.sources,
+                );
+            } else {
+                apiSwapQuote.expectedSlippage = new BigNumber(0);
+            }
+
+            if (marketSide === MarketOperation.Sell) {
+                apiSwapQuote.expectedBuyAmount = apiSwapQuote.buyAmount.times(apiSwapQuote.expectedSlippage.plus(1));
+            } else {
+                apiSwapQuote.expectedSellAmount = apiSwapQuote.sellAmount.times(
+                    apiSwapQuote.expectedSlippage.times(-1).plus(1),
+                );
+            }
+        }
 
         return apiSwapQuote;
     }

@@ -27,6 +27,9 @@
         },
         "rfqt": {
             "type": "boolean"
+        },
+        "slippageModel": {
+            "type": "boolean"
         }
     },
     "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm", "plp"],

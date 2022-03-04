@@ -10,12 +10,19 @@ import {
 } from '@0x/asset-swapper';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { Web3Wrapper } from '@0x/dev-utils';
+import { S3 } from 'aws-sdk';
 import * as express from 'express';
 import { Server } from 'http';
 import { Kafka } from 'kafkajs';
 import { Connection } from 'typeorm';
 
-import { CHAIN_ID, ORDER_WATCHER_KAFKA_TOPIC, RFQT_TX_ORIGIN_BLACKLIST, WEBSOCKET_ORDER_UPDATES_PATH } from './config';
+import {
+    CHAIN_ID,
+    ORDER_WATCHER_KAFKA_TOPIC,
+    RFQT_TX_ORIGIN_BLACKLIST,
+    SLIPPAGE_MODEL_S3_API_VERSION,
+    WEBSOCKET_ORDER_UPDATES_PATH,
+} from './config';
 import { RFQ_DYNAMIC_BLACKLIST_TTL, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from './constants';
 import { getDBConnectionAsync } from './db_connection';
 import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
@@ -46,6 +53,8 @@ import {
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
 import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 import { RfqMakerDbUtils } from './utils/rfq_maker_db_utils';
+import { S3Client } from './utils/s3_client';
+import { SlippageModelManager } from './utils/slippage_model_manager';
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
@@ -131,6 +140,15 @@ async function createAndInitializePairsManagerAsync(
 }
 
 /**
+ * Create and initialize a SlippageModelManager instance
+ */
+async function createAndInitializeSlippageModelManagerAsync(s3Client: S3Client): Promise<SlippageModelManager> {
+    const slippageModelManager = new SlippageModelManager(s3Client);
+    await slippageModelManager.initializeAsync();
+    return slippageModelManager;
+}
+
+/**
  * Instantiates dependencies required to run the app. Uses default settings based on config
  * @param config should the ethereum RPC URL
  */
@@ -175,6 +193,13 @@ export async function getDefaultAppDependenciesAsync(
         const configManager: ConfigManager = new ConfigManager();
         const rfqMakerDbUtils: RfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const pairsManager = await createAndInitializePairsManagerAsync(configManager, rfqMakerDbUtils);
+
+        const s3Client: S3Client = new S3Client(
+            new S3({
+                apiVersion: SLIPPAGE_MODEL_S3_API_VERSION,
+            }),
+        );
+        const slippageModelManager = await createAndInitializeSlippageModelManagerAsync(s3Client);
         swapService = new SwapService(
             new AssetSwapperOrderbook(orderBookService),
             provider,
@@ -182,6 +207,7 @@ export async function getDefaultAppDependenciesAsync(
             rfqtFirmQuoteValidator,
             rfqDynamicBlacklist,
             pairsManager,
+            slippageModelManager,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(
             provider,
