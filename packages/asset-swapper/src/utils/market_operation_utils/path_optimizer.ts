@@ -76,7 +76,7 @@ function findRoutesAndCreateOptimalPath(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
     neonRouterNumSamples: number,
-    chainId: ChainId,
+    vipSourcesSet: Set<ERC20BridgeSource>,
 ): { allSourcesPath: Path | undefined; vipSourcesPath: Path | undefined } | undefined {
     // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
     // To avoid flooding the logs with these errors we just return an insufficient liquidity error
@@ -84,7 +84,6 @@ function findRoutesAndCreateOptimalPath(
     if (input.isLessThanOrEqualTo(ONE_BASE_UNIT)) {
         return undefined;
     }
-    const vipSourcesSet = new Set(VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId]);
 
     const createFill = (sample: DexSample): Fill | undefined => {
         const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, fees);
@@ -397,6 +396,7 @@ export function findOptimalRustPathFromSamples(
                 timingMs: performance.now() - beforeAllTimeMs,
             });
     };
+    const vipSourcesSet = new Set(VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId]);
     const paths = findRoutesAndCreateOptimalPath(
         side,
         samples,
@@ -405,7 +405,7 @@ export function findOptimalRustPathFromSamples(
         opts,
         fees,
         neonRouterNumSamples,
-        chainId,
+        vipSourcesSet,
     );
 
     if (!paths) {
