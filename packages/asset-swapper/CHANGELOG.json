@@ -1,12 +1,22 @@
 [
     {
-        "version": "16.50.2",
+        "version": "16.50.3",
         "changes": [
             {
-                "note": "Routing glue optimization",
+                "note": "router glue optimization",
                 "pr": 439
             }
         ]
+    },
+    {
+        "version": "16.50.2",
+        "changes": [
+            {
+                "note": "Update `Uniswap_V3` address on `Ropsten`",
+                "pr": 441
+            }
+        ],
+        "timestamp": 1646617024
     },
     {
         "version": "16.50.1",
