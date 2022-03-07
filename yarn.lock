@@ -952,9 +952,9 @@
     typedoc "~0.16.11"
     yargs "^10.0.3"
 
-"@0x/neon-router@0xProject/gitpkg-registry#0x-neon-router-v0.3.4-commit.f180fe5-142c0a9":
-  version "0.3.4-commit.f180fe5"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/b2b5c3eeec5ca8f93ac9afe987795b16acacb8d3"
+"@0x/neon-router@0xProject/gitpkg-registry#0x-neon-router-v0.3.4-commit.a21133f-6a426f3":
+  version "0.3.4-commit.a21133f"
+  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/81e44f932f05d53afa8552be6cce6be62a46d3f9"
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
