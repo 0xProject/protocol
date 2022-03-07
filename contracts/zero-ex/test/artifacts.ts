@@ -100,6 +100,7 @@ import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinNerve from '../test/generated-artifacts/MixinNerve.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
+import * as MixinPlatypus from '../test/generated-artifacts/MixinPlatypus.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
@@ -151,6 +152,7 @@ import * as TestNoEthRecipient from '../test/generated-artifacts/TestNoEthRecipi
 import * as TestOrderSignerRegistryWithContractWallet from '../test/generated-artifacts/TestOrderSignerRegistryWithContractWallet.json';
 import * as TestPermissionlessTransformerDeployerSuicidal from '../test/generated-artifacts/TestPermissionlessTransformerDeployerSuicidal.json';
 import * as TestPermissionlessTransformerDeployerTransformer from '../test/generated-artifacts/TestPermissionlessTransformerDeployerTransformer.json';
+import * as TestPlatypus from '../test/generated-artifacts/TestPlatypus.json';
 import * as TestRfqOriginRegistration from '../test/generated-artifacts/TestRfqOriginRegistration.json';
 import * as TestSimpleFunctionRegistryFeatureImpl1 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl1.json';
 import * as TestSimpleFunctionRegistryFeatureImpl2 from '../test/generated-artifacts/TestSimpleFunctionRegistryFeatureImpl2.json';
@@ -293,6 +295,7 @@ export const artifacts = {
     MixinMooniswap: MixinMooniswap as ContractArtifact,
     MixinNerve: MixinNerve as ContractArtifact,
     MixinOasis: MixinOasis as ContractArtifact,
+    MixinPlatypus: MixinPlatypus as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
@@ -331,6 +334,7 @@ export const artifacts = {
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
     TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
+    TestPlatypus: TestPlatypus as ContractArtifact,
     TestRfqOriginRegistration: TestRfqOriginRegistration as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl2: TestSimpleFunctionRegistryFeatureImpl2 as ContractArtifact,
