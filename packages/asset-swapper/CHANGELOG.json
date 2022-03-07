@@ -3,7 +3,8 @@
         "version": "16.50.2",
         "changes": [
             {
-                "note": "Update `Uniswap_V3` address on `Ropsten`"
+                "note": "Update `Uniswap_V3` address on `Ropsten`",
+                "pr": 441
             }
         ]
     },
