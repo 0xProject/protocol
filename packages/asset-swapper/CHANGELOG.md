@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.50.2 - _March 7, 2022_
+
+    * Update `Uniswap_V3` address on `Ropsten` (#441)
+
 ## v16.50.1 - _March 3, 2022_
 
     * Add BTRFLY/WETH Curve pool on mainnet (#437)
