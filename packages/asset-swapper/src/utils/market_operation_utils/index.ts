@@ -50,7 +50,6 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -777,6 +776,8 @@ export class MarketOperationUtils {
         );
     }
 
+    /*
+     * TODO(kimpers): Remove this when we know that it's safe to drop the fallbacks on native orders
     // tslint:disable-next-line: prefer-function-over-method
     private async _addOptionalFallbackAsync(
         side: MarketOperation,
@@ -842,6 +843,7 @@ export class MarketOperationUtils {
             }
         }
     }
+    */
 }
 
 // tslint:disable: max-file-line-count
