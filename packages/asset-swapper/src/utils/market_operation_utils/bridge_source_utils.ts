@@ -34,6 +34,7 @@ import {
     MORPHEUSSWAP_ROUTER_BY_CHAIN_ID,
     MSTABLE_POOLS_BY_CHAIN_ID,
     NERVE_BSC_INFOS,
+    PLATYPUS_AVALANCHE_INFOS,
     NULL_ADDRESS,
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
@@ -255,6 +256,19 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
         return [];
     }
     return Object.values(NERVE_BSC_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
+
+export function getPlatypusInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    if (chainId !== ChainId.Avalanche) {
+        return [];
+    }
+    return Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -491,7 +505,8 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
-        | ERC20BridgeSource.ACryptos,
+        | ERC20BridgeSource.ACryptos
+        | ERC20BridgeSource.Platypus,
 ): CurveDetailedInfo[] {
     let pools: CurveInfo[] = [];
     switch (source) {
@@ -536,6 +551,9 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.ACryptos:
             pools = getAcryptosInfosForPair(chainId, takerToken, makerToken);
+            break;
+        case ERC20BridgeSource.Platypus:
+            pools = getPlatypusInfosForPair(chainId, takerToken, makerToken);
             break;
         default:
             throw new Error(`Unknown Curve like source ${source}`);

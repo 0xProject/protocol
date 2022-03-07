@@ -181,6 +181,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Platypus,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -325,6 +326,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Platypus,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -535,8 +537,9 @@ export const AVALANCHE_TOKENS = {
     WETH: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
     WBTC: '0x50b7545627a5162f82a992c33b87adc75187b218',
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+    USDC: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
     // bridged USDC
-    USDC: '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664',
+    USDCe: '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664',
     // native USDC on Avalanche
     nUSDC: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
     USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
@@ -779,6 +782,10 @@ export const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
 
+export const PLATYPUS_AVALANCHE_POOLS = {
+    fourpool: '0xe2d3eb21db91f6a8dde5dac9fde7f546aa7590ba',
+};
+
 export const ACRYPTOS_POOLS = {
     acs4usd: '0xb3f0c9ea1f05e312093fdb031e789a756659b0ac',
     acs4vai: '0x191409d5a4effe25b0f4240557ba2192d18a191e',
@@ -824,6 +831,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
             AVALANCHE_TOKENS.USDC,
+            AVALANCHE_TOKENS.USDCe,
             AVALANCHE_TOKENS.nUSD,
             AVALANCHE_TOKENS.nETH,
             AVALANCHE_TOKENS.aWETH,
@@ -1264,6 +1272,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.ibEURsEUR,
         gasSchedule: 176e3,
     }),
+    [CURVE_POOLS.btrfly]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.ibEUR, MAINNET_TOKENS.sEUR],
+        pool: CURVE_POOLS.ibEURsEUR,
+        gasSchedule: 176e3,
+    }),
 };
 
 export const CURVE_V2_MAINNET_INFOS: { [name: string]: CurveInfo } = {
@@ -1654,6 +1667,18 @@ export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: FIREBIRDONESWAP_POLYGON_POOLS.oneswap,
         tokens: [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 100e3,
+    },
+};
+
+export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
+    [PLATYPUS_AVALANCHE_POOLS.fourpool]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swapPTP,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.quotePotentialSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.fourpool,
+        tokens: [AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT, AVALANCHE_TOKENS.USDCe],
         metaTokens: undefined,
         gasSchedule: 100e3,
     },
@@ -2291,6 +2316,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.IronSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.FirebirdOneSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.Platypus]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,

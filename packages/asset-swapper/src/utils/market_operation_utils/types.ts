@@ -95,6 +95,7 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    Platypus = 'Platypus',
     // Celo only
     UbeSwap = 'UbeSwap',
     // Fantom
@@ -134,6 +135,9 @@ export enum CurveFunctionSelectors {
     // Nerve BSC, Saddle Mainnet, Synapse
     swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
     calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
+    // Platypus
+    swapPTP = '0x9908fc8b', // swap(address,address,uint256,uint256,address,uint256)
+    quotePotentialSwap = '0x43c2e2f5', // quotePotentialSwap(address,address,uint256)
 }
 // tslint:enable: enum-naming
 
