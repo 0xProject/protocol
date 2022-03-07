@@ -6,7 +6,8 @@
                 "note": "Update `Uniswap_V3` address on `Ropsten`",
                 "pr": 441
             }
-        ]
+        ],
+        "timestamp": 1646617024
     },
     {
         "version": "16.50.1",
