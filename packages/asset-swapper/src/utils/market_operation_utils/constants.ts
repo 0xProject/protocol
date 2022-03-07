@@ -2088,7 +2088,7 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
         },
         [ChainId.Ropsten]: {
             quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
-            router: '0x03782388516e94fcd4c18666303601a12aa729ea',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Polygon]: {
             quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',

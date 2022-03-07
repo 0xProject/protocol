@@ -1,5 +1,13 @@
 [
     {
+        "version": "16.50.2",
+        "changes": [
+            {
+                "note": "Update `Uniswap_V3` address on `Ropsten`"
+            }
+        ]
+    },
+    {
         "version": "16.50.1",
         "changes": [
             {
