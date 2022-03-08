@@ -18,7 +18,7 @@ interface TokenInfo {
 export interface Sampler {
     chainId: ChainId;
     getTokenInfosAsync(tokens: Address[]): Promise<TokenInfo[]>;
-    getPricesAsync(paths: Address[][], sources: ERC20BridgeSource[]): Promise<BigNumber[]>;
+    getPricesAsync(paths: Address[][], sources: ERC20BridgeSource[], demand?: boolean): Promise<BigNumber[]>;
     getSellLiquidityAsync(path: Address[], takerAmount: BigNumber, sources: ERC20BridgeSource[], numSamples?: number): Promise<DexSample[][]>;
     getBuyLiquidityAsync(path: Address[], makerAmount: BigNumber, sources: ERC20BridgeSource[], numSamples?: number): Promise<DexSample[][]>;
 }
@@ -49,10 +49,11 @@ export class SamplerClient implements Sampler {
     public async getPricesAsync(
         paths: Address[][],
         sources: ERC20BridgeSource[],
+        demand: boolean = true,
     ): Promise<BigNumber[]> {
         return this._service.getPricesAsync(paths.map(p => ({
             tokenPath: p,
-            demand: true,
+            demand,
             sources,
         })));
     }

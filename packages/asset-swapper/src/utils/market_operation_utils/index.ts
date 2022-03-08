@@ -176,7 +176,8 @@ export class MarketOperationUtils {
                     takerToken,
                     makerToken,
                     side: MarketOperation.Sell,
-                    sources: samplerSourceFilters.sources,
+                    requiredSources: feeSourceFilters.sources,
+                    optionalSources: samplerSourceFilters.exclude(feeSourceFilters.sources).sources,
                     inputAmount: takerAmount,
                 })
                 : [[], []];
@@ -240,7 +241,8 @@ export class MarketOperationUtils {
         side: MarketOperation,
         takerToken: Address,
         makerToken: Address,
-        sources: ERC20BridgeSource[],
+        requiredSources: ERC20BridgeSource[],
+        optionalSources: ERC20BridgeSource[],
         inputAmount: BigNumber,
         hopAmountScaling?: number,
     }): Promise<[Address[][], BigNumber[]]> {
@@ -248,7 +250,8 @@ export class MarketOperationUtils {
             side,
             takerToken,
             makerToken,
-            sources,
+            requiredSources,
+            optionalSources,
             inputAmount,
         } = opts;
         const hopAmountScaling = opts.hopAmountScaling === undefined ? 1.25 : opts.hopAmountScaling;
@@ -281,10 +284,22 @@ export class MarketOperationUtils {
         if (!hopTokenPaths.length) {
             return [[],[]];
         }
-        const hopTokenPathPrices = await this._sampler.getPricesAsync(
-            hopTokenPaths,
-            sources,
-        );
+        let hopTokenPathPrices: BigNumber[];
+        {
+            const [requiredHopTokenPathPrices, optionalHopTokenPathPrices] = await Promise.all([
+                this._sampler.getPricesAsync(
+                    hopTokenPaths,
+                    requiredSources,
+                ),
+                this._sampler.getPricesAsync(
+                    hopTokenPaths,
+                    optionalSources,
+                    false,
+                ),
+            ]);
+            hopTokenPathPrices = hopTokenPaths
+                .map((_, i) => BigNumber.max(...[requiredHopTokenPathPrices[i], optionalHopTokenPathPrices[i]]));
+        }
         // Find eligible two-hops and compute their total price.
         let twoHopPathDetails = hopTokenPaths.map((firstHop, firstHopIndex) => {
             const firstHopPrice = hopTokenPathPrices[firstHopIndex];
@@ -405,7 +420,8 @@ export class MarketOperationUtils {
                     takerToken,
                     makerToken,
                     side: MarketOperation.Buy,
-                    sources: samplerSourceFilters.sources,
+                    requiredSources: feeSourceFilters.sources,
+                    optionalSources: samplerSourceFilters.exclude(feeSourceFilters.sources).sources,
                     inputAmount: makerAmount,
                 })
                 : [[], []];
