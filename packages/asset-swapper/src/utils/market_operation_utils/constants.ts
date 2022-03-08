@@ -1753,8 +1753,6 @@ export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
-
-
 export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
     [MOBIUSMONEY_CELO_POOLS.poof_cusd_v2]: {
         ...MOBIUSMONEY_CELO_SHARED,
