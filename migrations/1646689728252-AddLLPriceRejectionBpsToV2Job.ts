@@ -7,7 +7,7 @@ const llRejectPriceDifferenceBps = new TableColumn({
     default: null,
 });
 
-export class AddRfqMakerUriColumns1646096840712 implements MigrationInterface {
+export class AddLLPriceRejectionBpsToV2Job1646689728252 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.addColumn('rfqm_v2_jobs', llRejectPriceDifferenceBps);
     }
