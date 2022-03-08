@@ -1391,6 +1391,12 @@ export class RfqmService {
                         },
                         'Decline to sign price check',
                     );
+                    try {
+                        _job.llRejectPriceDifferenceBps = parseInt(priceDifferenceBips, 10);
+                        await this._dbUtils.updateRfqmJobAsync(_job);
+                    } catch (e) {
+                        logger.warn({ orderHash, errorMessage: e.message }, 'Saving LL reject price difference failed');
+                    }
                 } catch (error) {
                     logger.warn(
                         { errorMessage: error.message },

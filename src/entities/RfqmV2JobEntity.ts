@@ -80,6 +80,12 @@ export class RfqmV2JobEntity {
     @Column({ name: 'is_unwrap', type: Boolean })
     public isUnwrap: boolean;
 
+    // When a market maker rejects a last look, the server queries the market maker
+    // for a price for the same trade that was just rejected (same pair and size).
+    // The difference between the rejected price and the new price is stored here.
+    @Column({ name: 'll_reject_price_difference_bps', type: 'integer', nullable: true })
+    public llRejectPriceDifferenceBps: number | null;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
@@ -99,6 +105,7 @@ export class RfqmV2JobEntity {
         this.integratorId = opts.integratorId ?? null;
         this.isUnwrap = opts.isUnwrap ?? false;
         this.lastLookResult = opts.lastLookResult ?? null;
+        this.llRejectPriceDifferenceBps = opts.llRejectPriceDifferenceBps ?? null;
         this.makerSignature = opts.makerSignature ?? null;
         this.makerUri = opts.makerUri;
         this.order = opts.order;
