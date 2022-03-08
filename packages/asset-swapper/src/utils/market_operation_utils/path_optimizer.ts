@@ -386,14 +386,14 @@ export function findOptimalRustPathFromSamples(
     neonRouterNumSamples: number,
     samplerMetrics?: SamplerMetrics,
 ): Path | undefined {
-    const beforeAllTimeMs = performance.now();
+    const beforeTimeMs = performance.now();
     const sendMetrics = () => {
         // tslint:disable-next-line: no-unused-expression
         samplerMetrics &&
             samplerMetrics.logRouterDetails({
                 router: 'neon-router',
                 type: 'total',
-                timingMs: performance.now() - beforeAllTimeMs,
+                timingMs: performance.now() - beforeTimeMs,
             });
     };
     const vipSourcesSet = new Set(VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId]);
