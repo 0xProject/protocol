@@ -267,47 +267,6 @@ describe('QuoteServerClient', () => {
                 }
             });
 
-            it.skip('should return undefined for an invalid signature', async () => {
-                // Given
-                const client = new QuoteServerClient(axiosInstance);
-                const request: SignRequest = {
-                    order,
-                    orderHash,
-                    fee: {
-                        amount: new BigNumber('100'),
-                        type: 'fixed',
-                        token: CONTRACT_ADDRESSES.etherToken,
-                    },
-                    expiry: order.expiry,
-                    takerSignature,
-                };
-
-                const actualRequest = {
-                    order,
-                    orderHash,
-                    feeAmount: '100',
-                    feeToken: CONTRACT_ADDRESSES.etherToken,
-                    expiry: order.expiry,
-                    takerSignature,
-                };
-
-                const response = {
-                    feeAmount: '100',
-                    proceedWithFill: true,
-                    makerSignature: takerSignature, // this is clearly wrong
-                };
-
-                axiosMock
-                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
-                    .replyOnce(HttpStatus.OK, response);
-
-                // When
-                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
-
-                // Then
-                expect(signature).to.be.undefined();
-            });
-
             it('should return undefined for an incorrect fee acknowledgement', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);

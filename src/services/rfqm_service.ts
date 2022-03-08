@@ -1427,6 +1427,18 @@ export class RfqmService {
             throw new Error('Maker signature does not exist');
         }
 
+        // Verify the signer was the maker
+        const signerAddress = getSignerFromHash(orderHash, makerSignature!).toLowerCase();
+        const makerAddress = order.order.maker.toLowerCase();
+        if (signerAddress !== makerAddress) {
+            // TODO(Michael) - need to check isValidOrderSigner when signer != maker
+            // and throw an error if signer !== maker && !isValidOrderSigner
+            logger.warn(
+                { signerAddress, makerAddress, orderHash, makerUri },
+                'Signature is invalid. Possible use of smart contract wallet',
+            );
+        }
+
         // Generate the calldata
         const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
             otcOrder,

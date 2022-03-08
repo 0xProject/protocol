@@ -22,7 +22,6 @@ import { schemas } from '../schemas';
 import { IndicativeQuote } from '../types';
 
 import { logRfqMarketMakerRequest } from './metrics_service';
-import { getSignerFromHash } from './signature_utils';
 
 const MARKET_MAKER_LAST_LOOK_LATENCY = new Summary({
     name: 'market_maker_last_look_latency',
@@ -293,18 +292,6 @@ export class QuoteServerClient {
         if (makerSignature === undefined) {
             logger.warn({ makerUri }, 'Signature is missing');
             return undefined;
-        }
-
-        // Verify the signer was the maker
-        const signerAddress = getSignerFromHash(payload.orderHash, makerSignature).toLowerCase();
-        const makerAddress = payload.order.maker.toLowerCase();
-        if (signerAddress !== makerAddress) {
-            logger.warn(
-                { signerAddress, makerAddress, orderHash: payload.orderHash, makerUri },
-                'Signature is invalid. Possible use of smart contract wallet',
-            );
-            // TODO - currently disabled until we do a isValidOrderSigner when signer != maker
-            // return undefined;
         }
 
         timerStopFn();

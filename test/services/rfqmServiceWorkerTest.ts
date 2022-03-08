@@ -117,6 +117,14 @@ const fakeClockMs = 1637722898000;
 const fakeOneMinuteAgoS = fakeClockMs / ONE_SECOND_MS - 60;
 const fakeFiveMinutesLater = fakeClockMs / ONE_SECOND_MS + 300;
 
+const validEIP712Sig = {
+    signatureType: SignatureType.EIP712,
+    v: 28,
+    r: '0xdc158f7b53b940863bc7b001552a90282e51033f29b73d44a2701bd16faa19d2',
+    s: '0x55f6c5470e41b39a5ddeb63c22f8ba1d34748f93265715b9dc4a0f10138985a6',
+};
+const orderHash = '0x112160fb0933ecde720f63b50b303ce64e52ded702bef78b9c20361f3652a462';
+
 describe('RfqmService Worker Logic', () => {
     beforeEach(() => {
         loggerSpy = spy(logger);
@@ -801,7 +809,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash,
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -818,14 +826,9 @@ describe('RfqmService Worker Logic', () => {
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash)).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
-                signatureType: SignatureType.EthSign,
-                v: 1,
-                r: '',
-                s: '',
-            });
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -855,12 +858,7 @@ describe('RfqmService Worker Logic', () => {
                 expect(updateRfqmJobCalledArgs[updateRfqmJobCalledArgs.length - 1]).to.deep.equal({
                     ...job,
                     lastLookResult: true,
-                    makerSignature: {
-                        signatureType: SignatureType.EthSign,
-                        v: 1,
-                        r: '',
-                        s: '',
-                    },
+                    makerSignature: validEIP712Sig,
                     status: RfqmJobStatus.FailedEthCallFailed,
                 });
             }
@@ -900,7 +898,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash,
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -919,12 +917,7 @@ describe('RfqmService Worker Logic', () => {
             });
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
-                signatureType: SignatureType.EthSign,
-                v: 1,
-                r: '0xabcd',
-                s: '0X11',
-            });
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -959,12 +952,7 @@ describe('RfqmService Worker Logic', () => {
             expect(result.job).to.deep.equal({
                 ...job,
                 lastLookResult: true,
-                makerSignature: {
-                    signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '0x000000000000000000000000000000000000000000000000000000000000abcd',
-                    s: '0x0000000000000000000000000000000000000000000000000000000000000011',
-                },
+                makerSignature: validEIP712Sig,
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
         });
@@ -1003,7 +991,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash,
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -1015,7 +1003,7 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
             const transaction = new RfqmV2TransactionSubmissionEntity({
-                orderHash: '0xorderhash',
+                orderHash,
                 to: '0xexchangeproxyaddress',
                 from: '0xworkeraddress',
                 transactionHash: '0xsignedtransactionhash',
@@ -1026,17 +1014,12 @@ describe('RfqmService Worker Logic', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([transaction]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash)).thenResolve([transaction]);
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
-                signatureType: SignatureType.EthSign,
-                v: 1,
-                r: '',
-                s: '',
-            });
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -1062,12 +1045,7 @@ describe('RfqmService Worker Logic', () => {
             expect(result.job).to.deep.equal({
                 ...job,
                 lastLookResult: true,
-                makerSignature: {
-                    signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
-                },
+                makerSignature: validEIP712Sig,
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
             expect(result.calldata).to.equal('0xvalidcalldata');
@@ -1116,7 +1094,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     type: RfqmOrderTypes.Otc,
                 },
-                orderHash: '0xorderhash',
+                orderHash,
                 status: RfqmJobStatus.PendingEnqueued,
                 takerSignature: {
                     signatureType: SignatureType.EthSign,
@@ -1130,17 +1108,12 @@ describe('RfqmService Worker Logic', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash)).thenResolve([]);
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve({
-                signatureType: SignatureType.EthSign,
-                v: 1,
-                r: '',
-                s: '',
-            });
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
@@ -1175,12 +1148,7 @@ describe('RfqmService Worker Logic', () => {
             expect(result.job).to.deep.equal({
                 ...job,
                 lastLookResult: true,
-                makerSignature: {
-                    signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
-                },
+                makerSignature: validEIP712Sig,
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
             expect(result.calldata).to.equal('0xvalidcalldata');
@@ -1191,12 +1159,7 @@ describe('RfqmService Worker Logic', () => {
             expect(updateRfqmJobCalledArgs[1]).to.deep.equal({
                 ...job,
                 lastLookResult: true,
-                makerSignature: {
-                    signatureType: SignatureType.EthSign,
-                    v: 1,
-                    r: '',
-                    s: '',
-                },
+                makerSignature: validEIP712Sig,
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
         });
