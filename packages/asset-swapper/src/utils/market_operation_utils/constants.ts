@@ -1072,12 +1072,14 @@ const createCurveFactoryCryptoExchangePool = (info: { tokens: string[]; pool: st
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
-const MOBIUSMONEY_CELO_SHARED = {
+const MOBIUSMONEY_CELO_SHARED: CurveInfo = {
     exchangeFunctionSelector: CurveFunctionSelectors.swap,
     sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     metaTokens: undefined,
     gasSchedule: 100e3,
+    poolAddress: '',
+    tokens: [],
 };
 
 /**
@@ -1751,6 +1753,8 @@ export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
+
+
 export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
     [MOBIUSMONEY_CELO_POOLS.poof_cusd_v2]: {
         ...MOBIUSMONEY_CELO_SHARED,
@@ -1793,6 +1797,7 @@ export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
         tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.asUSDC],
     },
     [MOBIUSMONEY_CELO_POOLS.usdc_eth_optics]: {
+        ...MOBIUSMONEY_CELO_SHARED,
         poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_eth_optics,
         tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.cUSDC],
     },
