@@ -314,11 +314,17 @@ export class RfqBlockchainUtils {
             data: callData,
             from: workerAddress,
         };
+        try {
+            const gasEstimate = await this._web3Wrapper.estimateGasAsync(txData);
 
-        const gasEstimate = await this._web3Wrapper.estimateGasAsync(txData);
-
-        // add a buffer
-        return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate);
+            // add a buffer
+            return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate);
+        } catch (e) {
+            if (e instanceof Error) {
+                e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
+            }
+            throw e;
+        }
     }
 
     public getDecodedRfqOrderFillEventLogFromLogs(
