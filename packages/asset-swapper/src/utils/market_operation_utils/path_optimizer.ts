@@ -250,7 +250,6 @@ function findRoutesAndCreateOptimalPath(
                         .integerValue()
                         .toNumber(),
                 );
-                memo.isVip = vipSourcesSet.has(sample.source);
 
                 return memo;
             },
@@ -259,7 +258,7 @@ function findRoutesAndCreateOptimalPath(
                 inputs: [],
                 outputs: [],
                 outputFees: [],
-                isVip: false,
+                isVip: vipSourcesSet.has(singleSourceSamplesWithOutput[0]?.source),
             },
         );
 
