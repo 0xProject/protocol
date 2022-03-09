@@ -42,7 +42,7 @@ import { createFills } from './fills';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
-import { fillsToSortedPaths, findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
+import { findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
@@ -493,18 +493,6 @@ export class MarketOperationUtils {
                 } as NativeOrderWithFillableAmounts),
         );
 
-        // Convert native orders and dex quotes into `Fill` objects.
-        const fills = createFills({
-            side,
-            orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
-            dexQuotes,
-            targetInput: inputAmount,
-            outputAmountPerEth,
-            inputAmountPerEth,
-            excludedSources: opts.excludedSources,
-            feeSchedule: opts.feeSchedule,
-        });
-
         // Find the optimal path.
         const penaltyOpts: PathPenaltyOpts = {
             outputAmountPerEth,
@@ -517,13 +505,11 @@ export class MarketOperationUtils {
         const takerAmountPerEth = side === MarketOperation.Sell ? inputAmountPerEth : outputAmountPerEth;
         const makerAmountPerEth = side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth;
 
-        // Find the unoptimized best rate to calculate savings from optimizer
-        const _unoptimizedPath = fillsToSortedPaths(fills, side, inputAmount, penaltyOpts)[0];
-        const unoptimizedPath = _unoptimizedPath ? _unoptimizedPath.collapse(orderOpts) : undefined;
-
+        let fills: Fill[][];
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
         let optimalPath: Path | undefined;
         if (SHOULD_USE_RUST_ROUTER) {
+            fills = [[]];
             optimalPath = findOptimalRustPathFromSamples(
                 side,
                 dexQuotes,
@@ -536,6 +522,18 @@ export class MarketOperationUtils {
                 opts.samplerMetrics,
             );
         } else {
+            // Convert native orders and dex quotes into `Fill` objects.
+            fills = createFills({
+                side,
+                orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
+                dexQuotes,
+                targetInput: inputAmount,
+                outputAmountPerEth,
+                inputAmountPerEth,
+                excludedSources: opts.excludedSources,
+                feeSchedule: opts.feeSchedule,
+            });
+
             optimalPath = await findOptimalPathJSAsync(
                 side,
                 fills,
@@ -561,7 +559,6 @@ export class MarketOperationUtils {
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
                 adjustedRate: bestTwoHopRate,
-                unoptimizedPath,
                 takerAmountPerEth,
                 makerAmountPerEth,
             };
@@ -582,7 +579,6 @@ export class MarketOperationUtils {
             sourceFlags: collapsedPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathRate,
-            unoptimizedPath,
             takerAmountPerEth,
             makerAmountPerEth,
         };

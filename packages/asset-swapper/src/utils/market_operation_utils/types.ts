@@ -10,7 +10,6 @@ import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts }
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
-import { CollapsedPath } from './path';
 import { SourceFilters } from './source_filters';
 
 /**
@@ -579,7 +578,6 @@ export interface OptimizerResult {
     liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
-    unoptimizedPath?: CollapsedPath;
     takerAmountPerEth: BigNumber;
     makerAmountPerEth: BigNumber;
 }
