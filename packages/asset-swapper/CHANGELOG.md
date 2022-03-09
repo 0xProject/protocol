@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.50.3 - _March 9, 2022_
+
+    * Routing glue optimization (#439)
+    * Move VIP source routing into neon-router & disable fallback orders for native/plp (#440)
+
 ## v16.50.2 - _March 7, 2022_
 
     * Update `Uniswap_V3` address on `Ropsten` (#441)
