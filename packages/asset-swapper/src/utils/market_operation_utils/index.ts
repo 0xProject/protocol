@@ -50,6 +50,7 @@ import {
     CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
