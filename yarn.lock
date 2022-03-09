@@ -57,9 +57,10 @@
     lodash "^4.17.11"
     valid-url "^1.0.9"
 
-"@0x/asset-swapper@^16.50.2":
-  version "16.50.2"
-  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.50.2.tgz#7d9f1ed2bf092c89b0d39f45ebd4611e1f7fbd3e"
+"@0x/asset-swapper@^16.50.3":
+  version "16.50.3"
+  resolved "https://registry.yarnpkg.com/@0x/asset-swapper/-/asset-swapper-16.50.3.tgz#1790d56eb04b27eb0f5ebfe2e93cdd4287259a4f"
+  integrity sha512-NA9NjFg0mCvVlKvE617zpvOCR4Uu42KmLqQU/0JvO1Abiib80VvBEzNt39vP3uT5UJIEfulEN9D9jvQawB9xyw==
   dependencies:
     "@0x/assert" "^3.0.31"
     "@0x/base-contract" "^6.4.5"
@@ -69,7 +70,7 @@
     "@0x/contracts-zero-ex" "^0.31.1"
     "@0x/dev-utils" "^4.2.11"
     "@0x/json-schemas" "^6.4.1"
-    "@0x/neon-router" "^0.3.3"
+    "@0x/neon-router" "^0.3.5"
     "@0x/protocol-utils" "^1.11.1"
     "@0x/quote-server" "^6.0.6"
     "@0x/types" "^3.3.4"
@@ -547,9 +548,10 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^4.3.0"
 
-"@0x/neon-router@^0.3.3", "@0x/neon-router@^0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.4.tgz#730ae1805dce8a9fdb8de04c4d6e79dda37c873b"
+"@0x/neon-router@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.5.tgz#895e7a2dc65d492a413daaea283cbc0ca6df83fa"
+  integrity sha512-8wizP3smc5o4jVg1smZzCCFo4ohOrgDhO4JFjF+/oNHbFImlGHOvmH9HQ2FJXAXiLEOTxrbp3T5XxP5GNATq3w==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
