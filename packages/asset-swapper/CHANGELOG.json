@@ -5,6 +5,10 @@
             {
                 "note": "Routing glue optimization",
                 "pr": 439
+            },
+            {
+                "note": "Move VIP source routing into neon-router & disable fallback orders for native/plp",
+                "pr": 440
             }
         ]
     },

@@ -76,7 +76,8 @@ function findRoutesAndCreateOptimalPath(
     opts: PathPenaltyOpts,
     fees: FeeSchedule,
     neonRouterNumSamples: number,
-): Path | undefined {
+    vipSourcesSet: Set<ERC20BridgeSource>,
+): { allSourcesPath: Path | undefined; vipSourcesPath: Path | undefined } | undefined {
     // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
     // To avoid flooding the logs with these errors we just return an insufficient liquidity error
     // which is how the JS router handles these quotes today
@@ -92,6 +93,127 @@ function findRoutesAndCreateOptimalPath(
         }
 
         return fills[0];
+    };
+
+    const createPathFromStrategy = (sourcesRustRoute: Float64Array, sourcesOutputAmounts: Float64Array) => {
+        const routesAndSamplesAndOutputs = _.zip(
+            sourcesRustRoute,
+            samplesAndNativeOrdersWithResults,
+            sourcesOutputAmounts,
+            sampleSourcePathIds,
+        );
+        const adjustedFills: Fill[] = [];
+        const totalRoutedAmount = BigNumber.sum(...sourcesRustRoute);
+
+        const scale = input.dividedBy(totalRoutedAmount);
+        for (const [
+            routeInput,
+            routeSamplesAndNativeOrders,
+            outputAmount,
+            sourcePathId,
+        ] of routesAndSamplesAndOutputs) {
+            if (!Number.isFinite(outputAmount)) {
+                DEFAULT_WARNING_LOGGER(rustArgs, `neon-router: invalid route outputAmount ${outputAmount}`);
+                return undefined;
+            }
+            if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount) {
+                continue;
+            }
+            // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
+            // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
+            const rustInputAdjusted = BigNumber.min(
+                new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
+                input,
+            );
+
+            const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
+            if (!isDexSample(current)) {
+                const nativeFill = nativeOrdersToFills(
+                    side,
+                    [current],
+                    rustInputAdjusted,
+                    opts.outputAmountPerEth,
+                    opts.inputAmountPerEth,
+                    fees,
+                    false,
+                )[0] as Fill | undefined;
+                // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
+                // and nativeFill will be `undefined`
+                if (nativeFill) {
+                    // NOTE: For Limit/RFQ orders we are done here. No need to scale output
+                    adjustedFills.push({ ...nativeFill, sourcePathId: sourcePathId ?? hexUtils.random() });
+                }
+                continue;
+            }
+
+            // NOTE: For DexSamples only
+            let fill = createFill(current);
+            if (!fill) {
+                continue;
+            }
+            const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
+            // Descend to approach a closer fill for fillData which may not be consistent
+            // throughout the path (UniswapV3) and for a closer guesstimate at
+            // gas used
+
+            assert.assert(routeSamples.length >= 1, 'Found no sample to use for source');
+            for (let k = routeSamples.length - 1; k >= 0; k--) {
+                if (k === 0) {
+                    fill = createFill(routeSamples[0]) ?? fill;
+                }
+                if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
+                    const left = routeSamples[k];
+                    const right = routeSamples[k + 1];
+                    if (left && right) {
+                        fill =
+                            createFill({
+                                ...right, // default to the greater (for gas used)
+                                input: rustInputAdjusted,
+                                output: new BigNumber(outputAmount),
+                            }) ?? fill;
+                    } else {
+                        assert.assert(Boolean(left || right), 'No valid sample to use');
+                        fill = createFill(left || right) ?? fill;
+                    }
+                    break;
+                }
+            }
+
+            // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
+            const maxSampledOutput = BigNumber.max(...routeSamples.map(s => s.output));
+            // Scale output by scale factor but never go above the largest sample in sell quotes (unknown liquidity)  or below 1 base unit (unfillable)
+            const scaleOutput = (output: BigNumber) => {
+                // Don't try to scale 0 output as it will be clamped to 1
+                if (output.eq(ZERO_AMOUNT)) {
+                    return output;
+                }
+
+                const scaled = output
+                    .times(scale)
+                    .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
+                const capped = MarketOperation.Sell ? BigNumber.min(scaled, maxSampledOutput) : scaled;
+
+                return BigNumber.max(capped, 1);
+            };
+
+            adjustedFills.push({
+                ...fill,
+                input: rustInputAdjusted,
+                output: scaleOutput(fill.output),
+                adjustedOutput: scaleOutput(fill.adjustedOutput),
+                index: 0,
+                parent: undefined,
+                sourcePathId: sourcePathId ?? hexUtils.random(),
+            });
+        }
+
+        if (adjustedFills.length === 0) {
+            return undefined;
+        }
+
+        const pathFromRustInputs = Path.create(side, adjustedFills, input, opts);
+
+        return pathFromRustInputs;
     };
 
     const samplesAndNativeOrdersWithResults: Array<DexSample[] | NativeOrderWithFillableAmounts[]> = [];
@@ -136,6 +258,7 @@ function findRoutesAndCreateOptimalPath(
                 inputs: [],
                 outputs: [],
                 outputFees: [],
+                isVip: vipSourcesSet.has(singleSourceSamplesWithOutput[0]?.source),
             },
         );
 
@@ -194,6 +317,7 @@ function findRoutesAndCreateOptimalPath(
             inputs,
             outputs,
             outputFees,
+            isVip: true,
         };
 
         samplesAndNativeOrdersWithResults.push([nativeOrder]);
@@ -212,130 +336,42 @@ function findRoutesAndCreateOptimalPath(
     };
 
     const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
-    const strategySourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
-    route(rustArgs, allSourcesRustRoute, strategySourcesOutputAmounts, neonRouterNumSamples);
+    const allSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
+    const vipSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
+    const vipSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
+
+    route(
+        rustArgs,
+        allSourcesRustRoute,
+        allSourcesOutputAmounts,
+        vipSourcesRustRoute,
+        vipSourcesOutputAmounts,
+        neonRouterNumSamples,
+    );
     assert.assert(
         rustArgs.pathsIn.length === allSourcesRustRoute.length,
         'different number of sources in the Router output than the input',
     );
     assert.assert(
-        rustArgs.pathsIn.length === strategySourcesOutputAmounts.length,
+        rustArgs.pathsIn.length === allSourcesOutputAmounts.length,
+        'different number of sources in the Router output amounts results than the input',
+    );
+    assert.assert(
+        rustArgs.pathsIn.length === vipSourcesRustRoute.length,
+        'different number of sources in the Router output than the input',
+    );
+    assert.assert(
+        rustArgs.pathsIn.length === vipSourcesOutputAmounts.length,
         'different number of sources in the Router output amounts results than the input',
     );
 
-    const routesAndSamplesAndOutputs = _.zip(
-        allSourcesRustRoute,
-        samplesAndNativeOrdersWithResults,
-        strategySourcesOutputAmounts,
-        sampleSourcePathIds,
-    );
-    const adjustedFills: Fill[] = [];
-    const totalRoutedAmount = BigNumber.sum(...allSourcesRustRoute);
+    const allSourcesPath = createPathFromStrategy(allSourcesRustRoute, allSourcesOutputAmounts);
+    const vipSourcesPath = createPathFromStrategy(vipSourcesRustRoute, vipSourcesOutputAmounts);
 
-    const scale = input.dividedBy(totalRoutedAmount);
-    for (const [routeInput, routeSamplesAndNativeOrders, outputAmount, sourcePathId] of routesAndSamplesAndOutputs) {
-        if (!Number.isFinite(outputAmount)) {
-            DEFAULT_WARNING_LOGGER(rustArgs, `neon-router: invalid route outputAmount ${outputAmount}`);
-            return undefined;
-        }
-        if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount) {
-            continue;
-        }
-        // TODO(kimpers): [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
-        // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
-        const rustInputAdjusted = BigNumber.min(
-            new BigNumber(routeInput).multipliedBy(scale).integerValue(BigNumber.ROUND_CEIL),
-            input,
-        );
-
-        const current = routeSamplesAndNativeOrders[routeSamplesAndNativeOrders.length - 1];
-        if (!isDexSample(current)) {
-            const nativeFill = nativeOrdersToFills(
-                side,
-                [current],
-                rustInputAdjusted,
-                opts.outputAmountPerEth,
-                opts.inputAmountPerEth,
-                fees,
-                false,
-            )[0] as Fill | undefined;
-            // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
-            // and nativeFill will be `undefined`
-            if (nativeFill) {
-                // NOTE: For Limit/RFQ orders we are done here. No need to scale output
-                adjustedFills.push({ ...nativeFill, sourcePathId: sourcePathId ?? hexUtils.random() });
-            }
-            continue;
-        }
-
-        // NOTE: For DexSamples only
-        let fill = createFill(current);
-        if (!fill) {
-            continue;
-        }
-        const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
-        // Descend to approach a closer fill for fillData which may not be consistent
-        // throughout the path (UniswapV3) and for a closer guesstimate at
-        // gas used
-
-        assert.assert(routeSamples.length >= 1, 'Found no sample to use for source');
-        for (let k = routeSamples.length - 1; k >= 0; k--) {
-            if (k === 0) {
-                fill = createFill(routeSamples[0]) ?? fill;
-            }
-            if (rustInputAdjusted.isGreaterThan(routeSamples[k].input)) {
-                const left = routeSamples[k];
-                const right = routeSamples[k + 1];
-                if (left && right) {
-                    fill =
-                        createFill({
-                            ...right, // default to the greater (for gas used)
-                            input: rustInputAdjusted,
-                            output: new BigNumber(outputAmount),
-                        }) ?? fill;
-                } else {
-                    assert.assert(Boolean(left || right), 'No valid sample to use');
-                    fill = createFill(left || right) ?? fill;
-                }
-                break;
-            }
-        }
-
-        // TODO(kimpers): remove once we have solved the rounding/precision loss issues in the Rust router
-        const maxSampledOutput = BigNumber.max(...routeSamples.map(s => s.output));
-        // Scale output by scale factor but never go above the largest sample in sell quotes (unknown liquidity)  or below 1 base unit (unfillable)
-        const scaleOutput = (output: BigNumber) => {
-            // Don't try to scale 0 output as it will be clamped to 1
-            if (output.eq(ZERO_AMOUNT)) {
-                return output;
-            }
-
-            const scaled = output
-                .times(scale)
-                .decimalPlaces(0, side === MarketOperation.Sell ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL);
-            const capped = MarketOperation.Sell ? BigNumber.min(scaled, maxSampledOutput) : scaled;
-
-            return BigNumber.max(capped, 1);
-        };
-
-        adjustedFills.push({
-            ...fill,
-            input: rustInputAdjusted,
-            output: scaleOutput(fill.output),
-            adjustedOutput: scaleOutput(fill.adjustedOutput),
-            index: 0,
-            parent: undefined,
-            sourcePathId: sourcePathId ?? hexUtils.random(),
-        });
-    }
-
-    if (adjustedFills.length === 0) {
-        return undefined;
-    }
-
-    const pathFromRustInputs = Path.create(side, adjustedFills, input, opts);
-
-    return pathFromRustInputs;
+    return {
+        allSourcesPath,
+        vipSourcesPath,
+    };
 }
 
 export function findOptimalRustPathFromSamples(
@@ -349,9 +385,18 @@ export function findOptimalRustPathFromSamples(
     neonRouterNumSamples: number,
     samplerMetrics?: SamplerMetrics,
 ): Path | undefined {
-    const beforeAllTimeMs = performance.now();
-    let beforeTimeMs = performance.now();
-    const allSourcesPath = findRoutesAndCreateOptimalPath(
+    const beforeTimeMs = performance.now();
+    const sendMetrics = () => {
+        // tslint:disable-next-line: no-unused-expression
+        samplerMetrics &&
+            samplerMetrics.logRouterDetails({
+                router: 'neon-router',
+                type: 'total',
+                timingMs: performance.now() - beforeTimeMs,
+            });
+    };
+    const vipSourcesSet = new Set(VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId]);
+    const paths = findRoutesAndCreateOptimalPath(
         side,
         samples,
         nativeOrders,
@@ -359,58 +404,22 @@ export function findOptimalRustPathFromSamples(
         opts,
         fees,
         neonRouterNumSamples,
+        vipSourcesSet,
     );
-    // tslint:disable-next-line: no-unused-expression
-    samplerMetrics &&
-        samplerMetrics.logRouterDetails({
-            router: 'neon-router',
-            type: 'all',
-            timingMs: performance.now() - beforeTimeMs,
-        });
-    if (!allSourcesPath) {
+
+    if (!paths) {
+        sendMetrics();
         return undefined;
     }
 
-    const vipSources = VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId];
+    const { allSourcesPath, vipSourcesPath } = paths;
 
-    // HACK(kimpers): The Rust router currently doesn't account for VIP sources correctly
-    // we need to try to route them in isolation and compare with the results all sources
-    if (vipSources.length > 0) {
-        beforeTimeMs = performance.now();
-        const vipSourcesSet = new Set(vipSources);
-        const vipSourcesSamples = samples.filter(s => s[0] && vipSourcesSet.has(s[0].source));
-
-        if (vipSourcesSamples.length > 0) {
-            const vipSourcesPath = findRoutesAndCreateOptimalPath(
-                side,
-                vipSourcesSamples,
-                [],
-                input,
-                opts,
-                fees,
-                neonRouterNumSamples,
-            );
-            // tslint:disable-next-line: no-unused-expression
-            samplerMetrics &&
-                samplerMetrics.logRouterDetails({
-                    router: 'neon-router',
-                    type: 'vip',
-                    timingMs: performance.now() - beforeTimeMs,
-                });
-
-            if (vipSourcesPath?.isBetterThan(allSourcesPath)) {
-                return vipSourcesPath;
-            }
-        }
+    if (!allSourcesPath || vipSourcesPath?.isBetterThan(allSourcesPath)) {
+        sendMetrics();
+        return vipSourcesPath;
     }
-    // tslint:disable-next-line: no-unused-expression
-    samplerMetrics &&
-        samplerMetrics.logRouterDetails({
-            router: 'neon-router',
-            type: 'total',
-            timingMs: performance.now() - beforeAllTimeMs,
-        });
 
+    sendMetrics();
     return allSourcesPath;
 }
 

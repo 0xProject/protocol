@@ -570,7 +570,10 @@ export class MarketOperationUtils {
         }
 
         // Generate a fallback path if required
-        await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
+        // TODO(kimpers): Will experiment with disabling this and see how it affects revert rate
+        // to avoid yet another router roundtrip
+        // TODO: clean this up if we don't need it
+        // await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
         const collapsedPath = optimalPath.collapse(orderOpts);
 
         return {
@@ -774,6 +777,8 @@ export class MarketOperationUtils {
         );
     }
 
+    /*
+     * TODO(kimpers): Remove this when we know that it's safe to drop the fallbacks on native orders
     // tslint:disable-next-line: prefer-function-over-method
     private async _addOptionalFallbackAsync(
         side: MarketOperation,
@@ -839,6 +844,7 @@ export class MarketOperationUtils {
             }
         }
     }
+    */
 }
 
 // tslint:disable: max-file-line-count
