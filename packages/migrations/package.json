@@ -48,10 +48,10 @@
         "registry": "git@github.com:0xProject/gitpkg-registry.git"
     },
     "devDependencies": {
-        "@0x/dev-utils": "^4.2.11",
+        "@0x/dev-utils": "^4.2.12",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
-        "@0x/types": "^3.3.4",
+        "@0x/types": "^3.3.5",
         "@types/yargs": "^11.0.0",
         "chai": "^4.0.1",
         "dirty-chai": "^2.0.1",
@@ -67,7 +67,7 @@
         "yargs": "^10.0.3"
     },
     "dependencies": {
-        "@0x/base-contract": "^6.4.5",
+        "@0x/base-contract": "^6.4.6",
         "@0x/contract-addresses": "^6.12.0",
         "@0x/contracts-asset-proxy": "^3.7.19",
         "@0x/contracts-coordinator": "^3.1.38",
@@ -82,14 +82,14 @@
         "@0x/contracts-staking": "^2.0.45",
         "@0x/contracts-utils": "^4.8.8",
         "@0x/contracts-zero-ex": "^0.31.1",
-        "@0x/sol-compiler": "^4.7.8",
-        "@0x/subproviders": "^6.6.2",
-        "@0x/typescript-typings": "^5.2.1",
-        "@0x/utils": "^6.5.0",
-        "@0x/web3-wrapper": "^7.6.2",
+        "@0x/sol-compiler": "^4.7.9",
+        "@0x/subproviders": "^6.6.3",
+        "@0x/typescript-typings": "^5.2.2",
+        "@0x/utils": "^6.5.1",
+        "@0x/web3-wrapper": "^7.6.3",
         "@ledgerhq/hw-app-eth": "^4.3.0",
         "@types/web3-provider-engine": "^14.0.0",
-        "ethereum-types": "^3.6.0",
+        "ethereum-types": "^3.6.1",
         "ethereumjs-util": "^7.1.0",
         "ethers": "~4.0.4",
         "lodash": "^4.17.11"
