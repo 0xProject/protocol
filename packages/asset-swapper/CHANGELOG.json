@@ -3,7 +3,8 @@
         "version": "16.51.0",
         "changes": [
             {
-                "note": "Added `Curve` `YFI-ETH` pool"
+                "note": "Added `Curve` `YFI-ETH` pool",
+                "pr": 444
             }
         ]
     },
