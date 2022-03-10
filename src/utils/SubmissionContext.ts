@@ -72,7 +72,7 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
      */
     public get nonce(): number {
         const nonce = this._transactions[0].nonce;
-        if (!nonce) {
+        if (nonce === undefined || nonce === null) {
             throw new Error('Transaction does not have a nonce');
         }
         return nonce;
