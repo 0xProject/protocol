@@ -1069,7 +1069,7 @@ const MOBIUSMONEY_CELO_SHARED: CurveInfo = {
     sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     metaTokens: undefined,
-    gasSchedule: 300e3,
+    gasSchedule: 150e3,
     poolAddress: NULL_ADDRESS,
     tokens: [],
 };
