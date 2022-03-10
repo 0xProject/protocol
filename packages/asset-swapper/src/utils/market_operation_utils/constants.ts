@@ -593,6 +593,7 @@ export const CELO_TOKENS = {
     asUSDC: '0xcd7d7ff64746c1909e44db8e95331f9316478817',
     mcUSDT: '0xcfffe0c89a779c09df3df5624f54cdf7ef5fdd5d',
     mcUSDC: '0x93db49be12b864019da9cb147ba75cdc0506190e',
+    DAI: '0x90ca507a5d4458a4c6c6249d186b6dcb02a5bccd',
 };
 
 export const FANTOM_TOKENS = {
@@ -817,21 +818,12 @@ export const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
 export const MOBIUSMONEY_CELO_POOLS = {
-    poof_cusd_v2: '0xa2f0e57d4ceacf025e81c76f28b9ad6e9fbe8735',
-    poof_celo_v2: '0xfc9e2c63370d8deb3521922a7b2b60f4cff7e75a',
     usdc_optics_v2: '0x9906589ea8fd27504974b7e8201df5bbde986b03',
     dai_optics_v2: '0xf3f65dfe0c8c8f2986da0fec159abe6fd4e700b4',
     weth_optics_v2: '0x74ef28d635c6c5800dd3cd62d4c4f8752daacb09',
-    wbtc_optics_v2: '0xaefc4e8cf655a182e8346b24c8abce45616ee0d2',
     pusdc_optics_v2: '0xcce0d62ce14fb3e4363eb92db37ff3630836c252',
-    usdc_allbridge_avax: '0x0986b42f5f9c42feeef66fc23eba9ea1164c916d',
     usdc_allbridge_solana: '0x63c1914bf00a9b395a2bf89aada55a5615a3656e',
-    usdc_eth_optics: '0xa5037661989789d0310ac2b796fa78f1b01f195d',
-    usdc_poly_optics: '0x2080aaa167e2225e1fc9923250ba60e19a180fb2',
-    wbtc: '0x19260b9b573569ddb105780176547875fe9feda3',
-    weth: '0xe0f2cc70e52f05edb383313393d88df2937da55a',
-    usdt_moss: '0xdbf27fd2a702cc02ac7acf0aea376db780d53247',
-    usdc_moss: '0x0ff04189ef135b6541e56f7c638489de92e9c778',
+    usdc_poly_optics: '0xa2f0e57d4ceacf025e81c76f28b9ad6e9fbe8735',
 };
 
 export const ACRYPTOS_POOLS = {
@@ -1077,7 +1069,7 @@ const MOBIUSMONEY_CELO_SHARED: CurveInfo = {
     sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     metaTokens: undefined,
-    gasSchedule: 100e3,
+    gasSchedule: 300e3,
     poolAddress: NULL_ADDRESS,
     tokens: [],
 };
@@ -1754,16 +1746,6 @@ export const FIREBIRDONESWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
 };
 
 export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
-    [MOBIUSMONEY_CELO_POOLS.poof_cusd_v2]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.poof_cusd_v2,
-        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.pUSD],
-    },
-    [MOBIUSMONEY_CELO_POOLS.poof_celo_v2]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.poof_celo_v2,
-        tokens: [CELO_TOKENS.WCELO, CELO_TOKENS.pCELO],
-    },
     [MOBIUSMONEY_CELO_POOLS.usdc_optics_v2]: {
         ...MOBIUSMONEY_CELO_SHARED,
         poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_optics_v2,
@@ -1774,56 +1756,27 @@ export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
         poolAddress: MOBIUSMONEY_CELO_POOLS.weth_optics_v2,
         tokens: [CELO_TOKENS.cETH, CELO_TOKENS.oWETH],
     },
-    [MOBIUSMONEY_CELO_POOLS.wbtc_optics_v2]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.wbtc_optics_v2,
-        tokens: [CELO_TOKENS.cBTC, CELO_TOKENS.WBTC],
-    },
     [MOBIUSMONEY_CELO_POOLS.pusdc_optics_v2]: {
         ...MOBIUSMONEY_CELO_SHARED,
         poolAddress: MOBIUSMONEY_CELO_POOLS.pusdc_optics_v2,
         tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.pUSDC_V2],
-    },
-    [MOBIUSMONEY_CELO_POOLS.usdc_allbridge_avax]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_allbridge_avax,
-        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.aaUSDC],
     },
     [MOBIUSMONEY_CELO_POOLS.usdc_allbridge_solana]: {
         ...MOBIUSMONEY_CELO_SHARED,
         poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_allbridge_solana,
         tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.asUSDC],
     },
-    [MOBIUSMONEY_CELO_POOLS.usdc_eth_optics]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_eth_optics,
-        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.cUSDC],
-    },
     [MOBIUSMONEY_CELO_POOLS.usdc_poly_optics]: {
         ...MOBIUSMONEY_CELO_SHARED,
         poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_poly_optics,
-        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.pUSDC],
+        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.pUSD],
     },
-    [MOBIUSMONEY_CELO_POOLS.wbtc]: {
+    [MOBIUSMONEY_CELO_POOLS.dai_optics_v2]: {
         ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.wbtc,
-        tokens: [CELO_TOKENS.cBTC, CELO_TOKENS.wBTCO],
+        poolAddress: MOBIUSMONEY_CELO_POOLS.dai_optics_v2,
+        tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.DAI],
     },
-    [MOBIUSMONEY_CELO_POOLS.weth]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.weth,
-        tokens: [CELO_TOKENS.cETH, CELO_TOKENS.WETHv1],
-    },
-    [MOBIUSMONEY_CELO_POOLS.usdt_moss]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.usdt_moss,
-        tokens: [CELO_TOKENS.cETH, CELO_TOKENS.mcUSDT],
-    },
-    [MOBIUSMONEY_CELO_POOLS.usdc_moss]: {
-        ...MOBIUSMONEY_CELO_SHARED,
-        poolAddress: MOBIUSMONEY_CELO_POOLS.usdc_moss,
-        tokens: [CELO_TOKENS.cETH, CELO_TOKENS.mcUSDC],
-    },
+
 };
 
 const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
