@@ -6,7 +6,8 @@
                 "note": "Added `Curve` `YFI-ETH` pool",
                 "pr": 444
             }
-        ]
+        ],
+        "timestamp": 1646888282
     },
     {
         "version": "16.50.3",
