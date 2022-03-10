@@ -1,6 +1,6 @@
 import { RedisClient } from 'redis';
 
-const OTC_ORDER_NONCE_BUCKET_COUNTER_KEY = 'otcorder.nonce.bucket.counter';
+const OTC_ORDER_NONCE_BUCKET_COUNTER_KEY = (chainId: number) => `otcorder.nonce.bucket.counter.chain.${chainId}`;
 
 export class CacheClient {
     constructor(private readonly _redisClient: RedisClient) {}
@@ -20,9 +20,9 @@ export class CacheClient {
     // Get the next OtcOrder Bucket
     // NOTE: unliklely to ever hit this, but the node library we use tries to cast the response from Redis as a number.
     // However, MAX_INT for js is lower than MAX_INT for Redis. We also need to be aware of if Redis' MAX_INT ever gets hit (error)
-    public async getNextOtcOrderBucketAsync(): Promise<number> {
+    public async getNextOtcOrderBucketAsync(chainId: number): Promise<number> {
         return new Promise((resolve, reject) => {
-            this._redisClient.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY, (err, valueAfterIncr) => {
+            this._redisClient.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY(chainId), (err, valueAfterIncr) => {
                 if (err) {
                     reject(err);
                 } else {

@@ -1898,7 +1898,7 @@ export class RfqmService {
         };
 
         // Fetch the current bucket
-        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync()) % RFQM_NUM_BUCKETS;
+        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(CHAIN_ID)) % RFQM_NUM_BUCKETS;
 
         // Create RfqOrder request options
         const opts: RfqmRequestOptions = {
