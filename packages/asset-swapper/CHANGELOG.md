@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.51.0 - _March 10, 2022_
+
+    * Added `Curve` `YFI-ETH` pool (#444)
+
 ## v16.50.3 - _March 9, 2022_
 
     * Routing glue optimization (#439)
