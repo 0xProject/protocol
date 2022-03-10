@@ -500,6 +500,7 @@ export const MAINNET_TOKENS = {
     OUSD: '0x2a8e1e676ec238d8a992307b495b45b3feaa5e86',
     agEUR: '0x1a7e4e63778b4f12a199c062f3efdd288afcbce8',
     ibEUR: '0x96e61422b6a9ba0e068b6c5add4ffabc6a4aae27',
+    YFI: '0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e',
 };
 
 export const BSC_TOKENS = {
@@ -669,6 +670,7 @@ export const CURVE_POOLS = {
     d3pool: '0xbaaa1f5dba42c3389bdbc2c9d2de134f5cd0dc89',
     triEURpool: '0xb9446c4ef5ebe66268da6700d26f96273de3d571',
     ibEURsEUR: '0x19b080fe1ffa0553469d20ca36219f17fcf03859',
+    wethyfi: '0xc26b89a667578ec7b3f11b2f98d6fd15c07c54ba',
 };
 
 export const CURVE_V2_POOLS = {
@@ -1299,6 +1301,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.btrflyweth]: createCurveFactoryCryptoExchangePool({
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.BTRFLY],
         pool: CURVE_POOLS.btrflyweth,
+        gasSchedule: 250e3,
+    }),
+    [CURVE_POOLS.wethyfi]: createCurveFactoryCryptoExchangePool({
+        tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.YFI],
+        pool: CURVE_POOLS.wethyfi,
         gasSchedule: 250e3,
     }),
 };
