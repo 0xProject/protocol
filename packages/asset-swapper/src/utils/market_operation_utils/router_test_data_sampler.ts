@@ -1,34 +1,31 @@
 import { ChainId } from '@0x/contract-addresses';
 import { OptimizerCapture } from '@0x/neon-router';
-import { S3Client, PutObjectCommand, CreateBucketCommand } from "@aws-sdk/client-s3";
+import { CreateBucketCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 const SAMPLE_THRESHOLD = 0.05;
 const UPLOAD_SIZE = 1000;
-const REGION = process.env.AWS_S3_REGION? process.env.AWS_S3_REGION : "us-west-1";
+const REGION = process.env.AWS_S3_REGION ? process.env.AWS_S3_REGION : 'us-west-1';
 
 export class TestDataSampler {
-    private static instance: TestDataSampler;
-    private routes: Array<OptimizerCapture> = [];
-    private readonly chainId;
-    private constructor(chainId: ChainId) {
-        this.chainId = chainId;
-    }
+    private static _instance: TestDataSampler;
+    private _routes: OptimizerCapture[] = [];
+    private readonly _chainId;
     public static getInstance(chainId: ChainId): TestDataSampler {
         // singleton implementation
-        if (!TestDataSampler.instance) {
-            TestDataSampler.instance = new TestDataSampler(chainId);
+        if (!TestDataSampler._instance) {
+            TestDataSampler._instance = new TestDataSampler(chainId);
         }
-        return TestDataSampler.instance;
+        return TestDataSampler._instance;
     }
 
-    public sampleRoute(route: OptimizerCapture) {
+    public sampleRoute(route: OptimizerCapture): void {
         if (Math.random() < SAMPLE_THRESHOLD) {
-            this.routes.push(route);
+            this._routes.push(route);
 
-            if (this.routes.length > UPLOAD_SIZE) {
-                const toUpload = this.routes;
-                this.routes = [];
-                const file = `${this.chainId}-${Date.now()}`;
+            if (this._routes.length > UPLOAD_SIZE) {
+                const toUpload = this._routes;
+                this._routes = [];
+                const file = `${this._chainId}-${Date.now()}`;
                 const s3Client = new S3Client({ region: REGION });
                 // Set the parameters
                 const params = {
@@ -39,26 +36,22 @@ export class TestDataSampler {
 
                 const run = async () => {
                     // Create an Amazon S3 bucket.
-                    try {
-                      const data = await s3Client.send(
-                          new CreateBucketCommand({ Bucket: params.Bucket })
-                      );
-                    } catch (err) {
-                      console.log("Create S3 bucket; Error:", err);
-                    }
+                    await s3Client.send(new CreateBucketCommand({ Bucket: params.Bucket }));
                     // Create an object and upload it to the Amazon S3 bucket.
-                    try {
-                      const results = await s3Client.send(new PutObjectCommand(params));
-                    } catch (err) {
-                      console.log("Upload to S3 bucket; Error:", err);
-                    }
+                    await s3Client.send(new PutObjectCommand(params));
                 };
-                run();
+                run()
+                    .then()
+                    .catch();
             }
         }
     }
 
     public len(): number {
-        return this.routes.length;
+        return this._routes.length;
     }
-};
+
+    private constructor(chainId: ChainId) {
+        this._chainId = chainId;
+    }
+}
