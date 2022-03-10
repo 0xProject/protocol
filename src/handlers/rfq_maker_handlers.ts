@@ -127,7 +127,11 @@ export class RfqMakerHandlers {
                 rfqmUri,
             );
             res.status(HttpStatus.CREATED).send(rfqMaker);
-            logger.info({ requestId, makerId, chainId }, 'Successfully created or updated RfqMaker entity.');
+            const rfqmMakerUri = rfqMaker.rfqmUri;
+            logger.info(
+                { requestId, makerId, chainId, rfqmMakerUri },
+                'Successfully created or updated RfqMaker entity.',
+            );
             RFQ_MAKER_UPDATE_SUCCEED.labels(makerId).inc();
         } catch (error) {
             const message = `Failed to create or update RfqMaker entity.`;
@@ -183,7 +187,8 @@ export class RfqMakerHandlers {
                 rfqmUri,
             );
             res.status(HttpStatus.OK).send(rfqMaker);
-            logger.info({ requestId, makerId, chainId }, 'Successfully patched RfqMaker entity.');
+            const rfqmMakerUri = rfqMaker.rfqmUri;
+            logger.info({ requestId, makerId, chainId, rfqmMakerUri }, 'Successfully patched RfqMaker entity.');
             RFQ_MAKER_UPDATE_SUCCEED.labels(makerId).inc();
         } catch (error) {
             const message = `Failed to patch RfqMaker entity.`;
