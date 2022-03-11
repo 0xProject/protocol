@@ -1776,7 +1776,6 @@ export const MOBIUSMONEY_CELO_INFOS: { [name: string]: CurveInfo } = {
         poolAddress: MOBIUSMONEY_CELO_POOLS.dai_optics_v2,
         tokens: [CELO_TOKENS.cUSD, CELO_TOKENS.DAI],
     },
-
 };
 
 const ACRYPTOS_ACS4USD_POOL_BSC_TOKENS = [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.DAI, BSC_TOKENS.USDC];
