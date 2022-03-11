@@ -75,7 +75,6 @@
         "wsrun": "^5.2.4"
     },
     "resolutions": {
-        "merkle-patricia-tree": "3.0.0",
-        "bignumber.js": "9.0.1"
+        "merkle-patricia-tree": "3.0.0"
     }
 }
