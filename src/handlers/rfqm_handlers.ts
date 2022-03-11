@@ -92,7 +92,7 @@ export class RfqmHandlers {
         RFQM_INDICATIVE_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const params = await this._parseFetchIndicativeQuoteParamsAsync(req);
+        const { params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
 
         // Try to get indicative quote
         let indicativeQuote;
@@ -121,7 +121,7 @@ export class RfqmHandlers {
         RFQM_FIRM_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const params = await this._parseFetchFirmQuoteParamsAsync(req);
+        const { params } = await this._parseFetchFirmQuoteParamsAsync(req);
 
         // Try to get firm quote
         let firmQuote;
@@ -177,7 +177,7 @@ export class RfqmHandlers {
     }
 
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const params = this._parseSubmitSignedQuoteParams(req);
+        const { params } = this._parseSubmitSignedQuoteParams(req);
         RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integrator.integratorId, params.integrator.integratorId).inc();
 
         if (params.type === RfqmTypes.MetaTransaction) {
@@ -209,10 +209,12 @@ export class RfqmHandlers {
         }
     }
 
-    private async _parseFetchFirmQuoteParamsAsync(req: express.Request): Promise<FetchFirmQuoteParams> {
+    private async _parseFetchFirmQuoteParamsAsync(
+        req: express.Request,
+    ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
         // Same as indicative except requires takerAddress
-        const indicativeQuoteRequest = await this._parseFetchIndicativeQuoteParamsAsync(req);
-        const takerAddress = indicativeQuoteRequest.takerAddress || '';
+        const { chainId, params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
+        const takerAddress = params.takerAddress || '';
         if (takerAddress === '') {
             throw new ValidationError([
                 {
@@ -231,8 +233,11 @@ export class RfqmHandlers {
             ]);
         }
         return {
-            ...indicativeQuoteRequest,
-            takerAddress,
+            chainId,
+            params: {
+                ...params,
+                takerAddress,
+            },
         };
     }
 
@@ -256,9 +261,12 @@ export class RfqmHandlers {
         return { apiKey, integrator };
     }
 
-    private async _parseFetchIndicativeQuoteParamsAsync(req: express.Request): Promise<FetchIndicativeQuoteParams> {
+    private async _parseFetchIndicativeQuoteParamsAsync(
+        req: express.Request,
+    ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
         // HACK - reusing the validation for Swap Quote as the interface here is a subset
         schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
+        const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'));
 
         // Parse string params
@@ -310,20 +318,27 @@ export class RfqmHandlers {
         const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
 
         return {
-            buyAmount,
-            buyToken: buyTokenContractAddress,
-            buyTokenDecimals,
-            integrator,
-            sellAmount,
-            sellToken: sellTokenContractAddress,
-            sellTokenDecimals,
-            takerAddress: takerAddress as string,
-            affiliateAddress: affiliateAddress as string,
+            chainId,
+            params: {
+                buyAmount,
+                buyToken: buyTokenContractAddress,
+                buyTokenDecimals,
+                integrator,
+                sellAmount,
+                sellToken: sellTokenContractAddress,
+                sellTokenDecimals,
+                takerAddress: takerAddress as string,
+                affiliateAddress: affiliateAddress as string,
+            },
         };
     }
 
-    private _parseSubmitSignedQuoteParams(req: express.Request): SubmitRfqmSignedQuoteParams {
+    private _parseSubmitSignedQuoteParams(req: express.Request): {
+        chainId: number;
+        params: SubmitRfqmSignedQuoteParams;
+    } {
         const type = req.body.type as RfqmTypes;
+        const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'));
 
         if (type === RfqmTypes.MetaTransaction) {
@@ -333,19 +348,25 @@ export class RfqmHandlers {
             const signature = stringsToSignature(req.body.signature as StringSignatureFields);
 
             return {
-                type,
-                metaTransaction,
-                signature,
-                integrator,
+                chainId,
+                params: {
+                    type,
+                    metaTransaction,
+                    signature,
+                    integrator,
+                },
             };
         } else if (type === RfqmTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(req.body.order as RawOtcOrderFields));
             const signature = stringsToSignature(req.body.signature as StringSignatureFields);
             return {
-                type,
-                order,
-                signature,
-                integrator,
+                chainId,
+                params: {
+                    type,
+                    order,
+                    signature,
+                    integrator,
+                },
             };
         } else {
             throw new ValidationError([
@@ -358,6 +379,31 @@ export class RfqmHandlers {
         }
     }
 }
+
+/**
+ * Extracts the Chain Id from the request. If none is provided, assumes a Chain Id of 1 (for backwards compatibility)
+ *
+ * @param req - the Express Request object
+ * @returns the chain Id for this request
+ */
+const extractChainId = (req: express.Request): number => {
+    const chainIdFromHeader = req.header('0x-chain-id');
+    if (chainIdFromHeader === undefined) {
+        return 1;
+    } else {
+        const parsedInt = parseInt(chainIdFromHeader, 10);
+        if (Number.isNaN(parsedInt)) {
+            throw new ValidationError([
+                {
+                    field: '0x-chain-id',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: 'Invalid chain id',
+                },
+            ]);
+        }
+        return parsedInt;
+    }
+};
 
 /**
  * Gets the token address for a given symbol.

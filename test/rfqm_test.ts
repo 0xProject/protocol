@@ -45,6 +45,7 @@ import { RfqMakerDbUtils } from '../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../src/utils/rfq_maker_manager';
 
 import {
+    CHAIN_ID,
     CONTRACT_ADDRESSES,
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
@@ -465,6 +466,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', CHAIN_ID.toString())
                         .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
@@ -711,6 +713,35 @@ describe(SUITE_NAME, () => {
                         .expect('Content-Type', /json/);
 
                     expect(appResponse.body.reason).to.equal('Invalid API key');
+                },
+                axiosClient,
+            );
+        });
+
+        it('should return a 400 BAD REQUEST Validation Error if Chain Id cannot be parsed', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+                intentOnFilling: 'false',
+                skipValidation: 'true',
+            });
+
+            return rfqtMocker.withMockedRfqtQuotes(
+                [],
+                RfqtQuoteEndpoint.Indicative,
+                async () => {
+                    const appResponse = await request(app)
+                        .get(`${RFQM_PATH}/price?${params.toString()}`)
+                        .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', 'invalid-id')
+                        .expect(HttpStatus.BAD_REQUEST)
+                        .expect('Content-Type', /json/);
+
+                    expect(appResponse.body.reason).to.equal('Validation Failed');
+                    expect(appResponse.body.validationErrors[0].reason).to.equal('Invalid chain id');
                 },
                 axiosClient,
             );
