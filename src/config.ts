@@ -74,6 +74,36 @@ enum EnvVarType {
 }
 
 /**
+ * Values read from configuration files which enable
+ * rfq-api to operate on a chain.
+ */
+interface ChainConfiguration {
+    chainId: number;
+    gasStationUrl: string;
+    name: string; // human readable, for logging and such
+    registryAddress: string;
+    rpcUrl: string;
+    sqsUrl: string;
+}
+
+export type ChainsConfiguration = ChainConfiguration[];
+
+/**
+ * Configuration which contains information about chains and
+ * related resources, like the RPC url.
+ */
+export const CHAINS_CONFIGURATIONS: ChainsConfiguration = (() => {
+    let result: ChainsConfiguration;
+    try {
+        result = resolveEnvVar<ChainsConfiguration>('CHAINS_CONFIGURATION', EnvVarType.JsonStringList, []);
+        schemaUtils.validateSchema(result, schemas.chainsConfigurationSchema);
+    } catch (e) {
+        throw new Error(`CHAINS_CONFIGURATION was defined but is not valid JSON per the schema: ${e}`);
+    }
+    return result;
+})();
+
+/**
  * A taker-integrator of the 0x API.
  */
 export interface Integrator {

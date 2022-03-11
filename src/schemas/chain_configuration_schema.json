@@ -1,0 +1,22 @@
+{
+    "id": "/chainConfigurationSchema",
+    "properties": {
+        "gasStationUrl": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "registryAddress": {
+            "type": "string"
+        },
+        "rpcUrl": {
+            "type": "string"
+        },
+        "sqsUrl": {
+            "type": "string"
+        }
+    },
+    "required": ["gasStationUrl", "name", "registryAddress", "rpcUrl", "sqsUrl"],
+    "type": "object"
+}
