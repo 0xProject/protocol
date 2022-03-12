@@ -1,6 +1,6 @@
 import * as apiKeySchema from './api_key_schema.json';
-import * as chainsConfigurationSchema from './chains_configuration_schema.json';
-import * as chainConfigurationgSchema from './chain_configuration_schema.json';
+import * as chainConfigurationsSchema from './chain_configurations_schema.json';
+import * as chainConfigurationSchema from './chain_configuration_schema.json';
 import * as indicativeOtcQuoteResponseSchema from './indicative_otc_quote_response_schema.json';
 import * as indicativeQuoteResponseSchema from './indicative_quote_response_schema.json';
 import * as integratorsAclSchema from './integrators_acl_schema.json';
@@ -20,8 +20,8 @@ import * as swapQuoteRequestSchema from './swap_quote_request_schema.json';
 
 export const schemas = {
     apiKeySchema,
-    chainConfigurationgSchema,
-    chainsConfigurationSchema,
+    chainConfigurationSchema,
+    chainConfigurationsSchema,
     indicativeOtcQuoteResponseSchema,
     indicativeQuoteResponseSchema,
     integratorAclSchema,

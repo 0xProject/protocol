@@ -1,5 +1,5 @@
 {
-    "id": "/chainsConfigurationSchema",
+    "id": "/chainConfigurationsSchema",
     "type": "array",
     "items": {
         "$ref": "/chainConfigurationSchema"

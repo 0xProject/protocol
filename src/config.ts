@@ -86,19 +86,19 @@ interface ChainConfiguration {
     sqsUrl: string;
 }
 
-export type ChainsConfiguration = ChainConfiguration[];
+export type ChainConfigurations = ChainConfiguration[];
 
 /**
  * Configuration which contains information about chains and
  * related resources, like the RPC url.
  */
-export const CHAINS_CONFIGURATIONS: ChainsConfiguration = (() => {
-    let result: ChainsConfiguration;
+export const CHAIN_CONFIGURATIONS: ChainConfigurations = (() => {
+    let result: ChainConfigurations;
     try {
-        result = resolveEnvVar<ChainsConfiguration>('CHAINS_CONFIGURATION', EnvVarType.JsonStringList, []);
-        schemaUtils.validateSchema(result, schemas.chainsConfigurationSchema);
+        result = resolveEnvVar<ChainConfigurations>('CHAIN_CONFIGURATIONS', EnvVarType.JsonStringList, []);
+        schemaUtils.validateSchema(result, schemas.chainConfigurationsSchema);
     } catch (e) {
-        throw new Error(`CHAINS_CONFIGURATION was defined but is not valid JSON per the schema: ${e}`);
+        throw new Error(`CHAIN_CONFIGURATIONS was defined but is not valid JSON per the schema: ${e}`);
     }
     return result;
 })();
