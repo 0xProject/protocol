@@ -11,6 +11,7 @@ import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSamplesToFills, ethToOutputAmount, nativeOrdersToFills } from './fills';
 import { DEFAULT_PATH_PENALTY_OPTS, Path, PathPenaltyOpts } from './path';
+import { TestDataSampler } from './router_test_data_sampler';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetrics } from './types';
 
 // tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
@@ -18,6 +19,8 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetri
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
+const SAMPLE_THRESHOLD = 0.003;
+const SHOULD_ENABLE_RUST_DATA_SAMPLER = process.env.ENABLE_RUST_DATA_SAMPLER === 'true';
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
 
@@ -77,6 +80,7 @@ function findRoutesAndCreateOptimalPath(
     fees: FeeSchedule,
     neonRouterNumSamples: number,
     vipSourcesSet: Set<ERC20BridgeSource>,
+    chainId: ChainId,
 ): { allSourcesPath: Path | undefined; vipSourcesPath: Path | undefined } | undefined {
     // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
     // To avoid flooding the logs with these errors we just return an insufficient liquidity error
@@ -340,6 +344,11 @@ function findRoutesAndCreateOptimalPath(
     const vipSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
     const vipSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
 
+    // Get rustArgs samples for test purpose
+    if (SHOULD_ENABLE_RUST_DATA_SAMPLER && Math.random() < SAMPLE_THRESHOLD) {
+        TestDataSampler.sampleRoute(chainId, rustArgs);
+    }
+
     route(
         rustArgs,
         allSourcesRustRoute,
@@ -405,6 +414,7 @@ export function findOptimalRustPathFromSamples(
         fees,
         neonRouterNumSamples,
         vipSourcesSet,
+        chainId,
     );
 
     if (!paths) {
