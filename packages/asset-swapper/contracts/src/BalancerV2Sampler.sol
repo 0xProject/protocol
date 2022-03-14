@@ -109,6 +109,47 @@ contract BalancerV2Sampler is SamplerUtils {
         }
     }
 
+    // TODO - THIS IS PSEUDO CODE AS A DEMO
+    // Replaces amount for first step with each takerTokenAmount and calls queryBatchSwap using supplied steps
+    /// @dev Sample sell quotes from Balancer V2 supporting multihops.
+    /// @param swapSteps Array of swap steps (can be >= 1).
+    /// @param swapAssets Array of token address for swaps.
+    /// @param takerTokenAmounts Taker token sell amount for each sample.
+    function sampleMultihopSellsFromBalancerV2(
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
+        IAsset[] memory swapAssets,
+        uint256[] memory takerTokenAmounts
+    )
+        public
+        returns (uint256[] memory makerTokenAmounts)
+    {
+        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
+        uint256 numSamples = takerTokenAmounts.length;
+        makerTokenAmounts = new uint256[](numSamples);
+        IBalancerV2Vault.FundManagement memory swapFunds =
+            _createSwapFunds();
+
+        for (uint256 i = 0; i < numSamples; i++) {
+            swapSteps[0].amount = takerTokenAmounts[i];
+            try
+                // For sells we specify the takerToken which is what the vault will receive from the trade
+                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
+            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+            returns (int256[] memory amounts) {
+                // Outgoing balance is negative so we need to flip the sign
+                // TO DO - Add index for asset out
+                int256 amountOutFromPool = amounts[1] * -1;
+                if (amountOutFromPool <= 0) {
+                    break;
+                }
+                makerTokenAmounts[i] = uint256(amountOutFromPool);
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
+                break;
+            }
+        }
+    }
+
     /// @dev Sample buy quotes from Balancer V2.
     /// @param poolInfo Struct with pool related data
     /// @param takerToken Address of the taker token (what to sell).
