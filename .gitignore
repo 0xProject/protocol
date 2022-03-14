@@ -1,9 +1,6 @@
 # Webstorm config folder
 .idea
 
-# VSCode config folder
-.vscode
-
 # dotenv environment variables file
 *.env
 
