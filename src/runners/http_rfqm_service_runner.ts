@@ -39,11 +39,11 @@ import {
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
-    SWAP_QUOTER_OPTS,
 } from '../config';
 import {
     KEEP_ALIVE_TTL,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     RFQM_PATH,
     RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     RFQ_MAKER_PATH,
@@ -160,7 +160,7 @@ export async function buildRfqmServiceAsync(
         undefined, // No Alt RFQM offerings at the moment
         logger.warn.bind(logger),
         logger.info.bind(logger),
-        SWAP_QUOTER_OPTS.expiryBufferMs,
+        QUOTE_ORDER_EXPIRATION_BUFFER_MS,
         METRICS_PROXY,
     );
 

@@ -80,8 +80,6 @@ spec:
               value: "false"
             - name: META_TX_WORKER_REGISTRY
               value: ""
-            - name: RFQM_MAKER_ASSET_OFFERINGS
-            - name: RFQT_TX_ORIGIN_BLACKLIST
             - name: INTEGRATORS_ACL
             - name: RFQ_PROXY_ADDRESS
               value: ""

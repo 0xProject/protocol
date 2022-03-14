@@ -13,7 +13,6 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { providers, Wallet } from 'ethers';
 import 'mocha';
 
-import { PROTOCOL_FEE_MULTIPLIER } from '../src/config';
 import { ZERO } from '../src/constants';
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
@@ -108,7 +107,7 @@ describe(SUITE_NAME, () => {
             provider,
             { from: owner, gasPrice: GAS_PRICE },
             {},
-            { protocolFeeMultiplier: Number(PROTOCOL_FEE_MULTIPLIER) },
+            { protocolFeeMultiplier: Number(0) },
             {
                 nativeOrders: zeroExArtifacts.NativeOrdersFeature,
                 metaTransactions: zeroExArtifacts.MetaTransactionsFeature,

@@ -57,8 +57,6 @@ spec:
         - name: META_TX_WORKER_REGISTRY
         - name: MESH_WEBSOCKET_URI
         - name: MESH_HTTP_URI
-        - name: RFQM_MAKER_ASSET_OFFERINGS
-        - name: RFQT_TX_ORIGIN_BLACKLIST
         - name: RFQ_PROXY_ADDRESS
         - name: RFQ_PROXY_PORT
           value: "8080"

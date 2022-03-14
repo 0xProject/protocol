@@ -6,7 +6,6 @@ import {
     getApiKeyWhitelistFromIntegratorsAcl,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
-    RFQT_INTEGRATOR_IDS,
 } from '../src/config';
 
 /**
@@ -59,10 +58,6 @@ describe('Config', () => {
         it("doesn't add disallowed liquidity sources to allowed API keys", () => {
             const plpKeys = getApiKeyWhitelistFromIntegratorsAcl('plp');
             expect(plpKeys.length).to.equal(0);
-        });
-        it('creates the RFQt Integrator ID list (used in swap/rfq/registry)', () => {
-            expect(RFQT_INTEGRATOR_IDS.length).to.equal(1);
-            expect(RFQT_INTEGRATOR_IDS[0]).to.equal('test-integrator-id-1');
         });
     });
 });

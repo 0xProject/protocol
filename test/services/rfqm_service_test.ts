@@ -18,7 +18,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { Integrator, RFQM_MAKER_ASSET_OFFERINGS } from '../../src/config';
+import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
 import {
     RfqmJobEntity,
@@ -1296,7 +1296,11 @@ describe('RfqmService HTTP Logic', () => {
             when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync()).thenResolve([]);
 
             const rfqMakerManagerMock = mock(RfqMakerManager);
-            when(rfqMakerManagerMock.getRfqmMakerOfferings()).thenReturn(RFQM_MAKER_ASSET_OFFERINGS);
+            when(rfqMakerManagerMock.getRfqmMakerOfferings()).thenReturn({
+                'https://mock-rfqm1.club': [
+                    ['0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c', '0x0b1ba0af832d7c05fd64161e0db78e85978e8082'],
+                ],
+            });
 
             const service = buildRfqmServiceForUnitTest({
                 dbUtils: instance(dbUtilsMock),

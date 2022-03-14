@@ -1,25 +1,12 @@
 // tslint:disable:custom-no-magic-numbers max-file-line-count
 import { assert } from '@0x/assert';
-import {
-    BlockParamLiteral,
-    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-    ERC20BridgeSource,
-    LiquidityProviderRegistry,
-    OrderPrunerPermittedFeeTypes,
-    RfqMakerAssetOfferings,
-    SamplerOverrides,
-    SOURCE_FLAGS,
-    SwapQuoteRequestOpts,
-    SwapQuoterOpts,
-    SwapQuoterRfqOpts,
-} from '@0x/asset-swapper';
+import { LiquidityProviderRegistry, RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import {
     getTokenMetadataIfExists,
     nativeTokenSymbol,
     nativeWrappedTokenSymbol,
     TokenMetadata,
-    TokenMetadatasForChains,
 } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
@@ -29,19 +16,14 @@ import * as validateUUID from 'uuid-validate';
 import {
     DEFAULT_ETH_GAS_STATION_API_URL,
     DEFAULT_EXPECTED_MINED_SEC,
-    DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOCAL_REDIS_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
-    DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     DEFAULT_SENTRY_ENVIRONMENT,
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
     ONE_MINUTE_MS,
-    ORDERBOOK_PATH,
-    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-    TX_BASE_GAS,
 } from './constants';
 import { schemas } from './schemas';
 import { HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
@@ -235,28 +217,8 @@ export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
     ? ChainId.Kovan
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
 
-// Whitelisted token addresses. Set to a '*' instead of an array to allow all tokens.
-export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIST_ALL_TOKENS)
-    ? TokenMetadatasForChains.map((tm) => tm.tokenAddresses[CHAIN_ID])
-    : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
-
-// Ignored addresses only for Swap endpoints (still present in database and SRA).
-export const SWAP_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.SWAP_IGNORED_ADDRESSES)
-    ? []
-    : assertEnvVarType('SWAP_IGNORED_ADDRESSES', process.env.SWAP_IGNORED_ADDRESSES, EnvVarType.AddressList);
-
-export const DB_ORDERS_UPDATE_CHUNK_SIZE = 300;
-
 // Ethereum RPC Url list
 export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.UrlList);
-
-export const ORDER_WATCHER_URL = _.isEmpty(process.env.ORDER_WATCHER_URL)
-    ? 'http://127.0.0.1:8080'
-    : assertEnvVarType('ORDER_WATCHER_URL', process.env.ORDER_WATCHER_URL, EnvVarType.Url);
-
-export const ORDER_WATCHER_KAFKA_TOPIC = _.isEmpty(process.env.ORDER_WATCHER_KAFKA_TOPIC)
-    ? 'order_watcher_events'
-    : assertEnvVarType('ORDER_WATCHER_KAFKA_TOPIC', process.env.ORDER_WATCHER_KAFKA_TOPIC, EnvVarType.NonEmptyString);
 
 export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)
     ? undefined
@@ -266,42 +228,10 @@ export const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROU
     ? undefined
     : assertEnvVarType('KAFKA_CONSUMER_GROUP_ID', process.env.KAFKA_CONSUMER_GROUP_ID, EnvVarType.NonEmptyString);
 
-// The path for the Websocket order-watcher updates
-export const WEBSOCKET_ORDER_UPDATES_PATH = _.isEmpty(process.env.WEBSOCKET_ORDER_UPDATES_PATH)
-    ? ORDERBOOK_PATH
-    : assertEnvVarType(
-          'WEBSOCKET_ORDER_UPDATES_PATH',
-          process.env.WEBSOCKET_ORDER_UPDATES_PATH,
-          EnvVarType.NonEmptyString,
-      );
-
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS
     : assertEnvVarType('FEE_RECIPIENT_ADDRESS', process.env.FEE_RECIPIENT_ADDRESS, EnvVarType.ETHAddressHex);
-
-// A flat fee that should be charged to the order taker
-export const TAKER_FEE_UNIT_AMOUNT = _.isEmpty(process.env.TAKER_FEE_UNIT_AMOUNT)
-    ? new BigNumber(0)
-    : assertEnvVarType('TAKER_FEE_UNIT_AMOUNT', process.env.TAKER_FEE_UNIT_AMOUNT, EnvVarType.UnitAmount);
-
-// If there are any orders in the orderbook that are expired by more than x seconds, log an error
-export const MAX_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env.MAX_ORDER_EXPIRATION_BUFFER_SECONDS)
-    ? 3 * 60
-    : assertEnvVarType(
-          'MAX_ORDER_EXPIRATION_BUFFER_SECONDS',
-          process.env.MAX_ORDER_EXPIRATION_BUFFER_SECONDS,
-          EnvVarType.KeepAliveTimeout,
-      );
-
-// Ignore orders greater than x seconds when responding to SRA requests
-export const SRA_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env.SRA_ORDER_EXPIRATION_BUFFER_SECONDS)
-    ? 10
-    : assertEnvVarType(
-          'SRA_ORDER_EXPIRATION_BUFFER_SECONDS',
-          process.env.SRA_ORDER_EXPIRATION_BUFFER_SECONDS,
-          EnvVarType.KeepAliveTimeout,
-      );
 
 export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
     ? DEFAULT_LOCAL_POSTGRES_URI
@@ -333,25 +263,7 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
 
-export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(process.env.LIQUIDITY_PROVIDER_REGISTRY)
-    ? {}
-    : assertEnvVarType(
-          'LIQUIDITY_PROVIDER_REGISTRY',
-          process.env.LIQUIDITY_PROVIDER_REGISTRY,
-          EnvVarType.LiquidityProviderRegistry,
-      );
-
-export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
-    'RFQT_REGISTRY_PASSWORDS',
-    EnvVarType.JsonStringList,
-    [],
-);
-
-export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
-export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
-export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
-export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('plp');
 
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
 export const RFQM_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqm');
@@ -377,36 +289,6 @@ export const RFQ_API_KEY_HASH_TO_MAKER_ID: Map<string, string> = (() => {
         return result;
     }, new Map<string, string>());
 })();
-
-export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
-
-export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
-    resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
-        addr.toLowerCase(),
-    ),
-);
-
-export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_ENDPOINT)
-    ? undefined
-    : assertEnvVarType('ALT_RFQ_MM_ENDPOINT', process.env.ALT_RFQ_MM_ENDPOINT, EnvVarType.Url);
-export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_API_KEY)
-    ? undefined
-    : assertEnvVarType('ALT_RFQ_MM_API_KEY', process.env.ALT_RFQ_MM_API_KEY, EnvVarType.NonEmptyString);
-export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_PROFILE)
-    ? undefined
-    : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
-
-export const RFQT_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
-    'RFQT_MAKER_ASSET_OFFERINGS',
-    EnvVarType.RfqMakerAssetOfferings,
-    {},
-);
-
-export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
-    'RFQM_MAKER_ASSET_OFFERINGS',
-    EnvVarType.RfqMakerAssetOfferings,
-    {},
-);
 
 export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
     ? undefined
@@ -436,31 +318,6 @@ export const RFQT_REQUEST_MAX_RESPONSE_MS = _.isEmpty(process.env.RFQT_REQUEST_M
     ? 600
     : assertEnvVarType('RFQT_REQUEST_MAX_RESPONSE_MS', process.env.RFQT_REQUEST_MAX_RESPONSE_MS, EnvVarType.Integer);
 
-// Whitelisted 0x API keys that can post orders to the SRA and have them persist indefinitely
-export const SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS: string[] =
-    process.env.SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS === undefined
-        ? []
-        : assertEnvVarType(
-              'SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS',
-              process.env.SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS,
-              EnvVarType.APIKeys,
-          );
-
-// Whitelisted 0x API keys that can use the meta-txn /submit endpoint
-export const META_TXN_SUBMIT_WHITELISTED_API_KEYS: string[] =
-    process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS === undefined
-        ? []
-        : assertEnvVarType(
-              'META_TXN_SUBMIT_WHITELISTED_API_KEYS',
-              process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS,
-              EnvVarType.APIKeys,
-          );
-
-// The meta-txn relay sender private keys managed by the TransactionWatcher
-export const META_TXN_RELAY_PRIVATE_KEYS: string[] = _.isEmpty(process.env.META_TXN_RELAY_PRIVATE_KEYS)
-    ? []
-    : assertEnvVarType('META_TXN_RELAY_PRIVATE_KEYS', process.env.META_TXN_RELAY_PRIVATE_KEYS, EnvVarType.StringList);
-
 // The expected time for a meta-txn to be included in a block.
 export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.META_TXN_RELAY_EXPECTED_MINED_SEC)
     ? DEFAULT_EXPECTED_MINED_SEC
@@ -469,16 +326,6 @@ export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.M
           process.env.META_TXN_RELAY_EXPECTED_MINED_SEC,
           EnvVarType.Integer,
       );
-// Should TransactionWatcherSignerService sign transactions
-// tslint:disable-next-line:boolean-naming
-export const META_TXN_SIGNING_ENABLED: boolean = _.isEmpty(process.env.META_TXN_SIGNING_ENABLED)
-    ? true
-    : assertEnvVarType('META_TXN_SIGNING_ENABLED', process.env.META_TXN_SIGNING_ENABLED, EnvVarType.Boolean);
-// The maximum gas price (in gwei) the service will allow
-export const META_TXN_MAX_GAS_PRICE_GWEI: BigNumber = _.isEmpty(process.env.META_TXN_MAX_GAS_PRICE_GWEI)
-    ? new BigNumber(50)
-    : assertEnvVarType('META_TXN_MAX_GAS_PRICE_GWEI', process.env.META_TXN_MAX_GAS_PRICE_GWEI, EnvVarType.UnitAmount);
-
 export const META_TXN_RATE_LIMITER_CONFIG: MetaTransactionRateLimitConfig | undefined = _.isEmpty(
     process.env.META_TXN_RATE_LIMIT_TYPE,
 )
@@ -516,115 +363,6 @@ export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPI
     ? undefined
     : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
 
-// Max number of entities per page
-export const MAX_PER_PAGE = 1000;
-// Default ERC20 token precision
-export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
-
-export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
-
-export const RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER = 1.2;
-
-const EXCLUDED_SOURCES = (() => {
-    const allERC20BridgeSources = Object.values(ERC20BridgeSource);
-    switch (CHAIN_ID) {
-        case ChainId.Mainnet:
-            return [ERC20BridgeSource.MultiBridge];
-        case ChainId.Kovan:
-            return allERC20BridgeSources.filter(
-                (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
-            );
-        case ChainId.Ropsten:
-            const supportedRopstenSources = new Set([
-                ERC20BridgeSource.Kyber,
-                ERC20BridgeSource.Native,
-                ERC20BridgeSource.SushiSwap,
-                ERC20BridgeSource.Uniswap,
-                ERC20BridgeSource.UniswapV2,
-                ERC20BridgeSource.UniswapV3,
-                ERC20BridgeSource.Curve,
-                ERC20BridgeSource.Mooniswap,
-            ]);
-            return allERC20BridgeSources.filter((s) => !supportedRopstenSources.has(s));
-        case ChainId.BSC:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
-        case ChainId.Polygon:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
-        case ChainId.Avalanche:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
-        default:
-            return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
-    }
-})();
-
-const EXCLUDED_FEE_SOURCES = (() => {
-    switch (CHAIN_ID) {
-        case ChainId.Mainnet:
-            return [];
-        case ChainId.Kovan:
-            return [ERC20BridgeSource.Uniswap];
-        case ChainId.Ropsten:
-            return [];
-        case ChainId.BSC:
-            return [ERC20BridgeSource.Uniswap];
-        case ChainId.Polygon:
-            return [];
-        default:
-            return [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
-    }
-})();
-const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
-const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
-const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 |
-    SOURCE_FLAGS.SushiSwap |
-    SOURCE_FLAGS.LiquidityProvider |
-    SOURCE_FLAGS.RfqOrder |
-    SOURCE_FLAGS.Uniswap_V3;
-const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.Uniswap_V3;
-const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
-    if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
-        // Uniswap and forks VIP
-        return TX_BASE_GAS;
-    } else if (
-        [
-            SOURCE_FLAGS.SushiSwap,
-            SOURCE_FLAGS.PancakeSwap,
-            SOURCE_FLAGS.PancakeSwap_V2,
-            SOURCE_FLAGS.BakerySwap,
-            SOURCE_FLAGS.ApeSwap,
-            SOURCE_FLAGS.CafeSwap,
-            SOURCE_FLAGS.CheeseSwap,
-            SOURCE_FLAGS.JulSwap,
-        ].includes(sourceFlags) &&
-        CHAIN_ID === ChainId.BSC
-    ) {
-        // PancakeSwap and forks VIP
-        return TX_BASE_GAS;
-    } else if (SOURCE_FLAGS.Uniswap_V3 === sourceFlags) {
-        // Uniswap V3 VIP
-        return TX_BASE_GAS.plus(5e3);
-    } else if (SOURCE_FLAGS.Curve === sourceFlags) {
-        // Curve pseudo-VIP
-        return TX_BASE_GAS.plus(40e3);
-    } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
-        // PLP VIP
-        return TX_BASE_GAS.plus(10e3);
-    } else if ((MULTIPLEX_BATCH_FILL_SOURCE_FLAGS | sourceFlags) === MULTIPLEX_BATCH_FILL_SOURCE_FLAGS) {
-        // Multiplex batch fill
-        return TX_BASE_GAS.plus(15e3);
-    } else if (
-        (MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS | sourceFlags) ===
-        (MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS | SOURCE_FLAGS.MultiHop)
-    ) {
-        // Multiplex multi-hop fill
-        return TX_BASE_GAS.plus(25e3);
-    } else {
-        return FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
-    }
-};
-
 export const NATIVE_TOKEN_SYMBOL = nativeTokenSymbol(CHAIN_ID);
 export const NATIVE_TOKEN_ADDRESS = (getTokenMetadataIfExists(NATIVE_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata)
     .tokenAddress;
@@ -632,60 +370,6 @@ export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
 export const NATIVE_WRAPPED_TOKEN_ADDRESS = (
     getTokenMetadataIfExists(NATIVE_WRAPPED_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata
 ).tokenAddress;
-
-export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
-    excludedSources: EXCLUDED_SOURCES,
-    excludedFeeSources: EXCLUDED_FEE_SOURCES,
-    bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
-    numSamples: 13,
-    sampleDistributionBase: 1.05,
-    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
-    runLimit: 2 ** 8,
-    shouldGenerateQuoteReport: true,
-};
-
-export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOpts> = {
-    ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-    exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_VIP,
-};
-
-export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
-    switch (CHAIN_ID) {
-        case ChainId.Ganache:
-        case ChainId.Kovan:
-            return { overrides: {}, block: BlockParamLiteral.Latest };
-        default:
-            return undefined;
-    }
-})();
-
-let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
-    integratorsWhitelist: RFQT_INTEGRATORS,
-    makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
-    txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
-};
-
-if (ALT_RFQ_MM_API_KEY && ALT_RFQ_MM_PROFILE) {
-    SWAP_QUOTER_RFQT_OPTS = {
-        ...SWAP_QUOTER_RFQT_OPTS,
-        altRfqCreds: {
-            altRfqApiKey: ALT_RFQ_MM_API_KEY,
-            altRfqProfile: ALT_RFQ_MM_PROFILE,
-        },
-    };
-}
-
-export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
-    chainId: CHAIN_ID,
-    expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-    rfqt: SWAP_QUOTER_RFQT_OPTS,
-    ethGasStationUrl: ETH_GAS_STATION_API_URL,
-    permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
-    samplerOverrides: SAMPLER_OVERRIDES,
-    tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID],
-    liquidityProviderRegistry: LIQUIDITY_PROVIDER_REGISTRY,
-};
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,

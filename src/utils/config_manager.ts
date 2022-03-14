@@ -1,5 +1,4 @@
 // tslint:disable: prefer-function-over-method
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import { createHash } from 'crypto';
 
@@ -10,11 +9,9 @@ import {
     Integrator,
     MakerIdSet,
     RFQM_API_KEY_WHITELIST,
-    RFQM_MAKER_ASSET_OFFERINGS,
     RFQM_MAKER_ID_SET,
     RFQM_MAKER_ID_SET_FOR_OTC_ORDER,
     RFQM_MAKER_ID_SET_FOR_RFQ_ORDER,
-    RFQT_MAKER_ASSET_OFFERINGS,
     RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
 
@@ -28,14 +25,6 @@ const getApiKeyHash = (apiKey: string): string => createHash('sha256').update(ap
 export class ConfigManager {
     public getRfqmApiKeyWhitelist(): Set<string> {
         return RFQM_API_KEY_WHITELIST;
-    }
-
-    public getRfqmAssetOfferings(): RfqMakerAssetOfferings {
-        return RFQM_MAKER_ASSET_OFFERINGS;
-    }
-
-    public getRfqtAssetOfferings(): RfqMakerAssetOfferings {
-        return RFQT_MAKER_ASSET_OFFERINGS;
     }
 
     public getRfqMakerIdForApiKey(apiKey: string): string | undefined {
