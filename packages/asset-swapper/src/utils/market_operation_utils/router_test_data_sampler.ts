@@ -4,6 +4,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 import { DEFAULT_WARNING_LOGGER } from '../../constants';
 
+export const SAMPLE_THRESHOLD = 0.003;
 const UPLOAD_SIZE = 500;
 const REGION = process.env.AWS_S3_REGION ? process.env.AWS_S3_REGION : 'us-west-1';
 const S3_BUCKET = process.env.S3_BUCKET ? process.env.S3_BUCKET : undefined;
