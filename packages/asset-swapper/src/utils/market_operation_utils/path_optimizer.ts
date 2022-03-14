@@ -18,6 +18,7 @@ import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillData, SamplerMetri
 const RUN_LIMIT_DECAY_FACTOR = 0.5;
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
+const SAMPLE_THRESHOLD = 0.003;
 const SHOULD_ENABLE_RUST_DATA_SAMPLER = process.env.ENABLE_RUST_DATA_SAMPLER === 'true';
 
 const isDexSample = (obj: DexSample | NativeOrderWithFillableAmounts): obj is DexSample => !!(obj as DexSample).source;
@@ -343,9 +344,8 @@ function findRoutesAndCreateOptimalPath(
     const vipSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
 
     // Get rustArgs samples for test purpose
-    if (SHOULD_ENABLE_RUST_DATA_SAMPLER) {
-        const rustDataSampler = TestDataSampler.getInstance(chainId);
-        rustDataSampler.sampleRoute(rustArgs);
+    if (SHOULD_ENABLE_RUST_DATA_SAMPLER && Math.random() < SAMPLE_THRESHOLD) {
+        TestDataSampler.sampleRoute(chainId, rustArgs);
     }
 
     route(
