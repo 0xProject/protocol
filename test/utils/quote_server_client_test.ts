@@ -2,18 +2,20 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { RfqOrder } from '@0x/asset-swapper';
+import { MarketOperation, RfqOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
-import { SignRequest, SubmitRequest, TakerRequestQueryParamsUnnested } from '@0x/quote-server';
-import { BigNumber } from '@0x/utils';
+import { SignRequest, SubmitRequest } from '@0x/quote-server';
+import { Fee } from '@0x/quote-server/lib/src/types';
+import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
+import { QuoteServerPriceParams } from '../../src/types';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
-import { CONTRACT_ADDRESSES } from '../constants';
+import { CHAIN_ID, CONTRACT_ADDRESSES } from '../constants';
 
 const makerUri = 'https://some-market-maker.xyz';
 const integrator: Integrator = {
@@ -66,12 +68,122 @@ describe('QuoteServerClient', () => {
     afterEach(() => {
         axiosMock.reset();
     });
+
+    describe('makeQueryParameters', () => {
+        it('should make RFQt request parameters', () => {
+            // Given
+            const marketOperation = MarketOperation.Sell;
+            const input = {
+                txOrigin: takerAddress,
+                takerAddress: NULL_ADDRESS,
+                marketOperation,
+                buyTokenAddress: makerToken,
+                sellTokenAddress: takerToken,
+                comparisonPrice: new BigNumber('42'),
+                assetFillAmount: new BigNumber('100000'),
+            };
+
+            // When
+            const params = QuoteServerClient.makeQueryParameters(input);
+
+            // Then
+            expect(params).to.deep.eq({
+                buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                protocolVersion: '4',
+                sellAmountBaseUnits: '100000',
+                sellTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                takerAddress: '0x0000000000000000000000000000000000000000',
+                txOrigin: '0xdA9AC423442169588DE6b4305f4E820D708d0cE5',
+                comparisonPrice: '42',
+            });
+        });
+
+        it('should make RFQm request parameters', () => {
+            // Given
+            const txOrigin = '0x335e51687677C4f1389f3dEcA259af983529e82D';
+            const feeAmount = '100';
+            const otcOrderFee: Fee = {
+                amount: new BigNumber(feeAmount),
+                token: CONTRACT_ADDRESSES.etherToken,
+                type: 'fixed',
+            };
+            const marketOperation = MarketOperation.Sell;
+
+            // When
+            const params = QuoteServerClient.makeQueryParameters({
+                txOrigin,
+                takerAddress,
+                marketOperation,
+                buyTokenAddress: makerToken,
+                sellTokenAddress: takerToken,
+                assetFillAmount: new BigNumber('100000'),
+                isLastLook: true,
+                fee: otcOrderFee,
+            });
+
+            // Then
+            expect(params).to.deep.eq({
+                buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                feeAmount: '100',
+                feeToken: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                feeType: 'fixed',
+                isLastLook: 'true',
+                protocolVersion: '4',
+                sellAmountBaseUnits: '100000',
+                sellTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                takerAddress: '0xdA9AC423442169588DE6b4305f4E820D708d0cE5',
+                txOrigin: '0x335e51687677C4f1389f3dEcA259af983529e82D',
+            });
+        });
+
+        it('should make RFQm request parameters with chain id', () => {
+            // Given
+            const txOrigin = '0x335e51687677C4f1389f3dEcA259af983529e82D';
+            const feeAmount = '100';
+            const otcOrderFee: Fee = {
+                amount: new BigNumber(feeAmount),
+                token: CONTRACT_ADDRESSES.etherToken,
+                type: 'fixed',
+            };
+            const marketOperation = MarketOperation.Sell;
+
+            // When
+            const params = QuoteServerClient.makeQueryParameters({
+                chainId: 10,
+                txOrigin,
+                takerAddress,
+                marketOperation,
+                buyTokenAddress: makerToken,
+                sellTokenAddress: takerToken,
+                assetFillAmount: new BigNumber('100000'),
+                isLastLook: true,
+                fee: otcOrderFee,
+            });
+
+            // Then
+            expect(params).to.deep.eq({
+                chainId: '10',
+                buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+                feeAmount: '100',
+                feeToken: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                feeType: 'fixed',
+                isLastLook: 'true',
+                protocolVersion: '4',
+                sellAmountBaseUnits: '100000',
+                sellTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                takerAddress: '0xdA9AC423442169588DE6b4305f4E820D708d0cE5',
+                txOrigin: '0x335e51687677C4f1389f3dEcA259af983529e82D',
+            });
+        });
+    });
+
     describe('OtcOrder', () => {
         describe('getPriceV2Async', () => {
             it('should return a valid indicative quote', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
+                const request: QuoteServerPriceParams = {
+                    chainId: CHAIN_ID.toString(),
                     sellTokenAddress: takerToken,
                     buyTokenAddress: makerToken,
                     takerAddress,
@@ -111,7 +223,8 @@ describe('QuoteServerClient', () => {
             it('should throw an error for a malformed response', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
+                const request: QuoteServerPriceParams = {
+                    chainId: CHAIN_ID.toString(),
                     sellTokenAddress: takerToken,
                     buyTokenAddress: makerToken,
                     takerAddress,
@@ -150,7 +263,8 @@ describe('QuoteServerClient', () => {
                 const makerUri2 = 'https://some-market-maker2.xyz';
                 const makerUri3 = 'https://some-market-maker3.xyz';
                 const client = new QuoteServerClient(axiosInstance);
-                const request: TakerRequestQueryParamsUnnested = {
+                const request: QuoteServerPriceParams = {
+                    chainId: CHAIN_ID.toString(),
                     sellTokenAddress: takerToken,
                     buyTokenAddress: makerToken,
                     takerAddress,

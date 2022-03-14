@@ -33,6 +33,11 @@ export {
     RollingLimiterIntervalUnit,
 } from './utils/rate-limiters/types';
 
+type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+    {
+        [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
+    }[Keys];
+
 export interface IndicativeQuote {
     maker: string;
     makerUri: string;
@@ -71,6 +76,27 @@ export interface FirmOtcQuote {
  * cannot assume the presence of a makerSignature, even if dealing only with FirmRfqQuotes
  */
 export type FirmQuote = FirmRfqQuote | FirmOtcQuote;
+
+export type QuoteServerPriceParams = RequireOnlyOne<
+    {
+        sellTokenAddress: string;
+        buyTokenAddress: string;
+        takerAddress: string;
+        sellAmountBaseUnits?: string;
+        buyAmountBaseUnits?: string;
+        comparisonPrice?: string;
+        protocolVersion?: string;
+        txOrigin?: string;
+        isLastLook?: string;
+        feeToken?: string;
+        feeAmount?: string;
+        feeType?: string;
+        nonce?: string;
+        nonceBucket?: string;
+        chainId?: string; // TODO - make this required after the rollout
+    },
+    'sellAmountBaseUnits' | 'buyAmountBaseUnits'
+>;
 
 export enum OrderWatcherLifeCycleEvents {
     Added,

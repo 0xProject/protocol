@@ -1,12 +1,7 @@
 import { MarketOperation } from '@0x/asset-swapper';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import {
-    schemas as quoteServerSchemas,
-    SignRequest,
-    SubmitRequest,
-    TakerRequestQueryParamsUnnested,
-} from '@0x/quote-server';
+import { schemas as quoteServerSchemas, SignRequest, SubmitRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
@@ -19,7 +14,7 @@ import { Integrator, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
-import { IndicativeQuote } from '../types';
+import { IndicativeQuote, QuoteServerPriceParams } from '../types';
 
 import { logRfqMarketMakerRequest } from './metrics_service';
 
@@ -46,6 +41,7 @@ export class QuoteServerClient {
      * Prepares the query parameters (copied from QuoteRequestor)
      */
     public static makeQueryParameters(input: {
+        chainId?: number;
         txOrigin: string;
         takerAddress: string;
         marketOperation: MarketOperation;
@@ -55,8 +51,9 @@ export class QuoteServerClient {
         comparisonPrice?: BigNumber;
         isLastLook?: boolean | undefined;
         fee?: Fee | undefined;
-    }): TakerRequestQueryParamsUnnested {
+    }): QuoteServerPriceParams {
         const {
+            chainId,
             txOrigin,
             takerAddress,
             marketOperation,
@@ -79,7 +76,8 @@ export class QuoteServerClient {
                   };
 
         const requestParamsWithBigNumbers: Pick<
-            TakerRequestQueryParamsUnnested,
+            QuoteServerPriceParams,
+            | 'chainId'
             | 'txOrigin'
             | 'takerAddress'
             | 'buyTokenAddress'
@@ -95,17 +93,28 @@ export class QuoteServerClient {
             takerAddress,
             buyTokenAddress,
             sellTokenAddress,
-            comparisonPrice: comparisonPrice === undefined ? undefined : comparisonPrice.toString(),
             protocolVersion: '4',
         };
+
+        if (comparisonPrice) {
+            requestParamsWithBigNumbers.comparisonPrice = comparisonPrice.toString();
+        }
+
         if (isLastLook) {
             if (fee === undefined) {
                 throw new Error(`isLastLook cannot be passed without a fee parameter`);
             }
             requestParamsWithBigNumbers.isLastLook = isLastLook.toString();
+        }
+
+        if (fee) {
             requestParamsWithBigNumbers.feeAmount = fee.amount.toString();
             requestParamsWithBigNumbers.feeToken = fee.token;
             requestParamsWithBigNumbers.feeType = fee.type;
+        }
+
+        if (chainId) {
+            requestParamsWithBigNumbers.chainId = String(chainId);
         }
 
         // convert BigNumbers to strings so they are digestible by axios
@@ -138,7 +147,7 @@ export class QuoteServerClient {
     public async getPriceV2Async(
         makerUri: string,
         integrator: Integrator,
-        parameters: TakerRequestQueryParamsUnnested,
+        parameters: QuoteServerPriceParams,
     ): Promise<IndicativeQuote | undefined> {
         const startTime = Date.now();
         const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/price`, {
@@ -199,7 +208,7 @@ export class QuoteServerClient {
     public async batchGetPriceV2Async(
         makerUris: string[],
         integrator: Integrator,
-        parameters: TakerRequestQueryParamsUnnested,
+        parameters: QuoteServerPriceParams,
     ): Promise<IndicativeQuote[]> {
         return Promise.all(
             makerUris.map(async (uri) => {

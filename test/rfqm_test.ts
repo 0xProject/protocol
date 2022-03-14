@@ -84,7 +84,6 @@ const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
     txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
     takerAddress: NULL_ADDRESS,
     protocolVersion: '4',
-    comparisonPrice: undefined,
     isLastLook: 'true',
     feeToken: contractAddresses.etherToken,
     feeAmount: GAS_PRICE.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE).toString(),
@@ -408,6 +407,7 @@ describe(SUITE_NAME, () => {
             const winningQuote = 200000000000000000;
             const losingQuote = 150000000000000000;
             const params = new URLSearchParams({
+                chainId: CHAIN_ID.toString(),
                 buyToken: 'ZRX',
                 sellToken: 'WETH',
                 sellAmount: sellAmount.toString(),
