@@ -154,7 +154,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             for (const from of tokensList) {
                 for (const to of tokensList.filter(t => t.toLowerCase() !== from.toLowerCase())) {
                     fromToSwapInfo[from] = fromToSwapInfo[from] || {};
-                    // If a record for pair already exists skip as all paths alreay found 
+                    // If a record for pair already exists skip as all paths alreay found
                     if (fromToSwapInfo[from][to]) continue;
                     else{
                         try {
