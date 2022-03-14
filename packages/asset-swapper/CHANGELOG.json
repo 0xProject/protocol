@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.53.0",
+        "changes": [
+            {
+                "note": "Add test data sampler for Rust router",
+                "pr": 447
+            }
+        ]
+    },
+    {
         "version": "16.52.0",
         "changes": [
             {
