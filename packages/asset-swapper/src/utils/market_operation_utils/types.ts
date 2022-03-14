@@ -106,9 +106,12 @@ export enum ERC20BridgeSource {
 }
 export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Balancer
-    | ERC20BridgeSource.BalancerV2
     | ERC20BridgeSource.Beethovenx
     | ERC20BridgeSource.Cream;
+
+export type SourcesWithSwapInfoCache =
+    | ERC20BridgeSource.BalancerV2;
+
 
 // tslint:disable: enum-naming
 /**
@@ -209,6 +212,19 @@ export interface CurveFillData extends FillData {
     pool: CurveInfo;
 }
 
+export interface BalancerBatchSwapStep {
+    poolId: string;
+    assetInIndex: number;
+    assetOutIndex: number;
+    amount: string;
+    userData: string;
+}
+
+export interface BalancerSwapInfo {
+    assets: string[];
+    swapSteps: BalancerBatchSwapStep[];
+}
+
 export interface BalancerFillData extends FillData {
     poolAddress: string;
 }
@@ -216,6 +232,12 @@ export interface BalancerFillData extends FillData {
 export interface BalancerV2FillData extends FillData {
     vault: string;
     poolId: string;
+}
+
+export interface BalancerV2BatchSwapFillData extends FillData {
+    vault: string;
+    swapSteps: BalancerBatchSwapStep[];
+    assets: string[];
 }
 
 export interface UniswapV2FillData extends FillData {
