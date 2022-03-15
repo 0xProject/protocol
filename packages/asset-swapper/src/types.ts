@@ -179,6 +179,7 @@ export interface SwapQuoteBase {
     takerTokenDecimals: number;
     takerAmountPerEth: BigNumber;
     makerAmountPerEth: BigNumber;
+    blockNumber: number;
 }
 
 /**
