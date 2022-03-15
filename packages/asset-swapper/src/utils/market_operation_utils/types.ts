@@ -610,6 +610,7 @@ export interface MarketSideLiquidity {
     takerTokenDecimals: number;
     quotes: RawQuotes;
     isRfqSupported: boolean;
+    blockNumber: number;
 }
 
 export interface RawQuotes {
