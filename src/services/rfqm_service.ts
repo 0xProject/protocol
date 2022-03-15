@@ -1469,12 +1469,11 @@ export class RfqmService {
         const signerAddress = getSignerFromHash(orderHash, makerSignature!).toLowerCase();
         const makerAddress = order.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
-            // TODO(Michael) - need to check isValidOrderSigner when signer != maker
-            // and throw an error if signer !== maker && !isValidOrderSigner
-            logger.warn(
-                { signerAddress, makerAddress, orderHash, makerUri },
-                'Signature is invalid. Possible use of smart contract wallet',
-            );
+            logger.info({ signerAddress, makerAddress, orderHash, makerUri }, 'Possible use of smart contract wallet');
+            const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
+            if (!isValidSigner) {
+                throw new Error('Invalid order signer address');
+            }
         }
 
         // Generate the calldata

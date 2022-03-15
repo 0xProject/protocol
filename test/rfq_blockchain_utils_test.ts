@@ -47,6 +47,7 @@ describe(SUITE_NAME, () => {
     let owner: string;
     let maker: string;
     let taker: string;
+    let signer: string;
     let txOrigin: string;
     let zeroEx: IZeroExContract;
     let rfqOrder: RfqOrder;
@@ -63,7 +64,7 @@ describe(SUITE_NAME, () => {
         provider = getProvider();
         web3Wrapper = new Web3Wrapper(provider);
 
-        [owner, maker, taker, txOrigin] = await web3Wrapper.getAvailableAddressesAsync();
+        [owner, maker, taker, txOrigin, signer] = await web3Wrapper.getAvailableAddressesAsync();
 
         // Deploy dummy tokens
         makerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
@@ -534,6 +535,20 @@ describe(SUITE_NAME, () => {
             expect(
                 rfqBlockchainUtils.getTokenDecimalsAsync('0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B'),
             ).to.eventually.be.rejected();
+        });
+    });
+
+    describe('isValidOrderSigner', () => {
+        it('returns false if signer is not valid', async () => {
+            const isValidOrderSigner = await rfqBlockchainUtils.isValidOrderSignerAsync(maker, signer);
+            expect(isValidOrderSigner).to.be.false();
+        });
+
+        it('returns true when valid signer address is passed', async () => {
+            await rfqBlockchainUtils.registerAllowedOrderSignerAsync(maker, signer, true);
+
+            const isValidOrderSigner = await rfqBlockchainUtils.isValidOrderSignerAsync(maker, signer);
+            expect(isValidOrderSigner).to.be.true();
         });
     });
 });

@@ -1,3 +1,5 @@
+// tslint:disable:max-file-line-count
+
 import { ChainId } from '@0x/contract-addresses';
 import { IZeroExOtcOrderFilledEventArgs, IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
@@ -480,5 +482,26 @@ export class RfqBlockchainUtils {
             throw new Error('Decimals was not a number');
         }
         return decimals;
+    }
+
+    /**
+     * Calls the 0x Exchange Proxy to add an address to the list of allowed order signers for the msg's sender.
+     */
+    public async registerAllowedOrderSignerAsync(
+        from: string,
+        signerAddress: string,
+        isAllowed: boolean,
+    ): Promise<void> {
+        // tslint:disable-next-line: await-promise
+        await this._exchangeProxy
+            .registerAllowedOrderSigner(signerAddress, isAllowed)
+            .awaitTransactionSuccessAsync({ from });
+    }
+
+    /**
+     * Returns whether the signer address is an allowed order signer of the maker.
+     */
+    public async isValidOrderSignerAsync(makerAddress: string, signerAddress: string): Promise<boolean> {
+        return this._exchangeProxy.isValidOrderSigner(makerAddress, signerAddress).callAsync();
     }
 }

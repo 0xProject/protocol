@@ -123,6 +123,7 @@ const validEIP712Sig = {
     r: '0xdc158f7b53b940863bc7b001552a90282e51033f29b73d44a2701bd16faa19d2',
     s: '0x55f6c5470e41b39a5ddeb63c22f8ba1d34748f93265715b9dc4a0f10138985a6',
 };
+const maker = '0xbb004090d26845b672f17c6da4b7d162df3bfc5e';
 const orderHash = '0x112160fb0933ecde720f63b50b303ce64e52ded702bef78b9c20361f3652a462';
 
 describe('RfqmService Worker Logic', () => {
@@ -811,7 +812,7 @@ describe('RfqmService Worker Logic', () => {
                             new BigNumber(1),
                             new BigNumber(1),
                         ).toString(),
-                        maker: '0xmaker',
+                        maker,
                         makerAmount: '1000000',
                         makerToken: '0xmakertoken',
                         taker: '0xtaker',
@@ -900,7 +901,7 @@ describe('RfqmService Worker Logic', () => {
                             new BigNumber(1),
                             new BigNumber(1),
                         ).toString(),
-                        maker: '0xmaker',
+                        maker,
                         makerAmount: '1000000',
                         makerToken: '0xmakertoken',
                         taker: '0xtaker',
@@ -1180,7 +1181,7 @@ describe('RfqmService Worker Logic', () => {
                             new BigNumber(1),
                             new BigNumber(1),
                         ).toString(),
-                        maker: '0xmaker',
+                        maker,
                         makerAmount: '1000000',
                         makerToken: '0xmakertoken',
                         taker: '0xtaker',
