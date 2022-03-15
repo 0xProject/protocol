@@ -33,9 +33,10 @@ import {
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
+    SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
-import { createFills } from './fills';
+import { createFills, ethToOutputAmount } from './fills';
 import { getIntermediateTokens } from './multihop_utils';
 import { Path, PathPenaltyOpts } from './path';
 import { findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
@@ -731,8 +732,10 @@ export class MarketOperationUtils {
         maxFallbackSlippage: number;
         neonRouterNumSamples: number;
         samplerMetrics?: SamplerMetrics;
+        isMultiHop?: boolean;
     }): Promise<OptimizedHop | null> {
 
+        console.log(`finding optimal path for`, opts.inputToken, opts.outputToken);
         let path = await this._findOptimalPathFromSamples({
             side: opts.side,
             nativeOrders: opts.nativeOrders,
@@ -745,6 +748,7 @@ export class MarketOperationUtils {
             exchangeProxyOverhead: opts.exchangeProxyOverhead,
             neonRouterNumSamples: opts.neonRouterNumSamples,
             samplerMetrics: opts.samplerMetrics,
+            isMultiHop: opts.isMultiHop,
         });
         // Convert native orders and dex quotes into `Fill` objects.
         if (!path) {
@@ -765,6 +769,7 @@ export class MarketOperationUtils {
                 exchangeProxyOverhead: opts.exchangeProxyOverhead,
                 neonRouterNumSamples: opts.neonRouterNumSamples,
                 samplerMetrics: opts.samplerMetrics,
+                isMultiHop: opts.isMultiHop,
             });
         }
 
@@ -797,13 +802,19 @@ export class MarketOperationUtils {
         runLimit?: number;
         neonRouterNumSamples: number;
         samplerMetrics?: SamplerMetrics;
+        isMultiHop?: boolean;
     }): Promise<Path | undefined | null> {
         // Find the optimal path.
         const penaltyOpts: PathPenaltyOpts = {
             outputAmountPerEth: opts.outputAmountPerEth,
             inputAmountPerEth: opts.inputAmountPerEth,
-            exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
             gasPrice: opts.gasPrice,
+            exchangeProxyOverhead: (sourceFlags: bigint) => {
+                if (!opts.exchangeProxyOverhead) {
+                    return ZERO_AMOUNT;
+                }
+                return opts.exchangeProxyOverhead(sourceFlags | (opts.isMultiHop ? SOURCE_FLAGS.MultiHop : BigInt(0)));
+            },
         };
 
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
@@ -846,6 +857,7 @@ export class MarketOperationUtils {
         maxFallbackSlippage: number;
         neonRouterNumSamples: number;
         samplerMetrics?: SamplerMetrics;
+        isMultiHop?: boolean;
     }): Promise<Path> {
         const { path } = opts;
         const pathRate = path ? path.adjustedRate() : ZERO_AMOUNT;
@@ -871,6 +883,7 @@ export class MarketOperationUtils {
                 opts.exchangeProxyOverhead(sourceFlags | path.sourceFlags),
             neonRouterNumSamples: opts.neonRouterNumSamples,
             samplerMetrics: opts.samplerMetrics,
+            isMultiHop: opts.isMultiHop,
         });
         // Calculate the slippage of on-chain sources compared to the most optimal path
         // if within an acceptable threshold we enable a fallback to prevent reverts
@@ -947,6 +960,7 @@ export class MarketOperationUtils {
                     outputAmountPerEth: tokenAmountPerEth[routeHop.outputToken] || ZERO_AMOUNT,
                     neonRouterNumSamples: opts.neonRouterNumSamples,
                     samplerMetrics: opts.samplerMetrics,
+                    isMultiHop: routeHop.inputToken !== inputToken && routeHop.outputToken !== outputToken,
                 });
                 if (!hop) {
                     // This hop could not satisfy the input amount so the
@@ -984,8 +998,8 @@ function doesPathNeedFallback(path: Path): boolean {
 
 
 // Compute the overall adjusted rate for a multihop path.
-function getHopRouteOverallRate(multiHopPaths: OptimizedHop[]): BigNumber {
-    return multiHopPaths.reduce(
+function getHopRouteOverallRate(hops: OptimizedHop[]): BigNumber {
+    return hops.reduce(
         (a, h) => a = a.times(h.adjustedCompleteRate),
         new BigNumber(1),
     );
