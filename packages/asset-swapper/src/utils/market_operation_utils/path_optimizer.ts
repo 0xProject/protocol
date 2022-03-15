@@ -437,7 +437,7 @@ export async function findOptimalPathJSAsync(
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
     const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
-    console.log(sortedPaths.map(p => ({ source: p.fills[0].source, data: p.fills[0].data, rate: p.adjustedCompleteMakerToTakerRate() })));
+    console.log(sortedPaths.map(p => ({ source: p.fills[0].source, data: p.fills[0].data, output: p.size().output, adjustedOutput: p.adjustedSize().output, rate: p.adjustedCompleteTakerToMakerRate() })));
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -449,7 +449,7 @@ export async function findOptimalPathJSAsync(
         await Promise.resolve();
     }
     const finalPath = optimalPath.isComplete() ? optimalPath : undefined;
-    console.log(finalPath?.fills.map(f => f.source), finalPath?.adjustedCompleteMakerToTakerRate());
+    console.log(finalPath?.fills.map(f => f.source), finalPath?.adjustedCompleteTakerToMakerRate());
     // tslint:disable-next-line: no-unused-expression
     samplerMetrics &&
         samplerMetrics.logRouterDetails({
@@ -469,8 +469,8 @@ export function fillsToSortedPaths(
 ): Path[] {
     const paths = fills.map(singleSourceFills => Path.create(side, singleSourceFills, targetInput, opts));
     const sortedPaths = paths.sort((a, b) => {
-        const aRate = a.adjustedCompleteMakerToTakerRate();
-        const bRate = b.adjustedCompleteMakerToTakerRate();
+        const aRate = a.adjustedCompleteTakerToMakerRate();
+        const bRate = b.adjustedCompleteTakerToMakerRate();
         // There is a case where the adjusted completed rate isn't sufficient for the desired amount
         // resulting in a NaN div by 0 (output)
         if (bRate.isNaN()) {
@@ -498,7 +498,7 @@ export function reducePaths(sortedPaths: Path[]): Path[] {
     if (!bestNonNativeCompletePath) {
         return sortedPaths;
     }
-    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteMakerToTakerRate();
+    const bestNonNativeCompletePathAdjustedRate = bestNonNativeCompletePath.adjustedCompleteTakerToMakerRate();
     if (!bestNonNativeCompletePathAdjustedRate.isGreaterThan(0)) {
         return sortedPaths;
     }

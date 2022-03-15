@@ -479,8 +479,8 @@ export interface OptimizedHop {
     inputAmount: BigNumber;
     outputAmount: BigNumber;
     sourceFlags: bigint;
+    gasCost: number;
     orders: OptimizedOrder[];
-    adjustedCompleteRate: BigNumber;
 }
 
 export interface OptimizerResult {

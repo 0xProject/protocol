@@ -535,16 +535,21 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        // TODO: Find the unoptimized best rate to calculate savings from optimizer
-
         const [takerToken, makerToken] = side === MarketOperation.Sell
             ? [inputToken, outputToken]
             : [outputToken, inputToken];
+        const adjustedRate = getHopRouteOverallAdjustedTakerToMakerRate(bestHopRoute, {
+            side,
+            exchangeProxyOverhead: opts.exchangeProxyOverhead,
+            gasPrice: opts.gasPrice,
+            inputAmountPerEth: tokenAmountPerEth[inputToken],
+            outputAmountPerEth: tokenAmountPerEth[outputToken],
+        });
         return {
-            hops: bestHopRoute,
-            adjustedRate: getHopRouteOverallRate(bestHopRoute),
-            // liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
+            adjustedRate,
             marketSideLiquidity,
+            hops: bestHopRoute,
+            // liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
             takerAmountPerEth: tokenAmountPerEth[takerToken],
             makerAmountPerEth: tokenAmountPerEth[makerToken],
         };
@@ -755,6 +760,7 @@ export class MarketOperationUtils {
             return null;
         }
 
+        const preFallbackPath = path;
         if (doesPathNeedFallback(path)) {
             path = await this._addFallbackToPath({
                 path,
@@ -779,14 +785,15 @@ export class MarketOperationUtils {
             outputToken: opts.outputToken,
         }).orders;
 
+        const completePathSize = preFallbackPath.completeSize();
         return {
             orders,
             inputToken: opts.inputToken,
             outputToken: opts.outputToken,
-            inputAmount: path.size().input,
-            outputAmount: path.size().output,
-            adjustedCompleteRate: path.adjustedCompleteMakerToTakerRate(),
-            sourceFlags: path.sourceFlags,
+            inputAmount: completePathSize.input,
+            outputAmount: completePathSize.output,
+            sourceFlags: preFallbackPath.sourceFlags,
+            gasCost: preFallbackPath.gasCost(),
         };
     }
 
@@ -810,10 +817,12 @@ export class MarketOperationUtils {
             inputAmountPerEth: opts.inputAmountPerEth,
             gasPrice: opts.gasPrice,
             exchangeProxyOverhead: (sourceFlags: bigint) => {
-                if (!opts.exchangeProxyOverhead) {
+                if (!opts.exchangeProxyOverhead || opts.isMultiHop) {
+                    // Multihop routes get their overhead factored in after
+                    // path-finding.
                     return ZERO_AMOUNT;
                 }
-                return opts.exchangeProxyOverhead(sourceFlags | (opts.isMultiHop ? SOURCE_FLAGS.MultiHop : BigInt(0)));
+                return opts.exchangeProxyOverhead(sourceFlags);
             },
         };
 
@@ -979,9 +988,18 @@ export class MarketOperationUtils {
         // Pick the route with the best rate.
         let bestHopRoute;
         let bestHopRouteTotalRate;
+        const rateOpts = {
+            side,
+            gasPrice,
+            exchangeProxyOverhead,
+            inputAmountPerEth: tokenAmountPerEth[inputToken],
+            outputAmountPerEth: tokenAmountPerEth[outputToken],
+        };
         for (const route of hopRoutes) {
-            const rate = getHopRouteOverallRate(route);
+            console.log(route.map(r => [r.inputToken, r.outputToken]));
+            const rate = getHopRouteOverallAdjustedTakerToMakerRate(route, rateOpts);
             if (!bestHopRouteTotalRate || rate.gt(bestHopRouteTotalRate)) {
+                console.log(`new best route: <\n\t${route.map(r => `path: ${r.inputToken}->${r.outputToken}, ${r.orders.map(o => o.source)}, output: ${r.outputAmount}`).join(',\n\t')}\n>, overall rate: ${rate}, overall gas cost: ${route.reduce((a,v) => a + v.gasCost, 0)}`);
                 bestHopRoute = route;
                 bestHopRouteTotalRate = rate;
             }
@@ -998,11 +1016,40 @@ function doesPathNeedFallback(path: Path): boolean {
 
 
 // Compute the overall adjusted rate for a multihop path.
-function getHopRouteOverallRate(hops: OptimizedHop[]): BigNumber {
-    return hops.reduce(
-        (a, h) => a = a.times(h.adjustedCompleteRate),
-        new BigNumber(1),
+function getHopRouteOverallAdjustedTakerToMakerRate(
+    hops: OptimizedHop[],
+    opts: {
+        side: MarketOperation;
+        gasPrice: BigNumber;
+        exchangeProxyOverhead?: ExchangeProxyOverhead;
+        inputAmountPerEth: BigNumber;
+        outputAmountPerEth: BigNumber;
+    }): BigNumber
+{
+    // Note for buys, order of hops will be reversed (maker -> taker), so this still works
+    // (ie, first hop has the true input amount and last hop has the true output amount).
+    const inputAmount = hops[0].inputAmount;
+    const outputAmount = hops[hops.length - 1].outputAmount;
+    let sourceFlags = hops.reduce((a, h) => a | h.sourceFlags, BigInt(0));
+    if (hops.length > 1) {
+        // Multi-hop.
+        sourceFlags |= SOURCE_FLAGS.MultiHop;
+    }
+    const exchangeProxyOverhead = opts.exchangeProxyOverhead || (() => ZERO_AMOUNT);
+    const totalEthCost = opts.gasPrice.times(
+        exchangeProxyOverhead(sourceFlags).plus(hops.reduce((a, h) => a + h.gasCost, 0)),
     );
+    console.log(totalEthCost, hops.length, exchangeProxyOverhead(sourceFlags));
+    const ethCostAsOutputAmount = ethToOutputAmount({
+        ethAmount: totalEthCost,
+        input: inputAmount,
+        output: outputAmount,
+        inputAmountPerEth: opts.inputAmountPerEth,
+        outputAmountPerEth: opts.outputAmountPerEth,
+    });
+    return opts.side === MarketOperation.Sell
+        ? outputAmount.minus(ethCostAsOutputAmount).div(inputAmount)
+        : inputAmount.div(outputAmount.plus(ethCostAsOutputAmount));
 }
 
 function indicativeRfqQuoteToSignedNativeOrder(iq: V4RFQIndicativeQuote): SignedRfqOrder {

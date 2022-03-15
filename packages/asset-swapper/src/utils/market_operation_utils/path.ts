@@ -5,7 +5,7 @@ import { Address, MarketOperation } from '../../types';
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
 import { createBridgeOrder, createNativeOptimizedOrder } from './orders';
-import { getCompleteRate, getRate } from './rate_utils';
+import { getCompleteTakerToMakerRate, getRate } from './rate_utils';
 import {
     CollapsedGenericBridgeFill,
     CollapsedFill,
@@ -136,10 +136,24 @@ export class Path {
         return this._size;
     }
 
+    public completeSize(): PathSize {
+        const { input, output } = this.size();
+        if (this.targetInput.eq(0) || input.eq(0) || output.eq(0)) {
+            return { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
+        }
+        if (input.eq(this.targetInput)) {
+            return { input, output };
+        }
+        return {
+            input: this.targetInput,
+            output: this.targetInput.times(output.div(input)),
+        };
+    }
+
     public adjustedSize(): PathSize {
         const { input, output } = this._adjustedSize;
-        const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth } = this.pathPenaltyOpts;
-        const gasOverhead = exchangeProxyOverhead(this.sourceFlags);
+        const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth, gasPrice } = this.pathPenaltyOpts;
+        const gasOverhead = exchangeProxyOverhead(this.sourceFlags).times(gasPrice);
         const pathPenalty = ethToOutputAmount({
             input,
             output,
@@ -153,14 +167,26 @@ export class Path {
         };
     }
 
-    public adjustedCompleteMakerToTakerRate(): BigNumber {
+    public adjustedCompleteTakerToMakerRate(): BigNumber {
         const { input, output } = this.adjustedSize();
-        return getCompleteRate(this.side, input, output, this.targetInput);
+        return getCompleteTakerToMakerRate(this.side, input, output, this.targetInput);
     }
 
     public adjustedRate(): BigNumber {
         const { input, output } = this.adjustedSize();
         return getRate(this.side, input, output);
+    }
+
+    public gasCost(): number {
+        let lastSource;
+        let gas = 0;
+        for (const f of this.fills) {
+            if (lastSource !== f.source) {
+                lastSource = f.source;
+                gas += f.gasCost;
+            }
+        }
+        return gas;
     }
 
     /**
@@ -193,7 +219,7 @@ export class Path {
         if (input.isLessThan(targetInput) || otherInput.isLessThan(targetInput)) {
             return input.isGreaterThan(otherInput);
         } else {
-            return this.adjustedCompleteMakerToTakerRate().isGreaterThan(other.adjustedCompleteMakerToTakerRate());
+            return this.adjustedCompleteTakerToMakerRate().isGreaterThan(other.adjustedCompleteTakerToMakerRate());
         }
         // if (otherInput.isLessThan(targetInput)) {
         //     return input.isGreaterThan(otherInput);

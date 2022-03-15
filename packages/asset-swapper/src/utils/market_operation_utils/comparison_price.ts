@@ -1,10 +1,10 @@
 import { Web3Wrapper } from '@0x/dev-utils';
-import { BigNumber, logUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
 import { MarketOperation } from '../../types';
 
-import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
+import { COMPARISON_PRICE_DECIMALS } from './constants';
 import {
     ComparisonPrice,
     MarketSideLiquidity,

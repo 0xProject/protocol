@@ -10,7 +10,7 @@ import { ZERO_AMOUNT } from './constants';
  * Computes the "complete" rate given the input/output of a path.
  * This value penalizes the path if it falls short of the target input.
  */
-export function getCompleteRate(
+export function getCompleteTakerToMakerRate(
     side: MarketOperation,
     input: BigNumber,
     output: BigNumber,
