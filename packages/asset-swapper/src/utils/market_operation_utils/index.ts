@@ -740,7 +740,6 @@ export class MarketOperationUtils {
         isMultiHop?: boolean;
     }): Promise<OptimizedHop | null> {
 
-        console.log(`finding optimal path for`, opts.inputToken, opts.outputToken);
         let path = await this._findOptimalPathFromSamples({
             side: opts.side,
             nativeOrders: opts.nativeOrders,
@@ -996,7 +995,6 @@ export class MarketOperationUtils {
             outputAmountPerEth: tokenAmountPerEth[outputToken],
         };
         for (const route of hopRoutes) {
-            console.log(route.map(r => [r.inputToken, r.outputToken]));
             const rate = getHopRouteOverallAdjustedTakerToMakerRate(route, rateOpts);
             if (!bestHopRouteTotalRate || rate.gt(bestHopRouteTotalRate)) {
                 console.log(`new best route: <\n\t${route.map(r => `path: ${r.inputToken}->${r.outputToken}, ${r.orders.map(o => o.source)}, output: ${r.outputAmount}`).join(',\n\t')}\n>, overall rate: ${rate}, overall gas cost: ${route.reduce((a,v) => a + v.gasCost, 0)}`);
@@ -1039,7 +1037,6 @@ function getHopRouteOverallAdjustedTakerToMakerRate(
     const totalEthCost = opts.gasPrice.times(
         exchangeProxyOverhead(sourceFlags).plus(hops.reduce((a, h) => a + h.gasCost, 0)),
     );
-    console.log(totalEthCost, hops.length, exchangeProxyOverhead(sourceFlags));
     const ethCostAsOutputAmount = ethToOutputAmount({
         ethAmount: totalEthCost,
         input: inputAmount,

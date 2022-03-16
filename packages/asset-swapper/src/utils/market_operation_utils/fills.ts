@@ -192,7 +192,6 @@ export function dexSamplesToFills(
 
         let penalty = ZERO_AMOUNT;
         if (i === 0) {
-            console.log(`fee: ${fee}, gasCost: ${sample.gasCost}, gasPrice: ${gasPrice}`);
             // Only the first fill in a DEX path incurs a penalty.
             penalty = ethToOutputAmount({
                 input,

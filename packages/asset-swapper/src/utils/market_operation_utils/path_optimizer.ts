@@ -437,7 +437,6 @@ export async function findOptimalPathJSAsync(
     // Sort fill arrays by descending adjusted completed rate.
     // Remove any paths which cannot impact the optimal path
     const sortedPaths = reducePaths(fillsToSortedPaths(fills, side, targetInput, opts));
-    console.log(sortedPaths.map(p => ({ source: p.fills[0].source, data: p.fills[0].data, output: p.size().output, adjustedOutput: p.adjustedSize().output, rate: p.adjustedCompleteTakerToMakerRate() })));
     if (sortedPaths.length === 0) {
         return undefined;
     }
@@ -449,7 +448,6 @@ export async function findOptimalPathJSAsync(
         await Promise.resolve();
     }
     const finalPath = optimalPath.isComplete() ? optimalPath : undefined;
-    console.log(finalPath?.fills.map(f => f.source), finalPath?.adjustedCompleteTakerToMakerRate());
     // tslint:disable-next-line: no-unused-expression
     samplerMetrics &&
         samplerMetrics.logRouterDetails({
