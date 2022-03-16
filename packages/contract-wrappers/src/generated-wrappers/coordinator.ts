@@ -499,7 +499,7 @@ export class CoordinatorContract extends BaseContract {
         txDefaults: Partial<TxData>,
         libraryAddresses: { [libraryName: string]: string } = {},
     ): Promise<{ [libraryName: string]: string }> {
-        const links = artifact.compilerOutput.evm.bytecode.linkReferences;
+        const links = artifact.compilerOutput.evm.bytecode.linkReferences || {};
         // Go through all linked libraries, recursively deploying them if necessary.
         for (const link of Object.values(links)) {
             for (const libraryName of Object.keys(link)) {
