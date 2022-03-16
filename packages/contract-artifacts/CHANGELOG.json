@@ -1,5 +1,14 @@
 [
     {
+        "version": "3.18.0",
+        "changes": [
+            {
+                "note": "Regenerate all artifacts",
+                "pr": 449
+            }
+        ]
+    },
+    {
         "version": "3.17.0",
         "changes": [
             {
