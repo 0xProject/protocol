@@ -738,10 +738,12 @@ export const SMOOTHY_POOLS = {
 };
 
 export const SADDLE_POOLS = {
-    stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
-    bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
-    alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
-    d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
+    stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',  // 0.2mm, outdated
+    stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7', // 17mm, new
+    bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',  // 0.8mm, outdated
+    bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2', // 61mm, new
+    alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',     // 57mm
+    d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',       // 54mm
 };
 
 export const IRONSWAP_POOLS = {
@@ -1517,7 +1519,7 @@ export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
 
 // Curve-like sources using custom selectors
 export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SADDLE_POOLS.stables]: {
+    [SADDLE_POOLS.stables]: { // outdated
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
@@ -1526,12 +1528,30 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
-    [SADDLE_POOLS.bitcoins]: {
+    [SADDLE_POOLS.stablesV2]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.stablesV2,
+        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+    [SADDLE_POOLS.bitcoins]: { // outdated
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.bitcoins,
         tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        metaTokens: undefined,
+        gasSchedule: 150e3,
+    },
+    [SADDLE_POOLS.bitcoinsV2]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SADDLE_POOLS.bitcoinsV2,
+        tokens: [ MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
