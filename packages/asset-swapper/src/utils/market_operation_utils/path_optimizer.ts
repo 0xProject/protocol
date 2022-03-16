@@ -85,7 +85,7 @@ function findRoutesAndCreateOptimalPath(
     }
 
     const createFill = (sample: DexSample): Fill | undefined => {
-        const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice);
+        const fills = dexSamplesToFills(side, [sample], opts.outputAmountPerEth, opts.inputAmountPerEth, opts.gasPrice);
         // NOTE: If the sample has 0 output dexSamplesToFills will return [] because no fill can be created
         if (fills.length === 0) {
             return undefined;
@@ -133,8 +133,7 @@ function findRoutesAndCreateOptimalPath(
                     rustInputAdjusted,
                     opts.outputAmountPerEth,
                     opts.inputAmountPerEth,
-                    fees,
-                    false,
+                    opts.gasPrice,
                 )[0] as Fill | undefined;
                 // Note: If the order has an adjusted rate of less than or equal to 0 it will be skipped
                 // and nativeFill will be `undefined`
@@ -150,7 +149,7 @@ function findRoutesAndCreateOptimalPath(
             if (!fill) {
                 continue;
             }
-            const routeSamples = routeSamplesAndNativeOrders as Array<DexSample<FillData>>;
+            const routeSamples = routeSamplesAndNativeOrders as Array<DexSample>;
             // Descend to approach a closer fill for fillData which may not be consistent
             // throughout the path (UniswapV3) and for a closer guesstimate at
             // gas used
@@ -245,7 +244,7 @@ function findRoutesAndCreateOptimalPath(
                 memo.inputs.push(sample.input.integerValue().toNumber());
                 memo.outputs.push(sample.output.integerValue().toNumber());
                 memo.outputFees.push(
-                    calculateOuputFee(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)
+                    calculateOuputFee(side, sample, opts.outputAmountPerEth, opts.inputAmountPerEth, opts.gasPrice)
                         .integerValue()
                         .toNumber(),
                 );
@@ -277,7 +276,7 @@ function findRoutesAndCreateOptimalPath(
         if (normalizedOrderInput.isLessThanOrEqualTo(0) || normalizedOrderOutput.isLessThanOrEqualTo(0)) {
             continue;
         }
-        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, gasPrice)
+        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, opts.gasPrice)
             .integerValue()
             .toNumber();
 
@@ -379,7 +378,6 @@ export function findOptimalRustPathFromSamples(
     nativeOrders: NativeOrderWithFillableAmounts[],
     input: BigNumber,
     opts: PathPenaltyOpts,
-    gasPrice: BigNumber,
     chainId: ChainId,
     neonRouterNumSamples: number,
     samplerMetrics?: SamplerMetrics,

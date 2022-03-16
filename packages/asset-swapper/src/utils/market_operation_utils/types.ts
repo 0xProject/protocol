@@ -212,13 +212,6 @@ export interface NativeOrderFillData {
     fillableTakerAmount: BigNumber;
 }
 
-export interface GeistFillData extends FillData {
-    lendingPool: string;
-    gToken: string;
-    underlyingToken: string;
-    takerToken: string;
-}
-
 /**
  * Represents a node on a fill path.
  */
@@ -487,7 +480,6 @@ export interface OptimizerResult {
     adjustedRate: BigNumber;
     hops: OptimizedHop[];
     marketSideLiquidity: MarketSideLiquidity;
-    unoptimizedPath?: CollapsedPath;
     takerAmountPerEth: BigNumber;
     makerAmountPerEth: BigNumber;
 }

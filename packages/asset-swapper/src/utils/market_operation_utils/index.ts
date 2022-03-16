@@ -833,7 +833,6 @@ export class MarketOperationUtils {
                 opts.nativeOrders,
                 opts.inputAmount,
                 penaltyOpts,
-                opts.gasPrice,
                 this._sampler.chainId,
                 opts.neonRouterNumSamples,
                 opts.samplerMetrics,
@@ -1004,7 +1003,6 @@ export class MarketOperationUtils {
         }
         return bestHopRoute;
     }
-    */
 }
 
 function doesPathNeedFallback(path: Path): boolean {

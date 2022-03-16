@@ -33,8 +33,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
@@ -68,7 +66,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Native,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Uniswap,
@@ -179,8 +176,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
@@ -214,7 +209,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Native,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Uniswap,
