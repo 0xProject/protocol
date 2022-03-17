@@ -56,9 +56,6 @@ import {
 import { initDBConnectionAsync } from './test_utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../src/app')];
-
 const SUITE_NAME = 'RFQM Integration Tests';
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
@@ -350,7 +347,7 @@ describe(SUITE_NAME, () => {
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(
-            rfqmService,
+            new Map([[1337, rfqmService]]),
             rfqMakerService,
             configManager,
             config.defaultHttpServiceConfig,
@@ -397,6 +394,7 @@ describe(SUITE_NAME, () => {
         it('should return a 200 OK with active pairs', async () => {
             const appResponse = await request(app)
                 .get(`${RFQM_PATH}/healthz`)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
             expect(appResponse.body.pairs[0][0]).to.equal('0x0b1ba0af832d7c05fd64161e0db78e85978e8082');
@@ -535,6 +533,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
@@ -602,6 +601,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
@@ -681,6 +681,7 @@ describe(SUITE_NAME, () => {
             const appResponse = await request(app)
                 .get(`${RFQM_PATH}/price?${zeroExApiParams.toString()}`)
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
 
@@ -795,6 +796,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.BAD_REQUEST)
                         .expect('Content-Type', /json/);
 
@@ -864,6 +866,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/price?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.INTERNAL_SERVER_ERROR)
                         .expect('Content-Type', /json/);
 
@@ -958,6 +961,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/quote?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
@@ -988,7 +992,7 @@ describe(SUITE_NAME, () => {
                 takerToken: contractAddresses.etherToken,
                 pool: '0x1234',
                 salt: '0',
-                chainId: 1,
+                chainId: 1337,
                 verifyingContract: '0xd209925defc99488e3afff1174e48b4fa628302a',
                 txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
                 expiry: new BigNumber('1903620548'),
@@ -1057,6 +1061,7 @@ describe(SUITE_NAME, () => {
                     const appResponse = await request(app)
                         .get(`${RFQM_PATH}/quote?${params.toString()}`)
                         .set('0x-api-key', API_KEY)
+                        .set('0x-chain-id', '1337')
                         .expect(HttpStatus.OK)
                         .expect('Content-Type', /json/);
 
@@ -1146,6 +1151,7 @@ describe(SUITE_NAME, () => {
             const appResponse = await request(app)
                 .get(`${RFQM_PATH}/quote?${zeroExApiParams.toString()}`)
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
 
@@ -1275,6 +1281,7 @@ describe(SUITE_NAME, () => {
                     signature: RANDOM_VALID_SIGNATURE,
                 })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
@@ -1314,6 +1321,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
@@ -1340,6 +1348,7 @@ describe(SUITE_NAME, () => {
                     signature: RANDOM_VALID_SIGNATURE,
                 })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.NOT_FOUND)
                 .expect('Content-Type', /json/);
 
@@ -1356,6 +1365,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.NOT_FOUND)
                 .expect('Content-Type', /json/);
 
@@ -1370,6 +1380,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: invalidType, metaTransaction: mockMetaTx, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
@@ -1400,6 +1411,7 @@ describe(SUITE_NAME, () => {
                     signature: RANDOM_VALID_SIGNATURE,
                 })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
@@ -1412,6 +1424,7 @@ describe(SUITE_NAME, () => {
                     signature: RANDOM_VALID_SIGNATURE,
                 })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expect('Content-Type', /json/);
         });
@@ -1440,6 +1453,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
@@ -1448,6 +1462,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expect('Content-Type', /json/);
         });
@@ -1473,6 +1488,7 @@ describe(SUITE_NAME, () => {
                     signature: RANDOM_VALID_SIGNATURE,
                 })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
@@ -1502,6 +1518,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
@@ -1528,6 +1545,7 @@ describe(SUITE_NAME, () => {
                 .post(`${RFQM_PATH}/submit`)
                 .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 
@@ -1542,6 +1560,7 @@ describe(SUITE_NAME, () => {
             return request(app)
                 .get(`${RFQM_PATH}/status/${orderHash}`)
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.NOT_FOUND);
         });
 
@@ -1551,6 +1570,7 @@ describe(SUITE_NAME, () => {
             const response = await request(app)
                 .get(`${RFQM_PATH}/status/${MOCK_RFQM_JOB.orderHash}`)
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.OK)
                 .expect('Content-Type', /json/);
 

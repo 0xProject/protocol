@@ -2,7 +2,6 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { ChainId } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 
@@ -14,13 +13,11 @@ import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { CHAIN_ID } from '../constants';
 
 const createMockConfigManager = (
-    chainId: ChainId,
     allMakers: MakerIdSet,
     rfqMakers: MakerIdSet,
     otcMakers: MakerIdSet,
 ): ConfigManager => {
     const configManagerMock = mock(ConfigManager);
-    when(configManagerMock.getChainId()).thenReturn(chainId);
     when(configManagerMock.getRfqmMakerIdSet()).thenReturn(allMakers);
     when(configManagerMock.getRfqmMakerIdSetForRfqOrder()).thenReturn(rfqMakers);
     when(configManagerMock.getRfqmMakerIdSetForOtcOrder()).thenReturn(otcMakers);
@@ -71,9 +68,9 @@ describe('RfqMakerManager', () => {
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenA, tokenB]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
@@ -88,9 +85,9 @@ describe('RfqMakerManager', () => {
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenB, tokenA]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
@@ -111,9 +108,9 @@ describe('RfqMakerManager', () => {
             rfqMaker[0].pairs = [[token_0xd, token_0xF]];
             rfqMaker[1].pairs = [[token_0xd.toLowerCase(), token_0xF.toLowerCase()]]; // case doesn't matter
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
@@ -135,9 +132,9 @@ describe('RfqMakerManager', () => {
 
             const makerIdSetForMaker2Only: MakerIdSet = new Set();
             makerIdSetForMaker2Only.add('maker2');
-            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSetForMaker2Only);
+            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSetForMaker2Only);
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
@@ -155,9 +152,9 @@ describe('RfqMakerManager', () => {
 
             const makerIdSetForMaker2Only: MakerIdSet = new Set();
             makerIdSetForMaker2Only.add('maker2');
-            const configManager = createMockConfigManager(CHAIN_ID, makerIdSet, new Set(), makerIdSetForMaker2Only);
+            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSetForMaker2Only);
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
@@ -188,14 +185,9 @@ describe('RfqMakerManager', () => {
             const makerIdSetWithMakers23: MakerIdSet = new Set();
             makerIdSetWithMakers23.add('maker2');
             makerIdSetWithMakers23.add('maker3');
-            const configManager = createMockConfigManager(
-                CHAIN_ID,
-                makerIdSetWithMakers23,
-                makerIdSetWithMakers23,
-                new Set(),
-            );
+            const configManager = createMockConfigManager(makerIdSetWithMakers23, makerIdSetWithMakers23, new Set());
 
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils);
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When

@@ -7,9 +7,6 @@ import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_util
 import { initDBConnectionAsync } from '../test_utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from '../test_utils/deployment';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../../src/app')];
-
 const SUITE_NAME = 'rfqBlockedAddressUtils';
 const ttlMs = 50;
 

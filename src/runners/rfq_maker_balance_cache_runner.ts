@@ -72,9 +72,7 @@ if (require.main === module) {
     (async () => {
         logger.info('running RFQ balance cache runner');
 
-        const provider = providerUtils.createWeb3Provider(
-            defaultConfig.defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
-        );
+        const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
         const web3Wrapper = new Web3Wrapper(provider);
 
         const connection = await getDBConnectionAsync();

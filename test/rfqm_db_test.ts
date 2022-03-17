@@ -22,9 +22,6 @@ import { MATCHA_AFFILIATE_ADDRESS } from './constants';
 import { initDBConnectionAsync } from './test_utils/db_connection';
 import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
 
-// Force reload of the app avoid variables being polluted between test suites
-delete require.cache[require.resolve('../src/app')];
-
 const SUITE_NAME = 'rfqm db test';
 
 describe(SUITE_NAME, () => {

@@ -59,7 +59,7 @@ enum EnvVarType {
  * Values read from configuration files which enable
  * rfq-api to operate on a chain.
  */
-interface ChainConfiguration {
+export interface ChainConfiguration {
     chainId: number;
     gasStationUrl: string;
     name: string; // human readable, for logging and such
@@ -375,14 +375,11 @@ export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
     healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,
     healthcheckPath: HEALTHCHECK_PATH,
-    ethereumRpcUrl: ETHEREUM_RPC_URL,
     httpKeepAliveTimeout: HTTP_KEEP_ALIVE_TIMEOUT,
     httpHeadersTimeout: HTTP_HEADERS_TIMEOUT,
     enablePrometheusMetrics: ENABLE_PROMETHEUS_METRICS,
     prometheusPort: PROMETHEUS_PORT,
     prometheusPath: METRICS_PATH,
-    kafkaBrokers: KAFKA_BROKERS,
-    kafkaConsumerGroupId: KAFKA_CONSUMER_GROUP_ID,
 };
 
 export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {

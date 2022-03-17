@@ -1,9 +1,7 @@
 // tslint:disable: prefer-function-over-method
-import { ChainId } from '@0x/contract-addresses';
 import { createHash } from 'crypto';
 
 import {
-    CHAIN_ID,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     Integrator,
@@ -58,9 +56,5 @@ export class ConfigManager {
      */
     public getRfqmMakerIdSetForOtcOrder(): MakerIdSet {
         return RFQM_MAKER_ID_SET_FOR_OTC_ORDER;
-    }
-
-    public getChainId(): ChainId {
-        return CHAIN_ID;
     }
 }

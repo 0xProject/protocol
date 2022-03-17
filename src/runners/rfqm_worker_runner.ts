@@ -8,6 +8,8 @@ import * as express from 'express';
 import { Counter } from 'prom-client';
 
 import {
+    CHAIN_CONFIGURATIONS,
+    CHAIN_ID,
     ENABLE_PROMETHEUS_METRICS,
     META_TX_WORKER_MNEMONIC,
     PROMETHEUS_PORT,
@@ -21,13 +23,13 @@ import { METRICS_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
+import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
+import { buildRfqmServiceAsync } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
-
-import { buildRfqmServiceAsync } from './http_rfqm_service_runner';
 
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
@@ -81,7 +83,14 @@ if (require.main === module) {
         const connection = await getDBConnectionAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
-        const rfqmService = await buildRfqmServiceAsync(true, rfqmDbUtils, rfqMakerDbUtils);
+
+        const chain = CHAIN_CONFIGURATIONS.find((c) => c.chainId === CHAIN_ID);
+
+        if (!chain) {
+            throw new Error(`Tried to start worker for chain ${CHAIN_ID}
+            but no chain configuration was present`);
+        }
+        const rfqmService = await buildRfqmServiceAsync(true, rfqmDbUtils, rfqMakerDbUtils, new ConfigManager(), chain);
 
         if (SENTRY_DSN) {
             Sentry.init({

@@ -33,6 +33,7 @@ import {
     stringsToOtcOrderFields,
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
+import { RfqmServices } from '../utils/rfqm_service_builder';
 import { schemaUtils } from '../utils/schema_utils';
 
 // TODO (MKR-123): Remove the apiKey reference once dashboards are updated
@@ -85,19 +86,19 @@ type RfqmHealthCheckResultCache = [HealthCheckResult, Date];
 
 export class RfqmHandlers {
     private _cachedHealthCheckResult: RfqmHealthCheckResultCache | null = null;
-    constructor(private readonly _rfqmService: RfqmService, private readonly _configManager: ConfigManager) {}
+    constructor(private readonly _rfqmServices: RfqmServices, private readonly _configManager: ConfigManager) {}
 
     public async getIndicativeQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const integratorId = this._configManager.getIntegratorIdForApiKey(req.header('0x-api-key') || '') ?? 'N/A';
         RFQM_INDICATIVE_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const { params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
+        const { chainId, params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
 
         // Try to get indicative quote
         let indicativeQuote;
         try {
-            indicativeQuote = await this._rfqmService.fetchIndicativeQuoteAsync(params);
+            indicativeQuote = await this._getServiceForChain(chainId).fetchIndicativeQuoteAsync(params);
         } catch (err) {
             req.log.error(err, 'Encountered an error while fetching an rfqm indicative quote');
             RFQM_INDICATIVE_QUOTE_ERROR.labels(integratorId, integratorId).inc();
@@ -121,12 +122,12 @@ export class RfqmHandlers {
         RFQM_FIRM_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
 
         // Parse request
-        const { params } = await this._parseFetchFirmQuoteParamsAsync(req);
+        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
 
         // Try to get firm quote
         let firmQuote;
         try {
-            firmQuote = await this._rfqmService.fetchFirmQuoteAsync(params);
+            firmQuote = await this._getServiceForChain(chainId).fetchFirmQuoteAsync(params);
         } catch (err) {
             req.log.error(err, 'Encountered an error while fetching an rfqm firm quote');
             RFQM_FIRM_QUOTE_ERROR.labels(integratorId, integratorId).inc();
@@ -149,15 +150,17 @@ export class RfqmHandlers {
      * Handler for the `/rfqm/v1/healthz` endpoint.
      */
     public async getHealthAsync(req: express.Request, res: express.Response): Promise<void> {
+        const chainId = extractChainId(req);
+
         let result: HealthCheckResult;
         if (this._cachedHealthCheckResult === null) {
-            result = await this._rfqmService.runHealthCheckAsync();
+            result = await this._getServiceForChain(chainId).runHealthCheckAsync();
             this._cachedHealthCheckResult = [result, new Date()];
         } else {
             const cacheAgeMs = Date.now() - this._cachedHealthCheckResult[1].getTime();
             // tslint:disable-next-line: custom-no-magic-numbers
             if (cacheAgeMs >= HEALTH_CHECK_RESULT_CACHE_DURATION_S * 1000) {
-                result = await this._rfqmService.runHealthCheckAsync();
+                result = await this._getServiceForChain(chainId).runHealthCheckAsync();
                 this._cachedHealthCheckResult = [result, new Date()];
             } else {
                 result = this._cachedHealthCheckResult[0];
@@ -169,20 +172,21 @@ export class RfqmHandlers {
     }
 
     public async getStatusAsync(req: express.Request, res: express.Response): Promise<void> {
+        const chainId = extractChainId(req);
         const { orderHash } = req.params;
 
-        const status = await this._rfqmService.getOrderStatusAsync(orderHash);
+        const status = await this._getServiceForChain(chainId).getOrderStatusAsync(orderHash);
 
         status ? res.status(HttpStatus.OK).send(status) : res.status(HttpStatus.NOT_FOUND).send();
     }
 
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const { params } = this._parseSubmitSignedQuoteParams(req);
+        const { chainId, params } = this._parseSubmitSignedQuoteParams(req);
         RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integrator.integratorId, params.integrator.integratorId).inc();
 
         if (params.type === RfqmTypes.MetaTransaction) {
             try {
-                const response = await this._rfqmService.submitMetaTransactionSignedQuoteAsync(params);
+                const response = await this._getServiceForChain(chainId).submitMetaTransactionSignedQuoteAsync(params);
                 res.status(HttpStatus.CREATED).send(response);
             } catch (err) {
                 req.log.error(err, 'Encountered an error while queuing a signed quote');
@@ -194,7 +198,7 @@ export class RfqmHandlers {
             }
         } else if (params.type === RfqmTypes.OtcOrder) {
             try {
-                const response = await this._rfqmService.submitTakerSignedOtcOrderAsync(params);
+                const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
                 res.status(HttpStatus.CREATED).send(response);
             } catch (err) {
                 req.log.error(err, 'Encountered an error while queuing a signed quote');
@@ -239,6 +243,15 @@ export class RfqmHandlers {
                 takerAddress,
             },
         };
+    }
+
+    private _getServiceForChain(chainId: number): RfqmService {
+        const service = this._rfqmServices.get(chainId);
+
+        if (!service) {
+            throw new Error('No configuration exists for chain');
+        }
+        return service;
     }
 
     /**
@@ -286,7 +299,7 @@ export class RfqmHandlers {
             buyTokenContractAddress = buyTokenRaw.toLocaleLowerCase().startsWith('0x')
                 ? buyTokenRaw
                 : contractAddressForSymbol(buyTokenRaw);
-            buyTokenDecimals = await this._rfqmService.getTokenDecimalsAsync(buyTokenRaw);
+            buyTokenDecimals = await this._getServiceForChain(chainId).getTokenDecimalsAsync(buyTokenRaw);
         } catch {
             throw new ValidationError([
                 {
@@ -301,7 +314,7 @@ export class RfqmHandlers {
             sellTokenContractAddress = sellTokenRaw.toLocaleLowerCase().startsWith('0x')
                 ? sellTokenRaw
                 : contractAddressForSymbol(sellTokenRaw);
-            sellTokenDecimals = await this._rfqmService.getTokenDecimalsAsync(sellTokenRaw);
+            sellTokenDecimals = await this._getServiceForChain(chainId).getTokenDecimalsAsync(sellTokenRaw);
         } catch {
             throw new ValidationError([
                 {

@@ -84,7 +84,11 @@ export class RfqMakerManager extends EventEmitter {
     private _rfqmPairToMakerUrisForOtcOrder: PairsToUris;
     private _rfqMakerListUpdateTimeHash: string | null;
 
-    constructor(private readonly _configManager: ConfigManager, private readonly _dbUtils: RfqMakerDbUtils) {
+    constructor(
+        private readonly _configManager: ConfigManager,
+        private readonly _dbUtils: RfqMakerDbUtils,
+        private readonly _chainId: number,
+    ) {
         super();
 
         this._rfqmMakerOfferings = {};
@@ -134,7 +138,7 @@ export class RfqMakerManager extends EventEmitter {
      * Emit an 'refreshed' event for subscribers to refresh if the operation is successful.
      */
     private async _refreshAsync(): Promise<void> {
-        const chainId = this._configManager.getChainId();
+        const chainId = this._chainId;
         const refreshTime = new Date();
         const timerStopFunction = RFQ_MAKER_REFRESH_LATENCY.labels(chainId.toString(), RFQ_WORKFLOW).startTimer();
 

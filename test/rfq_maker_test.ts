@@ -45,9 +45,11 @@ describe('RFQ maker API tests', () => {
             mockRfqMakerService.createOrUpdateRfqMakerAsync(makerId, chainId, anything(), anything(), anything()),
         ).thenResolve(rfqMaker);
 
+        const mockRfqmServices = new Map<number, RfqmService>([[chainId, mockRfqmService]]);
+
         // Start the server
         const res = await runHttpRfqmServiceAsync(
-            mockRfqmService,
+            mockRfqmServices,
             instance(mockRfqMakerService),
             configManagerMock,
             config.defaultHttpServiceConfig,

@@ -447,9 +447,6 @@ export interface TransactionWatcherSignerServiceConfig {
 }
 
 export interface HttpServiceConfig extends BaseHttpConfig {
-    ethereumRpcUrl: string;
-    kafkaBrokers?: string[];
-    kafkaConsumerGroupId?: string;
     metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
 }
 
