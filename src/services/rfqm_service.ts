@@ -650,7 +650,11 @@ export class RfqmService {
             if (RFQM_WORKER_INDEX === undefined) {
                 throw new Error('Worker index is undefined');
             }
-            await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance);
+            // NOTE: when merging with `feature/multichain`, update this line with
+            // `const chainId = this._chain.chainId.
+            const chainId = CHAIN_ID;
+
+            await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance, chainId);
         } catch (error) {
             logger.error(
                 { workerAddress, balance, errorMessage: error.message },

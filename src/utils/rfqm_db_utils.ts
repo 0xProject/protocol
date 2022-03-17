@@ -234,6 +234,7 @@ export class RfqmDbUtils {
         address: string,
         index: number,
         balance: BigNumber,
+        chainId: number,
     ): Promise<RfqmWorkerHeartbeatEntity> {
         if (!Number.isInteger(index)) {
             throw new Error(`Index ${index} is not an integer`);
@@ -245,13 +246,13 @@ export class RfqmDbUtils {
         // but the `.save` functionality is smart enough to not actually execute the update if none of the
         // data has changed. Since this only happens when a worker balance changes, the timestamp won't
         // update unless `.update` is explicitly called.
-        const updatedEntity = await repository.preload({ address, index, balance });
+        const updatedEntity = await repository.preload({ address, index, balance, chainId });
         if (updatedEntity !== undefined) {
             await this._connection.getRepository(RfqmWorkerHeartbeatEntity).update(address, updatedEntity);
             return updatedEntity;
         }
 
-        const newEntity = new RfqmWorkerHeartbeatEntity({ address, index, balance });
+        const newEntity = new RfqmWorkerHeartbeatEntity({ address, index, balance, chainId });
         await this._connection.getRepository(RfqmWorkerHeartbeatEntity).insert(newEntity);
         return newEntity;
     }

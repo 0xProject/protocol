@@ -24,6 +24,10 @@ export class RfqmWorkerHeartbeatEntity {
     @Column({ name: 'index', type: 'int' })
     public index: number;
 
+    // The chain ID of the chain the worker is active on.
+    @Column({ name: 'chain_id', type: 'int', nullable: true })
+    public chainId: number | undefined;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
