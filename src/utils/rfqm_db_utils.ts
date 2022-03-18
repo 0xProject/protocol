@@ -181,8 +181,11 @@ export class RfqmDbUtils {
         });
     }
 
-    public async findRfqmWorkerHeartbeatsAsync(): Promise<RfqmWorkerHeartbeatEntity[]> {
-        return this._connection.getRepository(RfqmWorkerHeartbeatEntity).find();
+    /**
+     * Fetches all the worker heartbeats for the provided chain ID.
+     */
+    public async findRfqmWorkerHeartbeatsAsync(chainId: number): Promise<RfqmWorkerHeartbeatEntity[]> {
+        return this._connection.getRepository(RfqmWorkerHeartbeatEntity).find({ where: { chainId } });
     }
 
     /**

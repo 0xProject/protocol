@@ -1297,7 +1297,7 @@ describe('RfqmService HTTP Logic', () => {
     describe('runHealthCheckAsync', () => {
         it('returns active pairs', async () => {
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync()).thenResolve([]);
+            when(dbUtilsMock.findRfqmWorkerHeartbeatsAsync(1337)).thenResolve([]);
 
             const rfqMakerManagerMock = mock(RfqMakerManager);
             when(rfqMakerManagerMock.getRfqmMakerOfferings()).thenReturn({

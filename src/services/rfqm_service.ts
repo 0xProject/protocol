@@ -791,7 +791,7 @@ export class RfqmService {
      * Runs checks to determine the health of the RFQm system. The results may be distilled to a format needed by integrators.
      */
     public async runHealthCheckAsync(): Promise<HealthCheckResult> {
-        const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync();
+        const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync(this._chainId);
         const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
         let gasPrice: BigNumber | undefined;
         try {
