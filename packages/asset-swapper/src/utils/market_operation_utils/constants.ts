@@ -482,6 +482,8 @@ export const MAINNET_TOKENS = {
     OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
     OHMV2: '0x64aa3364f17a4d01c6f1751fd97c2bd3d7e7f1d5',
     BTRFLY: '0xc0d4ceb216b3ba9c3701b291766fdcba977cec3a',
+    //Stargate
+    STG: '0xaf5191b0de278c7286d6c7cc6ab6bb8a73ba2cd6',
     //
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
     // Fei Ecosystem
@@ -667,6 +669,7 @@ export const CURVE_POOLS = {
     ib: '0x2dded6da1bf5dbdf597c45fcfaa3194e53ecfeaf', // iron bank
     link: '0xf178c0b5bb7e7abf4e12a4838c7b7c5ba2c623c0', // link
     btrflyweth: '0xf43b15ab692fde1f9c24a9fce700adcc809d5391', // redacted cartel
+    stgusdc: '0x3211c6cbef1429da3d0d58494938299c92ad5860', // stargate
     // StableSwap "open pools" (crv.finance)
     TUSD: '0xecd5e75afb02efa118af914515d6521aabd189f1',
     STABLEx: '0x3252efd4ea2d6c78091a1f43982ee2c3659cc3d1',
@@ -924,6 +927,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
                     .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
+                // STARGATE
+                builder.add(MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG).add(MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG);
             })
             // Build
             .build(),
@@ -1349,6 +1354,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.YFI],
         pool: CURVE_POOLS.wethyfi,
         gasSchedule: 250e3,
+    }),
+    [CURVE_POOLS.stgusdc]: createCurveFactoryCryptoExchangePool({
+        tokens: [MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG],
+        pool: CURVE_POOLS.stgusdc,
+        gasSchedule: 400e3,
     }),
 };
 
