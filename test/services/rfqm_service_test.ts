@@ -18,7 +18,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { Integrator } from '../../src/config';
+import { CHAIN_ID, Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
 import {
     RfqmJobEntity,
@@ -62,6 +62,7 @@ const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): Quo
 
 const buildRfqmServiceForUnitTest = (
     overrides: {
+        chainId?: number;
         quoteRequestorManager?: QuoteRequestorManager;
         protocolFeeUtils?: ProtocolFeeUtils;
         rfqBlockchainUtils?: RfqBlockchainUtils;
@@ -112,6 +113,7 @@ const buildRfqmServiceForUnitTest = (
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
+        overrides.chainId || CHAIN_ID,
         overrides.quoteRequestorManager || quoteRequestorManagerInstance,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,
@@ -196,6 +198,7 @@ describe('RfqmService HTTP Logic', () => {
             const dbUtils = instance(dbUtilsMock);
 
             const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
                 dbUtils,
             });
 
@@ -282,6 +285,7 @@ describe('RfqmService HTTP Logic', () => {
             const dbUtils = instance(dbUtilsMock);
 
             const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
                 dbUtils,
             });
 

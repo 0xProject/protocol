@@ -2,12 +2,6 @@
 import { assert } from '@0x/assert';
 import { LiquidityProviderRegistry, RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
-import {
-    getTokenMetadataIfExists,
-    nativeTokenSymbol,
-    nativeWrappedTokenSymbol,
-    TokenMetadata,
-} from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -362,14 +356,6 @@ export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROX
 export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPIC_QUOTE_REPORT)
     ? undefined
     : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
-
-export const NATIVE_TOKEN_SYMBOL = nativeTokenSymbol(CHAIN_ID);
-export const NATIVE_TOKEN_ADDRESS = (getTokenMetadataIfExists(NATIVE_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata)
-    .tokenAddress;
-export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
-export const NATIVE_WRAPPED_TOKEN_ADDRESS = (
-    getTokenMetadataIfExists(NATIVE_WRAPPED_TOKEN_SYMBOL, CHAIN_ID) as TokenMetadata
-).tokenAddress;
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,

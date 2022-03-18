@@ -99,6 +99,7 @@ const buildRfqmServiceForUnitTest = (
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
+        1,
         overrides.quoteRequestorManager || quoteRequestorManagerInstance,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,

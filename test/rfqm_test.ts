@@ -329,6 +329,7 @@ describe(SUITE_NAME, () => {
         const rfqMakerManager = instance(rfqMakerManagerMock);
 
         rfqmService = new RfqmService(
+            CHAIN_ID,
             quoteRequestorManager,
             protocolFeeUtils,
             contractAddresses,

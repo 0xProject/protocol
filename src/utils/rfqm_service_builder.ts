@@ -220,6 +220,7 @@ export async function buildRfqmServiceAsync(
     const kafkaProducer = getKafkaProducer();
 
     return new RfqmService(
+        chain.chainId,
         quoteRequestorManager,
         protocolFeeUtils,
         contractAddresses,

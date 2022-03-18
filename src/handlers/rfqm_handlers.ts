@@ -8,13 +8,13 @@ import {
     ValidationErrorCodes,
 } from '@0x/api-utils';
 import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
-import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
+import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSymbol } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { Counter } from 'prom-client';
 
-import { CHAIN_ID, Integrator, NATIVE_WRAPPED_TOKEN_SYMBOL } from '../config';
+import { Integrator } from '../config';
 import { schemas } from '../schemas';
 import { RfqmService } from '../services/rfqm_service';
 import {
@@ -288,7 +288,7 @@ export class RfqmHandlers {
         // Parse tokens
         const sellTokenRaw = req.query.sellToken as string;
         const buyTokenRaw = req.query.buyToken as string;
-        validateNotNativeTokenOrThrow(sellTokenRaw, 'sellToken');
+        validateNotNativeTokenOrThrow(sellTokenRaw, chainId, 'sellToken');
 
         let buyTokenDecimals: number;
         let sellTokenDecimals: number;
@@ -298,7 +298,7 @@ export class RfqmHandlers {
         try {
             buyTokenContractAddress = buyTokenRaw.toLocaleLowerCase().startsWith('0x')
                 ? buyTokenRaw
-                : contractAddressForSymbol(buyTokenRaw);
+                : contractAddressForSymbol(buyTokenRaw, chainId);
             buyTokenDecimals = await this._getServiceForChain(chainId).getTokenDecimalsAsync(buyTokenRaw);
         } catch {
             throw new ValidationError([
@@ -313,7 +313,7 @@ export class RfqmHandlers {
         try {
             sellTokenContractAddress = sellTokenRaw.toLocaleLowerCase().startsWith('0x')
                 ? sellTokenRaw
-                : contractAddressForSymbol(sellTokenRaw);
+                : contractAddressForSymbol(sellTokenRaw, chainId);
             sellTokenDecimals = await this._getServiceForChain(chainId).getTokenDecimalsAsync(sellTokenRaw);
         } catch {
             throw new ValidationError([
@@ -423,21 +423,22 @@ const extractChainId = (req: express.Request): number => {
  *
  * Throws if the symbol is not present in @0x/token-metadata
  */
-const contractAddressForSymbol = (symbol: string): string => {
-    const address = getTokenMetadataIfExists(symbol, CHAIN_ID)?.tokenAddress;
+const contractAddressForSymbol = (symbol: string, chainId: number): string => {
+    const address = getTokenMetadataIfExists(symbol, chainId)?.tokenAddress;
     if (!address) {
         throw new Error('Unsupported token');
     }
     return address;
 };
 
-const validateNotNativeTokenOrThrow = (token: string, field: string): boolean => {
-    if (isNativeSymbolOrAddress(token, CHAIN_ID)) {
+const validateNotNativeTokenOrThrow = (token: string, chainId: number, field: string): boolean => {
+    if (isNativeSymbolOrAddress(token, chainId)) {
+        const symbol = nativeWrappedTokenSymbol(chainId);
         throw new ValidationError([
             {
                 field,
                 code: ValidationErrorCodes.TokenNotSupported,
-                reason: `Unwrapped Native Asset is not supported. Use ${NATIVE_WRAPPED_TOKEN_SYMBOL} instead`,
+                reason: `Unwrapped Native Asset is not supported. Use ${symbol} instead`,
             },
         ]);
     }

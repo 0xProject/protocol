@@ -6,7 +6,12 @@ import { V4RFQIndicativeQuoteMM } from '@0x/asset-swapper';
 import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
 import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SignRequest, SubmitRequest } from '@0x/quote-server/lib/src/types';
-import { getTokenMetadataIfExists } from '@0x/token-metadata';
+import {
+    getTokenMetadataIfExists,
+    nativeTokenSymbol,
+    nativeWrappedTokenSymbol,
+    TokenMetadata,
+} from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { retry } from '@lifeomic/attempt';
@@ -17,11 +22,8 @@ import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import {
-    CHAIN_ID,
     Integrator,
     META_TX_WORKER_REGISTRY,
-    NATIVE_TOKEN_ADDRESS,
-    NATIVE_WRAPPED_TOKEN_ADDRESS,
     RFQM_MAINTENANCE_MODE,
     RFQM_WORKER_INDEX,
     RFQT_REQUEST_MAX_RESPONSE_MS,
@@ -204,11 +206,19 @@ function isDefined<T>(value: T): value is NonNullable<T> {
 // https://stackoverflow.com/questions/45894524/getting-type-of-a-property-of-a-typescript-class-using-keyof-operator
 type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
 
+const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
+    return (getTokenMetadataIfExists(symbol, chainId) as TokenMetadata).tokenAddress;
+};
+
 /**
  * RfqmService is the coordination layer for HTTP based RFQM flows.
  */
 export class RfqmService {
     private readonly _tokenDecimalsCache: Map<string, number> = new Map();
+    private readonly _nativeTokenAddress: string;
+    private readonly _nativeTokenSymbol: string;
+    private readonly _nativeWrappedTokenSymbol: string;
+    private readonly _nativeWrappedTokenAddress: string;
 
     public static shouldResubmitTransaction(gasFees: GasFees, gasPriceEstimate: BigNumber): boolean {
         // Geth only allows replacement of transactions if the replacement gas price
@@ -285,6 +295,7 @@ export class RfqmService {
     }
 
     constructor(
+        private readonly _chainId: number,
         private readonly _quoteRequestorManager: QuoteRequestorManager,
         private readonly _protocolFeeUtils: ProtocolFeeUtils,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
@@ -297,7 +308,12 @@ export class RfqmService {
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _kafkaProducer?: KafkaProducer,
-    ) {}
+    ) {
+        this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
+        this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
+        this._nativeWrappedTokenSymbol = nativeWrappedTokenSymbol(this._chainId);
+        this._nativeWrappedTokenAddress = getTokenAddressFromSymbol(this._nativeWrappedTokenSymbol, this._chainId);
+    }
 
     /**
      * Utility function to get the decimals for an ERC20 token by its address.
@@ -309,7 +325,7 @@ export class RfqmService {
      * Throws if there is a problem fetching the data from on chain.
      */
     public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
-        const localMetadata = getTokenMetadataIfExists(tokenAddress, CHAIN_ID);
+        const localMetadata = getTokenMetadataIfExists(tokenAddress, this._chainId);
         if (localMetadata) {
             return localMetadata.decimals;
         }
@@ -343,10 +359,10 @@ export class RfqmService {
         let makerToken = originalMakerToken;
 
         // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
-        const isUnwrap = originalMakerToken === NATIVE_TOKEN_ADDRESS;
+        const isUnwrap = originalMakerToken === this._nativeTokenAddress;
         if (isUnwrap) {
-            makerToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
-            params.buyToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+            makerToken = this._nativeWrappedTokenAddress;
+            params.buyToken = this._nativeWrappedTokenAddress;
         }
 
         // Get desired fill amount
@@ -448,10 +464,10 @@ export class RfqmService {
         let makerToken = originalMakerToken;
 
         // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
-        const isUnwrap = originalMakerToken === NATIVE_TOKEN_ADDRESS;
+        const isUnwrap = originalMakerToken === this._nativeTokenAddress;
         if (isUnwrap) {
-            makerToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
-            params.buyToken = NATIVE_WRAPPED_TOKEN_ADDRESS;
+            makerToken = this._nativeWrappedTokenAddress;
+            params.buyToken = this._nativeWrappedTokenAddress;
         }
 
         // Quote Requestor specific params
@@ -548,7 +564,7 @@ export class RfqmService {
                 bestQuote.makerSignature,
                 takerAddress,
                 takerAmount,
-                CHAIN_ID,
+                this._chainId,
             );
             const metaTransactionHash = metaTransaction.getHash();
 
@@ -557,7 +573,7 @@ export class RfqmService {
                 new RfqmQuoteEntity({
                     orderHash,
                     metaTransactionHash,
-                    chainId: CHAIN_ID,
+                    chainId: this._chainId,
                     fee: feeToStoredFee(fee),
                     order: v4RfqOrderToStoredOrder(rfqOrder),
                     makerUri,
@@ -587,7 +603,7 @@ export class RfqmService {
         const otcOrder = bestQuote.order;
         await this._dbUtils.writeV2QuoteAsync({
             orderHash,
-            chainId: CHAIN_ID,
+            chainId: this._chainId,
             fee: feeToStoredFee(fee),
             order: otcOrderToStoredOtcOrder(otcOrder),
             makerUri,
@@ -652,7 +668,7 @@ export class RfqmService {
             }
             // NOTE: when merging with `feature/multichain`, update this line with
             // `const chainId = this._chain.chainId.
-            const chainId = CHAIN_ID;
+            const chainId = this._chainId;
 
             await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance, chainId);
         } catch (error) {
@@ -869,7 +885,7 @@ export class RfqmService {
             metaTransactionHash,
             createdAt: new Date(),
             expiry: params.metaTransaction.expirationTimeSeconds,
-            chainId: CHAIN_ID,
+            chainId: this._chainId,
             integratorId: quote.integratorId ? quote.integratorId : null,
             makerUri: quote.makerUri,
             status: RfqmJobStatus.PendingEnqueued,
@@ -1006,7 +1022,7 @@ export class RfqmService {
             orderHash: quote.orderHash!,
             createdAt: new Date(),
             expiry: order.expiry,
-            chainId: CHAIN_ID,
+            chainId: this._chainId,
             integratorId: quote.integratorId ? quote.integratorId : null,
             makerUri: quote.makerUri,
             status: RfqmJobStatus.PendingEnqueued,
@@ -1901,7 +1917,7 @@ export class RfqmService {
         };
 
         // Fetch the current bucket
-        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(CHAIN_ID)) % RFQM_NUM_BUCKETS;
+        const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
 
         // Create RfqOrder request options
         const opts: RfqmRequestOptions = {
@@ -1973,7 +1989,7 @@ export class RfqmService {
         const firmQuotes: FirmQuote[] = rfqQuotes.concat(otcQuotes);
 
         const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
-            if (quote.order.chainId !== CHAIN_ID) {
+            if (quote.order.chainId !== this._chainId) {
                 logger.error({ quote }, 'Received a quote with incorrect chain id');
                 return false;
             }
@@ -2057,7 +2073,7 @@ export class RfqmService {
 
         const transactionRequest = this._blockchainUtils.transformTxDataToTransactionRequest(
             txOptions,
-            CHAIN_ID,
+            this._chainId,
             callData,
         );
         const { signedTransaction, transactionHash } = await this._blockchainUtils.signTransactionAsync(
@@ -2150,7 +2166,7 @@ export class RfqmService {
                 takerToken: q.takerToken,
                 makerAmount: q.makerAmount,
                 takerAmount: q.takerAmount,
-                chainId: CHAIN_ID,
+                chainId: this._chainId,
                 verifyingContract: this._contractAddresses.exchangeProxy,
             }),
         };
