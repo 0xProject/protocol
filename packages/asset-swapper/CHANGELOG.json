@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.53.0",
+        "changes": [
+            {
+                "note": "Adds support for STG/USDC pool on Curve Mainnet",
+                "pr": 451
+            }
+        ]
+    },
+    {
         "version": "16.52.0",
         "changes": [
             {
