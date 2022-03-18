@@ -927,8 +927,6 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
                     .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
-                // STARGATE
-                builder.add(MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG).add(MAINNET_TOKENS.STG, MAINNET_TOKENS.USDC);
             })
             // Build
             .build(),
@@ -1358,7 +1356,7 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.stgusdc]: createCurveFactoryCryptoExchangePool({
         tokens: [MAINNET_TOKENS.STG, MAINNET_TOKENS.USDC],
         pool: CURVE_POOLS.stgusdc,
-        gasSchedule: 400e3,
+        gasSchedule: 250e3,
     }),
 };
 
