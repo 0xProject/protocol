@@ -381,6 +381,8 @@ export const MAINNET_TOKENS = {
     OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
     OHMV2: '0x64aa3364f17a4d01c6f1751fd97c2bd3d7e7f1d5',
     BTRFLY: '0xc0d4ceb216b3ba9c3701b291766fdcba977cec3a',
+    //Stargate
+    STG: '0xaf5191b0de278c7286d6c7cc6ab6bb8a73ba2cd6',
     //
     LUSD: '0x5f98805a4e8be255a32880fdec7f6728c6568ba0',
     // Fei Ecosystem
@@ -609,6 +611,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
                     .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
+                // STARGATE
+                builder.add(MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG).add(MAINNET_TOKENS.USDC, MAINNET_TOKENS.STG);
             })
             // Build
             .build(),
