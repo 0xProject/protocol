@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
-import { In } from 'typeorm';
+import { FindConditions, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import {
@@ -251,7 +251,11 @@ export class RfqmDbUtils {
         // update unless `.update` is explicitly called.
         const updatedEntity = await repository.preload({ address, index, balance, chainId });
         if (updatedEntity !== undefined) {
-            await this._connection.getRepository(RfqmWorkerHeartbeatEntity).update(address, updatedEntity);
+            const findConditions: FindConditions<RfqmWorkerHeartbeatEntity> = {
+                address,
+                chainId,
+            };
+            await this._connection.getRepository(RfqmWorkerHeartbeatEntity).update(findConditions, updatedEntity);
             return updatedEntity;
         }
 

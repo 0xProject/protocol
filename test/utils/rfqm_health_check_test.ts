@@ -70,6 +70,7 @@ describe('RFQm Health Check', () => {
                     balance: fullBalance,
                     index: 0,
                     timestamp: new Date(nowTime - MS_IN_MINUTE * 6),
+                    chainId: 1337,
                 });
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat], now);
@@ -86,12 +87,14 @@ describe('RFQm Health Check', () => {
                     balance: fullBalance,
                     index: 0,
                     timestamp: now,
+                    chainId: 1337,
                 });
                 const heartbeat2 = new RfqmWorkerHeartbeatEntity({
                     address: '0x01',
                     balance: fullBalance,
                     index: 1,
                     timestamp: new Date(nowTime - MS_IN_MINUTE * 8),
+                    chainId: 1337,
                 });
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat1, heartbeat2], now);
@@ -111,6 +114,7 @@ describe('RFQm Health Check', () => {
                     balance: new BigNumber(0.01),
                     index: 0,
                     timestamp: now,
+                    chainId: 1337,
                 });
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat], now);
@@ -126,12 +130,14 @@ describe('RFQm Health Check', () => {
                     balance: new BigNumber(0.01),
                     index: 0,
                     timestamp: now,
+                    chainId: 1337,
                 });
                 const heartbeat2 = new RfqmWorkerHeartbeatEntity({
                     address: '0x01',
                     balance: fullBalance,
                     index: 1,
                     timestamp: now,
+                    chainId: 1337,
                 });
 
                 const issues = await checkWorkerHeartbeatsAsync([heartbeat1, heartbeat2], now);

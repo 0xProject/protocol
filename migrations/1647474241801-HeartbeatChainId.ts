@@ -13,6 +13,6 @@ export class HeartbeatChainId1647474241801 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.addColumn('rfqm_worker_heartbeats', chainIdColumn);
+        await queryRunner.dropColumn('rfqm_worker_heartbeats', chainIdColumn);
     }
 }

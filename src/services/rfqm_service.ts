@@ -192,6 +192,9 @@ const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per ga
 // `estimateGasForExchangeProxyCallAsync`. In this case we use this value.
 const MAX_GAS_ESTIMATE = 500_000;
 
+// How often the worker should publish a heartbeat
+const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30; // tslint:disable-line: custom-no-magic-numbers
+
 // https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean
 function isDefined<T>(value: T): value is NonNullable<T> {
     return value !== null && value !== undefined;
@@ -213,6 +216,7 @@ export class RfqmService {
     private readonly _nativeTokenSymbol: string;
     private readonly _nativeWrappedTokenSymbol: string;
     private readonly _nativeWrappedTokenAddress: string;
+    private _lastHeartbeatTime: Date | null = null;
 
     public static shouldResubmitTransaction(gasFees: GasFees, gasPriceEstimate: BigNumber): boolean {
         // Geth only allows replacement of transactions if the replacement gas price
@@ -655,6 +659,10 @@ export class RfqmService {
             return false;
         }
 
+        if (this._lastHeartbeatTime && Date.now() - this._lastHeartbeatTime.getTime() < WORKER_HEARTBEAT_FREQUENCY_MS) {
+            return true;
+        }
+
         // Publish a heartbeat if the worker is ready to go
         try {
             if (RFQM_WORKER_INDEX === undefined) {
@@ -663,8 +671,8 @@ export class RfqmService {
             // NOTE: when merging with `feature/multichain`, update this line with
             // `const chainId = this._chain.chainId.
             const chainId = this._chainId;
-
             await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance, chainId);
+            this._lastHeartbeatTime = new Date();
         } catch (error) {
             logger.error(
                 { workerAddress, balance, errorMessage: error.message },

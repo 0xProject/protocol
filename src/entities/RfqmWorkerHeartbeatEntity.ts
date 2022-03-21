@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 import { BigNumberTransformer } from './transformers';
 
-export type RfqmWorkerHeartbeatOptions = Pick<RfqmWorkerHeartbeatEntity, 'address' | 'balance' | 'index'> &
+export type RfqmWorkerHeartbeatOptions = Pick<RfqmWorkerHeartbeatEntity, 'address' | 'balance' | 'index' | 'chainId'> &
     Partial<RfqmWorkerHeartbeatEntity>;
 
 @Entity({ name: 'rfqm_worker_heartbeats' })
@@ -25,8 +25,8 @@ export class RfqmWorkerHeartbeatEntity {
     public index: number;
 
     // The chain ID of the chain the worker is active on.
-    @Column({ name: 'chain_id', type: 'int', nullable: true })
-    public chainId: number | undefined;
+    @PrimaryColumn({ name: 'chain_id', type: 'int' })
+    public chainId: number;
 
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
@@ -38,6 +38,7 @@ export class RfqmWorkerHeartbeatEntity {
         }
         this.address = opts.address;
         this.balance = opts.balance;
+        this.chainId = opts.chainId;
         this.index = opts.index;
     }
 }
