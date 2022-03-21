@@ -8,12 +8,12 @@ import * as express from 'express';
 import { Counter } from 'prom-client';
 
 import {
+    ChainConfiguration,
     CHAIN_CONFIGURATIONS,
     CHAIN_ID,
     ENABLE_PROMETHEUS_METRICS,
     META_TX_WORKER_MNEMONIC,
     PROMETHEUS_PORT,
-    RFQM_META_TX_SQS_URL,
     RFQM_WORKER_INDEX,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
@@ -105,7 +105,7 @@ if (require.main === module) {
         }
 
         // Run the worker
-        const worker = createRfqmWorker(rfqmService, workerAddress);
+        const worker = createRfqmWorker(rfqmService, workerAddress, chain);
         logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Starting RFQM worker');
         const consumeLoop: Promise<void> = worker.consumeAsync();
 
@@ -132,9 +132,13 @@ if (require.main === module) {
 /**
  * Create an RFQM Worker
  */
-export function createRfqmWorker(rfqmService: RfqmService, workerAddress: string): SqsConsumer {
+export function createRfqmWorker(
+    rfqmService: RfqmService,
+    workerAddress: string,
+    chain: ChainConfiguration,
+): SqsConsumer {
     // Build the Sqs consumer
-    const sqsClient = new SqsClient(new SQS({ apiVersion: '2012-11-05' }), RFQM_META_TX_SQS_URL!);
+    const sqsClient = new SqsClient(new SQS({ apiVersion: '2012-11-05' }), chain.sqsUrl);
     const consumer = new SqsConsumer({
         id: workerAddress,
         sqsClient,

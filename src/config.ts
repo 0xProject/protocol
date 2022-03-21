@@ -284,10 +284,6 @@ export const RFQ_API_KEY_HASH_TO_MAKER_ID: Map<string, string> = (() => {
     }, new Map<string, string>());
 })();
 
-export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
-    ? undefined
-    : assertEnvVarType('META_TX_WORKER_REGISTRY', process.env.META_TX_WORKER_REGISTRY, EnvVarType.ETHAddressHex);
-
 export const META_TX_WORKER_MNEMONIC: string | undefined = _.isEmpty(process.env.META_TX_WORKER_MNEMONIC)
     ? undefined
     : assertEnvVarType('META_TX_WORKER_MNEMONIC', process.env.META_TX_WORKER_MNEMONIC, EnvVarType.NonEmptyString);
@@ -295,10 +291,6 @@ export const META_TX_WORKER_MNEMONIC: string | undefined = _.isEmpty(process.env
 export const RFQM_WORKER_INDEX: number | undefined = _.isEmpty(process.env.RFQM_WORKER_INDEX)
     ? undefined
     : assertEnvVarType('RFQM_WORKER_INDEX', process.env.RFQM_WORKER_INDEX, EnvVarType.Integer);
-
-export const RFQM_META_TX_SQS_URL: string | undefined = _.isEmpty(process.env.RFQM_META_TX_SQS_URL)
-    ? undefined
-    : assertEnvVarType('RFQM_META_TX_SQS_URL', process.env.RFQM_META_TX_SQS_URL, EnvVarType.Url);
 
 // If set to TRUE, system health will change to MAINTENANCE and integrators will be told to not
 // send RFQM orders.

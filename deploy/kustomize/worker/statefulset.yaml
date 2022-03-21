@@ -51,10 +51,8 @@ spec:
           value: "true"
         - name: PROMETHEUS_PORT
           value: "8080"
-        - name: RFQM_META_TX_SQS_URL
         - name: RFQM_META_TX_SQS_REGION
           value: us-east-1
-        - name: META_TX_WORKER_REGISTRY
         - name: MESH_WEBSOCKET_URI
         - name: MESH_HTTP_URI
         - name: RFQ_PROXY_ADDRESS

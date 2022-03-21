@@ -21,13 +21,7 @@ import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import {
-    Integrator,
-    META_TX_WORKER_REGISTRY,
-    RFQM_MAINTENANCE_MODE,
-    RFQM_WORKER_INDEX,
-    RFQT_REQUEST_MAX_RESPONSE_MS,
-} from '../config';
+import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import {
     ETH_DECIMALS,
     NULL_ADDRESS,
@@ -98,7 +92,7 @@ const RFQM_QUOTE_INSERTED = new Counter({
 
 const RFQM_DEFAULT_OPTS = {
     takerAddress: NULL_ADDRESS,
-    txOrigin: META_TX_WORKER_REGISTRY || NULL_ADDRESS,
+    txOrigin: NULL_ADDRESS,
     makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
     nativeExclusivelyRFQ: true,
     altRfqAssetOfferings: {},

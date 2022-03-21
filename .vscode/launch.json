@@ -14,6 +14,18 @@
             "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
         },
         {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "RFQM worker",
+            "runtimeExecutable": "node",
+            "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
+            "cwd": "${workspaceFolder}",
+            "args": ["--require", "dotenv/config", "src/runners/rfqm_worker_runner.ts"],
+            "internalConsoleOptions": "openOnSessionStart",
+            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
+            "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+        },
+        {
             "envFile": "${workspaceFolder}/test/test_env",
             "type": "node",
             "request": "launch",
