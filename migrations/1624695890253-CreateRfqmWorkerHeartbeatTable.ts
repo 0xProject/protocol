@@ -5,7 +5,7 @@ const TABLE_NAME = 'rfqm_worker_heartbeats';
 const rfqmWorkerHeartbeatTable = new Table({
     name: TABLE_NAME,
     columns: [
-        { name: 'address', type: 'varchar', isPrimary: true },
+        { name: 'address', type: 'varchar', isPrimary: false },
         { name: 'timestamp', type: 'timestamptz', default: 'NOW()' },
         { name: 'balance', type: 'bigint' },
         { name: 'index', type: 'int' },
