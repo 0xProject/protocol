@@ -483,7 +483,8 @@ describe('MarketOperationUtils tests', () => {
             });
 
             it('queries `numSamples` samples', async () => {
-                const numSamples = _.random(1, NUM_SAMPLES);
+                // neon-router requires at least 3 samples
+                const numSamples = _.random(3, NUM_SAMPLES);
                 let actualNumSamples = 0;
                 replaceSamplerOps({
                     getSellQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
@@ -501,6 +502,7 @@ describe('MarketOperationUtils tests', () => {
                 await getMarketSellOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     numSamples,
+                    neonRouterNumSamples: numSamples,
                 });
                 expect(actualNumSamples).eq(numSamples);
             });
@@ -1324,9 +1326,9 @@ describe('MarketOperationUtils tests', () => {
                 replaceSamplerOps();
             });
 
-            // TODO(kimpers): Remove as no longer relevant
-            it.skip('queries `numSamples` samples', async () => {
-                const numSamples = _.random(1, 16);
+            it('queries `numSamples` samples', async () => {
+                // neon-router requires at least 3 samples
+                const numSamples = _.random(3, 16);
                 let actualNumSamples = 0;
                 replaceSamplerOps({
                     getBuyQuotes: (sources, makerToken, takerToken, amounts, wethAddress) => {
@@ -1344,6 +1346,8 @@ describe('MarketOperationUtils tests', () => {
                 await getMarketBuyOrdersAsync(marketOperationUtils, ORDERS, FILL_AMOUNT, {
                     ...DEFAULT_OPTS,
                     numSamples,
+                    // Make sure to use same number of samples in neon-router for compatibility
+                    neonRouterNumSamples: numSamples,
                 });
                 expect(actualNumSamples).eq(numSamples);
             });
