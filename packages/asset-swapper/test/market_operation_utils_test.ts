@@ -1080,6 +1080,7 @@ describe('MarketOperationUtils tests', () => {
 
             const ETH_TO_MAKER_RATE = 1.5;
 
+            // TODO: disabled as this is not supported by neon-router
             it.skip('factors in fees for native orders', async () => {
                 // Native orders will have the best rates but have fees,
                 // dropping their effective rates.
@@ -1183,6 +1184,8 @@ describe('MarketOperationUtils tests', () => {
                 expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
             });
 
+            // NOTE: Currently fallbacks for native orders are disabled
+            // TODO: remove this if we remove fallbacks completely
             it.skip('does not create a fallback if below maxFallbackSlippage', async () => {
                 const rates: RatesBySource = {};
                 rates[ERC20BridgeSource.Native] = [1, 1, 0.01, 0.01];
@@ -1499,6 +1502,7 @@ describe('MarketOperationUtils tests', () => {
                 }
             });
 
+            // TODO: disabled as this is not supported by neon-router
             it.skip('can mix convex sources', async () => {
                 const rates: RatesBySource = { ...ZERO_RATES };
                 rates[ERC20BridgeSource.Native] = [0.4, 0.3, 0.2, 0.1];
@@ -1526,6 +1530,7 @@ describe('MarketOperationUtils tests', () => {
 
             const ETH_TO_TAKER_RATE = 1.5;
 
+            // TODO: disabled as this is not supported by neon-router
             it.skip('factors in fees for native orders', async () => {
                 // Native orders will have the best rates but have fees,
                 // dropping their effective rates.
@@ -1603,6 +1608,8 @@ describe('MarketOperationUtils tests', () => {
                 expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
             });
 
+            // NOTE: Currently fallbacks for native orders are disabled
+            // TODO: remove this if we remove fallbacks completely
             it.skip('does not create a fallback if below maxFallbackSlippage', async () => {
                 const rates: RatesBySource = { ...ZERO_RATES };
                 rates[ERC20BridgeSource.Native] = [1, 1, 0.01, 0.01];
