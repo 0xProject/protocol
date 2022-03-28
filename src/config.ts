@@ -60,6 +60,9 @@ export interface ChainConfiguration {
     registryAddress: string;
     rpcUrl: string;
     sqsUrl: string;
+    // The value of the "tip" the worker will use when it starts
+    // submitting transactions
+    initialMaxPriorityFeePerGasGwei: number;
 }
 
 export type ChainConfigurations = ChainConfiguration[];

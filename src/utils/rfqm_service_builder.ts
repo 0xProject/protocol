@@ -232,6 +232,7 @@ export async function buildRfqmServiceAsync(
         RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
         rfqMakerManager,
+        chain.initialMaxPriorityFeePerGasGwei,
         kafkaProducer,
     );
 }

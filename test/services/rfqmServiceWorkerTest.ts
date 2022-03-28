@@ -57,6 +57,7 @@ const buildRfqmServiceForUnitTest = (
         quoteRequestorManager?: QuoteRequestorManager;
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
+        initialMaxPriorityFeePerGasGwei?: number;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -111,6 +112,7 @@ const buildRfqmServiceForUnitTest = (
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
         overrides.rfqMakerManager || rfqMakerManagerMock,
+        overrides.initialMaxPriorityFeePerGasGwei || 2,
     );
 };
 

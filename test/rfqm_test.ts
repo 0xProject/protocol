@@ -342,6 +342,7 @@ describe(SUITE_NAME, () => {
             TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
             rfqMakerManager,
+            /* initialMaxPriorityFeePerGasGwei */ 2,
         );
 
         const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(connection), configManager);

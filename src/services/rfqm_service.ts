@@ -24,6 +24,7 @@ import { Producer } from 'sqs-producer';
 import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import {
     ETH_DECIMALS,
+    GWEI_DECIMALS,
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
@@ -183,7 +184,6 @@ const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
 
 const PRICE_DECIMAL_PLACES = 6;
 
-const INITIAL_MAX_PRIORITY_FEE_PER_GAS = new BigNumber(2e9); // 2 gwei in wei
 const MAX_PRIORITY_FEE_PER_GAS_CAP = new BigNumber(128e9); // The maximum tip we're willing to pay
 // Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
 const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = 1.5; // Increase multiplier for tip with each resubmission cycle
@@ -305,6 +305,7 @@ export class RfqmService {
         private readonly _transactionWatcherSleepTimeMs: number,
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerManager: RfqMakerManager,
+        private readonly _initialMaxPriorityFeePerGasGwei: number,
         private readonly _kafkaProducer?: KafkaProducer,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
@@ -1609,9 +1610,14 @@ export class RfqmService {
         // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
         // The `maxFeePerGas` is 2x the base fee (plus priority tip). Since we don't have a
         // handy oracle for the en vogue priorty fee we start with 2 gwei and work up from there.
+
+        const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
+            Math.pow(1, GWEI_DECIMALS),
+        );
+
         let gasFees: GasFees = {
-            maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(INITIAL_MAX_PRIORITY_FEE_PER_GAS),
-            maxPriorityFeePerGas: INITIAL_MAX_PRIORITY_FEE_PER_GAS,
+            maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+            maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
         };
 
         let submissionContext;

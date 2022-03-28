@@ -4,6 +4,9 @@
         "gasStationUrl": {
             "type": "string"
         },
+        "initialMaxPriorityFeePerGasGwei": {
+            "type": "number"
+        },
         "name": {
             "type": "string"
         },
@@ -17,6 +20,6 @@
             "type": "string"
         }
     },
-    "required": ["gasStationUrl", "name", "registryAddress", "rpcUrl", "sqsUrl"],
+    "required": ["gasStationUrl", "initialMaxPriorityFeePerGasGwei", "name", "registryAddress", "rpcUrl", "sqsUrl"],
     "type": "object"
 }
