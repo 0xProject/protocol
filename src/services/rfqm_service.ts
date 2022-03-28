@@ -1397,6 +1397,7 @@ export class RfqmService {
                 try {
                     const declineToSignPriceCheckTimeMs = Date.now();
                     const otcOrderParams = QuoteServerClient.makeQueryParameters({
+                        chainId: this._chainId,
                         txOrigin: this._registryAddress,
                         takerAddress: otcOrder.taker,
                         marketOperation: MarketOperation.Sell,
@@ -1845,6 +1846,7 @@ export class RfqmService {
 
         // Create Otc Order request options
         const otcOrderParams = QuoteServerClient.makeQueryParameters({
+            chainId: this._chainId,
             txOrigin: this._registryAddress,
             takerAddress: NULL_ADDRESS,
             marketOperation,
@@ -1936,6 +1938,7 @@ export class RfqmService {
         // Create Otc Order request options
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
         const otcOrderParams = QuoteServerClient.makeQueryParameters({
+            chainId: this._chainId,
             txOrigin: this._registryAddress,
             takerAddress,
             marketOperation,

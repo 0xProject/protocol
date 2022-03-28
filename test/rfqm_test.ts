@@ -82,6 +82,7 @@ const BASE_RFQM_REQUEST_PARAMS = {
 };
 const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
     txOrigin: MOCK_WORKER_REGISTRY_ADDRESS,
+    chainId: CHAIN_ID.toString(),
     takerAddress: NULL_ADDRESS,
     protocolVersion: '4',
     isLastLook: 'true',
