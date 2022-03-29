@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 
 import { Address } from '../../types';
 
-import { DexSample, ERC20BridgeSource, TokenAdjacencyGraph } from './types';
+import { DexSample, ERC20BridgeSource } from './types';
 import { SamplerServiceRpcClient } from './sampler_service_rpc_client';
 
 const DEFAULT_LIQUIDITY_SAMPLES = 16;

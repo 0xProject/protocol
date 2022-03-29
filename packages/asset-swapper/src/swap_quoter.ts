@@ -319,10 +319,8 @@ export class SwapQuoter {
         }
 
         //  ** Prepare options for fetching market side liquidity **
-        // Scale fees by gas price.
-        const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
         const calcOpts: GetMarketOrdersOpts = {
-            ...cloneOpts,
+            ...opts,
             gasPrice,
             exchangeProxyOverhead: opts.exchangeProxyOverhead,
         };

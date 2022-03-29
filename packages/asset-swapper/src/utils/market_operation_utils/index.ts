@@ -227,13 +227,7 @@ export class MarketOperationUtils {
             makerTokenDecimals: makerTokenDecimals,
             takerTokenDecimals: takerTokenDecimals,
             gasPrice: opts.gasPrice,
-            quotes: sampleLegs.map((tokenPath, i) => ({
-                tokenPath,
-                inputToken: tokenPath[0],
-                outputToken: tokenPath[tokenPath.length - 1],
-                nativeOrders: [],
-                dexQuotes: samples[i],
-            })).filter(doesRawHopQuotesHaveLiquidity),
+            quotes: createRawHopQuotesFromSamples(MarketOperation.Sell, sampleLegs, samples),
             isRfqSupported,
         };
     }
@@ -335,6 +329,7 @@ export class MarketOperationUtils {
         twoHopPathDetails = twoHopPathDetails
             .sort((a, b) => -a.totalPrice.comparedTo(b.totalPrice))
             .slice(0, 3);
+        console.log(twoHopPathDetails.map(p => ({ ...p, legs: p.legs.join(' -> ') })));
 
         if (side === MarketOperation.Buy) {
             // Reverse legs and prices and invert prices for buys.
@@ -471,13 +466,7 @@ export class MarketOperationUtils {
             makerTokenDecimals: makerTokenDecimals,
             takerTokenDecimals: takerTokenDecimals,
             gasPrice: opts.gasPrice,
-            quotes: sampleLegs.map((tokenPath, i) => ({
-                tokenPath,
-                inputToken: tokenPath[tokenPath.length - 1],
-                outputToken: tokenPath[0],
-                nativeOrders: [],
-                dexQuotes: samples[i],
-            })).filter(doesRawHopQuotesHaveLiquidity),
+            quotes: createRawHopQuotesFromSamples(MarketOperation.Buy, sampleLegs, samples),
             isRfqSupported,
         };
     }
@@ -951,6 +940,7 @@ export class MarketOperationUtils {
             let hopInputAmount = inputAmount;
             const hops = [];
             for (const routeHop of route) {
+                console.log([routeHop.inputToken, routeHop.outputToken], routeHop.dexQuotes.map(q => q[0].source));
                 const hop = await this._createOptimizedHopAsync({
                     side,
                     slippage,
@@ -995,8 +985,9 @@ export class MarketOperationUtils {
         };
         for (const route of hopRoutes) {
             const rate = getHopRouteOverallAdjustedTakerToMakerRate(route, rateOpts);
+            console.log(`considering route: <\n\t${route.map(r => `path: ${r.inputToken}->${r.outputToken}, ${r.orders.map(o => o.source)}, output: ${r.outputAmount}`).join(',\n\t')}\n>, overall rate: ${rate}, overall gas cost: ${route.reduce((a,v) => a + v.gasCost, 0)}`);
             if (!bestHopRouteTotalRate || rate.gt(bestHopRouteTotalRate)) {
-                console.log(`new best route: <\n\t${route.map(r => `path: ${r.inputToken}->${r.outputToken}, ${r.orders.map(o => o.source)}, output: ${r.outputAmount}`).join(',\n\t')}\n>, overall rate: ${rate}, overall gas cost: ${route.reduce((a,v) => a + v.gasCost, 0)}`);
+                console.log(`new best route: <${route.map(r => `path: ${r.inputToken}->${r.outputToken}`)}>`);
                 bestHopRoute = route;
                 bestHopRouteTotalRate = rate;
             }
@@ -1109,7 +1100,6 @@ function injectRfqLiquidity(
         quotes.push({
             inputToken,
             outputToken,
-            tokenPath: [takerToken, makerToken],
             dexQuotes: [],
             nativeOrders: fullOrders,
         });
@@ -1139,10 +1129,6 @@ function getTerminalTokensFromPaths(paths: Address[][]): Address[] {
     ];
 }
 
-function doesRawHopQuotesHaveLiquidity(hopQuotes: RawHopQuotes): boolean {
-    return hopQuotes.dexQuotes.length > 0 || hopQuotes.nativeOrders.length > 0;
-}
-
 function isSameTokenPath(a: Address[], b: Address[]): boolean {
     return a.length === b.length && a.every((v, idx) => v === b[idx]);
 }
@@ -1150,4 +1136,40 @@ function isSameTokenPath(a: Address[], b: Address[]): boolean {
  function isDirectTokenPath(tokenPath: Address[], makerToken: Address, takerToken: Address): boolean {
      const [pathTakerToken, pathMakerToken] = getTakerMakerTokenFromTokenPath(tokenPath);
      return pathTakerToken === takerToken && pathMakerToken === makerToken;
+ }
+
+ function createRawHopQuotesFromSamples(side: MarketOperation, tokenPaths: Address[][], samples: DexSample[][][]): RawHopQuotes[] {
+     if (tokenPaths.length !== samples.length) {
+         throw new Error(`Mismatched tokenPaths and samples arrays.`);
+     }
+     const filterEmptySamples = (s: DexSample[][]): DexSample[][] => {
+         return s.map(s => s.filter(ss => !ss.output.isZero())).filter(s => s.length);
+     };
+     const hopQuotes = [];
+     for (let i = 0; i < tokenPaths.length; ++i) {
+         const tokenPath = tokenPaths[i];
+         const pathSamples = samples[i];
+         const [inputToken, outputToken] = [
+             side === MarketOperation.Sell ? tokenPath[0] : tokenPath[tokenPath.length - 1],
+             side === MarketOperation.Sell ? tokenPath[tokenPath.length - 1] : tokenPath[0],
+         ];
+         // See if there's already a hopQuote that has compatible input and output tokens
+         // and just merge with that one.
+         // We do this because we sample hidden hops separately but they can technically
+         // be combined together in the same route.
+         for (const existing of hopQuotes) {
+             if (existing.inputToken === inputToken && existing.outputToken === outputToken) {
+                 existing.dexQuotes.push(...filterEmptySamples(pathSamples));
+                 continue;
+             }
+         }
+         hopQuotes.push({
+             tokenPath,
+             inputToken,
+             outputToken,
+             nativeOrders: [],
+             dexQuotes: filterEmptySamples(pathSamples),
+         });
+     }
+     return hopQuotes.filter(h => h.dexQuotes.length > 0 || h.nativeOrders.length > 0);
  }
