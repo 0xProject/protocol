@@ -294,10 +294,11 @@ export class RfqmDbUtils {
     /**
      * [RFQm v1] find unresolved jobs from the rfqm_jobs table
      */
-    public async findUnresolvedJobsAsync(workerAddress: string): Promise<RfqmJobEntity[]> {
+    public async findUnresolvedJobsAsync(workerAddress: string, chainId: number): Promise<RfqmJobEntity[]> {
         return this._connection.getRepository(RfqmJobEntity).find({
-            workerAddress,
+            chainId,
             status: In(UnresolvedRfqmJobStatuses),
+            workerAddress,
         });
     }
 
@@ -421,11 +422,13 @@ export class RfqmDbUtils {
 
     /**
      * [RFQm v2] find unresolved jobs from the rfqm_v2_jobs table
+     * for a given worker address and chain ID.
      */
-    public async findV2UnresolvedJobsAsync(workerAddress: string): Promise<RfqmV2JobEntity[]> {
+    public async findV2UnresolvedJobsAsync(workerAddress: string, chainId: number): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
-            workerAddress,
+            chainId,
             status: In(UnresolvedRfqmJobStatuses),
+            workerAddress,
         });
     }
 }

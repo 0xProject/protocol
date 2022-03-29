@@ -336,14 +336,32 @@ describe(SUITE_NAME, () => {
                 workerAddress,
                 isCompleted: false,
             };
+            const unresolvedJob3 = {
+                orderHash: '0x2345',
+                metaTransactionHash: '0x2345',
+                createdAt,
+                expiry,
+                chainId: chainId + 1,
+                integratorId,
+                makerUri,
+                status: RfqmJobStatus.PendingSubmitted,
+                statusReason: null,
+                calldata,
+                fee: feeToStoredFee(fee),
+                order: v4RfqOrderToStoredOrder(order),
+                workerAddress,
+                isCompleted: false,
+            };
             await dbUtils.writeRfqmJobToDbAsync(unresolvedJob1);
             await dbUtils.writeRfqmJobToDbAsync(unresolvedJob2);
+            await dbUtils.writeRfqmJobToDbAsync(unresolvedJob3);
 
-            const unresolvedJobs = await dbUtils.findUnresolvedJobsAsync(workerAddress);
+            const unresolvedJobs = await dbUtils.findUnresolvedJobsAsync(workerAddress, chainId);
 
             expect(unresolvedJobs.length).to.deep.eq(2);
             expect(unresolvedJobs[0].orderHash).to.deep.eq(orderHash);
             expect(unresolvedJobs[1].orderHash).to.deep.eq('0x1234');
+            // Should not find the third job since it has a different chain ID
         });
     });
     describe('v2 tables', () => {

@@ -644,8 +644,8 @@ export class RfqmService {
 
         // check for outstanding jobs from the worker and resolve them
         const unresolvedJobOrderHashes = await Promise.all([
-            this._dbUtils.findUnresolvedJobsAsync(workerAddress),
-            this._dbUtils.findV2UnresolvedJobsAsync(workerAddress),
+            this._dbUtils.findUnresolvedJobsAsync(workerAddress, this._chainId),
+            this._dbUtils.findV2UnresolvedJobsAsync(workerAddress, this._chainId),
         ]).then((x) => x.flat().map((j) => j.orderHash));
 
         RFQM_JOB_REPAIR.labels(workerAddress).inc(unresolvedJobOrderHashes.length);
