@@ -1612,7 +1612,7 @@ export class RfqmService {
         // handy oracle for the en vogue priorty fee we start with 2 gwei and work up from there.
 
         const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
-            Math.pow(1, GWEI_DECIMALS),
+            Math.pow(10, GWEI_DECIMALS),
         );
 
         let gasFees: GasFees = {
