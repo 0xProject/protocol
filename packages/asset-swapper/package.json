@@ -73,6 +73,7 @@
         "@0x/typescript-typings": "^5.3.1",
         "@0x/utils": "^6.5.3",
         "@0x/web3-wrapper": "^7.6.5",
+        "@balancer-labs/sdk": "^0.1.5",
         "@balancer-labs/sor": "0.3.2",
         "@bancor/sdk": "0.2.9",
         "@ethersproject/abi": "^5.0.1",

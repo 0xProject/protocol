@@ -7,11 +7,22 @@ import {
     BALANCER_TOP_POOLS_FETCHED,
     BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
 } from '../constants';
-import { BalancerSwapInfo } from '../types';
+import { BalancerSwapInfo, BalancerBatchSwapStep } from '../types';
 
 import { CacheValue, SwapInfoCache } from './pair_swaps_cache';
-// TO DO - Some of these functions aren't exposed from SOR yet - update SOR/SDK to expose if we agree this is a useful approach
-import { SwapOptions, PoolFilter, SwapTypes, SubgraphPoolDataService, RouteProposer, formatSwaps } from 'sorV2';
+import { SubgraphPoolDataService } from './sgPoolDataService';
+import {
+    BalancerSDK,
+    BalancerSdkConfig,
+    Network,
+    SwapTypes,
+    RouteProposer,
+    NewPath,
+    parseToPoolsDict,
+    PoolDictionary,
+    formatSequence,
+    getTokenAddressesForSwap,
+} from '@balancer-labs/sdk';
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -24,15 +35,6 @@ export interface BalancerPoolResponse {
 }
 
 export class BalancerV2SwapInfoCache extends SwapInfoCache {
-    // Options used when finding paths.
-    swapOptions: SwapOptions = {
-        gasPrice: parseFixed('50', 9),
-        swapGas: BigNumber.from('35000'),
-        poolTypeFilter: PoolFilter.All,
-        maxPools: 4,
-        timestamp: Math.floor(Date.now() / 1000),
-        forceRefresh: false,
-    };
     routeProposer: RouteProposer;
     poolDataService: SubgraphPoolDataService;
 
@@ -45,44 +47,82 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         cache: { [key: string]: CacheValue } = {},
     ) {
         super(cache);
-        // SOR RouteProposer finds paths between a token pair using direct/multihop/linearPool routes (function will be exposed via SDK/SOR)
-        this.routeProposer = new RouteProposer();
-        // Uses Subgraph to retrieve up to date pool data (function will be exposed via SDK/SOR)
-        this.poolDataService = new SubgraphPoolDataService(this.subgraphUrl);
+        const config: BalancerSdkConfig = {
+            network: Network[ChainId[chainId]],
+            rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
+        };
+        const balancerSdk = new BalancerSDK(config);
+        // The RouteProposer finds paths between a token pair using direct/multihop/linearPool routes
+        this.routeProposer = balancerSdk.sor.routeProposer;
+        // Uses Subgraph to retrieve up to date pool data required for routeProposer
+        this.poolDataService = new SubgraphPoolDataService({
+            chainId: chainId,
+            subgraphUrl: this.subgraphUrl,
+        });
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
     }
 
     /**
-     * Retrieves swap steps and assets for a token pair.
-     * @param pool 
-     * @param takerToken 
-     * @param makerToken 
-     * @returns 
-    */
-    private _getPoolPairSwapInfo(pools: BalancerPoolResponse[], takerToken: string, makerToken: string): BalancerSwapInfo[] {
+     * Given an array of Balancer paths, returns an array of swap information that can be passed to queryBatchSwap.
+     * @param {NewPath[]} paths Array of Balancer paths.
+     * @returns {BalancerSwapInfo[]} Array of formatted swap data consisting of assets and swap steps.
+     */
+    private formatSwaps(paths: NewPath[]): BalancerSwapInfo[] {
+        const formattedSwaps: BalancerSwapInfo[] = [];
+        let assets: string[];
+        let swapSteps: BalancerBatchSwapStep[];
+        paths.forEach((path) => {
+            // Add a swap amount for each swap so we can use formatSequence. (This will be overwritten with actual amount during query)
+            path.swaps.forEach((s) => (s.swapAmount = '0'));
+            const tokenAddresses = getTokenAddressesForSwap(path.swaps);
+            const formatted = formatSequence(
+                SwapTypes.SwapExactIn,
+                path.swaps,
+                tokenAddresses
+            );
+            assets = tokenAddresses;
+            swapSteps = formatted;
+            formattedSwaps.push({
+                assets,
+                swapSteps,
+            });
+        });
+        return formattedSwaps;
+    }
+
+    /**
+     * Uses pool data from provided dictionary to find top swap paths for token pair.
+     * @param {PoolDictionary} pools Dictionary of pool data.
+     * @param {string} takerToken Address of taker token.
+     * @param {string} makerToken Address of maker token.
+     * @returns {BalancerSwapInfo[]} Array of swap data for pair consisting of assets and swap steps.
+     */
+    private _getPoolPairSwapInfo(
+        pools: PoolDictionary,
+        takerToken: string,
+        makerToken: string
+    ): BalancerSwapInfo[] {
         /*
-        Uses Balancer SOR/SDK functions to construct available paths for pair.
+        Uses Balancer SDK to construct available paths for pair.
         Paths can be direct, i.e. both tokens are in same pool or multihop.
         Will also create paths for the new Balancer Linear pools.
+        These are returned in order of available liquidity which is useful for filtering.
         */
-        // TO DO - This is just pseudo code to demonstrate potential option. Will need to expose functions from SOR/SDK.
-        // find available paths
-        const paths = this.routeProposer.getCandidatePaths(
+        const maxPools = 4;
+        const paths = this.routeProposer.getCandidatePathsFromDict(
             takerToken,
             makerToken,
             SwapTypes.SwapExactIn,
             pools,
-            this.swapOptions
+            maxPools
         );
-
-        // TO DO - Further filtering of these paths could be done using the already computed pathLimit which would determine if a path is valid for a specific trade amount.
 
         if (paths.length == 0) return [];
 
-        // Helper function exposed from SDK/SOR that formats and returns swapSteps and assets
-        return formatSwaps(paths);
+        // Convert paths data to swap information suitable for queryBatchSwap. Only use top 3 liquid paths
+        return this.formatSwaps(paths.slice(0, 3));
     }
 
     protected async _loadTopPoolsAsync(): Promise<void> {
@@ -90,7 +130,11 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             [from: string]: { [to: string]: BalancerSwapInfo[] };
         } = {};
 
-        const pools = this.poolDataService.fetchPools();
+        // Retrieve pool data from Subgraph
+        const pools = await this.poolDataService.getPools();
+        // timestamp is used for Element pools
+        const timestamp = Math.floor(Date.now() / 1000);
+        const poolsDict = parseToPoolsDict(pools, timestamp);
 
         for (const pool of pools) {
             const { tokensList } = pool;
@@ -104,9 +148,18 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
                             const expiresAt = Date.now() + this._cacheTimeMs;
                             // Retrieve swap steps and assets for a token pair
                             // This only needs to be called once per pair as all paths will be created from single call
-                            const pairSwapInfo = this._getPoolPairSwapInfo(pools, from, to);
+                            const pairSwapInfo = this._getPoolPairSwapInfo(
+                                poolsDict,
+                                from,
+                                to
+                            );
                             fromToSwapInfo[from][to] = pairSwapInfo;
-                            this._cacheSwapInfoForPair(from, to, fromToSwapInfo[from][to], expiresAt);
+                            this._cacheSwapInfoForPair(
+                                from,
+                                to,
+                                fromToSwapInfo[from][to],
+                                expiresAt
+                            );
                         } catch (err) {
                             this._warningLogger(err, `Failed to load Balancer V2 top pools`);
                             // soldier on
@@ -116,17 +169,29 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             }
         }
     }
+
     /**
-     * Finds swap info (swap steps and assets) for a token pair. 
-     * @param takerToken 
-     * @param makerToken 
-     * @returns 
-     */
-    protected async _fetchSwapInfoForPairAsync(takerToken: string, makerToken: string): Promise<BalancerSwapInfo[]> {
-        try {            
+     * Will retrieve fresh pair and path data from Subgraph and return and array of swap info for pair..
+     * @param {string} takerToken Address of takerToken.
+     * @param {string} makerToken Address of makerToken.
+     * @returns {BalancerSwapInfo[]} Array of swap data for pair consisting of assets and swap steps.
+    */
+    protected async _fetchSwapInfoForPairAsync(
+        takerToken: string,
+        makerToken: string
+    ): Promise<BalancerSwapInfo[]> {
+        try {
             // retrieve up to date pools from SG
-            const pools = this.poolDataService.fetchPools();
-            return this._getPoolPairSwapInfo(pools, takerToken, makerToken);
+            const pools = await this.poolDataService.getPools();
+
+            // timestamp is used for Element pools
+            const timestamp = Math.floor(Date.now() / 1000);
+            const poolDictionary = parseToPoolsDict(pools, timestamp);
+            return this._getPoolPairSwapInfo(
+                poolDictionary,
+                takerToken,
+                makerToken
+            );
         } catch (e) {
             return [];
         }
