@@ -821,7 +821,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(value);
         case EnvVarType.APIKeys:
             assert.isString(name, value);
-            const apiKeys = (value as string).split(',');
+            const apiKeys = (value as string).split(',').filter((key) => !!key.trim());
             apiKeys.forEach((apiKey) => {
                 const isValidUUID = validateUUID(apiKey);
                 if (!isValidUUID) {

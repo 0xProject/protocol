@@ -67,7 +67,7 @@ To get a local development version of `0x-api` running:
 | Environment Variable                   | Default                                                         | Description                                                                                                                                                                            |
 | -------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CHAIN_ID`                             | Required. No default.                                           | The chain id you'd like your API to run on (e.g: `1` -> mainnet, `42` -> Kovan, `3` -> Ropsten, `1337` -> Ganache). Defaults to `42` in the API, but required for `docker-compose up`. |
-| `ETHEREUM_RPC_URL`                     | Required. No default.                                           | The URL used to issue JSON RPC requests. Use `http://ganache:8545` to use the local ganache instance.                                                                                  |
+| `ETHEREUM_RPC_URL`                     | Required. No default.                                           | The URL used to issue JSON RPC requests. Use `http://localhost:8545` to use the local ganache instance.                                                                                  |
 | `LIQUIDITY_POOL_REGISTRY_ADDRESS`      | Optional. No default                                            | The Ethereum address of a Liquidity Provider registry. If unspecified, no Liquidity Provider is used.                                                                                  |
 | `POSTGRES_URI`                         | Required. Default for dev: `postgresql://api:api@localhost/api` | A URI of a running postgres instance. By default, the API will create all necessary tables. A default instance is spun up in `docker-compose up`                                       |
 | `POSTGRES_READ_REPLICA_URIS`           | Optional. No default                                            | A comma separated list of URIs of running postgres read replica instances.                                                                                                             |
@@ -126,7 +126,7 @@ To use ganache, use the `.env` file below:
 
 ```
 CHAIN_ID=1337
-ETHEREUM_RPC_URL=http://ganache:8545
+ETHEREUM_RPC_URL=http://localhost:8545
 ```
 
 Then run
