@@ -1595,6 +1595,7 @@ export class RfqmService {
         job: RfqmJobEntity | RfqmV2JobEntity,
         workerAddress: string,
         calldata: string,
+        now: Date = new Date(),
     ): Promise<RfqmJobStatus.FailedRevertedConfirmed | RfqmJobStatus.FailedExpired | RfqmJobStatus.SucceededConfirmed> {
         const _job = _.cloneDeep(job);
         const { orderHash } = _job;
@@ -1625,6 +1626,18 @@ export class RfqmService {
         let gasEstimate;
 
         if (!previousSubmissions.length) {
+            // There's an edge case here where there are previous submissions but they're all in `PRESUBMIT`.
+            // Those are filtered out if they can't be found on the blockchain so we end up here.
+            // If this occurs we need to check if the transaction is expired.
+            const { expiry } = _job;
+            const nowSeconds = new BigNumber(now.getTime() / ONE_SECOND_MS);
+
+            if (expiry.isLessThan(nowSeconds)) {
+                _job.status = RfqmJobStatus.FailedExpired;
+                await this._dbUtils.updateRfqmJobAsync(_job);
+                return RfqmJobStatus.FailedExpired;
+            }
+
             logger.info({ orderHash, workerAddress }, 'Attempting to submit first transaction');
 
             _job.status = RfqmJobStatus.PendingSubmitted;
@@ -1682,6 +1695,7 @@ export class RfqmService {
                 ? this._blockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(calldata)
                 : new BigNumber(_job.order.order.takerAmount);
 
+        // The "Watch Loop"
         while (true) {
             // We've already submitted the transaction once at this point, so we first need to wait before checking the status.
             await delay(this._transactionWatcherSleepTimeMs);
@@ -1697,8 +1711,7 @@ export class RfqmService {
                     // We've put in at least one transaction but none have been mined yet.
                     // Check to make sure we haven't passed the expiry window.
                     const { expiry } = _job;
-                    const now = new Date();
-                    const nowSeconds = new BigNumber(now.getTime() / ONE_SECOND_MS);
+                    const nowSeconds = new BigNumber(new Date().getTime() / ONE_SECOND_MS);
 
                     const secondsPastExpiration = nowSeconds.minus(expiry);
 
