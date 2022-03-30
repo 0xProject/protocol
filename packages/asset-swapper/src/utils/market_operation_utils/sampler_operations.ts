@@ -30,6 +30,9 @@ import {
     COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
+    GMX_READER_BY_CHAIN_ID,
+    GMX_ROUTER_BY_CHAIN_ID,
+    GMX_VAULT_BY_CHAIN_ID,
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
@@ -71,6 +74,8 @@ import {
     GeistFillData,
     GeistInfo,
     GenericRouterFillData,
+    GMXFillData,
+    GMXQuoteFillData,
     HopInfo,
     KyberDmmFillData,
     KyberFillData,
@@ -1213,6 +1218,20 @@ export class SamplerOperations {
             params: [cToken, takerToken, makerToken, makerFillAmounts],
         });
     }
+    public getGMXSellQuotes(
+        reader: string,
+        vault: string,
+        tokenAddressPath: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GMXFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.GMX,
+            fillData: {reader, vault, tokenAddressPath },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromGMX,
+            params: [reader, vault, tokenAddressPath, takerFillAmounts],
+        });
+    }
 
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
@@ -1602,6 +1621,15 @@ export class SamplerOperations {
                             cToken.tokenAddress,
                             makerToken,
                             takerToken,
+                            takerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.GMX: {
+
+                        return this.getGMXSellQuotes(
+                            GMX_READER_BY_CHAIN_ID[this.chainId],
+                            GMX_VAULT_BY_CHAIN_ID[this.chainId],
+                            [makerToken, takerToken],
                             takerFillAmounts,
                         );
                     }

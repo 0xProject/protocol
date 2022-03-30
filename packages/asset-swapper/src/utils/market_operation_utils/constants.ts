@@ -19,6 +19,7 @@ import {
     FillData,
     FinalUniswapV3FillData,
     GeistFillData,
+    GMXFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
     KyberSamplerOpts,
@@ -184,6 +185,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.GMX,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -331,6 +333,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.GMX,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -2344,6 +2347,26 @@ export const SPOOKYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     },
     NULL_ADDRESS,
 );
+export const GMX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8',
+    },
+    NULL_ADDRESS,
+);
+
+export const GMX_READER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x67b789d48c926006f5132bfce4e976f0a7a63d5d',
+    },
+    NULL_ADDRESS,
+);
+
+export const GMX_VAULT_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x9ab2de34a33fb459b538c43f251eb825645e8595',
+    },
+    NULL_ADDRESS,
+);
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
@@ -2548,6 +2571,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.GMX]: () => 300e3,
 
     //
     // Celo

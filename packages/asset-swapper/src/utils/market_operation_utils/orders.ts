@@ -20,6 +20,7 @@ import {
     FinalUniswapV3FillData,
     GeistFillData,
     GenericRouterFillData,
+    GMXFillData,
     KyberDmmFillData,
     KyberFillData,
     LidoFillData,
@@ -208,6 +209,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'Geist');
         case ERC20BridgeSource.MobiusMoney:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
+        case ERC20BridgeSource.GMX:
+            return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -367,6 +370,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const geistFillData = (order as OptimizedMarketBridgeOrder<GeistFillData>).fillData;
             bridgeData = encoder.encode([geistFillData.lendingPool, geistFillData.gToken]);
             break;
+        case ERC20BridgeSource.GMX:
+            const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
+            bridgeData = encoder.encode([gmxFillData.reader, gmxFillData.vault, gmxFillData.tokenAddressPath]);
+            break;
 
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -454,6 +461,7 @@ const balancerV2Encoder = AbiEncoder.create([
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
+
 export const BRIDGE_ENCODERS: {
     [key in Exclude<
         ERC20BridgeSource,
@@ -505,6 +513,8 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpiritSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
+    // Avalanche
+    [ERC20BridgeSource.GMX] : AbiEncoder.create('(address,address,address[])'),
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC

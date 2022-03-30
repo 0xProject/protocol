@@ -33,6 +33,7 @@ import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
+import "./mixins/MixinGMX.sol";
 import "./mixins/MixinKyber.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinLido.sol";
@@ -60,6 +61,7 @@ contract BridgeAdapter is
     MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
+    MixinGMX,
     MixinKyber,
     MixinKyberDmm,
     MixinLido,
@@ -87,6 +89,7 @@ contract BridgeAdapter is
         MixinCryptoCom()
         MixinDodo()
         MixinDodoV2()
+        MixinGMX()
         MixinKyber(weth)
         MixinLido(weth)
         MixinMakerPSM()
@@ -261,6 +264,12 @@ contract BridgeAdapter is
         } else if (protocolId == BridgeProtocols.COMPOUND) {
             boughtAmount = _tradeCompound(
                 sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.GMX) {
+            boughtAmount = _tradeGMX(
                 buyToken,
                 sellAmount,
                 order.bridgeData

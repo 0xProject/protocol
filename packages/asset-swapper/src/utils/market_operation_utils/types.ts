@@ -94,6 +94,7 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -221,6 +222,16 @@ export interface BalancerV2FillData extends FillData {
 export interface UniswapV2FillData extends FillData {
     tokenAddressPath: string[];
     router: string;
+}
+export interface GMXQuoteFillData extends FillData {
+    tokenAddressPath: string[];
+    reader: string;
+    vault: string;
+}
+export interface GMXFillData extends FillData {
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
 }
 
 export interface ShellFillData extends FillData {

@@ -1,5 +1,13 @@
 [
     {
+        "version": "1.12.0",
+        "changes": [
+            {
+                "note": "Added Support for GMX liquidity source on Avalanche"
+            }
+        ]
+    },
+    {
         "timestamp": 1646225739,
         "version": "1.11.1",
         "changes": [
