@@ -498,6 +498,7 @@ export class SwapService {
             buyTokenToEthRate,
             quoteReport,
             priceComparisonsReport,
+            blockNumber: swapQuote.blockNumber,
         };
 
         if (integrator?.slippageModel === true) {
@@ -726,6 +727,7 @@ export class SwapService {
             sellTokenToEthRate: new BigNumber(1),
             buyTokenToEthRate: new BigNumber(1),
             allowanceTarget: NULL_ADDRESS,
+            blockNumber: undefined,
         };
         return apiSwapQuote;
     }

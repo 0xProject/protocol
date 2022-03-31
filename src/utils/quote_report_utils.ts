@@ -24,6 +24,7 @@ interface QuoteReportLogOptionsBase {
     integratorId?: string;
     taker?: string;
     slippage: number | undefined;
+    blockNumber: number | undefined;
 }
 interface QuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     quoteReport: QuoteReport;
@@ -87,6 +88,7 @@ export const quoteReportUtils = {
             buyTokenAddress: logOpts.buyTokenAddress,
             sellTokenAddress: logOpts.sellTokenAddress,
             integratorId: logOpts.integratorId,
+            blockNumber: logOpts.blockNumber?.toString(),
         };
         if (logOpts.submissionBy === 'metaTxn') {
             logBase = { ...logBase, zeroExTransactionHash: logOpts.zeroExTransactionHash };
@@ -132,15 +134,20 @@ export const quoteReportUtils = {
                 decodedUniqueId: logOpts.submissionBy === 'taker' ? logOpts.decodedUniqueId : undefined,
                 sourcesConsidered: logOpts.quoteReportSources.sourcesConsidered.map(jsonifyFillData),
                 sourcesDelivered: logOpts.quoteReportSources.sourcesDelivered?.map(jsonifyFillData),
+                blockNumber: logOpts.blockNumber,
             };
-            kafkaProducer.send({
-                topic: KAFKA_TOPIC_QUOTE_REPORT,
-                messages: [
-                    {
-                        value: JSON.stringify(extendedQuoteReport),
-                    },
-                ],
-            });
+            kafkaProducer
+                .send({
+                    topic: KAFKA_TOPIC_QUOTE_REPORT,
+                    messages: [
+                        {
+                            value: JSON.stringify(extendedQuoteReport),
+                        },
+                    ],
+                })
+                .catch((err) => {
+                    logger.error(`Error publishing quote report to Kafka: ${err}`);
+                });
         }
     },
 };

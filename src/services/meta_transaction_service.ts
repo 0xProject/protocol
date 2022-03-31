@@ -159,6 +159,8 @@ export class MetaTransactionService {
                 sellAmount: params.sellAmount,
                 integratorId: params.apiKey,
                 slippage: undefined,
+                // TODO: if we ever want to turn metatxs back on we should return blocknumber here
+                blockNumber: undefined,
             });
         }
         return {

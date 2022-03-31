@@ -267,6 +267,7 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     expectedSlippage?: BigNumber;
     expectedBuyAmount?: BigNumber;
     expectedSellAmount?: BigNumber;
+    blockNumber: number | undefined;
 }
 
 export interface SwapQuoteResponsePartialTransaction {

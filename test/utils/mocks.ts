@@ -80,4 +80,5 @@ export const randomSellQuote: SwapQuote = {
     takerTokenDecimals: 18,
     takerAmountPerEth: new BigNumber(0),
     makerAmountPerEth: new BigNumber(0),
+    blockNumber: 1337420,
 };

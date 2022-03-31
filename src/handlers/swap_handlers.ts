@@ -178,6 +178,7 @@ export class SwapHandlers {
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
                         integratorId: params.integrator?.integratorId,
+                        blockNumber: quote.blockNumber,
                         slippage: undefined,
                     },
                     req.log,
@@ -198,6 +199,7 @@ export class SwapHandlers {
                         buyAmount: params.buyAmount,
                         sellAmount: params.sellAmount,
                         integratorId: params.integrator?.integratorId,
+                        blockNumber: quote.blockNumber,
                         slippage: params.slippagePercentage,
                     },
                     true,
@@ -214,6 +216,7 @@ export class SwapHandlers {
             'extendedQuoteReportSources',
             'priceComparisonsReport',
             'decodedUniqueId',
+            'blockNumber',
         );
         if (params.includePriceComparisons && quote.priceComparisonsReport) {
             const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
@@ -290,6 +293,7 @@ export class SwapHandlers {
                     sellAmount: params.sellAmount,
                     integratorId: params.integrator?.integratorId,
                     slippage: params.slippagePercentage,
+                    blockNumber: quote.blockNumber,
                 },
                 false,
                 kafkaProducer,
