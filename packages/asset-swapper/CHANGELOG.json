@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.54.0",
+        "changes": [
+            {
+                "note": "Add Excalibur to Fantom",
+                "pr": 456
+            }
+        ]
+    },
+    {
         "version": "16.53.0",
         "changes": [
             {
