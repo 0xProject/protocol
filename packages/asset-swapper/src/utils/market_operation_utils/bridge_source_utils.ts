@@ -22,6 +22,7 @@ import {
     CURVE_V2_POLYGON_INFOS,
     DFYN_ROUTER_BY_CHAIN_ID,
     ELLIPSIS_BSC_INFOS,
+    EXCALIBUR_ROUTER_BY_CHAIN_ID,
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
     IRONSWAP_POLYGON_INFOS,
@@ -589,7 +590,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
-        | ERC20BridgeSource.SpiritSwap,
+        | ERC20BridgeSource.SpiritSwap
+        | ERC20BridgeSource.Excalibur,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -638,6 +640,8 @@ export function uniswapV2LikeRouterAddress(
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.Excalibur:
+            return EXCALIBUR_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

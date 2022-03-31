@@ -103,6 +103,7 @@ export enum ERC20BridgeSource {
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
     Geist = 'Geist',
+    Excalibur = 'Excalibur',
 }
 export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Balancer
