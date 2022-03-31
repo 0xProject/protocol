@@ -5,6 +5,10 @@
             {
                 "note": "Adds support for STG/USDC pool on Curve Mainnet",
                 "pr": 451
+            },
+            {
+                "note": "Use neon-router in asset-swapper tests",
+                "pr": 453
             }
         ]
     },

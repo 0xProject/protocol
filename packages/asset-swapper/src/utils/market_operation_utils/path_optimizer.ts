@@ -227,8 +227,9 @@ function findRoutesAndCreateOptimalPath(
         const sourcePathId = hexUtils.random();
         const singleSourceSamplesWithOutput = [...singleSourceSamples];
         for (let i = singleSourceSamples.length - 1; i >= 0; i--) {
-            if (singleSourceSamples[i].output.isZero()) {
-                // Remove trailing 0 output samples
+            const currentOutput = singleSourceSamples[i].output;
+            if (currentOutput.isZero() || !currentOutput.isFinite()) {
+                // Remove trailing 0/invalid output samples
                 singleSourceSamplesWithOutput.pop();
             } else {
                 break;
