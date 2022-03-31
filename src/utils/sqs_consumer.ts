@@ -68,6 +68,7 @@ export class SqsConsumer {
             if (SENTRY_DSN) {
                 Sentry.captureException(e);
             }
+            logger.error({ id: this._id, errorMessage: e.message }, `Encountered error when consuming from the queue`);
         } finally {
             if (SENTRY_DSN) {
                 transaction?.finish();
