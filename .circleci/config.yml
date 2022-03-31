@@ -110,6 +110,8 @@ jobs:
         docker:
             - image: node:16
         working_directory: ~/repo
+        environment:
+            RUST_ROUTER: "true"
         steps:
             - restore_cache:
                   keys:
