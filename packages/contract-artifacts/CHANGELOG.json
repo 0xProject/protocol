@@ -6,7 +6,8 @@
                 "note": "Regenerate all artifacts",
                 "pr": 449
             }
-        ]
+        ],
+        "timestamp": 1648739346
     },
     {
         "version": "3.17.0",

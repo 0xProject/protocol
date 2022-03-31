@@ -5,6 +5,16 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.53.0 - _March 31, 2022_
+
+    * Adds support for STG/USDC pool on Curve Mainnet (#451)
+    * Use neon-router in asset-swapper tests (#453)
+    * Add sampler blocknumber to quote report data (#448)
+
+## v16.52.0 - _Invalid date_
+
+    * Adds support for mobius money on celo (#423)
+
 ## v16.51.0 - _March 10, 2022_
 
     * Added `Curve` `YFI-ETH` pool (#444)
