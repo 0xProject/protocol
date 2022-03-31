@@ -13,7 +13,8 @@
         // These settings are required for TypeScript project references
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "useUnknownInCatchVariables": false
     },
     "exclude": [],
     // The root of the project is just a list of references and does not contain
