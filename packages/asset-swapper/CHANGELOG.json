@@ -9,6 +9,10 @@
             {
                 "note": "Use neon-router in asset-swapper tests",
                 "pr": 453
+            },
+            {
+                "note": "Add sampler blocknumber to quote report data",
+                "pr": 448
             }
         ]
     },
