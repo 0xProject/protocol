@@ -748,6 +748,7 @@ describe('MarketOperationUtils tests', () => {
                                 ],
                             },
                             isRfqSupported: true,
+                            blockNumber: 1337420,
                         };
                     });
                 const result = await mockedMarketOpUtils.object.getOptimizerResultAsync(

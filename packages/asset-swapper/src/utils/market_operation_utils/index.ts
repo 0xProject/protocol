@@ -229,6 +229,7 @@ export class MarketOperationUtils {
             gasPrice: opts.gasPrice,
             quotes: createRawHopQuotesFromSamples(MarketOperation.Sell, sampleLegs, samples),
             isRfqSupported,
+            blockNumber: blockNumber.toNumber(),
         };
     }
 
@@ -425,6 +426,7 @@ export class MarketOperationUtils {
         }
         const terminalTokens = getTerminalTokensFromPaths(sampleLegs);
 
+<<<<<<< HEAD
         const [
             tokenInfos,
             tokenPricesPerEth,
@@ -432,11 +434,26 @@ export class MarketOperationUtils {
         ] = await Promise.all([
             this._sampler.getTokenInfosAsync(
                 [makerToken, takerToken],
+=======
+        // Call the sampler contract.
+        const samplerPromise = this._sampler.executeAsync(
+            this._sampler.getBlockNumber(),
+            this._sampler.getTokenDecimals([makerToken, takerToken]),
+            // Get native order fillable amounts.
+            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            // Get ETH -> makerToken token price.
+            this._sampler.getMedianSellRate(
+                feeSourceFilters.sources,
+                makerToken,
+                this._nativeFeeToken,
+                this._nativeFeeTokenAmount,
+>>>>>>> c9c7ac855 (feat: add block number to quote report data [TKR-314] (#448))
             ),
             this._sampler.getPricesAsync(
                 terminalTokens.map(t => [this._nativeFeeToken, t]),
                 feeSourceFilters.sources,
             ),
+<<<<<<< HEAD
             Promise.all(sampleLegs.map((hopPath, i) =>
                 this._sampler.getBuyLiquidityAsync(
                     hopPath,
@@ -447,6 +464,31 @@ export class MarketOperationUtils {
                 )
             )),
         ]);
+=======
+            this._sampler.isAddressContract(txOrigin),
+        );
+
+        // Refresh the cached pools asynchronously if required
+        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+
+        const [
+            [
+                blockNumber,
+                tokenDecimals,
+                orderFillableMakerAmounts,
+                ethToMakerAssetRate,
+                ethToTakerAssetRate,
+                dexQuotes,
+                rawTwoHopQuotes,
+                isTxOriginContract,
+            ],
+        ] = await Promise.all([samplerPromise]);
+
+        // Filter out any invalid two hop quotes where we couldn't find a route
+        const twoHopQuotes = rawTwoHopQuotes.filter(
+            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+        );
+>>>>>>> c9c7ac855 (feat: add block number to quote report data [TKR-314] (#448))
 
         const [{ decimals: makerTokenDecimals }, { decimals: takerTokenDecimals }] = tokenInfos;
 
@@ -467,6 +509,7 @@ export class MarketOperationUtils {
             gasPrice: opts.gasPrice,
             quotes: createRawHopQuotesFromSamples(MarketOperation.Buy, sampleLegs, samples),
             isRfqSupported,
+            blockNumber: blockNumber.toNumber(),
         };
     }
 
@@ -486,7 +529,107 @@ export class MarketOperationUtils {
         makerAmounts: BigNumber[],
         opts: GetMarketOrdersOpts,
     ): Promise<Array<OptimizerResult | undefined>> {
+<<<<<<< HEAD
         throw new Error(`No implementado`);
+=======
+        if (batchNativeOrders.length === 0) {
+            throw new Error(AggregationError.EmptyOrders);
+        }
+        const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
+
+        const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
+        const quoteSourceFilters = this._buySources.merge(requestFilters);
+
+        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
+
+        const ops = [
+            this._sampler.getBlockNumber(),
+            ...batchNativeOrders.map(orders =>
+                this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
+            ),
+            ...batchNativeOrders.map(orders =>
+                this._sampler.getMedianSellRate(
+                    feeSourceFilters.sources,
+                    orders[0].order.takerToken,
+                    this._nativeFeeToken,
+                    this._nativeFeeTokenAmount,
+                ),
+            ),
+            ...batchNativeOrders.map((orders, i) =>
+                this._sampler.getBuyQuotes(
+                    quoteSourceFilters.sources,
+                    orders[0].order.makerToken,
+                    orders[0].order.takerToken,
+                    [makerAmounts[i]],
+                ),
+            ),
+            ...batchNativeOrders.map(orders =>
+                this._sampler.getTokenDecimals([orders[0].order.makerToken, orders[0].order.takerToken]),
+            ),
+        ];
+
+        const [blockNumberRaw, ...executeResults] = await this._sampler.executeBatchAsync(ops);
+        const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
+        const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
+        const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
+        const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
+        const inputAmountPerEth = ZERO_AMOUNT;
+
+        const blockNumber: number = (blockNumberRaw as BigNumber).toNumber();
+
+        return Promise.all(
+            batchNativeOrders.map(async (nativeOrders, i) => {
+                if (nativeOrders.length === 0) {
+                    throw new Error(AggregationError.EmptyOrders);
+                }
+                const { makerToken, takerToken } = nativeOrders[0].order;
+                const orderFillableMakerAmounts = batchOrderFillableMakerAmounts[i];
+                const outputAmountPerEth = batchEthToTakerAssetRate[i];
+                const dexQuotes = batchDexQuotes[i];
+                const makerAmount = makerAmounts[i];
+                try {
+                    const optimizerResult = await this._generateOptimizedOrdersAsync(
+                        {
+                            side: MarketOperation.Buy,
+                            inputToken: makerToken,
+                            outputToken: takerToken,
+                            inputAmount: makerAmount,
+                            outputAmountPerEth,
+                            inputAmountPerEth,
+                            quoteSourceFilters,
+                            makerTokenDecimals: batchTokenDecimals[i][0],
+                            takerTokenDecimals: batchTokenDecimals[i][1],
+                            quotes: {
+                                nativeOrders: nativeOrders.map((o, k) => ({
+                                    ...o,
+                                    ...getNativeAdjustedFillableAmountsFromMakerAmount(o, orderFillableMakerAmounts[k]),
+                                })),
+                                dexQuotes,
+                                rfqtIndicativeQuotes: [],
+                                twoHopQuotes: [],
+                            },
+                            isRfqSupported: false,
+                            blockNumber,
+                        },
+                        {
+                            bridgeSlippage: _opts.bridgeSlippage,
+                            maxFallbackSlippage: _opts.maxFallbackSlippage,
+                            excludedSources: _opts.excludedSources,
+                            feeSchedule: _opts.feeSchedule,
+                            allowFallback: _opts.allowFallback,
+                            gasPrice: _opts.gasPrice,
+                            neonRouterNumSamples: _opts.neonRouterNumSamples,
+                        },
+                    );
+                    return optimizerResult;
+                } catch (e) {
+                    // It's possible for one of the pairs to have no path
+                    // rather than throw NO_OPTIMAL_PATH we return undefined
+                    return undefined;
+                }
+            }),
+        );
+>>>>>>> c9c7ac855 (feat: add block number to quote report data [TKR-314] (#448))
     }
 
     public async _generateOptimizedOrdersAsync(

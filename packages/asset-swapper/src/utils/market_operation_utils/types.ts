@@ -514,7 +514,11 @@ export interface MarketSideLiquidity {
     takerTokenDecimals: number;
     quotes: RawHopQuotes[];
     isRfqSupported: boolean;
+<<<<<<< HEAD
     gasPrice: BigNumber;
+=======
+    blockNumber: number;
+>>>>>>> c9c7ac855 (feat: add block number to quote report data [TKR-314] (#448))
 }
 
 export interface RawHopQuotes {
