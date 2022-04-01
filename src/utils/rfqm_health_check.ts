@@ -22,12 +22,13 @@ const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shi
 
 const RFQM_HEALTH_CHECK_ISSUE_GAUGE = new Gauge({
     name: 'rfqm_health_check_issue_gauge',
-    labelNames: ['label' /* :HealthCheckLabel */],
+    labelNames: ['label' /* :HealthCheckLabel */, 'chain_id'],
     help: 'Gauge indicating the current status for each label. Value corresponds to the `statusSeverity`',
 });
 
 const RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE = new Gauge({
     name: 'rfqm_total_system_trade_capacity',
+    labelNames: ['chain_id'],
     help: 'Total amount of ETH in the worker pool divided by the current expected gas of a trade',
 });
 
@@ -86,6 +87,7 @@ export async function computeHealthCheckAsync(
     offerings: RfqMakerAssetOfferings,
     producer: Producer,
     heartbeats: RfqmWorkerHeartbeatEntity[],
+    chainId: number,
     gasPrice?: BigNumber,
 ): Promise<HealthCheckResult> {
     const pairs = transformPairs(offerings);
@@ -111,7 +113,7 @@ export async function computeHealthCheckAsync(
             (severityByLabel[issue.label] = Math.max(severityByLabel[issue.label], statusSeverity(issue.status))),
     );
     Object.entries(severityByLabel).forEach(([label, severity]) => {
-        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(label).set(severity);
+        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(label, chainId.toString()).set(severity);
     });
 
     if (gasPrice) {
@@ -119,7 +121,7 @@ export async function computeHealthCheckAsync(
         // 50% of the amount for one trade and the gauge would show 1 but the actual capacity would be 0.
         const totalWorkerBalance = heartbeats.reduce((total, { balance }) => total.plus(balance), new BigNumber(0));
         const totalSystemTradeCapacity = totalWorkerBalance.div(gasPrice.times(RFQM_TX_GAS_ESTIMATE));
-        RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE.set(totalSystemTradeCapacity.toNumber());
+        RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE.labels(chainId.toString()).set(totalSystemTradeCapacity.toNumber());
     }
 
     return {

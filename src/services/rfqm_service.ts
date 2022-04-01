@@ -808,6 +808,7 @@ export class RfqmService {
             this._rfqMakerManager.getRfqmMakerOfferings(),
             this._sqsProducer,
             heartbeats,
+            this._chainId,
             gasPrice,
         );
     }
