@@ -102,25 +102,25 @@ const RFQM_DEFAULT_OPTS = {
 
 const RFQM_WORKER_BALANCE = new Gauge({
     name: 'rfqm_worker_balance',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
     help: 'Worker balance for RFQM',
 });
 
 const RFQM_WORKER_READY = new Counter({
     name: 'rfqm_worker_ready',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
     help: 'A worker passed the readiness check, and is ready to pick up work',
 });
 
 const RFQM_WORKER_NOT_READY = new Counter({
     name: 'rfqm_worker_not_ready',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
     help: 'A worker did not pass the readiness check, and was not able to pick up work',
 });
 
 const RFQM_JOB_REPAIR = new Gauge({
     name: 'rfqm_job_to_repair',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
     help: 'A submitted job failed and started repair mode',
 });
 
@@ -142,7 +142,7 @@ const RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS = new Counter({
 });
 const RFQM_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
     name: 'rfqm_submit_balance_check_failed',
-    labelNames: ['makerAddress'],
+    labelNames: ['makerAddress', 'chain_id'],
     help: 'A trade was submitted but our on-chain balance check failed',
 });
 const RFQM_JOB_FAILED_ETHCALL_VALIDATION = new Counter({
@@ -173,13 +173,13 @@ const RFQM_MINING_LATENCY = new Summary({
 const RFQM_JOB_COMPLETED = new Counter({
     name: 'rfqm_job_completed',
     help: 'An Rfqm Job completed with no errors',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
 });
 
 const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     name: 'rfqm_job_completed_with_error',
     help: 'An Rfqm Job completed with an error',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
 });
 
 const PRICE_DECIMAL_PLACES = 6;
@@ -634,13 +634,13 @@ export class RfqmService {
                 { errorMessage: error.message },
                 'Current gas price is unable to be fetched, marking worker as not ready.',
             );
-            RFQM_WORKER_NOT_READY.labels(workerAddress).inc();
+            RFQM_WORKER_NOT_READY.labels(workerAddress, this._chainId.toString()).inc();
             return false;
         }
 
         const balance = await this._blockchainUtils.getAccountBalanceAsync(workerAddress);
         const balanceUnitAmount = Web3Wrapper.toUnitAmount(balance, ETH_DECIMALS).decimalPlaces(PRICE_DECIMAL_PLACES);
-        RFQM_WORKER_BALANCE.labels(workerAddress).set(balanceUnitAmount.toNumber());
+        RFQM_WORKER_BALANCE.labels(workerAddress, this._chainId.toString()).set(balanceUnitAmount.toNumber());
 
         // check for outstanding jobs from the worker and resolve them
         const unresolvedJobOrderHashes = await Promise.all([
@@ -648,7 +648,7 @@ export class RfqmService {
             this._dbUtils.findV2UnresolvedJobsAsync(workerAddress, this._chainId),
         ]).then((x) => x.flat().map((j) => j.orderHash));
 
-        RFQM_JOB_REPAIR.labels(workerAddress).inc(unresolvedJobOrderHashes.length);
+        RFQM_JOB_REPAIR.labels(workerAddress, this._chainId.toString()).inc(unresolvedJobOrderHashes.length);
         for (const orderHash of unresolvedJobOrderHashes) {
             logger.info({ workerAddress, orderHash }, `Unresolved job found, attempting to reprocess`);
             await this.processJobAsync(orderHash, workerAddress);
@@ -681,7 +681,7 @@ export class RfqmService {
             );
         }
 
-        RFQM_WORKER_READY.labels(workerAddress).inc();
+        RFQM_WORKER_READY.labels(workerAddress, this._chainId.toString()).inc();
         return true;
     }
 
@@ -999,7 +999,7 @@ export class RfqmService {
             [makerToken, takerToken],
         );
         if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
-            RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress).inc();
+            RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
             logger.warn(
                 {
                     makerBalance,
@@ -1135,10 +1135,10 @@ export class RfqmService {
                 throw new Error('Job expired');
             }
             logger.info({ orderHash, workerAddress }, 'Job completed without errors');
-            RFQM_JOB_COMPLETED.labels(workerAddress).inc();
+            RFQM_JOB_COMPLETED.labels(workerAddress, this._chainId.toString()).inc();
         } catch (error) {
             logger.error({ workerAddress, orderHash, errorMessage: error.message }, 'Job completed with error');
-            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress).inc();
+            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress, this._chainId.toString()).inc();
         } finally {
             timerStopFunction();
         }
