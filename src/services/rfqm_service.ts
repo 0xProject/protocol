@@ -126,18 +126,22 @@ const RFQM_JOB_REPAIR = new Gauge({
 
 const RFQM_SIGNED_QUOTE_NOT_FOUND = new Counter({
     name: 'rfqm_signed_quote_not_found',
+    labelNames: ['chain_id'],
     help: 'A submitted quote did not match any stored quotes',
 });
 const RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION = new Counter({
     name: 'rfqm_signed_quote_failed_ethcall_validation',
+    labelNames: ['chain_id'],
     help: 'A signed quote failed eth_call validation before being queued',
 });
 const RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON = new Counter({
     name: 'rfqm_signed_quote_expiry_too_soon',
+    labelNames: ['chain_id'],
     help: 'A signed quote was not queued because it would expire too soon',
 });
 const RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS = new Counter({
     name: 'rfqm_signed_quote_taker_and_takertoken_trade_exists',
+    labelNames: ['chain_id'],
     help: 'A trade was submitted when the system already had a pending trade for the same taker and takertoken',
 });
 const RFQM_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
@@ -147,26 +151,29 @@ const RFQM_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
 });
 const RFQM_JOB_FAILED_ETHCALL_VALIDATION = new Counter({
     name: 'rfqm_job_failed_ethcall_validation',
+    labelNames: ['chain_id'],
     help: 'A job failed eth_call validation before being queued',
 });
 const RFQM_JOB_FAILED_MM_SIGNATURE_FAILED = new Counter({
     name: 'rfqm_job_failed_mm_signature_failed',
     help: 'A job failed because the market maker signature process failed. NOT triggered when the MM declines to sign.',
-    labelNames: ['makerUri'],
+    labelNames: ['makerUri', 'chain_id'],
 });
 const RFQM_JOB_MM_REJECTED_LAST_LOOK = new Counter({
     name: 'rfqm_job_mm_rejected_last_look',
     help: 'A job rejected by market maker on last look',
-    labelNames: ['makerUri'],
+    labelNames: ['makerUri', 'chain_id'],
 });
 
 const RFQM_PROCESS_JOB_LATENCY = new Summary({
     name: 'rfqm_process_job_latency',
+    labelNames: ['chain_id'],
     help: 'Latency for the worker processing the job',
 });
 
 const RFQM_MINING_LATENCY = new Summary({
     name: 'rfqm_mining_latency',
+    labelNames: ['chain_id'],
     help: 'The time in seconds between when the first transaction for a job is sent and when a transaction for the job is mined',
 });
 
@@ -824,7 +831,7 @@ export class RfqmService {
         // check that the firm quote is recognized as a previously returned quote
         const quote = await this._dbUtils.findQuoteByMetaTransactionHashAsync(metaTransactionHash);
         if (quote === undefined) {
-            RFQM_SIGNED_QUOTE_NOT_FOUND.inc();
+            RFQM_SIGNED_QUOTE_NOT_FOUND.labels(this._chainId.toString()).inc();
             throw new NotFoundError('quote not found');
         }
 
@@ -835,7 +842,7 @@ export class RfqmService {
                 .times(ONE_SECOND_MS)
                 .isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)
         ) {
-            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             throw new ValidationError([
                 {
                     field: 'expirationTimeSeconds',
@@ -862,7 +869,7 @@ export class RfqmService {
                     job.metaTransactionHash !== quote.metaTransactionHash,
             )
         ) {
-            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.inc();
+            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.labels(this._chainId.toString()).inc();
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
         // validate that the firm quote is fillable using the origin registry address (this address is assumed to hold ETH)
@@ -874,7 +881,7 @@ export class RfqmService {
             );
         } catch (error) {
             logger.error({ errorMessage: error.message }, 'RFQM quote failed eth_call validation.');
-            RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.inc();
+            RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.labels(this._chainId.toString()).inc();
             throw new ValidationError([
                 {
                     field: 'n/a',
@@ -950,7 +957,7 @@ export class RfqmService {
         // validate that the expiration window is long enough to fill quote
         const currentTimeMs = new Date().getTime();
         if (!params.order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)) {
-            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             throw new ValidationError([
                 {
                     field: 'expiryAndNonce',
@@ -977,7 +984,7 @@ export class RfqmService {
                     job.orderHash !== quote.orderHash,
             )
         ) {
-            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.inc();
+            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.labels(this._chainId.toString()).inc();
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
 
@@ -1078,7 +1085,7 @@ export class RfqmService {
      */
     public async processJobAsync(orderHash: string, workerAddress: string): Promise<void> {
         logger.info({ orderHash, workerAddress }, 'Start process job');
-        const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.startTimer();
+        const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.labels(this._chainId.toString()).startTimer();
 
         try {
             // Step 1: Find the job via the order hash
@@ -1183,7 +1190,7 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(_job);
 
             if (errorStatus === RfqmJobStatus.FailedExpired) {
-                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             }
             logger.error({ orderHash, errorStatus }, 'Job failed validation');
             throw new Error('Job failed validation');
@@ -1214,7 +1221,7 @@ export class RfqmService {
             try {
                 await this._blockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(calldata, workerAddress);
             } catch (error) {
-                RFQM_JOB_FAILED_ETHCALL_VALIDATION.inc();
+                RFQM_JOB_FAILED_ETHCALL_VALIDATION.labels(this._chainId.toString()).inc();
                 logger.error({ errorMessage: error.message, orderHash }, 'eth_call validation failed');
                 _job.isCompleted = true;
                 _job.status = RfqmJobStatus.FailedEthCallFailed;
@@ -1237,7 +1244,7 @@ export class RfqmService {
                 _job.lastLookResult = isLastLookApproved;
                 await this._dbUtils.updateRfqmJobAsync(_job);
             } else {
-                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri).inc();
+                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri, this._chainId.toString()).inc();
                 _job.calldata = ''; // clear out calldata so transaction can never be submitted, even by accident
                 _job.isCompleted = true;
                 _job.lastLookResult = isLastLookApproved;
@@ -1301,7 +1308,7 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(_job);
 
             if (errorStatus === RfqmJobStatus.FailedExpired) {
-                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.inc();
+                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             }
             logger.error({ orderHash, errorStatus }, 'Job failed validation');
             throw new Error('Job failed validation');
@@ -1374,7 +1381,7 @@ export class RfqmService {
                 );
             } catch (error) {
                 // The sign process has failed after retries
-                RFQM_JOB_FAILED_MM_SIGNATURE_FAILED.labels(makerUri).inc();
+                RFQM_JOB_FAILED_MM_SIGNATURE_FAILED.labels(makerUri, this._chainId.toString()).inc();
                 logger.error(
                     { orderHash, makerUri, error: error.message },
                     'RFQM v2 job failed due to market maker sign failure',
@@ -1388,7 +1395,7 @@ export class RfqmService {
 
             if (!makerSignature) {
                 // Market Maker has declined to sign the transaction
-                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri).inc();
+                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri, this._chainId.toString()).inc();
                 _job.lastLookResult = false;
                 _job.status = RfqmJobStatus.FailedLastLookDeclined;
                 await this._dbUtils.updateRfqmJobAsync(_job);
@@ -2059,7 +2066,9 @@ export class RfqmService {
                 minedReceipt.blockHash,
             );
             const firstSubmissionTimestampS = submissionContext.firstSubmissionTimestampS;
-            RFQM_MINING_LATENCY.observe(minedBlockTimestampS - firstSubmissionTimestampS);
+            RFQM_MINING_LATENCY.labels(this._chainId.toString()).observe(
+                minedBlockTimestampS - firstSubmissionTimestampS,
+            );
         } catch ({ message }) {
             logger.warn({ orderHash: job.orderHash, errorMessage: message }, 'Failed to meter the mining latency');
         }
