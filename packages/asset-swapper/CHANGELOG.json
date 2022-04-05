@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.53.1",
+        "changes": [
+            {
+                "note": "Adds support for MIM/MAG pool on Avalanche, and support for ANY/QUICK on Polygon",
+                "pr": 459
+            }
+        ]
+    },
+    {
         "version": "16.53.0",
         "changes": [
             {
