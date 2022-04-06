@@ -6,7 +6,8 @@
                 "note": "Add true VIP support for eligible RFQt swaps",
                 "pr": 458
             }
-        ]
+        ],
+        "timestamp": 1649215576
     },
     {
         "version": "16.53.0",

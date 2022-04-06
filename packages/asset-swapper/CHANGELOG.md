@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.54.0 - _April 6, 2022_
+
+    * Add true VIP support for eligible RFQt swaps (#458)
+
 ## v16.53.0 - _March 31, 2022_
 
     * Adds support for STG/USDC pool on Curve Mainnet (#451)
