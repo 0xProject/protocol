@@ -28,6 +28,7 @@ import {
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
+    RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
@@ -376,7 +377,7 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Get the gas price
-        const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
 
         // Fetch all indicative quotes
         const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
@@ -481,7 +482,7 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Fetch the current gas price
-        const gasPrice: BigNumber = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
 
         // Fetch all firm quotes and fee
         const {
@@ -635,7 +636,7 @@ export class RfqmService {
     public async workerBeforeLogicAsync(workerAddress: string): Promise<boolean> {
         let gasPrice;
         try {
-            gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+            gasPrice = await this._getGasPriceEstimationAsync();
         } catch (error) {
             logger.error(
                 { errorMessage: error.message },
@@ -805,7 +806,7 @@ export class RfqmService {
         const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
         let gasPrice: BigNumber | undefined;
         try {
-            gasPrice = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+            gasPrice = await this._getGasPriceEstimationAsync();
         } catch (error) {
             logger.warn({ errorMessage: error.message }, 'Failed to get gas price for health check');
         }
@@ -1615,7 +1616,7 @@ export class RfqmService {
 
         const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
-        const gasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPriceEstimate = await this._getGasPriceEstimationAsync();
 
         // For the first submission, we use the "fast" gas estimate to approximate the base fee.
         // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
@@ -1739,7 +1740,7 @@ export class RfqmService {
                     }
 
                     // "Fast" gas price estimation; used to approximate the base fee
-                    const newGasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+                    const newGasPriceEstimate = await this._getGasPriceEstimationAsync();
 
                     if (submissionContext.transactionType === 0) {
                         throw new Error('Non-EIP-1559 transactions are not implemented');
@@ -1833,6 +1834,17 @@ export class RfqmService {
                     })(jobStatus);
             }
         }
+    }
+
+    /**
+     * Internal method to retrieve estimated gas price from the gas station.
+     * The price is buffered by a small amount to account for fluctuations in gas oracle estimation.
+     *
+     * @returns estimated gas price
+     */
+    private async _getGasPriceEstimationAsync(): Promise<BigNumber> {
+        const gasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        return gasPriceEstimate.multipliedBy(RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER);
     }
 
     /**

@@ -27,7 +27,14 @@ import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, RFQM_PATH, RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../src/constants';
+import {
+    ETH_DECIMALS,
+    RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER,
+    RFQM_PATH,
+    RFQM_TX_GAS_ESTIMATE,
+    RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
+    ZERO,
+} from '../src/constants';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
 import { StoredOrder } from '../src/entities/RfqmJobEntity';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
@@ -77,7 +84,7 @@ const BASE_RFQM_REQUEST_PARAMS = {
     comparisonPrice: undefined,
     isLastLook: 'true',
     feeToken: contractAddresses.etherToken,
-    feeAmount: GAS_PRICE.times(RFQM_TX_GAS_ESTIMATE).toString(),
+    feeAmount: GAS_PRICE.times(RFQM_TX_GAS_ESTIMATE).times(RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER).toString(),
     feeType: 'fixed',
 };
 const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
@@ -87,7 +94,7 @@ const BASE_RFQM_OTC_ORDER_REQUEST_PARAMS = {
     protocolVersion: '4',
     isLastLook: 'true',
     feeToken: contractAddresses.etherToken,
-    feeAmount: GAS_PRICE.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE).toString(),
+    feeAmount: GAS_PRICE.times(RFQM_TX_OTC_ORDER_GAS_ESTIMATE).times(RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER).toString(),
     feeType: 'fixed',
 };
 const MOCK_META_TX_CALL_DATA = '0x123';
