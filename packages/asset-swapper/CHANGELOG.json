@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.54.0",
+        "changes": [
+            {
+                "note": "Add true VIP support for eligible RFQt swaps",
+                "pr": 458
+            }
+        ]
+    },
+    {
         "version": "16.53.0",
         "changes": [
             {

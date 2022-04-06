@@ -44,6 +44,16 @@ import {
 } from '../utils/market_operation_utils/constants';
 import {
     ERC20BridgeSource,
+<<<<<<< HEAD
+=======
+    FinalUniswapV3FillData,
+    LiquidityProviderFillData,
+    MooniswapFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
+    UniswapV2FillData,
+>>>>>>> 955ad4971 (add real VIP support for eligible RFQT swaps (#458))
 } from '../utils/market_operation_utils/types';
 
 import {
@@ -345,6 +355,48 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this.contractAddresses.exchangeProxy,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        // RFQT VIP
+        if (
+            [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
+            !isToETH &&
+            !isFromETH &&
+            quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Rfq)
+        ) {
+            const rfqOrdersData = quote.orders.map(o => o.fillData as NativeRfqOrderFillData);
+            const fillAmountPerOrder = (() => {
+                // Don't think order taker amounts are clipped to actual sell amount
+                // (the last one might be too large) so figure them out manually.
+                let remaining = sellAmount;
+                const fillAmounts = [];
+                for (const o of quote.orders) {
+                    const fillAmount = BigNumber.min(o.takerAmount, remaining);
+                    fillAmounts.push(fillAmount);
+                    remaining = remaining.minus(fillAmount);
+                }
+                return fillAmounts;
+            })();
+            const callData =
+                quote.orders.length === 1
+                    ? this._exchangeProxy
+                          .fillRfqOrder(rfqOrdersData[0].order, rfqOrdersData[0].signature, fillAmountPerOrder[0])
+                          .getABIEncodedTransactionData()
+                    : this._exchangeProxy
+                          .batchFillRfqOrders(
+                              rfqOrdersData.map(d => d.order),
+                              rfqOrdersData.map(d => d.signature),
+                              fillAmountPerOrder,
+                              true,
+                          )
+                          .getABIEncodedTransactionData();
+            return {
+                calldataHexString: callData,
+                ethAmount: ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
