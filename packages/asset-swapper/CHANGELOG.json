@@ -1,5 +1,15 @@
 [
     {
+        "version": "16.55.0",
+        "changes": [
+            {
+                "note": "Add RadioShack",
+                "pr": 460
+            }
+        ],
+        "timestamp": 1649283404
+    },
+    {
         "version": "16.54.0",
         "changes": [
             {
