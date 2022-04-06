@@ -1504,6 +1504,8 @@ export class RfqmService {
             logger.info({ signerAddress, makerAddress, orderHash, makerUri }, 'Possible use of smart contract wallet');
             const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
             if (!isValidSigner) {
+                _job.status = RfqmJobStatus.FailedSignFailed;
+                await this._dbUtils.updateRfqmJobAsync(_job);
                 throw new Error('Invalid order signer address');
             }
         }
