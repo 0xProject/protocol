@@ -587,6 +587,9 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
         // PLP VIP
         return TX_BASE_GAS.plus(10e3);
+    } else if (SOURCE_FLAGS.RfqOrder === sourceFlags) {
+        // RFQ VIP
+        return TX_BASE_GAS.plus(5e3);
     } else if ((MULTIPLEX_BATCH_FILL_SOURCE_FLAGS | sourceFlags) === MULTIPLEX_BATCH_FILL_SOURCE_FLAGS) {
         // Multiplex batch fill
         return TX_BASE_GAS.plus(15e3);
