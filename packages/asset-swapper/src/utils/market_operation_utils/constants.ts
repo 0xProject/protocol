@@ -108,6 +108,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.RadioShack,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -149,6 +150,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -173,6 +175,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -184,6 +187,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -1980,6 +1984,16 @@ export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const RADIOSHACK_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+  {
+      [ChainId.Mainnet]: '0x3e445e3280c5747a188db8d0ab7762838a50e4ff',
+      [ChainId.BSC]: '0x5bc3ed94919af03279c8613cb807ab667ce5de99',
+      [ChainId.Polygon]: '0xaf877420786516fc6692372c209e0056169eebaf',
+      [ChainId.Avalanche]: '0x763d8d37669bb18064b410e17e3bb46bcf34f487',
+  },
+  NULL_ADDRESS,
+);
+
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
@@ -2432,6 +2446,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Linkswap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.RadioShack]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: () => 100e3,
     [ERC20BridgeSource.Cream]: () => 120e3,

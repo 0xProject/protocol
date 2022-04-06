@@ -40,6 +40,7 @@ import {
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     PANGOLIN_ROUTER_BY_CHAIN_ID,
     POLYDEX_ROUTER_BY_CHAIN_ID,
+    RADIOSHACK_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
@@ -589,7 +590,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
-        | ERC20BridgeSource.SpiritSwap,
+        | ERC20BridgeSource.SpiritSwap
+        | ERC20BridgeSource.RadioShack,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -638,6 +640,8 @@ export function uniswapV2LikeRouterAddress(
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.RadioShack:
+            return RADIOSHACK_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

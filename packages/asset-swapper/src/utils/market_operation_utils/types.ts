@@ -70,6 +70,7 @@ export enum ERC20BridgeSource {
     AaveV2 = 'Aave_V2',
     Compound = 'Compound',
     Synapse = 'Synapse',
+    RadioShack = 'RadioShack',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
