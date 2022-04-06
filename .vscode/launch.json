@@ -52,6 +52,29 @@
             "envFile": "${workspaceFolder}/test/test_env",
             "type": "node",
             "request": "launch",
+            "name": "Gas Oracle Test",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "--require",
+                "source-map-support/register",
+                "--require",
+                "make-promises-safe",
+                "${workspaceFolder}/lib/test/utils/GasOracleTest.js",
+                "--timeout",
+                "200000",
+                "--exit",
+                "--bail"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "openOnSessionStart",
+            "disableOptimisticBPs": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+        },
+        {
+            "envFile": "${workspaceFolder}/test/test_env",
+            "type": "node",
+            "request": "launch",
             "name": "RFQM tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": [
@@ -234,28 +257,5 @@
             "cwd": "${workspaceFolder}",
             "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
         },
-        {
-            "envFile": "${workspaceFolder}/test/test_env",
-            "type": "node",
-            "request": "launch",
-            "name": "RFQM Health Check Test",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [
-                "--require",
-                "source-map-support/register",
-                "--require",
-                "make-promises-safe",
-                "${workspaceFolder}/lib/test/utils/rfqm_health_check_test.js",
-                "--timeout",
-                "200000",
-                "--exit",
-                "--bail"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "openOnSessionStart",
-            "disableOptimisticBPs": true,
-            "cwd": "${workspaceFolder}",
-            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
-        }
     ]
 }
