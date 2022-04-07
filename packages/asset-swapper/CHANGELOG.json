@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.55.0",
+        "changes": [
+            {
+                "note": "Fix fillRfqOrder VIP being used for swaps that need transformERC20",
+                "pr": 461
+            }
+        ]
+    },
+    {
         "version": "16.54.0",
         "changes": [
             {
