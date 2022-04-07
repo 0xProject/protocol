@@ -70,6 +70,7 @@ import {
     isDirectSwapCompatible,
     isMultiplexBatchFillCompatible,
     isMultiplexMultiHopFillCompatible,
+    requiresTransformERC20,
 } from './quote_consumer_utils';
 
 // tslint:disable-next-line:custom-no-magic-numbers
@@ -364,7 +365,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
             !isToETH &&
             !isFromETH &&
-            quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Rfq)
+            quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Rfq) &&
+            !requiresTransformERC20(optsWithDefaults)
         ) {
             const rfqOrdersData = quote.orders.map(o => o.fillData as NativeRfqOrderFillData);
             const fillAmountPerOrder = (() => {
