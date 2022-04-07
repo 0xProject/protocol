@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.55.0 - _April 7, 2022_
+
+    * Fix fillRfqOrder VIP being used for swaps that need transformERC20 (#461)
+
 ## v16.54.0 - _April 6, 2022_
 
     * Add true VIP support for eligible RFQt swaps (#458)
