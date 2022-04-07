@@ -220,6 +220,10 @@ export interface BalancerBatchSwapStep {
     userData: string;
 }
 
+export interface BalancerSwaps {
+    swapInfoExactIn: BalancerSwapInfo[];
+    swapInfoExactOut: BalancerSwapInfo[];
+}
 export interface BalancerSwapInfo {
     assets: string[];
     swapSteps: BalancerBatchSwapStep[];

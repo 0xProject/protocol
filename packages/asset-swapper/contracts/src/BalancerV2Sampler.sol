@@ -137,12 +137,51 @@ contract BalancerV2Sampler is SamplerUtils {
             // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
             returns (int256[] memory amounts) {
                 // Outgoing balance is negative so we need to flip the sign
-                // TO DO - Add index for asset out
-                int256 amountOutFromPool = amounts[1] * -1;
+                // Note - queryBatchSwap will return a delta for each token in the assets array and last asset should be tokenOut
+                int256 amountOutFromPool = amounts[amounts.length - 1] * -1;
                 if (amountOutFromPool <= 0) {
                     break;
                 }
                 makerTokenAmounts[i] = uint256(amountOutFromPool);
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
+                break;
+            }
+        }
+    }
+
+    // TODO - THIS IS PSEUDO CODE AS A DEMO
+    // Replaces amount for first step with each makerTokenAmount and calls queryBatchSwap using supplied steps
+    /// @dev Sample buy quotes from Balancer V2 supporting multihops.
+    /// @param swapSteps Array of swap steps (can be >= 1).
+    /// @param swapAssets Array of token address for swaps.
+    /// @param makerTokenAmounts Maker token buy amount for each sample.
+    function sampleMultihopBuysFromBalancerV2(
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
+        IAsset[] memory swapAssets,
+        uint256[] memory makerTokenAmounts
+    )
+        public
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
+        uint256 numSamples = makerTokenAmounts.length;
+        takerTokenAmounts = new uint256[](numSamples);
+        IBalancerV2Vault.FundManagement memory swapFunds =
+            _createSwapFunds();
+
+        for (uint256 i = 0; i < numSamples; i++) {
+            swapSteps[0].amount = makerTokenAmounts[i];
+            try
+                // Uses GIVEN_OUT type for Buy
+                vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
+            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+            returns (int256[] memory amounts) {
+                int256 amountIntoPool = amounts[0];
+                if (amountIntoPool <= 0) {
+                    break;
+                }
+                takerTokenAmounts[i] = uint256(amountIntoPool);
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
                 break;
