@@ -1831,7 +1831,7 @@ export class SamplerOperations {
                             this.getBalancerV2MulthopBuyQuotes(
                                 vault,
                                 swapInfo,
-                                takerFillAmounts,
+                                makerFillAmounts,
                                 source,
                             ),
                         );
