@@ -2156,11 +2156,12 @@ export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/ba
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 
-export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId(
     {
+        [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
     },
-    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+    null,
 );
 
 export const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(

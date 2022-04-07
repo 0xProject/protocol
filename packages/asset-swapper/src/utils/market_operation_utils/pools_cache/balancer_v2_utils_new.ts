@@ -40,15 +40,13 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
 
     constructor(
         chainId: ChainId,
-        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId],
-        private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
-        private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
+        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId]!,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
         cache: { [key: string]: CacheValue } = {},
     ) {
         super(cache);
         const config: BalancerSdkConfig = {
-            network: Network[ChainId[chainId]],
+            network: Network[ChainId[chainId] as any] as any as Network, // wtf TS
             rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
         };
         const balancerSdk = new BalancerSDK(config);

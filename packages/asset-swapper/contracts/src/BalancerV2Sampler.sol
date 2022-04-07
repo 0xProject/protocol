@@ -116,6 +116,7 @@ contract BalancerV2Sampler is SamplerUtils {
     /// @param swapAssets Array of token address for swaps.
     /// @param takerTokenAmounts Taker token sell amount for each sample.
     function sampleMultihopSellsFromBalancerV2(
+        IBalancerV2Vault vault,
         IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
         IAsset[] memory swapAssets,
         uint256[] memory takerTokenAmounts
@@ -123,7 +124,6 @@ contract BalancerV2Sampler is SamplerUtils {
         public
         returns (uint256[] memory makerTokenAmounts)
     {
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         IBalancerV2Vault.FundManagement memory swapFunds =
