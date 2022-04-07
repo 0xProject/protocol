@@ -5,6 +5,10 @@
             {
                 "note": "Add RadioShack",
                 "pr": 460
+            },
+            {
+                "note": "Fix fillRfqOrder VIP being used for swaps that need transformERC20",
+                "pr": 461
             }
         ],
         "timestamp": 1649283404
