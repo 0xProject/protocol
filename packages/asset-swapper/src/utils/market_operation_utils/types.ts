@@ -229,8 +229,13 @@ export interface GMXQuoteFillData extends FillData {
     vault: string;
 }
 export interface GMXFillData extends FillData {
+    router: string;
     reader: string;
     vault: string;
+    tokenAddressPath: string[];
+}
+export interface GMXSwapFillData extends FillData {
+    router: string;
     tokenAddressPath: string[];
 }
 

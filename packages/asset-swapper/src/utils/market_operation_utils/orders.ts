@@ -21,6 +21,7 @@ import {
     GeistFillData,
     GenericRouterFillData,
     GMXFillData,
+    GMXSwapFillData,
     KyberDmmFillData,
     KyberFillData,
     LidoFillData,
@@ -372,7 +373,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.GMX:
             const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
-            bridgeData = encoder.encode([gmxFillData.reader, gmxFillData.vault, gmxFillData.tokenAddressPath]);
+            bridgeData = encoder.encode([gmxFillData.router,gmxFillData.reader,gmxFillData.vault, gmxFillData.tokenAddressPath]);
             break;
 
         default:

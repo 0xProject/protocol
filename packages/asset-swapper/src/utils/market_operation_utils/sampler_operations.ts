@@ -1219,6 +1219,7 @@ export class SamplerOperations {
         });
     }
     public getGMXSellQuotes(
+        router: string,
         reader: string,
         vault: string,
         tokenAddressPath: string[],
@@ -1226,7 +1227,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<GMXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.GMX,
-            fillData: {reader, vault, tokenAddressPath },
+            fillData: {router, reader, vault, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromGMX,
             params: [reader, vault, tokenAddressPath, takerFillAmounts],
@@ -1627,9 +1628,10 @@ export class SamplerOperations {
                     case ERC20BridgeSource.GMX: {
 
                         return this.getGMXSellQuotes(
+                            GMX_ROUTER_BY_CHAIN_ID[this.chainId],
                             GMX_READER_BY_CHAIN_ID[this.chainId],
                             GMX_VAULT_BY_CHAIN_ID[this.chainId],
-                            [makerToken, takerToken],
+                            [takerToken, makerToken],
                             takerFillAmounts,
                         );
                     }
