@@ -16,8 +16,6 @@ import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { IndicativeQuote, QuoteServerPriceParams } from '../types';
 
-import { logRfqMarketMakerRequest } from './metrics_service';
-
 const MARKET_MAKER_LAST_LOOK_LATENCY = new Summary({
     name: 'market_maker_last_look_latency',
     help: 'Latency for Last Look request to Market Makers',
@@ -149,7 +147,6 @@ export class QuoteServerClient {
         integrator: Integrator,
         parameters: QuoteServerPriceParams,
     ): Promise<IndicativeQuote | undefined> {
-        const startTime = Date.now();
         const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/price`, {
             timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
             headers: {
@@ -159,22 +156,6 @@ export class QuoteServerClient {
             },
             params: parameters,
         });
-        const latencyMs = Date.now() - startTime;
-
-        try {
-            logRfqMarketMakerRequest({
-                latencyMs,
-                makerUri,
-                method: response.request?.method ?? '',
-                path: response.request?.path ?? '',
-                responseBody: JSON.stringify(response.data),
-                requestHeaders: response.request?.getHeaders(),
-                responseHeaders: response.headers,
-                statusCode: response.status,
-            });
-        } catch ({ message }) {
-            logger.error({ errorMsg: message }, 'Failed to log rfq maker reqeust');
-        }
 
         if (response.status !== OK) {
             return;

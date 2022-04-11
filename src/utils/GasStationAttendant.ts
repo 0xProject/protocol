@@ -51,7 +51,7 @@ export interface GasStationAttendant {
      * Returns `null` if there should not be another resubmission.
      */
     getNextBidAsync: (
-        submissionContext: SubmissionContext<any> | null,
+        submissionContext: SubmissionContext | null,
     ) => Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | { maxGasPrice: BigNumber } | null>;
 
     /**

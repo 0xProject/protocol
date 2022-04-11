@@ -420,7 +420,7 @@ describe(SUITE_NAME, () => {
             const decodedEvent = rfqBlockchainUtils.getDecodedOtcOrderFillEventLogFromLogs(receipt!.logs);
 
             expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
-            expect(decodedEvent.args.orderHash).to.eq(otcOrder.getHash());
+            expect(decodedEvent.args.orderHash).to.equal(otcOrder.getHash());
         });
     });
 
@@ -495,22 +495,6 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('getTakerTokenFillAmountFromMetaTxCallData', () => {
-        it('returns the correct taker token fill amount from calldata', async () => {
-            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
-            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
-
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
-                metaTx,
-                metaTxSig,
-                MATCHA_AFFILIATE_ADDRESS,
-            );
-
-            const expectedTakerTokenFillAmount = rfqBlockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(callData);
-            expect(expectedTakerTokenFillAmount.eq(takerAmount)).to.be.true();
-        });
-    });
-
     describe('getDecodedRfqOrderFillEventLogFromLogs', () => {
         it('correctly parses an RfqOrderFillEvent from logs', async () => {
             const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([
@@ -528,7 +512,7 @@ describe(SUITE_NAME, () => {
         it('gets the token decimals', async () => {
             const decimals = await rfqBlockchainUtils.getTokenDecimalsAsync(makerToken.address);
 
-            expect(decimals).to.eq(18);
+            expect(decimals).to.equal(18);
         });
 
         it('throws if the contract does not exist', () => {

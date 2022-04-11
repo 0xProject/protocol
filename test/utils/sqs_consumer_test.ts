@@ -31,7 +31,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(false);
+                expect(isHandleCalled).to.equal(false);
             });
 
             it('should not call handleMessage if beforeHandle throws an error', async () => {
@@ -54,7 +54,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(false);
+                expect(isHandleCalled).to.equal(false);
             });
 
             it('should call handleMessage if no beforeHandle', async () => {
@@ -79,7 +79,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(true);
+                expect(isHandleCalled).to.equal(true);
             });
 
             it('should call handleMessage if beforeHandle returns true', async () => {
@@ -106,7 +106,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(true);
+                expect(isHandleCalled).to.equal(true);
             });
         });
 
@@ -132,7 +132,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(false);
+                expect(isHandleCalled).to.equal(false);
             });
 
             it('should call changeMessageVisibility if a SqsRetryableError is encountered (triggers a retry)', async () => {
@@ -211,7 +211,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isHandleCalled).to.eq(true);
+                expect(isHandleCalled).to.equal(true);
                 verify(sqsClientMock.deleteMessageAsync(anyString())).once();
             });
         });
@@ -242,7 +242,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isAfterCalled).to.eq(true);
+                expect(isAfterCalled).to.equal(true);
             });
 
             it('should be passed an error if a non-retryable error was encountered', async () => {
@@ -273,7 +273,7 @@ describe('SqsConsumer', () => {
                 await consumer.consumeOnceAsync();
 
                 // Then
-                expect(isAfterCalledWithError).to.eq(true);
+                expect(isAfterCalledWithError).to.equal(true);
             });
         });
     });

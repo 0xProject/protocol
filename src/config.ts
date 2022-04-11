@@ -1,4 +1,5 @@
 // tslint:disable:custom-no-magic-numbers max-file-line-count
+import { HttpServiceConfig } from '@0x/api-utils';
 import { assert } from '@0x/assert';
 import { LiquidityProviderRegistry, RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
@@ -20,8 +21,6 @@ import {
     ONE_MINUTE_MS,
 } from './constants';
 import { schemas } from './schemas';
-import { HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
-import { parseUtils } from './utils/parse_utils';
 import { schemaUtils } from './utils/schema_utils';
 
 // tslint:disable:no-bitwise
@@ -44,7 +43,6 @@ enum EnvVarType {
     APIKeys,
     PrivateKeys,
     RfqMakerAssetOfferings,
-    RateLimitConfig,
     LiquidityProviderRegistry,
     JsonStringList,
 }
@@ -315,15 +313,6 @@ export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.M
           process.env.META_TXN_RELAY_EXPECTED_MINED_SEC,
           EnvVarType.Integer,
       );
-export const META_TXN_RATE_LIMITER_CONFIG: MetaTransactionRateLimitConfig | undefined = _.isEmpty(
-    process.env.META_TXN_RATE_LIMIT_TYPE,
-)
-    ? undefined
-    : assertEnvVarType(
-          'META_TXN_RATE_LIMITER_CONFIG',
-          process.env.META_TXN_RATE_LIMITER_CONFIG,
-          EnvVarType.RateLimitConfig,
-      );
 
 // Whether or not prometheus metrics should be enabled.
 // tslint:disable-next-line:boolean-naming
@@ -361,11 +350,6 @@ export const defaultHttpServiceConfig: HttpServiceConfig = {
     enablePrometheusMetrics: ENABLE_PROMETHEUS_METRICS,
     prometheusPort: PROMETHEUS_PORT,
     prometheusPath: METRICS_PATH,
-};
-
-export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
-    ...defaultHttpServiceConfig,
-    metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
 };
 
 export const getIntegratorByIdOrThrow = (
@@ -507,9 +491,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be supplied`);
             }
             return value;
-        case EnvVarType.RateLimitConfig:
-            assert.isString(name, value);
-            return parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(value);
         case EnvVarType.APIKeys:
             assert.isString(name, value);
             const apiKeys = (value as string).split(',');

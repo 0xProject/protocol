@@ -14,7 +14,7 @@ describe('RFQM Gas Estimate utils', () => {
 
             const result = calculateGasEstimate(makerToken, takerToken, 'rfq', false);
 
-            expect(result).to.eq(RFQM_TX_GAS_ESTIMATE);
+            expect(result).to.equal(RFQM_TX_GAS_ESTIMATE);
         });
 
         it('should add a token premium for maker token', () => {

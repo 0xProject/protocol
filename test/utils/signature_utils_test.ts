@@ -21,7 +21,7 @@ describe('Signature utils', () => {
             const signer = getSignerFromHash(orderHash, signature);
 
             // Then
-            expect(signer).to.eq(address.toLowerCase());
+            expect(signer).to.equal(address.toLowerCase());
         });
 
         it('should recover an address for an EIP712 Signature', () => {
@@ -34,7 +34,7 @@ describe('Signature utils', () => {
             const signer = getSignerFromHash(orderHash, signature);
 
             // Then
-            expect(signer).to.eq(address.toLowerCase());
+            expect(signer).to.equal(address.toLowerCase());
         });
 
         it('should not recover an address when signature is for something else', () => {

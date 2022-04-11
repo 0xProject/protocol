@@ -75,7 +75,7 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
      * 2 x the base fee to get the initial maxFeePerGas.
      */
     public async getNextBidAsync(
-        submissionContext: SubmissionContext<any> | null,
+        submissionContext: SubmissionContext | null,
     ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
         const baseFee = await this._gasOracle.getBaseFeePerGasWeiAsync();
         if (!submissionContext) {

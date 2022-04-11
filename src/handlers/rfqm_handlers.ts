@@ -3,11 +3,10 @@ import {
     InternalServerError,
     InvalidAPIKeyError,
     isAPIError,
-    NotImplementedError,
     ValidationError,
     ValidationErrorCodes,
 } from '@0x/api-utils';
-import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
+import { OtcOrder } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSymbol } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
@@ -20,16 +19,14 @@ import { RfqmService } from '../services/rfqm_service';
 import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
+    OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
-    SubmitRfqmSignedQuoteParams,
 } from '../services/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
     RawOtcOrderFields,
-    StringMetaTransactionFields,
     StringSignatureFields,
-    stringsToMetaTransactionFields,
     stringsToOtcOrderFields,
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
@@ -183,33 +180,16 @@ export class RfqmHandlers {
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const { chainId, params } = this._parseSubmitSignedQuoteParams(req);
         RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integrator.integratorId, params.integrator.integratorId).inc();
-
-        if (params.type === RfqmTypes.MetaTransaction) {
-            try {
-                const response = await this._getServiceForChain(chainId).submitMetaTransactionSignedQuoteAsync(params);
-                res.status(HttpStatus.CREATED).send(response);
-            } catch (err) {
-                req.log.error(err, 'Encountered an error while queuing a signed quote');
-                if (isAPIError(err)) {
-                    throw err;
-                } else {
-                    throw new InternalServerError(`An unexpected error occurred`);
-                }
+        try {
+            const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
+            res.status(HttpStatus.CREATED).send(response);
+        } catch (err) {
+            req.log.error(err, 'Encountered an error while queuing a signed quote');
+            if (isAPIError(err)) {
+                throw err;
+            } else {
+                throw new InternalServerError(`An unexpected error occurred`);
             }
-        } else if (params.type === RfqmTypes.OtcOrder) {
-            try {
-                const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
-                res.status(HttpStatus.CREATED).send(response);
-            } catch (err) {
-                req.log.error(err, 'Encountered an error while queuing a signed quote');
-                if (isAPIError(err)) {
-                    throw err;
-                } else {
-                    throw new InternalServerError(`An unexpected error occurred`);
-                }
-            }
-        } else {
-            throw new NotImplementedError('rfqm type not supported');
         }
     }
 
@@ -348,28 +328,13 @@ export class RfqmHandlers {
 
     private _parseSubmitSignedQuoteParams(req: express.Request): {
         chainId: number;
-        params: SubmitRfqmSignedQuoteParams;
+        params: OtcOrderSubmitRfqmSignedQuoteParams;
     } {
         const type = req.body.type as RfqmTypes;
         const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'));
 
-        if (type === RfqmTypes.MetaTransaction) {
-            const metaTransaction = new MetaTransaction(
-                stringsToMetaTransactionFields(req.body.metaTransaction as StringMetaTransactionFields),
-            );
-            const signature = stringsToSignature(req.body.signature as StringSignatureFields);
-
-            return {
-                chainId,
-                params: {
-                    type,
-                    metaTransaction,
-                    signature,
-                    integrator,
-                },
-            };
-        } else if (type === RfqmTypes.OtcOrder) {
+        if (type === RfqmTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(req.body.order as RawOtcOrderFields));
             const signature = stringsToSignature(req.body.signature as StringSignatureFields);
             return {

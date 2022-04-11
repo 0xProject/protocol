@@ -1,11 +1,8 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
 import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils } from '@0x/asset-swapper';
-// tslint:disable-next-line:no-duplicate-imports
-import { V4RFQIndicativeQuoteMM } from '@0x/asset-swapper';
-import { RfqmRequestOptions } from '@0x/asset-swapper/lib/src/types';
-import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
-import { Fee, SignRequest, SubmitRequest } from '@0x/quote-server/lib/src/types';
+import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
 import {
     getTokenMetadataIfExists,
     nativeTokenSymbol,
@@ -21,7 +18,7 @@ import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
+import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX } from '../config';
 import {
     ETH_DECIMALS,
     GWEI_DECIMALS,
@@ -32,31 +29,22 @@ import {
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
-import {
-    RfqmJobEntity,
-    RfqmQuoteEntity,
-    RfqmTransactionSubmissionEntity,
-    RfqmV2JobEntity,
-    RfqmV2TransactionSubmissionEntity,
-} from '../entities';
+import { RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../entities/types';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { FirmOtcQuote, FirmQuote, IndicativeQuote } from '../types';
+import { FirmOtcQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
-import { QuoteRequestorManager } from '../utils/quote_requestor_manager';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
     otcOrderToStoredOtcOrder,
     RfqmDbUtils,
     storedFeeToFee,
-    storedOrderToRfqmOrder,
     storedOtcOrderToOtcOrder,
-    v4RfqOrderToStoredOrder,
 } from '../utils/rfqm_db_utils';
 import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
@@ -67,11 +55,9 @@ import { SubmissionContext } from '../utils/SubmissionContext';
 
 import {
     FetchFirmQuoteParams,
-    FetchFirmQuoteResponse,
     FetchIndicativeQuoteParams,
     FetchIndicativeQuoteResponse,
-    MetaTransactionSubmitRfqmSignedQuoteParams,
-    MetaTransactionSubmitRfqmSignedQuoteResponse,
+    OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
     OtcOrderSubmitRfqmSignedQuoteResponse,
     RfqmTypes,
@@ -91,15 +77,6 @@ const RFQM_QUOTE_INSERTED = new Counter({
     help: 'An RfqmQuote was inserted in the DB',
     labelNames: ['apiKey', 'integratorId', 'makerUri'],
 });
-
-const RFQM_DEFAULT_OPTS = {
-    takerAddress: NULL_ADDRESS,
-    txOrigin: NULL_ADDRESS,
-    makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
-    nativeExclusivelyRFQ: true,
-    altRfqAssetOfferings: {},
-    isLastLook: true,
-};
 
 const RFQM_WORKER_BALANCE = new Gauge({
     name: 'rfqm_worker_balance',
@@ -130,11 +107,6 @@ const RFQM_SIGNED_QUOTE_NOT_FOUND = new Counter({
     labelNames: ['chain_id'],
     help: 'A submitted quote did not match any stored quotes',
 });
-const RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION = new Counter({
-    name: 'rfqm_signed_quote_failed_ethcall_validation',
-    labelNames: ['chain_id'],
-    help: 'A signed quote failed eth_call validation before being queued',
-});
 const RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON = new Counter({
     name: 'rfqm_signed_quote_expiry_too_soon',
     labelNames: ['chain_id'],
@@ -149,11 +121,6 @@ const RFQM_SUBMIT_BALANCE_CHECK_FAILED = new Counter({
     name: 'rfqm_submit_balance_check_failed',
     labelNames: ['makerAddress', 'chain_id'],
     help: 'A trade was submitted but our on-chain balance check failed',
-});
-const RFQM_JOB_FAILED_ETHCALL_VALIDATION = new Counter({
-    name: 'rfqm_job_failed_ethcall_validation',
-    labelNames: ['chain_id'],
-    help: 'A job failed eth_call validation before being queued',
 });
 const RFQM_JOB_FAILED_MM_SIGNATURE_FAILED = new Counter({
     name: 'rfqm_job_failed_mm_signature_failed',
@@ -208,9 +175,6 @@ function isDefined<T>(value: T): value is NonNullable<T> {
     return value !== null && value !== undefined;
 }
 
-// https://stackoverflow.com/questions/45894524/getting-type-of-a-property-of-a-typescript-class-using-keyof-operator
-type PropType<TObj, TProp extends keyof TObj> = TObj[TProp];
-
 const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
     return (getTokenMetadataIfExists(symbol, chainId) as TokenMetadata).tokenAddress;
 };
@@ -233,11 +197,8 @@ export class RfqmService {
     }
 
     // Returns a failure status for invalid jobs and null if the job is valid.
-    public static validateJob(job: RfqmJobEntity | RfqmV2JobEntity, now: Date = new Date()): RfqmJobStatus | null {
+    public static validateJob(job: RfqmV2JobEntity, now: Date = new Date()): RfqmJobStatus | null {
         const { makerUri, order, fee } = job;
-        if (job.kind === 'rfqm_v1_job' && job.calldata === undefined) {
-            return RfqmJobStatus.FailedValidationNoCallData;
-        }
 
         if (makerUri === undefined) {
             return RfqmJobStatus.FailedValidationNoMakerUri;
@@ -251,30 +212,17 @@ export class RfqmService {
             return RfqmJobStatus.FailedValidationNoFee;
         }
 
-        if (order.type === RfqmOrderTypes.V4Rfq) {
-            // Orders can expire if any of the following happen:
-            // 1) workers are backed up
-            // 2) an RFQM order broke during submission and the order is stuck in the queue for a long time.
-            const v4Order = order.order;
-            const expiryTimeMs = new BigNumber(v4Order.expiry).times(ONE_SECOND_MS);
-            if (expiryTimeMs.isNaN() || expiryTimeMs.lte(now.getTime())) {
-                return RfqmJobStatus.FailedExpired;
-            }
+        // Orders can expire if any of the following happen:
+        // 1) workers are backed up
+        // 2) an RFQM order broke during submission and the order is stuck in the queue for a long time.
+        const otcOrderStringFields = job.order.order;
+        const { expiry } = OtcOrder.parseExpiryAndNonce(new BigNumber(otcOrderStringFields.expiryAndNonce));
+        const expiryTimeMs = expiry.times(ONE_SECOND_MS);
+        if (expiryTimeMs.isNaN() || expiryTimeMs.lte(now.getTime())) {
+            return RfqmJobStatus.FailedExpired;
         }
-
-        if (job.kind === 'rfqm_v2_job') {
-            // Orders can expire if any of the following happen:
-            // 1) workers are backed up
-            // 2) an RFQM order broke during submission and the order is stuck in the queue for a long time.
-            const otcOrderStringFields = job.order.order;
-            const { expiry } = OtcOrder.parseExpiryAndNonce(new BigNumber(otcOrderStringFields.expiryAndNonce));
-            const expiryTimeMs = expiry.times(ONE_SECOND_MS);
-            if (expiryTimeMs.isNaN() || expiryTimeMs.lte(now.getTime())) {
-                return RfqmJobStatus.FailedExpired;
-            }
-            if (!job.takerSignature) {
-                return RfqmJobStatus.FailedValidationNoTakerSignature;
-            }
+        if (!job.takerSignature) {
+            return RfqmJobStatus.FailedValidationNoTakerSignature;
         }
 
         return null;
@@ -302,7 +250,6 @@ export class RfqmService {
 
     constructor(
         private readonly _chainId: number,
-        private readonly _quoteRequestorManager: QuoteRequestorManager,
         private readonly _protocolFeeUtils: ProtocolFeeUtils,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
@@ -380,7 +327,7 @@ export class RfqmService {
         const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
 
         // Fetch all indicative quotes
-        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
+        const { quotes: indicativeQuotes } = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
 
         // Log any quotes that are for the incorrect amount
         indicativeQuotes.forEach((quote) => {
@@ -412,7 +359,7 @@ export class RfqmService {
 
         // Quote Report
         if (this._kafkaProducer) {
-            quoteReportUtils.publishRFQMQuoteReport(
+            await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
                     taker: params.takerAddress,
                     buyTokenAddress: originalMakerToken,
@@ -455,7 +402,7 @@ export class RfqmService {
     /**
      * Fetch the best firm quote available, including a metatransaction. Returns null if no valid quotes found
      */
-    public async fetchFirmQuoteAsync(params: FetchFirmQuoteParams): Promise<FetchFirmQuoteResponse | null> {
+    public async fetchFirmQuoteAsync(params: FetchFirmQuoteParams): Promise<OtcOrderRfqmQuoteResponse | null> {
         // Extract params
         const {
             sellAmount,
@@ -465,7 +412,6 @@ export class RfqmService {
             sellTokenDecimals: takerTokenDecimals,
             buyTokenDecimals: makerTokenDecimals,
             integrator,
-            takerAddress,
             affiliateAddress,
         } = params;
         let makerToken = originalMakerToken;
@@ -485,11 +431,7 @@ export class RfqmService {
         const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
 
         // Fetch all firm quotes and fee
-        const {
-            quotes: firmQuotes,
-            otcOrderFee,
-            rfqOrderFee,
-        } = await this._fetchFirmQuotesAsync(params, gasPrice, isUnwrap);
+        const { quotes: firmQuotes, otcOrderFee } = await this._fetchFirmQuotesAsync(params, gasPrice, isUnwrap);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -503,7 +445,7 @@ export class RfqmService {
 
         // Quote Report
         if (this._kafkaProducer) {
-            quoteReportUtils.publishRFQMQuoteReport(
+            await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
                     taker: params.takerAddress,
                     buyTokenAddress: originalMakerToken,
@@ -524,7 +466,7 @@ export class RfqmService {
         }
 
         // Get the fee
-        const fee = bestQuote.kind === 'rfq' ? rfqOrderFee : otcOrderFee;
+        const fee = otcOrderFee;
 
         // Get the makerUri
         const makerUri = bestQuote.makerUri;
@@ -561,52 +503,6 @@ export class RfqmService {
         // Get the Order and its hash
         const orderHash = bestQuote.order.getHash();
 
-        // Handle Metatransaction flow
-        if (bestQuote.kind === 'rfq') {
-            const rfqOrder = bestQuote.order;
-
-            // Generate the Meta Transaction and its hash
-            const metaTransaction = this._blockchainUtils.generateMetaTransaction(
-                rfqOrder,
-                bestQuote.makerSignature,
-                takerAddress,
-                takerAmount,
-                this._chainId,
-            );
-            const metaTransactionHash = metaTransaction.getHash();
-
-            // Save the RfqmQuote
-            await this._dbUtils.writeRfqmQuoteToDbAsync(
-                new RfqmQuoteEntity({
-                    orderHash,
-                    metaTransactionHash,
-                    chainId: this._chainId,
-                    fee: feeToStoredFee(fee),
-                    order: v4RfqOrderToStoredOrder(rfqOrder),
-                    makerUri,
-                    affiliateAddress,
-                    integratorId: integrator.integratorId,
-                }),
-            );
-            RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
-
-            // Prepare response
-            return {
-                type: RfqmTypes.MetaTransaction,
-                price: roundedPrice,
-                gas: gasPrice,
-                buyAmount: makerAmount,
-                buyTokenAddress: originalMakerToken,
-                sellAmount: takerAmount,
-                sellTokenAddress: bestQuote.order.takerToken,
-                allowanceTarget: this._contractAddresses.exchangeProxy,
-                metaTransaction,
-                metaTransactionHash,
-                orderHash,
-            };
-        }
-
-        // Otherwise, OtcOrder flow
         const otcOrder = bestQuote.order;
         await this._dbUtils.writeV2QuoteAsync({
             orderHash,
@@ -651,10 +547,9 @@ export class RfqmService {
         RFQM_WORKER_BALANCE.labels(workerAddress, this._chainId.toString()).set(balanceUnitAmount.toNumber());
 
         // check for outstanding jobs from the worker and resolve them
-        const unresolvedJobOrderHashes = await Promise.all([
-            this._dbUtils.findUnresolvedJobsAsync(workerAddress, this._chainId),
-            this._dbUtils.findV2UnresolvedJobsAsync(workerAddress, this._chainId),
-        ]).then((x) => x.flat().map((j) => j.orderHash));
+        const unresolvedJobOrderHashes = await this._dbUtils
+            .findV2UnresolvedJobsAsync(workerAddress, this._chainId)
+            .then((x) => x.flat().map((j) => j.orderHash));
 
         RFQM_JOB_REPAIR.labels(workerAddress, this._chainId.toString()).inc(unresolvedJobOrderHashes.length);
         for (const orderHash of unresolvedJobOrderHashes) {
@@ -694,42 +589,21 @@ export class RfqmService {
     }
 
     public async getOrderStatusAsync(orderHash: string): Promise<StatusResponse | null> {
-        const transformSubmission = (
-            submission: RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity,
-        ) => {
+        const transformSubmission = (submission: RfqmV2TransactionSubmissionEntity) => {
             const { transactionHash: hash, createdAt } = submission;
             return hash ? { hash, timestamp: createdAt.getTime() } : null;
         };
 
-        const transformSubmissions = (
-            submissions: (RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity)[],
-        ) => submissions.map(transformSubmission).flatMap((s) => (s ? s : []));
+        const transformSubmissions = (submissions: RfqmV2TransactionSubmissionEntity[]) =>
+            submissions.map(transformSubmission).flatMap((s) => (s ? s : []));
 
-        const [jobV1, jobV2] = await Promise.all([
-            this._dbUtils.findJobByOrderHashAsync(orderHash),
-            this._dbUtils.findV2JobByOrderHashAsync(orderHash),
-        ]);
+        const job = await this._dbUtils.findV2JobByOrderHashAsync(orderHash);
 
-        let isV2 = false;
-        let status: RfqmJobStatus;
-        let expiry: BigNumber;
-
-        if (jobV1 === undefined && jobV2 === undefined) {
-            // Both not found
+        if (!job) {
             return null;
-        } else if (jobV2 !== undefined && jobV1 !== undefined) {
-            // Both found
-            throw new Error(`Multiple jobs found for ${orderHash}`);
-        } else if (jobV2 !== undefined) {
-            // Only V2 found
-            isV2 = true;
-            status = jobV2.status;
-            expiry = jobV2.expiry;
-        } else {
-            // Only V1 found
-            status = jobV1!.status;
-            expiry = jobV1!.expiry;
         }
+
+        const { status, expiry } = job;
 
         if (status === RfqmJobStatus.PendingEnqueued && expiry.multipliedBy(ONE_SECOND_MS).lt(Date.now())) {
             // the workers are dead/on vacation and the expiration time has passed
@@ -739,9 +613,7 @@ export class RfqmService {
             };
         }
 
-        const transactionSubmissions: (RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity)[] = isV2
-            ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash)
-            : await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash);
+        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash);
 
         switch (status) {
             case RfqmJobStatus.PendingEnqueued:
@@ -822,120 +694,6 @@ export class RfqmService {
     }
 
     /**
-     * Validates and Enqueues the signed MetaTransaction for processing
-     */
-    public async submitMetaTransactionSignedQuoteAsync(
-        params: MetaTransactionSubmitRfqmSignedQuoteParams,
-    ): Promise<MetaTransactionSubmitRfqmSignedQuoteResponse> {
-        const metaTransactionHash = params.metaTransaction.getHash();
-
-        // check that the firm quote is recognized as a previously returned quote
-        const quote = await this._dbUtils.findQuoteByMetaTransactionHashAsync(metaTransactionHash);
-        if (quote === undefined) {
-            RFQM_SIGNED_QUOTE_NOT_FOUND.labels(this._chainId.toString()).inc();
-            throw new NotFoundError('quote not found');
-        }
-
-        // validate that the expiration window is long enough to fill quote
-        const currentTimeMs = new Date().getTime();
-        if (
-            !params.metaTransaction.expirationTimeSeconds
-                .times(ONE_SECOND_MS)
-                .isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)
-        ) {
-            RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
-            throw new ValidationError([
-                {
-                    field: 'expirationTimeSeconds',
-                    code: ValidationErrorCodes.FieldInvalid,
-                    reason: `metatransaction will expire too soon`,
-                },
-            ]);
-        }
-
-        // verify that there is not a pending transaction for this taker and taker token
-        const pendingJobs = await this._dbUtils.findJobsWithStatusesAsync([
-            RfqmJobStatus.PendingEnqueued,
-            RfqmJobStatus.PendingProcessing,
-            RfqmJobStatus.PendingLastLookAccepted,
-            RfqmJobStatus.PendingSubmitted,
-        ]);
-
-        if (
-            pendingJobs.some(
-                (job) =>
-                    job.order?.order.taker.toLowerCase() === quote.order?.order.taker.toLowerCase() &&
-                    job.order?.order.takerToken.toLowerCase() === quote.order?.order.takerToken.toLowerCase() &&
-                    // Other logic handles the case where the same order is submitted twice
-                    job.metaTransactionHash !== quote.metaTransactionHash,
-            )
-        ) {
-            RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.labels(this._chainId.toString()).inc();
-            throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
-        }
-        // validate that the firm quote is fillable using the origin registry address (this address is assumed to hold ETH)
-        try {
-            await this._blockchainUtils.validateMetaTransactionOrThrowAsync(
-                params.metaTransaction,
-                params.signature,
-                this._registryAddress,
-            );
-        } catch (error) {
-            logger.error({ errorMessage: error.message }, 'RFQM quote failed eth_call validation.');
-            RFQM_SIGNED_QUOTE_FAILED_ETHCALL_VALIDATION.labels(this._chainId.toString()).inc();
-            throw new ValidationError([
-                {
-                    field: 'n/a',
-                    code: ValidationErrorCodes.InvalidOrder,
-                    reason: `metatransaction is not fillable`,
-                },
-            ]);
-        }
-
-        const rfqmJobOpts = {
-            orderHash: quote.orderHash!,
-            metaTransactionHash,
-            createdAt: new Date(),
-            expiry: params.metaTransaction.expirationTimeSeconds,
-            chainId: this._chainId,
-            integratorId: quote.integratorId ? quote.integratorId : null,
-            makerUri: quote.makerUri,
-            status: RfqmJobStatus.PendingEnqueued,
-            statusReason: null,
-            calldata: this._blockchainUtils.generateMetaTransactionCallData(
-                params.metaTransaction,
-                params.signature,
-                quote.affiliateAddress,
-            ),
-            fee: quote.fee,
-            order: quote.order,
-            metadata: {
-                metaTransaction: params.metaTransaction,
-            },
-            affiliateAddress: quote.affiliateAddress,
-        };
-
-        // this insert will fail if a job has already been created, ensuring
-        // that a signed quote cannot be queued twice
-        try {
-            // make sure job data is persisted to Postgres before queueing task
-            await this._dbUtils.writeRfqmJobToDbAsync(rfqmJobOpts);
-            await this._enqueueJobAsync(quote.orderHash!, RfqmTypes.MetaTransaction);
-        } catch (error) {
-            logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
-            throw new InternalServerError(
-                `failed to queue the quote for submission, it may have already been submitted`,
-            );
-        }
-
-        return {
-            type: RfqmTypes.MetaTransaction,
-            metaTransactionHash,
-            orderHash: quote.orderHash!,
-        };
-    }
-
-    /**
      * Validates and enqueues the Taker Signed Otc Order for submission
      */
     public async submitTakerSignedOtcOrderAsync(
@@ -947,7 +705,6 @@ export class RfqmService {
         const makerAddress = order.maker.toLowerCase();
         const takerToken = order.takerToken.toLowerCase();
         const makerToken = order.makerToken.toLowerCase();
-
         // check that the orderHash is indeed a recognized quote
         const quote = await this._dbUtils.findV2QuoteByOrderHashAsync(orderHash);
         if (quote === undefined) {
@@ -1090,17 +847,10 @@ export class RfqmService {
 
         try {
             // Step 1: Find the job via the order hash
-            const jobs = await Promise.all([
-                this._dbUtils.findJobByOrderHashAsync(orderHash),
-                this._dbUtils.findV2JobByOrderHashAsync(orderHash),
-            ]).then((x) => x.filter(isDefined));
-            if (jobs.length > 1) {
-                throw new Error('Found more than one job for order hash');
-            }
-            if (jobs.length === 0) {
+            let job = await this._dbUtils.findV2JobByOrderHashAsync(orderHash);
+            if (!job) {
                 throw new Error('No job found for order hash');
             }
-            let job = jobs[0];
 
             // Step 2: Prepare the job for submission
 
@@ -1112,33 +862,15 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(job);
 
             let calldata: string;
-            const kind = job.kind;
 
-            switch (kind) {
-                case 'rfqm_v1_job':
-                    const prepareV1JobResult = await this.prepareV1JobAsync(job, workerAddress);
-                    job = prepareV1JobResult.job;
-                    calldata = prepareV1JobResult.calldata;
-                    break;
-                case 'rfqm_v2_job':
-                    const prepareV2JobResult = await this.prepareV2JobAsync(job, workerAddress);
-                    job = prepareV2JobResult.job;
-                    calldata = prepareV2JobResult.calldata;
-                    break;
-                default:
-                    ((_x: never) => {
-                        throw new Error('unreachable');
-                    })(kind);
-            }
-
+            const prepareV2JobResult = await this.prepareV2JobAsync(job, workerAddress);
+            job = prepareV2JobResult.job;
+            calldata = prepareV2JobResult.calldata;
             // Step 3: Send to blockchain
             const finalStatus = await this.submitJobToChainAsync(job, workerAddress, calldata);
 
             // Step 4: Close out job
             job.status = finalStatus;
-            if (job.kind === 'rfqm_v1_job') {
-                job.isCompleted = true;
-            }
             await this._dbUtils.updateRfqmJobAsync(job);
             if (finalStatus === RfqmJobStatus.FailedExpired) {
                 throw new Error('Job expired');
@@ -1151,111 +883,6 @@ export class RfqmService {
         } finally {
             timerStopFunction();
         }
-    }
-
-    /**
-     * Prepares an RfqmV1 Job for submission by validatidating the job, conducting the
-     * last look, and constructing the calldata.
-     *
-     * Handles reties of retryable errors. Throws for unretriable errors, and logs
-     * ONLY IF the log needs more information than the orderHash and workerAddress,
-     * which are logged by the `processJobAsync` routine.
-     * Updates job in database.
-     *
-     * @returns The job, ready for transaction submission, and the calldata
-     * @throws If the job cannot be submitted (e.g. it is expired)
-     *
-     * TODO (MKR-141): Distinguish between last look error and reject; implement retry
-     */
-    public async prepareV1JobAsync(
-        job: RfqmJobEntity,
-        workerAddress: string,
-        now: Date = new Date(),
-    ): Promise<{ calldata: string; job: RfqmJobEntity }> {
-        const _job = _.cloneDeep(job);
-        const { orderHash } = _job;
-
-        // Check to see if we have already submitted a transaction for this job.
-        // If we have, the job is already prepared and we can skip ahead.
-        const transactionSubmissions = await this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(
-            _job.orderHash,
-        );
-        if (transactionSubmissions.length) {
-            return { calldata: _job.calldata, job: _job };
-        }
-
-        const errorStatus = RfqmService.validateJob(_job, now);
-        if (errorStatus !== null) {
-            _job.isCompleted = true;
-            _job.status = errorStatus;
-            await this._dbUtils.updateRfqmJobAsync(_job);
-
-            if (errorStatus === RfqmJobStatus.FailedExpired) {
-                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
-            }
-            logger.error({ orderHash, errorStatus }, 'Job failed validation');
-            throw new Error('Job failed validation');
-        }
-        const { calldata, makerUri, order, fee } = _job;
-
-        if (_job.status === RfqmJobStatus.PendingEnqueued) {
-            _job.isCompleted = false;
-            _job.status = RfqmJobStatus.PendingProcessing;
-            await this._dbUtils.updateRfqmJobAsync(_job);
-        }
-
-        // Last look at this point should be either `null` or `true`.
-        // If it is `true`, we can skip the last look process.
-        if (_job.lastLookResult === true) {
-            logger.info({ workerAddress, orderHash }, 'Last look previously accepted, skipping ahead to submission');
-        } else {
-            // Refine properties that should exist at this point
-            if (!order) {
-                throw new Error('Order not present for job about to be submitted');
-            }
-
-            if (!fee) {
-                throw new Error('Fee data not present for job about to be submitted');
-            }
-
-            // Validate the order via `eth_call` before attempting last look
-            try {
-                await this._blockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(calldata, workerAddress);
-            } catch (error) {
-                RFQM_JOB_FAILED_ETHCALL_VALIDATION.labels(this._chainId.toString()).inc();
-                logger.error({ errorMessage: error.message, orderHash }, 'eth_call validation failed');
-                _job.isCompleted = true;
-                _job.status = RfqmJobStatus.FailedEthCallFailed;
-                await this._dbUtils.updateRfqmJobAsync(_job);
-                throw new Error('Job failed eth_call validation');
-            }
-
-            const takerTokenFillAmount = this._blockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(calldata);
-            const submitRequest: SubmitRequest = {
-                order: storedOrderToRfqmOrder(order),
-                orderHash,
-                fee: storedFeeToFee(fee),
-                takerTokenFillAmount,
-            };
-            const isLastLookApproved = await this._quoteServerClient.confirmLastLookAsync(makerUri, submitRequest);
-            logger.info({ makerUri, isLastLookApproved, orderHash }, 'Got last look response from market maker');
-
-            if (isLastLookApproved) {
-                _job.status = RfqmJobStatus.PendingLastLookAccepted;
-                _job.lastLookResult = isLastLookApproved;
-                await this._dbUtils.updateRfqmJobAsync(_job);
-            } else {
-                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri, this._chainId.toString()).inc();
-                _job.calldata = ''; // clear out calldata so transaction can never be submitted, even by accident
-                _job.isCompleted = true;
-                _job.lastLookResult = isLastLookApproved;
-                _job.status = RfqmJobStatus.FailedLastLookDeclined;
-                await this._dbUtils.updateRfqmJobAsync(_job);
-                throw new Error('Market maker rejected last look');
-            }
-        }
-
-        return { job: _job, calldata };
     }
 
     /**
@@ -1603,16 +1230,16 @@ export class RfqmService {
      * transaction and exit.
      */
     public async submitJobToChainAsync(
-        job: RfqmJobEntity | RfqmV2JobEntity,
+        job: RfqmV2JobEntity,
         workerAddress: string,
         calldata: string,
         now: Date = new Date(),
     ): Promise<RfqmJobStatus.FailedRevertedConfirmed | RfqmJobStatus.FailedExpired | RfqmJobStatus.SucceededConfirmed> {
         const _job = _.cloneDeep(job);
         const { orderHash } = _job;
-        const previousSubmissionsWithPresubmits = await (job.kind === 'rfqm_v1_job'
-            ? this._dbUtils.findRfqmTransactionSubmissionsByOrderHashAsync(orderHash)
-            : this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash));
+        const previousSubmissionsWithPresubmits = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+            orderHash,
+        );
 
         const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
@@ -1669,7 +1296,6 @@ export class RfqmService {
             gasEstimate = await this._blockchainUtils.estimateGasForExchangeProxyCallAsync(calldata, workerAddress);
 
             const firstSubmission = await this._submitTransactionAsync(
-                _job.kind,
                 orderHash,
                 workerAddress,
                 calldata,
@@ -1683,9 +1309,7 @@ export class RfqmService {
                 'Successfully submitted transaction',
             );
 
-            submissionContext = new SubmissionContext(this._blockchainUtils, [firstSubmission] as
-                | RfqmTransactionSubmissionEntity[]
-                | RfqmV2TransactionSubmissionEntity[]);
+            submissionContext = new SubmissionContext(this._blockchainUtils, [firstSubmission]);
         } else {
             logger.info({ workerAddress, orderHash }, `Previous submissions found, recovering context`);
             submissionContext = new SubmissionContext(this._blockchainUtils, previousSubmissions);
@@ -1701,10 +1325,7 @@ export class RfqmService {
             gasEstimate = MAX_GAS_ESTIMATE;
         }
 
-        const expectedTakerTokenFillAmount =
-            _job.kind === 'rfqm_v1_job'
-                ? this._blockchainUtils.getTakerTokenFillAmountFromMetaTxCallData(calldata)
-                : new BigNumber(_job.order.order.takerAmount);
+        const expectedTakerTokenFillAmount = new BigNumber(_job.order.order.takerAmount);
 
         // The "Watch Loop"
         while (true) {
@@ -1789,7 +1410,6 @@ export class RfqmService {
 
                     try {
                         const newTransaction = await this._submitTransactionAsync(
-                            _job.kind,
                             orderHash,
                             workerAddress,
                             calldata,
@@ -1854,7 +1474,7 @@ export class RfqmService {
         params: FetchIndicativeQuoteParams,
         gasPrice: BigNumber,
         isUnwrap: boolean,
-    ): Promise<V4RFQIndicativeQuoteMM[]> {
+    ): Promise<{ quotes: IndicativeQuote[]; otcOrderFee: Fee }> {
         // Extract params
         const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
 
@@ -1863,26 +1483,12 @@ export class RfqmService {
         const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Prepare gas estimate and fee
-        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq', isUnwrap);
-        const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
-
         const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
         const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
-
-        // Create Rfq Order request options
-        const rfqOrderOpts: RfqmRequestOptions = {
-            ...RFQM_DEFAULT_OPTS,
-            txOrigin: this._registryAddress,
-            integrator,
-            intentOnFilling: false,
-            isIndicative: true,
-            isLastLook: true,
-            fee: {
-                amount: rfqOrderFeeAmount,
-                token: this._contractAddresses.etherToken,
-                type: 'fixed',
-            },
+        const otcOrderFee: Fee = {
+            amount: otcOrderFeeAmount,
+            token: this._contractAddresses.etherToken,
+            type: 'fixed',
         };
 
         // Create Otc Order request options
@@ -1895,33 +1501,17 @@ export class RfqmService {
             sellTokenAddress: takerToken,
             assetFillAmount,
             isLastLook: true,
-            fee: {
-                amount: otcOrderFeeAmount,
-                token: this._contractAddresses.etherToken,
-                type: 'fixed',
-            },
+            fee: otcOrderFee,
         });
         const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
-        // Fetch quotes
-        const quoteRequestor = this._quoteRequestorManager.getInstance();
-        const [rfqOrderQuotes, otcOrderQuotes] = await Promise.all([
-            isUnwrap
-                ? Promise.resolve([]) // RFQm v1 does not support unwrapping
-                : quoteRequestor.requestRfqmIndicativeQuotesAsync(
-                      makerToken,
-                      takerToken,
-                      assetFillAmount,
-                      marketOperation,
-                      undefined,
-                      rfqOrderOpts,
-                  ),
-            otcOrderMakerUris.length > 0
-                ? this._quoteServerClient.batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
-                : Promise.resolve([]),
-        ]);
-        const indicativeQuotes = rfqOrderQuotes.concat(otcOrderQuotes);
-        return indicativeQuotes;
+        const quotes = await this._quoteServerClient.batchGetPriceV2Async(
+            otcOrderMakerUris,
+            integrator,
+            otcOrderParams,
+        );
+
+        return { quotes, otcOrderFee };
     }
 
     /**
@@ -1932,109 +1522,23 @@ export class RfqmService {
         gasPrice: BigNumber,
         isUnwrap: boolean = false,
     ): Promise<{
-        quotes: FirmQuote[];
+        quotes: FirmOtcQuote[];
         otcOrderFee: Fee;
-        rfqOrderFee: Fee;
     }> {
-        // Extract params
-        const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator, takerAddress } = params;
+        const { quotes, otcOrderFee } = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
 
-        // Quote Requestor specific params
-        const isSelling = sellAmount !== undefined;
-        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
-        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
-
-        // Prepare gas estimate and fee
-        const rfqOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'rfq', isUnwrap);
-        const rfqOrderFeeAmount = gasPrice.times(rfqOrderGasEstimate);
-        const rfqOrderFee: Fee = {
-            amount: rfqOrderFeeAmount,
-            token: this._contractAddresses.etherToken,
-            type: 'fixed',
-        };
-
-        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
-        const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
-        const otcOrderFee: Fee = {
-            amount: otcOrderFeeAmount,
-            token: this._contractAddresses.etherToken,
-            type: 'fixed',
-        };
-
-        // Fetch the current bucket
         const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
-
-        // Create RfqOrder request options
-        const opts: RfqmRequestOptions = {
-            ...RFQM_DEFAULT_OPTS,
-            takerAddress,
-            txOrigin: this._registryAddress,
-            integrator,
-            intentOnFilling: true,
-            isIndicative: false,
-            isLastLook: true,
-            fee: rfqOrderFee,
-        };
-
-        // Create Otc Order request options
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
-        const otcOrderParams = QuoteServerClient.makeQueryParameters({
-            chainId: this._chainId,
-            txOrigin: this._registryAddress,
-            takerAddress,
-            marketOperation,
-            buyTokenAddress: makerToken,
-            sellTokenAddress: takerToken,
-            assetFillAmount,
-            isLastLook: true,
-            fee: otcOrderFee,
-        });
-        const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+        const otcQuotes = quotes.map((q) =>
+            this._mapIndicativeQuoteToFirmOtcQuote(
+                q,
+                params.takerAddress,
+                new BigNumber(currentBucket),
+                new BigNumber(nowSeconds),
+            ),
+        );
 
-        // Fetch quotes
-        const quoteRequestor = this._quoteRequestorManager.getInstance();
-        const [rfqQuotes, otcQuotes] = await Promise.all([
-            isUnwrap
-                ? Promise.resolve([]) // RFQm v1 does not support unwrapping
-                : quoteRequestor
-                      .requestRfqmFirmQuotesAsync(
-                          makerToken,
-                          takerToken,
-                          assetFillAmount,
-                          marketOperation,
-                          undefined,
-                          opts,
-                      )
-                      .then((quotes) =>
-                          quotes.map((q): FirmQuote => {
-                              return {
-                                  order: new RfqOrder(q.order),
-                                  kind: 'rfq',
-                                  makerSignature: q.signature,
-                                  makerUri: quoteRequestor.getMakerUriForSignature(q.signature)!,
-                              };
-                          }),
-                      ),
-            otcOrderMakerUris.length > 0
-                ? this._quoteServerClient
-                      .batchGetPriceV2Async(otcOrderMakerUris, integrator, otcOrderParams)
-                      .then((quotes) =>
-                          quotes.map(
-                              (q): FirmQuote =>
-                                  this._mapIndicativeQuoteToFirmOtcQuote(
-                                      q,
-                                      takerAddress,
-                                      new BigNumber(currentBucket),
-                                      new BigNumber(nowSeconds),
-                                  ),
-                          ),
-                      )
-                : Promise.resolve([]),
-        ]);
-
-        const firmQuotes: FirmQuote[] = rfqQuotes.concat(otcQuotes);
-
-        const firmQuotesWithCorrectChainId = firmQuotes.filter((quote) => {
+        const firmQuotesWithCorrectChainId = otcQuotes.filter((quote) => {
             if (quote.order.chainId !== this._chainId) {
                 logger.error({ quote }, 'Received a quote with incorrect chain id');
                 return false;
@@ -2045,7 +1549,6 @@ export class RfqmService {
         return {
             quotes: firmQuotesWithCorrectChainId,
             otcOrderFee,
-            rfqOrderFee,
         };
     }
 
@@ -2055,8 +1558,8 @@ export class RfqmService {
      * TODO (rhinodavid): Make this do less
      */
     private async _checkSubmissionMapReceiptsAndUpdateDbAsync(
-        job: RfqmJobEntity | RfqmV2JobEntity,
-        submissionContext: SubmissionContext<RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[]>,
+        job: RfqmV2JobEntity,
+        submissionContext: SubmissionContext,
         expectedTakerTokenFillAmount: BigNumber,
     ): Promise<
         | RfqmJobStatus.PendingSubmitted
@@ -2087,13 +1590,13 @@ export class RfqmService {
             logger.warn({ orderHash: job.orderHash, errorMessage: message }, 'Failed to meter the mining latency');
         }
 
-        await submissionContext.updateForReceiptAsync(minedReceipt, expectedTakerTokenFillAmount);
+        await submissionContext.updateForReceiptAsync(minedReceipt);
 
         const jobStatus = submissionContext.jobStatus;
 
         await Promise.all([
             this._dbUtils.updateRfqmTransactionSubmissionsAsync(submissionContext.transactions),
-            this._dbUtils.updateRfqmJobAsync({ ..._job, isCompleted: false, status: jobStatus }),
+            this._dbUtils.updateRfqmJobAsync({ ..._job, status: jobStatus }),
         ]);
 
         return jobStatus;
@@ -2103,14 +1606,13 @@ export class RfqmService {
      * Determine transaction properties and submit a transaction
      */
     private async _submitTransactionAsync(
-        kind: PropType<RfqmJobEntity | RfqmV2JobEntity, 'kind'>,
         orderHash: string,
         workerAddress: string,
         callData: string,
         gasFees: GasFees,
         nonce: number,
         gasEstimate: number,
-    ): Promise<RfqmTransactionSubmissionEntity | RfqmV2TransactionSubmissionEntity> {
+    ): Promise<RfqmV2TransactionSubmissionEntity> {
         const txOptions = {
             ...gasFees,
             from: workerAddress,
@@ -2139,10 +1641,9 @@ export class RfqmService {
             status: RfqmTransactionSubmissionStatus.Presubmit,
         };
 
-        const transactionSubmissionEntity =
-            kind === 'rfqm_v1_job'
-                ? await this._dbUtils.writeRfqmTransactionSubmissionToDbAsync(partialEntity)
-                : await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(partialEntity);
+        const transactionSubmissionEntity = await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(
+            partialEntity,
+        );
 
         const transactionHashFromSubmit = await this._blockchainUtils.submitSignedTransactionAsync(signedTransaction);
 
@@ -2165,14 +1666,13 @@ export class RfqmService {
                 transactionHash: transactionHashFromSubmit,
                 status: RfqmTransactionSubmissionStatus.Submitted,
             },
-        ] as RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[];
+        ];
 
         await this._dbUtils.updateRfqmTransactionSubmissionsAsync(updatedTransactionSubmission);
 
-        const updatedEntity =
-            kind === 'rfqm_v1_job'
-                ? await this._dbUtils.findRfqmTransactionSubmissionByTransactionHashAsync(transactionHashFromSubmit)
-                : await this._dbUtils.findV2TransactionSubmissionByTransactionHashAsync(transactionHashFromSubmit);
+        const updatedEntity = await this._dbUtils.findV2TransactionSubmissionByTransactionHashAsync(
+            transactionHashFromSubmit,
+        );
 
         if (updatedEntity === undefined) {
             // This should never happen -- we just saved it
@@ -2233,9 +1733,9 @@ export class RfqmService {
      * dies again and the submission actually went through but was not found at the time of
      * this check we can potentially recover it later.
      */
-    private async _recoverPresubmitTransactionsAsync<
-        T extends RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[],
-    >(transactionSubmissions: T): Promise<T> {
+    private async _recoverPresubmitTransactionsAsync(
+        transactionSubmissions: RfqmV2TransactionSubmissionEntity[],
+    ): Promise<RfqmV2TransactionSubmissionEntity[]> {
         // Any is so nasty -- https://dev.to/shadow1349/typescript-tip-of-the-week-generics-170g
         const result: any = await Promise.all(
             transactionSubmissions.map(async (transactionSubmission) => {
@@ -2250,7 +1750,7 @@ export class RfqmService {
                 if (transactionResponse) {
                     // If it does exist, update the status. If not, remove it.
                     transactionSubmission.status = RfqmTransactionSubmissionStatus.Submitted;
-                    await this._dbUtils.updateRfqmTransactionSubmissionsAsync([transactionSubmission] as T);
+                    await this._dbUtils.updateRfqmTransactionSubmissionsAsync([transactionSubmission]);
                     return transactionSubmission;
                 } else {
                     return null;

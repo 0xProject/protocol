@@ -1,4 +1,3 @@
-import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import {
     AffiliateFeeType,
     ContractAddresses,
@@ -11,27 +10,11 @@ import {
     SupportedProvider,
 } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
-import { OtcOrder, RfqOrder } from '@0x/protocol-utils';
+import { OtcOrder } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from './config';
-import { MetaTransactionRateLimiter } from './utils/rate-limiters';
-import { MetaTransactionRateLimitConfig } from './utils/rate-limiters/types';
-
-export {
-    AvailableRateLimiter,
-    DatabaseKeysUsedForRateLimiter,
-    MetaTransactionDailyLimiterConfig,
-    MetaTransactionRateLimitConfig,
-    MetaTransactionRateLimiterAllowedResponse,
-    MetaTransactionRateLimiterContext,
-    MetaTransactionRateLimiterRejectedResponse,
-    MetaTransactionRateLimiterResponse,
-    MetaTransactionRollingLimiterConfig,
-    MetaTransactionRollingValueLimiterConfig,
-    RollingLimiterIntervalUnit,
-} from './utils/rate-limiters/types';
 
 type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
@@ -49,16 +32,6 @@ export interface IndicativeQuote {
 }
 
 /**
- * FirmRfqQuote is a quote for an RfqOrder.
- */
-export interface FirmRfqQuote {
-    kind: 'rfq';
-    makerUri: string;
-    order: RfqOrder;
-    makerSignature: Signature;
-}
-
-/**
  * FirmOtcQuote is a quote for an OtcOrder. The makerSignature may not be present if the maker gets
  * the "last look" (RFQm).
  */
@@ -68,14 +41,6 @@ export interface FirmOtcQuote {
     order: OtcOrder;
     makerSignature?: Signature;
 }
-
-/**
- * FirmQuote is a union type of all the different Firm quotes.
- *
- * NOTE: because makerSignature is optional for FirmOtcQuote, users of the FirmQuote type
- * cannot assume the presence of a makerSignature, even if dealing only with FirmRfqQuotes
- */
-export type FirmQuote = FirmRfqQuote | FirmOtcQuote;
 
 export type QuoteServerPriceParams = RequireOnlyOne<
     {
@@ -469,11 +434,6 @@ export interface TransactionWatcherSignerServiceConfig {
     heartbeatIntervalMs: number;
     unstickGasMultiplier: number;
     numBlocksUntilConfirmed: number;
-    rateLimiter?: MetaTransactionRateLimiter;
-}
-
-export interface HttpServiceConfig extends BaseHttpConfig {
-    metaTxnRateLimiters?: MetaTransactionRateLimitConfig;
 }
 
 export interface TokenMetadataOptionalSymbol {

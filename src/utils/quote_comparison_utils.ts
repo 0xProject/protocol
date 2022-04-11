@@ -1,7 +1,7 @@
 import { BigNumber, V4RFQIndicativeQuote } from '@0x/asset-swapper';
 
 import { ONE_SECOND_MS } from '../constants';
-import { FirmQuote } from '../types';
+import { FirmOtcQuote, IndicativeQuote } from '../types';
 
 /**
  * Selects the best quote from an array of quotes.
@@ -13,7 +13,7 @@ import { FirmQuote } from '../types';
  *
  * And selects the one with the best price
  */
-export function getBestQuote<T extends V4RFQIndicativeQuote | FirmQuote>(
+export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
     quotes: T[],
     isSelling: boolean,
     takerToken: string,
@@ -47,23 +47,23 @@ export function getBestQuote<T extends V4RFQIndicativeQuote | FirmQuote>(
 
 /// Private getter functions
 
-const getTakerToken = (quote: V4RFQIndicativeQuote | FirmQuote): string => {
+const getTakerToken = (quote: V4RFQIndicativeQuote | FirmOtcQuote): string => {
     return isFirmQuote(quote) ? quote.order.takerToken : quote.takerToken;
 };
 
-const getMakerToken = (quote: V4RFQIndicativeQuote | FirmQuote): string => {
+const getMakerToken = (quote: V4RFQIndicativeQuote | FirmOtcQuote): string => {
     return isFirmQuote(quote) ? quote.order.makerToken : quote.makerToken;
 };
 
-const getTakerAmount = (quote: V4RFQIndicativeQuote | FirmQuote): BigNumber => {
+const getTakerAmount = (quote: V4RFQIndicativeQuote | FirmOtcQuote): BigNumber => {
     return isFirmQuote(quote) ? quote.order.takerAmount : quote.takerAmount;
 };
 
-const getMakerAmount = (quote: V4RFQIndicativeQuote | FirmQuote): BigNumber => {
+const getMakerAmount = (quote: V4RFQIndicativeQuote | FirmOtcQuote): BigNumber => {
     return isFirmQuote(quote) ? quote.order.makerAmount : quote.makerAmount;
 };
 
-const willQuoteExpireIn = (quote: V4RFQIndicativeQuote | FirmQuote, secondsFromNow: number): boolean => {
+const willQuoteExpireIn = (quote: V4RFQIndicativeQuote | FirmOtcQuote, secondsFromNow: number): boolean => {
     if (isFirmQuote(quote)) {
         return quote.order.willExpire(secondsFromNow);
     }
@@ -74,6 +74,6 @@ const willQuoteExpireIn = (quote: V4RFQIndicativeQuote | FirmQuote, secondsFromN
     return quote.expiry.lt(expirationCutoff);
 };
 
-const isFirmQuote = (quote: V4RFQIndicativeQuote | FirmQuote): quote is FirmQuote => {
-    return (quote as FirmQuote).order !== undefined;
+const isFirmQuote = (quote: V4RFQIndicativeQuote | FirmOtcQuote): quote is FirmOtcQuote => {
+    return (quote as FirmOtcQuote).order !== undefined;
 };

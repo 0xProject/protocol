@@ -3,34 +3,23 @@
 // tslint:disable:max-file-line-count
 
 import { TooManyRequestsError } from '@0x/api-utils';
-import {
-    FillQuoteTransformerOrderType,
-    ProtocolFeeUtils,
-    QuoteRequestor,
-    SignatureType,
-    SignedNativeOrder,
-} from '@0x/asset-swapper';
+import { ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
-import { MetaTransaction, OtcOrder, RfqOrder } from '@0x/protocol-utils';
+import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { CHAIN_ID, Integrator } from '../../src/config';
+import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
-import {
-    RfqmJobEntity,
-    RfqmTransactionSubmissionEntity,
-    RfqmV2JobEntity,
-    RfqmV2TransactionSubmissionEntity,
-} from '../../src/entities';
+import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
 import { RfqmService } from '../../src/services/rfqm_service';
-import { MetaTransactionSubmitRfqmSignedQuoteResponse, RfqmTypes } from '../../src/services/types';
+import { OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
+import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
-import { QuoteRequestorManager } from '../../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -52,18 +41,9 @@ const MOCK_INTEGRATOR: Integrator = {
     rfqt: true,
 };
 
-const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): QuoteRequestorManager => {
-    const quoteRequestorManagerMock = mock(QuoteRequestorManager);
-    const quoteRequestorManagerInstance = instance(quoteRequestorManagerMock);
-    when(quoteRequestorManagerMock.getInstance()).thenReturn(quoteRequestorInstance);
-
-    return quoteRequestorManagerInstance;
-};
-
 const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
-        quoteRequestorManager?: QuoteRequestorManager;
         protocolFeeUtils?: ProtocolFeeUtils;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
@@ -96,8 +76,6 @@ const buildRfqmServiceForUnitTest = (
         },
     ]);
 
-    const quoteRequestorInstance = instance(quoteRequestorMock);
-    const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
     const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
     when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
     const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
@@ -109,13 +87,11 @@ const buildRfqmServiceForUnitTest = (
     const sqsMock = mock(Producer);
     when(sqsMock.queueSize()).thenResolve(0);
     const quoteServerClientMock = mock(QuoteServerClient);
-
     const cacheClientMock = mock(CacheClient);
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
-        overrides.chainId || CHAIN_ID,
-        overrides.quoteRequestorManager || quoteRequestorManagerInstance,
+        overrides.chainId || 1337,
         overrides.protocolFeeUtils || protocolFeeUtilsInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
@@ -131,139 +107,120 @@ const buildRfqmServiceForUnitTest = (
 };
 
 describe('RfqmService HTTP Logic', () => {
-    describe('submitMetaTransactionSignedQuoteAsync', () => {
+    describe('submitTakerSignedOtcOrderAsync', () => {
         it('should fail if there is already a pending trade for the taker and taker token', async () => {
-            const existingOrder = {
-                chainId: '1',
-                expiry: NEVER_EXPIRES.toString(),
-                maker: '',
-                makerAmount: '',
-                makerToken: '',
-                pool: '',
-                salt: '',
-                taker: '0xtaker',
-                takerAmount: '',
-                takerToken: '0xtakertoken',
-                txOrigin: '',
-                verifyingContract: '',
-            };
-            const existingJob = new RfqmJobEntity({
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const otcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: '0x1111111111111111111111111111111111111111',
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1337,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const existingJob = new RfqmV2JobEntity({
+                chainId: 1337,
+                expiry,
+                makerUri: '',
+                orderHash: '0x00',
+                fee: {
+                    token: '0xToken',
+                    amount: '100',
+                    type: 'fixed',
+                },
+                order: otcOrderToStoredOtcOrder(otcOrder),
+            });
+
+            const quote = new RfqmV2QuoteEntity({
                 affiliateAddress: '',
-                calldata: '0x000',
                 chainId: 1,
                 createdAt: new Date(),
-                expiry: NEVER_EXPIRES,
                 fee: {
                     amount: '0',
                     token: '',
                     type: 'fixed',
                 },
                 integratorId: '',
-                isCompleted: false,
-                lastLookResult: null,
                 makerUri: 'http://foo.bar',
-                metadata: null,
-                metaTransactionHash: '',
                 order: {
-                    order: existingOrder,
-                    type: RfqmOrderTypes.V4Rfq,
+                    order: existingJob.order.order,
+                    type: RfqmOrderTypes.Otc,
                 },
                 orderHash: '',
-                status: RfqmJobStatus.PendingEnqueued,
-                updatedAt: new Date(),
-                workerAddress: '',
+                isUnwrap: false,
             });
 
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
-            when(dbUtilsMock.findQuoteByMetaTransactionHashAsync('0xmetatransactionhash')).thenResolve({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
+            when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([existingJob]);
+            when(dbUtilsMock.findV2QuoteByOrderHashAsync(otcOrder.getHash())).thenResolve(quote);
+            const params: OtcOrderSubmitRfqmSignedQuoteParams = {
+                integrator: MOCK_INTEGRATOR,
+                order: otcOrder,
+                signature: {
+                    r: '',
+                    s: '',
+                    signatureType: SignatureType.EthSign,
+                    v: 1,
                 },
-                integratorId: '',
-                makerUri: 'http://foo.bar',
-                metaTransactionHash: '0xmetatransactionhash',
-                order: {
-                    order: existingOrder,
-                    type: RfqmOrderTypes.V4Rfq,
-                },
-                orderHash: '',
-            });
+                type: RfqmTypes.OtcOrder,
+            };
             const metatransactionMock = mock(MetaTransaction);
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
-            const dbUtils = instance(dbUtilsMock);
 
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
-                dbUtils,
+                dbUtils: instance(dbUtilsMock),
             });
 
-            expect(
-                service.submitMetaTransactionSignedQuoteAsync({
-                    integrator: MOCK_INTEGRATOR,
-                    metaTransaction: instance(metatransactionMock),
-                    signature: {
-                        r: '',
-                        s: '',
-                        signatureType: SignatureType.EthSign,
-                        v: 1,
-                    },
-                    type: RfqmTypes.MetaTransaction,
-                }),
-            ).to.be.rejectedWith(TooManyRequestsError, 'a pending trade for this taker and takertoken already exists'); // tslint:disable-line no-unused-expression
+            expect(service.submitTakerSignedOtcOrderAsync(params)).to.be.rejectedWith(
+                TooManyRequestsError,
+                'a pending trade for this taker and takertoken already exists',
+            ); // tslint:disable-line no-unused-expression
         });
 
         it('should allow two trades by the same taker with different taker tokens', async () => {
-            const existingOrder = {
-                chainId: '1',
-                expiry: NEVER_EXPIRES.toString(),
-                maker: '',
-                makerAmount: '',
-                makerToken: '',
-                pool: '',
-                salt: '',
-                taker: '0xtaker',
-                takerAmount: '',
-                takerToken: '0xtakertoken1',
-                txOrigin: '',
-                verifyingContract: '',
-            };
-            const existingJob = new RfqmJobEntity({
-                affiliateAddress: '',
-                calldata: '0x000',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: NEVER_EXPIRES,
+            const takerPrivateKey = '0xe13ae9fa0166b501a2ab50e7b6fbb65819add7376da9b4fbb3bf3ae48cd9dcd3';
+            const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const existingOtcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: takerAddress,
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1337,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const newOtcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: takerAddress,
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x9999999999999999999999999999999999999999',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1337,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const existingJob = new RfqmV2JobEntity({
+                chainId: 1337,
+                expiry,
+                makerUri: '',
+                orderHash: '0x00',
                 fee: {
-                    amount: '0',
-                    token: '',
+                    token: '0xToken',
+                    amount: '100',
                     type: 'fixed',
                 },
-                integratorId: '',
-                isCompleted: false,
-                lastLookResult: null,
-                makerUri: 'http://foo.bar',
-                metadata: null,
-                metaTransactionHash: '',
-                order: {
-                    order: existingOrder,
-                    type: RfqmOrderTypes.V4Rfq,
-                },
-                orderHash: '',
-                status: RfqmJobStatus.PendingEnqueued,
-                updatedAt: new Date(),
-                workerAddress: '',
+                order: otcOrderToStoredOtcOrder(existingOtcOrder),
             });
 
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobsWithStatusesAsync(anything())).thenResolve([existingJob]);
-            when(dbUtilsMock.findQuoteByMetaTransactionHashAsync('0xmetatransactionhash')).thenResolve({
+            when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([existingJob]);
+            when(dbUtilsMock.findV2QuoteByOrderHashAsync(newOtcOrder.getHash())).thenResolve({
                 affiliateAddress: '',
                 chainId: 1,
                 createdAt: new Date(),
@@ -274,47 +231,55 @@ describe('RfqmService HTTP Logic', () => {
                 },
                 integratorId: '',
                 makerUri: 'http://foo.bar',
-                metaTransactionHash: '0xmetatransactionhash',
-                order: {
-                    order: { ...existingOrder, takerToken: '0xtakertoken2' },
-                    type: RfqmOrderTypes.V4Rfq,
-                },
+                order: otcOrderToStoredOtcOrder(newOtcOrder),
                 orderHash: '',
+                isUnwrap: false,
             });
             const metatransactionMock = mock(MetaTransaction);
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
-            const dbUtils = instance(dbUtilsMock);
-
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+                new BigNumber(10000),
+            ]);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
-                dbUtils,
+                dbUtils: instance(dbUtilsMock),
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
             });
 
-            expect(
-                service.submitMetaTransactionSignedQuoteAsync({
-                    integrator: MOCK_INTEGRATOR,
-                    metaTransaction: instance(metatransactionMock),
-                    signature: {
-                        r: '',
-                        s: '',
-                        signatureType: SignatureType.EthSign,
-                        v: 1,
-                    },
-                    type: RfqmTypes.MetaTransaction,
-                }),
-            ).to.eventually.satisfy((t: MetaTransactionSubmitRfqmSignedQuoteResponse) => t.type === 'metatransaction'); // tslint:disable-line no-unused-expression
+            const submitParams: OtcOrderSubmitRfqmSignedQuoteParams = {
+                integrator: MOCK_INTEGRATOR,
+                order: newOtcOrder,
+                signature: ethSignHashWithKey(newOtcOrder.getHash(), takerPrivateKey),
+                type: RfqmTypes.OtcOrder,
+            };
+            const result = await service.submitTakerSignedOtcOrderAsync(submitParams);
+            expect(result.type).to.equal('otc');
         });
     });
 
     describe('fetchIndicativeQuoteAsync', () => {
         describe('sells', async () => {
             it('should fetch indicative quote', async () => {
-                // Given
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                const service = buildRfqmServiceForUnitTest();
 
-                // When
+                const quote: IndicativeQuote = {
+                    maker: '0xmaker',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(101),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
+
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -324,7 +289,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -334,38 +298,22 @@ describe('RfqmService HTTP Logic', () => {
             });
 
             it('should round price to six decimal places', async () => {
-                // Given
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        makerToken: contractAddresses.zrxToken,
-                        makerAmount: new BigNumber(111),
-                        takerToken: contractAddresses.etherToken,
-                        takerAmount: new BigNumber(333),
-                        expiry: NEVER_EXPIRES,
-                        makerUri: MOCK_MM_URI,
-                    },
+                const quote: IndicativeQuote = {
+                    maker: '0xmaker',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(111),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(333),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
                 ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -375,7 +323,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(333),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -386,8 +333,8 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should only return an indicative quote that is 100% filled when selling', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const partialFillQuote = {
+                const quote1: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(55),
                     takerToken: contractAddresses.etherToken,
@@ -395,7 +342,8 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const fullQuote = {
+                const quote2: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(105),
                     takerToken: contractAddresses.etherToken,
@@ -403,26 +351,13 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([partialFillQuote, fullQuote]);
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote1,
+                    quote2,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -432,7 +367,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -443,8 +377,8 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should return null if no quotes are valid', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const partialFillQuote = {
+                const partialFillQuote: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(55),
                     takerToken: contractAddresses.etherToken,
@@ -452,26 +386,12 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([partialFillQuote]);
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    partialFillQuote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // Expect
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -480,13 +400,13 @@ describe('RfqmService HTTP Logic', () => {
                     sellTokenDecimals: 18,
                     sellAmount: new BigNumber(100),
                 });
-                expect(res).to.eq(null);
+                expect(res).to.equal(null);
             });
 
             it('should return an indicative quote that can fill more than 100%', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const worsePricing = {
+                const worseQuote: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(101),
                     takerToken: contractAddresses.etherToken,
@@ -494,7 +414,8 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const betterPricing = {
+                const betterQuote: IndicativeQuote = {
+                    maker: '0xmaker2',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(222),
                     takerToken: contractAddresses.etherToken,
@@ -502,26 +423,13 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([worsePricing, betterPricing]);
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    worseQuote,
+                    betterQuote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -531,7 +439,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -542,8 +449,8 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should ignore quotes that are for the wrong pair', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const worsePricing = {
+                const worseQuote: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(101),
                     takerToken: contractAddresses.etherToken,
@@ -551,7 +458,8 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const wrongPair = {
+                const betterQuote: IndicativeQuote = {
+                    maker: '0xmaker2',
                     makerToken: '0x1111111111111111111111111111111111111111',
                     makerAmount: new BigNumber(111),
                     takerToken: contractAddresses.etherToken,
@@ -559,26 +467,13 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([worsePricing, wrongPair]);
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    worseQuote,
+                    betterQuote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -588,7 +483,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -599,9 +493,9 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should ignore quotes that expire within 3 minutes', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
                 const inOneMinute = (Date.now() + ONE_MINUTE_MS) / ONE_SECOND_MS;
-                const expiresSoon = {
+                const expiresSoon: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(111),
                     takerToken: contractAddresses.etherToken,
@@ -609,7 +503,8 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: new BigNumber(inOneMinute),
                     makerUri: MOCK_MM_URI,
                 };
-                const expiresNever = {
+                const neverExpires: IndicativeQuote = {
+                    maker: '0xmaker2',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(101),
                     takerToken: contractAddresses.etherToken,
@@ -617,26 +512,13 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([expiresSoon, expiresNever]);
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    expiresSoon,
+                    neverExpires,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -646,7 +528,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -659,36 +540,21 @@ describe('RfqmService HTTP Logic', () => {
         describe('buys', async () => {
             it('should fetch indicative quote when buying', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        makerToken: contractAddresses.zrxToken,
-                        makerAmount: new BigNumber(125),
-                        takerToken: contractAddresses.etherToken,
-                        takerAmount: new BigNumber(100),
-                        expiry: NEVER_EXPIRES,
-                        makerUri: MOCK_MM_URI,
-                    },
+                const quote: IndicativeQuote = {
+                    maker: '0xmaker',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(125),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
                 ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -698,7 +564,6 @@ describe('RfqmService HTTP Logic', () => {
                     buyAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -709,24 +574,8 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should only return an indicative quote that is 100% filled when buying', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const partialFillQuoteBadPricing = {
-                    makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(80),
-                    takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
-                    expiry: NEVER_EXPIRES,
-                    makerUri: MOCK_MM_URI,
-                };
-                const partialFillQuoteGoodPricing = {
-                    makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(80),
-                    takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(40),
-                    expiry: NEVER_EXPIRES,
-                    makerUri: MOCK_MM_URI,
-                };
-                const fullQuote = {
+                const partialFillQuoteBadPricing: IndicativeQuote = {
+                    maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
                     makerAmount: new BigNumber(125),
                     takerToken: contractAddresses.etherToken,
@@ -734,26 +583,32 @@ describe('RfqmService HTTP Logic', () => {
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmIndicativeQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([partialFillQuoteBadPricing, partialFillQuoteGoodPricing, fullQuote]);
+                const partialFillQuoteGoodPricing: IndicativeQuote = {
+                    maker: '0xmaker2',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(80),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(40),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+                const fullQuote: IndicativeQuote = {
+                    maker: '0xmaker3',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(125),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    partialFillQuoteBadPricing,
+                    partialFillQuoteGoodPricing,
+                    fullQuote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                });
-
-                // When
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     buyToken: contractAddresses.zrxToken,
@@ -763,7 +618,6 @@ describe('RfqmService HTTP Logic', () => {
                     buyAmount: new BigNumber(100),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -776,75 +630,39 @@ describe('RfqmService HTTP Logic', () => {
 
     describe('fetchFirmQuoteAsync', () => {
         const takerAddress = '0xf003A9418DE2620f935181259C0Fa1595E871234';
-        const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
-        const INVALID_SIGNATURE = {
-            signatureType: SignatureType.Invalid,
-            v: 1,
-            r: EMPTY_BYTES32,
-            s: EMPTY_BYTES32,
-        };
-        const MOCK_META_TX = new MetaTransaction();
 
         describe('sells', () => {
-            const sellAmount = new BigNumber(100);
             it('should fetch a firm quote', async () => {
+                const sellAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        order: new RfqOrder({
-                            chainId: 1337,
-                            makerToken: contractAddresses.zrxToken,
-                            makerAmount: new BigNumber(101),
-                            takerToken: contractAddresses.etherToken,
-                            takerAmount: new BigNumber(100),
-                            expiry: NEVER_EXPIRES,
-                        }),
-                        type: FillQuoteTransformerOrderType.Rfq,
-                        signature: INVALID_SIGNATURE,
-                    },
-                ]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(101),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
                 const dbUtils = instance(dbUtilsMock);
 
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
+                    quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
+                    cacheClient: instance(cacheClientMock),
                 });
 
-                // When
                 const res = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
@@ -855,79 +673,45 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount,
                 });
 
-                // Then
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-                if (res.type === RfqmTypes.OtcOrder) {
-                    expect.fail('res is type "otc", but expected "metatransaction"');
-                    return;
-                }
-                expect(res.sellAmount).to.eq(sellAmount);
-                expect(res.price.toNumber()).to.equal(1.01);
-                expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
-                expect(res.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+
+                expect(res?.sellAmount).to.equal(sellAmount);
+                expect(res?.price.toNumber()).to.equal(1.01);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
 
             it('should scale a firm quote if MM returns too much', async () => {
+                const sellAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        order: new RfqOrder({
-                            chainId: 1337,
-                            makerToken: contractAddresses.zrxToken,
-                            makerAmount: new BigNumber(202),
-                            takerToken: contractAddresses.etherToken,
-                            takerAmount: new BigNumber(200), // returns more than sellAmount
-                            expiry: NEVER_EXPIRES,
-                        }),
-                        type: FillQuoteTransformerOrderType.Rfq,
-                        signature: INVALID_SIGNATURE,
-                    },
-                ]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(202),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(200),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
                 const dbUtils = instance(dbUtilsMock);
 
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
+                    quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
+                    cacheClient: instance(cacheClientMock),
                 });
 
-                // When
                 const res = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
@@ -938,80 +722,44 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount,
                 });
 
-                // Then
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-                if (res.type === RfqmTypes.OtcOrder) {
-                    expect.fail('res is type "otc", but expected "metatransaction"');
-                    return;
-                }
-                expect(res.sellAmount).to.eq(sellAmount);
-                expect(res.buyAmount.toNumber()).to.eq(101); // result is scaled
-                expect(res.price.toNumber()).to.equal(1.01);
-                expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
-                expect(res.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.sellAmount).to.equal(sellAmount);
+                expect(res?.buyAmount.toNumber()).to.equal(101); // result is scaled
+                expect(res?.price.toNumber()).to.equal(1.01);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
 
             it('should round price to six decimal places', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        order: new RfqOrder({
-                            chainId: 1337,
-                            makerToken: contractAddresses.zrxToken,
-                            makerAmount: new BigNumber(111),
-                            takerToken: contractAddresses.etherToken,
-                            takerAmount: new BigNumber(333),
-                            expiry: NEVER_EXPIRES,
-                        }),
-                        type: FillQuoteTransformerOrderType.Rfq,
-                        signature: INVALID_SIGNATURE,
-                    },
-                ]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(111),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(333),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
                 const dbUtils = instance(dbUtilsMock);
 
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
+                    quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
+                    cacheClient: instance(cacheClientMock),
                 });
 
-                // When
                 const res = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
@@ -1022,7 +770,6 @@ describe('RfqmService HTTP Logic', () => {
                     sellAmount: new BigNumber(333),
                 });
 
-                // Then
                 if (res === null) {
                     expect.fail('res is null, but not expected to be null');
                     return;
@@ -1033,65 +780,37 @@ describe('RfqmService HTTP Logic', () => {
         });
 
         describe('buys', () => {
-            const buyAmount = new BigNumber(100);
             it('should fetch a firm quote', async () => {
+                const buyAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        order: new RfqOrder({
-                            chainId: 1337,
-                            makerToken: contractAddresses.zrxToken,
-                            makerAmount: new BigNumber(100),
-                            takerToken: contractAddresses.etherToken,
-                            takerAmount: new BigNumber(80),
-                            expiry: NEVER_EXPIRES,
-                        }),
-                        type: FillQuoteTransformerOrderType.Rfq,
-                        signature: INVALID_SIGNATURE,
-                    },
-                ]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(100),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(80),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
 
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
                 const dbUtils = instance(dbUtilsMock);
 
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
+                    quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
+                    cacheClient: instance(cacheClientMock),
                 });
 
-                // When
                 const res = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
@@ -1102,80 +821,44 @@ describe('RfqmService HTTP Logic', () => {
                     buyAmount: new BigNumber(100),
                 });
 
-                // Then
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-
-                if (res.type === RfqmTypes.OtcOrder) {
-                    expect.fail('res is type "otc", but expected "metatransaction"');
-                    return;
-                }
-                expect(res.buyAmount.toNumber()).to.eq(buyAmount.toNumber());
-                expect(res.price.toNumber()).to.equal(0.8);
-                expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
-                expect(res.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
+                expect(res?.price.toNumber()).to.equal(0.8);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
 
             it('should scale a firm quote to desired buyAmount if MM returns too much', async () => {
+                const buyAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([
-                    {
-                        order: new RfqOrder({
-                            chainId: 1337,
-                            makerToken: contractAddresses.zrxToken,
-                            makerAmount: new BigNumber(125), // more than buyAmount
-                            takerToken: contractAddresses.etherToken,
-                            takerAmount: new BigNumber(100),
-                            expiry: NEVER_EXPIRES,
-                        }),
-                        type: FillQuoteTransformerOrderType.Rfq,
-                        signature: INVALID_SIGNATURE,
-                    },
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(125), // more than buyAmount
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
+
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
                 ]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
-
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
-
-                // Mock out the dbUtils
-                const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
-                const dbUtils = instance(dbUtilsMock);
-
                 const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
+                    quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
+                    cacheClient: instance(cacheClientMock),
                 });
 
-                // When
                 const res = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
@@ -1186,112 +869,12 @@ describe('RfqmService HTTP Logic', () => {
                     buyAmount: new BigNumber(100),
                 });
 
-                // Then
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-
-                if (res.type === RfqmTypes.OtcOrder) {
-                    expect.fail('res is type "otc", but expected "metatransaction"');
-                    return;
-                }
-                expect(res.buyAmount.toNumber()).to.eq(buyAmount.toNumber());
-                expect(res.sellAmount.toNumber()).to.eq(80); // result is scaled
-                expect(res.price.toNumber()).to.equal(0.8);
-                expect(res.metaTransactionHash).to.match(/^0x[0-9a-fA-F]+/);
-                expect(res.orderHash).to.match(/^0x[0-9a-fA-F]+/);
-            });
-
-            it('should ignore quotes that are for the wrong chain', async () => {
-                const contractAddresses = getContractAddressesForChainOrThrow(1);
-                // Given
-                const makerUri = 'https://rfqm.somemaker.xyz';
-                const quoteRequestorMock = mock(QuoteRequestor);
-
-                const worsePrice: SignedNativeOrder = {
-                    order: new RfqOrder({
-                        chainId: 1337,
-                        makerToken: contractAddresses.zrxToken,
-                        makerAmount: new BigNumber(100),
-                        takerToken: contractAddresses.etherToken,
-                        takerAmount: new BigNumber(101),
-                        expiry: NEVER_EXPIRES,
-                    }),
-                    type: FillQuoteTransformerOrderType.Rfq,
-                    signature: INVALID_SIGNATURE,
-                };
-
-                const wrongChain: SignedNativeOrder = {
-                    order: new RfqOrder({
-                        chainId: 1,
-                        makerToken: contractAddresses.zrxToken,
-                        makerAmount: new BigNumber(100),
-                        takerToken: contractAddresses.etherToken,
-                        takerAmount: new BigNumber(5),
-                        expiry: NEVER_EXPIRES,
-                    }),
-                    type: FillQuoteTransformerOrderType.Rfq,
-                    signature: INVALID_SIGNATURE,
-                };
-
-                when(
-                    quoteRequestorMock.requestRfqmFirmQuotesAsync(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenResolve([worsePrice, wrongChain]);
-                when(quoteRequestorMock.getMakerUriForSignature(anything())).thenReturn(makerUri);
-
-                const quoteRequestorInstance = instance(quoteRequestorMock);
-                const quoteRequestorManagerInstance = buildQuoteRequestorManager(quoteRequestorInstance);
-
-                // Mock out the blockchain utils
-                const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
-                when(
-                    rfqBlockchainUtilsMock.generateMetaTransaction(
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                        anything(),
-                    ),
-                ).thenReturn(MOCK_META_TX);
-                const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
-
-                // Mock out the dbUtils
-                const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.writeRfqmQuoteToDbAsync(anything())).thenResolve();
-                const dbUtils = instance(dbUtilsMock);
-
-                const service = buildRfqmServiceForUnitTest({
-                    quoteRequestorManager: quoteRequestorManagerInstance,
-                    rfqBlockchainUtils,
-                    dbUtils,
-                });
-
-                // When
-                const res = await service.fetchFirmQuoteAsync({
-                    integrator: MOCK_INTEGRATOR,
-                    takerAddress,
-                    buyToken: contractAddresses.zrxToken,
-                    sellToken: contractAddresses.etherToken,
-                    buyTokenDecimals: 18,
-                    sellTokenDecimals: 18,
-                    buyAmount: new BigNumber(100),
-                });
-
-                // Then
-                if (res === null) {
-                    expect.fail('res is null, but not expected to be null');
-                    return;
-                }
-
-                expect(res.price.toNumber()).to.equal(1.01); // Worse pricing wins because better pricing is for wrong chain
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
+                expect(res?.sellAmount.toNumber()).to.equal(80); // result is scaled
+                expect(res?.price.toNumber()).to.equal(0.8);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
         });
     });
@@ -1325,327 +908,6 @@ describe('RfqmService HTTP Logic', () => {
     });
 
     describe('status', () => {
-        it("should return null when the specified order isn't found", async () => {
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            expect(jobStatus).to.equal(null);
-        });
-
-        it('should return failed for jobs that have sat in queue past expiry', async () => {
-            const oldJob = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: new BigNumber(Date.now() - 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
-                makerUri: '',
-                orderHash: '0x00',
-            });
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(oldJob);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-            expect(jobStatus.status).to.equal('failed');
-
-            if (jobStatus.status !== 'failed') {
-                expect.fail('Status should be failed');
-                throw new Error();
-            }
-            expect(jobStatus.transactions).to.have.length(0); // tslint:disable-line no-unused-expression
-        });
-
-        it('should return pending for unexpired enqueued jobs', async () => {
-            const newJob = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: new BigNumber(Date.now() + 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
-                makerUri: '',
-                orderHash: '0x00',
-            });
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(newJob);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-            expect(jobStatus.status).to.equal('pending');
-        });
-
-        it('should return pending for jobs in processing', async () => {
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: new BigNumber(Date.now() + 10000),
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.PendingProcessing,
-            });
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-            expect(jobStatus.status).to.equal('pending');
-        });
-
-        it('should return submitted with transaction submissions for submitted jobs', async () => {
-            const now = Date.now();
-            const jobExpiryTime = new BigNumber(now + 10000);
-            const transaction1Time = now + 10;
-            const transaction2Time = now + 20;
-
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: jobExpiryTime,
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.PendingSubmitted,
-            });
-
-            const submission1 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction1Time),
-                orderHash: '0x00',
-                transactionHash: '0x01',
-            });
-            const submission2 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction2Time),
-                orderHash: '0x00',
-                transactionHash: '0x02',
-            });
-
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
-                submission1,
-                submission2,
-            ]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-
-            if (jobStatus.status !== 'submitted') {
-                expect.fail('Status should be submitted');
-                throw new Error();
-            }
-            expect(jobStatus.transactions).to.have.length(2);
-            expect(jobStatus.transactions).to.deep.include({ hash: '0x01', timestamp: +transaction1Time.valueOf() });
-            expect(jobStatus.transactions).to.deep.include({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
-        });
-
-        it('should return succeeded for a successful job, with the succeeded job', async () => {
-            const now = Date.now();
-            const jobExpiryTime = new BigNumber(now + 10000);
-            const transaction1Time = now + 10;
-            const transaction2Time = now + 20;
-
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: jobExpiryTime,
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.SucceededUnconfirmed,
-            });
-
-            const submission1 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction1Time),
-                orderHash: '0x00',
-                transactionHash: '0x01',
-                status: RfqmTransactionSubmissionStatus.RevertedUnconfirmed,
-            });
-            const submission2 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction2Time),
-                orderHash: '0x00',
-                transactionHash: '0x02',
-                status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
-            });
-
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
-                submission1,
-                submission2,
-            ]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-
-            if (jobStatus.status !== 'succeeded') {
-                expect.fail('Status should be succeeded');
-                throw new Error();
-            }
-            expect(jobStatus.transactions[0]).to.contain({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
-        });
-
-        it('should return confirmed for a successful confirmed job', async () => {
-            const now = Date.now();
-            const jobExpiryTime = new BigNumber(now + 10000);
-            const transaction1Time = now + 10;
-            const transaction2Time = now + 20;
-
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: jobExpiryTime,
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.SucceededConfirmed,
-            });
-
-            const submission1 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction1Time),
-                orderHash: '0x00',
-                transactionHash: '0x01',
-                status: RfqmTransactionSubmissionStatus.RevertedConfirmed,
-            });
-            const submission2 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction2Time),
-                orderHash: '0x00',
-                transactionHash: '0x02',
-                status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            });
-
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
-                submission1,
-                submission2,
-            ]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            const jobStatus = await service.getOrderStatusAsync('0x00');
-
-            if (jobStatus === null) {
-                expect.fail('Status should exist');
-                throw new Error();
-            }
-
-            if (jobStatus.status !== 'confirmed') {
-                expect.fail('Status should be confirmed');
-                throw new Error();
-            }
-            expect(jobStatus.transactions[0]).to.contain({ hash: '0x02', timestamp: +transaction2Time.valueOf() });
-        });
-
-        it('should throw if the job is successful but there are no successful transactions', async () => {
-            const now = Date.now();
-            const jobExpiryTime = new BigNumber(now + 10000);
-            const transaction1Time = now + 10;
-            const transaction2Time = now + 20;
-
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: jobExpiryTime,
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.SucceededUnconfirmed,
-            });
-
-            const submission1 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction1Time),
-                orderHash: '0x00',
-                transactionHash: '0x01',
-                status: RfqmTransactionSubmissionStatus.RevertedUnconfirmed,
-            });
-            const submission2 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction2Time),
-                orderHash: '0x00',
-                transactionHash: '0x02',
-                status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
-            });
-
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
-                submission1,
-                submission2,
-            ]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            expect(async () => {
-                await service.getOrderStatusAsync('0x00');
-            }).to.throw; // tslint:disable-line no-unused-expression
-        });
-
-        it('should throw if the job is successful but there are multiple successful transactions', async () => {
-            const now = Date.now();
-            const jobExpiryTime = new BigNumber(now + 10000);
-            const transaction1Time = now + 10;
-            const transaction2Time = now + 20;
-
-            const job = new RfqmJobEntity({
-                calldata: '',
-                chainId: 1337,
-                expiry: jobExpiryTime,
-                makerUri: '',
-                orderHash: '0x00',
-                status: RfqmJobStatus.SucceededUnconfirmed,
-            });
-
-            const submission1 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction1Time),
-                orderHash: '0x00',
-                transactionHash: '0x01',
-                status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
-            });
-            const submission2 = new RfqmTransactionSubmissionEntity({
-                createdAt: new Date(transaction2Time),
-                orderHash: '0x00',
-                transactionHash: '0x02',
-                status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
-            });
-
-            const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve(job);
-            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-            when(dbUtilsMock.findRfqmTransactionSubmissionsByOrderHashAsync('0x00')).thenResolve([
-                submission1,
-                submission2,
-            ]);
-            const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
-
-            expect(async () => {
-                await service.getOrderStatusAsync('0x00');
-            }).to.throw; // tslint:disable-line no-unused-expression
-        });
-
         describe('v2', () => {
             const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
             const chainId = 1337;
@@ -1675,7 +937,6 @@ describe('RfqmService HTTP Logic', () => {
                 const expired = new BigNumber(Date.now() - 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
                 const oldJob = { ...BASE_JOB, expiry: expired };
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(oldJob);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
@@ -1697,7 +958,6 @@ describe('RfqmService HTTP Logic', () => {
             it('should return pending for unexpired enqueued jobs', async () => {
                 const newJob = BASE_JOB; // BASE_JOB has a valid expiry
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(newJob);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
@@ -1713,7 +973,6 @@ describe('RfqmService HTTP Logic', () => {
             it('should return pending for jobs in processing', async () => {
                 const job = { ...BASE_JOB, status: RfqmJobStatus.PendingProcessing };
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
@@ -1754,7 +1013,6 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
                     submission1,
@@ -1814,7 +1072,6 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
                     submission1,
@@ -1866,7 +1123,6 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
                     submission1,
@@ -1918,7 +1174,6 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
                     submission1,
@@ -1961,7 +1216,6 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findJobByOrderHashAsync(anything())).thenResolve();
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
                     submission1,

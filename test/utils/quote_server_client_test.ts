@@ -300,9 +300,9 @@ describe('QuoteServerClient', () => {
                 );
 
                 // Then
-                expect(indicativeQuotes!.length).to.eq(1);
-                expect(indicativeQuotes[0].makerAmount.toNumber()).to.eq(response.makerAmount.toNumber());
-                expect(indicativeQuotes[0].maker).to.eq(makerAddress);
+                expect(indicativeQuotes!.length).to.equal(1);
+                expect(indicativeQuotes[0].makerAmount.toNumber()).to.equal(response.makerAmount.toNumber());
+                expect(indicativeQuotes[0].maker).to.equal(makerAddress);
             });
         });
 
@@ -498,7 +498,7 @@ describe('QuoteServerClient', () => {
             const shouldProceed = await client.confirmLastLookAsync(makerUri, request);
 
             // Then
-            expect(shouldProceed).to.eq(false);
+            expect(shouldProceed).to.equal(false);
         });
 
         it('should reject last look if valid negative response', async () => {
@@ -535,7 +535,7 @@ describe('QuoteServerClient', () => {
             const shouldProceed = await client.confirmLastLookAsync(makerUri, request);
 
             // Then
-            expect(shouldProceed).to.eq(false);
+            expect(shouldProceed).to.equal(false);
         });
 
         it('should confirm last look if valid positive response', async () => {
@@ -572,7 +572,7 @@ describe('QuoteServerClient', () => {
             const shouldProceed = await client.confirmLastLookAsync(makerUri, request);
 
             // Then
-            expect(shouldProceed).to.eq(true);
+            expect(shouldProceed).to.equal(true);
         });
 
         it('should reject last look if invalid response', async () => {
@@ -609,7 +609,7 @@ describe('QuoteServerClient', () => {
             const shouldProceed = await client.confirmLastLookAsync(makerUri, request);
 
             // Then
-            expect(shouldProceed).to.eq(false);
+            expect(shouldProceed).to.equal(false);
         });
 
         it(`should reject last look if fee doesn't match`, async () => {
@@ -646,7 +646,7 @@ describe('QuoteServerClient', () => {
             const shouldProceed = await client.confirmLastLookAsync(makerUri, request);
 
             // Then
-            expect(shouldProceed).to.eq(false);
+            expect(shouldProceed).to.equal(false);
         });
     });
 });

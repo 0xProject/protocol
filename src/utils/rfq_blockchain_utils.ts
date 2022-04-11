@@ -160,11 +160,6 @@ export class RfqBlockchainUtils {
         return this.validateMetaTransactionOrThrowAsync(metaTxInput[0], metaTxInput[1], sender, txOptions);
     }
 
-    public getTakerTokenFillAmountFromMetaTxCallData(calldata: string): BigNumber {
-        const metaTxInput: any = this._exchangeProxy.getABIDecodedTransactionData('executeMetaTransaction', calldata);
-        return (this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTxInput[0].callData) as any)[2];
-    }
-
     /**
      * Validates a metatransaction and its signature for a given sender
      *

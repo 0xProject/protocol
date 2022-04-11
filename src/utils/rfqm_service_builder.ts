@@ -30,7 +30,6 @@ import {
 import {
     KEEP_ALIVE_TTL,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-    QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
 } from '../constants';
 import { logger } from '../logger';
@@ -39,9 +38,7 @@ import { RfqmService } from '../services/rfqm_service';
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
 import { ConfigManager } from './config_manager';
-import { METRICS_PROXY } from './metrics_service';
 import { providerUtils } from './provider_utils';
-import { QuoteRequestorManager } from './quote_requestor_manager';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqmDbUtils } from './rfqm_db_utils';
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
@@ -182,18 +179,6 @@ export async function buildRfqmServiceAsync(
     };
     rax.attach(axiosInstance);
 
-    // NOTE: QuoteRequestor is only used for RfqOrder
-    const quoteRequestorManager = new QuoteRequestorManager(
-        rfqMakerManager,
-        {}, // No RFQT offerings
-        axiosInstance,
-        undefined, // No Alt RFQM offerings at the moment
-        logger.warn.bind(logger),
-        logger.info.bind(logger),
-        QUOTE_ORDER_EXPIRATION_BUFFER_MS,
-        METRICS_PROXY,
-    );
-
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(
         PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
         chain.gasStationUrl,
@@ -221,7 +206,6 @@ export async function buildRfqmServiceAsync(
 
     return new RfqmService(
         chain.chainId,
-        quoteRequestorManager,
         protocolFeeUtils,
         contractAddresses,
         chain.registryAddress,

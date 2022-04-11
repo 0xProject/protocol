@@ -2,7 +2,7 @@ import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
-import { RfqmTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import { RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { BLOCK_FINALITY_THRESHOLD } from '../services/rfqm_service';
 
@@ -22,8 +22,8 @@ function isDefined<T>(value: T): value is NonNullable<T> {
  * all as one unit. It ensures consistency across transactions and makes retrieval
  * of the mined transaction receipt, if one exists, easy.
  */
-export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | RfqmV2TransactionSubmissionEntity[]> {
-    private _transactions: T;
+export class SubmissionContext {
+    private _transactions: RfqmV2TransactionSubmissionEntity[];
     private readonly _blockchainUtils: RfqBlockchainUtils;
     private readonly _transactionType: 0 | 2;
 
@@ -33,14 +33,14 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
         return currentBlock - receiptBlockNumber >= BLOCK_FINALITY_THRESHOLD;
     }
 
-    constructor(blockchainUtils: RfqBlockchainUtils, transactions: T) {
+    constructor(blockchainUtils: RfqBlockchainUtils, transactions: RfqmV2TransactionSubmissionEntity[]) {
         this._ensureTransactionsAreConsistent(transactions);
         this._transactionType = !!transactions[0].gasPrice ? 0 : 2;
         this._transactions = transactions;
         this._blockchainUtils = blockchainUtils;
     }
 
-    public get transactions(): T {
+    public get transactions(): RfqmV2TransactionSubmissionEntity[] {
         return this._transactions;
     }
 
@@ -61,9 +61,8 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
      * Adds a transaction to the SubmissionContext. Throws if the transaction has a nonce or type
      * different than the existing transactions.
      */
-    public addTransaction(transaction: T[number]): void {
-        // TODO (rhinodavid): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is closed
-        (this._transactions as any[]).push(transaction);
+    public addTransaction(transaction: RfqmV2TransactionSubmissionEntity): void {
+        this._transactions.push(transaction);
         this._ensureTransactionsAreConsistent(this._transactions);
     }
 
@@ -135,36 +134,14 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
      * Update the in-memory transactions in response to a mined transaction receipt.
      * Updates the statuses of all transactions and the metadata of v1 transactions.
      */
-    public async updateForReceiptAsync(
-        receipt: TransactionReceipt,
-        expectedTakerTokenFillAmount: BigNumber,
-        now: Date = new Date(),
-    ): Promise<void> {
+    public async updateForReceiptAsync(receipt: TransactionReceipt, now: Date = new Date()): Promise<void> {
         const isTransactionSuccessful = receipt.status === 1;
         const currentBlock = await this._blockchainUtils.getCurrentBlockAsync();
         const isTransactionConfirmed = SubmissionContext.isBlockConfirmed(currentBlock, receipt.blockNumber);
 
         this._transactions = this._transactions.map((transaction) => {
             transaction.updatedAt = now;
-            if (transaction.kind === 'rfqm_v1_transaction_submission') {
-                transaction.metadata = {
-                    expectedTakerTokenFillAmount: expectedTakerTokenFillAmount.toString(),
-                    actualTakerFillAmount: '0',
-                    decodedFillLog: '{}',
-                };
-            }
             if (transaction.transactionHash === receipt.transactionHash) {
-                if (isTransactionSuccessful) {
-                    if (transaction.kind === 'rfqm_v1_transaction_submission') {
-                        const decodedLog = this._blockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(receipt.logs);
-                        transaction.metadata = {
-                            expectedTakerTokenFillAmount: expectedTakerTokenFillAmount.toString(),
-                            actualTakerFillAmount: decodedLog.args.takerTokenFilledAmount.toString(),
-                            decodedFillLog: JSON.stringify(decodedLog),
-                        };
-                    }
-                }
-
                 const submissionStatus = isTransactionSuccessful
                     ? isTransactionConfirmed
                         ? RfqmTransactionSubmissionStatus.SucceededConfirmed
@@ -184,7 +161,7 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
             }
 
             return transaction;
-        }) as T;
+        });
     }
 
     /**
@@ -231,7 +208,7 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
      * `T` generic type.
      */
     // tslint:disable-next-line: prefer-function-over-method
-    private _ensureTransactionsAreConsistent(transactions: T): void {
+    private _ensureTransactionsAreConsistent(transactions: RfqmV2TransactionSubmissionEntity[]): void {
         if (!transactions.length) {
             throw new Error('`transactions` must have a nonzero length');
         }
@@ -241,12 +218,9 @@ export class SubmissionContext<T extends RfqmTransactionSubmissionEntity[] | Rfq
         if (new Set(transactions.map((t) => t.transactionHash)).size !== transactions.length) {
             throw new Error('Transactions are not unique');
         }
-        // TODO (rhinodavid): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is fixed
-        const areAllGasPricesNonNull = (transactions as any[]).every((t) => t.gasPrice !== null);
-        const areAllMaxFeesPerGasNonNull = (transactions as any[]).every((t) => t.maxFeePerGas !== null);
-        const areAllMaxPriorityFeesPerGasNonNull = (transactions as any[]).every(
-            (t) => t.maxPriorityFeePerGas !== null,
-        );
+        const areAllGasPricesNonNull = transactions.every((t) => t.gasPrice !== null);
+        const areAllMaxFeesPerGasNonNull = transactions.every((t) => t.maxFeePerGas !== null);
+        const areAllMaxPriorityFeesPerGasNonNull = transactions.every((t) => t.maxPriorityFeePerGas !== null);
         if (!(areAllGasPricesNonNull || (areAllMaxFeesPerGasNonNull && areAllMaxPriorityFeesPerGasNonNull))) {
             throw new Error('Transactions do not have the same gas type');
         }

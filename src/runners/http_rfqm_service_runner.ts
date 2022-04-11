@@ -1,7 +1,7 @@
 /**
  * This module can be used to run the RFQM HTTP service standalone
  */
-import { createDefaultServer } from '@0x/api-utils';
+import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import * as Tracing from '@sentry/tracing';
 import * as express from 'express';
@@ -14,7 +14,7 @@ import { Connection } from 'typeorm';
 
 import {
     CHAIN_CONFIGURATIONS,
-    defaultHttpServiceWithRateLimiterConfig,
+    defaultHttpServiceConfig,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
@@ -28,7 +28,6 @@ import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
 import { createRfqMakerRouter } from '../routers/rfq_maker_router';
 import { RfqMakerService } from '../services/rfq_maker_service';
-import { HttpServiceConfig } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServicesAsync, RfqmServices } from '../utils/rfqm_service_builder';
@@ -49,7 +48,7 @@ if (require.main === module) {
     (async () => {
         // Build dependencies
         const config: HttpServiceConfig = {
-            ...defaultHttpServiceWithRateLimiterConfig,
+            ...defaultHttpServiceConfig,
         };
         const connection = await getDBConnectionAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);

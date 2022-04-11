@@ -1,5 +1,5 @@
 // tslint:disable:max-file-line-count custom-no-magic-numbers
-import { BigNumber, ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
+import { BigNumber, ProtocolFeeUtils, SignatureType } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { expect } from '@0x/contracts-test-utils';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
@@ -27,7 +27,6 @@ import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_serv
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
-import { QuoteRequestorManager } from '../src/utils/quote_requestor_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
@@ -136,15 +135,16 @@ const MOCK_RFQM_JOB = new RfqmV2JobEntity({
 });
 
 describe(SUITE_NAME, () => {
-    let takerAddress: string;
-    let axiosClient: AxiosInstance;
     let app: Express.Application;
-    let server: Server;
-    let connection: Connection;
-    let rfqmService: RfqmService;
-    let dbUtils: RfqmDbUtils;
+    let axiosClient: AxiosInstance;
     let cacheClient: CacheClient;
+    let connection: Connection;
+    let dbUtils: RfqmDbUtils;
     let mockAxios: AxiosMockAdapter;
+    let rfqBlockchainUtilsMock: RfqBlockchainUtils;
+    let rfqmService: RfqmService;
+    let server: Server;
+    let takerAddress: string;
 
     before(async () => {
         // docker-compose up
@@ -179,21 +179,9 @@ describe(SUITE_NAME, () => {
         axiosClient = Axios.create();
         mockAxios = new AxiosMockAdapter(axiosClient);
 
-        // TODO (rhinodavid): Delete all quoterequestor stuff when killing v1
-        const buildQuoteRequestorManager = (quoteRequestorInstance: QuoteRequestor): QuoteRequestorManager => {
-            const quoteRequestorManagerMock = mock(QuoteRequestorManager);
-            const quoteRequestorManagerInstance = instance(quoteRequestorManagerMock);
-            when(quoteRequestorManagerMock.getInstance()).thenReturn(quoteRequestorInstance);
-
-            return quoteRequestorManagerInstance;
-        };
-        // Build QuoteRequestor, note that Axios client is accessible outside of this scope
-        const quoteRequestor = new QuoteRequestor({}, {}, axiosClient);
-        const quoteRequestorManager = buildQuoteRequestorManager(quoteRequestor);
-
         // Create the mock rfqBlockchainUtils
         const validationResponse: [BigNumber, BigNumber] = [new BigNumber(1), new BigNumber(1)];
-        const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
+        rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
         when(
             rfqBlockchainUtilsMock.generateMetaTransaction(anything(), anything(), anything(), anything(), anything()),
         ).thenCall((_rfqOrder, _signature, _taker, _takerAmount, chainId) => new MetaTransaction({ chainId }));
@@ -284,7 +272,6 @@ describe(SUITE_NAME, () => {
 
         rfqmService = new RfqmService(
             1337,
-            quoteRequestorManager,
             protocolFeeUtils,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
@@ -649,9 +636,9 @@ describe(SUITE_NAME, () => {
 
             const expectedPrice = '0.5';
             expect(appResponse.body.price).to.equal(expectedPrice);
-            expect(appResponse.body.type).to.eq(RfqmTypes.OtcOrder);
+            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
-            expect(appResponse.body.order.maker).to.eq(MARKET_MAKER_2_ADDR);
+            expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
         });
 
         it('should return a 200 OK with a firm quote when OtcOrder pricing is available for sells', async () => {
@@ -700,9 +687,9 @@ describe(SUITE_NAME, () => {
 
             const expectedPrice = '2';
             expect(appResponse.body.price).to.equal(expectedPrice);
-            expect(appResponse.body.type).to.eq(RfqmTypes.OtcOrder);
+            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
-            expect(appResponse.body.order.maker).to.eq(MARKET_MAKER_2_ADDR);
+            expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
         });
 
         it('should return a 400 BAD REQUEST if api key is missing', async () => {
@@ -803,7 +790,7 @@ describe(SUITE_NAME, () => {
                 .expect(HttpStatus.CREATED)
                 .expect('Content-Type', /json/);
 
-            expect(appResponse.body.orderHash).to.eq(orderHash);
+            expect(appResponse.body.orderHash).to.equal(orderHash);
 
             const dbJobEntity = await connection.getRepository(RfqmV2JobEntity).findOne({
                 orderHash,

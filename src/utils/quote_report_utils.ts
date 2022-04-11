@@ -4,13 +4,12 @@ import {
     ExtendedQuoteReport,
     ExtendedQuoteReportIndexedEntry,
     jsonifyFillData,
-    V4RFQIndicativeQuoteMM,
 } from '@0x/asset-swapper';
 import { Producer } from 'kafkajs';
 
 import { KAFKA_TOPIC_QUOTE_REPORT } from '../config';
 import { logger } from '../logger';
-import { FirmQuote } from '../types';
+import { FirmOtcQuote, IndicativeQuote } from '../types';
 
 import { numberUtils } from './number_utils';
 
@@ -21,12 +20,15 @@ interface ExtendedQuoteReportForRFQMLogOptions {
     sellTokenAddress: string;
     integratorId?: string;
     taker?: string;
-    allQuotes: V4RFQIndicativeQuoteMM[] | FirmQuote[];
-    bestQuote: V4RFQIndicativeQuoteMM | FirmQuote | null;
+    allQuotes: IndicativeQuote[] | FirmOtcQuote[];
+    bestQuote: IndicativeQuote | FirmOtcQuote | null;
 }
 
 export const quoteReportUtils = {
-    publishRFQMQuoteReport(logOpts: ExtendedQuoteReportForRFQMLogOptions, kafkaProducer: Producer): void {
+    async publishRFQMQuoteReportAsync(
+        logOpts: ExtendedQuoteReportForRFQMLogOptions,
+        kafkaProducer: Producer,
+    ): Promise<void> {
         if (kafkaProducer && KAFKA_TOPIC_QUOTE_REPORT) {
             const quoteId = numberUtils.randomHexNumberOfLength(10);
             logger.info(`Generating and pushing Quote report for: ${quoteId}`);
@@ -96,6 +98,6 @@ export const quoteReportUtils = {
     },
 };
 
-function isFirmQuote(quote: FirmQuote | V4RFQIndicativeQuoteMM): quote is FirmQuote {
-    return (quote as FirmQuote).order !== undefined;
+function isFirmQuote(quote: FirmOtcQuote | IndicativeQuote): quote is FirmOtcQuote {
+    return (quote as FirmOtcQuote).order !== undefined;
 }

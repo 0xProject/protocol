@@ -1,4 +1,4 @@
-import { MetaTransaction, OtcOrder, Signature } from '@0x/protocol-utils';
+import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
@@ -9,15 +9,15 @@ export enum RfqmTypes {
 }
 
 export interface FetchIndicativeQuoteParams {
-    integrator: Integrator;
+    affiliateAddress?: string;
     buyAmount?: BigNumber;
     buyToken: string;
     buyTokenDecimals: number;
+    integrator: Integrator;
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
     takerAddress?: string;
-    affiliateAddress?: string;
 }
 
 export interface FetchIndicativeQuoteResponse {
@@ -31,15 +31,15 @@ export interface FetchIndicativeQuoteResponse {
 }
 
 export interface FetchFirmQuoteParams {
-    integrator: Integrator;
+    affiliateAddress?: string;
     buyAmount?: BigNumber;
     buyToken: string;
     buyTokenDecimals: number;
+    integrator: Integrator;
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
     takerAddress: string;
-    affiliateAddress?: string;
 }
 
 export interface BaseRfqmQuoteResponse {
@@ -52,18 +52,6 @@ export interface BaseRfqmQuoteResponse {
     sellTokenAddress: string;
 }
 
-export interface MetaTransactionSubmitRfqmSignedQuoteParams {
-    integrator: Integrator;
-    metaTransaction: MetaTransaction;
-    signature: Signature;
-    type: RfqmTypes.MetaTransaction;
-}
-
-export interface MetaTransactionSubmitRfqmSignedQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
-    metaTransactionHash: string;
-    orderHash: string;
-}
 export interface OtcOrderSubmitRfqmSignedQuoteParams {
     integrator: Integrator;
     order: OtcOrder;
@@ -76,26 +64,11 @@ export interface OtcOrderSubmitRfqmSignedQuoteResponse {
     orderHash: string;
 }
 
-export interface MetaTransactionRfqmQuoteResponse extends BaseRfqmQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
-    metaTransaction: MetaTransaction;
-    metaTransactionHash: string;
-    orderHash: string;
-}
-
 export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
     type: RfqmTypes.OtcOrder;
     order: OtcOrder;
     orderHash: string;
 }
-
-export type FetchFirmQuoteResponse = MetaTransactionRfqmQuoteResponse | OtcOrderRfqmQuoteResponse;
-export type SubmitRfqmSignedQuoteParams =
-    | MetaTransactionSubmitRfqmSignedQuoteParams
-    | OtcOrderSubmitRfqmSignedQuoteParams;
-export type SubmitRfqmSignedQuoteResponse =
-    | MetaTransactionSubmitRfqmSignedQuoteResponse
-    | OtcOrderSubmitRfqmSignedQuoteResponse;
 
 export interface StatusResponse {
     status: 'pending' | 'submitted' | 'failed' | 'succeeded' | 'confirmed';

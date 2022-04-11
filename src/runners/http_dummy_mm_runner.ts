@@ -16,16 +16,15 @@
  * - 2.000_000_000_000_000_001 is considered even!
  *
  */
-import { createDefaultServer } from '@0x/api-utils';
+import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import * as express from 'express';
 
-import { defaultHttpServiceWithRateLimiterConfig } from '../config';
+import { defaultHttpServiceConfig } from '../config';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { createDummyMMRouter } from '../routers/dummy_mm_router';
-import { HttpServiceConfig } from '../types';
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -42,7 +41,7 @@ if (require.main === module) {
     (async () => {
         // Build dependencies
         const config: HttpServiceConfig = {
-            ...defaultHttpServiceWithRateLimiterConfig,
+            ...defaultHttpServiceConfig,
             httpPort: 3001,
             healthcheckHttpPort: 3001,
         };

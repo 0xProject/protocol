@@ -2,24 +2,25 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { RfqOrder, SignatureType, V4RFQIndicativeQuote } from '@0x/asset-swapper';
+import { SignatureType } from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { expect } from '@0x/contracts-test-utils';
+import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { ONE_MINUTE_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
-import { FirmQuote, FirmRfqQuote } from '../../src/types';
+import { FirmOtcQuote, IndicativeQuote } from '../../src/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 
-function createBaseQuote(): FirmRfqQuote {
+function createBaseQuote(): FirmOtcQuote {
     return {
-        order: new RfqOrder({
+        order: new OtcOrder({
             makerAmount: ZERO,
             takerAmount: ZERO,
         }),
-        kind: 'rfq',
+        kind: 'otc',
         makerSignature: {
             signatureType: SignatureType.Invalid,
             v: 0,
@@ -35,11 +36,13 @@ describe('getBestQuote', () => {
     const takerToken = 'SUSD';
     const assetFillAmount = new BigNumber(100);
     const validityWindowMs = RFQM_MINIMUM_EXPIRY_DURATION_MS;
-    const inOneMinute = new BigNumber((Date.now() + ONE_MINUTE_MS) / ONE_SECOND_MS);
+    const inOneMinute = new BigNumber(Math.round((Date.now() + ONE_MINUTE_MS) / ONE_SECOND_MS));
 
     describe('IndicativeQuotes when selling', () => {
         // Given
         const BASE_INDICATIVE_QUOTE = {
+            makerUri: 'http://makeruri',
+            maker: '0xmaker',
             makerToken,
             takerToken,
             expiry: NEVER_EXPIRES,
@@ -47,39 +50,41 @@ describe('getBestQuote', () => {
 
         describe('sells', () => {
             const isSelling = true;
-            const partialFillQuote = {
+            const partialFillQuote: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(55),
                 takerAmount: new BigNumber(50),
             };
 
-            const fullQuoteBadPricing = {
+            const fullQuoteBadPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(99),
                 takerAmount: new BigNumber(100),
             };
 
-            const fullQuoteOkPricing = {
+            const fullQuoteOkPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(105),
                 takerAmount: new BigNumber(100),
             };
 
-            const fullQuoteGreatPricing = {
+            const fullQuoteGreatPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(125),
                 takerAmount: new BigNumber(100),
             };
 
-            const wrongPair = {
-                makerToken: takerToken,
-                takerToken: makerToken,
+            const wrongPair: IndicativeQuote = {
+                ...BASE_INDICATIVE_QUOTE,
                 expiry: NEVER_EXPIRES,
                 makerAmount: new BigNumber(125),
+                makerToken: takerToken,
+                makerUri: 'http://makeruri',
                 takerAmount: new BigNumber(100),
+                takerToken: makerToken,
             };
 
-            const expiresInOneMinute = {
+            const expiresInOneMinute: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(125),
                 takerAmount: new BigNumber(100),
@@ -136,7 +141,7 @@ describe('getBestQuote', () => {
 
             tests.forEach(({ name, quotes, expectations }) => {
                 it(name, () => {
-                    const bestQuote = getBestQuote<V4RFQIndicativeQuote>(
+                    const bestQuote = getBestQuote<IndicativeQuote>(
                         quotes,
                         isSelling,
                         takerToken,
@@ -159,31 +164,32 @@ describe('getBestQuote', () => {
 
         describe('buys', () => {
             const isSelling = false;
-            const partialFillQuote = {
+            const partialFillQuote: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(55),
                 takerAmount: new BigNumber(50),
             };
 
-            const fullQuoteBadPricing = {
+            const fullQuoteBadPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(100),
                 takerAmount: new BigNumber(125),
             };
 
-            const fullQuoteOkPricing = {
+            const fullQuoteOkPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(100),
                 takerAmount: new BigNumber(120),
             };
 
-            const fullQuoteGreatPricing = {
+            const fullQuoteGreatPricing: IndicativeQuote = {
                 ...BASE_INDICATIVE_QUOTE,
                 makerAmount: new BigNumber(100),
                 takerAmount: new BigNumber(80),
             };
 
-            const wrongPair = {
+            const wrongPair: IndicativeQuote = {
+                ...BASE_INDICATIVE_QUOTE,
                 makerToken: takerToken,
                 takerToken: makerToken,
                 expiry: NEVER_EXPIRES,
@@ -248,7 +254,7 @@ describe('getBestQuote', () => {
 
             tests.forEach(({ name, quotes, expectations }) => {
                 it(name, () => {
-                    const bestQuote = getBestQuote<V4RFQIndicativeQuote>(
+                    const bestQuote = getBestQuote<IndicativeQuote>(
                         quotes,
                         isSelling,
                         takerToken,
@@ -274,69 +280,68 @@ describe('getBestQuote', () => {
         // Given
         const BASE_QUOTE = createBaseQuote();
 
-        const BASE_ORDER = new RfqOrder({
+        const BASE_ORDER = new OtcOrder({
             makerToken,
             takerToken,
-            expiry: NEVER_EXPIRES,
+            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(NEVER_EXPIRES, ZERO, ZERO),
         });
 
         describe('sells', () => {
             const isSelling = true;
-            const partialFillQuote = {
+            const partialFillQuote: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(55),
                     takerAmount: new BigNumber(50),
                 }),
             };
 
-            const fullQuoteBadPricing = {
+            const fullQuoteBadPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(99),
                     takerAmount: new BigNumber(100),
                 }),
             };
 
-            const fullQuoteOkPricing = {
+            const fullQuoteOkPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(105),
                     takerAmount: new BigNumber(100),
                 }),
             };
 
-            const fullQuoteGreatPricing = {
+            const fullQuoteGreatPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(125),
                     takerAmount: new BigNumber(100),
                 }),
             };
 
-            const wrongPair = {
+            const wrongPair: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerToken: takerToken,
                     takerToken: makerToken,
-                    expiry: NEVER_EXPIRES,
                     makerAmount: new BigNumber(125),
                     takerAmount: new BigNumber(100),
                 }),
             };
 
-            const expiresInOneMinute = {
+            const expiresInOneMinute: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(125),
                     takerAmount: new BigNumber(100),
-                    expiry: inOneMinute,
+                    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inOneMinute, ZERO, ZERO),
                 }),
             };
 
@@ -390,7 +395,7 @@ describe('getBestQuote', () => {
 
             tests.forEach(({ name, quotes, expectations }) => {
                 it(name, () => {
-                    const bestQuote = getBestQuote<FirmQuote>(
+                    const bestQuote = getBestQuote(
                         quotes,
                         isSelling,
                         takerToken,
@@ -413,61 +418,59 @@ describe('getBestQuote', () => {
 
         describe('buys', () => {
             const isSelling = false;
-            const partialFillQuote = {
+            const partialFillQuote: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(55),
                     takerAmount: new BigNumber(50),
                 }),
             };
-
-            const fullQuoteBadPricing = {
+            const fullQuoteBadPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(100),
                     takerAmount: new BigNumber(125),
                 }),
             };
 
-            const fullQuoteOkPricing = {
+            const fullQuoteOkPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(100),
                     takerAmount: new BigNumber(120),
                 }),
             };
 
-            const fullQuoteGreatPricing = {
+            const fullQuoteGreatPricing: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(100),
                     takerAmount: new BigNumber(80),
                 }),
             };
 
-            const wrongPair = {
+            const wrongPair: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerToken: takerToken,
                     takerToken: makerToken,
-                    expiry: NEVER_EXPIRES,
                     makerAmount: new BigNumber(100),
                     takerAmount: new BigNumber(80),
                 }),
             };
 
-            const expiresInOneMinute = {
+            const expiresInOneMinute: FirmOtcQuote = {
                 ...BASE_QUOTE,
-                order: new RfqOrder({
+                order: new OtcOrder({
                     ...BASE_ORDER,
                     makerAmount: new BigNumber(100),
                     takerAmount: new BigNumber(80),
-                    expiry: inOneMinute,
+                    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inOneMinute, ZERO, ZERO),
                 }),
             };
 
@@ -521,7 +524,7 @@ describe('getBestQuote', () => {
 
             tests.forEach(({ name, quotes, expectations }) => {
                 it(name, () => {
-                    const bestQuote = getBestQuote<FirmQuote>(
+                    const bestQuote = getBestQuote(
                         quotes,
                         isSelling,
                         takerToken,
