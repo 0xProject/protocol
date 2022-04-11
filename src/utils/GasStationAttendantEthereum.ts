@@ -67,7 +67,7 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
         // Currently we submit a 2 GWEI tip then multiply it by 1.5 per submission
         // Trades take ~1.5 submissions on average, so that's 2.75 GWEI
         const avgMaxPriorityFeePerGasRate = 2750000000;
-        return baseFee.plus(avgMaxPriorityFeePerGasRate);
+        return baseFee.plus(avgMaxPriorityFeePerGasRate).integerValue(BigNumber.ROUND_CEIL);
     }
 
     /**
@@ -103,8 +103,8 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
             baseFee.multipliedBy(2).plus(newMaxPriorityFeePerGas),
         );
         return {
-            maxPriorityFeePerGas: newMaxPriorityFeePerGas,
-            maxFeePerGas: newMaxFeePerGas,
+            maxPriorityFeePerGas: newMaxPriorityFeePerGas.integerValue(BigNumber.ROUND_CEIL),
+            maxFeePerGas: newMaxFeePerGas.integerValue(BigNumber.ROUND_CEIL),
         };
     }
 }

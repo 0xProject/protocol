@@ -127,7 +127,9 @@ describe('GasStationAttendantEthereum', () => {
             // accepts the transacion
             // old max fee per gas * 110% = 2002 * 1.1 = 2202.2
             expect(gasRate?.maxPriorityFeePerGas?.toString()).to.equal(new BigNumber(3).toString());
-            expect(gasRate?.maxFeePerGas?.toString()).to.equal(new BigNumber(2202.2).toString());
+            expect(gasRate?.maxFeePerGas?.toString()).to.equal(
+                new BigNumber(2202.2).integerValue(BigNumber.ROUND_CEIL).toString(),
+            );
         });
     });
 });
