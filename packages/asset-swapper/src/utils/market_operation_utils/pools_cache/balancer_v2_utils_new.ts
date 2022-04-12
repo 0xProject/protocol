@@ -1,16 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
-
-import { DEFAULT_WARNING_LOGGER } from '../../../constants';
-import { LogFunction } from '../../../types';
-import {
-    BALANCER_MAX_POOLS_FETCHED,
-    BALANCER_TOP_POOLS_FETCHED,
-    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
-} from '../constants';
-import { BalancerSwapInfo, BalancerSwaps } from '../types';
-
-import { CacheValue, SwapInfoCache } from './pair_swaps_cache';
-import { SubgraphPoolDataService } from './sgPoolDataService';
+import { BigNumber } from '@0x/utils';
 import {
     BalancerSDK,
     BalancerSdkConfig,
@@ -23,6 +12,18 @@ import {
     formatSequence,
     getTokenAddressesForSwap,
 } from '@balancer-labs/sdk';
+
+import { DEFAULT_WARNING_LOGGER } from '../../../constants';
+import { LogFunction } from '../../../types';
+import {
+    BALANCER_MAX_POOLS_FETCHED,
+    BALANCER_TOP_POOLS_FETCHED,
+    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
+} from '../constants';
+import { BalancerSwapInfo, BalancerSwaps } from '../types';
+
+import { CacheValue, SwapInfoCache } from './pair_swaps_cache';
+import { SubgraphPoolDataService } from './sgPoolDataService';
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -89,11 +90,17 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             assets = tokenAddresses;
             formattedSwapsExactIn.push({
                 assets,
-                swapSteps: swapsExactIn,
+                swapSteps: swapsExactIn.map(s => ({
+                    ...s,
+                    amount: new BigNumber(s.amount),
+                })),
             });
             formattedSwapsExactOut.push({
                 assets,
-                swapSteps: swapsExactOut,
+                swapSteps: swapsExactOut.map(s => ({
+                    ...s,
+                    amount: new BigNumber(s.amount),
+                })),
             });
         });
         const formattedSwaps: BalancerSwaps = {

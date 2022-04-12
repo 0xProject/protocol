@@ -106,6 +106,7 @@ export enum ERC20BridgeSource {
 }
 export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Balancer
+    | ERC20BridgeSource.BalancerV2
     | ERC20BridgeSource.Beethovenx
     | ERC20BridgeSource.Cream;
 
@@ -216,7 +217,7 @@ export interface BalancerBatchSwapStep {
     poolId: string;
     assetInIndex: number;
     assetOutIndex: number;
-    amount: string;
+    amount: BigNumber;
     userData: string;
 }
 

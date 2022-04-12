@@ -1384,12 +1384,12 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@balancer-labs/sdk@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@balancer-labs/sdk/-/sdk-0.1.5.tgz#9f259a87dc1875f5a05d716ef4f07fea89c7e253"
-  integrity sha512-NPHeFCjeCQGrSGLrUZE0vYHEURQ2WAtUl5kMQjewNHcooPAwmIC98N1GQfilH4Or8XcDTgbskZ0vednIAsYbnA==
+"@balancer-labs/sdk@^0.1.6":
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@balancer-labs/sdk/-/sdk-0.1.6.tgz#1a6f0aacfada7b0afbdf02259ef40ed37d3ecbcb"
+  integrity sha512-r9s7Y2XJks+8V53kqwaqHDAETipgFSEQxI7TFHYigoOtWp/sUaZnlu0kDMv3NuDvya0+t9gp5a0VxbztLwcn+g==
   dependencies:
-    "@balancer-labs/sor" "^4.0.0-beta.1"
+    "@balancer-labs/sor" "^4.0.0-beta.2"
     axios "^0.24.0"
     graphql "^15.6.1"
     graphql-request "^3.5.0"
@@ -1404,10 +1404,10 @@
     isomorphic-fetch "^2.2.1"
     typescript "^3.8.3"
 
-"@balancer-labs/sor@^4.0.0-beta.1", "sorV2@npm:@balancer-labs/sor":
-  version "4.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-4.0.0-beta.1.tgz#fb8b3f2d9bb5cec5c79446e0062aab7cdfcabccb"
-  integrity sha512-L3eMBRA51egMNKHkLktOr3sNJuqgoz24AfJkpzU4w1I66m9HlOPY/E3FgYKWO+1cXJ2sQZWDH3pEjnWMRnNbNg==
+"@balancer-labs/sor@^4.0.0-beta.2":
+  version "4.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-4.0.0-beta.2.tgz#17ee901c7434f9a5702653488b1a3ec6e1f926f1"
+  integrity sha512-ylDxsMDKpoynOQIH4PhucYc7bkXddjL6GRFCF2BwnQ4Yoy7vBOT7S0zJvIkKuUG6MSUdoTBaAtWckxXBJiNxyA==
   dependencies:
     isomorphic-fetch "^2.2.1"
 
@@ -11266,6 +11266,13 @@ solhint@^1.4.1:
 solidity-parser-antlr@^0.4.2:
   version "0.4.11"
   resolved "https://registry.yarnpkg.com/solidity-parser-antlr/-/solidity-parser-antlr-0.4.11.tgz#af43e1f13b3b88309a875455f5d6e565b05ee5f1"
+
+"sorV2@npm:@balancer-labs/sor":
+  version "4.0.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-4.0.0-beta.1.tgz#fb8b3f2d9bb5cec5c79446e0062aab7cdfcabccb"
+  integrity sha512-L3eMBRA51egMNKHkLktOr3sNJuqgoz24AfJkpzU4w1I66m9HlOPY/E3FgYKWO+1cXJ2sQZWDH3pEjnWMRnNbNg==
+  dependencies:
+    isomorphic-fetch "^2.2.1"
 
 sort-keys@^2.0.0:
   version "2.0.0"
