@@ -71,21 +71,27 @@ contract MixinBalancerV2Batch {
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.
-        BalancerV2BatchBridgeData memory data = abi.decode(bridgeData, (BalancerV2BatchBridgeData));
+        (
+            IBalancerV2BatchSwapVault vault,
+            IBalancerV2BatchSwapVault.BatchSwapStep[] memory swapSteps,
+            address[] memory assets_
+        ) = abi.decode(bridgeData, (IBalancerV2BatchSwapVault, IBalancerV2BatchSwapVault.BatchSwapStep[], address[]));
+        IERC20TokenV06[] memory assets;
+        assembly { assets := assets_ }
 
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
-        data.assets[0].approveIfBelow(address(data.vault), sellAmount);
+        assets[0].approveIfBelow(address(vault), sellAmount);
 
-        data.swapSteps[0].amount = sellAmount;
-        int256[] memory limits = new int256[](data.assets.length);
+        swapSteps[0].amount = sellAmount;
+        int256[] memory limits = new int256[](assets.length);
         for (uint256 i = 0; i < limits.length; ++i) {
-            limits[i] = i == 0 ? int256(sellAmount) : type(int256).min;
+            limits[i] = type(int256).max;
         }
 
-        int256[] memory amounts = data.vault.batchSwap(
+        int256[] memory amounts = vault.batchSwap(
             IBalancerV2BatchSwapVault.SwapKind.GIVEN_IN,
-            data.swapSteps,
-            data.assets,
+            swapSteps,
+            assets,
             IBalancerV2BatchSwapVault.FundManagement({
                 sender: address(this),
                 fromInternalBalance: false,
