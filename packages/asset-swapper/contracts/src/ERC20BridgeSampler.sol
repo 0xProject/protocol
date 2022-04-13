@@ -92,4 +92,6 @@ contract ERC20BridgeSampler is
             (callResults[i].success, callResults[i].data) = address(this).call(callDatas[i]);
         }
     }
+
+    receive() external payable {}
 }

@@ -24,7 +24,7 @@ import "./interfaces/IBancor.sol";
 
 contract CompilerHack {}
 
-contract BancorSampler {
+contract BancorSampler is CompilerHack {
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k

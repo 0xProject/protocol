@@ -1,4 +1,4 @@
-import { BalancerSwaps } from '../types'
+import { BalancerSwaps } from '../types';
 
 import { ONE_HOUR_IN_SECONDS, ONE_SECOND_MS } from '../constants';
 
@@ -43,9 +43,7 @@ export abstract class SwapInfoCache {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
         if (ignoreExpired) {
-            return value === undefined
-                ? ({} as BalancerSwaps)
-                : value.balancerSwaps;
+            return value === undefined ? ({} as BalancerSwaps) : value.balancerSwaps;
         }
         if (!value) {
             return undefined;
@@ -61,7 +59,10 @@ export abstract class SwapInfoCache {
         return cached !== undefined;
     }
 
-    protected async _getAndSaveFreshSwapInfoForPairAsync(takerToken: string, makerToken: string): Promise<BalancerSwaps> {
+    protected async _getAndSaveFreshSwapInfoForPairAsync(
+        takerToken: string,
+        makerToken: string,
+    ): Promise<BalancerSwaps> {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
         if (value === undefined || value.expiresAt >= Date.now()) {
@@ -72,7 +73,12 @@ export abstract class SwapInfoCache {
         return this._cache[key].balancerSwaps;
     }
 
-    protected _cacheSwapInfoForPair(takerToken: string, makerToken: string, swapInfo: BalancerSwaps, expiresAt: number): void {
+    protected _cacheSwapInfoForPair(
+        takerToken: string,
+        makerToken: string,
+        swapInfo: BalancerSwaps,
+        expiresAt: number,
+    ): void {
         const key = JSON.stringify([takerToken, makerToken]);
         this._cache[key] = {
             expiresAt,

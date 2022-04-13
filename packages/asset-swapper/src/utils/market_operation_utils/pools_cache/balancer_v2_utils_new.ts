@@ -12,6 +12,7 @@ import {
     formatSequence,
     getTokenAddressesForSwap,
 } from '@balancer-labs/sdk';
+import { env as ENV } from 'process';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
@@ -31,7 +32,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 export interface BalancerPoolResponse {
     poolType: string;
     id: string;
-    tokens: Array<{ address: string; }>;
+    tokens: Array<{ address: string }>;
     tokensList: string[];
 }
 
@@ -47,8 +48,8 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
     ) {
         super(cache);
         const config: BalancerSdkConfig = {
-            network: Network[ChainId[chainId] as any] as any as Network, // wtf TS
-            rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA}`,
+            network: chainId as number, // wtf TS
+            rpcUrl: ENV.ETHEREUM_RPC_URL!,
         };
         const balancerSdk = new BalancerSDK(config);
         // The RouteProposer finds paths between a token pair using direct/multihop/linearPool routes
@@ -72,21 +73,13 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         const formattedSwapsExactIn: BalancerSwapInfo[] = [];
         const formattedSwapsExactOut: BalancerSwapInfo[] = [];
         let assets: string[];
-        paths.forEach((path) => {
+        paths.forEach(path => {
             // Add a swap amount for each swap so we can use formatSequence. (This will be overwritten with actual amount during query)
-            path.swaps.forEach((s) => (s.swapAmount = '0'));
+            path.swaps.forEach(s => (s.swapAmount = '0'));
             const tokenAddresses = getTokenAddressesForSwap(path.swaps);
             // Formats for both ExactIn and ExactOut swap types
-            const swapsExactIn = formatSequence(
-                SwapTypes.SwapExactIn,
-                path.swaps,
-                tokenAddresses
-            );
-            const swapsExactOut = formatSequence(
-                SwapTypes.SwapExactOut,
-                path.swaps,
-                tokenAddresses
-            );
+            const swapsExactIn = formatSequence(SwapTypes.SwapExactIn, path.swaps, tokenAddresses);
+            const swapsExactOut = formatSequence(SwapTypes.SwapExactOut, path.swaps, tokenAddresses);
             assets = tokenAddresses;
             formattedSwapsExactIn.push({
                 assets,
@@ -117,11 +110,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
      * @param {string} makerToken Address of maker token.
      * @returns {BalancerSwaps} Swap data for pair consisting of assets and swap steps for ExactIn and ExactOut swap types.
      */
-    private _getPoolPairSwapInfo(
-        pools: PoolDictionary,
-        takerToken: string,
-        makerToken: string
-    ): BalancerSwaps {
+    private _getPoolPairSwapInfo(pools: PoolDictionary, takerToken: string, makerToken: string): BalancerSwaps {
         /*
         Uses Balancer SDK to construct available paths for pair.
         Paths can be direct, i.e. both tokens are in same pool or multihop.
@@ -134,7 +123,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             makerToken,
             SwapTypes.SwapExactIn,
             pools,
-            maxPools
+            maxPools,
         );
 
         if (paths.length == 0) return {} as BalancerSwaps;
@@ -161,23 +150,14 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
                     fromToSwapInfo[from] = fromToSwapInfo[from] || {};
                     // If a record for pair already exists skip as all paths alreay found
                     if (fromToSwapInfo[from][to]) continue;
-                    else{
+                    else {
                         try {
                             const expiresAt = Date.now() + this._cacheTimeMs;
                             // Retrieve swap steps and assets for a token pair
                             // This only needs to be called once per pair as all paths will be created from single call
-                            const pairSwapInfo = this._getPoolPairSwapInfo(
-                                poolsDict,
-                                from,
-                                to
-                            );
+                            const pairSwapInfo = this._getPoolPairSwapInfo(poolsDict, from, to);
                             fromToSwapInfo[from][to] = pairSwapInfo;
-                            this._cacheSwapInfoForPair(
-                                from,
-                                to,
-                                fromToSwapInfo[from][to],
-                                expiresAt
-                            );
+                            this._cacheSwapInfoForPair(from, to, fromToSwapInfo[from][to], expiresAt);
                         } catch (err) {
                             this._warningLogger(err, `Failed to load Balancer V2 top pools`);
                             // soldier on
@@ -194,10 +174,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
      * @param {string} makerToken Address of makerToken.
      * @returns {BalancerSwaps} Swap data for pair consisting of assets and swap steps for ExactIn and ExactOut swap types.
      */
-    protected async _fetchSwapInfoForPairAsync(
-        takerToken: string,
-        makerToken: string
-    ): Promise<BalancerSwaps> {
+    protected async _fetchSwapInfoForPairAsync(takerToken: string, makerToken: string): Promise<BalancerSwaps> {
         try {
             // retrieve up to date pools from SG
             const pools = await this.poolDataService.getPools();
@@ -205,11 +182,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             // timestamp is used for Element pools
             const timestamp = Math.floor(Date.now() / 1000);
             const poolDictionary = parseToPoolsDict(pools, timestamp);
-            return this._getPoolPairSwapInfo(
-                poolDictionary,
-                takerToken,
-                makerToken
-            );
+            return this._getPoolPairSwapInfo(poolDictionary, takerToken, makerToken);
         } catch (e) {
             return {} as BalancerSwaps;
         }

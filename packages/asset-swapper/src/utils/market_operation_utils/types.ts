@@ -110,9 +110,7 @@ export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Beethovenx
     | ERC20BridgeSource.Cream;
 
-export type SourcesWithSwapInfoCache =
-    | ERC20BridgeSource.BalancerV2;
-
+export type SourcesWithSwapInfoCache = ERC20BridgeSource.BalancerV2;
 
 // tslint:disable: enum-naming
 /**

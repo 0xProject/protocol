@@ -9,6 +9,7 @@ import {
     AggregationError,
     BalancerFillData,
     BalancerV2FillData,
+    BalancerV2BatchSwapFillData,
     BancorFillData,
     CollapsedFill,
     CompoundFillData,
@@ -86,7 +87,7 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.Balancer:
             return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Balancer');
         case ERC20BridgeSource.BalancerV2:
-            return encodeBridgeSourceId(BridgeProtocol.BalancerV2, 'BalancerV2');
+            return encodeBridgeSourceId(BridgeProtocol.BalancerV2Batch, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
         // case ERC20BridgeSource.CoFiX:
@@ -258,9 +259,20 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([balancerFillData.poolAddress]);
             break;
         case ERC20BridgeSource.BalancerV2:
+            {
+                const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2BatchSwapFillData>).fillData;
+                try {
+                    bridgeData = encoder.encode([balancerV2FillData.vault, balancerV2FillData.swapSteps, balancerV2FillData.assets]);
+                } catch (err) {
+                    console.log(JSON.stringify(balancerV2FillData, null, '\t'));
+                    console.log(err);
+                    throw err;
+                }
+            }
+            break;
         case ERC20BridgeSource.Beethovenx:
-            const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
-            const { vault, poolId } = balancerV2FillData;
+            const beethovenFillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
+            const { vault, poolId } = beethovenFillData;
             bridgeData = encoder.encode([vault, poolId]);
             break;
         case ERC20BridgeSource.Bancor:
@@ -533,7 +545,21 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
-    [ERC20BridgeSource.BalancerV2]: balancerV2Encoder,
+    [ERC20BridgeSource.BalancerV2]: AbiEncoder.create([
+        { name: 'vault', type: 'address' },
+        {
+            name: 'swapSteps',
+            type: 'tuple[]',
+            components: [
+                { name: 'poolId', type: 'bytes32' },
+                { name: 'assetInIndex', type: 'uint256' },
+                { name: 'assetOutIndex', type: 'uint256' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'userData', type: 'bytes' },
+            ],
+        },
+        { name: 'assets', type: 'address[]' },
+    ]),
     [ERC20BridgeSource.Beethovenx]: balancerV2Encoder,
     [ERC20BridgeSource.UniswapV3]: AbiEncoder.create([
         { name: 'router', type: 'address' },

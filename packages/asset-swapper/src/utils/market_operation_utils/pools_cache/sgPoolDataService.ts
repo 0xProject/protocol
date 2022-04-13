@@ -2,74 +2,63 @@ import { ChainId } from '@0x/contract-addresses';
 import { gql, request } from 'graphql-request';
 import { PoolDataService, SubgraphPoolBase } from '@balancer-labs/sdk';
 
-
 const queryWithLinear = gql`
-      query fetchTopPoolsWithLinear($maxPoolsFetched: Int!) {
-        pools: pools(
-          first: 1000,
-          where: { swapEnabled: true },
-          orderBy: totalLiquidity,
-          orderDirection: desc
-        ) {
-          id
-          address
-          poolType
-          swapFee
-          totalShares
-          tokens {
+    query fetchTopPoolsWithLinear($maxPoolsFetched: Int!) {
+        pools: pools(first: 1000, where: { swapEnabled: true }, orderBy: totalLiquidity, orderDirection: desc) {
+            id
             address
-            balance
-            decimals
-            weight
-            priceRate
-          }
-          tokensList
-          totalWeight
-          amp
-          expiryTime
-          unitSeconds
-          principalToken
-          baseToken
-          swapEnabled
-          wrappedIndex
-          mainIndex
-          lowerTarget
-          upperTarget
+            poolType
+            swapFee
+            totalShares
+            tokens {
+                address
+                balance
+                decimals
+                weight
+                priceRate
+            }
+            tokensList
+            totalWeight
+            amp
+            expiryTime
+            unitSeconds
+            principalToken
+            baseToken
+            swapEnabled
+            wrappedIndex
+            mainIndex
+            lowerTarget
+            upperTarget
         }
-      }
-    `;
+    }
+`;
 
 const queryWithOutLinear = gql`
-      query fetchTopPoolsWithoutLinear($maxPoolsFetched: Int!) {
-        pools: pools(
-          first: 1000,
-          where: { swapEnabled: true },
-          orderBy: totalLiquidity,
-          orderDirection: desc
-        ) {
-          id
-          address
-          poolType
-          swapFee
-          totalShares
-          tokens {
+    query fetchTopPoolsWithoutLinear($maxPoolsFetched: Int!) {
+        pools: pools(first: 1000, where: { swapEnabled: true }, orderBy: totalLiquidity, orderDirection: desc) {
+            id
             address
-            balance
-            decimals
-            weight
-            priceRate
-          }
-          tokensList
-          totalWeight
-          amp
-          expiryTime
-          unitSeconds
-          principalToken
-          baseToken
-          swapEnabled
+            poolType
+            swapFee
+            totalShares
+            tokens {
+                address
+                balance
+                decimals
+                weight
+                priceRate
+            }
+            tokensList
+            totalWeight
+            amp
+            expiryTime
+            unitSeconds
+            principalToken
+            baseToken
+            swapEnabled
         }
-      }
-    `;
+    }
+`;
 
 const QUERY_BY_CHAIN_ID = {
     [ChainId.Mainnet]: queryWithLinear,
@@ -88,25 +77,21 @@ export class SubgraphPoolDataService implements PoolDataService {
             chainId: number;
             subgraphUrl: string;
             maxPoolsFetched?: number;
-        }
+        },
     ) {
         this._config.maxPoolsFetched = this._config.maxPoolsFetched || 1e3;
         this._gqlQuery = QUERY_BY_CHAIN_ID[this._config.chainId];
     }
 
     public async getPools(): Promise<SubgraphPoolBase[]> {
-        console.log(
-            `SubgraphPoolDataService:getPools(): ${this._config.subgraphUrl}`
-        );
+        console.log(`SubgraphPoolDataService:getPools(): ${this._config.subgraphUrl}`);
         if (!this._gqlQuery) {
             return [];
         }
         try {
-            const { pools } = await request<{ pools: SubgraphPoolBase[] }>(
-                this._config.subgraphUrl,
-                this._gqlQuery,
-                { maxPoolsFetched: this._config.maxPoolsFetched },
-            );
+            const { pools } = await request<{ pools: SubgraphPoolBase[] }>(this._config.subgraphUrl, this._gqlQuery, {
+                maxPoolsFetched: this._config.maxPoolsFetched,
+            });
             return pools;
         } catch (err) {
             console.error(`Failed to fetch BalancerV2 subgraph pools: ${err.message}`);

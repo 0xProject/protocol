@@ -29,8 +29,8 @@ interface IBalancerV2Vault {
 
     struct BatchSwapStep {
         bytes32 poolId;
-        uint32 assetInIndex;
-        uint32 assetOutIndex;
+        uint256 assetInIndex;
+        uint256 assetOutIndex;
         uint256 amount;
         bytes userData;
     }
@@ -97,7 +97,7 @@ contract BalancerV2Sampler is SamplerUtils {
             // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
             returns (int256[] memory amounts) {
                 // Outgoing balance is negative so we need to flip the sign
-                int256 amountOutFromPool = amounts[1] * -1;
+                int256 amountOutFromPool = amounts[amounts.length - 1] * -1;
                 if (amountOutFromPool <= 0) {
                     break;
                 }
