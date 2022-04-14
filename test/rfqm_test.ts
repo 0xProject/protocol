@@ -206,9 +206,6 @@ describe(SUITE_NAME, () => {
         when(rfqBlockchainUtilsMock.submitSignedTransactionAsync(FIRST_SIGNED_TRANSACTION)).thenResolve(
             FIRST_TRANSACTION_HASH,
         );
-        when(rfqBlockchainUtilsMock.submitCallDataToExchangeProxyAsync(anything(), anything(), anything())).thenResolve(
-            FIRST_TRANSACTION_HASH,
-        );
         when(rfqBlockchainUtilsMock.getReceiptsAsync(deepEqual([FIRST_TRANSACTION_HASH]))).thenResolve([
             SUCCESSFUL_TRANSACTION_RECEIPT,
         ]);

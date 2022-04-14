@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/asset-swapper';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BlockParamLiteral } from 'ethereum-types';
+import { providers } from 'ethers';
 
 import { RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { logger } from '../logger';
@@ -20,7 +20,7 @@ const MIN_NUM_TRADES_FOR_HEALTHCHECK = 3;
  * @returns true if the metatransaction worker can pick up work.
  */
 export async function isWorkerReadyAndAbleAsync(
-    wrapper: Web3Wrapper,
+    provider: providers.Provider,
     accountAddress: string,
     accountBalance: BigNumber,
     gasPriceBaseUnits: BigNumber,
@@ -44,8 +44,8 @@ export async function isWorkerReadyAndAbleAsync(
     }
 
     // check worker has no pending transactions
-    const lastNonceOnChain = await wrapper.getAccountNonceAsync(accountAddress);
-    const lastNoncePending = await wrapper.getAccountNonceAsync(accountAddress, BlockParamLiteral.Pending);
+    const lastNonceOnChain = await provider.getTransactionCount(accountAddress);
+    const lastNoncePending = await provider.getTransactionCount(accountAddress, BlockParamLiteral.Pending);
     const hasNoPendingTransactions = lastNonceOnChain.toString() === lastNoncePending.toString();
     if (!hasNoPendingTransactions) {
         logger.error(

@@ -1647,14 +1647,6 @@ export class RfqmService {
 
         const transactionHashFromSubmit = await this._blockchainUtils.submitSignedTransactionAsync(signedTransaction);
 
-        if (transactionHash !== transactionHashFromSubmit) {
-            // This should never ever happen
-            logger.error(
-                { transactionHashFromSubmit, transactionHash },
-                'Mismatch between transaction hash calculated before submit and after submit',
-            );
-        }
-
         logger.info(
             { orderHash, workerAddress, transactionHash: transactionHashFromSubmit },
             'Transaction calldata submitted to exchange proxy',

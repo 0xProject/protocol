@@ -6,8 +6,8 @@ import {
     SupportedProvider,
 } from '@0x/asset-swapper';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { Web3Wrapper } from '@0x/dev-utils';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import { Agent as HttpAgent } from 'http';

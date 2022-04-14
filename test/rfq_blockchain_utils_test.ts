@@ -378,52 +378,6 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('submitCallDataToExchangeProxyAsync', () => {
-        it('passes submit validation and returns a transaction hash for a valid meta tx', async () => {
-            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
-            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
-
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
-                metaTx,
-                metaTxSig,
-                MATCHA_AFFILIATE_ADDRESS,
-            );
-
-            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
-                gasPrice: 1e9,
-                gas: 200000,
-                value: 0,
-            });
-
-            expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
-        });
-
-        it('submits an OtcOrder and decodes the OtcOrderFilled Event', async () => {
-            const callData = rfqBlockchainUtils.generateTakerSignedOtcOrderCallData(
-                otcOrder,
-                makerOtcOrderSig,
-                takerOtcOrderSig,
-                false,
-                /* affiliateAddress */ null,
-            );
-
-            const txHash = await rfqBlockchainUtils.submitCallDataToExchangeProxyAsync(callData, txOrigin, {
-                gasPrice: 1e9,
-                gas: 200000,
-                value: 0,
-            });
-
-            await web3Wrapper.awaitTransactionMinedAsync(txHash);
-
-            const [receipt] = await rfqBlockchainUtils.getReceiptsAsync([txHash]);
-
-            const decodedEvent = rfqBlockchainUtils.getDecodedOtcOrderFillEventLogFromLogs(receipt!.logs);
-
-            expect(txHash).to.match(/^0x[0-9a-fA-F]+/);
-            expect(decodedEvent.args.orderHash).to.equal(otcOrder.getHash());
-        });
-    });
-
     describe('transformTxDataToTransactionRequest', () => {
         it('creates a TransactionRequest', () => {
             const txOptions: TxData = {

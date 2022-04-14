@@ -6,10 +6,9 @@ import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { HDNode } from '@ethersproject/hdnode';
 import { CallData, LogEntry, LogWithDecodedArgs, TxData } from 'ethereum-types';
-import { Contract, providers, utils, Wallet } from 'ethers';
+import { BigNumber as EthersBigNumber, Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
 import { NULL_ADDRESS, ZERO } from '../constants';
@@ -59,9 +58,12 @@ const ZERO_EX_FILL_EVENT_ABI = [
     },
 ];
 
+function toBigNumber(ethersBigNumber: EthersBigNumber): BigNumber {
+    return new BigNumber(ethersBigNumber.toString());
+}
+
 export class RfqBlockchainUtils {
     private readonly _exchangeProxy: IZeroExContract;
-    private readonly _web3Wrapper: Web3Wrapper;
     private readonly _abiDecoder: AbiDecoder;
     // An ethers.js provider.
     private readonly _ethersProvider: providers.Provider;
@@ -112,7 +114,6 @@ export class RfqBlockchainUtils {
         this._ethersProvider = ethersProvider;
         this._ethersWallet = ethersWallet;
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
-        this._web3Wrapper = new Web3Wrapper(provider);
     }
 
     /**
@@ -283,7 +284,7 @@ export class RfqBlockchainUtils {
     }
 
     public async getCurrentBlockAsync(): Promise<number> {
-        return this._web3Wrapper.getBlockNumberAsync();
+        return this._ethersProvider.getBlockNumber();
     }
 
     // Fetches a block from the block number or block hash
@@ -312,10 +313,12 @@ export class RfqBlockchainUtils {
             from: workerAddress,
         };
         try {
-            const gasEstimate = await this._web3Wrapper.estimateGasAsync(txData);
+            const gasEstimate = await this._ethersProvider.estimateGas(
+                this.transformTxDataToTransactionRequest(txData),
+            );
 
             // add a buffer
-            return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate);
+            return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate.toNumber());
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
@@ -360,32 +363,16 @@ export class RfqBlockchainUtils {
      * @returns The transaction hash returned by the RPC provider.
      */
     public async submitSignedTransactionAsync(signedTransaction: string): Promise<string> {
-        return this._web3Wrapper.sendRawPayloadAsync<string>({
-            method: 'eth_sendRawTransaction',
-            params: [signedTransaction],
-        });
-    }
-
-    public async submitCallDataToExchangeProxyAsync(
-        callData: string,
-        workerAddress: string,
-        txOptions?: Partial<TxData>,
-    ): Promise<string> {
-        const txData: TxData = {
-            to: this._exchangeProxy.address,
-            data: callData,
-            from: workerAddress,
-            ...txOptions,
-        };
-        return this._web3Wrapper.sendTransactionAsync(txData);
+        const response = await this._ethersProvider.sendTransaction(signedTransaction);
+        return response.hash;
     }
 
     public async getAccountBalanceAsync(accountAddress: string): Promise<BigNumber> {
-        return this._web3Wrapper.getBalanceInWeiAsync(accountAddress);
+        return this._ethersProvider.getBalance(accountAddress).then((r) => toBigNumber(r));
     }
 
     public async isWorkerReadyAsync(workerAddress: string, balance: BigNumber, gasPrice: BigNumber): Promise<boolean> {
-        return isWorkerReadyAndAbleAsync(this._web3Wrapper, workerAddress, balance, gasPrice);
+        return isWorkerReadyAndAbleAsync(this._ethersProvider, workerAddress, balance, gasPrice);
     }
 
     /**
