@@ -1,7 +1,7 @@
 import { Connection, createConnection } from 'typeorm';
 
 import { POSTGRES_URI } from './config';
-import { createConfig } from './ormconfig';
+import { createConfig } from './createOrmConfig';
 
 let connection: Connection;
 
