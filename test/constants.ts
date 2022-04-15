@@ -7,7 +7,6 @@ import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
 
-export const ETHEREUM_RPC_URL = 'http://localhost:8545';
 export const CHAIN_ID = 1337;
 // tslint:disable-next-line:custom-no-magic-numbers
 export const MAX_INT = new BigNumber(2).pow(256).minus(1);
@@ -35,7 +34,6 @@ export const WORKER_TEST_PRIVATE_KEY = '0xff12e391b79415e941a94de3bf3a9aee577aed
 const ganacheConfigs = {
     shouldUseInProcessGanache: false,
     shouldAllowUnlimitedContractSize: true,
-    rpcUrl: ETHEREUM_RPC_URL, // set in docker-compose-test.yml
     shouldUseFakeGasEstimate: false,
 };
 

@@ -1,4 +1,5 @@
-version: '3'
+# https://docs.docker.com/compose/compose-file/#interpolation
+version: '3.3'
 services:
     ganache:
         image: '0xorg/ganache-cli:6.5.10'
@@ -23,7 +24,7 @@ services:
     sqs:
         image: mvisonneau/alpine-sqs:1.2.0
         ports:
-            - "9324:9324"
-            - "9325:9325"
+            - '9324:9324'
+            - '9325:9325'
         volumes:
             - ./elasticmq.conf:/opt/config/elasticmq.conf

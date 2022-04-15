@@ -1,6 +1,5 @@
 // tslint:disable custom-no-magic-numbers
-import { expect } from '@0x/contracts-test-utils';
-import 'mocha';
+import { expect } from 'chai';
 
 import {
     getApiKeyWhitelistFromIntegratorsAcl,
@@ -36,9 +35,7 @@ describe('Config', () => {
 
         it('returns `undefined` for non-existent api keys', () => {
             const id = getIntegratorIdForApiKey('test-api-key-does-not-exist');
-
-            // tslint:disable-next-line: no-unused-expression
-            expect(id).to.be.undefined;
+            expect(id).to.equal(undefined);
         });
     });
 

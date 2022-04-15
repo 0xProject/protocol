@@ -2,8 +2,8 @@
 // tslint:disable:max-file-line-count
 
 import { BigNumber } from '@0x/asset-swapper';
-import { expect } from '@0x/contracts-test-utils';
 import { OtcOrder } from '@0x/protocol-utils';
+import { expect } from 'chai';
 
 import { ZERO } from '../../src/constants';
 import { otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';

@@ -1,35 +1,48 @@
-import { expect } from '@0x/contracts-test-utils';
-import 'mocha';
+import { expect } from 'chai';
 import { Connection } from 'typeorm';
 
+import { ONE_MINUTE_MS } from '../../src/constants';
 import { BlockedAddressEntity } from '../../src/entities/BlockedAddressEntity';
 import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_utils';
 import { initDBConnectionAsync } from '../test_utils/db_connection';
-import { setupDependenciesAsync, teardownDependenciesAsync } from '../test_utils/deployment';
+import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from '../test_utils/deployment';
 
-const SUITE_NAME = 'rfqBlockedAddressUtils';
 const ttlMs = 50;
 
-describe(SUITE_NAME, () => {
+// tslint:disable-next-line: custom-no-magic-numbers
+jest.setTimeout(ONE_MINUTE_MS * 2);
+let teardownDependencies: TeardownDependenciesFunctionHandle;
+
+describe('rfqBlockedAddressUtils', () => {
     let connection: Connection;
     let rfqBlacklistUtils: RfqBlockedAddressUtils;
 
-    before(async () => {
-        await setupDependenciesAsync(SUITE_NAME);
+    beforeAll(async () => {
+        teardownDependencies = await setupDependenciesAsync(['postgres']);
+        // tslint:disable-next-line: custom-no-magic-numbers
         connection = await initDBConnectionAsync();
         rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
     });
 
-    after(async () => {
-        // reset DB
-        connection = await initDBConnectionAsync();
-        await teardownDependenciesAsync(SUITE_NAME);
+    afterAll(async () => {
+        const wasKilled = teardownDependencies();
+        if (!wasKilled) {
+            throw new Error('Dependencies failed to shut down');
+        }
     });
 
     beforeEach(async () => {
-        // reset DB
-        connection = await initDBConnectionAsync();
         rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
+    });
+
+    afterEach(async () => {
+        await connection.query('TRUNCATE TABLE blocked_addresses CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
 
     describe('blocked_addresses table', () => {
@@ -57,14 +70,14 @@ describe(SUITE_NAME, () => {
 
     it('should use stale values via isBlocked', async () => {
         const sampleBadAddress = '0xA10612Ee5432B6395d1F0d6fB2601299a1c64274';
-        expect(rfqBlacklistUtils.isBlocked(sampleBadAddress)).to.be.false();
+        expect(rfqBlacklistUtils.isBlocked(sampleBadAddress)).to.equal(false);
 
         // Add it to the blocked list
         await connection.getRepository(BlockedAddressEntity).save({
             address: sampleBadAddress.toLowerCase(),
         });
 
-        expect(rfqBlacklistUtils.isBlocked(sampleBadAddress)).to.be.false();
+        expect(rfqBlacklistUtils.isBlocked(sampleBadAddress)).to.equal(false);
     });
 
     it('should use fresh values after the update is complete', async () => {
@@ -77,14 +90,14 @@ describe(SUITE_NAME, () => {
 
         // Initally not blocked
         const isBlocked_t0 = rfqBlacklistUtils.isBlocked(sampleBadAddress);
-        expect(isBlocked_t0).to.be.false();
+        expect(isBlocked_t0).to.equal(false);
 
         // Await for the update to complete
         await rfqBlacklistUtils.completeUpdateAsync();
 
         // Now should be blocked
         const isBlocked_t1 = rfqBlacklistUtils.isBlocked(sampleBadAddress);
-        expect(isBlocked_t1).to.be.true();
+        expect(isBlocked_t1).to.equal(true);
     });
 
     it('should be case insensitive', async () => {
@@ -101,9 +114,9 @@ describe(SUITE_NAME, () => {
         const isLowerCaseBlocked = rfqBlacklistUtils.isBlocked(sampleBadAddress.toLowerCase());
         const isUpperCaseBlocked = rfqBlacklistUtils.isBlocked(sampleBadAddress.toUpperCase());
 
-        expect(isChecksumBlocked).to.be.true();
-        expect(isLowerCaseBlocked).to.be.true();
-        expect(isUpperCaseBlocked).to.be.true();
+        expect(isChecksumBlocked).to.equal(true);
+        expect(isLowerCaseBlocked).to.equal(true);
+        expect(isUpperCaseBlocked).to.equal(true);
     });
 });
 // tslint:disable-line:max-file-line-count

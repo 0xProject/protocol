@@ -5,20 +5,19 @@
 
 ![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png '0x API')
 
-## Table of contents
-
--   [Introduction](#introduction)
--   [Services](#services)
-    -   [HTTP Services](#http-services)
-    -   [Data Services](#data-services)
--   [Getting started](#getting-started)
-    -   [Pre-requirements](#pre-requirements)
-    -   [Developing](#developing)
--   [Commands](#commands)
--   [Database](#database)
--   [Deployment](#deployment)
--   [Release](#release)
--   [Legal Disclaimer](#legal-disclaimer)
+- [Introduction](#introduction)
+- [Services](#services)
+  - [HTTP Services](#http-services)
+  - [Data Services](#data-services)
+- [Getting started](#getting-started)
+    - [Pre-requirements](#pre-requirements)
+    - [Developing](#developing)
+    - [Developing on Ganache](#developing-on-ganache)
+- [Commands](#commands)
+- [Deployment](#deployment)
+- [Release](#release)
+- [Database](#database)
+- [Legal Disclaimer](#legal-disclaimer)
 
 ## Introduction
 
@@ -135,12 +134,6 @@ Then run
 $ docker-compose up
 $ yarn dev
 ```
-
-## Testing
-
-Run `yarn test`. It's really that easy :)
-
-Tip: Test suites set up and teardown sandboxed environments, so using `.only` on `it` and `describe` statements will save lots of development time.
 
 ## Commands
 

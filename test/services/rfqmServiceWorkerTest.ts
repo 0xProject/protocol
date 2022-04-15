@@ -6,9 +6,9 @@ import { pino } from '@0x/api-utils';
 import { ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { expect } from '@0x/contracts-test-utils';
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
@@ -115,6 +115,8 @@ const validEIP712Sig = {
 };
 const maker = '0xbb004090d26845b672f17c6da4b7d162df3bfc5e';
 const orderHash = '0x112160fb0933ecde720f63b50b303ce64e52ded702bef78b9c20361f3652a462';
+
+jest.setTimeout(ONE_SECOND_MS * 120);
 
 describe('RfqmService Worker Logic', () => {
     beforeEach(() => {

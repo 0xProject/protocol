@@ -4,37 +4,35 @@
 import { artifacts as assetSwapperArtifacts, BalanceCheckerContract } from '@0x/asset-swapper';
 import { ChainId } from '@0x/contract-addresses';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
-import { expect } from '@0x/contracts-test-utils';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';
 import { Web3ProviderEngine } from '@0x/dev-utils';
 import { ethSignHashWithProviderAsync, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
+import { expect } from 'chai';
 import { providers, Wallet } from 'ethers';
-import 'mocha';
 
-import { ZERO } from '../src/constants';
+import { ONE_MINUTE_MS, ZERO } from '../src/constants';
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 
 import {
-    ETHEREUM_RPC_URL,
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
-    WORKER_TEST_ADDRESS,
     WORKER_TEST_PRIVATE_KEY,
 } from './constants';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
-
-const SUITE_NAME = 'RFQ Blockchain Utils Test';
+import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
 
 const GAS_PRICE = 1e9;
 const VALID_EXPIRY = new BigNumber(9000000000);
 const CHAIN_ID = ChainId.Ganache;
 
-describe(SUITE_NAME, () => {
+jest.setTimeout(ONE_MINUTE_MS * 2);
+let teardownDependencies: TeardownDependenciesFunctionHandle;
+
+describe('RFQ Blockchain Utils', () => {
     let provider: Web3ProviderEngine;
     let makerToken: DummyERC20TokenContract;
     let takerToken: DummyERC20TokenContract;
@@ -59,8 +57,8 @@ describe(SUITE_NAME, () => {
     let makerOtcOrderSig: Signature;
     let takerOtcOrderSig: Signature;
 
-    before(async () => {
-        await setupDependenciesAsync(SUITE_NAME, true);
+    beforeAll(async () => {
+        teardownDependencies = await setupDependenciesAsync(['ganache']);
         provider = getProvider();
         web3Wrapper = new Web3Wrapper(provider);
 
@@ -178,7 +176,7 @@ describe(SUITE_NAME, () => {
         await takerToken.mint(takerBalance).awaitTransactionSuccessAsync({ from: taker });
         await takerToken.approve(zeroEx.address, takerBalance).awaitTransactionSuccessAsync({ from: taker });
 
-        const ethersProvider = new providers.JsonRpcProvider(ETHEREUM_RPC_URL);
+        const ethersProvider = new providers.JsonRpcProvider();
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
 
         rfqBlockchainUtils = new RfqBlockchainUtils(
@@ -190,8 +188,10 @@ describe(SUITE_NAME, () => {
         );
     });
 
-    after(async () => {
-        await teardownDependenciesAsync(SUITE_NAME);
+    afterAll(async () => {
+        if (!teardownDependencies()) {
+            throw new Error('Failed to tear down dependencies');
+        }
     });
 
     describe('getTokenBalancesAsync', () => {
@@ -203,8 +203,8 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('OtcOrder', async () => {
-        describe('estimateGasForFillTakerSignedOtcOrderAsync', async () => {
+    describe('OtcOrder', () => {
+        describe('estimateGasForFillTakerSignedOtcOrderAsync', () => {
             it('does not throw an error on valid order', async () => {
                 try {
                     const gasEstimate = await rfqBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -273,8 +273,8 @@ describe(SUITE_NAME, () => {
             const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
             const res = await rfqBlockchainUtils.validateMetaTransactionOrThrowAsync(metaTx, metaTxSig, txOrigin);
 
-            expect(res[0].eq(takerAmount)).to.be.true();
-            expect(res[1].eq(makerAmount)).to.be.true();
+            expect(res[0]).to.deep.equal(takerAmount);
+            expect(res[1]).to.deep.equal(makerAmount);
         });
 
         it('throws for a metatransaction with an invalid signature', async () => {
@@ -312,8 +312,8 @@ describe(SUITE_NAME, () => {
             );
             const res = await rfqBlockchainUtils.decodeMetaTransactionCallDataAndValidateAsync(callData, txOrigin);
 
-            expect(res[0].eq(takerAmount)).to.be.true();
-            expect(res[1].eq(makerAmount)).to.be.true();
+            expect(res[0]).to.deep.equal(takerAmount);
+            expect(res[1]).to.deep.equal(makerAmount);
         });
         it('throws for a metatransaction with an invalid signature when validating calldata', async () => {
             const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
@@ -414,41 +414,6 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe.skip('signTransactionRequestAsync', () => {
-        it('matches the transaction hash from web3wrapper', async () => {
-            const metaTx = rfqBlockchainUtils.generateMetaTransaction(rfqOrder, orderSig, taker, takerAmount, CHAIN_ID);
-            const metaTxSig = await metaTx.getSignatureWithProviderAsync(provider);
-
-            const callData = rfqBlockchainUtils.generateMetaTransactionCallData(
-                metaTx,
-                metaTxSig,
-                MATCHA_AFFILIATE_ADDRESS,
-            );
-
-            const nonce = await rfqBlockchainUtils.getNonceAsync(WORKER_TEST_ADDRESS);
-
-            const transactionRequest = rfqBlockchainUtils.transformTxDataToTransactionRequest(
-                {
-                    maxPriorityFeePerGas: new BigNumber(1e9),
-                    maxFeePerGas: new BigNumber(1e9),
-                    gas: new BigNumber(200000),
-                    value: 0,
-                    nonce,
-                },
-                CHAIN_ID,
-                callData,
-            );
-
-            // This line will produce an error because ganache cannot sign EIP1559 transactions.
-            const { signedTransaction, transactionHash: preSubmitHash } = await rfqBlockchainUtils.signTransactionAsync(
-                transactionRequest,
-            );
-            const web3SubmitHash = await rfqBlockchainUtils.submitSignedTransactionAsync(signedTransaction);
-
-            expect(preSubmitHash).to.equal(web3SubmitHash);
-        });
-    });
-
     describe('getDecodedRfqOrderFillEventLogFromLogs', () => {
         it('correctly parses an RfqOrderFillEvent from logs', async () => {
             const rfqOrderFilledEvent = rfqBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs([
@@ -470,23 +435,23 @@ describe(SUITE_NAME, () => {
         });
 
         it('throws if the contract does not exist', () => {
-            expect(
-                rfqBlockchainUtils.getTokenDecimalsAsync('0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B'),
-            ).to.eventually.be.rejected();
+            // tslint:disable-next-line: no-unused-expression no-unbound-method
+            expect(rfqBlockchainUtils.getTokenDecimalsAsync('0x29D7d1dd5B6f9C864d9db560D72a247c178aE86B')).to.be
+                .rejected;
         });
     });
 
     describe('isValidOrderSigner', () => {
         it('returns false if signer is not valid', async () => {
             const isValidOrderSigner = await rfqBlockchainUtils.isValidOrderSignerAsync(maker, signer);
-            expect(isValidOrderSigner).to.be.false();
+            expect(isValidOrderSigner).to.equal(false);
         });
 
         it('returns true when valid signer address is passed', async () => {
             await rfqBlockchainUtils.registerAllowedOrderSignerAsync(maker, signer, true);
 
             const isValidOrderSigner = await rfqBlockchainUtils.isValidOrderSignerAsync(maker, signer);
-            expect(isValidOrderSigner).to.be.true();
+            expect(isValidOrderSigner).to.equal(true);
         });
     });
 });

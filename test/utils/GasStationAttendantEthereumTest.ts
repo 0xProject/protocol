@@ -1,6 +1,5 @@
-import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
-import 'mocha';
+import { expect } from 'chai';
 import { instance, mock, when } from 'ts-mockito';
 
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities/RfqmV2TransactionSubmissionEntity';
@@ -13,7 +12,7 @@ import { SubmissionContext } from '../../src/utils/SubmissionContext';
 let gasOracleMock: GasOracle;
 
 describe('GasStationAttendantEthereum', () => {
-    before(() => {
+    beforeAll(() => {
         gasOracleMock = mock(GasOracle);
     });
 

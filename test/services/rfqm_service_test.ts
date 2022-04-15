@@ -4,16 +4,15 @@
 
 import { TooManyRequestsError } from '@0x/api-utils';
 import { ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { expect } from '@0x/contracts-test-utils';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { expect } from 'chai';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
-import { ETH_DECIMALS, ONE_MINUTE_MS, ZERO } from '../../src/constants';
+import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
 import { RfqmService } from '../../src/services/rfqm_service';
@@ -261,7 +260,7 @@ describe('RfqmService HTTP Logic', () => {
     });
 
     describe('fetchIndicativeQuoteAsync', () => {
-        describe('sells', async () => {
+        describe('sells', () => {
             it('should fetch indicative quote', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
 
@@ -537,7 +536,7 @@ describe('RfqmService HTTP Logic', () => {
             });
         });
 
-        describe('buys', async () => {
+        describe('buys', () => {
             it('should fetch indicative quote when buying', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
                 const quote: IndicativeQuote = {

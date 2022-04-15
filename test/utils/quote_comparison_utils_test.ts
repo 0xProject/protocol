@@ -4,11 +4,11 @@
 
 import { SignatureType } from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
-import { expect } from '@0x/contracts-test-utils';
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { expect } from 'chai';
 
-import { ONE_MINUTE_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
+import { RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
 import { FirmOtcQuote, IndicativeQuote } from '../../src/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
@@ -30,517 +30,518 @@ function createBaseQuote(): FirmOtcQuote {
         makerUri: 'someuri.xyz',
     };
 }
+describe('Quote Comparison Utils', () => {
+    describe('getBestQuote', () => {
+        const makerToken = 'DAI';
+        const takerToken = 'SUSD';
+        const assetFillAmount = new BigNumber(100);
+        const validityWindowMs = RFQM_MINIMUM_EXPIRY_DURATION_MS;
+        const inThirtySeconds = new BigNumber(Math.round((Date.now() + ONE_SECOND_MS * 30) / ONE_SECOND_MS));
 
-describe('getBestQuote', () => {
-    const makerToken = 'DAI';
-    const takerToken = 'SUSD';
-    const assetFillAmount = new BigNumber(100);
-    const validityWindowMs = RFQM_MINIMUM_EXPIRY_DURATION_MS;
-    const inOneMinute = new BigNumber(Math.round((Date.now() + ONE_MINUTE_MS) / ONE_SECOND_MS));
-
-    describe('IndicativeQuotes when selling', () => {
-        // Given
-        const BASE_INDICATIVE_QUOTE = {
-            makerUri: 'http://makeruri',
-            maker: '0xmaker',
-            makerToken,
-            takerToken,
-            expiry: NEVER_EXPIRES,
-        };
-
-        describe('sells', () => {
-            const isSelling = true;
-            const partialFillQuote: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(55),
-                takerAmount: new BigNumber(50),
-            };
-
-            const fullQuoteBadPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(99),
-                takerAmount: new BigNumber(100),
-            };
-
-            const fullQuoteOkPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(105),
-                takerAmount: new BigNumber(100),
-            };
-
-            const fullQuoteGreatPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(125),
-                takerAmount: new BigNumber(100),
-            };
-
-            const wrongPair: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                expiry: NEVER_EXPIRES,
-                makerAmount: new BigNumber(125),
-                makerToken: takerToken,
+        describe('IndicativeQuotes when selling', () => {
+            // Given
+            const BASE_INDICATIVE_QUOTE = {
                 makerUri: 'http://makeruri',
-                takerAmount: new BigNumber(100),
-                takerToken: makerToken,
-            };
-
-            const expiresInOneMinute: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(125),
-                takerAmount: new BigNumber(100),
-                expiry: inOneMinute,
-            };
-
-            const tests = [
-                {
-                    name: 'should return null when no quotes valid',
-                    quotes: [partialFillQuote],
-                    expectations: {
-                        isNull: true,
-                        makerAmount: undefined,
-                        takerAmount: undefined,
-                    },
-                },
-                {
-                    name: 'should only select quotes that are 100% filled',
-                    quotes: [partialFillQuote, fullQuoteBadPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
-                    },
-                },
-                {
-                    name: 'should select quote with best pricing',
-                    quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 125,
-                        takerAmount: 100,
-                    },
-                },
-                {
-                    name: 'should ignore quotes with the wrong pair',
-                    quotes: [fullQuoteBadPricing, wrongPair],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
-                    },
-                },
-                {
-                    name: 'should ignore quotes that expire too soon',
-                    quotes: [fullQuoteBadPricing, expiresInOneMinute],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
-                    },
-                },
-            ];
-
-            tests.forEach(({ name, quotes, expectations }) => {
-                it(name, () => {
-                    const bestQuote = getBestQuote<IndicativeQuote>(
-                        quotes,
-                        isSelling,
-                        takerToken,
-                        makerToken,
-                        assetFillAmount,
-                        validityWindowMs,
-                    );
-
-                    if (bestQuote === null) {
-                        expect(expectations?.isNull).to.be.true();
-                        return;
-                    }
-
-                    expect(expectations?.isNull).to.be.false();
-                    expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                    expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
-                });
-            });
-        });
-
-        describe('buys', () => {
-            const isSelling = false;
-            const partialFillQuote: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(55),
-                takerAmount: new BigNumber(50),
-            };
-
-            const fullQuoteBadPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(100),
-                takerAmount: new BigNumber(125),
-            };
-
-            const fullQuoteOkPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(100),
-                takerAmount: new BigNumber(120),
-            };
-
-            const fullQuoteGreatPricing: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(100),
-                takerAmount: new BigNumber(80),
-            };
-
-            const wrongPair: IndicativeQuote = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerToken: takerToken,
-                takerToken: makerToken,
+                maker: '0xmaker',
+                makerToken,
+                takerToken,
                 expiry: NEVER_EXPIRES,
-                makerAmount: new BigNumber(100),
-                takerAmount: new BigNumber(80),
             };
 
-            const expiresInOneMinute = {
-                ...BASE_INDICATIVE_QUOTE,
-                makerAmount: new BigNumber(100),
-                takerAmount: new BigNumber(80),
-                expiry: inOneMinute,
-            };
-
-            const tests = [
-                {
-                    name: 'should return null when no quotes valid',
-                    quotes: [partialFillQuote],
-                    expectations: {
-                        isNull: true,
-                        makerAmount: undefined,
-                        takerAmount: undefined,
-                    },
-                },
-                {
-                    name: 'should only select quotes that are 100% filled',
-                    quotes: [partialFillQuote, fullQuoteBadPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
-                    },
-                },
-                {
-                    name: 'should select quote with best pricing',
-                    quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 80,
-                    },
-                },
-                {
-                    name: 'should ignore quotes with the wrong pair',
-                    quotes: [fullQuoteBadPricing, wrongPair],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
-                    },
-                },
-                {
-                    name: 'should ignore quotes that expire too soon',
-                    quotes: [fullQuoteBadPricing, expiresInOneMinute],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
-                    },
-                },
-            ];
-
-            tests.forEach(({ name, quotes, expectations }) => {
-                it(name, () => {
-                    const bestQuote = getBestQuote<IndicativeQuote>(
-                        quotes,
-                        isSelling,
-                        takerToken,
-                        makerToken,
-                        assetFillAmount,
-                        validityWindowMs,
-                    );
-
-                    if (bestQuote === null) {
-                        expect(expectations?.isNull).to.be.true();
-                        return;
-                    }
-
-                    expect(expectations?.isNull).to.be.false();
-                    expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                    expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
-                });
-            });
-        });
-    });
-
-    describe('FirmQuotes', () => {
-        // Given
-        const BASE_QUOTE = createBaseQuote();
-
-        const BASE_ORDER = new OtcOrder({
-            makerToken,
-            takerToken,
-            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(NEVER_EXPIRES, ZERO, ZERO),
-        });
-
-        describe('sells', () => {
-            const isSelling = true;
-            const partialFillQuote: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
+            describe('sells', () => {
+                const isSelling = true;
+                const partialFillQuote: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
                     makerAmount: new BigNumber(55),
                     takerAmount: new BigNumber(50),
-                }),
-            };
+                };
 
-            const fullQuoteBadPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
+                const fullQuoteBadPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
                     makerAmount: new BigNumber(99),
                     takerAmount: new BigNumber(100),
-                }),
-            };
+                };
 
-            const fullQuoteOkPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
+                const fullQuoteOkPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
                     makerAmount: new BigNumber(105),
                     takerAmount: new BigNumber(100),
-                }),
-            };
+                };
 
-            const fullQuoteGreatPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
+                const fullQuoteGreatPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
                     makerAmount: new BigNumber(125),
                     takerAmount: new BigNumber(100),
-                }),
-            };
+                };
 
-            const wrongPair: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
+                const wrongPair: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    expiry: NEVER_EXPIRES,
+                    makerAmount: new BigNumber(125),
+                    makerToken: takerToken,
+                    makerUri: 'http://makeruri',
+                    takerAmount: new BigNumber(100),
+                    takerToken: makerToken,
+                };
+
+                const expiresInOneMinute: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(125),
+                    takerAmount: new BigNumber(100),
+                    expiry: inThirtySeconds,
+                };
+
+                const tests = [
+                    {
+                        name: 'should return null when no quotes valid',
+                        quotes: [partialFillQuote],
+                        expectations: {
+                            isNull: true,
+                            makerAmount: undefined,
+                            takerAmount: undefined,
+                        },
+                    },
+                    {
+                        name: 'should only select quotes that are 100% filled',
+                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
+                    },
+                    {
+                        name: 'should select quote with best pricing',
+                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 125,
+                            takerAmount: 100,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes with the wrong pair',
+                        quotes: [fullQuoteBadPricing, wrongPair],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes that expire too soon',
+                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
+                    },
+                ];
+
+                tests.forEach(({ name, quotes, expectations }) => {
+                    it(name, () => {
+                        const bestQuote = getBestQuote<IndicativeQuote>(
+                            quotes,
+                            isSelling,
+                            takerToken,
+                            makerToken,
+                            assetFillAmount,
+                            validityWindowMs,
+                        );
+
+                        if (bestQuote === null) {
+                            expect(expectations?.isNull).to.equal(true);
+                            return;
+                        }
+
+                        expect(expectations?.isNull).to.equal(false);
+                        expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
+                        expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                    });
+                });
+            });
+
+            describe('buys', () => {
+                const isSelling = false;
+                const partialFillQuote: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(55),
+                    takerAmount: new BigNumber(50),
+                };
+
+                const fullQuoteBadPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(125),
+                };
+
+                const fullQuoteOkPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(120),
+                };
+
+                const fullQuoteGreatPricing: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
+                };
+
+                const wrongPair: IndicativeQuote = {
+                    ...BASE_INDICATIVE_QUOTE,
                     makerToken: takerToken,
                     takerToken: makerToken,
-                    makerAmount: new BigNumber(125),
-                    takerAmount: new BigNumber(100),
-                }),
-            };
+                    expiry: NEVER_EXPIRES,
+                    makerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
+                };
 
-            const expiresInOneMinute: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(125),
-                    takerAmount: new BigNumber(100),
-                    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inOneMinute, ZERO, ZERO),
-                }),
-            };
+                const expiresInOneMinute = {
+                    ...BASE_INDICATIVE_QUOTE,
+                    makerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
+                    expiry: inThirtySeconds,
+                };
 
-            const tests = [
-                {
-                    name: 'should return null when no quotes valid',
-                    quotes: [partialFillQuote],
-                    expectations: {
-                        isNull: true,
-                        makerAmount: undefined,
-                        takerAmount: undefined,
+                const tests = [
+                    {
+                        name: 'should return null when no quotes valid',
+                        quotes: [partialFillQuote],
+                        expectations: {
+                            isNull: true,
+                            makerAmount: undefined,
+                            takerAmount: undefined,
+                        },
                     },
-                },
-                {
-                    name: 'should only select quotes that are 100% filled',
-                    quotes: [partialFillQuote, fullQuoteBadPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
+                    {
+                        name: 'should only select quotes that are 100% filled',
+                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
                     },
-                },
-                {
-                    name: 'should select quote with best pricing',
-                    quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 125,
-                        takerAmount: 100,
+                    {
+                        name: 'should select quote with best pricing',
+                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 80,
+                        },
                     },
-                },
-                {
-                    name: 'should ignore quotes with the wrong pair',
-                    quotes: [fullQuoteBadPricing, wrongPair],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
+                    {
+                        name: 'should ignore quotes with the wrong pair',
+                        quotes: [fullQuoteBadPricing, wrongPair],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
                     },
-                },
-                {
-                    name: 'should ignore quotes that expire too soon',
-                    quotes: [fullQuoteBadPricing, expiresInOneMinute],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 99,
-                        takerAmount: 100,
+                    {
+                        name: 'should ignore quotes that expire too soon',
+                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
                     },
-                },
-            ];
+                ];
 
-            tests.forEach(({ name, quotes, expectations }) => {
-                it(name, () => {
-                    const bestQuote = getBestQuote(
-                        quotes,
-                        isSelling,
-                        takerToken,
-                        makerToken,
-                        assetFillAmount,
-                        validityWindowMs,
-                    );
+                tests.forEach(({ name, quotes, expectations }) => {
+                    it(name, () => {
+                        const bestQuote = getBestQuote<IndicativeQuote>(
+                            quotes,
+                            isSelling,
+                            takerToken,
+                            makerToken,
+                            assetFillAmount,
+                            validityWindowMs,
+                        );
 
-                    if (bestQuote === null) {
-                        expect(expectations?.isNull).to.be.true();
-                        return;
-                    }
+                        if (bestQuote === null) {
+                            expect(expectations?.isNull).to.equal(true);
+                            return;
+                        }
 
-                    expect(expectations?.isNull).to.be.false();
-                    expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                    expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).to.equal(false);
+                        expect(bestQuote.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
+                        expect(bestQuote.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                    });
                 });
             });
         });
 
-        describe('buys', () => {
-            const isSelling = false;
-            const partialFillQuote: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(55),
-                    takerAmount: new BigNumber(50),
-                }),
-            };
-            const fullQuoteBadPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(100),
-                    takerAmount: new BigNumber(125),
-                }),
-            };
+        describe('FirmQuotes', () => {
+            // Given
+            const BASE_QUOTE = createBaseQuote();
 
-            const fullQuoteOkPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(100),
-                    takerAmount: new BigNumber(120),
-                }),
-            };
+            const BASE_ORDER = new OtcOrder({
+                makerToken,
+                takerToken,
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(NEVER_EXPIRES, ZERO, ZERO),
+            });
 
-            const fullQuoteGreatPricing: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(100),
-                    takerAmount: new BigNumber(80),
-                }),
-            };
+            describe('sells', () => {
+                const isSelling = true;
+                const partialFillQuote: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(55),
+                        takerAmount: new BigNumber(50),
+                    }),
+                };
 
-            const wrongPair: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerToken: takerToken,
-                    takerToken: makerToken,
-                    makerAmount: new BigNumber(100),
-                    takerAmount: new BigNumber(80),
-                }),
-            };
+                const fullQuoteBadPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(99),
+                        takerAmount: new BigNumber(100),
+                    }),
+                };
 
-            const expiresInOneMinute: FirmOtcQuote = {
-                ...BASE_QUOTE,
-                order: new OtcOrder({
-                    ...BASE_ORDER,
-                    makerAmount: new BigNumber(100),
-                    takerAmount: new BigNumber(80),
-                    expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inOneMinute, ZERO, ZERO),
-                }),
-            };
+                const fullQuoteOkPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(105),
+                        takerAmount: new BigNumber(100),
+                    }),
+                };
 
-            const tests = [
-                {
-                    name: 'should return null when no quotes valid',
-                    quotes: [partialFillQuote],
-                    expectations: {
-                        isNull: true,
-                        makerAmount: undefined,
-                        takerAmount: undefined,
+                const fullQuoteGreatPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(125),
+                        takerAmount: new BigNumber(100),
+                    }),
+                };
+
+                const wrongPair: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerToken: takerToken,
+                        takerToken: makerToken,
+                        makerAmount: new BigNumber(125),
+                        takerAmount: new BigNumber(100),
+                    }),
+                };
+
+                const expiresInOneMinute: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(125),
+                        takerAmount: new BigNumber(100),
+                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inThirtySeconds, ZERO, ZERO),
+                    }),
+                };
+
+                const tests = [
+                    {
+                        name: 'should return null when no quotes valid',
+                        quotes: [partialFillQuote],
+                        expectations: {
+                            isNull: true,
+                            makerAmount: undefined,
+                            takerAmount: undefined,
+                        },
                     },
-                },
-                {
-                    name: 'should only select quotes that are 100% filled',
-                    quotes: [partialFillQuote, fullQuoteBadPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
+                    {
+                        name: 'should only select quotes that are 100% filled',
+                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
                     },
-                },
-                {
-                    name: 'should select quote with best pricing',
-                    quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 80,
+                    {
+                        name: 'should select quote with best pricing',
+                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 125,
+                            takerAmount: 100,
+                        },
                     },
-                },
-                {
-                    name: 'should ignore quotes with the wrong pair',
-                    quotes: [fullQuoteBadPricing, wrongPair],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
+                    {
+                        name: 'should ignore quotes with the wrong pair',
+                        quotes: [fullQuoteBadPricing, wrongPair],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
                     },
-                },
-                {
-                    name: 'should ignore quotes that expire too soon',
-                    quotes: [fullQuoteBadPricing, expiresInOneMinute],
-                    expectations: {
-                        isNull: false,
-                        makerAmount: 100,
-                        takerAmount: 125,
+                    {
+                        name: 'should ignore quotes that expire too soon',
+                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
                     },
-                },
-            ];
+                ];
 
-            tests.forEach(({ name, quotes, expectations }) => {
-                it(name, () => {
-                    const bestQuote = getBestQuote(
-                        quotes,
-                        isSelling,
-                        takerToken,
-                        makerToken,
-                        assetFillAmount,
-                        validityWindowMs,
-                    );
+                tests.forEach(({ name, quotes, expectations }) => {
+                    it(name, () => {
+                        const bestQuote = getBestQuote(
+                            quotes,
+                            isSelling,
+                            takerToken,
+                            makerToken,
+                            assetFillAmount,
+                            validityWindowMs,
+                        );
 
-                    if (bestQuote === null) {
-                        expect(expectations?.isNull).to.be.true();
-                        return;
-                    }
+                        if (bestQuote === null) {
+                            expect(expectations?.isNull).to.equal(true);
+                            return;
+                        }
 
-                    expect(expectations?.isNull).to.be.false();
-                    expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
-                    expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                        expect(expectations?.isNull).to.equal(false);
+                        expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
+                        expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                    });
+                });
+            });
+
+            describe('buys', () => {
+                const isSelling = false;
+                const partialFillQuote: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(55),
+                        takerAmount: new BigNumber(50),
+                    }),
+                };
+                const fullQuoteBadPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(100),
+                        takerAmount: new BigNumber(125),
+                    }),
+                };
+
+                const fullQuoteOkPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(100),
+                        takerAmount: new BigNumber(120),
+                    }),
+                };
+
+                const fullQuoteGreatPricing: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(100),
+                        takerAmount: new BigNumber(80),
+                    }),
+                };
+
+                const wrongPair: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerToken: takerToken,
+                        takerToken: makerToken,
+                        makerAmount: new BigNumber(100),
+                        takerAmount: new BigNumber(80),
+                    }),
+                };
+
+                const expiresInOneMinute: FirmOtcQuote = {
+                    ...BASE_QUOTE,
+                    order: new OtcOrder({
+                        ...BASE_ORDER,
+                        makerAmount: new BigNumber(100),
+                        takerAmount: new BigNumber(80),
+                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(inThirtySeconds, ZERO, ZERO),
+                    }),
+                };
+
+                const tests = [
+                    {
+                        name: 'should return null when no quotes valid',
+                        quotes: [partialFillQuote],
+                        expectations: {
+                            isNull: true,
+                            makerAmount: undefined,
+                            takerAmount: undefined,
+                        },
+                    },
+                    {
+                        name: 'should only select quotes that are 100% filled',
+                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
+                    },
+                    {
+                        name: 'should select quote with best pricing',
+                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 80,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes with the wrong pair',
+                        quotes: [fullQuoteBadPricing, wrongPair],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes that expire too soon',
+                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
+                    },
+                ];
+
+                tests.forEach(({ name, quotes, expectations }) => {
+                    it(name, () => {
+                        const bestQuote = getBestQuote(
+                            quotes,
+                            isSelling,
+                            takerToken,
+                            makerToken,
+                            assetFillAmount,
+                            validityWindowMs,
+                        );
+
+                        if (bestQuote === null) {
+                            expect(expectations?.isNull).to.equal(true);
+                            return;
+                        }
+
+                        expect(expectations?.isNull).to.equal(false);
+                        expect(bestQuote.order.makerAmount.toNumber()).to.be.eq(expectations?.makerAmount);
+                        expect(bestQuote.order.takerAmount.toNumber()).to.be.eq(expectations?.takerAmount);
+                    });
                 });
             });
         });

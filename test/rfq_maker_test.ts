@@ -2,7 +2,7 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as request from 'supertest';
@@ -33,7 +33,7 @@ describe('RFQ maker API tests', () => {
     let server: Server;
     let mockRfqMakerService: RfqMakerService;
 
-    before(async () => {
+    beforeAll(async () => {
         const connection = mock(Connection);
         const configManagerMock = mock(ConfigManager);
         const mockRfqmService = mock(RfqmService);
@@ -64,7 +64,7 @@ describe('RFQ maker API tests', () => {
         resetCalls(mockRfqMakerService);
     });
 
-    after(async () => {
+    afterAll(async () => {
         await new Promise<void>((resolve, reject) => {
             server.close((err?: Error) => {
                 if (err) {
@@ -75,7 +75,7 @@ describe('RFQ maker API tests', () => {
         });
     });
 
-    describe('GET /maker/v1/chain-id/:chainId', async () => {
+    describe('GET /maker/v1/chain-id/:chainId', () => {
         it('should return a 401 UNAUTHORIZED without maker api key', async () => {
             const response = await request(app)
                 .get(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)
@@ -162,7 +162,7 @@ describe('RFQ maker API tests', () => {
         });
     });
 
-    describe('PUT /maker/v1/chain-id/:chainId', async () => {
+    describe('PUT /maker/v1/chain-id/:chainId', () => {
         it('should return a 401 UNAUTHORIZED without maker api key', async () => {
             const response = await request(app)
                 .put(`${RFQ_MAKER_PATH}/chain-id/${chainId}`)

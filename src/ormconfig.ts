@@ -43,7 +43,7 @@ const entities = [
     RfqMakerUpdateTimeHash,
 ];
 
-const config: ConnectionOptions = {
+export const createConfig = (postgresUri: string = POSTGRES_URI): ConnectionOptions => ({
     type: 'postgres',
     entities,
     synchronize: false,
@@ -57,13 +57,12 @@ const config: ConnectionOptions = {
     ...(POSTGRES_READ_REPLICA_URIS
         ? {
               replication: {
-                  master: { url: POSTGRES_URI },
+                  master: { url: postgresUri },
                   slaves: POSTGRES_READ_REPLICA_URIS.map((r) => ({ url: r })),
               },
           }
-        : { url: POSTGRES_URI }),
+        : { url: postgresUri }),
     cli: {
         migrationsDir: 'migrations',
     },
-};
-module.exports = config;
+});

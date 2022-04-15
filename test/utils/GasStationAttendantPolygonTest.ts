@@ -1,7 +1,6 @@
 import { ProtocolFeeUtils } from '@0x/asset-swapper';
-import { expect } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
-import 'mocha';
+import { expect } from 'chai';
 import { instance, mock, when } from 'ts-mockito';
 
 import { GWEI_DECIMALS } from '../../src/constants';
@@ -13,7 +12,7 @@ import { SubmissionContext } from '../../src/utils/SubmissionContext';
 let protocolFeeUtilsMock: ProtocolFeeUtils;
 
 describe('GasStationAttendantPolygon', () => {
-    before(() => {
+    beforeAll(() => {
         protocolFeeUtilsMock = mock(ProtocolFeeUtils);
     });
 

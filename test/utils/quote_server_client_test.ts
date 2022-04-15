@@ -3,13 +3,13 @@
 // tslint:disable:max-file-line-count
 
 import { MarketOperation, RfqOrder } from '@0x/asset-swapper';
-import { expect } from '@0x/contracts-test-utils';
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
 import { SignRequest, SubmitRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { expect } from 'chai';
 import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
@@ -251,7 +251,7 @@ describe('QuoteServerClient', () => {
                     expect.fail('Should not succeed');
                 } catch (err) {
                     // Then
-                    expect(err).to.not.be.undefined();
+                    expect(err).to.not.equal(undefined);
                 }
             });
         });
@@ -377,7 +377,7 @@ describe('QuoteServerClient', () => {
                     expect.fail('Should not succeed');
                 } catch (err) {
                     // Then
-                    expect(err).to.not.be.undefined();
+                    expect(err).to.be.an.instanceof(Error);
                 }
             });
 
@@ -419,7 +419,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.be.undefined();
+                expect(signature).to.equal(undefined);
             });
 
             it('should return undefined for explicitly rejected responses', async () => {
@@ -458,7 +458,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.be.undefined();
+                expect(signature).to.equal(undefined);
             });
         });
     });

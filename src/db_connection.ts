@@ -1,15 +1,17 @@
-import { Connection, ConnectionOptions, createConnection } from 'typeorm';
+import { Connection, createConnection } from 'typeorm';
 
-import * as config from './ormconfig';
+import { POSTGRES_URI } from './config';
+import { createConfig } from './ormconfig';
 
 let connection: Connection;
 
 /**
  * Creates the DB connnection to use in an app
  */
-export async function getDBConnectionAsync(): Promise<Connection> {
+export async function getDBConnectionAsync(postgresUri: string = POSTGRES_URI): Promise<Connection> {
     if (!connection) {
-        connection = await createConnection(config as any as ConnectionOptions);
+        const config = createConfig(postgresUri);
+        connection = await createConnection(config);
     }
     return connection;
 }

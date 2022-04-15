@@ -3,7 +3,7 @@
 // tslint:disable:max-file-line-count
 
 import { ChainId } from '@0x/contract-addresses';
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { Connection, Repository } from 'typeorm';
 

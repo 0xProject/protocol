@@ -1,21 +1,29 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "lib": ["es2020", "dom"],
-        "target": "es2019",
-        "outDir": "lib",
-        "strict": true,
+        "allowSyntheticDefaultImports": true,
         "downlevelIteration": true,
-        "noUnusedLocals": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "sourceMap": true,
-        "typeRoots": ["node_modules/@0x/typescript-typings/types", "node_modules/@types"],
+        "lib": ["es2020", "dom"],
+        "module": "commonjs",
+        "noUnusedLocals": false,
         "noUnusedParameters": false,
+        "outDir": "lib",
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2019",
+        "types": ["jest", "node"],
+        "typeRoots": ["node_modules/@0x/typescript-typings/types", "node_modules/@types"],
         "useUnknownInCatchVariables": false
     },
-    "include": ["src/**/*.ts", "test/**/*.ts", "integration-test/**/*.ts", "migrations/*.ts", "src/schemas/*.json", "src/api-docs/*.json"]
+    "include": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "integration-test/**/*.ts",
+        "migrations/*.ts",
+        "src/schemas/*.json",
+        "src/api-docs/*.json"
+    ]
 }

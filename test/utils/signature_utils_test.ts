@@ -1,8 +1,8 @@
 // tslint:disable:custom-no-magic-numbers
 // tslint:disable:max-file-line-count
 
-import { expect } from '@0x/contracts-test-utils';
 import { eip712SignTypedDataWithKey, ethSignHashWithKey, LimitOrder, OtcOrder } from '@0x/protocol-utils';
+import { expect } from 'chai';
 
 import { getSignerFromHash, padSignature } from '../../src/utils/signature_utils';
 

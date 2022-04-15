@@ -1,0 +1,17 @@
+import type { Config } from '@jest/types';
+
+/**
+ * Configure the jest testing framework
+ */
+// tslint:disable-next-line: no-default-export
+export default async (): Promise<Config.InitialOptions> => {
+    return {
+        cacheDirectory: './.jestCache',
+        preset: 'ts-jest',
+        setupFilesAfterEnv: ['./test/configureTestEnv.ts'],
+        testEnvironment: 'node',
+        testPathIgnorePatterns: ['/node_modules/', 'lib'],
+        testRegex: ['test\\/.*(_test|Test)\\.ts$'],
+        verbose: false,
+    };
+};

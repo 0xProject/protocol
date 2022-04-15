@@ -1,8 +1,7 @@
-import { expect } from '@0x/contracts-test-utils';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { expect } from 'chai';
 import * as HttpStatus from 'http-status-codes';
-import 'mocha';
 
 import { GasOracle } from '../../src/utils/GasOracle';
 
@@ -41,7 +40,7 @@ let axiosClient: AxiosInstance;
 let axiosMock: AxiosMockAdapter;
 
 describe('GasOracle', () => {
-    before(() => {
+    beforeAll(() => {
         axiosClient = Axios.create();
         axiosMock = new AxiosMockAdapter(axiosClient);
     });

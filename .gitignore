@@ -1,6 +1,9 @@
 # Webstorm config folder
 .idea
 
+# Jest
+.jestCache
+
 # dotenv environment variables file
 *.env
 

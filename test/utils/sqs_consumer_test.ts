@@ -2,7 +2,7 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { expect } from '@0x/contracts-test-utils';
+import { expect } from 'chai';
 import { anyString, anything, instance, mock, verify, when } from 'ts-mockito';
 
 import { SqsClient } from '../../src/utils/sqs_client';

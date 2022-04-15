@@ -1,16 +1,15 @@
 // tslint:disable:max-file-line-count custom-no-magic-numbers
 import { BigNumber, ProtocolFeeUtils, SignatureType } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
-import { expect } from '@0x/contracts-test-utils';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { expect } from 'chai';
 import { TransactionReceiptStatus } from 'ethereum-types';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
-import 'mocha';
 import * as redis from 'redis';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
@@ -18,7 +17,7 @@ import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, RFQM_PATH, ZERO } from '../src/constants';
+import { ETH_DECIMALS, ONE_MINUTE_MS, RFQM_PATH, ZERO } from '../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
@@ -41,9 +40,8 @@ import {
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
 import { initDBConnectionAsync } from './test_utils/db_connection';
-import { setupDependenciesAsync, teardownDependenciesAsync } from './test_utils/deployment';
+import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
 
-const SUITE_NAME = 'RFQM Integration Tests';
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
 const INTEGRATOR_ID = 'koolIntegratorId';
@@ -134,7 +132,10 @@ const MOCK_RFQM_JOB = new RfqmV2JobEntity({
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
 });
 
-describe(SUITE_NAME, () => {
+jest.setTimeout(ONE_MINUTE_MS * 2);
+let teardownDependencies: TeardownDependenciesFunctionHandle;
+
+describe('RFQM Integration', () => {
     let app: Express.Application;
     let axiosClient: AxiosInstance;
     let cacheClient: CacheClient;
@@ -146,9 +147,8 @@ describe(SUITE_NAME, () => {
     let server: Server;
     let takerAddress: string;
 
-    before(async () => {
-        // docker-compose up
-        await setupDependenciesAsync(SUITE_NAME, true);
+    beforeAll(async () => {
+        teardownDependencies = await setupDependenciesAsync(['postgres', 'ganache', 'redis']);
 
         // Create a Provider
         const provider = getProvider();
@@ -249,9 +249,7 @@ describe(SUITE_NAME, () => {
         const quoteServerClient = new QuoteServerClient(axiosClient);
 
         // Create the CacheClient
-        const redisClient = redis.createClient({
-            url: config.REDIS_URI,
-        });
+        const redisClient = redis.createClient();
         cacheClient = new CacheClient(redisClient);
 
         // Create the mock RfqMakerManager
@@ -297,26 +295,16 @@ describe(SUITE_NAME, () => {
         server = res.server;
     });
 
-    beforeEach(async () => {
-        await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
-    });
-
     afterEach(async () => {
-        mockAxios.reset();
-    });
-
-    after(async () => {
         await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
         await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+    });
+
+    afterAll(async () => {
         await new Promise<void>((resolve, reject) => {
             server.close((err?: Error) => {
                 if (err) {
@@ -326,10 +314,12 @@ describe(SUITE_NAME, () => {
             });
         });
         await cacheClient.closeAsync();
-        await teardownDependenciesAsync(SUITE_NAME);
+        if (!teardownDependencies()) {
+            throw new Error('Failed to tear down dependencies');
+        }
     });
 
-    describe('rfqm/v1/healthz', async () => {
+    describe('rfqm/v1/healthz', () => {
         it('should return a 200 OK with active pairs', async () => {
             const appResponse = await request(app)
                 .get(`${RFQM_PATH}/healthz`)
@@ -341,7 +331,7 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('rfqm/v1/price', async () => {
+    describe('rfqm/v1/price', () => {
         it('should return a 200 OK with an indicative quote for buys', async () => {
             const buyAmount = 200000000000000000;
             const winningQuote = 100000000000000000;
@@ -549,7 +539,7 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('rfqm/v1/quote', async () => {
+    describe('rfqm/v1/quote', () => {
         it('should return a 200 OK, liquidityAvailable === false if no valid firm quotes found', async () => {
             const sellAmount = 100000000000000000;
             const insufficientSellAmount = 1;
@@ -709,7 +699,7 @@ describe(SUITE_NAME, () => {
         });
     });
 
-    describe('rfqm/v1/submit', async () => {
+    describe('rfqm/v1/submit', () => {
         const mockStoredFee: StoredFee = {
             token: '0x123',
             amount: '1000',
@@ -792,7 +782,7 @@ describe(SUITE_NAME, () => {
             const dbJobEntity = await connection.getRepository(RfqmV2JobEntity).findOne({
                 orderHash,
             });
-            expect(dbJobEntity).to.not.be.null();
+            expect(dbJobEntity).to.not.equal(null);
             expect(dbJobEntity?.orderHash).to.equal(mockQuote.orderHash);
             expect(dbJobEntity?.makerUri).to.equal(MARKET_MAKER_1);
             expect(dbJobEntity?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
