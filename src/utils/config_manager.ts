@@ -2,6 +2,7 @@
 import { createHash } from 'crypto';
 
 import {
+    ADMIN_API_KEY,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     Integrator,
@@ -21,6 +22,10 @@ const getApiKeyHash = (apiKey: string): string => createHash('sha256').update(ap
  * It exists to provide a layer around our configs which can then be mocked while writing tests
  */
 export class ConfigManager {
+    public getAdminApiKey(): string | undefined {
+        return ADMIN_API_KEY;
+    }
+
     public getRfqmApiKeyWhitelist(): Set<string> {
         return RFQM_API_KEY_WHITELIST;
     }

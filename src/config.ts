@@ -260,6 +260,10 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
 
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
 
+export const ADMIN_API_KEY: string | undefined = _.isEmpty(process.env.ADMIN_API_KEY)
+    ? undefined
+    : assertEnvVarType('ADMIN_API_KEY', process.env.ADMIN_API_KEY, EnvVarType.NonEmptyString);
+
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
 export const RFQM_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqm');
 export const RFQM_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqm');

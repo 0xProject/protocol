@@ -28,6 +28,7 @@ export const RFQM_PATH = '/rfqm/v1';
 export const RFQ_MAKER_PATH = '/maker/v1';
 export const RFQ_MAKER_API_KEY_HEADER = '0x-maker-api-key';
 export const HEALTHCHECK_PATH = '/healthz';
+export const ADMIN_PATH = '/admin/v1';
 
 // Meta Transactions
 export const DEFAULT_ETH_GAS_STATION_API_URL = 'https://ethgasstation.api.0x.org/api/ethgasAPI.json';

@@ -19,14 +19,16 @@ import {
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
-import { RFQM_PATH, RFQ_MAKER_PATH } from '../constants';
+import { ADMIN_PATH, RFQM_PATH, RFQ_MAKER_PATH } from '../constants';
 import { getDBConnectionAsync } from '../db_connection';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
+import { createRfqAdminRouter } from '../routers/rfq_admin_router';
 import { createRfqMakerRouter } from '../routers/rfq_maker_router';
+import { RfqAdminService } from '../services/rfq_admin_service';
 import { RfqMakerService } from '../services/rfq_maker_service';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
@@ -62,9 +64,24 @@ if (require.main === module) {
             CHAIN_CONFIGURATIONS,
             configManager,
         );
+        const rfqAdminService = buildRfqAdminService(rfqmDbUtils);
         const rfqMakerService = buildRfqMakerService(rfqMakerDbUtils, configManager);
-        await runHttpRfqmServiceAsync(rfqmServices, rfqMakerService, configManager, config, connection);
+        await runHttpRfqmServiceAsync(
+            rfqmServices,
+            rfqAdminService,
+            rfqMakerService,
+            configManager,
+            config,
+            connection,
+        );
     })().catch((error) => logger.error(error.stack));
+}
+
+/**
+ * Builds an instance of RfqAdminService
+ */
+export function buildRfqAdminService(dbUtils: RfqmDbUtils): RfqAdminService {
+    return new RfqAdminService(dbUtils);
 }
 
 /**
@@ -79,6 +96,7 @@ export function buildRfqMakerService(dbUtils: RfqMakerDbUtils, configManager: Co
  */
 export async function runHttpRfqmServiceAsync(
     rfqmServices: RfqmServices,
+    rfqAdminService: RfqAdminService,
     rfqMakerService: RfqMakerService,
     configManager: ConfigManager,
     config: HttpServiceConfig,
@@ -137,6 +155,7 @@ export async function runHttpRfqmServiceAsync(
 
     app.use(RFQM_PATH, createRfqmRouter(rfqmServices, configManager));
     app.use(RFQ_MAKER_PATH, createRfqMakerRouter(rfqMakerService));
+    app.use(ADMIN_PATH, createRfqAdminRouter(rfqAdminService, configManager));
 
     if (SENTRY_DSN) {
         // The error handler must be before any other error middleware and after all controllers

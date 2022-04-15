@@ -88,7 +88,7 @@ describe('RFQM Database', () => {
         await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
     describe('v2 tables', () => {
-        it.only('should be able to write to and read from the rfqm_v2_quote table', async () => {
+        it('should be able to write to and read from the rfqm_v2_quote table', async () => {
             await dbUtils.writeV2QuoteAsync({
                 chainId,
                 makerUri,

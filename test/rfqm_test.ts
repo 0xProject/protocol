@@ -17,11 +17,15 @@ import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { ETH_DECIMALS, ONE_MINUTE_MS, RFQM_PATH, ZERO } from '../src/constants';
+import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, RFQM_PATH, ZERO } from '../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
-import { buildRfqMakerService, runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
+import {
+    buildRfqAdminService,
+    buildRfqMakerService,
+    runHttpRfqmServiceAsync,
+} from '../src/runners/http_rfqm_service_runner';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
@@ -44,6 +48,7 @@ import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './te
 
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
+const ADMIN_API_KEY = 'adminApiKey';
 const INTEGRATOR_ID = 'koolIntegratorId';
 const contractAddresses: ContractAddresses = CONTRACT_ADDRESSES;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
@@ -163,6 +168,7 @@ describe('RFQM Integration', () => {
 
         // Create the mock ConfigManager
         const configManagerMock = mock(ConfigManager);
+        when(configManagerMock.getAdminApiKey()).thenReturn(ADMIN_API_KEY);
         when(configManagerMock.getRfqmApiKeyWhitelist()).thenReturn(new Set([API_KEY]));
         when(configManagerMock.getIntegratorIdForApiKey(API_KEY)).thenReturn(INTEGRATOR_ID);
         when(configManagerMock.getIntegratorByIdOrThrow(INTEGRATOR_ID)).thenReturn({
@@ -280,11 +286,13 @@ describe('RFQM Integration', () => {
             /* initialMaxPriorityFeePerGasGwei */ 2,
         );
 
+        const rfqAdminService = buildRfqAdminService(dbUtils);
         const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(connection), configManager);
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(
             new Map([[1337, rfqmService]]),
+            rfqAdminService,
             rfqMakerService,
             configManager,
             config.defaultHttpServiceConfig,
@@ -941,6 +949,77 @@ describe('RFQM Integration', () => {
 
             // Response details are covered by the service test, but do one small check for sanity
             expect(response.body.status).to.equal('submitted');
+        });
+    });
+
+    describe('/admin/v1/cleanup', () => {
+        it('should return a 400 BAD REQUEST if the order hash is not found', () => {
+            const orderHash = '0x00';
+            return request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: [orderHash] })
+                .set('0x-admin-api-key', ADMIN_API_KEY)
+                .expect(HttpStatus.BAD_REQUEST);
+        });
+
+        it('should return a 400 BAD REQUEST if no order hashes are sent', async () => {
+            await request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: [] })
+                .set('0x-admin-api-key', ADMIN_API_KEY)
+                .expect(HttpStatus.BAD_REQUEST);
+        });
+
+        it('should return a 400 BAD REQUEST if all job updates fail', async () => {
+            await dbUtils.writeV2JobAsync({ ...MOCK_RFQM_JOB, status: RfqmJobStatus.SucceededConfirmed });
+            const response = await request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: [MOCK_RFQM_JOB.orderHash] })
+                .set('0x-admin-api-key', ADMIN_API_KEY)
+                .expect(HttpStatus.BAD_REQUEST);
+
+            expect(response.body.unmodifiedJobs[0]).to.equal(MOCK_RFQM_JOB.orderHash);
+        });
+
+        it('should return a 401 UNAUTHORIZED if the API key is not an admin key', async () => {
+            await dbUtils.writeV2JobAsync(MOCK_RFQM_JOB);
+            const badApiKey = '0xbadapikey';
+
+            return request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: [MOCK_RFQM_JOB.orderHash] })
+                .set('0x-admin-api-key', badApiKey)
+                .expect(HttpStatus.UNAUTHORIZED);
+        });
+
+        it('should return a 200 OK when the jobs are successfully set to failure', async () => {
+            await dbUtils.writeV2JobAsync(MOCK_RFQM_JOB);
+
+            const response = await request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: [MOCK_RFQM_JOB.orderHash] })
+                .set('0x-admin-api-key', ADMIN_API_KEY)
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            expect(response.body.modifiedJobs[0]).to.equal(MOCK_RFQM_JOB.orderHash);
+        });
+
+        it('should return a 207 MULTI STATUS if some jobs succeed and some jobs fail', async () => {
+            await dbUtils.writeV2JobAsync({
+                ...MOCK_RFQM_JOB,
+                status: RfqmJobStatus.SucceededConfirmed,
+                orderHash: '0x01',
+            });
+            await dbUtils.writeV2JobAsync({ ...MOCK_RFQM_JOB, orderHash: '0x02' });
+            const response = await request(app)
+                .post(`${ADMIN_PATH}/cleanup`)
+                .send({ orderHashes: ['0x01', '0x02'] })
+                .set('0x-admin-api-key', ADMIN_API_KEY)
+                .expect(HttpStatus.MULTI_STATUS);
+
+            expect(response.body.unmodifiedJobs[0]).to.equal('0x01');
+            expect(response.body.modifiedJobs[0]).to.equal('0x02');
         });
     });
 });

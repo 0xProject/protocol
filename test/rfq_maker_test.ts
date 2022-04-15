@@ -14,6 +14,7 @@ import { RFQ_MAKER_API_KEY_HEADER, RFQ_MAKER_PATH } from '../src/constants';
 import { RfqMaker } from '../src/entities';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { RfqmService } from '../src/services/rfqm_service';
+import { RfqAdminService } from '../src/services/rfq_admin_service';
 import { RfqMakerService } from '../src/services/rfq_maker_service';
 import { ConfigManager } from '../src/utils/config_manager';
 
@@ -37,6 +38,7 @@ describe('RFQ maker API tests', () => {
         const connection = mock(Connection);
         const configManagerMock = mock(ConfigManager);
         const mockRfqmService = mock(RfqmService);
+        const mockRfqAdminService = mock(RfqAdminService);
 
         mockRfqMakerService = mock(RfqMakerService);
         when(mockRfqMakerService.mapMakerApiKeyToId(makerApiKey)).thenReturn(makerId);
@@ -50,6 +52,7 @@ describe('RFQ maker API tests', () => {
         // Start the server
         const res = await runHttpRfqmServiceAsync(
             mockRfqmServices,
+            mockRfqAdminService,
             instance(mockRfqMakerService),
             configManagerMock,
             config.defaultHttpServiceConfig,

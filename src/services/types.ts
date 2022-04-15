@@ -75,3 +75,16 @@ export interface StatusResponse {
     // For pending, expect no transactions. For successful transactions, expect just the mined transaction.
     transactions: { hash: string; timestamp: number /* unix ms */ }[];
 }
+
+/**
+ * Result type used by the cleanup jobs functionality of the
+ * rfq admin service
+ */
+export interface CleanupJobsResponse {
+    // Jobs successfuly cleaned up by `cleanupJobsAsync`
+    modifiedJobs: string[];
+    // Jobs that could not be cleaned up by `cleanupJobsAsync`. This includes
+    // jobs that could not be found, jobs too close to expiration, or jobs
+    // with non-pending statuses.
+    unmodifiedJobs: string[];
+}
