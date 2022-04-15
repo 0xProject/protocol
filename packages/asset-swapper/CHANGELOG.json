@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.56.0",
+        "changes": [
+            {
+                "note": "Add estimatedGas to ExtendedQuoteReport",
+                "pr": 463
+            }
+        ]
+    },
+    {
         "version": "16.55.0",
         "changes": [
             {
