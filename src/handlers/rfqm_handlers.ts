@@ -76,13 +76,13 @@ const RFQM_SIGNED_QUOTE_SUBMITTED = new Counter({
     labelNames: ['apiKey', 'integratorId'],
 });
 
-// If the cache is more seconds old than the value specified here, it will be refreshed.
-const HEALTH_CHECK_RESULT_CACHE_DURATION_S = 30;
+// If the cache is more milliseconds old than the value specified here, it will be refreshed.
+const HEALTH_CHECK_RESULT_CACHE_DURATION_MS = 30000;
 
 type RfqmHealthCheckResultCache = [HealthCheckResult, Date];
 
 export class RfqmHandlers {
-    private _cachedHealthCheckResult: RfqmHealthCheckResultCache | null = null;
+    private readonly _cachedHealthCheckResultByChainId = new Map<number, RfqmHealthCheckResultCache>();
     constructor(private readonly _rfqmServices: RfqmServices, private readonly _configManager: ConfigManager) {}
 
     public async getIndicativeQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
@@ -148,19 +148,18 @@ export class RfqmHandlers {
      */
     public async getHealthAsync(req: express.Request, res: express.Response): Promise<void> {
         const chainId = extractChainId(req);
-
+        const cachedResult = this._cachedHealthCheckResultByChainId.get(chainId);
         let result: HealthCheckResult;
-        if (this._cachedHealthCheckResult === null) {
+        if (!cachedResult) {
             result = await this._getServiceForChain(chainId).runHealthCheckAsync();
-            this._cachedHealthCheckResult = [result, new Date()];
+            this._cachedHealthCheckResultByChainId.set(chainId, [result, new Date()]);
         } else {
-            const cacheAgeMs = Date.now() - this._cachedHealthCheckResult[1].getTime();
-            // tslint:disable-next-line: custom-no-magic-numbers
-            if (cacheAgeMs >= HEALTH_CHECK_RESULT_CACHE_DURATION_S * 1000) {
+            const cacheAgeMs = Date.now() - cachedResult[1].getTime();
+            if (cacheAgeMs >= HEALTH_CHECK_RESULT_CACHE_DURATION_MS) {
                 result = await this._getServiceForChain(chainId).runHealthCheckAsync();
-                this._cachedHealthCheckResult = [result, new Date()];
+                this._cachedHealthCheckResultByChainId.set(chainId, [result, new Date()]);
             } else {
-                result = this._cachedHealthCheckResult[0];
+                result = cachedResult[0];
             }
         }
 
