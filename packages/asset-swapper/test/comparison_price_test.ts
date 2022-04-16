@@ -66,6 +66,7 @@ const buyMarketSideLiquidity: MarketSideLiquidity = {
     },
     quoteSourceFilters: new SourceFilters(),
     isRfqSupported: false,
+    blockNumber: 1337420,
 };
 
 const sellMarketSideLiquidity: MarketSideLiquidity = {
@@ -87,6 +88,7 @@ const sellMarketSideLiquidity: MarketSideLiquidity = {
     },
     quoteSourceFilters: new SourceFilters(),
     isRfqSupported: false,
+    blockNumber: 1337420,
 };
 
 describe('getComparisonPrices', async () => {

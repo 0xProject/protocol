@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.12.1 - _March 31, 2022_
+
+    * Dependencies updated
+
 ## v6.12.0 - _March 2, 2022_
 
     * Update fantom fillQuoteTransformer addresses (#398)

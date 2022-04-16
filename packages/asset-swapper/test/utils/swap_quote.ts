@@ -44,6 +44,7 @@ export async function getFullyFillableSwapQuoteWithNoFeesAsync(
         makerAmountPerEth: constants.ZERO_AMOUNT,
         makerTokenDecimals: 18,
         takerTokenDecimals: 18,
+        blockNumber: 1337420,
     };
 
     if (operation === MarketOperation.Buy) {

@@ -241,6 +241,7 @@ export class MarketOperationUtils {
                 dexQuotes,
             },
             isRfqSupported,
+            blockNumber: blockNumber.toNumber(),
         };
     }
 
@@ -269,6 +270,7 @@ export class MarketOperationUtils {
 
         // Call the sampler contract.
         const samplerPromise = this._sampler.executeAsync(
+            this._sampler.getBlockNumber(),
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
@@ -302,6 +304,7 @@ export class MarketOperationUtils {
 
         const [
             [
+                blockNumber,
                 tokenDecimals,
                 orderFillableMakerAmounts,
                 ethToMakerAssetRate,
@@ -342,6 +345,7 @@ export class MarketOperationUtils {
                 dexQuotes,
             },
             isRfqSupported,
+            blockNumber: blockNumber.toNumber(),
         };
     }
 
@@ -372,6 +376,7 @@ export class MarketOperationUtils {
         const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         const ops = [
+            this._sampler.getBlockNumber(),
             ...batchNativeOrders.map(orders =>
                 this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
             ),
@@ -396,12 +401,14 @@ export class MarketOperationUtils {
             ),
         ];
 
-        const executeResults = await this._sampler.executeBatchAsync(ops);
+        const [blockNumberRaw, ...executeResults] = await this._sampler.executeBatchAsync(ops);
         const batchOrderFillableMakerAmounts = executeResults.splice(0, batchNativeOrders.length) as BigNumber[][];
         const batchEthToTakerAssetRate = executeResults.splice(0, batchNativeOrders.length) as BigNumber[];
         const batchDexQuotes = executeResults.splice(0, batchNativeOrders.length) as DexSample[][][];
         const batchTokenDecimals = executeResults.splice(0, batchNativeOrders.length) as number[][];
         const inputAmountPerEth = ZERO_AMOUNT;
+
+        const blockNumber: number = (blockNumberRaw as BigNumber).toNumber();
 
         return Promise.all(
             batchNativeOrders.map(async (nativeOrders, i) => {
@@ -435,6 +442,7 @@ export class MarketOperationUtils {
                                 twoHopQuotes: [],
                             },
                             isRfqSupported: false,
+                            blockNumber,
                         },
                         {
                             bridgeSlippage: _opts.bridgeSlippage,

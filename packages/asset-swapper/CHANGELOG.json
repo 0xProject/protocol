@@ -1,12 +1,30 @@
 [
     {
-        "version": "16.54.0",
+        "version": "16.55.0",
         "changes": [
             {
                 "note": "Add Excalibur to Fantom",
                 "pr": 456
             }
         ]
+        "version": "16.55.0",
+        "changes": [
+            {
+                "note": "Fix fillRfqOrder VIP being used for swaps that need transformERC20",
+                "pr": 461
+            }
+        ],
+        "timestamp": 1649347667
+    },
+    {
+        "version": "16.54.0",
+        "changes": [
+            {
+                "note": "Add true VIP support for eligible RFQt swaps",
+                "pr": 458
+            }
+        ],
+        "timestamp": 1649215576
     },
     {
         "version": "16.53.0",
@@ -14,8 +32,17 @@
             {
                 "note": "Adds support for STG/USDC pool on Curve Mainnet",
                 "pr": 451
+            },
+            {
+                "note": "Use neon-router in asset-swapper tests",
+                "pr": 453
+            },
+            {
+                "note": "Add sampler blocknumber to quote report data",
+                "pr": 448
             }
-        ]
+        ],
+        "timestamp": 1648739346
     },
     {
         "version": "16.52.0",

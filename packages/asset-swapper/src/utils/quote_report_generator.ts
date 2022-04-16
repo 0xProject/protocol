@@ -106,6 +106,7 @@ export interface ExtendedQuoteReport {
     decodedUniqueId?: string;
     sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
+    blockNumber: number | undefined;
 }
 
 export interface PriceComparisonsReport {

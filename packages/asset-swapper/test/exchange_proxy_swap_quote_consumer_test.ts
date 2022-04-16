@@ -141,6 +141,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             ...(side === MarketOperation.Buy
                 ? { type: MarketOperation.Buy, makerTokenFillAmount }
                 : { type: MarketOperation.Sell, takerTokenFillAmount }),
+            blockNumber: 1337420,
         };
     }
 

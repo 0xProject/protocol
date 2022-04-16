@@ -5,6 +5,24 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.55.0 - _April 7, 2022_
+
+    * Fix fillRfqOrder VIP being used for swaps that need transformERC20 (#461)
+
+## v16.54.0 - _April 6, 2022_
+
+    * Add true VIP support for eligible RFQt swaps (#458)
+
+## v16.53.0 - _March 31, 2022_
+
+    * Adds support for STG/USDC pool on Curve Mainnet (#451)
+    * Use neon-router in asset-swapper tests (#453)
+    * Add sampler blocknumber to quote report data (#448)
+
+## v16.52.0 - _Invalid date_
+
+    * Adds support for mobius money on celo (#423)
+
 ## v16.51.0 - _March 10, 2022_
 
     * Added `Curve` `YFI-ETH` pool (#444)
