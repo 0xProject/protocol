@@ -888,7 +888,7 @@ describe('RfqmService Worker Logic', () => {
                     s: '',
                 },
                 updatedAt: new Date(),
-                workerAddress: '',
+                workerAddress: '0xworkeraddress',
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -1091,6 +1091,7 @@ describe('RfqmService Worker Logic', () => {
                 '0xcalldata',
                 new Date(fakeClockMs),
             );
+            verify(mockBlockchainUtils.estimateGasForExchangeProxyCallAsync('0xcalldata', '0xworkeraddress'));
             expect(result).to.equal(RfqmJobStatus.SucceededConfirmed);
             expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
                 RfqmTransactionSubmissionStatus.Presubmit,

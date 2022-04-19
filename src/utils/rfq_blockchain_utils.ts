@@ -306,19 +306,34 @@ export class RfqBlockchainUtils {
         return this._ethersProvider.getTransaction(transactionHash);
     }
 
-    public async estimateGasForExchangeProxyCallAsync(callData: string, workerAddress: string): Promise<number> {
-        const txData: Partial<TxData> = {
+    /**
+     * Estimates the gas of a transaction to the 0x exchange proxy
+     * specified by the address in the `RfqBlockchainUtils` constructor.
+     * Uses the provider to call the `eth_estimateGas` JSON RPC method,
+     * then adds the buffer specified.
+     *
+     * @param callData the calldata of the transaction
+     * @param fromAddress the address the transaction will be sent from
+     * @param buffer the buffer to add. For example, 0.5 will add a 50% buffer.
+     * Defaults to `GAS_ESTIMATE_BUFFER`. Set to 0 to disable.
+     *
+     * @returns The gas estimate for the transaction in wei
+     */
+    public async estimateGasForExchangeProxyCallAsync(
+        callData: string,
+        fromAddress: string,
+        buffer: number = GAS_ESTIMATE_BUFFER,
+    ): Promise<number> {
+        const transactionRequest: providers.TransactionRequest = {
             to: this._exchangeProxy.address,
             data: callData,
-            from: workerAddress,
+            from: fromAddress,
         };
         try {
-            const gasEstimate = await this._ethersProvider.estimateGas(
-                this.transformTxDataToTransactionRequest(txData),
-            );
+            const gasEstimate = await this._ethersProvider.estimateGas(transactionRequest);
 
             // add a buffer
-            return Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimate.toNumber());
+            return Math.ceil((buffer + 1) * gasEstimate.toNumber());
         } catch (e) {
             if (e instanceof Error) {
                 e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
