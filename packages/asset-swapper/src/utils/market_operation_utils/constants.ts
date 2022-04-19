@@ -541,6 +541,7 @@ export const POLYGON_TOKENS = {
     BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
+    ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -935,7 +936,13 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         }).build(),
         [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
-        }).build(),
+        })
+            .tap(builder => {
+                builder 
+                    .add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY)
+                    .add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
+            })
+            .build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         })
