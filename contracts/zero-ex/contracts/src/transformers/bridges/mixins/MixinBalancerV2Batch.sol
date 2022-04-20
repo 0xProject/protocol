@@ -101,6 +101,7 @@ contract MixinBalancerV2Batch {
             limits,
             block.timestamp + 1
         );
+        require(amounts[amounts.length - 1] <= 0, 'Unexpected BalancerV2Batch output');
         return uint256(amounts[amounts.length - 1] * -1);
     }
 }
