@@ -5,9 +5,8 @@ import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BancorService } from './bancor_service';
-import { PoolsCache } from './pools_cache';
 import { PoolsCacheMap, SamplerOperations } from './sampler_operations';
-import { BatchedOperation, ERC20BridgeSource, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.

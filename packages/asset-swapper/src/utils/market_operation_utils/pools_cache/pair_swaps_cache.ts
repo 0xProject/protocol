@@ -10,7 +10,8 @@ export interface CacheValue {
 // tslint:disable:custom-no-magic-numbers
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
-const DEFAULT_TIMEOUT_MS = 1000;
+const DEFAULT_TIMEOUT_MS = ONE_SECOND_MS;
+export const EMPTY_BALANCER_SWAPS = { swapInfoExactIn: [], swapInfoExactOut: [] };
 // tslint:enable:custom-no-magic-numbers
 
 /**
@@ -43,7 +44,7 @@ export abstract class SwapInfoCache {
         const key = JSON.stringify([takerToken, makerToken]);
         const value = this._cache[key];
         if (ignoreExpired) {
-            return value === undefined ? ({} as BalancerSwaps) : value.balancerSwaps;
+            return value === undefined ? EMPTY_BALANCER_SWAPS : value.balancerSwaps;
         }
         if (!value) {
             return undefined;

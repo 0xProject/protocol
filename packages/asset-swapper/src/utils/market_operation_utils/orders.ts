@@ -8,8 +8,8 @@ import {
     AaveV2FillData,
     AggregationError,
     BalancerFillData,
-    BalancerV2FillData,
     BalancerV2BatchSwapFillData,
+    BalancerV2FillData,
     BancorFillData,
     CollapsedFill,
     CompoundFillData,
@@ -261,13 +261,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.BalancerV2:
             {
                 const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2BatchSwapFillData>).fillData;
-                try {
-                    bridgeData = encoder.encode([balancerV2FillData.vault, balancerV2FillData.swapSteps, balancerV2FillData.assets]);
-                } catch (err) {
-                    console.log(JSON.stringify(balancerV2FillData, null, '\t'));
-                    console.log(err);
-                    throw err;
-                }
+                bridgeData = encoder.encode([
+                    balancerV2FillData.vault,
+                    balancerV2FillData.swapSteps,
+                    balancerV2FillData.assets,
+                ]);
             }
             break;
         case ERC20BridgeSource.Beethovenx:

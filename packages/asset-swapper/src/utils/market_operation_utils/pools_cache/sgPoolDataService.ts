@@ -1,10 +1,16 @@
 import { ChainId } from '@0x/contract-addresses';
-import { gql, request } from 'graphql-request';
+import { logUtils } from '@0x/utils';
 import { PoolDataService, SubgraphPoolBase } from '@balancer-labs/sdk';
+import { gql, request } from 'graphql-request';
 
 const queryWithLinear = gql`
     query fetchTopPoolsWithLinear($maxPoolsFetched: Int!) {
-        pools: pools(first: 1000, where: { swapEnabled: true }, orderBy: totalLiquidity, orderDirection: desc) {
+        pools: pools(
+            first: $maxPoolsFetched
+            where: { swapEnabled: true }
+            orderBy: totalLiquidity
+            orderDirection: desc
+        ) {
             id
             address
             poolType
@@ -35,7 +41,12 @@ const queryWithLinear = gql`
 
 const queryWithOutLinear = gql`
     query fetchTopPoolsWithoutLinear($maxPoolsFetched: Int!) {
-        pools: pools(first: 1000, where: { swapEnabled: true }, orderBy: totalLiquidity, orderDirection: desc) {
+        pools: pools(
+            first: $maxPoolsFetched
+            where: { swapEnabled: true }
+            orderBy: totalLiquidity
+            orderDirection: desc
+        ) {
             id
             address
             poolType
@@ -60,10 +71,12 @@ const queryWithOutLinear = gql`
     }
 `;
 
-const QUERY_BY_CHAIN_ID = {
+const QUERY_BY_CHAIN_ID: { [chainId: number]: string } = {
     [ChainId.Mainnet]: queryWithLinear,
     [ChainId.Polygon]: queryWithOutLinear,
-} as { [chainId: number]: string };
+};
+
+const DEFAULT_MAX_POOLS_FETCHED = 96;
 
 /**
  * Simple service to query required info from Subgraph for Balancer Pools.
@@ -75,17 +88,17 @@ export class SubgraphPoolDataService implements PoolDataService {
     constructor(
         private readonly _config: {
             chainId: number;
-            subgraphUrl: string;
+            subgraphUrl: string | null;
             maxPoolsFetched?: number;
         },
     ) {
-        this._config.maxPoolsFetched = this._config.maxPoolsFetched || 1e3;
+        this._config.maxPoolsFetched = this._config.maxPoolsFetched || DEFAULT_MAX_POOLS_FETCHED;
         this._gqlQuery = QUERY_BY_CHAIN_ID[this._config.chainId];
     }
 
+    // tslint:disable-next-line: async-suffix
     public async getPools(): Promise<SubgraphPoolBase[]> {
-        console.log(`SubgraphPoolDataService:getPools(): ${this._config.subgraphUrl}`);
-        if (!this._gqlQuery) {
+        if (!this._gqlQuery || !this._config.subgraphUrl) {
             return [];
         }
         try {
@@ -94,7 +107,7 @@ export class SubgraphPoolDataService implements PoolDataService {
             });
             return pools;
         } catch (err) {
-            console.error(`Failed to fetch BalancerV2 subgraph pools: ${err.message}`);
+            logUtils.warn(`Failed to fetch BalancerV2 subgraph pools: ${err.message}`);
             return [];
         }
     }
