@@ -49,6 +49,7 @@ interface IBalancerV2Vault {
         FundManagement calldata funds
     ) external returns (int256[] memory assetDeltas);
 }
+
 interface IAsset {
     // solhint-disable-previous-line no-empty-blocks
 }

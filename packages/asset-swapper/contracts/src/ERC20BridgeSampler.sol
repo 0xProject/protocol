@@ -44,7 +44,10 @@ import "./UniswapV3Sampler.sol";
 import "./UtilitySampler.sol";
 
 
+contract CompilerHack2 {}
+
 contract ERC20BridgeSampler is
+    CompilerHack2,
     BalancerSampler,
     BalancerV2Sampler,
     BancorSampler,
