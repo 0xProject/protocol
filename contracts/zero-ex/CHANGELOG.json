@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.32.0",
+        "changes": [
+            {
+                "note": "Add support for `BalancerV2Batch` fills in FQT",
+                "pr": 462
+            }
+        ]
+    },
+    {
         "timestamp": 1648739346,
         "version": "0.31.2",
         "changes": [
