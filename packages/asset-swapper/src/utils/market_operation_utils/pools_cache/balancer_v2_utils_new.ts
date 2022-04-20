@@ -11,7 +11,6 @@ import {
     RouteProposer,
     SwapTypes,
 } from '@balancer-labs/sdk';
-import { env as ENV } from 'process';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
@@ -44,7 +43,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         super(cache);
         const config: BalancerSdkConfig = {
             network: chainId as number, // wtf TS
-            rpcUrl: ENV.ETHEREUM_RPC_URL!,
+            rpcUrl: '', // Not actually used by SDK for this.
         };
         const balancerSdk = new BalancerSDK(config);
         // The RouteProposer finds paths between a token pair using direct/multihop/linearPool routes
