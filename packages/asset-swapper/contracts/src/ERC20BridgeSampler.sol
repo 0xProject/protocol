@@ -32,7 +32,6 @@ import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
 import "./LiquidityProviderSampler.sol";
 import "./MakerPSMSampler.sol";
-import "./MultiBridgeSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
@@ -60,7 +59,6 @@ contract ERC20BridgeSampler is
     MakerPSMSampler,
     MStableSampler,
     MooniswapSampler,
-    MultiBridgeSampler,
     NativeOrderSampler,
     ShellSampler,
     SmoothySampler,
