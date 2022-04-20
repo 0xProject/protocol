@@ -157,7 +157,6 @@ contract BalancerV2Sampler is SamplerUtils {
     }
 
 
-    // TODO - THIS IS PSEUDO CODE AS A DEMO
     // Replaces amount for first step with each takerTokenAmount and calls queryBatchSwap using supplied steps
     /// @dev Sample sell quotes from Balancer V2 supporting multihops.
     /// @param swapSteps Array of swap steps (can be >= 1).
@@ -198,7 +197,6 @@ contract BalancerV2Sampler is SamplerUtils {
         }
     }
 
-    // TODO - THIS IS PSEUDO CODE AS A DEMO
     // Replaces amount for first step with each makerTokenAmount and calls queryBatchSwap using supplied steps
     /// @dev Sample buy quotes from Balancer V2 supporting multihops.
     /// @param swapSteps Array of swap steps (can be >= 1).
