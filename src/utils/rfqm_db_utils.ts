@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/asset-swapper';
 import { OtcOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
-import { FindConditions, In } from 'typeorm';
+import { FindOptionsWhere, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
@@ -104,7 +104,7 @@ export class RfqmDbUtils {
         // update unless `.update` is explicitly called.
         const updatedEntity = await repository.preload({ address, index, balance, chainId });
         if (updatedEntity !== undefined) {
-            const findConditions: FindConditions<RfqmWorkerHeartbeatEntity> = {
+            const findConditions: FindOptionsWhere<RfqmWorkerHeartbeatEntity> = {
                 address,
                 chainId,
             };
@@ -133,7 +133,7 @@ export class RfqmDbUtils {
     /**
      * [RFQm v2] Queries the rfqm_job table with the given orderHash
      */
-    public async findV2JobByOrderHashAsync(orderHash: string): Promise<RfqmV2JobEntity | undefined> {
+    public async findV2JobByOrderHashAsync(orderHash: string): Promise<RfqmV2JobEntity | null> {
         return this._connection.getRepository(RfqmV2JobEntity).findOne({
             where: { orderHash },
         });
@@ -142,7 +142,7 @@ export class RfqmDbUtils {
     /**
      * [RFQm v2] Queries the rfqm_quote table with the given orderHash
      */
-    public async findV2QuoteByOrderHashAsync(orderHash: string): Promise<RfqmV2QuoteEntity | undefined> {
+    public async findV2QuoteByOrderHashAsync(orderHash: string): Promise<RfqmV2QuoteEntity | null> {
         return this._connection.getRepository(RfqmV2QuoteEntity).findOne({
             where: { orderHash },
         });
@@ -153,7 +153,9 @@ export class RfqmDbUtils {
      */
     public async findV2JobsWithStatusesAsync(statuses: RfqmJobStatus[]): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
-            status: In(statuses),
+            where: {
+                status: In(statuses),
+            },
         });
     }
 
@@ -162,7 +164,7 @@ export class RfqmDbUtils {
      */
     public async findV2TransactionSubmissionByTransactionHashAsync(
         transactionHash: string,
-    ): Promise<RfqmV2TransactionSubmissionEntity | undefined> {
+    ): Promise<RfqmV2TransactionSubmissionEntity | null> {
         return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).findOne({
             where: { transactionHash },
         });
@@ -243,9 +245,11 @@ export class RfqmDbUtils {
      */
     public async findV2UnresolvedJobsAsync(workerAddress: string, chainId: number): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
-            chainId,
-            status: In(UnresolvedRfqmJobStatuses),
-            workerAddress,
+            where: {
+                chainId,
+                status: In(UnresolvedRfqmJobStatuses),
+                workerAddress,
+            },
         });
     }
 }

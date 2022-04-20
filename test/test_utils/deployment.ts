@@ -3,7 +3,7 @@ import * as path from 'path';
 
 import { ONE_MINUTE_MS } from '../../src/constants';
 
-import { initDBConnectionAsync } from './db_connection';
+import { initDbDataSourceAsync } from './initDbDataSourceAsync';
 
 // depends on a `docker-compose-test.yml` existing in the api root directory
 const dockerComposeFilename = 'docker-compose-test.yml';
@@ -106,7 +106,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
             // delay before retrying
             new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
             async () => {
-                await initDBConnectionAsync();
+                await initDbDataSourceAsync();
             },
         ]);
         return;

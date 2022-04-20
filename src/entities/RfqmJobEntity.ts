@@ -63,7 +63,7 @@ export class RfqmJobEntity {
     @Column({ name: 'metadata', type: 'jsonb', nullable: true })
     public metadata: object | null;
 
-    @Column({ name: 'is_completed', type: 'boolean', nullable: false, default: () => false })
+    @Column({ name: 'is_completed', type: 'boolean', nullable: false, default: 'false' })
     public isCompleted: boolean;
 
     @Column({ name: 'worker_address', type: 'varchar', nullable: true })

@@ -14,7 +14,7 @@ import * as redis from 'redis';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
 import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import * as config from '../src/config';
 import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, RFQM_PATH, ZERO } from '../src/constants';
@@ -43,8 +43,8 @@ import {
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
-import { initDBConnectionAsync } from './test_utils/db_connection';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
+import { initDbDataSourceAsync } from './test_utils/initDbDataSourceAsync';
 
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const API_KEY = 'koolApiKey';
@@ -144,7 +144,7 @@ describe('RFQM Integration', () => {
     let app: Express.Application;
     let axiosClient: AxiosInstance;
     let cacheClient: CacheClient;
-    let connection: Connection;
+    let dataSource: DataSource;
     let dbUtils: RfqmDbUtils;
     let mockAxios: AxiosMockAdapter;
     let rfqBlockchainUtilsMock: RfqBlockchainUtils;
@@ -242,8 +242,8 @@ describe('RFQM Integration', () => {
         ];
 
         // Create the dbUtils
-        connection = await initDBConnectionAsync();
-        dbUtils = new RfqmDbUtils(connection);
+        dataSource = await initDbDataSourceAsync();
+        dbUtils = new RfqmDbUtils(dataSource);
 
         // Create the mock sqsProducer
         const sqsProducerMock = mock(Producer);
@@ -287,7 +287,7 @@ describe('RFQM Integration', () => {
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);
-        const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(connection), configManager);
+        const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(dataSource), configManager);
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(
@@ -296,7 +296,7 @@ describe('RFQM Integration', () => {
             rfqMakerService,
             configManager,
             config.defaultHttpServiceConfig,
-            connection,
+            dataSource,
             false,
         );
         app = res.app;
@@ -304,12 +304,12 @@ describe('RFQM Integration', () => {
     });
 
     afterEach(async () => {
-        await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
 
     afterAll(async () => {
@@ -775,7 +775,7 @@ describe('RFQM Integration', () => {
             });
 
             // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+            await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
@@ -787,8 +787,10 @@ describe('RFQM Integration', () => {
 
             expect(appResponse.body.orderHash).to.equal(orderHash);
 
-            const dbJobEntity = await connection.getRepository(RfqmV2JobEntity).findOne({
-                orderHash,
+            const dbJobEntity = await dataSource.getRepository(RfqmV2JobEntity).findOne({
+                where: {
+                    orderHash,
+                },
             });
             expect(dbJobEntity).to.not.equal(null);
             expect(dbJobEntity?.orderHash).to.equal(mockQuote.orderHash);
@@ -849,7 +851,7 @@ describe('RFQM Integration', () => {
             });
 
             // write a corresponding quote entity to validate against
-            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+            await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
@@ -885,7 +887,7 @@ describe('RFQM Integration', () => {
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             });
 
-            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+            await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
@@ -912,7 +914,7 @@ describe('RFQM Integration', () => {
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
             });
 
-            await connection.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+            await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)

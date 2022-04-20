@@ -1,4 +1,4 @@
-import { ConnectionOptions } from 'typeorm';
+import { DataSourceOptions } from 'typeorm';
 
 import { POSTGRES_READ_REPLICA_URIS, POSTGRES_URI } from './config';
 import {
@@ -43,7 +43,7 @@ const entities = [
     RfqMakerUpdateTimeHash,
 ];
 
-export const createConfig = (postgresUri: string = POSTGRES_URI): ConnectionOptions => ({
+export const createConfig = (postgresUri: string = POSTGRES_URI): DataSourceOptions => ({
     type: 'postgres',
     entities,
     synchronize: false,
@@ -62,7 +62,4 @@ export const createConfig = (postgresUri: string = POSTGRES_URI): ConnectionOpti
               },
           }
         : { url: postgresUri }),
-    cli: {
-        migrationsDir: 'migrations',
-    },
 });

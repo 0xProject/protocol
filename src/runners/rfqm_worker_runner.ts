@@ -20,7 +20,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
 import { METRICS_PATH } from '../constants';
-import { getDBConnectionAsync } from '../db_connection';
+import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
 import { ConfigManager } from '../utils/config_manager';
@@ -80,7 +80,7 @@ if (require.main === module) {
         );
 
         // Build dependencies
-        const connection = await getDBConnectionAsync();
+        const connection = await getDbDataSourceAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
 

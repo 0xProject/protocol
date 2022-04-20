@@ -17,7 +17,7 @@ export class BlockedAddressEntity {
     @Column({ name: 'last_seen_nonce', type: 'bigint', nullable: true })
     public lastSeenNonce: number | null;
 
-    @Column({ name: 'ignore', type: 'boolean', default: () => false })
+    @Column({ name: 'ignore', type: 'boolean', default: 'false' })
     public ignore: boolean;
 
     // tslint:disable-next-line: no-object-literal-type-assertion

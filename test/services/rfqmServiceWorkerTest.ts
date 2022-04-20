@@ -126,7 +126,7 @@ describe('RfqmService Worker Logic', () => {
         it('fails if no job is found', async () => {
             // Return `undefined` for v1 and v2 job for orderhash
             const dbUtilsMock = mock(RfqmDbUtils);
-            when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(undefined);
+            when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(null);
 
             const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 

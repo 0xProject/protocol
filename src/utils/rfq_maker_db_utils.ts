@@ -11,7 +11,7 @@ export class RfqMakerDbUtils {
     /**
      * [RFQ maker] find RfqMaker for given maker and blockchain
      */
-    public async getRfqMakerAsync(makerId: string, chainId: number): Promise<RfqMaker | undefined> {
+    public async getRfqMakerAsync(makerId: string, chainId: number): Promise<RfqMaker | null> {
         return this._connection.getRepository(RfqMaker).findOne({
             where: { makerId, chainId },
         });

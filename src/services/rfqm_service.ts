@@ -707,7 +707,7 @@ export class RfqmService {
         const makerToken = order.makerToken.toLowerCase();
         // check that the orderHash is indeed a recognized quote
         const quote = await this._dbUtils.findV2QuoteByOrderHashAsync(orderHash);
-        if (quote === undefined) {
+        if (!quote) {
             RFQM_SIGNED_QUOTE_NOT_FOUND.inc();
             throw new NotFoundError('quote not found');
         }
@@ -1666,7 +1666,7 @@ export class RfqmService {
             transactionHashFromSubmit,
         );
 
-        if (updatedEntity === undefined) {
+        if (!updatedEntity) {
             // This should never happen -- we just saved it
             throw new Error(`Could not find updated entity with transaction hash ${transactionHashFromSubmit}`);
         }

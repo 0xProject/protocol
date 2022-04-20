@@ -7,12 +7,12 @@ import * as delay from 'delay';
 import * as express from 'express';
 import * as _ from 'lodash';
 import { Gauge, Summary } from 'prom-client';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import * as defaultConfig from '../config';
 import { METRICS_PATH, ONE_SECOND_MS, RFQ_ALLOWANCE_TARGET, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
-import { getDBConnectionAsync } from '../db_connection';
 import { MakerBalanceChainCacheEntity } from '../entities';
+import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 import { providerUtils } from '../utils/provider_utils';
 import { createResultCache, ResultCache } from '../utils/result_cache';
@@ -75,11 +75,11 @@ if (require.main === module) {
         const provider = providerUtils.createWeb3Provider(defaultConfig.ETHEREUM_RPC_URL);
         const web3Wrapper = new Web3Wrapper(provider);
 
-        const connection = await getDBConnectionAsync();
+        const dataSource = await getDbDataSourceAsync();
 
         const balanceCheckerContractInterface = getBalanceCheckerContractInterface(RANDOM_ADDRESS, provider);
 
-        await runRfqBalanceCacheAsync(web3Wrapper, connection, balanceCheckerContractInterface);
+        await runRfqBalanceCacheAsync(web3Wrapper, dataSource, balanceCheckerContractInterface);
     })().catch((error) => {
         logger.error(error);
         process.exit(1);
@@ -88,7 +88,7 @@ if (require.main === module) {
 
 async function runRfqBalanceCacheAsync(
     web3Wrapper: Web3Wrapper,
-    connection: Connection,
+    dataSource: DataSource,
     balanceCheckerContractInterface: BalanceCheckerContract,
 ): Promise<void> {
     if (defaultConfig.ENABLE_PROMETHEUS_METRICS) {
@@ -137,7 +137,7 @@ async function runRfqBalanceCacheAsync(
             );
 
             try {
-                await cacheRfqBalancesAsync(connection, balanceCheckerContractInterface, true, workerId);
+                await cacheRfqBalancesAsync(dataSource, balanceCheckerContractInterface, true, workerId);
             } catch (err) {
                 logger.error(err);
                 cacheRfqBalanceErrors += 1;
@@ -158,7 +158,7 @@ async function runRfqBalanceCacheAsync(
  * This function retrieves and caches ERC20 balances of RFQ market makers
  */
 export async function cacheRfqBalancesAsync(
-    connection: Connection,
+    connection: DataSource,
     balanceCheckerContractInterface: BalanceCheckerContract,
     codeOverride: boolean,
     workerId: string,
@@ -175,7 +175,7 @@ export async function cacheRfqBalancesAsync(
 // NOTE: this only returns a partial entity class, just token address and maker address
 // Cache the query results to reduce reads from the DB
 let MAKER_TOKEN_CACHE: ResultCache<MakerBalanceChainCacheEntity[]>;
-async function getMakerTokensAsync(connection: Connection, workerId: string): Promise<MakerBalanceChainCacheEntity[]> {
+async function getMakerTokensAsync(connection: DataSource, workerId: string): Promise<MakerBalanceChainCacheEntity[]> {
     const start = new Date().getTime();
 
     if (!MAKER_TOKEN_CACHE) {
@@ -256,7 +256,7 @@ async function getErc20BalancesAsync(
 async function updateErc20BalancesAsync(
     balancesCallInput: BalancesCallInput,
     balances: string[],
-    connection: Connection,
+    connection: DataSource,
     updateTime: Date,
 ): Promise<void> {
     const toSave = balancesCallInput.addresses.map((addr, i) => {

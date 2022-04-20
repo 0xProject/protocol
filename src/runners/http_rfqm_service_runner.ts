@@ -10,7 +10,7 @@ import * as promBundle from 'express-prom-bundle';
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import {
     CHAIN_CONFIGURATIONS,
@@ -20,7 +20,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
 import { ADMIN_PATH, RFQM_PATH, RFQ_MAKER_PATH } from '../constants';
-import { getDBConnectionAsync } from '../db_connection';
+import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
@@ -52,7 +52,7 @@ if (require.main === module) {
         const config: HttpServiceConfig = {
             ...defaultHttpServiceConfig,
         };
-        const connection = await getDBConnectionAsync();
+        const connection = await getDbDataSourceAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
@@ -100,7 +100,7 @@ export async function runHttpRfqmServiceAsync(
     rfqMakerService: RfqMakerService,
     configManager: ConfigManager,
     config: HttpServiceConfig,
-    connection: Connection,
+    connection: DataSource,
     useMetricsMiddleware: boolean = true,
     _app?: core.Express,
 ): Promise<{ app: express.Application; server: Server }> {

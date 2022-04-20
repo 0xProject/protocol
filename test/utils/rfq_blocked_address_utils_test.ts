@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { ONE_MINUTE_MS } from '../../src/constants';
 import { BlockedAddressEntity } from '../../src/entities/BlockedAddressEntity';
 import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_utils';
-import { initDBConnectionAsync } from '../test_utils/db_connection';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from '../test_utils/deployment';
+import { initDbDataSourceAsync } from '../test_utils/initDbDataSourceAsync';
 
 const ttlMs = 50;
 
@@ -14,14 +14,14 @@ jest.setTimeout(ONE_MINUTE_MS * 2);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
 
 describe('rfqBlockedAddressUtils', () => {
-    let connection: Connection;
+    let dataSource: DataSource;
     let rfqBlacklistUtils: RfqBlockedAddressUtils;
 
     beforeAll(async () => {
         teardownDependencies = await setupDependenciesAsync(['postgres']);
         // tslint:disable-next-line: custom-no-magic-numbers
-        connection = await initDBConnectionAsync();
-        rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
+        dataSource = await initDbDataSourceAsync();
+        rfqBlacklistUtils = new RfqBlockedAddressUtils(dataSource, new Set(), ttlMs);
     });
 
     afterAll(async () => {
@@ -32,17 +32,17 @@ describe('rfqBlockedAddressUtils', () => {
     });
 
     beforeEach(async () => {
-        rfqBlacklistUtils = new RfqBlockedAddressUtils(connection, new Set(), ttlMs);
+        rfqBlacklistUtils = new RfqBlockedAddressUtils(dataSource, new Set(), ttlMs);
     });
 
     afterEach(async () => {
-        await connection.query('TRUNCATE TABLE blocked_addresses CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE blocked_addresses CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
 
     describe('blocked_addresses table', () => {
@@ -50,7 +50,7 @@ describe('rfqBlockedAddressUtils', () => {
             const sampleBadAddress = '0xA10612Ee5432B6395d1F0d6fB2601299a1c64274';
 
             try {
-                await connection.getRepository(BlockedAddressEntity).save({
+                await dataSource.getRepository(BlockedAddressEntity).save({
                     address: sampleBadAddress,
                 });
                 expect.fail('should throw');
@@ -59,7 +59,7 @@ describe('rfqBlockedAddressUtils', () => {
             }
 
             try {
-                await connection.getRepository(BlockedAddressEntity).save({
+                await dataSource.getRepository(BlockedAddressEntity).save({
                     address: sampleBadAddress.toLowerCase(),
                 });
             } catch (err) {
@@ -73,7 +73,7 @@ describe('rfqBlockedAddressUtils', () => {
         expect(rfqBlacklistUtils.isBlocked(sampleBadAddress)).to.equal(false);
 
         // Add it to the blocked list
-        await connection.getRepository(BlockedAddressEntity).save({
+        await dataSource.getRepository(BlockedAddressEntity).save({
             address: sampleBadAddress.toLowerCase(),
         });
 
@@ -84,7 +84,7 @@ describe('rfqBlockedAddressUtils', () => {
         const sampleBadAddress = '0xB10612Ee5432B6395d1F0d6fB2601299a1c64274';
 
         // Add it to the blocked list
-        await connection.getRepository(BlockedAddressEntity).save({
+        await dataSource.getRepository(BlockedAddressEntity).save({
             address: sampleBadAddress.toLowerCase(),
         });
 
@@ -102,7 +102,7 @@ describe('rfqBlockedAddressUtils', () => {
 
     it('should be case insensitive', async () => {
         const sampleBadAddress = '0xC10612Ee5432B6395d1F0d6fB2601299a1c64274';
-        await connection.getRepository(BlockedAddressEntity).save({
+        await dataSource.getRepository(BlockedAddressEntity).save({
             address: sampleBadAddress.toLowerCase(),
         });
 

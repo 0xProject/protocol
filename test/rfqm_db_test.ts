@@ -2,7 +2,7 @@ import { BigNumber } from '@0x/asset-swapper';
 import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { expect } from 'chai';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { ONE_MINUTE_MS, ZERO } from '../src/constants';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
@@ -15,8 +15,8 @@ import {
     storedOtcOrderToOtcOrder,
 } from '../src/utils/rfqm_db_utils';
 
-import { initDBConnectionAsync } from './test_utils/db_connection';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
+import { initDbDataSourceAsync } from './test_utils/initDbDataSourceAsync';
 
 let dbUtils: RfqmDbUtils;
 
@@ -64,13 +64,13 @@ const nonce = 0;
 // tslint:disable-next-line: custom-no-magic-numbers
 jest.setTimeout(ONE_MINUTE_MS * 3);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
-let connection: Connection;
+let dataSource: DataSource;
 
 describe('RFQM Database', () => {
     beforeAll(async () => {
         teardownDependencies = await setupDependenciesAsync(['postgres']);
-        connection = await initDBConnectionAsync();
-        dbUtils = new RfqmDbUtils(connection);
+        dataSource = await initDbDataSourceAsync();
+        dbUtils = new RfqmDbUtils(dataSource);
     });
 
     afterAll(async () => {
@@ -80,12 +80,12 @@ describe('RFQM Database', () => {
     });
 
     afterEach(async () => {
-        await connection.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
-        await connection.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
+        await dataSource.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
     });
     describe('v2 tables', () => {
         it('should be able to write to and read from the rfqm_v2_quote table', async () => {
