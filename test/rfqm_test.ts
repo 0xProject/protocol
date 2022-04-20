@@ -148,7 +148,8 @@ describe('RFQM Integration', () => {
     let dbUtils: RfqmDbUtils;
     let mockAxios: AxiosMockAdapter;
     let rfqBlockchainUtilsMock: RfqBlockchainUtils;
-    let rfqmService: RfqmService;
+    let rfqmServiceChainId1337: RfqmService;
+    let rfqmServiceChainId3: RfqmService;
     let server: Server;
     let takerAddress: string;
 
@@ -270,8 +271,7 @@ describe('RFQM Integration', () => {
             ],
         });
         const rfqMakerManager = instance(rfqMakerManagerMock);
-
-        rfqmService = new RfqmService(
+        rfqmServiceChainId1337 = new RfqmService(
             1337,
             protocolFeeUtils,
             contractAddresses,
@@ -286,12 +286,36 @@ describe('RFQM Integration', () => {
             /* initialMaxPriorityFeePerGasGwei */ 2,
         );
 
+        // Create another RFQM Service for chain ID 3 that returns 0 offering
+        const rfqMakerManagerChain3Mock = mock(RfqMakerManager);
+        when(rfqMakerManagerChain3Mock.getRfqmMakerOfferings()).thenReturn({
+            'https://mock-rfqm1.club': [],
+        });
+        const rfqMakerManagerChainId3 = instance(rfqMakerManagerChain3Mock);
+        rfqmServiceChainId3 = new RfqmService(
+            3,
+            protocolFeeUtils,
+            contractAddresses,
+            MOCK_WORKER_REGISTRY_ADDRESS,
+            rfqBlockchainUtils,
+            dbUtils,
+            sqsProducer,
+            quoteServerClient,
+            TEST_TRANSACTION_WATCHER_SLEEP_MS,
+            cacheClient,
+            rfqMakerManagerChainId3,
+            /* initialMaxPriorityFeePerGasGwei */ 2,
+        );
+
         const rfqAdminService = buildRfqAdminService(dbUtils);
         const rfqMakerService = buildRfqMakerService(new RfqMakerDbUtils(dataSource), configManager);
 
         // Start the server
         const res = await runHttpRfqmServiceAsync(
-            new Map([[1337, rfqmService]]),
+            new Map([
+                [1337, rfqmServiceChainId1337],
+                [3, rfqmServiceChainId3],
+            ]),
             rfqAdminService,
             rfqMakerService,
             configManager,
@@ -336,6 +360,25 @@ describe('RFQM Integration', () => {
                 .expect('Content-Type', /json/);
             expect(appResponse.body.pairs[0][0]).to.equal('0x0b1ba0af832d7c05fd64161e0db78e85978e8082');
             expect(appResponse.body.pairs[0][1]).to.equal('0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c');
+        });
+
+        // This test is to cover this issue: https://github.com/0xProject/0x-rfq-api/pull/200
+        it('should return correct values for different chains', async () => {
+            const chainId3HealthzResponse = await request(app)
+                .get(`${RFQM_PATH}/healthz`)
+                .set('0x-chain-id', '3')
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+            // tslint:disable-next-line: no-unused-expression
+            expect(chainId3HealthzResponse.body.pairs).to.be.an('array').that.is.empty;
+
+            const chainId1337HealthzResponse = await request(app)
+                .get(`${RFQM_PATH}/healthz`)
+                .set('0x-chain-id', '1337')
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+            expect(chainId1337HealthzResponse.body.pairs[0][0]).to.equal('0x0b1ba0af832d7c05fd64161e0db78e85978e8082');
+            expect(chainId1337HealthzResponse.body.pairs[0][1]).to.equal('0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c');
         });
     });
 
