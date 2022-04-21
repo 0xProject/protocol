@@ -561,6 +561,7 @@ export const AVALANCHE_TOKENS = {
     nUSD: '0xcfc37a6ab183dd4aed08c204d1c2773c0b1bdf46',
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
     MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
+    MAG: '0x1d60109178C48E4A937D8AB71699D8eBb6F7c5dE',
 };
 
 export const CELO_TOKENS = {
@@ -878,6 +879,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.nUSD,
             AVALANCHE_TOKENS.nETH,
             AVALANCHE_TOKENS.aWETH,
+            AVALANCHE_TOKENS.MIM,
         ],
         [ChainId.Fantom]: [
             FANTOM_TOKENS.WFTM,
@@ -938,9 +940,7 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
         })
             .tap(builder => {
-                builder 
-                    .add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY)
-                    .add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
+                builder.add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY).add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
             })
             .build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
@@ -951,6 +951,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
                     .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
+                //Trader Joe MAG/MIM pool
+                builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
             })
             .build(),
         [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
