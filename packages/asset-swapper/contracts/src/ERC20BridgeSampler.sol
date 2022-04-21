@@ -44,7 +44,29 @@ import "./UniswapV3Sampler.sol";
 import "./UtilitySampler.sol";
 
 
-contract ERC20BridgeSampler
+contract ERC20BridgeSampler is
+    BalancerSampler,
+    BalancerV2Sampler,
+    BancorSampler,
+    CompoundSampler,
+    CurveSampler,
+    DODOSampler,
+    DODOV2Sampler,
+    KyberSampler,
+    KyberDmmSampler,
+    LidoSampler,
+    LiquidityProviderSampler,
+    MakerPSMSampler,
+    MStableSampler,
+    MooniswapSampler,
+    NativeOrderSampler,
+    ShellSampler,
+    SmoothySampler,
+    TwoHopSampler,
+    UniswapSampler,
+    UniswapV2Sampler,
+    UniswapV3Sampler,
+    UtilitySampler
 {
 
     struct CallResults {
