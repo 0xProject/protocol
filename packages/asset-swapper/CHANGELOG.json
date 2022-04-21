@@ -1,9 +1,9 @@
 [
     {
-        "version": "16.55.0",
+        "version": "16.55.1",
         "changes": [
             {
-                "note": "_Description of changes_",
+                "note": "Added QUICK/ANY pair on Polygon",
                 "pr": 464
             }
         ]
