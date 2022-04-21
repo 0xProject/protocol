@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.56.0 - _April 21, 2022_
+
+    * Add estimatedGas to ExtendedQuoteReport (#463)
+
 ## v16.55.0 - _April 7, 2022_
 
     * Fix fillRfqOrder VIP being used for swaps that need transformERC20 (#461)
