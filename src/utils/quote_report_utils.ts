@@ -25,6 +25,7 @@ interface QuoteReportLogOptionsBase {
     taker?: string;
     slippage: number | undefined;
     blockNumber: number | undefined;
+    estimatedGas: BigNumber;
 }
 interface QuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     quoteReport: QuoteReport;
@@ -89,6 +90,7 @@ export const quoteReportUtils = {
             sellTokenAddress: logOpts.sellTokenAddress,
             integratorId: logOpts.integratorId,
             blockNumber: logOpts.blockNumber?.toString(),
+            estimatedGas: logOpts.estimatedGas.toString(),
         };
         if (logOpts.submissionBy === 'metaTxn') {
             logBase = { ...logBase, zeroExTransactionHash: logOpts.zeroExTransactionHash };
@@ -135,6 +137,7 @@ export const quoteReportUtils = {
                 sourcesConsidered: logOpts.quoteReportSources.sourcesConsidered.map(jsonifyFillData),
                 sourcesDelivered: logOpts.quoteReportSources.sourcesDelivered?.map(jsonifyFillData),
                 blockNumber: logOpts.blockNumber,
+                estimatedGas: logOpts.estimatedGas.toString(),
             };
             kafkaProducer
                 .send({

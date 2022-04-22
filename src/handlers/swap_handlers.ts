@@ -180,6 +180,7 @@ export class SwapHandlers {
                         integratorId: params.integrator?.integratorId,
                         blockNumber: quote.blockNumber,
                         slippage: undefined,
+                        estimatedGas: quote.estimatedGas,
                     },
                     req.log,
                 );
@@ -201,6 +202,7 @@ export class SwapHandlers {
                         integratorId: params.integrator?.integratorId,
                         blockNumber: quote.blockNumber,
                         slippage: params.slippagePercentage,
+                        estimatedGas: quote.estimatedGas,
                     },
                     true,
                     kafkaProducer,
@@ -294,6 +296,7 @@ export class SwapHandlers {
                     integratorId: params.integrator?.integratorId,
                     slippage: params.slippagePercentage,
                     blockNumber: quote.blockNumber,
+                    estimatedGas: quote.estimatedGas,
                 },
                 false,
                 kafkaProducer,

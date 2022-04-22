@@ -161,6 +161,7 @@ export class MetaTransactionService {
                 slippage: undefined,
                 // TODO: if we ever want to turn metatxs back on we should return blocknumber here
                 blockNumber: undefined,
+                estimatedGas: quote.estimatedGas,
             });
         }
         return {
