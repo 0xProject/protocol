@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.13.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT on mainnet and polygon",
+                "pr": 462
+            }
+        ]
+    },
+    {
         "timestamp": 1648739346,
         "version": "6.12.1",
         "changes": [
