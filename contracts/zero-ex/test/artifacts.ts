@@ -101,6 +101,7 @@ import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransa
 import * as MixinAaveV2 from '../test/generated-artifacts/MixinAaveV2.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2 from '../test/generated-artifacts/MixinBalancerV2.json';
+import * as MixinBalancerV2Batch from '../test/generated-artifacts/MixinBalancerV2Batch.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinCoFiX from '../test/generated-artifacts/MixinCoFiX.json';
 import * as MixinCompound from '../test/generated-artifacts/MixinCompound.json';
@@ -313,6 +314,7 @@ export const artifacts = {
     MixinAaveV2: MixinAaveV2 as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
     MixinBalancerV2: MixinBalancerV2 as ContractArtifact,
+    MixinBalancerV2Batch: MixinBalancerV2Batch as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
     MixinCoFiX: MixinCoFiX as ContractArtifact,
     MixinCompound: MixinCompound as ContractArtifact,

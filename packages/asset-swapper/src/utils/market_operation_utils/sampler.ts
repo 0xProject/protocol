@@ -3,8 +3,14 @@ import { BigNumber } from '@0x/utils';
 
 import { Address } from '../../types';
 
+<<<<<<< HEAD
 import { DexSample, ERC20BridgeSource } from './types';
 import { SamplerServiceRpcClient } from './sampler_service_rpc_client';
+=======
+import { BancorService } from './bancor_service';
+import { PoolsCacheMap, SamplerOperations } from './sampler_operations';
+import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+>>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
 
 const DEFAULT_LIQUIDITY_SAMPLES = 16;
 
@@ -23,9 +29,26 @@ export interface Sampler {
     getBuyLiquidityAsync(path: Address[], makerAmount: BigNumber, sources: ERC20BridgeSource[], numSamples?: number): Promise<DexSample[][]>;
 }
 
+<<<<<<< HEAD
 export class SamplerClient implements Sampler {
     static createFromChainIdAndEndpoint(chainId: ChainId, endpoint: string): SamplerClient {
         return new SamplerClient(chainId, new SamplerServiceRpcClient(endpoint));
+=======
+/**
+ * Encapsulates interactions with the `ERC20BridgeSampler` contract.
+ */
+export class DexOrderSampler extends SamplerOperations {
+    constructor(
+        public readonly chainId: ChainId,
+        _samplerContract: ERC20BridgeSamplerContract,
+        private readonly _samplerOverrides?: SamplerOverrides,
+        poolsCaches?: PoolsCacheMap,
+        tokenAdjacencyGraph?: TokenAdjacencyGraph,
+        liquidityProviderRegistry?: LiquidityProviderRegistry,
+        bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
+    ) {
+        super(chainId, _samplerContract, poolsCaches, tokenAdjacencyGraph, liquidityProviderRegistry, bancorServiceFn);
+>>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
     }
 
     static async createFromEndpointAsync(endpoint: string): Promise<SamplerClient> {

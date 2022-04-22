@@ -176,6 +176,59 @@ export interface DexSample {
     metadata?: any;
     input: BigNumber;
     output: BigNumber;
+<<<<<<< HEAD
+=======
+}
+export interface CurveFillData extends FillData {
+    fromTokenIdx: number;
+    toTokenIdx: number;
+    pool: CurveInfo;
+}
+
+export interface BalancerBatchSwapStep {
+    poolId: string;
+    assetInIndex: number;
+    assetOutIndex: number;
+    amount: BigNumber;
+    userData: string;
+}
+
+export interface BalancerSwaps {
+    swapInfoExactIn: BalancerSwapInfo[];
+    swapInfoExactOut: BalancerSwapInfo[];
+}
+export interface BalancerSwapInfo {
+    assets: string[];
+    swapSteps: BalancerBatchSwapStep[];
+}
+
+export interface BalancerFillData extends FillData {
+    poolAddress: string;
+}
+
+export interface BalancerV2FillData extends FillData {
+    vault: string;
+    poolId: string;
+}
+
+export interface BalancerV2BatchSwapFillData extends FillData {
+    vault: string;
+    swapSteps: BalancerBatchSwapStep[];
+    assets: string[];
+}
+
+export interface UniswapV2FillData extends FillData {
+    tokenAddressPath: string[];
+    router: string;
+}
+
+export interface ShellFillData extends FillData {
+    poolAddress: string;
+}
+
+export interface LiquidityProviderFillData extends FillData {
+    poolAddress: string;
+>>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
     gasCost: number;
 }
 
