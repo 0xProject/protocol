@@ -5,9 +5,8 @@ import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
 import { BancorService } from './bancor_service';
-import { PoolsCache } from './pools_cache';
-import { SamplerOperations } from './sampler_operations';
-import { BatchedOperation, ERC20BridgeSource, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+import { PoolsCacheMap, SamplerOperations } from './sampler_operations';
+import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.
@@ -37,7 +36,7 @@ export class DexOrderSampler extends SamplerOperations {
         public readonly chainId: ChainId,
         _samplerContract: ERC20BridgeSamplerContract,
         private readonly _samplerOverrides?: SamplerOverrides,
-        poolsCaches?: { [key in ERC20BridgeSource]: PoolsCache },
+        poolsCaches?: PoolsCacheMap,
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
         liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,

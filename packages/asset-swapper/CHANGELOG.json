@@ -1,5 +1,25 @@
 [
     {
+        "version": "16.57.0",
+        "changes": [
+            {
+                "note": "Add BalancerV2 batch swap support",
+                "pr": 462
+            }
+        ],
+        "timestamp": 1650611093
+    },
+    {
+        "version": "16.56.0",
+        "changes": [
+            {
+                "note": "Add estimatedGas to ExtendedQuoteReport",
+                "pr": 463
+            }
+        ],
+        "timestamp": 1650575781
+    },
+    {
         "version": "16.55.0",
         "changes": [
             {

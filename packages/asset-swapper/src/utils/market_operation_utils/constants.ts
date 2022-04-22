@@ -8,6 +8,7 @@ import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
+    BalancerV2BatchSwapFillData,
     BancorFillData,
     CompoundFillData,
     CurveFillData,
@@ -2170,11 +2171,12 @@ export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/ba
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 
-export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
+export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId(
     {
+        [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
     },
-    'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
+    null,
 );
 
 export const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
@@ -2448,7 +2450,9 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.RadioShack]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
-    [ERC20BridgeSource.BalancerV2]: () => 100e3,
+    [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
+        return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;
+    },
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {

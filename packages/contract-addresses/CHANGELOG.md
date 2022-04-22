@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.13.0 - _April 22, 2022_
+
+    * Redeploy FQT on mainnet and polygon (#462)
+
 ## v6.12.1 - _March 31, 2022_
 
     * Dependencies updated

@@ -22,9 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBancor.sol";
 
-contract CompilerHack {}
 
-contract BancorSampler is CompilerHack {
+contract BancorSampler {
 
     /// @dev Base gas limit for Bancor calls.
     uint256 constant private BANCOR_CALL_GAS = 300e3; // 300k

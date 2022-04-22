@@ -135,6 +135,7 @@ export enum BridgeProtocol {
     AaveV2,
     Compound,
     RadioShack,
+    BalancerV2Batch,
 }
 // tslint:enable: enum-naming
 

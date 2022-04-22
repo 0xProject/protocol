@@ -107,6 +107,7 @@ export interface ExtendedQuoteReport {
     sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
     blockNumber: number | undefined;
+    estimatedGas: string;
 }
 
 export interface PriceComparisonsReport {

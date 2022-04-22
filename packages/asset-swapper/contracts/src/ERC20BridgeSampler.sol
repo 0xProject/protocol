@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
+import "./BalancerV2BatchSampler.sol";
 import "./BancorSampler.sol";
 import "./CompoundSampler.sol";
 import "./CurveSampler.sol";
@@ -32,7 +33,6 @@ import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
 import "./LiquidityProviderSampler.sol";
 import "./MakerPSMSampler.sol";
-import "./MultiBridgeSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
@@ -48,6 +48,7 @@ import "./UtilitySampler.sol";
 contract ERC20BridgeSampler is
     BalancerSampler,
     BalancerV2Sampler,
+    BalancerV2BatchSampler,
     BancorSampler,
     CompoundSampler,
     CurveSampler,
@@ -60,7 +61,6 @@ contract ERC20BridgeSampler is
     MakerPSMSampler,
     MStableSampler,
     MooniswapSampler,
-    MultiBridgeSampler,
     NativeOrderSampler,
     ShellSampler,
     SmoothySampler,
@@ -92,4 +92,6 @@ contract ERC20BridgeSampler is
             (callResults[i].success, callResults[i].data) = address(this).call(callDatas[i]);
         }
     }
+
+    receive() external payable {}
 }

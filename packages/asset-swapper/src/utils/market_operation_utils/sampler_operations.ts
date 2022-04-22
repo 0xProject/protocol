@@ -51,6 +51,7 @@ import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_utils_new';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SamplerNoOperation } from './sampler_no_operation';
 import { SourceFilters } from './source_filters';
@@ -58,6 +59,8 @@ import {
     AaveV2FillData,
     AaveV2Info,
     BalancerFillData,
+    BalancerSwapInfo,
+    BalancerV2BatchSwapFillData,
     BalancerV2FillData,
     BalancerV2PoolInfo,
     BancorFillData,
@@ -103,6 +106,10 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
  */
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 
+export type PoolsCacheMap = { [key in Exclude<SourcesWithPoolsCache, ERC20BridgeSource.BalancerV2>]: PoolsCache } & {
+    [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache;
+};
+
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
 
 /**
@@ -111,7 +118,7 @@ export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSour
  */
 export class SamplerOperations {
     public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
-    public readonly poolsCaches: { [key in SourcesWithPoolsCache]: PoolsCache };
+    public readonly poolsCaches: PoolsCacheMap;
     public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
     public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
     protected _bancorService?: BancorService;
@@ -126,7 +133,7 @@ export class SamplerOperations {
     constructor(
         public readonly chainId: ChainId,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
-        poolsCaches?: { [key in SourcesWithPoolsCache]: PoolsCache },
+        poolsCaches?: PoolsCacheMap,
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
         liquidityProviderRegistry: LiquidityProviderRegistry = {},
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
@@ -138,13 +145,13 @@ export class SamplerOperations {
         this.poolsCaches = poolsCaches
             ? poolsCaches
             : {
-                  [ERC20BridgeSource.BalancerV2]: new BalancerV2PoolsCache(chainId),
                   [ERC20BridgeSource.Beethovenx]: new BalancerV2PoolsCache(
                       chainId,
                       BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN[chainId],
                   ),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
+                  [ERC20BridgeSource.BalancerV2]: new BalancerV2SwapInfoCache(chainId),
               };
 
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
@@ -561,6 +568,49 @@ export class SamplerOperations {
                 new BigNumber(toTokenIdx),
                 makerFillAmounts,
             ],
+        });
+    }
+
+    public getBalancerV2MulthopSellQuotes(
+        vault: string,
+        quoteSwaps: BalancerSwapInfo, // Should always be sell swap steps.
+        fillSwaps: BalancerSwapInfo, // Should always be sell swap steps.
+        takerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource,
+    ): SourceQuoteOperation<BalancerV2BatchSwapFillData> {
+        const quoteSwapSteps = quoteSwaps.swapSteps.map(s => ({
+            ...s,
+            assetInIndex: new BigNumber(s.assetInIndex),
+            assetOutIndex: new BigNumber(s.assetOutIndex),
+        }));
+        return new SamplerContractOperation({
+            source,
+            fillData: { vault, swapSteps: fillSwaps.swapSteps, assets: fillSwaps.assets },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleMultihopSellsFromBalancerV2,
+            params: [vault, quoteSwapSteps, quoteSwaps.assets, takerFillAmounts],
+        });
+    }
+
+    public getBalancerV2MulthopBuyQuotes(
+        vault: string,
+        quoteSwaps: BalancerSwapInfo, // Should always be buy swap steps.
+        fillSwaps: BalancerSwapInfo, // Should always be a sell quote.
+        makerFillAmounts: BigNumber[],
+        source: ERC20BridgeSource,
+    ): SourceQuoteOperation<BalancerV2BatchSwapFillData> {
+        const quoteSwapSteps = quoteSwaps.swapSteps.map(s => ({
+            ...s,
+            assetInIndex: new BigNumber(s.assetInIndex),
+            assetOutIndex: new BigNumber(s.assetOutIndex),
+        }));
+        return new SamplerContractOperation({
+            source,
+            // NOTE: fillData is set up for sells but quote function is set up for buys.
+            fillData: { vault, swapSteps: fillSwaps.swapSteps, assets: fillSwaps.assets },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleMultihopBuysFromBalancerV2,
+            params: [vault, quoteSwapSteps, quoteSwaps.assets, makerFillAmounts],
         });
     }
 
@@ -1449,15 +1499,23 @@ export class SamplerOperations {
                                 ERC20BridgeSource.Balancer,
                             ),
                         );
-                    case ERC20BridgeSource.BalancerV2:
-                    case ERC20BridgeSource.Beethovenx:
+                    case ERC20BridgeSource.BalancerV2: {
+                        const swaps = this.poolsCaches[source].getCachedSwapInfoForPair(takerToken, makerToken);
+
+                        const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        if (!swaps || vault === NULL_ADDRESS) {
+                            return [];
+                        }
+                        // Changed to retrieve queryBatchSwap for swap steps > 1 of length
+                        return swaps.swapInfoExactIn.map(swapInfo =>
+                            this.getBalancerV2MulthopSellQuotes(vault, swapInfo, swapInfo, takerFillAmounts, source),
+                        );
+                    }
+                    case ERC20BridgeSource.Beethovenx: {
                         const poolIds =
                             this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
-                        const vault =
-                            source === ERC20BridgeSource.BalancerV2
-                                ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId]
-                                : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1470,6 +1528,7 @@ export class SamplerOperations {
                                 source,
                             ),
                         );
+                    }
                     case ERC20BridgeSource.Cream:
                         return (
                             this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
@@ -1764,15 +1823,29 @@ export class SamplerOperations {
                                 ERC20BridgeSource.Balancer,
                             ),
                         );
-                    case ERC20BridgeSource.BalancerV2:
-                    case ERC20BridgeSource.Beethovenx:
+                    case ERC20BridgeSource.BalancerV2: {
+                        const swaps = this.poolsCaches[source].getCachedSwapInfoForPair(takerToken, makerToken);
+
+                        const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        if (!swaps || vault === NULL_ADDRESS) {
+                            return [];
+                        }
+                        // Changed to retrieve queryBatchSwap for swap steps > 1 of length
+                        return swaps.swapInfoExactOut.map((quoteSwapInfo, i) =>
+                            this.getBalancerV2MulthopBuyQuotes(
+                                vault,
+                                quoteSwapInfo,
+                                swaps.swapInfoExactIn[i],
+                                makerFillAmounts,
+                                source,
+                            ),
+                        );
+                    }
+                    case ERC20BridgeSource.Beethovenx: {
                         const poolIds =
                             this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
-                        const vault =
-                            source === ERC20BridgeSource.BalancerV2
-                                ? BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId]
-                                : BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
+                        const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
@@ -1785,6 +1858,7 @@ export class SamplerOperations {
                                 source,
                             ),
                         );
+                    }
                     case ERC20BridgeSource.Cream:
                         return (
                             this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
