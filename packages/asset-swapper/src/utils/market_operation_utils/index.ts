@@ -329,7 +329,6 @@ export class MarketOperationUtils {
         twoHopPathDetails = twoHopPathDetails
             .sort((a, b) => -a.totalPrice.comparedTo(b.totalPrice))
             .slice(0, 3);
-        console.log(twoHopPathDetails.map(p => ({ ...p, legs: p.legs.join(' -> ') })));
 
         if (side === MarketOperation.Buy) {
             // Reverse legs and prices and invert prices for buys.
@@ -940,7 +939,6 @@ export class MarketOperationUtils {
             let hopInputAmount = inputAmount;
             const hops = [];
             for (const routeHop of route) {
-                console.log([routeHop.inputToken, routeHop.outputToken], routeHop.dexQuotes.map(q => q[0].source));
                 const hop = await this._createOptimizedHopAsync({
                     side,
                     slippage,
