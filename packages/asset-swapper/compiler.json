@@ -4,7 +4,6 @@
     "useDockerisedSolc": false,
     "isOfflineMode": false,
     "shouldSaveStandardInput": true,
-    "shouldCompileIndependently": true,
     "compilerSettings": {
         "evmVersion": "istanbul",
         "optimizer": { "enabled": true, "runs": 200, "details": { "yul": false, "deduplicate": true } },
