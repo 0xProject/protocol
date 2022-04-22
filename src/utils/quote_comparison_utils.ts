@@ -26,7 +26,7 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
         .filter((q) => getTakerToken(q) === takerToken && getMakerToken(q) === makerToken)
         .filter((q) => {
             const requestedAmount = isSelling ? getTakerAmount(q) : getMakerAmount(q);
-            return requestedAmount.gte(assetFillAmount);
+            return requestedAmount.eq(assetFillAmount);
         })
         .filter((q) => !willQuoteExpireIn(q, validityWindowSeconds))
         .sort((a, b) => {

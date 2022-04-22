@@ -402,7 +402,8 @@ describe('RfqmService HTTP Logic', () => {
                 expect(res).to.equal(null);
             });
 
-            it('should return an indicative quote that can fill more than 100%', async () => {
+            // TODO: we may want to reintroduce this test very soon. However, if not addressed by June 2022, remove
+            it.skip('should return an indicative quote that can fill more than 100%', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
                 const worseQuote: IndicativeQuote = {
                     maker: '0xmaker',
@@ -542,9 +543,9 @@ describe('RfqmService HTTP Logic', () => {
                 const quote: IndicativeQuote = {
                     maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(125),
+                    makerAmount: new BigNumber(100),
                     takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
@@ -573,12 +574,12 @@ describe('RfqmService HTTP Logic', () => {
 
             it('should only return an indicative quote that is 100% filled when buying', async () => {
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
-                const partialFillQuoteBadPricing: IndicativeQuote = {
+                const overFillQuoteGoodPricing: IndicativeQuote = {
                     maker: '0xmaker',
                     makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(125),
+                    makerAmount: new BigNumber(160),
                     takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
@@ -594,15 +595,15 @@ describe('RfqmService HTTP Logic', () => {
                 const fullQuote: IndicativeQuote = {
                     maker: '0xmaker3',
                     makerToken: contractAddresses.zrxToken,
-                    makerAmount: new BigNumber(125),
+                    makerAmount: new BigNumber(100),
                     takerToken: contractAddresses.etherToken,
-                    takerAmount: new BigNumber(100),
+                    takerAmount: new BigNumber(80),
                     expiry: NEVER_EXPIRES,
                     makerUri: MOCK_MM_URI,
                 };
                 const quoteServerClientMock = mock(QuoteServerClient);
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
-                    partialFillQuoteBadPricing,
+                    overFillQuoteGoodPricing,
                     partialFillQuoteGoodPricing,
                     fullQuote,
                 ]);
@@ -621,7 +622,7 @@ describe('RfqmService HTTP Logic', () => {
                     expect.fail('res is null, but not expected to be null');
                     return;
                 }
-                expect(res.buyAmount.toNumber()).to.be.at.least(100);
+                expect(res.buyAmount.toNumber()).to.equal(100);
                 expect(res.price.toNumber()).to.equal(0.8);
             });
         });
@@ -680,7 +681,8 @@ describe('RfqmService HTTP Logic', () => {
                 expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
 
-            it('should scale a firm quote if MM returns too much', async () => {
+            // TODO: we may want to reintroduce this test very soon. However, if not addressed by June 2022, remove
+            it.skip('should scale a firm quote if MM returns too much', async () => {
                 const sellAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
                 const quote: IndicativeQuote = {
@@ -827,7 +829,8 @@ describe('RfqmService HTTP Logic', () => {
                 expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             });
 
-            it('should scale a firm quote to desired buyAmount if MM returns too much', async () => {
+            // TODO: we may want to reintroduce this test very soon. However, if not addressed by June 2022, remove
+            it.skip('should scale a firm quote to desired buyAmount if MM returns too much', async () => {
                 const buyAmount = new BigNumber(100);
                 const contractAddresses = getContractAddressesForChainOrThrow(1);
                 const quote: IndicativeQuote = {
