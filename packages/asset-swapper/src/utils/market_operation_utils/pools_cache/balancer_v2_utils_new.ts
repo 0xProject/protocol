@@ -33,6 +33,8 @@ export interface BalancerPoolResponse {
 export class BalancerV2SwapInfoCache extends SwapInfoCache {
     private readonly _routeProposer: RouteProposer;
     private readonly _poolDataService: SubgraphPoolDataService;
+    private static readonly MAX_POOLS_PER_PATH = 4;
+    private static readonly MAX_CANDIDATE_PATHS_PER_PAIR = 2;
 
     constructor(
         chainId: ChainId,
@@ -131,21 +133,20 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         Will also create paths for the new Balancer Linear pools.
         These are returned in order of available liquidity which is useful for filtering.
         */
-        const maxPools = 4;
         const paths = this._routeProposer.getCandidatePathsFromDict(
             takerToken,
             makerToken,
             SwapTypes.SwapExactIn,
             pools,
-            maxPools,
+            BalancerV2SwapInfoCache.MAX_POOLS_PER_PATH,
         );
 
         if (paths.length === 0) {
             return EMPTY_BALANCER_SWAPS;
         }
 
-        // Convert paths data to swap information suitable for queryBatchSwap. Only use top 3 liquid paths
-        return formatSwaps(paths.slice(0, 3));
+        // Convert paths data to swap information suitable for queryBatchSwap. Only use top 2 liquid paths
+        return formatSwaps(paths.slice(0, BalancerV2SwapInfoCache.MAX_CANDIDATE_PATHS_PER_PAIR));
     }
 }
 
