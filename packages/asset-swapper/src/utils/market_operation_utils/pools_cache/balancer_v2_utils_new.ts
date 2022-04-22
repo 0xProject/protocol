@@ -31,10 +31,10 @@ export interface BalancerPoolResponse {
 }
 
 export class BalancerV2SwapInfoCache extends SwapInfoCache {
+    private static readonly _MAX_POOLS_PER_PATH = 4;
+    private static readonly _MAX_CANDIDATE_PATHS_PER_PAIR = 2;
     private readonly _routeProposer: RouteProposer;
     private readonly _poolDataService: SubgraphPoolDataService;
-    private static readonly MAX_POOLS_PER_PATH = 4;
-    private static readonly MAX_CANDIDATE_PATHS_PER_PAIR = 2;
 
     constructor(
         chainId: ChainId,
@@ -138,7 +138,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
             makerToken,
             SwapTypes.SwapExactIn,
             pools,
-            BalancerV2SwapInfoCache.MAX_POOLS_PER_PATH,
+            BalancerV2SwapInfoCache._MAX_POOLS_PER_PATH,
         );
 
         if (paths.length === 0) {
@@ -146,7 +146,7 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         }
 
         // Convert paths data to swap information suitable for queryBatchSwap. Only use top 2 liquid paths
-        return formatSwaps(paths.slice(0, BalancerV2SwapInfoCache.MAX_CANDIDATE_PATHS_PER_PAIR));
+        return formatSwaps(paths.slice(0, BalancerV2SwapInfoCache._MAX_CANDIDATE_PATHS_PER_PAIR));
     }
 }
 
