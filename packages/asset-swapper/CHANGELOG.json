@@ -6,7 +6,8 @@
                 "note": "Add BalancerV2 batch swap support",
                 "pr": 462
             }
-        ]
+        ],
+        "timestamp": 1650611093
     },
     {
         "version": "16.56.0",

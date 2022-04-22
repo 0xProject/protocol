@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.57.0 - _April 22, 2022_
+
+    * Add BalancerV2 batch swap support (#462)
+
 ## v16.56.0 - _April 21, 2022_
 
     * Add estimatedGas to ExtendedQuoteReport (#463)

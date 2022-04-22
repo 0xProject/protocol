@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.32.0 - _April 22, 2022_
+
+    * Add support for `BalancerV2Batch` fills in FQT (#462)
+
 ## v0.31.2 - _March 31, 2022_
 
     * Dependencies updated
