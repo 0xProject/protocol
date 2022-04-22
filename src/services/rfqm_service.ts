@@ -559,7 +559,7 @@ export class RfqmService {
 
         const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
         if (!isWorkerReady) {
-            RFQM_WORKER_NOT_READY.labels(workerAddress).inc();
+            RFQM_WORKER_NOT_READY.labels(workerAddress, this._chainId.toString()).inc();
             return false;
         }
 
