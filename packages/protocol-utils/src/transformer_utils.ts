@@ -134,6 +134,7 @@ export enum BridgeProtocol {
     Clipper, // Not used: Clipper is now using PLP interface
     AaveV2,
     Compound,
+    BalancerV2Batch,
 }
 // tslint:enable: enum-naming
 

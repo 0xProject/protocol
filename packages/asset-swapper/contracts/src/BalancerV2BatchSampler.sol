@@ -20,123 +20,86 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./SamplerUtils.sol";
 import "./interfaces/IBalancerV2Vault.sol";
 import "./BalancerV2Common.sol";
 
+contract BalancerV2BatchSampler is BalancerV2Common {
 
-contract BalancerV2Sampler is SamplerUtils, BalancerV2Common {
-
-    /// @dev Sample sell quotes from Balancer V2.
-    /// @param poolInfo Struct with pool related data
-    /// @param takerToken Address of the taker token (what to sell).
-    /// @param makerToken Address of the maker token (what to buy).
+    // Replaces amount for first step with each takerTokenAmount and calls queryBatchSwap using supplied steps
+    /// @dev Sample sell quotes from Balancer V2 supporting multihops.
+    /// @param swapSteps Array of swap steps (can be >= 1).
+    /// @param swapAssets Array of token address for swaps.
     /// @param takerTokenAmounts Taker token sell amount for each sample.
-    /// @return makerTokenAmounts Maker amounts bought at each taker token
-    ///         amount.
-    function sampleSellsFromBalancerV2(
-        IBalancerV2Vault.BalancerV2PoolInfo memory poolInfo,
-        address takerToken,
-        address makerToken,
+    function sampleMultihopSellsFromBalancerV2(
+        IBalancerV2Vault vault,
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
+        address[] memory swapAssets,
         uint256[] memory takerTokenAmounts
     )
         public
         returns (uint256[] memory makerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
-        address[] memory swapAssets = new address[](2);
-        swapAssets[0] = takerToken;
-        swapAssets[1] = makerToken;
-
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         IBalancerV2Vault.FundManagement memory swapFunds =
             _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-                _createSwapSteps(poolInfo, takerTokenAmounts[i]);
-
+            swapSteps[0].amount = takerTokenAmounts[i];
             try
                 // For sells we specify the takerToken which is what the vault will receive from the trade
                 vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
             // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
             returns (int256[] memory amounts) {
                 // Outgoing balance is negative so we need to flip the sign
+                // Note - queryBatchSwap will return a delta for each token in the assets array and last asset should be tokenOut
                 int256 amountOutFromPool = amounts[amounts.length - 1] * -1;
                 if (amountOutFromPool <= 0) {
                     break;
                 }
                 makerTokenAmounts[i] = uint256(amountOutFromPool);
-            } catch (bytes memory) {
+            } catch {
                 // Swallow failures, leaving all results as zero.
                 break;
             }
         }
     }
 
-    /// @dev Sample buy quotes from Balancer V2.
-    /// @param poolInfo Struct with pool related data
-    /// @param takerToken Address of the taker token (what to sell).
-    /// @param makerToken Address of the maker token (what to buy).
+    // Replaces amount for first step with each makerTokenAmount and calls queryBatchSwap using supplied steps
+    /// @dev Sample buy quotes from Balancer V2 supporting multihops.
+    /// @param swapSteps Array of swap steps (can be >= 1).
+    /// @param swapAssets Array of token address for swaps.
     /// @param makerTokenAmounts Maker token buy amount for each sample.
-    /// @return takerTokenAmounts Taker amounts sold at each maker token
-    ///         amount.
-    function sampleBuysFromBalancerV2(
-        IBalancerV2Vault.BalancerV2PoolInfo memory poolInfo,
-        address takerToken,
-        address makerToken,
+    function sampleMultihopBuysFromBalancerV2(
+        IBalancerV2Vault vault,
+        IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
+        address[] memory swapAssets,
         uint256[] memory makerTokenAmounts
     )
         public
         returns (uint256[] memory takerTokenAmounts)
     {
-        _assertValidPair(makerToken, takerToken);
-        IBalancerV2Vault vault = IBalancerV2Vault(poolInfo.vault);
-        address[] memory swapAssets = new address[](2);
-        swapAssets[0] = takerToken;
-        swapAssets[1] = makerToken;
-
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         IBalancerV2Vault.FundManagement memory swapFunds =
             _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
-            IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-                _createSwapSteps(poolInfo, makerTokenAmounts[i]);
-
+            swapSteps[0].amount = makerTokenAmounts[i];
             try
-                // For buys we specify the makerToken which is what taker will receive from the trade
+                // Uses GIVEN_OUT type for Buy
                 vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
+            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
             returns (int256[] memory amounts) {
                 int256 amountIntoPool = amounts[0];
                 if (amountIntoPool <= 0) {
                     break;
                 }
                 takerTokenAmounts[i] = uint256(amountIntoPool);
-            } catch (bytes memory) {
+            } catch {
                 // Swallow failures, leaving all results as zero.
                 break;
             }
         }
-    }
-
-    function _createSwapSteps(
-        IBalancerV2Vault.BalancerV2PoolInfo memory poolInfo,
-        uint256 amount
-    ) private pure returns (IBalancerV2Vault.BatchSwapStep[] memory) {
-        IBalancerV2Vault.BatchSwapStep[] memory swapSteps =
-            new IBalancerV2Vault.BatchSwapStep[](1);
-        swapSteps[0] = IBalancerV2Vault.BatchSwapStep({
-            poolId: poolInfo.poolId,
-            assetInIndex: 0,
-            assetOutIndex: 1,
-            amount: amount,
-            userData: ""
-        });
-
-        return swapSteps;
     }
 }
