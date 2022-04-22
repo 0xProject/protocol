@@ -8,10 +8,11 @@
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "clean": "shx rm -rf lib",
-        "db:migrate": "./node_modules/.bin/typeorm migration:run --config ./lib/src/ormconfig.js",
+        "db:migrate": "./node_modules/.bin/typeorm migration:run --dataSource ./lib/src/ormconfig.js",
         "db:migration:create": "./node_modules/.bin/typeorm migration:create --config ./lib/src/ormconfig.js",
         "db:migration:generate": "./node_modules/.bin/typeorm migration:generate --config ./lib/src/ormconfig.js",
         "db:revert": "./node_modules/.bin/typeorm migration:revert --config ./lib/src/ormconfig.js",
+        "dev:migrate": "yarn build && yarn db:migrate",
         "dev:service:dummy_mm_http": "nodemon -r dotenv/config src/runners/http_dummy_mm_runner.ts | pino-pretty",
         "dev:service:rfqm_http": "nodemon -r dotenv/config src/runners/http_rfqm_service_runner.ts | pino-pretty",
         "dev:service:rfqm_worker": "nodemon -r dotenv/config src/runners/rfqm_worker_runner.ts | pino-pretty",
