@@ -983,9 +983,7 @@ export class MarketOperationUtils {
         };
         for (const route of hopRoutes) {
             const rate = getHopRouteOverallAdjustedTakerToMakerRate(route, rateOpts);
-            console.log(`considering route: <\n\t${route.map(r => `path: ${r.inputToken}->${r.outputToken}, ${r.orders.map(o => o.source)}, output: ${r.outputAmount}`).join(',\n\t')}\n>, overall rate: ${rate}, overall gas cost: ${route.reduce((a,v) => a + v.gasCost, 0)}`);
             if (!bestHopRouteTotalRate || rate.gt(bestHopRouteTotalRate)) {
-                console.log(`new best route: <${route.map(r => `path: ${r.inputToken}->${r.outputToken}`)}>`);
                 bestHopRoute = route;
                 bestHopRouteTotalRate = rate;
             }
