@@ -437,6 +437,7 @@ export const POLYGON_TOKENS = {
     WMATIC: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
     WETH: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
+    ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -455,7 +456,11 @@ export const AVALANCHE_TOKENS = {
     nUSD: '0xcfc37a6ab183dd4aed08c204d1c2773c0b1bdf46',
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
     MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
+<<<<<<< HEAD
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
+=======
+    MAG: '0x1d60109178C48E4A937D8AB71699D8eBb6F7c5dE',
+>>>>>>> d36034d95 (chore/ANY-QUICK on polygon MAG-MIM on avax (#464))
 };
 
 export const CELO_TOKENS = {
@@ -572,6 +577,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             AVALANCHE_TOKENS.nUSD,
             AVALANCHE_TOKENS.nETH,
             AVALANCHE_TOKENS.aWETH,
+            AVALANCHE_TOKENS.MIM,
         ],
         [ChainId.Fantom]: [
             FANTOM_TOKENS.WFTM,
@@ -630,7 +636,11 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         }).build(),
         [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
-        }).build(),
+        })
+            .tap(builder => {
+                builder.add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY).add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
+            })
+            .build(),
         [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         })
@@ -639,6 +649,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
                     .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
+                //Trader Joe MAG/MIM pool
+                builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
             })
             .build(),
         [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
