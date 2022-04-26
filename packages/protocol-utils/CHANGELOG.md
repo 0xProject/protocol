@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.12.0 - _April 22, 2022_
+
+    * Add `BalancerV2Batch` to `BridgeProtocol` enum (#462)
+
 ## v1.11.2 - _March 31, 2022_
 
     * Dependencies updated

@@ -25,6 +25,7 @@ import "./BridgeProtocols.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
+import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCompound.sol";
@@ -52,6 +53,7 @@ contract BridgeAdapter is
     MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2,
+    MixinBalancerV2Batch,
     MixinBancor,
     MixinCoFiX,
     MixinCompound,
@@ -156,6 +158,11 @@ contract BridgeAdapter is
             boughtAmount = _tradeBalancerV2(
                 sellToken,
                 buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
+            boughtAmount = _tradeBalancerV2Batch(
                 sellAmount,
                 order.bridgeData
             );
