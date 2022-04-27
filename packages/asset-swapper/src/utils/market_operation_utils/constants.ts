@@ -952,11 +952,11 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         })
             .tap(builder => {
-                // Synape nETH/aWETH pool
+                // Synapse nETH/aWETH pool
                 builder
                     .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
                     .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
-                //Trader Joe MAG/MIM pool
+                // Trader Joe MAG/MIM pool
                 builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
             })
             .build(),
