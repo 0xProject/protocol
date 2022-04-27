@@ -1,19 +1,14 @@
 [
     {
-        "version": "16.57.2",
-        "changes": [
-            {
-                "note": "Added cvxFXS/FXS curve pool on mainnet",
-                "pr": 465
-            }
-        ]
-    },
-    {
         "version": "16.57.1",
         "changes": [
             {
                 "note": "Added QUICK/ANY pair on Polygon",
                 "pr": 464
+            },
+            {
+                "note": "Added cvxFXS/FXS curve pool on mainnet",
+                "pr": 465
             }
         ]
     },

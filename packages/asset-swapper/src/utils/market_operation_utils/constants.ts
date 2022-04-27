@@ -1375,7 +1375,7 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.cvxfxs]: createCurveFactoryCryptoExchangePool({
         tokens: [MAINNET_TOKENS.FXS, MAINNET_TOKENS.cvxFXS],
         pool: CURVE_POOLS.cvxfxs,
-        gasSchedule: 250e3,
+        gasSchedule: 390e3,
     }),
 };
 
