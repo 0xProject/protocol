@@ -11,7 +11,7 @@ export default async (): Promise<Config.InitialOptions> => {
         setupFilesAfterEnv: ['./test/configureTestEnv.ts'],
         testEnvironment: 'node',
         testPathIgnorePatterns: ['/node_modules/', 'lib'],
-        testRegex: ['test\\/.*(_test|Test)\\.ts$'],
+        testRegex: ['test\\/.*(_test|Test)\\.ts$', '.*/__tests__/.*\\.?(Test|test)\\.[tj]sx?$'],
         verbose: false,
     };
 };
