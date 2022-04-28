@@ -1233,6 +1233,21 @@ export class SamplerOperations {
             params: [reader, vault, tokenAddressPath, takerFillAmounts],
         });
     }
+    public getGMXBuyQuotes(
+        router: string,
+        reader: string,
+        vault: string,
+        tokenAddressPath: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<GMXFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.GMX,
+            fillData: {router, reader, vault, tokenAddressPath },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromGMX,
+            params: [reader, vault, tokenAddressPath, makerFillAmounts],
+        });
+    }
 
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
@@ -1938,6 +1953,16 @@ export class SamplerOperations {
                             return [];
                         }
                         return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
+                    }
+                    case ERC20BridgeSource.GMX: {
+
+                        return this.getGMXBuyQuotes(
+                            GMX_ROUTER_BY_CHAIN_ID[this.chainId],
+                            GMX_READER_BY_CHAIN_ID[this.chainId],
+                            GMX_VAULT_BY_CHAIN_ID[this.chainId],
+                            [takerToken, makerToken],
+                            makerFillAmounts,
+                        );
                     }
                     default:
                         throw new Error(`Unsupported buy sample source: ${source}`);

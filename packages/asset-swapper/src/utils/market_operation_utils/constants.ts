@@ -2571,7 +2571,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.GMX]: () => 300e3,
+    [ERC20BridgeSource.GMX]: () => 450e3,
 
     //
     // Celo

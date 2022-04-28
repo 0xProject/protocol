@@ -2,11 +2,20 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "./interfaces/IGMX.sol";
+import "./ApproximateBuys.sol";
+import "./SamplerUtils.sol";
 
-
-contract GMXSampler
+contract GMXSampler is
+    SamplerUtils,
+    ApproximateBuys
 {
-    /// @dev Gas limit for UniswapV2 calls.
+    struct GMXInfo {
+        address reader;
+        address vault;
+        address[] path;
+    }
+    // address immutable WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
+    // address immutable AVAX = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     function sampleSellsFromGMX(
         address reader,
@@ -37,4 +46,54 @@ contract GMXSampler
         }
     }
 
+    function sampleBuysFromGMX(
+        address reader,
+        address vault,
+        address[] memory path,
+        uint256[] memory makerTokenAmounts
+    )
+        public
+        view
+        returns (uint256[] memory takerTokenAmounts)
+    {
+        address[] memory invertBuyPath = new address[](2);
+        invertBuyPath[0] = path[1];
+        invertBuyPath[1] = path[0];
+        return _sampleApproximateBuys(
+                ApproximateBuyQuoteOpts({
+                    makerTokenData: abi.encode(reader, vault, invertBuyPath),
+                    takerTokenData: abi.encode(reader, vault, path),
+                    getSellQuoteCallback: _sampleSellForApproximateBuyFromGMX
+                }),
+                makerTokenAmounts
+            );
+    }
+
+
+    function _sampleSellForApproximateBuyFromGMX(
+        bytes memory takerTokenData,
+        bytes memory makerTokenData,
+        uint256 sellAmount
+    )
+        private
+        view
+        returns (uint256 buyAmount)
+    {
+        (address _reader, address _vault, address[] memory _path ) = abi.decode(takerTokenData, (address, address, address[]));
+
+        (bool success, bytes memory resultData) = address(this).staticcall(abi.encodeWithSelector(
+            this.sampleSellsFromGMX.selector,
+            _reader,
+            _vault,
+            _path,
+            _toSingleValueArray(sellAmount)
+        ));
+        if(!success) {
+            return 0;
+        }
+        // solhint-disable-next-line indent
+        return abi.decode(resultData, (uint256[]))[0];
+    }
+
 }
+

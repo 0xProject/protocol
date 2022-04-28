@@ -460,6 +460,7 @@ const balancerV2Encoder = AbiEncoder.create([
     { name: 'poolId', type: 'bytes32' },
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
+const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
 
@@ -515,7 +516,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     // Avalanche
-    [ERC20BridgeSource.GMX] : AbiEncoder.create('(address,address,address[])'),
+    [ERC20BridgeSource.GMX] : gmxAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC
