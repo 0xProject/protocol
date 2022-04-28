@@ -21,7 +21,6 @@ import {
     GeistFillData,
     GenericRouterFillData,
     GMXFillData,
-    GMXSwapFillData,
     KyberDmmFillData,
     KyberFillData,
     LidoFillData,
@@ -373,7 +372,12 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.GMX:
             const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
-            bridgeData = encoder.encode([gmxFillData.router,gmxFillData.reader,gmxFillData.vault, gmxFillData.tokenAddressPath]);
+            bridgeData = encoder.encode([
+                gmxFillData.router,
+                gmxFillData.reader,
+                gmxFillData.vault,
+                gmxFillData.tokenAddressPath,
+            ]);
             break;
 
         default:
@@ -463,7 +467,6 @@ const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
-
 export const BRIDGE_ENCODERS: {
     [key in Exclude<
         ERC20BridgeSource,
@@ -516,7 +519,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     // Avalanche
-    [ERC20BridgeSource.GMX] : gmxAddressPathEncoder,
+    [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC

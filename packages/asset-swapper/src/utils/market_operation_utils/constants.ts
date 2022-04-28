@@ -19,7 +19,6 @@ import {
     FillData,
     FinalUniswapV3FillData,
     GeistFillData,
-    GMXFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
     KyberSamplerOpts,

@@ -75,7 +75,6 @@ import {
     GeistInfo,
     GenericRouterFillData,
     GMXFillData,
-    GMXQuoteFillData,
     HopInfo,
     KyberDmmFillData,
     KyberFillData,
@@ -1227,7 +1226,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<GMXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.GMX,
-            fillData: {router, reader, vault, tokenAddressPath },
+            fillData: { router, reader, vault, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromGMX,
             params: [reader, vault, tokenAddressPath, takerFillAmounts],
@@ -1242,7 +1241,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<GMXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.GMX,
-            fillData: {router, reader, vault, tokenAddressPath },
+            fillData: { router, reader, vault, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromGMX,
             params: [reader, vault, tokenAddressPath, makerFillAmounts],
@@ -1641,7 +1640,6 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.GMX: {
-
                         return this.getGMXSellQuotes(
                             GMX_ROUTER_BY_CHAIN_ID[this.chainId],
                             GMX_READER_BY_CHAIN_ID[this.chainId],
@@ -1955,7 +1953,6 @@ export class SamplerOperations {
                         return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.GMX: {
-
                         return this.getGMXBuyQuotes(
                             GMX_ROUTER_BY_CHAIN_ID[this.chainId],
                             GMX_READER_BY_CHAIN_ID[this.chainId],
