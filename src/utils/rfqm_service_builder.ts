@@ -14,7 +14,6 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 import * as redis from 'redis';
-import * as rax from 'retry-axios';
 import { Producer } from 'sqs-producer';
 
 import {
@@ -51,6 +50,8 @@ import { RfqMakerManager } from './rfq_maker_manager';
 
 export type RfqmServices = Map<number, RfqmService>;
 
+const DEFAULT_AXIOS_TIMEOUT = 600; // ms
+
 /**
  * Initialize a kafka producer if KAFKA_BROKERS is set
  */
@@ -76,6 +77,7 @@ function getAxiosRequestConfig(): AxiosRequestConfig {
     const axiosRequestConfig: AxiosRequestConfig = {
         httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
         httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
+        timeout: DEFAULT_AXIOS_TIMEOUT,
     };
     if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
         axiosRequestConfig.proxy = {
@@ -196,12 +198,6 @@ export async function buildRfqmServiceAsync(
     await rfqMakerManager.initializeAsync();
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain.chainId);
     const axiosInstance = Axios.create(getAxiosRequestConfig());
-    axiosInstance.defaults.raxConfig = {
-        retry: 3, // Retry on 429, 500, etc.
-        noResponseRetries: 0, // Do not retry on timeouts
-        instance: axiosInstance,
-    };
-    rax.attach(axiosInstance);
 
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(
         PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
