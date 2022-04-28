@@ -3,7 +3,7 @@
 // tslint:disable:max-file-line-count
 
 import { pino } from '@0x/api-utils';
-import { ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
+import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
@@ -14,7 +14,7 @@ import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
 
-import { ETH_DECIMALS } from '../../src/constants';
+import { ETH_DECIMALS, GWEI_DECIMALS } from '../../src/constants';
 import {
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,
@@ -25,6 +25,8 @@ import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '
 import { logger } from '../../src/logger';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { CacheClient } from '../../src/utils/cache_client';
+import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
+import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
@@ -45,7 +47,7 @@ const buildRfqmServiceForUnitTest = (
         dbUtils?: RfqmDbUtils;
         rfqMakerManager?: RfqMakerManager;
         producer?: Producer;
-        protocolFeeUtils?: ProtocolFeeUtils;
+        gasStationAttendant?: GasStationAttendant;
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         initialMaxPriorityFeePerGasGwei?: number;
@@ -73,9 +75,9 @@ const buildRfqmServiceForUnitTest = (
         },
     ]);
 
-    const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-    when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-    const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+    const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+    when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(MOCK_GAS_PRICE);
+    const gasStationAttendantInstance = instance(gasStationAttendantMock);
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
         WORKER_FULL_BALANCE_WEI,
@@ -90,7 +92,7 @@ const buildRfqmServiceForUnitTest = (
 
     return new RfqmService(
         1,
-        overrides.protocolFeeUtils || protocolFeeUtilsInstance,
+        overrides.gasStationAttendant || gasStationAttendantInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
@@ -1032,8 +1034,10 @@ describe('RfqmService Worker Logic', () => {
             };
             const mockNonce = 0;
 
-            const mockProtocolFeeUtils = mock(ProtocolFeeUtils);
-            when(mockProtocolFeeUtils.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(10));
+            const mockGasStationAttendant = mock(GasStationAttendantEthereum);
+            when(mockGasStationAttendant.getExpectedTransactionGasRateAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
@@ -1093,7 +1097,7 @@ describe('RfqmService Worker Logic', () => {
             });
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                protocolFeeUtils: instance(mockProtocolFeeUtils),
+                gasStationAttendant: instance(mockGasStationAttendant),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
@@ -1197,8 +1201,10 @@ describe('RfqmService Worker Logic', () => {
             };
             const mockNonce = 0;
 
-            const mockProtocolFeeUtils = mock(ProtocolFeeUtils);
-            when(mockProtocolFeeUtils.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(10));
+            const mockGasStationAttendant = mock(GasStationAttendantEthereum);
+            when(mockGasStationAttendant.getExpectedTransactionGasRateAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([
                 mockPresubmitTransaction,
@@ -1263,7 +1269,7 @@ describe('RfqmService Worker Logic', () => {
             });
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                protocolFeeUtils: instance(mockProtocolFeeUtils),
+                gasStationAttendant: instance(mockGasStationAttendant),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
@@ -1369,8 +1375,10 @@ describe('RfqmService Worker Logic', () => {
             };
             const mockNonce = 0;
 
-            const mockProtocolFeeUtils = mock(ProtocolFeeUtils);
-            when(mockProtocolFeeUtils.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(10));
+            const mockGasStationAttendant = mock(GasStationAttendantEthereum);
+            when(mockGasStationAttendant.getExpectedTransactionGasRateAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([
                 mockPresubmitTransaction,
@@ -1435,7 +1443,7 @@ describe('RfqmService Worker Logic', () => {
             });
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                protocolFeeUtils: instance(mockProtocolFeeUtils),
+                gasStationAttendant: instance(mockGasStationAttendant),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
@@ -1545,8 +1553,10 @@ describe('RfqmService Worker Logic', () => {
             };
             const mockNonce = 0;
 
-            const mockProtocolFeeUtils = mock(ProtocolFeeUtils);
-            when(mockProtocolFeeUtils.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(10));
+            const mockGasStationAttendant = mock(GasStationAttendantEthereum);
+            when(mockGasStationAttendant.getExpectedTransactionGasRateAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([
                 mockPresubmitTransaction,
@@ -1596,7 +1606,7 @@ describe('RfqmService Worker Logic', () => {
             });
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                protocolFeeUtils: instance(mockProtocolFeeUtils),
+                gasStationAttendant: instance(mockGasStationAttendant),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
@@ -1672,8 +1682,10 @@ describe('RfqmService Worker Logic', () => {
                 transactionHash: '0xpresubmittransactionhash',
             });
 
-            const mockProtocolFeeUtils = mock(ProtocolFeeUtils);
-            when(mockProtocolFeeUtils.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(10));
+            const mockGasStationAttendant = mock(GasStationAttendantEthereum);
+            when(mockGasStationAttendant.getExpectedTransactionGasRateAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([
                 mockTransaction,
@@ -1685,7 +1697,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([]);
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                protocolFeeUtils: instance(mockProtocolFeeUtils),
+                gasStationAttendant: instance(mockGasStationAttendant),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 

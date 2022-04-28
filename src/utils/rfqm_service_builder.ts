@@ -8,7 +8,7 @@ import {
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import Axios, { AxiosRequestConfig } from 'axios';
+import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -38,6 +38,10 @@ import { RfqmService } from '../services/rfqm_service';
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
 import { ConfigManager } from './config_manager';
+import { GasOracle } from './GasOracle';
+import { GasStationAttendant } from './GasStationAttendant';
+import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
+import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqmDbUtils } from './rfqm_db_utils';
@@ -128,6 +132,26 @@ export async function getContractAddressesForNetworkOrThrowAsync(
     return contractAddresses;
 }
 
+function getGasStationAttendant(
+    chain: ChainConfiguration,
+    axiosInstance: AxiosInstance,
+    protocolFeeUtils: ProtocolFeeUtils,
+): GasStationAttendant {
+    // tslint:disable: custom-no-magic-numbers
+    switch (chain.chainId) {
+        case /* ethereum */ 1:
+        case /* ropsten */ 3:
+        case /* ganache */ 1337:
+            const gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
+            return new GasStationAttendantEthereum(gasOracle);
+        case /* polygon */ 137:
+            return new GasStationAttendantPolygon(protocolFeeUtils);
+        default:
+            throw new Error(`Gas station attendant not configured for chain: ${chain.name}`);
+    }
+    // tslint:enable: custom-no-magic-numbers
+}
+
 /**
  * Builds a single instance of RfqmService, intended to be used
  * when creating the RFQM worker.
@@ -206,7 +230,7 @@ export async function buildRfqmServiceAsync(
 
     return new RfqmService(
         chain.chainId,
-        protocolFeeUtils,
+        getGasStationAttendant(chain, axiosInstance, protocolFeeUtils),
         contractAddresses,
         chain.registryAddress,
         rfqBlockchainUtils,

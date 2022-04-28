@@ -1,6 +1,6 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
-import { AssetSwapperContractAddresses, MarketOperation, ProtocolFeeUtils } from '@0x/asset-swapper';
+import { AssetSwapperContractAddresses, MarketOperation } from '@0x/asset-swapper';
 import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
 import {
@@ -25,7 +25,6 @@ import {
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
-    RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
@@ -36,6 +35,7 @@ import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCod
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
+import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
@@ -250,7 +250,7 @@ export class RfqmService {
 
     constructor(
         private readonly _chainId: number,
-        private readonly _protocolFeeUtils: ProtocolFeeUtils,
+        private readonly _gasStationAttendant: GasStationAttendant,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
@@ -1470,13 +1470,12 @@ export class RfqmService {
 
     /**
      * Internal method to retrieve estimated gas price from the gas station.
-     * The price is buffered by a small amount to account for fluctuations in gas oracle estimation.
      *
      * @returns estimated gas price
      */
     private async _getGasPriceEstimationAsync(): Promise<BigNumber> {
-        const gasPriceEstimate = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        return gasPriceEstimate.multipliedBy(RFQM_GAS_ESTIMATE_BUFFER_MULTIPLIER);
+        const gasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
+        return gasPriceEstimate;
     }
 
     /**

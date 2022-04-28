@@ -3,7 +3,7 @@
 // tslint:disable:max-file-line-count
 
 import { TooManyRequestsError } from '@0x/api-utils';
-import { ProtocolFeeUtils, QuoteRequestor, SignatureType } from '@0x/asset-swapper';
+import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
@@ -19,6 +19,8 @@ import { RfqmService } from '../../src/services/rfqm_service';
 import { OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
+import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
+import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -27,7 +29,7 @@ import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
-const MOCK_GAS_PRICE = new BigNumber(100);
+const MOCK_GAS_PRICE = new BigNumber(100000000000);
 const MOCK_MM_URI = 'https://mm-address';
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
@@ -43,7 +45,7 @@ const MOCK_INTEGRATOR: Integrator = {
 const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
-        protocolFeeUtils?: ProtocolFeeUtils;
+        gasStationAttendant?: GasStationAttendant;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
         producer?: Producer;
@@ -75,9 +77,9 @@ const buildRfqmServiceForUnitTest = (
         },
     ]);
 
-    const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-    when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(MOCK_GAS_PRICE);
-    const protocolFeeUtilsInstance = instance(protocolFeeUtilsMock);
+    const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+    when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(MOCK_GAS_PRICE);
+    const gasStationAttendantInstance = instance(gasStationAttendantMock);
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
         WORKER_FULL_BALANCE_WEI,
@@ -91,7 +93,7 @@ const buildRfqmServiceForUnitTest = (
 
     return new RfqmService(
         overrides.chainId || 1337,
-        overrides.protocolFeeUtils || protocolFeeUtilsInstance,
+        overrides.gasStationAttendant || gasStationAttendantInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),

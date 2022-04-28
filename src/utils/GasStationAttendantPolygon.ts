@@ -28,8 +28,8 @@ const TEN_PERCENT_INCREASE = 1.1;
 export class GasStationAttendantPolygon implements GasStationAttendant {
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
 
-    constructor(gasOracle: ProtocolFeeUtils) {
-        this._protocolFeeUtils = gasOracle;
+    constructor(protocolFeeUtils: ProtocolFeeUtils) {
+        this._protocolFeeUtils = protocolFeeUtils;
     }
 
     /**

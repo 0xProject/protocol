@@ -1,5 +1,5 @@
 // tslint:disable:max-file-line-count custom-no-magic-numbers
-import { BigNumber, ProtocolFeeUtils, SignatureType } from '@0x/asset-swapper';
+import { BigNumber, SignatureType } from '@0x/asset-swapper';
 import { ContractAddresses } from '@0x/contract-addresses';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -30,6 +30,7 @@ import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_serv
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
+import { GasStationAttendantEthereum } from '../src/utils/GasStationAttendantEthereum';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
@@ -163,9 +164,9 @@ describe('RFQM Integration', () => {
 
         // Build dependencies
         // Create the mock ProtocolFeeUtils
-        const protocolFeeUtilsMock = mock(ProtocolFeeUtils);
-        when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(GAS_PRICE);
-        const protocolFeeUtils = instance(protocolFeeUtilsMock);
+        const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+        when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(GAS_PRICE);
+        const protocolFeeUtils = instance(gasStationAttendantMock);
 
         // Create the mock ConfigManager
         const configManagerMock = mock(ConfigManager);
