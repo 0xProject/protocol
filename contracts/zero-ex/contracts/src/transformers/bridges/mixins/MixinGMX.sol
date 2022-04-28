@@ -39,7 +39,7 @@ interface IGmxRouter {
     // /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
     // /// @param _reciever Recipient of the output tokens.
     function swap(
-       address[] memory _path, uint256 _amountIn, uint256 _minOut, address _receiver
+       address[] calldata _path, uint256 _amountIn, uint256 _minOut, address _receiver
     ) external;
 }
 
@@ -53,27 +53,37 @@ contract MixinGMX {
         uint256 sellAmount,
         bytes memory bridgeData
     )
-        internal
+        public
         returns (uint256 boughtAmount)
     {
+        address _router;
+        address reader;
+        address vault;
+        address[] memory _path;
         IGmxRouter router;
         IERC20TokenV06[] memory path;
-        address[] memory _path;
+        
         {
-            (router, _path) = abi.decode(bridgeData, (IGmxRouter, address[]));
+            //decode the bridge data
+            (_router, reader, vault, _path) = abi.decode(bridgeData, (address, address, address, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly { path := _path }
         }
+
 
         require(path.length >= 2, "MixinGMX/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
             path[path.length - 1] == buyToken,
             "MixinGMX/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
-        // Grant the Uniswap router an allowance to sell the first token.
+
+        //connect to the GMX router
+        router = IGmxRouter(_router);
+
+        // Grant the GMX router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 
-        //get minAmountOut
+        //track the balance to know how much we bought
         uint256 beforeBalance = buyToken.balanceOf(address(this));
         router.swap(
             // Convert to `buyToken` along this path.
@@ -86,6 +96,9 @@ contract MixinGMX {
             address(this)
         );
 
-        return buyToken.balanceOf(address(this)).safeSub(beforeBalance);
+        //calculate the difference in balance from preswap->postswap to find how many tokens out
+        boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
+
+        return boughtAmount;
     }
 }
