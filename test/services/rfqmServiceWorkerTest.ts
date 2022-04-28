@@ -29,6 +29,7 @@ import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { padSignature } from '../../src/utils/signature_utils';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
@@ -107,14 +108,24 @@ const fakeClockMs = 1637722898000;
 const fakeOneMinuteAgoS = fakeClockMs / ONE_SECOND_MS - 60;
 const fakeFiveMinutesLater = fakeClockMs / ONE_SECOND_MS + 300;
 
+const maker = '0xbb004090d26845b672f17c6da4b7d162df3bfc5e';
+const orderHash = '0x112160fb0933ecde720f63b50b303ce64e52ded702bef78b9c20361f3652a462';
+
+// This sig actually belongs to the maker above
 const validEIP712Sig = {
     signatureType: SignatureType.EIP712,
     v: 28,
     r: '0xdc158f7b53b940863bc7b001552a90282e51033f29b73d44a2701bd16faa19d2',
     s: '0x55f6c5470e41b39a5ddeb63c22f8ba1d34748f93265715b9dc4a0f10138985a6',
 };
-const maker = '0xbb004090d26845b672f17c6da4b7d162df3bfc5e';
-const orderHash = '0x112160fb0933ecde720f63b50b303ce64e52ded702bef78b9c20361f3652a462';
+
+// This is a real signature that had a missing byte
+const missingByteSig = {
+    r: '0x568b31076e1c65954adb1bccc723718b3460f1b699ce1252f8a83bda0d521005',
+    s: '0x0307cc7f4161df812f7e5a651b23dbd33981c0410df0dd820a52f61be7a5ab',
+    v: 28,
+    signatureType: SignatureType.EthSign,
+};
 
 jest.setTimeout(ONE_SECOND_MS * 120);
 
@@ -618,9 +629,10 @@ describe('RfqmService Worker Logic', () => {
             });
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
             const mockQuoteServerClient = mock(QuoteServerClient);
-            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
+            when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(missingByteSig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
             when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
@@ -653,7 +665,7 @@ describe('RfqmService Worker Logic', () => {
             expect(result.job).to.deep.equal({
                 ...job,
                 lastLookResult: true,
-                makerSignature: validEIP712Sig,
+                makerSignature: padSignature(missingByteSig),
                 status: RfqmJobStatus.PendingLastLookAccepted,
             });
         });

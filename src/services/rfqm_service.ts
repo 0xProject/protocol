@@ -699,7 +699,8 @@ export class RfqmService {
     public async submitTakerSignedOtcOrderAsync(
         params: OtcOrderSubmitRfqmSignedQuoteParams,
     ): Promise<OtcOrderSubmitRfqmSignedQuoteResponse> {
-        const { order, signature: takerSignature } = params;
+        const { order } = params;
+        let { signature: takerSignature } = params;
         const orderHash = params.order.getHash();
         const takerAddress = order.taker.toLowerCase();
         const makerAddress = order.maker.toLowerCase();
@@ -744,6 +745,16 @@ export class RfqmService {
         ) {
             RFQM_TAKER_AND_TAKERTOKEN_TRADE_EXISTS.labels(this._chainId.toString()).inc();
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
+        }
+
+        // In the unlikely event that takers submit a signature with a missing byte, pad the signature.
+        const paddedSignature = padSignature(takerSignature);
+        if (paddedSignature.r !== takerSignature.r || paddedSignature.s !== takerSignature.s) {
+            logger.warn(
+                { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                'Got taker signature with missing bytes',
+            );
+            takerSignature = paddedSignature;
         }
 
         // validate that the given taker signature is valid
@@ -1112,6 +1123,7 @@ export class RfqmService {
                     { orderHash, r: paddedSignature.r, s: paddedSignature.s },
                     'Got market maker signature with missing bytes',
                 );
+                makerSignature = paddedSignature;
             }
 
             _job.makerSignature = paddedSignature;
@@ -1141,7 +1153,7 @@ export class RfqmService {
         // Generate the calldata
         const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
             otcOrder,
-            makerSignature,
+            _job.makerSignature,
             takerSignature,
             _job.isUnwrap,
             _job.affiliateAddress,
