@@ -479,6 +479,7 @@ export const MAINNET_TOKENS = {
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
     // Frax ecosystem
     FRAX: '0x853d955acef822db058eb8505911ed77f175b99e',
+    cvxFXS: '0xfeef77d3f69374f66429c91d732a244f074bdf74',
     FXS: '0x3432b6a60d23ca0dfca7761b7ab56459d9c964d0',
     OHM: '0x383518188c0c6d7730d91b2c03a03c837814a899',
     OHMV2: '0x64aa3364f17a4d01c6f1751fd97c2bd3d7e7f1d5',
@@ -682,6 +683,7 @@ export const CURVE_POOLS = {
     BUSD: '0x4807862aa8b2bf68830e4c8dc86d0e9a998e085a',
     DSU3CRV: '0x6ec80df362d7042c50d4469bcfbc174c9dd9109a',
     cvxcrv: '0x9d0464996170c6b9e75eed71c68b99ddedf279e8',
+    cvxfxs: '0xd658a338613198204dca1143ac3f01a722b5d94a',
     mim: '0x5a6a4d54456819380173272a5e8e9b9904bdf41b',
     eurt: '0xfd5db7463a3ab53fd211b4af195c5bccc1a03890',
     ethcrv: '0x8301ae4fc9c624d1d396cbdaa1ed877821d7c511',
@@ -922,6 +924,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
                 // Convex and Curve
                 builder.add(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV).add(MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV);
+                // Convex and FXS
+                builder.add(MAINNET_TOKENS.cvxFXS, MAINNET_TOKENS.FXS).add(MAINNET_TOKENS.FXS, MAINNET_TOKENS.cvxFXS);
                 // FEI TRIBE liquid in UniV2
                 builder.add(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE).add(MAINNET_TOKENS.TRIBE, MAINNET_TOKENS.FEI);
                 // FRAX ecosystem
@@ -948,11 +952,11 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
         })
             .tap(builder => {
-                // Synape nETH/aWETH pool
+                // Synapse nETH/aWETH pool
                 builder
                     .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
                     .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
-                //Trader Joe MAG/MIM pool
+                // Trader Joe MAG/MIM pool
                 builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
             })
             .build(),
@@ -1367,6 +1371,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         tokens: [MAINNET_TOKENS.STG, MAINNET_TOKENS.USDC],
         pool: CURVE_POOLS.stgusdc,
         gasSchedule: 250e3,
+    }),
+    [CURVE_POOLS.cvxfxs]: createCurveFactoryCryptoExchangePool({
+        tokens: [MAINNET_TOKENS.FXS, MAINNET_TOKENS.cvxFXS],
+        pool: CURVE_POOLS.cvxfxs,
+        gasSchedule: 390e3,
     }),
 };
 
