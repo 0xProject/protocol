@@ -323,11 +323,11 @@ export class RfqmService {
         const isSelling = sellAmount !== undefined;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Get the gas price
-        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
+        // Get the fee and gas price
+        const { fee, gasPrice } = await this._calculateFeeAsync(makerToken, takerToken, isUnwrap);
 
         // Fetch all indicative quotes
-        const { quotes: indicativeQuotes } = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
+        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, fee);
 
         // Log any quotes that are for the incorrect amount
         indicativeQuotes.forEach((quote) => {
@@ -427,11 +427,11 @@ export class RfqmService {
         const isSelling = sellAmount !== undefined;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
-        // Fetch the current gas price
-        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
+        // Get the fee and gas price
+        const { fee, gasPrice } = await this._calculateFeeAsync(makerToken, takerToken, isUnwrap);
 
         // Fetch all firm quotes and fee
-        const { quotes: firmQuotes, otcOrderFee } = await this._fetchFirmQuotesAsync(params, gasPrice, isUnwrap);
+        const firmQuotes = await this._fetchFirmQuotesAsync(params, fee);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -464,9 +464,6 @@ export class RfqmService {
         if (bestQuote === null) {
             return null;
         }
-
-        // Get the fee
-        const fee = otcOrderFee;
 
         // Get the makerUri
         const makerUri = bestQuote.makerUri;
@@ -1479,13 +1476,31 @@ export class RfqmService {
     }
 
     /**
+     * Internal method to calculate fee.
+     */
+    private async _calculateFeeAsync(
+        makerToken: string,
+        takerToken: string,
+        isUnwrap: boolean,
+    ): Promise<{ fee: Fee; gasPrice: BigNumber }> {
+        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
+        const gasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
+        const feeAmount = gasPrice.times(gasEstimate);
+        const fee: Fee = {
+            amount: feeAmount,
+            token: this._contractAddresses.etherToken,
+            type: 'fixed',
+        };
+        return { fee, gasPrice };
+    }
+
+    /**
      * Internal method to fetch indicative quotes. Handles fetching both Rfq and Otc quotes
      */
     private async _fetchIndicativeQuotesAsync(
         params: FetchIndicativeQuoteParams,
-        gasPrice: BigNumber,
-        isUnwrap: boolean,
-    ): Promise<{ quotes: IndicativeQuote[]; otcOrderFee: Fee }> {
+        fee: Fee,
+    ): Promise<IndicativeQuote[]> {
         // Extract params
         const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
 
@@ -1493,14 +1508,6 @@ export class RfqmService {
         const isSelling = sellAmount !== undefined;
         const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
-
-        const otcOrderGasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
-        const otcOrderFeeAmount = gasPrice.times(otcOrderGasEstimate);
-        const otcOrderFee: Fee = {
-            amount: otcOrderFeeAmount,
-            token: this._contractAddresses.etherToken,
-            type: 'fixed',
-        };
 
         // Create Otc Order request options
         const otcOrderParams = QuoteServerClient.makeQueryParameters({
@@ -1512,7 +1519,7 @@ export class RfqmService {
             sellTokenAddress: takerToken,
             assetFillAmount,
             isLastLook: true,
-            fee: otcOrderFee,
+            fee,
         });
         const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
 
@@ -1522,21 +1529,14 @@ export class RfqmService {
             otcOrderParams,
         );
 
-        return { quotes, otcOrderFee };
+        return quotes;
     }
 
     /**
      * Internal method to fetch firm quotes. Handles fetching both Rfq and Otc quotes
      */
-    private async _fetchFirmQuotesAsync(
-        params: FetchFirmQuoteParams,
-        gasPrice: BigNumber,
-        isUnwrap: boolean = false,
-    ): Promise<{
-        quotes: FirmOtcQuote[];
-        otcOrderFee: Fee;
-    }> {
-        const { quotes, otcOrderFee } = await this._fetchIndicativeQuotesAsync(params, gasPrice, isUnwrap);
+    private async _fetchFirmQuotesAsync(params: FetchFirmQuoteParams, fee: Fee): Promise<FirmOtcQuote[]> {
+        const quotes = await this._fetchIndicativeQuotesAsync(params, fee);
 
         const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
@@ -1557,10 +1557,7 @@ export class RfqmService {
             return true;
         });
 
-        return {
-            quotes: firmQuotesWithCorrectChainId,
-            otcOrderFee,
-        };
+        return firmQuotesWithCorrectChainId;
     }
 
     /**
