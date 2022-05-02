@@ -307,7 +307,7 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * NOTE: this is used for the QuoteReport to filter samples
  */
 function isDexSampleForTotalAmount(ds: DexSample, amount: BigNumber): boolean {
-    return ds.input === amount;
+    return ds.input.eq(amount);
 }
 
 /**
