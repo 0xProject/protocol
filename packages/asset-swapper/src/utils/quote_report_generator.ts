@@ -221,6 +221,19 @@ export function generateExtendedQuoteReportSources(opts: {
 
     // TODO: MultiHop
 
+<<<<<<< HEAD
+=======
+    // Dex Quotes
+    sourcesConsidered.push(
+        ..._.flatten(
+            quotes.dexQuotes.map(dex =>
+                dex
+                    .filter(quote => isDexSampleForTotalAmount(quote, amount))
+                    .map(quote => dexSampleToReportSource(quote, marketOperation)),
+            ),
+        ),
+    );
+>>>>>>> d14aebf72 (Fix the filter for considered sources on indicative sells for Quote Report (#466))
     const sourcesConsideredIndexed = sourcesConsidered.map(
         (quote, index): ExtendedQuoteReportIndexedEntry => {
             return {
@@ -287,6 +300,7 @@ export function generateExtendedQuoteReportSources(opts: {
     };
 }
 
+<<<<<<< HEAD
 export function dexSampleToReportSource(
     side: MarketOperation,
     sample: DexSample,
@@ -300,6 +314,88 @@ export function dexSampleToReportSource(
         liquiditySource: sample.source,
         fillData: {}, // Does this matter?
     } as BridgeQuoteReportEntry;
+=======
+function _nativeDataToId(data: { signature: Signature }): string {
+    const { v, r, s } = data.signature;
+    return `${v}${r}${s}`;
+}
+
+/**
+ * Generates a report sample for a DEX source
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
+    const liquiditySource = ds.source;
+
+    if (liquiditySource === ERC20BridgeSource.Native) {
+        throw new Error(`Unexpected liquidity source Native`);
+    }
+
+    // input and output map to different values
+    // based on the market operation
+    if (marketOperation === MarketOperation.Buy) {
+        return {
+            makerAmount: ds.input,
+            takerAmount: ds.output,
+            liquiditySource,
+            fillData: ds.fillData,
+        };
+    } else if (marketOperation === MarketOperation.Sell) {
+        return {
+            makerAmount: ds.output,
+            takerAmount: ds.input,
+            liquiditySource,
+            fillData: ds.fillData,
+        };
+    } else {
+        throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    }
+}
+
+/**
+ * Checks if a DEX sample is the one that represents the whole amount requested by taker
+ * NOTE: this is used for the QuoteReport to filter samples
+ */
+function isDexSampleForTotalAmount(ds: DexSample, amount: BigNumber): boolean {
+    return ds.input.eq(amount);
+}
+
+/**
+ * Generates a report sample for a MultiHop source
+ * NOTE: this is used for the QuoteReport and quote price comparison data
+ */
+export function multiHopSampleToReportSource(
+    ds: DexSample<MultiHopFillData>,
+    marketOperation: MarketOperation,
+): MultiHopQuoteReportEntry {
+    const { firstHopSource: firstHop, secondHopSource: secondHop } = ds.fillData;
+    // input and output map to different values
+    // based on the market operation
+    if (marketOperation === MarketOperation.Buy) {
+        return {
+            liquiditySource: ERC20BridgeSource.MultiHop,
+            makerAmount: ds.input,
+            takerAmount: ds.output,
+            fillData: ds.fillData,
+            hopSources: [firstHop.source, secondHop.source],
+        };
+    } else if (marketOperation === MarketOperation.Sell) {
+        return {
+            liquiditySource: ERC20BridgeSource.MultiHop,
+            makerAmount: ds.output,
+            takerAmount: ds.input,
+            fillData: ds.fillData,
+            hopSources: [firstHop.source, secondHop.source],
+        };
+    } else {
+        throw new Error(`Unexpected marketOperation ${marketOperation}`);
+    }
+}
+
+function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {
+    const { type } = cf;
+    return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
+>>>>>>> d14aebf72 (Fix the filter for considered sources on indicative sells for Quote Report (#466))
 }
 
 /**
