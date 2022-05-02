@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.57.2 - _May 2, 2022_
+
+    * Fix missing AMM quotes on indicative Quote Reports (#466)
+
+## v16.57.1 - _Invalid date_
+
+    * Added QUICK/ANY pair on Polygon (#464)
+    * Added cvxFXS/FXS curve pool on mainnet (#465)
+
 ## v16.57.0 - _April 22, 2022_
 
     * Add BalancerV2 batch swap support (#462)
