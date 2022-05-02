@@ -18,7 +18,9 @@ describe('GasStationAttendantPolygon', () => {
 
     describe('getWorkerBalanceForTradeAsync', () => {
         it('gets the balance to trade', async () => {
-            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(1000));
+            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(
+                new BigNumber(1000).shiftedBy(GWEI_DECIMALS),
+            );
 
             const attendant = new GasStationAttendantPolygon(instance(protocolFeeUtilsMock));
 
@@ -37,7 +39,9 @@ describe('GasStationAttendantPolygon', () => {
 
     describe('getExpectedTransactionGasRateAsync', () => {
         it('estimates the transaction gas rate', async () => {
-            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(666));
+            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(
+                new BigNumber(666).shiftedBy(GWEI_DECIMALS),
+            );
 
             const attendant = new GasStationAttendantPolygon(instance(protocolFeeUtilsMock));
 
@@ -68,7 +72,9 @@ describe('GasStationAttendantPolygon', () => {
         });
 
         it('gets an initial bid when there are no existing transactions', async () => {
-            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(212));
+            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(
+                new BigNumber(212).shiftedBy(GWEI_DECIMALS),
+            );
 
             const attendant = new GasStationAttendantPolygon(instance(protocolFeeUtilsMock));
             const gasRate = await attendant.getNextBidAsync(null);
@@ -83,7 +89,9 @@ describe('GasStationAttendantPolygon', () => {
         });
 
         it('calculates a resubmit bid when the fast gas rises', async () => {
-            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(new BigNumber(212));
+            when(protocolFeeUtilsMock.getGasPriceEstimationOrThrowAsync()).thenResolve(
+                new BigNumber(212).shiftedBy(GWEI_DECIMALS),
+            );
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
                 transactionHash: '0x1',
                 from: '0xfrom',

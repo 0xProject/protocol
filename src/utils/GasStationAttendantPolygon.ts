@@ -57,15 +57,15 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
     public async getWorkerBalanceForTradeAsync(): Promise<WeiPerGas> {
         // TODO (rhinodavid): Once the 0x gas oracle can give EIP-1559 data for Polygon
         // use that instead of the legacy fast gas price.
-        const gasPriceEstimateGwei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Since the base fee is basically nothing, use this for our initial max priority fee
-        const maxPriorityFeePerGas = gasPriceEstimateGwei;
+        const maxPriorityFeePerGas = gasPriceEstimateWei;
 
         // Pad the tip for 3 10% increases
         const maxPriorityFeePad = Math.pow(TEN_PERCENT_INCREASE, 3); // tslint:disable-line: custom-no-magic-numbers
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(maxPriorityFeePad);
-        const gasRateWei = BigNumber.max(paddedMaxPriorityFeePerGas.plus(0).shiftedBy(GWEI_DECIMALS), MINIMUM_BID_WEI); // Amortizing the base fee to 0
+        const gasRateWei = BigNumber.max(paddedMaxPriorityFeePerGas.plus(0), MINIMUM_BID_WEI); // Amortizing the base fee to 0
 
         // Pad a little until we get a better idea of token-specific costs
         const padding = 1.1;
@@ -83,15 +83,18 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
      */
     public async getExpectedTransactionGasRateAsync(): Promise<WeiPerGas> {
         // use that instead of the legacy fast gas price.
-        const gasPriceEstimateGwei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        // `@0x/asset-swapper ProtocolFeeUtils::getGasPriceEstimationOrThrowAsync
+        // returns WEI even though it's not documented anywhere in our public open source library
+        // we intend other developers to use.
+        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
 
         // Since the base fee is basically nothing, use this for our initial max priority fee
-        const maxPriorityFeePerGas = gasPriceEstimateGwei;
+        const maxPriorityFeePerGas = gasPriceEstimateWei;
 
         // Pad the tip for 1.5 10% increases
         const baseFeePad = Math.pow(TEN_PERCENT_INCREASE, 1.5); // tslint:disable-line: custom-no-magic-numbers
         const paddedMaxPriorityFeePerGas = maxPriorityFeePerGas.times(baseFeePad);
-        const gasRateWei = paddedMaxPriorityFeePerGas.plus(0).shiftedBy(GWEI_DECIMALS); // Amortizing the base fee to 0
+        const gasRateWei = paddedMaxPriorityFeePerGas.plus(0); // Amortizing the base fee to 0
 
         return gasRateWei.integerValue(BigNumber.ROUND_CEIL);
     }
@@ -107,13 +110,13 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
     public async getNextBidAsync(
         submissionContext: SubmissionContext | null,
     ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
-        const gasPriceEstimateGwei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
-        const maxPriorityFeePerGas = gasPriceEstimateGwei;
+        const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
+        const maxPriorityFeePerGas = gasPriceEstimateWei;
         // Always use 1 GWEI since it's pretty much always 0
         const baseFee = new BigNumber(1).shiftedBy(GWEI_DECIMALS);
 
         if (!submissionContext) {
-            const initialMaxPriorityFeePerGasWei = new BigNumber(maxPriorityFeePerGas).shiftedBy(GWEI_DECIMALS);
+            const initialMaxPriorityFeePerGasWei = new BigNumber(maxPriorityFeePerGas);
             return {
                 maxPriorityFeePerGas: initialMaxPriorityFeePerGasWei,
                 maxFeePerGas: BigNumber.max(baseFee.plus(initialMaxPriorityFeePerGasWei), MINIMUM_BID_WEI),
@@ -125,7 +128,7 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
 
         const newMaxPriorityFeePerGas = BigNumber.max(
             oldMaxPriorityFeePerGas.times(TEN_PERCENT_INCREASE),
-            gasPriceEstimateGwei.shiftedBy(GWEI_DECIMALS),
+            gasPriceEstimateWei,
         );
 
         if (newMaxPriorityFeePerGas.isGreaterThan(MAXIMUM_TIP_WEI)) {
