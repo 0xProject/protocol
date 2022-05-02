@@ -6,7 +6,8 @@
                 "note": "Fix missing AMM quotes on indicative Quote Reports",
                 "pr": 466
             }
-        ]
+        ],
+        "timestamp": 1651526551
     },
     {
         "version": "16.57.1",
