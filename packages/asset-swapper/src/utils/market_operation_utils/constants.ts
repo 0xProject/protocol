@@ -87,7 +87,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
-            ERC20BridgeSource.Swerve,
             ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Shell,
@@ -234,7 +233,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.Shell,
-            ERC20BridgeSource.Swerve,
             ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
@@ -739,10 +737,6 @@ export const CURVE_V2_FANTOM_POOLS = {
 
 export const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
-};
-
-export const SWERVE_POOLS = {
-    y: '0x329239599afb305da0a2ec69c58f8a6697f9f88d',
 };
 
 export const SNOWSWAP_POOLS = {
@@ -1511,14 +1505,6 @@ export const CURVE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
         tokens: [OPTIMISM_TOKENS.DAI, OPTIMISM_TOKENS.USDC, OPTIMISM_TOKENS.USDT],
         pool: CURVE_OPTIMISM_POOLS.tri,
         gasSchedule: 150e3,
-    }),
-};
-
-export const SWERVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SWERVE_POOLS.y]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.TUSD],
-        pool: SWERVE_POOLS.y,
-        gasSchedule: 140e3,
     }),
 };
 
@@ -2434,7 +2420,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Synapse]: fillData => (fillData as CurveFillData).pool.gasSchedule,
