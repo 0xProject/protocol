@@ -1,30 +1,28 @@
 <!---
-The PR title should follow [conventional commits](https://www.conventionalcommits.org/)
-The title will be used to generate the [changelog](/CHANGELOG.md) and release notes, so be descriptive.
-You can use prefixes other than fix: and feat: if you think your change should not go in the [changelog](/CHANGELOG.md).
-When a new version is released, the API will automatically be deployed to all environments (once a week).
+The PR must follow [conventional commits](https://www.conventionalcommits.org/), otherwise
+it will be rejected.
 -->
+
+# Context
+
+<!-- Familiarize your reviewers with the circumstances that make this PR necessary.
+For example, "As the number of market makers have increased, we've seen an uptick in
+request latency" -->
 
 # Description
 
-<!--- Describe your changes in detail -->
+<!-- Describe the changes you've made in this PR in response to the context. Include
+a reference to the related issue. For example, "Create a cache to store market maker
+prices. The values in the cache are invalidated after ten seconds. Closes MKR-123" -->
 
-# Testing Instructions
+# Testing
 
-<!--- Please describe how reviewers can test your changes -->
+<!-- Describe the automated and manual testing you've done with these changes with
+enough detail that a reviewer can replicate the tests. For example, "Added a unit test
+for the cache & ran code locally with a debugger attached to verify proper functionality" -->
 
-# Checklist
+# TODO
 
-<!--- The following points should be used to indicate the progress of your PR.  Put an `x` in all the boxes that apply right now, and come back over time and check them off as you make progress.  If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-
--   [ ] Update [documentation](https://github.com/0xProject/website/blob/development/mdx/api/index.mdx) as needed. **Website Documentation PR:**
--   [ ] Prefix PR title with `[WIP]` if necessary.
--   [ ] Add tests to cover changes as needed.
--   [ ] Test changes on the staging environment with [Matcha API Staging](https://api-staging.matcha.xyz).
-
-    -   [ ] SRA/Limit orders
-    -   [ ] Swap endpoints
-    -   [ ] Meta transaction endpoints
-    -   [ ] Depth charts
-
-    For more information see `0x API Matcha smoke test runbook` in Quip.
+<!-- Give the reviewer an idea of what the next steps are relating to the problem(s)
+you outlined in the Context section, if any. For example, "Watch grafana dashboards
+to confirm latency impact" -->
