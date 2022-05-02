@@ -56,7 +56,6 @@ export enum ERC20BridgeSource {
     Dodo = 'DODO',
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
-    Linkswap = 'Linkswap',
     KyberDmm = 'KyberDMM',
     Smoothy = 'Smoothy',
     Component = 'Component',

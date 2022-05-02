@@ -393,7 +393,6 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Dodo]: {},
         [ERC20BridgeSource.DodoV2]: {},
         [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
-        [ERC20BridgeSource.Linkswap]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.Eth2Dai]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},

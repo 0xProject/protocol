@@ -125,8 +125,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2');
         case ERC20BridgeSource.DodoV2:
             return encodeBridgeSourceId(BridgeProtocol.DodoV2, 'DodoV2');
-        case ERC20BridgeSource.Linkswap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
         case ERC20BridgeSource.PancakeSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwap');
         case ERC20BridgeSource.PancakeSwapV2:
@@ -277,7 +275,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
-        case ERC20BridgeSource.Linkswap:
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.PancakeSwapV2:
         case ERC20BridgeSource.BakerySwap:
@@ -504,7 +501,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
-    [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ShibaSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Pangolin]: routerAddressPathEncoder,
     [ERC20BridgeSource.TraderJoe]: routerAddressPathEncoder,
