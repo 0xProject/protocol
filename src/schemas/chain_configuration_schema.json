@@ -18,6 +18,9 @@
         },
         "sqsUrl": {
             "type": "string"
+        },
+        "quoteReportTopic": {
+            "type": "string"
         }
     },
     "required": ["gasStationUrl", "initialMaxPriorityFeePerGasGwei", "name", "registryAddress", "rpcUrl", "sqsUrl"],

@@ -243,6 +243,7 @@ export async function buildRfqmServiceAsync(
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
         kafkaProducer,
+        chain.quoteReportTopic,
     );
 }
 

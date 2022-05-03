@@ -85,7 +85,6 @@ To get a local development version of `0x-api` running:
 | `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                         |
 | `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                               |
 | `KAFKA_BROKERS`                        | Optional. No default.                                           | A comma separated list of Kafka broker servers                                                                                                                                         |
-| `KAFKA_TOPIC_QUOTE_REPORT`             | Optional. No default                                            | The name of the Kafka topic to publish quote reports on. Setting this and `KAFKA_BROKERS` enable publirhing.                                                                           |
 
 3. Install the dependencies:
 

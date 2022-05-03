@@ -7,7 +7,6 @@ import {
 } from '@0x/asset-swapper';
 import { Producer } from 'kafkajs';
 
-import { KAFKA_TOPIC_QUOTE_REPORT } from '../config';
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 
@@ -28,8 +27,9 @@ export const quoteReportUtils = {
     async publishRFQMQuoteReportAsync(
         logOpts: ExtendedQuoteReportForRFQMLogOptions,
         kafkaProducer: Producer,
+        quoteReportTopic?: string,
     ): Promise<void> {
-        if (kafkaProducer && KAFKA_TOPIC_QUOTE_REPORT) {
+        if (kafkaProducer && quoteReportTopic) {
             const quoteId = numberUtils.randomHexNumberOfLength(10);
             logger.info(`Generating and pushing Quote report for: ${quoteId}`);
 
@@ -87,7 +87,7 @@ export const quoteReportUtils = {
                 sourcesDelivered: bestQuote ? [jsonifyFillData(bestQuote)] : undefined,
             };
             kafkaProducer.send({
-                topic: KAFKA_TOPIC_QUOTE_REPORT,
+                topic: quoteReportTopic,
                 messages: [
                     {
                         value: JSON.stringify(extendedQuoteReport),

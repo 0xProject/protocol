@@ -262,6 +262,7 @@ export class RfqmService {
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
         private readonly _kafkaProducer?: KafkaProducer,
+        private readonly _quoteReportTopic?: string,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
@@ -371,6 +372,7 @@ export class RfqmService {
                     bestQuote,
                 },
                 this._kafkaProducer,
+                this._quoteReportTopic,
             );
         }
 

@@ -61,6 +61,7 @@ export interface ChainConfiguration {
     // The value of the "tip" the worker will use when it starts
     // submitting transactions
     initialMaxPriorityFeePerGasGwei: number;
+    quoteReportTopic?: string;
 }
 
 export type ChainConfigurations = ChainConfiguration[];
@@ -216,10 +217,6 @@ export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)
     ? undefined
     : assertEnvVarType('KAFKA_BROKERS', process.env.KAFKA_BROKERS, EnvVarType.StringList);
 
-export const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROUP_ID)
-    ? undefined
-    : assertEnvVarType('KAFKA_CONSUMER_GROUP_ID', process.env.KAFKA_CONSUMER_GROUP_ID, EnvVarType.NonEmptyString);
-
 // The fee recipient for orders
 export const FEE_RECIPIENT_ADDRESS = _.isEmpty(process.env.FEE_RECIPIENT_ADDRESS)
     ? NULL_ADDRESS
@@ -337,10 +334,6 @@ export const RFQ_PROXY_ADDRESS: string | undefined = _.isEmpty(process.env.RFQ_P
 export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROXY_PORT)
     ? undefined
     : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
-
-export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPIC_QUOTE_REPORT)
-    ? undefined
-    : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
