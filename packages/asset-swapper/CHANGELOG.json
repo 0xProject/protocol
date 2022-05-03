@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.57.3",
+        "changes": [
+            {
+                "note": "Offboard Eth2Dai",
+                "pr": 470
+            }
+        ]
+    },
+    {
         "version": "16.57.2",
         "changes": [
             {
