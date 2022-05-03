@@ -16,7 +16,6 @@ export interface RfqClientPriceRequest {
 export interface RfqClientQuoteRequest extends RfqClientPriceRequest {}
 
 export interface RfqClientIndicativeQuote {
-    maker: string;
     makerUri: string;
     makerToken: string;
     takerToken: string;

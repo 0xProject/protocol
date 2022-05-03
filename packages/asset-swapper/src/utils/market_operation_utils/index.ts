@@ -1,5 +1,4 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
-import { V4RFQFirmQuote } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
