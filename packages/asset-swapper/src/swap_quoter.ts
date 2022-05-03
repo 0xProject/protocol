@@ -25,6 +25,7 @@ import {
     SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
+import { IRfqClient } from './utils/irfq_client';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
@@ -327,6 +328,7 @@ export class SwapQuoter {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
+        rfqClient: IRfqClient | undefined,
     ): Promise<SwapQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);

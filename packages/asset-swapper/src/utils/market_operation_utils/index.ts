@@ -1,4 +1,5 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
+import { V4RFQFirmQuote } from '@0x/quote-server';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
@@ -9,7 +10,8 @@ import {
     NativeOrderWithFillableAmounts,
     SignedNativeOrder,
 } from '../../types';
-import { QuoteRequestor } from '../quote_requestor';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
+import { filterRfqOrder, toSignedNativeOrder } from '../rfq_client_mappers';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
     getNativeAdjustedFillableAmountsFromTakerAmount,
@@ -666,14 +668,30 @@ export class MarketOperationUtils {
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
-                const indicativeQuotes = await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
-                    makerToken,
-                    takerToken,
-                    amount,
-                    side,
-                    wholeOrderPrice,
-                    rfqt,
-                );
+
+                const indicativeQuotes =
+                    rfqt.rfqClient !== undefined
+                        ? ((
+                              await rfqt.rfqClient.fetchPricesAsync({
+                                  takerAddress: rfqt.takerAddress,
+                                  txOrigin: rfqt.txOrigin,
+                                  makerToken,
+                                  takerToken,
+                                  assetFillAmount: amount,
+                                  marketOperation: side,
+                                  comparisonPrice: wholeOrderPrice,
+                                  feeAmount: undefined,
+                                  feeToken: undefined,
+                              })
+                          ).quotes as V4RFQIndicativeQuoteMM[])
+                        : await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
+                              makerToken,
+                              takerToken,
+                              amount,
+                              side,
+                              wholeOrderPrice,
+                              rfqt,
+                          );
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'indicative',
@@ -687,14 +705,31 @@ export class MarketOperationUtils {
             } else {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
                 // Ensure that `intentOnFilling` is enabled and make the request.
-                const firmQuotes = await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
-                    makerToken,
-                    takerToken,
-                    amount,
-                    side,
-                    wholeOrderPrice,
-                    rfqt,
-                );
+                const firmQuotes =
+                    rfqt.rfqClient !== undefined
+                        ? filterRfqOrder(
+                              (
+                                  await rfqt.rfqClient.fetchQuotesAsync({
+                                      takerAddress: rfqt.takerAddress,
+                                      txOrigin: rfqt.txOrigin,
+                                      makerToken,
+                                      takerToken,
+                                      assetFillAmount: amount,
+                                      marketOperation: side,
+                                      comparisonPrice: wholeOrderPrice,
+                                      feeAmount: undefined,
+                                      feeToken: undefined,
+                                  })
+                              ).quotes,
+                          ).map(toSignedNativeOrder)
+                        : await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
+                              makerToken,
+                              takerToken,
+                              amount,
+                              side,
+                              wholeOrderPrice,
+                              rfqt,
+                          );
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'firm',

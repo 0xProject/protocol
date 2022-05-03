@@ -7,7 +7,7 @@ export interface RfqClientPriceRequest {
     makerToken: string;
     takerToken: string;
     assetFillAmount: BigNumber;
-    marketOperation: 'sell' | 'buy';
+    marketOperation: 'Sell' | 'Buy';
     comparisonPrice: BigNumber | undefined;
     feeAmount: BigNumber | undefined;
     feeToken: string | undefined;
@@ -23,6 +23,7 @@ export interface RfqClientIndicativeQuote {
     makerAmount: BigNumber;
     takerAmount: BigNumber;
     expiry: BigNumber;
+    kind: 'rfq' | 'otc';
 }
 
 export interface RfqClientPriceResponse {
@@ -49,7 +50,17 @@ export interface RfqClientQuoteResponse {
     quotes: RfqClientFirmQuote[];
 }
 
+/**
+ * IRfqClient is an interface that defines how to connect with an Rfq system.
+ */
 export interface IRfqClient {
+    /**
+     * Fetches a list of "indicative quotes" or prices from a remote Rfq server
+     */
     fetchPricesAsync(request: RfqClientPriceRequest): Promise<RfqClientPriceResponse>;
+
+    /**
+     * Fetches a list of "firm quotes" or signed quotes from a remote Rfq server.
+     */
     fetchQuotesAsync(request: RfqClientQuoteRequest): Promise<RfqClientQuoteResponse>;
 }
