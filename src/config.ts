@@ -21,6 +21,7 @@ import {
     ONE_MINUTE_MS,
 } from './constants';
 import { schemas } from './schemas';
+import { pairUtils } from './utils/pair_utils';
 import { schemaUtils } from './utils/schema_utils';
 
 // tslint:disable:no-bitwise
@@ -80,6 +81,55 @@ export const CHAIN_CONFIGURATIONS: ChainConfigurations = (() => {
     }
     return result;
 })();
+
+/**
+ * Values read from configuration files which provide
+ * per pair fee model constants.
+ */
+export interface FeeModelConfiguration {
+    marginRakeRatio: number; // Rake based on margin between RFQm and AMM prices. E.g. marginRakeRatio = 0.5 if we want to charge 50% of the margin.
+    tradeSizeBps: number; // Base points of fee based on trade size. 1 bps = 0.01%.
+}
+
+/**
+ * This interface is used to represent an individual JSON object for a given chain and pair.
+ * It is only used when we read the JSON object from a file, and should not be used elsewhere.
+ */
+interface FeeModelConfigurationWithKey extends FeeModelConfiguration {
+    chainId: number;
+    tokenA: string;
+    tokenB: string;
+}
+
+export type FeeModelConfigurationMap = Map<number, Map<string, FeeModelConfiguration>>;
+
+/**
+ * A nested map providing fee model constants for each token pair.
+ * Use chainId as first key and pair key as the second key.
+ */
+export const FEE_MODEL_CONFIGURATION_MAP: FeeModelConfigurationMap = (() => {
+    try {
+        const feeModelConfigurations: FeeModelConfigurationWithKey[] = resolveEnvVar<FeeModelConfigurationWithKey[]>(
+            'FEE_MODEL_CONFIGURATIONS',
+            EnvVarType.JsonStringList,
+            [],
+        );
+        schemaUtils.validateSchema(feeModelConfigurations, schemas.feeModelConfigurationsSchema);
+
+        return feeModelConfigurations.reduce((acc, curr) => {
+            const { chainId, tokenA, tokenB, marginRakeRatio, tradeSizeBps } = curr;
+            if (!acc.has(chainId)) {
+                acc.set(chainId, new Map<string, FeeModelConfiguration>());
+            }
+            acc.get(chainId)!.set(pairUtils.toKey(tokenA, tokenB), { marginRakeRatio, tradeSizeBps });
+            return acc;
+        }, new Map</* chainId */ number, Map</* pairKey */ string, FeeModelConfiguration>>());
+    } catch (e) {
+        throw new Error(`FEE_MODEL_CONFIGURATIONS was defined but is not valid JSON per the schema: ${e}`);
+    }
+})();
+
+export const DEFAULT_FEE_MODEL_CONFIGURATION: FeeModelConfiguration = { marginRakeRatio: 0, tradeSizeBps: 0 };
 
 /**
  * A taker-integrator of the 0x API.

@@ -4,6 +4,7 @@
 
 import { expect } from 'chai';
 
+import { DEFAULT_FEE_MODEL_CONFIGURATION } from '../../src/config';
 import { ConfigManager } from '../../src/utils/config_manager';
 
 describe('ConfigManager', () => {
@@ -59,6 +60,62 @@ describe('ConfigManager', () => {
 
             // Then
             expect(makerIdForUnknownKey).to.be.eq(undefined);
+        });
+    });
+    describe('getFeeModelConfiguration', () => {
+        const chainId = 1;
+        const tokenA = '0x374a16f5e686c09b0cc9e8bc3466b3b645c74aa7';
+        const tokenB = '0xf84830b73b2ed3c7267e7638f500110ea47fdf30';
+        const unknownToken = '0xf84830b73b2ed3c7267e7638f500110ea47fdf31';
+        const marginRakeRatio = 0.4;
+        const tradeSizeBps = 5;
+
+        it('should find fee model config for given pairs', () => {
+            // Given
+            const configManager = new ConfigManager();
+
+            // When
+            const feeModelConfig = configManager.getFeeModelConfiguration(chainId, tokenA, tokenB);
+
+            // Then
+            expect(feeModelConfig.marginRakeRatio).to.be.eq(marginRakeRatio);
+            expect(feeModelConfig.tradeSizeBps).to.be.eq(tradeSizeBps);
+        });
+
+        it('should ignore tokens order when looking for fee model config', () => {
+            // Given
+            const configManager = new ConfigManager();
+
+            // When
+            const feeModelConfig = configManager.getFeeModelConfiguration(chainId, tokenB, tokenA);
+
+            // Then
+            expect(feeModelConfig.marginRakeRatio).to.be.eq(marginRakeRatio);
+            expect(feeModelConfig.tradeSizeBps).to.be.eq(tradeSizeBps);
+        });
+
+        it('should return default fee model config when chainId is not found', () => {
+            // Given
+            const configManager = new ConfigManager();
+
+            // When
+            const feeModelConfig = configManager.getFeeModelConfiguration(137, tokenA, tokenB);
+
+            // Then
+            expect(feeModelConfig.marginRakeRatio).to.be.eq(DEFAULT_FEE_MODEL_CONFIGURATION.marginRakeRatio);
+            expect(feeModelConfig.tradeSizeBps).to.be.eq(DEFAULT_FEE_MODEL_CONFIGURATION.tradeSizeBps);
+        });
+
+        it('should return default fee model config when chainId is not found', () => {
+            // Given
+            const configManager = new ConfigManager();
+
+            // When
+            const feeModelConfig = configManager.getFeeModelConfiguration(chainId, tokenA, unknownToken);
+
+            // Then
+            expect(feeModelConfig.marginRakeRatio).to.be.eq(DEFAULT_FEE_MODEL_CONFIGURATION.marginRakeRatio);
+            expect(feeModelConfig.tradeSizeBps).to.be.eq(DEFAULT_FEE_MODEL_CONFIGURATION.tradeSizeBps);
         });
     });
 });
