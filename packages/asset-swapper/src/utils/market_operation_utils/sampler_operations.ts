@@ -1349,7 +1349,7 @@ export class SamplerOperations {
         takerFillAmounts: BigNumber[],
         tokenAdjacencyGraph: TokenAdjacencyGraph = this.tokenAdjacencyGraph,
     ): SourceQuoteOperation[] {
-        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph);
         // Drop out MultiHop and Native as we do not query those here.
@@ -1362,8 +1362,6 @@ export class SamplerOperations {
                     return [];
                 }
                 switch (source) {
-                    case ERC20BridgeSource.Eth2Dai:
-                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapSellQuotes(
@@ -1685,8 +1683,6 @@ export class SamplerOperations {
         return _.flatten(
             _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
                 switch (source) {
-                    case ERC20BridgeSource.Eth2Dai:
-                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapBuyQuotes(
