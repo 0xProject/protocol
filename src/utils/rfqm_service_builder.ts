@@ -140,13 +140,16 @@ function getGasStationAttendant(
     axiosInstance: AxiosInstance,
     protocolFeeUtils: ProtocolFeeUtils,
 ): GasStationAttendant {
+    let gasOracle: GasOracle;
     // tslint:disable: custom-no-magic-numbers
     switch (chain.chainId) {
         case /* ethereum */ 1:
+            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
+            return new GasStationAttendantEthereum(gasOracle);
         case /* ropsten */ 3:
             return new GasStationAttendantRopsten(protocolFeeUtils);
         case /* ganache */ 1337:
-            const gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
+            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
         case /* polygon */ 137:
             return new GasStationAttendantPolygon(protocolFeeUtils);
