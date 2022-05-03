@@ -41,6 +41,7 @@ import { GasOracle } from './GasOracle';
 import { GasStationAttendant } from './GasStationAttendant';
 import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
 import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
+import { GasStationAttendantRopsten } from './GasStationAttendantRopsten';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqmDbUtils } from './rfqm_db_utils';
@@ -143,6 +144,7 @@ function getGasStationAttendant(
     switch (chain.chainId) {
         case /* ethereum */ 1:
         case /* ropsten */ 3:
+            return new GasStationAttendantRopsten(protocolFeeUtils);
         case /* ganache */ 1337:
             const gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
             return new GasStationAttendantEthereum(gasOracle);
