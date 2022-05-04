@@ -1,4 +1,4 @@
-import { AltRfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
+import { AltRfqMakerAssetOfferings, SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -59,6 +59,52 @@ export class RfqtService {
                 isLastLook: false,
                 makerEndpointMaxResponseTimeMs: 600,
                 takerAddress: NULL_ADDRESS,
+                txOrigin: takerAddress,
+            },
+        );
+    }
+
+    /**
+     * Pass through to `QuoteRequestor::requestRfqtFirmQuotesAsync` to fetch
+     * firm quotes from market makers.
+     */
+    public async getV1QuotesAsync(parameters: {
+        altRfqAssetOfferings: AltRfqMakerAssetOfferings;
+        assetFillAmount: BigNumber;
+        comparisonPrice: BigNumber | undefined;
+        makerToken: string;
+        marketOperation: MarketOperation;
+        takerToken: string;
+        takerAddress: string;
+        intentOnFilling: boolean;
+        integrator: Integrator;
+    }): Promise<SignedNativeOrder[]> {
+        const {
+            altRfqAssetOfferings,
+            assetFillAmount,
+            comparisonPrice,
+            integrator,
+            intentOnFilling, // tslint:disable-line boolean-naming
+            makerToken,
+            marketOperation,
+            takerAddress,
+            takerToken,
+        } = parameters;
+
+        return this._quoteRequestor.requestRfqtFirmQuotesAsync(
+            makerToken,
+            takerToken,
+            assetFillAmount,
+            marketOperation,
+            comparisonPrice,
+            {
+                altRfqAssetOfferings,
+                integrator,
+                intentOnFilling,
+                isIndicative: false,
+                isLastLook: false,
+                makerEndpointMaxResponseTimeMs: 600,
+                takerAddress,
                 txOrigin: takerAddress,
             },
         );
