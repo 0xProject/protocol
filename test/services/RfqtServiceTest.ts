@@ -45,6 +45,7 @@ describe('Rfqt Service', () => {
                 integrator: {
                     apiKeys: [],
                     integratorId: 'uuid-integrator',
+                    allowedChainIds: [],
                     plp: false,
                     rfqm: false,
                     rfqt: true,
@@ -73,6 +74,7 @@ describe('Rfqt Service', () => {
                       ],
                     },
                     "integrator": Object {
+                      "allowedChainIds": Array [],
                       "apiKeys": Array [],
                       "integratorId": "uuid-integrator",
                       "label": "Scam Integrator 1",
