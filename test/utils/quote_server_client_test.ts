@@ -348,6 +348,47 @@ describe('QuoteServerClient', () => {
                 expect(signature).to.deep.eq(makerSignature);
             });
 
+            it('should return a signature for valid response even if the fee is higher than requested', async () => {
+                // Given
+                const client = new QuoteServerClient(axiosInstance);
+                const request: SignRequest = {
+                    order,
+                    orderHash,
+                    fee: {
+                        amount: new BigNumber('100'),
+                        type: 'fixed',
+                        token: CONTRACT_ADDRESSES.etherToken,
+                    },
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
+                const response = {
+                    feeAmount: '101', // higher than requested
+                    proceedWithFill: true,
+                    makerSignature,
+                };
+
+                axiosMock
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
+                    .replyOnce(HttpStatus.OK, response);
+
+                // When
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
+
+                // Then
+                expect(signature).to.deep.eq(makerSignature);
+            });
+
             it('should throw an error for a malformed response', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);

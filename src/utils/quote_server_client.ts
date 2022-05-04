@@ -264,14 +264,14 @@ export class QuoteServerClient {
 
         const proceedWithFill = rawResponse.data?.proceedWithFill;
         const makerSignature: Signature | undefined = rawResponse.data?.makerSignature;
-        const feeAmount = rawResponse.data?.feeAmount;
+        const feeAmount = new BigNumber(rawResponse.data?.feeAmount);
 
         if (!proceedWithFill) {
             logger.info({ makerUri }, 'Sign request rejected');
             return undefined;
         }
 
-        if (payload.fee.amount.toString() !== feeAmount) {
+        if (!feeAmount.gte(payload.fee.amount)) {
             logger.warn(
                 { requestFeeAmount: payload.fee.amount, responseFeeAmount: feeAmount, makerUri },
                 'Invalid fee acknowledgement',
