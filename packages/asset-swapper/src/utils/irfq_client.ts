@@ -1,13 +1,16 @@
 import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
+import { AltRfqMakerAssetOfferings } from '../types';
 export interface RfqClientPriceRequest {
+    integratorId: string;
     takerAddress: string;
     txOrigin: string;
     makerToken: string;
     takerToken: string;
     assetFillAmount: BigNumber;
     marketOperation: 'Sell' | 'Buy';
+    altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
     comparisonPrice: BigNumber | undefined;
     feeAmount: BigNumber | undefined;
     feeToken: string | undefined;

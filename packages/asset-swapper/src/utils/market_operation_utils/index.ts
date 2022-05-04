@@ -672,11 +672,13 @@ export class MarketOperationUtils {
                     rfqt.rfqClient !== undefined
                         ? ((
                               await rfqt.rfqClient.fetchPricesAsync({
+                                  integratorId: rfqt.integrator.integratorId,
                                   takerAddress: rfqt.takerAddress,
                                   txOrigin: rfqt.txOrigin,
                                   makerToken,
                                   takerToken,
                                   assetFillAmount: amount,
+                                  altRfqAssetOfferings: rfqt.altRfqAssetOfferings,
                                   marketOperation: side,
                                   comparisonPrice: wholeOrderPrice,
                                   feeAmount: undefined,
@@ -709,11 +711,13 @@ export class MarketOperationUtils {
                         ? filterRfqOrder(
                               (
                                   await rfqt.rfqClient.fetchQuotesAsync({
+                                      integratorId: rfqt.integrator.integratorId,
                                       takerAddress: rfqt.takerAddress,
                                       txOrigin: rfqt.txOrigin,
                                       makerToken,
                                       takerToken,
                                       assetFillAmount: amount,
+                                      altRfqAssetOfferings: rfqt.altRfqAssetOfferings,
                                       marketOperation: side,
                                       comparisonPrice: wholeOrderPrice,
                                       feeAmount: undefined,
