@@ -7,14 +7,20 @@
             },
             "type": "array"
         },
+        "integratorId": {
+            "type": "string"
+        },
+        "allowedChainIds": {
+            "items": {
+                "type": "number"
+            },
+            "type": "array"
+        },
         "whitelistIntegratorUrls": {
             "items": {
                 "type": "string"
             },
             "type": "array"
-        },
-        "integratorId": {
-            "type": "string"
         },
         "label": {
             "type": "string"
@@ -29,6 +35,6 @@
             "type": "boolean"
         }
     },
-    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm", "plp"],
+    "required": ["label", "integratorId", "apiKeys", "allowedChainIds", "rfqt", "rfqm", "plp"],
     "type": "object"
 }

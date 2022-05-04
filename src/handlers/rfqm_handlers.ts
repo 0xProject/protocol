@@ -237,7 +237,7 @@ export class RfqmHandlers {
      * Examines the API key provided in the request, ensures it is valid for RFQM, and fetches the associated
      * integrator ID.
      */
-    private _validateApiKey(apiKey: string | undefined): { apiKey: string; integrator: Integrator } {
+    private _validateApiKey(apiKey: string | undefined, chainId: number): { apiKey: string; integrator: Integrator } {
         if (apiKey === undefined) {
             throw new InvalidAPIKeyError('Must access with an API key');
         }
@@ -250,6 +250,9 @@ export class RfqmHandlers {
             throw new InvalidAPIKeyError('API key has no associated Integrator ID');
         }
         const integrator = this._configManager.getIntegratorByIdOrThrow(integratorId);
+        if (!integrator.allowedChainIds.includes(chainId)) {
+            throw new InvalidAPIKeyError(`API Key not authorized to access chain ${chainId}`);
+        }
         return { apiKey, integrator };
     }
 
@@ -259,7 +262,7 @@ export class RfqmHandlers {
         // HACK - reusing the validation for Swap Quote as the interface here is a subset
         schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
         const chainId = extractChainId(req);
-        const { integrator } = this._validateApiKey(req.header('0x-api-key'));
+        const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
 
         // Parse string params
         const { takerAddress, affiliateAddress } = req.query;
@@ -331,7 +334,7 @@ export class RfqmHandlers {
     } {
         const type = req.body.type as RfqmTypes;
         const chainId = extractChainId(req);
-        const { integrator } = this._validateApiKey(req.header('0x-api-key'));
+        const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
 
         if (type === RfqmTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(req.body.order as RawOtcOrderFields));

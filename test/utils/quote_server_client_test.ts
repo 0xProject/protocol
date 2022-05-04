@@ -21,6 +21,7 @@ const makerUri = 'https://some-market-maker.xyz';
 const integrator: Integrator = {
     integratorId: 'some-integrator-id',
     apiKeys: [],
+    allowedChainIds: [],
     label: 'integrator',
     plp: false,
     rfqm: true,

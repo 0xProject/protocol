@@ -176,6 +176,7 @@ describe('RFQM Integration', () => {
         when(configManagerMock.getIntegratorByIdOrThrow(INTEGRATOR_ID)).thenReturn({
             integratorId: INTEGRATOR_ID,
             apiKeys: [API_KEY],
+            allowedChainIds: [1337],
             label: 'Test',
             rfqm: true,
             plp: false,
@@ -520,6 +521,26 @@ describe('RFQM Integration', () => {
             expect(appResponse.body.reason).to.equal('Invalid API key');
         });
 
+        it('should return a 400 BAD REQUEST if API Key does not have access to the chain', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+                intentOnFilling: 'false',
+                skipValidation: 'true',
+            });
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/price?${params.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1')
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Invalid API key');
+        });
+
         it('should return a 400 BAD REQUEST Validation Error if Chain Id cannot be parsed', async () => {
             const sellAmount = 100000000000000000;
             const params = new URLSearchParams({
@@ -556,6 +577,7 @@ describe('RFQM Integration', () => {
             const appResponse = await request(app)
                 .get(`${RFQM_PATH}/price?${params.toString()}`)
                 .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
                 .expect('Content-Type', /json/);
 

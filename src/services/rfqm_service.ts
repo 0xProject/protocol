@@ -1063,6 +1063,7 @@ export class RfqmService {
                     const integrator: Integrator = {
                         apiKeys: [],
                         integratorId: job.integratorId!,
+                        allowedChainIds: [this._chainId],
                         label: 'decline-to-sign-price-check',
                         plp: true,
                         rfqm: true,

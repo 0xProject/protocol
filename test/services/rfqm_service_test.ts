@@ -36,6 +36,7 @@ const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 const MOCK_INTEGRATOR: Integrator = {
     apiKeys: ['an-integrator-id'],
     integratorId: 'an-integrator-id',
+    allowedChainIds: [1337],
     label: 'Test',
     plp: false,
     rfqm: true,

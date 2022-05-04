@@ -137,6 +137,8 @@ export const DEFAULT_FEE_MODEL_CONFIGURATION: FeeModelConfiguration = { marginRa
 export interface Integrator {
     apiKeys: string[];
     integratorId: string;
+    /* IDs for chains the integrator is allowed to access RFQ liquidity on */
+    allowedChainIds: number[];
     whitelistIntegratorUrls?: string[];
     label: string;
     plp: boolean;
