@@ -1,6 +1,25 @@
 import { AxiosInstance } from 'axios';
+import { Summary } from 'prom-client';
 
 import { logger } from '../logger';
+
+/**
+ * With this summary metric, some of the things you can do are:
+ * - Get the rate of failed price fetch requests:
+ *      rate(rfq_token_price_fetch_request_duration_seconds_count{success="false"}[5m])
+ * - Get the rate of success price fetch requests:
+ *      rate(rfq_token_price_fetch_request_duration_seconds_count{success="true"}[5m])
+ * - Get the p95 of request duration of all success price fetch:
+ *      rate(rfq_token_price_fetch_request_duration_seconds{quantile="0.99", success="true"}[5m])
+ *      /
+ *      rate(rfq_token_price_fetch_request_duration_seconds_count{quantile="0.99", success="true"}[5m])
+ */
+const RFQ_TOKEN_PRICE_FETCH_REQUEST_DURATION_SECONDS = new Summary({
+    name: 'rfq_token_price_fetch_request_duration_seconds',
+    help: 'Histogram of request duration of token price fetch request',
+    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
+    labelNames: ['success'],
+});
 
 export interface FetchTokenPriceParams {
     chainId: number;
@@ -29,6 +48,7 @@ export class TokenPriceOracle {
     }
 
     private async _fetchTokenPriceAsync(params: FetchTokenPriceParams): Promise<number | null> {
+        const stopTimer = RFQ_TOKEN_PRICE_FETCH_REQUEST_DURATION_SECONDS.startTimer();
         try {
             const { data } = await this._axiosInstance.post(
                 'https://api.defined.fi',
@@ -51,11 +71,12 @@ export class TokenPriceOracle {
                 throw new Error(data);
             }
 
+            stopTimer({ success: 'true' });
             return priceInUsd;
         } catch (error) {
-            // TODO: add prometheus metrics
             logger.error({ ...params, error }, 'Failed to fetch token price');
 
+            stopTimer({ success: 'false' });
             return null;
         }
     }
