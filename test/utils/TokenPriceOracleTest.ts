@@ -37,8 +37,8 @@ describe('TokenPriceOracle', () => {
 
             const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey');
             const result = await tokenPriceOracle.batchFetchTokenPriceAsync([
-                { chainId: 1, tokenAddress: '0xUSDCContractAddress' },
-                { chainId: 3, tokenAddress: '0xWETHContractAddress' },
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+                { chainId: 3, tokenAddress: '0xWETHContractAddress', tokenDecimals: 18 },
             ]);
             expect(axiosMock.history.post[0].headers['x-api-key']).toBe('fakeApiKey');
 
@@ -53,8 +53,8 @@ describe('TokenPriceOracle', () => {
             // Strip out all indentations before comparing the body
             expect(actualGraphQlQuery.replace(/^\s+/gm, '')).toBe(expectedGraphqlQuery.replace(/^\s+/gm, ''));
 
-            expect(result[0]).toBe(1.1); // tslint:disable-line: custom-no-magic-numbers
-            expect(result[1]).toBe(3000.01); // tslint:disable-line: custom-no-magic-numbers
+            expect(result[0]?.toNumber()).toBe(1.1e-18); // tslint:disable-line: custom-no-magic-numbers
+            expect(result[1]?.toNumber()).toBe(3000.01e-18); // tslint:disable-line: custom-no-magic-numbers
         });
 
         it("returns null priceInUsd when it couldn't fetch the price", async () => {
@@ -63,7 +63,7 @@ describe('TokenPriceOracle', () => {
             // Test the case when server returns non-200 response
             axiosMock.onPost('https://api.defined.fi').replyOnce(HttpStatus.INTERNAL_SERVER_ERROR);
             let result = await tokenPriceOracle.batchFetchTokenPriceAsync([
-                { chainId: 1, tokenAddress: '0xUSDCContractAddress' },
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
             ]);
             expect(result[0]).toBe(null);
 
@@ -94,7 +94,7 @@ describe('TokenPriceOracle', () => {
             };
             axiosMock.onPost('https://api.defined.fi').replyOnce(HttpStatus.OK, fakeDefinedResponseForInvalidToken);
             result = await tokenPriceOracle.batchFetchTokenPriceAsync([
-                { chainId: 1, tokenAddress: '0xInvalidContractAddress' },
+                { chainId: 1, tokenAddress: '0xInvalidContractAddress', tokenDecimals: 18 },
             ]);
             expect(result[0]).toBe(null);
         });

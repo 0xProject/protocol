@@ -17,6 +17,9 @@ export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const HEX_BASE = 16;
 export const PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS = 6000;
 
+// Constant to convert number of bps to ratio. E.g. 5 bps = 5 * 0.0001
+export const BPS_TO_RATIO = 0.0001;
+
 // RFQM Service
 export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
 export const RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = ONE_SECOND_MS * 15;

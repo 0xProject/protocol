@@ -1,3 +1,4 @@
+import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { Summary } from 'prom-client';
 
@@ -27,6 +28,7 @@ export interface FetchTokenPriceParams {
      * Must be a valid ERC-20 contract address
      */
     tokenAddress: string;
+    tokenDecimals: number;
 }
 
 export class TokenPriceOracle {
@@ -40,14 +42,14 @@ export class TokenPriceOracle {
      * Fetch the current price of multiple tokens. The returned array will be a list
      * of result for each item in passed via params in the same order.
      */
-    public async batchFetchTokenPriceAsync(params: FetchTokenPriceParams[]): Promise<(number | null)[]> {
+    public async batchFetchTokenPriceAsync(params: FetchTokenPriceParams[]): Promise<(BigNumber | null)[]> {
         // Note: we can actually batching the getPrice requests in a single GraphQL query
         // but this is for future improvement. For now, batching via sending multiple graphql requests
         // in parallel should be sufficient
         return Promise.all(params.map((p) => this._fetchTokenPriceAsync(p)));
     }
 
-    private async _fetchTokenPriceAsync(params: FetchTokenPriceParams): Promise<number | null> {
+    private async _fetchTokenPriceAsync(params: FetchTokenPriceParams): Promise<BigNumber | null> {
         const stopTimer = RFQ_TOKEN_PRICE_FETCH_REQUEST_DURATION_SECONDS.startTimer();
         try {
             const { data } = await this._axiosInstance.post(
@@ -72,7 +74,7 @@ export class TokenPriceOracle {
             }
 
             stopTimer({ success: 'true' });
-            return priceInUsd;
+            return new BigNumber(priceInUsd).dividedBy(new BigNumber(10).pow(params.tokenDecimals)); // USD price of 1 base unit
         } catch (error) {
             logger.error({ ...params, error }, 'Failed to fetch token price');
 
