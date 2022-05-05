@@ -37,7 +37,6 @@ import {
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
-    ONE_SECOND_MS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
@@ -688,22 +687,20 @@ export class MarketOperationUtils {
                 const indicativeQuotes =
                     rfqt.rfqClient !== undefined
                         ? ((
-                              await rfqt.rfqClient.fetchPricesAsync({
-                                  chainId: this._sampler.chainId,
-                                  integratorId: rfqt.integrator.integratorId,
-                                  takerAddress: rfqt.takerAddress,
-                                  txOrigin: rfqt.txOrigin,
-                                  makerToken,
-                                  takerToken,
+                              await rfqt.rfqClient.getV1PricesAsync({
+                                  altRfqAssetOfferings: filteredOfferings,
                                   assetFillAmount: amount,
-                                  altRfqAssetOfferings:
-                                      Object.keys(filteredOfferings).length > 0 ? filteredOfferings : undefined,
-                                  marketOperation: side,
+                                  chainId: this._sampler.chainId,
                                   comparisonPrice: wholeOrderPrice,
-                                  feeAmount: undefined,
-                                  feeToken: undefined,
+                                  integratorId: rfqt.integrator.integratorId,
+                                  intentOnFilling: rfqt.intentOnFilling,
+                                  makerToken,
+                                  marketOperation: side,
+                                  takerAddress: rfqt.takerAddress,
+                                  takerToken,
+                                  txOrigin: rfqt.txOrigin,
                               })
-                          ).quotes as V4RFQIndicativeQuoteMM[])
+                          ).prices as V4RFQIndicativeQuoteMM[])
                         : await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
                               makerToken,
                               takerToken,
@@ -727,25 +724,21 @@ export class MarketOperationUtils {
                 // Ensure that `intentOnFilling` is enabled and make the request.
                 const firmQuotes =
                     rfqt.rfqClient !== undefined
-                        ? filterRfqOrder(
-                              (
-                                  await rfqt.rfqClient.fetchQuotesAsync({
-                                      chainId: this._sampler.chainId,
-                                      integratorId: rfqt.integrator.integratorId,
-                                      takerAddress: rfqt.takerAddress,
-                                      txOrigin: rfqt.txOrigin,
-                                      makerToken,
-                                      takerToken,
-                                      assetFillAmount: amount,
-                                      altRfqAssetOfferings:
-                                          Object.keys(filteredOfferings).length > 0 ? filteredOfferings : undefined,
-                                      marketOperation: side,
-                                      comparisonPrice: wholeOrderPrice,
-                                      feeAmount: undefined,
-                                      feeToken: undefined,
-                                  })
-                              ).quotes,
-                          ).map(toSignedNativeOrder)
+                        ? (
+                              await rfqt.rfqClient.getV1QuotesAsync({
+                                  altRfqAssetOfferings: filteredOfferings,
+                                  assetFillAmount: amount,
+                                  chainId: this._sampler.chainId,
+                                  comparisonPrice: wholeOrderPrice,
+                                  integratorId: rfqt.integrator.integratorId,
+                                  intentOnFilling: rfqt.intentOnFilling,
+                                  makerToken,
+                                  marketOperation: side,
+                                  takerAddress: rfqt.takerAddress,
+                                  takerToken,
+                                  txOrigin: rfqt.txOrigin,
+                              })
+                          ).quotes.map(toSignedNativeOrder)
                         : await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
                               makerToken,
                               takerToken,

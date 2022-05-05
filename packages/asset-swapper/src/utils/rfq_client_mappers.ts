@@ -2,19 +2,12 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
 import { SignedNativeOrder } from '../types';
 
-import { RfqClientFirmQuote, RfqClientRfqOrderFirmQuote } from './irfq_client';
-
-/**
- * Filters for RfqOrders from an array of RfqClientFirmQuotes. Refines the type.
- */
-export const filterRfqOrder = (quotes: RfqClientFirmQuote[]): RfqClientRfqOrderFirmQuote[] => {
-    return quotes.filter(q => q.kind === 'rfq') as RfqClientRfqOrderFirmQuote[];
-};
+import { RfqClientV1FirmQuote } from './irfq_client';
 
 /**
  * Converts a RfqClientRfqOrderFirmQuote to a SignedNativeOrder
  */
-export const toSignedNativeOrder = (quote: RfqClientRfqOrderFirmQuote): SignedNativeOrder => {
+export const toSignedNativeOrder = (quote: RfqClientV1FirmQuote): SignedNativeOrder => {
     return {
         type: FillQuoteTransformerOrderType.Rfq,
         order: quote.order,

@@ -3,14 +3,13 @@ import { BigNumber } from '@0x/utils';
 
 import { AltRfqMakerAssetOfferings } from '../types';
 
-export interface RfqClientPriceRequest {
+export interface RfqClientV1PriceRequest {
     altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
     assetFillAmount: BigNumber;
     chainId: number;
     comparisonPrice: BigNumber | undefined;
-    feeAmount: BigNumber | undefined;
-    feeToken: string | undefined;
     integratorId: string;
+    intentOnFilling: boolean;
     makerToken: string;
     marketOperation: 'Sell' | 'Buy';
     takerAddress: string;
@@ -18,9 +17,9 @@ export interface RfqClientPriceRequest {
     txOrigin: string;
 }
 
-export interface RfqClientQuoteRequest extends RfqClientPriceRequest {}
+export interface RfqClientV1QuoteRequest extends RfqClientV1PriceRequest {}
 
-export interface RfqClientIndicativeQuote {
+export interface RfqClientV1Price {
     expiry: BigNumber;
     kind: 'rfq' | 'otc';
     makerAmount: BigNumber;
@@ -30,28 +29,18 @@ export interface RfqClientIndicativeQuote {
     takerToken: string;
 }
 
-export interface RfqClientPriceResponse {
-    quotes: RfqClientIndicativeQuote[];
+export interface RfqClientV1PriceResponse {
+    prices: RfqClientV1Price[];
 }
 
-export interface RfqClientRfqOrderFirmQuote {
-    kind: 'rfq';
+export interface RfqClientV1FirmQuote {
     makerUri: string;
     order: RfqOrder;
     signature: Signature;
 }
 
-export interface RfqClientOtcOrderFirmQuote {
-    kind: 'otc';
-    makerUri: string;
-    order: OtcOrder;
-    signature: Signature;
-}
-
-export type RfqClientFirmQuote = RfqClientRfqOrderFirmQuote | RfqClientOtcOrderFirmQuote;
-
 export interface RfqClientQuoteResponse {
-    quotes: RfqClientFirmQuote[];
+    quotes: RfqClientV1FirmQuote[];
 }
 
 /**
@@ -61,10 +50,10 @@ export interface IRfqClient {
     /**
      * Fetches a list of "indicative quotes" or prices from a remote Rfq server
      */
-    fetchPricesAsync(request: RfqClientPriceRequest): Promise<RfqClientPriceResponse>;
+    getV1PricesAsync(request: RfqClientV1PriceRequest): Promise<RfqClientV1PriceResponse>;
 
     /**
      * Fetches a list of "firm quotes" or signed quotes from a remote Rfq server.
      */
-    fetchQuotesAsync(request: RfqClientQuoteRequest): Promise<RfqClientQuoteResponse>;
+    getV1QuotesAsync(request: RfqClientV1QuoteRequest): Promise<RfqClientQuoteResponse>;
 }
