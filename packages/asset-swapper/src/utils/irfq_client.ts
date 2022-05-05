@@ -1,4 +1,4 @@
-import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
+import { RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { AltRfqMakerAssetOfferings } from '../types';
