@@ -35,6 +35,7 @@ import {
     FEE_QUOTE_SOURCES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    ONE_SECOND_MS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SOURCE_FLAGS,
     ZERO_AMOUNT,
@@ -70,6 +71,7 @@ export class MarketOperationUtils {
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
     private readonly _nativeFeeTokenAmount: BigNumber;
+    private _lastAltOfferingTransmission: number = 0;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -664,6 +666,11 @@ export class MarketOperationUtils {
             // Timing of RFQT lifecycle
             const timeStart = new Date().getTime();
             const { makerToken, takerToken } = nativeOrders[0].order;
+            // tslint:disable-next-line: custom-no-magic-numbers
+            const shouldSendAltOfferings = timeStart - this._lastAltOfferingTransmission > ONE_SECOND_MS * 60 * 10;
+            if (shouldSendAltOfferings) {
+                this._lastAltOfferingTransmission = timeStart;
+            }
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
@@ -678,7 +685,7 @@ export class MarketOperationUtils {
                                   makerToken,
                                   takerToken,
                                   assetFillAmount: amount,
-                                  altRfqAssetOfferings: rfqt.altRfqAssetOfferings,
+                                  altRfqAssetOfferings: shouldSendAltOfferings ? rfqt.altRfqAssetOfferings : undefined,
                                   marketOperation: side,
                                   comparisonPrice: wholeOrderPrice,
                                   feeAmount: undefined,
@@ -717,7 +724,9 @@ export class MarketOperationUtils {
                                       makerToken,
                                       takerToken,
                                       assetFillAmount: amount,
-                                      altRfqAssetOfferings: rfqt.altRfqAssetOfferings,
+                                      altRfqAssetOfferings: shouldSendAltOfferings
+                                          ? rfqt.altRfqAssetOfferings
+                                          : undefined,
                                       marketOperation: side,
                                       comparisonPrice: wholeOrderPrice,
                                       feeAmount: undefined,
