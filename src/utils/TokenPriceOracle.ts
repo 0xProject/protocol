@@ -74,7 +74,7 @@ export class TokenPriceOracle {
             }
 
             stopTimer({ success: 'true' });
-            return new BigNumber(priceInUsd).dividedBy(new BigNumber(10).pow(params.tokenDecimals)); // USD price of 1 base unit
+            return new BigNumber(priceInUsd).shiftedBy(params.tokenDecimals * -1); // USD price of 1 base unit
         } catch (error) {
             logger.error({ ...params, error }, 'Failed to fetch token price');
 

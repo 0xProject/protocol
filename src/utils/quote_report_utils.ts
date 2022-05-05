@@ -7,6 +7,7 @@ import {
 } from '@0x/asset-swapper';
 import { Producer } from 'kafkajs';
 
+import { StoredFee } from '../entities/types';
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 
@@ -21,7 +22,10 @@ interface ExtendedQuoteReportForRFQMLogOptions {
     taker?: string;
     allQuotes: IndicativeQuote[] | FirmOtcQuote[];
     bestQuote: IndicativeQuote | FirmOtcQuote | null;
+    fee?: StoredFee;
 }
+
+type ExtendedQuoteReportWithFee = ExtendedQuoteReport & { fee?: StoredFee };
 
 export const quoteReportUtils = {
     async publishRFQMQuoteReportAsync(
@@ -70,7 +74,7 @@ export const quoteReportUtils = {
                       fillData: isFirmQuote(logOpts.bestQuote) ? logOpts.bestQuote?.order : {},
                   }
                 : null;
-            const extendedQuoteReport: ExtendedQuoteReport = {
+            const extendedQuoteReport: ExtendedQuoteReportWithFee = {
                 quoteId,
                 taker: logOpts.taker,
                 timestamp: Date.now(),
@@ -85,6 +89,7 @@ export const quoteReportUtils = {
                 zeroExTransactionHash: orderHash,
                 sourcesConsidered: sourcesConsidered.map(jsonifyFillData),
                 sourcesDelivered: bestQuote ? [jsonifyFillData(bestQuote)] : undefined,
+                fee: logOpts.fee,
             };
             kafkaProducer.send({
                 topic: quoteReportTopic,

@@ -15,6 +15,11 @@ describe('RfqmFeeService', () => {
 
     const feeToken = 'WethAddress';
     const feeTokenDecimals = 18;
+    const feeTokenMetadata = {
+        symbol: 'fee',
+        decimals: feeTokenDecimals,
+        tokenAddress: feeToken,
+    };
     const feeTokenPrice = new BigNumber(3e-15);
     const makerToken = 'UsdcAddress';
     const makerTokenDecimals = 6;
@@ -50,8 +55,7 @@ describe('RfqmFeeService', () => {
 
             const feeService: RfqmFeeService = new RfqmFeeService(
                 chainId,
-                feeToken,
-                feeTokenDecimals,
+                feeTokenMetadata,
                 instance(configManagerMock),
                 instance(gasStationAttendantMock),
                 instance(tokenPriceOracleMock),
@@ -111,8 +115,7 @@ describe('RfqmFeeService', () => {
 
             const feeService: RfqmFeeService = new RfqmFeeService(
                 chainId,
-                feeToken,
-                feeTokenDecimals,
+                feeTokenMetadata,
                 instance(configManagerMock),
                 instance(gasStationAttendantMock),
                 instance(tokenPriceOracleMock),
@@ -170,8 +173,7 @@ describe('RfqmFeeService', () => {
 
             const feeService: RfqmFeeService = new RfqmFeeService(
                 chainId,
-                feeToken,
-                feeTokenDecimals,
+                feeTokenMetadata,
                 instance(configManagerMock),
                 instance(gasStationAttendantMock),
                 instance(tokenPriceOracleMock),
@@ -223,8 +225,7 @@ describe('RfqmFeeService', () => {
 
             const feeService: RfqmFeeService = new RfqmFeeService(
                 chainId,
-                feeToken,
-                feeTokenDecimals,
+                feeTokenMetadata,
                 instance(configManagerMock),
                 instance(gasStationAttendantMock),
                 instance(tokenPriceOracleMock),

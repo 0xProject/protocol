@@ -72,14 +72,21 @@ function getKafkaProducer(): KafkaProducer | undefined {
 }
 
 /**
- * Creates the Axios Request Config
+ * Creates the default Axios Request Config
  */
-function getAxiosRequestConfig(): AxiosRequestConfig {
-    const axiosRequestConfig: AxiosRequestConfig = {
+export function getAxiosRequestConfig(): AxiosRequestConfig {
+    return {
         httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
         httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
         timeout: DEFAULT_AXIOS_TIMEOUT,
     };
+}
+
+/**
+ * Creates the Axios Request Config with egress proxy
+ */
+function getAxiosRequestConfigWithProxy(): AxiosRequestConfig {
+    const axiosRequestConfig: AxiosRequestConfig = getAxiosRequestConfig();
     if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
         axiosRequestConfig.proxy = {
             host: RFQ_PROXY_ADDRESS,
@@ -202,7 +209,7 @@ export async function buildRfqmServiceAsync(
     const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
     await rfqMakerManager.initializeAsync();
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain.chainId);
-    const axiosInstance = Axios.create(getAxiosRequestConfig());
+    const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(
         PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,

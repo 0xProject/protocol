@@ -1,4 +1,5 @@
 import { Fee } from '@0x/quote-server/lib/src/types';
+import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
 import { BPS_TO_RATIO, ZERO } from '../constants';
@@ -95,8 +96,7 @@ export const hideFeeDetails = (fee: Fee): Fee => {
 export class RfqmFeeService {
     constructor(
         private readonly _chainId: number,
-        private readonly _feeTokenAddress: string,
-        private readonly _feeTokenDecimals: number,
+        private readonly _feeTokenMetadata: TokenMetadata,
         private readonly _configManager: ConfigManager,
         private readonly _gasStationAttendant: GasStationAttendant,
         private readonly _tokenPriceOracle: TokenPriceOracle,
@@ -129,7 +129,7 @@ export class RfqmFeeService {
 
         return {
             amount: gasFeeAmount,
-            token: this._feeTokenAddress,
+            token: this._feeTokenMetadata.tokenAddress,
             type: 'fixed',
             details: {
                 feeModelVersion,
@@ -171,7 +171,7 @@ export class RfqmFeeService {
 
         return {
             type: 'fixed',
-            token: this._feeTokenAddress,
+            token: this._feeTokenMetadata.tokenAddress,
             amount: gasFee.amount.plus(zeroExFeeAmount),
             details: {
                 feeModelVersion: 1,
@@ -216,8 +216,8 @@ export class RfqmFeeService {
                     },
                     {
                         chainId: this._chainId,
-                        tokenAddress: this._feeTokenAddress,
-                        tokenDecimals: this._feeTokenDecimals,
+                        tokenAddress: this._feeTokenMetadata.tokenAddress,
+                        tokenDecimals: this._feeTokenMetadata.decimals,
                     },
                 ]);
 
