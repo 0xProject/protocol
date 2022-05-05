@@ -117,6 +117,17 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
+    RfqClientFirmQuote,
+    RfqClientIndicativeQuote,
+    RfqClientOtcOrderFirmQuote,
+    RfqClientPriceRequest,
+    RfqClientPriceResponse,
+    RfqClientQuoteRequest,
+    RfqClientQuoteResponse,
+    RfqClientRfqOrderFirmQuote,
+    IRfqClient,
+} from './utils/irfq_client';
+export {
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
     DEFAULT_GAS_SCHEDULE,
     SOURCE_FLAGS,
