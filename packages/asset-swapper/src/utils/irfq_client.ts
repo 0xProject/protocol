@@ -2,30 +2,31 @@ import { OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { AltRfqMakerAssetOfferings } from '../types';
+
 export interface RfqClientPriceRequest {
-    integratorId: string;
-    takerAddress: string;
-    txOrigin: string;
-    makerToken: string;
-    takerToken: string;
-    assetFillAmount: BigNumber;
-    marketOperation: 'Sell' | 'Buy';
     altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
+    assetFillAmount: BigNumber;
     comparisonPrice: BigNumber | undefined;
     feeAmount: BigNumber | undefined;
     feeToken: string | undefined;
+    integratorId: string;
+    makerToken: string;
+    marketOperation: 'Sell' | 'Buy';
+    takerAddress: string;
+    takerToken: string;
+    txOrigin: string;
 }
 
 export interface RfqClientQuoteRequest extends RfqClientPriceRequest {}
 
 export interface RfqClientIndicativeQuote {
-    makerUri: string;
-    makerToken: string;
-    takerToken: string;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
     expiry: BigNumber;
     kind: 'rfq' | 'otc';
+    makerAmount: BigNumber;
+    makerToken: string;
+    makerUri: string;
+    takerAmount: BigNumber;
+    takerToken: string;
 }
 
 export interface RfqClientPriceResponse {
@@ -33,17 +34,17 @@ export interface RfqClientPriceResponse {
 }
 
 export interface RfqClientRfqOrderFirmQuote {
-    order: RfqOrder;
-    makerUri: string;
-    signature: Signature;
     kind: 'rfq';
+    makerUri: string;
+    order: RfqOrder;
+    signature: Signature;
 }
 
 export interface RfqClientOtcOrderFirmQuote {
-    order: OtcOrder;
-    makerUri: string;
-    signature: Signature;
     kind: 'otc';
+    makerUri: string;
+    order: OtcOrder;
+    signature: Signature;
 }
 
 export type RfqClientFirmQuote = RfqClientRfqOrderFirmQuote | RfqClientOtcOrderFirmQuote;
