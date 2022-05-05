@@ -3,7 +3,6 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS } from '../constants';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quoteRequestor/quoteRequestor';
 
 /**
@@ -21,6 +20,9 @@ export class RfqtService {
     /**
      * Pass through to `QuoteRequestor::requestRfqtIndicativeQuotesAsync` to fetch
      * indicative quotes from market makers.
+     *
+     * Note that by this point, 0x API should be sending the null address
+     * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
     public async getV1PricesAsync(parameters: {
         altRfqAssetOfferings: AltRfqMakerAssetOfferings;
@@ -28,8 +30,9 @@ export class RfqtService {
         comparisonPrice: BigNumber | undefined;
         makerToken: string;
         marketOperation: MarketOperation;
-        takerToken: string;
+        takerToken: string; // expect this to be NULL_ADDRESS
         takerAddress: string;
+        txOrigin: string; // expect this to be the taker address
         intentOnFilling: boolean;
         integrator: Integrator;
     }): Promise<V4RFQIndicativeQuoteMM[]> {
@@ -43,6 +46,7 @@ export class RfqtService {
             marketOperation,
             takerAddress,
             takerToken,
+            txOrigin,
         } = parameters;
 
         return this._quoteRequestor.requestRfqtIndicativeQuotesAsync(
@@ -58,8 +62,8 @@ export class RfqtService {
                 isIndicative: true,
                 isLastLook: false,
                 makerEndpointMaxResponseTimeMs: 600,
-                takerAddress: NULL_ADDRESS,
-                txOrigin: takerAddress,
+                takerAddress,
+                txOrigin,
             },
         );
     }
@@ -67,17 +71,21 @@ export class RfqtService {
     /**
      * Pass through to `QuoteRequestor::requestRfqtFirmQuotesAsync` to fetch
      * firm quotes from market makers.
+     *
+     * Note that by this point, 0x API should be sending the null address
+     * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
     public async getV1QuotesAsync(parameters: {
         altRfqAssetOfferings: AltRfqMakerAssetOfferings;
         assetFillAmount: BigNumber;
         comparisonPrice: BigNumber | undefined;
+        integrator: Integrator;
+        intentOnFilling: boolean;
         makerToken: string;
         marketOperation: MarketOperation;
+        takerAddress: string; // expect this to be the taker address
         takerToken: string;
-        takerAddress: string;
-        intentOnFilling: boolean;
-        integrator: Integrator;
+        txOrigin: string;
     }): Promise<SignedNativeOrder[]> {
         const {
             altRfqAssetOfferings,
@@ -89,6 +97,7 @@ export class RfqtService {
             marketOperation,
             takerAddress,
             takerToken,
+            txOrigin,
         } = parameters;
 
         return this._quoteRequestor.requestRfqtFirmQuotesAsync(
@@ -105,7 +114,7 @@ export class RfqtService {
                 isLastLook: false,
                 makerEndpointMaxResponseTimeMs: 600,
                 takerAddress,
-                txOrigin: takerAddress,
+                txOrigin,
             },
         );
     }

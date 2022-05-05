@@ -57,6 +57,7 @@ describe('Rfqt Service', () => {
                         rfqt: true,
                         label: 'Scam Integrator 1',
                     },
+                    txOrigin: '0xtxorigin',
                 });
 
                 const args = mockQuoteRequestor.requestRfqtIndicativeQuotesAsync.mock.calls[0];
@@ -92,8 +93,8 @@ describe('Rfqt Service', () => {
                         "isIndicative": true,
                         "isLastLook": false,
                         "makerEndpointMaxResponseTimeMs": 600,
-                        "takerAddress": "0x0000000000000000000000000000000000000000",
-                        "txOrigin": "0xtakeraddress",
+                        "takerAddress": "0xtakeraddress",
+                        "txOrigin": "0xtxorigin",
                       },
                     ]
                 `);
@@ -131,6 +132,7 @@ describe('Rfqt Service', () => {
                         rfqt: true,
                         label: 'Scam Integrator 1',
                     },
+                    txOrigin: '0xtxorigin',
                 });
 
                 const args = mockQuoteRequestor.requestRfqtFirmQuotesAsync.mock.calls[0];
@@ -167,7 +169,7 @@ describe('Rfqt Service', () => {
                         "isLastLook": false,
                         "makerEndpointMaxResponseTimeMs": 600,
                         "takerAddress": "0xtakeraddress",
-                        "txOrigin": "0xtakeraddress",
+                        "txOrigin": "0xtxorigin",
                       },
                     ]
                 `);
