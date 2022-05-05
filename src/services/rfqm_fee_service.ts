@@ -33,7 +33,7 @@ interface FeeBreakdownBase {
  * Interface for `margin` FeeBreakdown type. In this case the Fee is
  * calculated using margin based method
  */
-interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
+export interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
     kind: 'margin';
     margin: BigNumber;
     marginRakeRatio: number;
@@ -53,7 +53,7 @@ interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
  * calculated using default method, based on trade size and bps of underlying
  * pairs.
  */
-interface DefaultFeeBreakdown extends FeeBreakdownBase {
+export interface DefaultFeeBreakdown extends FeeBreakdownBase {
     kind: 'default';
     tradeSizeBps: number;
     zeroExFeeAmount: BigNumber;
@@ -66,11 +66,11 @@ interface DefaultFeeBreakdown extends FeeBreakdownBase {
  * Interface for `gasOnly` FeeBreakdown type. Only gas related information
  * is included.
  */
-interface GasOnlyFeeBreakdown extends FeeBreakdownBase {
+export interface GasOnlyFeeBreakdown extends FeeBreakdownBase {
     kind: 'gasOnly';
 }
 
-type FeeBreakdown = GasOnlyFeeBreakdown | DefaultFeeBreakdown | MarginBasedFeeBreakDown;
+export type FeeBreakdown = GasOnlyFeeBreakdown | DefaultFeeBreakdown | MarginBasedFeeBreakDown;
 
 /**
  * Extends Fee data schema to include a detailed breakdown session, which could

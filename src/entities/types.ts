@@ -102,6 +102,7 @@ export interface StoredFee {
     token: string;
     amount: string;
     type: 'fixed' | 'bps';
+    details?: any;
 }
 
 export interface TransactionEntityOpts {
