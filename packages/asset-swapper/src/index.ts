@@ -117,15 +117,13 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
-    RfqClientFirmQuote,
-    RfqClientIndicativeQuote,
-    RfqClientOtcOrderFirmQuote,
-    RfqClientPriceRequest,
-    RfqClientPriceResponse,
-    RfqClientQuoteRequest,
-    RfqClientQuoteResponse,
-    RfqClientRfqOrderFirmQuote,
     IRfqClient,
+    RfqClientV1Price,
+    RfqClientV1PriceRequest,
+    RfqClientV1PriceResponse,
+    RfqClientV1Quote,
+    RfqClientV1QuoteRequest,
+    RfqClientV1QuoteResponse,
 } from './utils/irfq_client';
 export {
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,

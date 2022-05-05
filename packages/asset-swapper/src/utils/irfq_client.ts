@@ -33,14 +33,14 @@ export interface RfqClientV1PriceResponse {
     prices: RfqClientV1Price[];
 }
 
-export interface RfqClientV1FirmQuote {
+export interface RfqClientV1Quote {
     makerUri: string;
     order: RfqOrder;
     signature: Signature;
 }
 
-export interface RfqClientQuoteResponse {
-    quotes: RfqClientV1FirmQuote[];
+export interface RfqClientV1QuoteResponse {
+    quotes: RfqClientV1Quote[];
 }
 
 /**
@@ -55,5 +55,5 @@ export interface IRfqClient {
     /**
      * Fetches a list of "firm quotes" or signed quotes from a remote Rfq server.
      */
-    getV1QuotesAsync(request: RfqClientV1QuoteRequest): Promise<RfqClientQuoteResponse>;
+    getV1QuotesAsync(request: RfqClientV1QuoteRequest): Promise<RfqClientV1QuoteResponse>;
 }

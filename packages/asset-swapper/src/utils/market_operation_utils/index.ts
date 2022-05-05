@@ -12,7 +12,7 @@ import {
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
-import { filterRfqOrder, toSignedNativeOrder } from '../rfq_client_mappers';
+import { toSignedNativeOrder } from '../rfq_client_mappers';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
     getNativeAdjustedFillableAmountsFromTakerAmount,
