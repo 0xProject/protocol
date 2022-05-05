@@ -6,6 +6,7 @@ import { AltRfqMakerAssetOfferings } from '../types';
 export interface RfqClientPriceRequest {
     altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
     assetFillAmount: BigNumber;
+    chainId: number;
     comparisonPrice: BigNumber | undefined;
     feeAmount: BigNumber | undefined;
     feeToken: string | undefined;

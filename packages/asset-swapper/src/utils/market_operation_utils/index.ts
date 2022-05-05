@@ -4,11 +4,13 @@ import * as _ from 'lodash';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
+    AltRfqMakerAssetOfferings,
     AssetSwapperContractAddresses,
     MarketOperation,
     NativeOrderWithFillableAmounts,
     SignedNativeOrder,
 } from '../../types';
+import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
 import { filterRfqOrder, toSignedNativeOrder } from '../rfq_client_mappers';
 import {
@@ -71,7 +73,6 @@ export class MarketOperationUtils {
     private readonly _feeSources: SourceFilters;
     private readonly _nativeFeeToken: string;
     private readonly _nativeFeeTokenAmount: BigNumber;
-    private _lastAltOfferingTransmission: number = 0;
 
     private static _computeQuoteReport(
         quoteRequestor: QuoteRequestor | undefined,
@@ -666,11 +667,20 @@ export class MarketOperationUtils {
             // Timing of RFQT lifecycle
             const timeStart = new Date().getTime();
             const { makerToken, takerToken } = nativeOrders[0].order;
-            // tslint:disable-next-line: custom-no-magic-numbers
-            const shouldSendAltOfferings = timeStart - this._lastAltOfferingTransmission > ONE_SECOND_MS * 60 * 10;
-            if (shouldSendAltOfferings) {
-                this._lastAltOfferingTransmission = timeStart;
+
+            // Filter Alt Rfq Maker Asset Offerings to the current pair
+            const filteredOfferings: AltRfqMakerAssetOfferings = {};
+            if (rfqt.altRfqAssetOfferings) {
+                const endpoints = Object.keys(rfqt.altRfqAssetOfferings);
+                for (const endpoint of endpoints) {
+                    // Get the current pair if being offered
+                    const offering = getAltMarketInfo(rfqt.altRfqAssetOfferings[endpoint], makerToken, takerToken);
+                    if (offering) {
+                        filteredOfferings[endpoint] = [offering];
+                    }
+                }
             }
+
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
@@ -679,13 +689,15 @@ export class MarketOperationUtils {
                     rfqt.rfqClient !== undefined
                         ? ((
                               await rfqt.rfqClient.fetchPricesAsync({
+                                  chainId: this._sampler.chainId,
                                   integratorId: rfqt.integrator.integratorId,
                                   takerAddress: rfqt.takerAddress,
                                   txOrigin: rfqt.txOrigin,
                                   makerToken,
                                   takerToken,
                                   assetFillAmount: amount,
-                                  altRfqAssetOfferings: shouldSendAltOfferings ? rfqt.altRfqAssetOfferings : undefined,
+                                  altRfqAssetOfferings:
+                                      Object.keys(filteredOfferings).length > 0 ? filteredOfferings : undefined,
                                   marketOperation: side,
                                   comparisonPrice: wholeOrderPrice,
                                   feeAmount: undefined,
@@ -718,15 +730,15 @@ export class MarketOperationUtils {
                         ? filterRfqOrder(
                               (
                                   await rfqt.rfqClient.fetchQuotesAsync({
+                                      chainId: this._sampler.chainId,
                                       integratorId: rfqt.integrator.integratorId,
                                       takerAddress: rfqt.takerAddress,
                                       txOrigin: rfqt.txOrigin,
                                       makerToken,
                                       takerToken,
                                       assetFillAmount: amount,
-                                      altRfqAssetOfferings: shouldSendAltOfferings
-                                          ? rfqt.altRfqAssetOfferings
-                                          : undefined,
+                                      altRfqAssetOfferings:
+                                          Object.keys(filteredOfferings).length > 0 ? filteredOfferings : undefined,
                                       marketOperation: side,
                                       comparisonPrice: wholeOrderPrice,
                                       feeAmount: undefined,
