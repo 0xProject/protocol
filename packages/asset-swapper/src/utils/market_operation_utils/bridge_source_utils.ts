@@ -6,6 +6,7 @@ import {
     APESWAP_ROUTER_BY_CHAIN_ID,
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
+    BISWAP_ROUTER_BY_CHAIN_ID,
     CAFESWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
@@ -589,7 +590,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
-        | ERC20BridgeSource.SpiritSwap,
+        | ERC20BridgeSource.SpiritSwap
+        | ERC20BridgeSource.BiSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -638,6 +640,8 @@ export function uniswapV2LikeRouterAddress(
             return SPOOKYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SpiritSwap:
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.BiSwap:
+            return BISWAP_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }
