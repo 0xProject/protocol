@@ -7,6 +7,7 @@ import {
 } from '@0x/asset-swapper';
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
@@ -32,6 +33,7 @@ import {
     RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
 } from '../constants';
 import { logger } from '../logger';
+import { RfqmFeeService } from '../services/rfqm_fee_service';
 import { RfqmService } from '../services/rfqm_service';
 
 import { BalanceChecker } from './balance_checker';
@@ -48,6 +50,7 @@ import { RfqmDbUtils } from './rfqm_db_utils';
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
+import { TokenPriceOracle } from './TokenPriceOracle';
 
 export type RfqmServices = Map<number, RfqmService>;
 
@@ -74,11 +77,11 @@ function getKafkaProducer(): KafkaProducer | undefined {
 /**
  * Creates the default Axios Request Config
  */
-export function getAxiosRequestConfig(): AxiosRequestConfig {
+export function getAxiosRequestConfig(timeout: number = DEFAULT_AXIOS_TIMEOUT): AxiosRequestConfig {
     return {
         httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
         httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-        timeout: DEFAULT_AXIOS_TIMEOUT,
+        timeout,
     };
 }
 
@@ -174,6 +177,7 @@ export async function buildRfqmServiceAsync(
     asWorker: boolean,
     rfqmDbUtils: RfqmDbUtils,
     rfqMakerDbUtils: RfqMakerDbUtils,
+    tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager,
     chain: ChainConfiguration,
 ): Promise<RfqmService> {
@@ -236,9 +240,23 @@ export async function buildRfqmServiceAsync(
 
     const kafkaProducer = getKafkaProducer();
 
+    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+
+    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+    if (feeTokenMetadata === undefined) {
+        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
+    }
+    const rfqmFeeService = new RfqmFeeService(
+        chain.chainId,
+        feeTokenMetadata,
+        configManager,
+        gasStationAttendant,
+        tokenPriceOracle,
+    );
+
     return new RfqmService(
         chain.chainId,
-        getGasStationAttendant(chain, axiosInstance, protocolFeeUtils),
+        rfqmFeeService,
         contractAddresses,
         chain.registryAddress,
         rfqBlockchainUtils,
@@ -249,6 +267,7 @@ export async function buildRfqmServiceAsync(
         cacheClient,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
+        configManager,
         kafkaProducer,
         chain.quoteReportTopic,
     );
@@ -264,11 +283,12 @@ export async function buildRfqmServicesAsync(
     rfqmDbUtils: RfqmDbUtils,
     rfqMakerDbUtils: RfqMakerDbUtils,
     chainConfigurations: ChainConfigurations,
+    tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager = new ConfigManager(),
 ): Promise<RfqmServices> {
     const services = await Promise.all(
         chainConfigurations.map(async (chain) =>
-            buildRfqmServiceAsync(asWorker, rfqmDbUtils, rfqMakerDbUtils, configManager, chain),
+            buildRfqmServiceAsync(asWorker, rfqmDbUtils, rfqMakerDbUtils, tokenPriceOracle, configManager, chain),
         ),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));

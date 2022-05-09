@@ -15,12 +15,12 @@ import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
+import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
-import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
-import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
+import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -46,7 +46,7 @@ const MOCK_INTEGRATOR: Integrator = {
 const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
-        gasStationAttendant?: GasStationAttendant;
+        rfqmFeeService?: RfqmFeeService;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
         producer?: Producer;
@@ -54,6 +54,7 @@ const buildRfqmServiceForUnitTest = (
         cacheClient?: CacheClient;
         rfqMakerManager?: RfqMakerManager;
         initialMaxPriorityFeePerGasGwei?: number;
+        configManager?: ConfigManager;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -78,9 +79,48 @@ const buildRfqmServiceForUnitTest = (
         },
     ]);
 
-    const gasStationAttendantMock = mock(GasStationAttendantEthereum);
-    when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(MOCK_GAS_PRICE);
-    const gasStationAttendantInstance = instance(gasStationAttendantMock);
+    const rfqmFeeServiceMock = mock(RfqmFeeService);
+    when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
+    when(rfqmFeeServiceMock.calculateGasFeeAsync(anything(), anything(), anything(), anything())).thenResolve({
+        token: '0xToken',
+        amount: new BigNumber(100),
+        type: 'fixed',
+        details: {
+            feeModelVersion: 0,
+            kind: 'gasOnly',
+            gasFeeAmount: new BigNumber(100),
+            gasPrice: MOCK_GAS_PRICE,
+        },
+    });
+    when(
+        rfqmFeeServiceMock.calculateFeeV1Async(
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+            anything(),
+        ),
+    ).thenResolve({
+        token: '0xToken',
+        amount: new BigNumber(300),
+        type: 'fixed',
+        details: {
+            feeModelVersion: 0,
+            kind: 'default',
+            gasFeeAmount: new BigNumber(100),
+            gasPrice: MOCK_GAS_PRICE,
+            zeroExFeeAmount: new BigNumber(200),
+            configuredTradeSizeBps: 4,
+            tradeSizeBps: 4,
+            feeTokenBaseUnitPriceUsd: new BigNumber(30),
+            takerTokenBaseUnitPriceUsd: null,
+            makerTokenBaseUnitPriceUsd: new BigNumber(20),
+        },
+    });
+    const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);
+
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
         WORKER_FULL_BALANCE_WEI,
@@ -94,7 +134,7 @@ const buildRfqmServiceForUnitTest = (
 
     return new RfqmService(
         overrides.chainId || 1337,
-        overrides.gasStationAttendant || gasStationAttendantInstance,
+        overrides.rfqmFeeService || rfqmFeeServiceInstance,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
@@ -105,6 +145,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.cacheClient || cacheClientMock,
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
+        overrides.configManager || new ConfigManager(),
     );
 };
 
@@ -172,9 +213,13 @@ describe('RfqmService HTTP Logic', () => {
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
 
+            const configManagerMock = mock(ConfigManager);
+            when(configManagerMock.getFeeModelVersion()).thenReturn(0);
+
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 dbUtils: instance(dbUtilsMock),
+                configManager: instance(configManagerMock),
             });
 
             expect(service.submitTakerSignedOtcOrderAsync(params)).to.be.rejectedWith(
@@ -245,10 +290,15 @@ describe('RfqmService HTTP Logic', () => {
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
+
+            const configManagerMock = mock(ConfigManager);
+            when(configManagerMock.getFeeModelVersion()).thenReturn(0);
+
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
+                configManager: instance(configManagerMock),
             });
 
             const submitParams: OtcOrderSubmitRfqmSignedQuoteParams = {
@@ -280,7 +330,14 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
-                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
+
+                const configManagerMock = mock(ConfigManager);
+                when(configManagerMock.getFeeModelVersion()).thenReturn(0);
+
+                const service = buildRfqmServiceForUnitTest({
+                    quoteServerClient: instance(quoteServerClientMock),
+                    configManager: instance(configManagerMock),
+                });
 
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
@@ -314,7 +371,14 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
-                const service = buildRfqmServiceForUnitTest({ quoteServerClient: instance(quoteServerClientMock) });
+
+                const configManagerMock = mock(ConfigManager);
+                when(configManagerMock.getFeeModelVersion()).thenReturn(4);
+
+                const service = buildRfqmServiceForUnitTest({
+                    quoteServerClient: instance(quoteServerClientMock),
+                    configManager: instance(configManagerMock),
+                });
 
                 const res = await service.fetchIndicativeQuoteAsync({
                     integrator: MOCK_INTEGRATOR,

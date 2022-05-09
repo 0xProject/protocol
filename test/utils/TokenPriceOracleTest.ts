@@ -1,3 +1,4 @@
+// tslint:disable: custom-no-magic-numbers
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as HttpStatus from 'http-status-codes';
@@ -11,6 +12,11 @@ describe('TokenPriceOracle', () => {
     beforeAll(() => {
         axiosClient = Axios.create();
         axiosMock = new AxiosMockAdapter(axiosClient);
+    });
+
+    afterEach(() => {
+        axiosMock.reset();
+        jest.useRealTimers();
     });
 
     describe('batchFetchTokenPriceAsync', () => {
@@ -53,8 +59,8 @@ describe('TokenPriceOracle', () => {
             // Strip out all indentations before comparing the body
             expect(actualGraphQlQuery.replace(/^\s+/gm, '')).toBe(expectedGraphqlQuery.replace(/^\s+/gm, ''));
 
-            expect(result[0]?.toNumber()).toBe(1.1e-18); // tslint:disable-line: custom-no-magic-numbers
-            expect(result[1]?.toNumber()).toBe(3000.01e-18); // tslint:disable-line: custom-no-magic-numbers
+            expect(result[0]?.toNumber()).toBe(1.1e-18);
+            expect(result[1]?.toNumber()).toBe(3000.01e-18);
         });
 
         it("returns null priceInUsd when it couldn't fetch the price", async () => {
@@ -97,6 +103,87 @@ describe('TokenPriceOracle', () => {
                 { chainId: 1, tokenAddress: '0xInvalidContractAddress', tokenDecimals: 18 },
             ]);
             expect(result[0]).toBe(null);
+        });
+
+        it('caches the result', async () => {
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey');
+
+            const fakeDefinedFiResponseForUSDC = {
+                data: {
+                    getPrice: {
+                        priceUsd: 1.1,
+                    },
+                },
+            };
+            const fakeDefinedFiResponseForUSDCChanged = {
+                data: {
+                    getPrice: {
+                        priceUsd: 2.1,
+                    },
+                },
+            };
+
+            axiosMock
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedFiResponseForUSDC)
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedFiResponseForUSDCChanged);
+
+            let result = await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+            ]);
+            expect(result[0]?.toNumber()).toBe(1.1e-18);
+
+            // Make another token price fetch request, the price should still be 1.1 because it didn't make another request to
+            // defined.fi API
+            result = await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+            ]);
+            // TokenPriceOracle shouldn't make another request to api.defined.fi
+            expect(axiosMock.history.post).toHaveLength(1);
+            expect(result[0]?.toNumber()).toBe(1.1e-18);
+        });
+
+        it('invalidates cache after configured TTL', async () => {
+            // Set Cache TTL to 5 seconds
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 5000);
+
+            const fakeDefinedFiResponseForUSDC = {
+                data: {
+                    getPrice: {
+                        priceUsd: 1.1,
+                    },
+                },
+            };
+            const fakeDefinedFiResponseForUSDCChanged = {
+                data: {
+                    getPrice: {
+                        priceUsd: 2.1,
+                    },
+                },
+            };
+
+            axiosMock
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedFiResponseForUSDC)
+                .onPost('https://api.defined.fi')
+                .replyOnce(HttpStatus.OK, fakeDefinedFiResponseForUSDCChanged);
+
+            let result = await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+            ]);
+            expect(result[0]?.toNumber()).toBe(1.1e-18);
+
+            // Fast forward the system time 5.1 seconds
+            jest.useFakeTimers().setSystemTime(Date.now() + 5100);
+
+            // Make another token price fetch request, the price should be 2.1 now since the cache is invalidated
+            // so the TokenPriceOracle fetched the price from upstream again.
+            result = await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+            ]);
+            expect(axiosMock.history.post).toHaveLength(2);
+            expect(result[0]?.toNumber()).toBe(2.1e-18);
         });
     });
 });

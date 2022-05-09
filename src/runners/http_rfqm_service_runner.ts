@@ -4,6 +4,7 @@
 import { createDefaultServer, HttpServiceConfig } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import * as Tracing from '@sentry/tracing';
+import Axios from 'axios';
 import * as express from 'express';
 import * as promBundle from 'express-prom-bundle';
 // tslint:disable-next-line:no-implicit-dependencies
@@ -15,9 +16,11 @@ import { DataSource } from 'typeorm';
 import {
     CHAIN_CONFIGURATIONS,
     defaultHttpServiceConfig,
+    DEFINED_FI_API_KEY,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
+    TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
 import { ADMIN_PATH, RFQM_PATH, RFQ_MAKER_PATH } from '../constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
@@ -32,8 +35,9 @@ import { RfqAdminService } from '../services/rfq_admin_service';
 import { RfqMakerService } from '../services/rfq_maker_service';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
-import { buildRfqmServicesAsync, RfqmServices } from '../utils/rfqm_service_builder';
+import { buildRfqmServicesAsync, getAxiosRequestConfig, RfqmServices } from '../utils/rfqm_service_builder';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
+import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -57,11 +61,15 @@ if (require.main === module) {
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
 
+        const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
+        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY);
+
         const rfqmServices = await buildRfqmServicesAsync(
             /* asWorker = */ false,
             rfqmDbUtils,
             rfqMakerDbUtils,
             CHAIN_CONFIGURATIONS,
+            tokenPriceOracle,
             configManager,
         );
         const rfqAdminService = buildRfqAdminService(rfqmDbUtils);

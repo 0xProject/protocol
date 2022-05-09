@@ -56,6 +56,7 @@ export interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
  */
 export interface DefaultFeeBreakdown extends FeeBreakdownBase {
     kind: 'default';
+    configuredTradeSizeBps: number;
     tradeSizeBps: number;
     zeroExFeeAmount: BigNumber;
     feeTokenBaseUnitPriceUsd: BigNumber | null;
@@ -81,14 +82,6 @@ export type FeeBreakdown = GasOnlyFeeBreakdown | DefaultFeeBreakdown | MarginBas
 export interface FeeWithDetails extends Fee {
     details: FeeBreakdown;
 }
-
-/**
- * Hide fee detials before sending to MMs.
- */
-export const hideFeeDetails = (fee: Fee): Fee => {
-    const { type, token, amount } = fee;
-    return { type, token, amount };
-};
 
 /**
  * RfqmFeeService is used by RfqmService to calculate RFQm Fees of all versions (0, 1 and 2).
@@ -179,6 +172,7 @@ export class RfqmFeeService {
                 gasFeeAmount: gasFee.amount,
                 gasPrice: gasFee.details.gasPrice,
                 zeroExFeeAmount,
+                configuredTradeSizeBps: feeModelConfiguration.tradeSizeBps,
                 tradeSizeBps,
                 feeTokenBaseUnitPriceUsd,
                 takerTokenBaseUnitPriceUsd: isSelling ? tradeTokenBaseUnitPriceInUsd : null,
@@ -225,7 +219,8 @@ export class RfqmFeeService {
                 zeroExFeeAmount = tradeAmount
                     .times(bps * BPS_TO_RATIO)
                     .times(tradeTokenBaseUnitPriceInUsd)
-                    .dividedBy(feeTokenBaseUnitPriceUsd);
+                    .dividedBy(feeTokenBaseUnitPriceUsd)
+                    .integerValue();
             } else {
                 bps = 0;
                 tradeTokenBaseUnitPriceInUsd = null;

@@ -35,7 +35,7 @@ import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCod
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
-import { GasStationAttendant } from '../utils/GasStationAttendant';
+import { ConfigManager } from '../utils/config_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
@@ -46,13 +46,13 @@ import {
     storedFeeToFee,
     storedOtcOrderToOtcOrder,
 } from '../utils/rfqm_db_utils';
-import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { SubmissionContext } from '../utils/SubmissionContext';
 
+import { RfqmFeeService } from './rfqm_fee_service';
 import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
@@ -250,7 +250,7 @@ export class RfqmService {
 
     constructor(
         private readonly _chainId: number,
-        private readonly _gasStationAttendant: GasStationAttendant,
+        private readonly _rfqmFeeService: RfqmFeeService,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
@@ -261,6 +261,7 @@ export class RfqmService {
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
+        private readonly _configManger: ConfigManager,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
     ) {
@@ -325,10 +326,32 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Get the fee and gas price
-        const { fee, gasPrice } = await this._calculateFeeAsync(makerToken, takerToken, isUnwrap);
+        const feeModelVersion = this._configManger.getFeeModelVersion();
+        let feeWithDetails;
+        switch (feeModelVersion) {
+            case 1:
+                feeWithDetails = await this._rfqmFeeService.calculateFeeV1Async(
+                    makerToken,
+                    takerToken,
+                    makerTokenDecimals,
+                    takerTokenDecimals,
+                    isUnwrap,
+                    isSelling,
+                    assetFillAmount,
+                );
+                break;
+            case 0:
+            default:
+                feeWithDetails = await this._rfqmFeeService.calculateGasFeeAsync(
+                    makerToken,
+                    takerToken,
+                    isUnwrap,
+                    feeModelVersion,
+                );
+        }
 
         // Fetch all indicative quotes
-        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, fee);
+        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, feeWithDetails);
 
         // Log any quotes that are for the incorrect amount
         indicativeQuotes.forEach((quote) => {
@@ -370,6 +393,7 @@ export class RfqmService {
                     integratorId: params.integrator?.integratorId,
                     allQuotes: indicativeQuotes,
                     bestQuote,
+                    fee: feeToStoredFee(feeWithDetails),
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
@@ -392,7 +416,7 @@ export class RfqmService {
         // Prepare response
         return {
             price: roundedPrice,
-            gas: gasPrice,
+            gas: feeWithDetails.details.gasPrice,
             buyAmount: bestQuote.makerAmount,
             buyTokenAddress: originalMakerToken,
             sellAmount: bestQuote.takerAmount,
@@ -430,10 +454,33 @@ export class RfqmService {
         const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
 
         // Get the fee and gas price
-        const { fee, gasPrice } = await this._calculateFeeAsync(makerToken, takerToken, isUnwrap);
+        const feeModelVersion = this._configManger.getFeeModelVersion();
+        let feeWithDetails;
+        switch (feeModelVersion) {
+            case 1:
+                feeWithDetails = await this._rfqmFeeService.calculateFeeV1Async(
+                    makerToken,
+                    takerToken,
+                    makerTokenDecimals,
+                    takerTokenDecimals,
+                    isUnwrap,
+                    isSelling,
+                    assetFillAmount,
+                );
+                break;
+            case 0:
+            default:
+                feeWithDetails = await this._rfqmFeeService.calculateGasFeeAsync(
+                    makerToken,
+                    takerToken,
+                    isUnwrap,
+                    feeModelVersion,
+                );
+        }
+        const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
 
         // Fetch all firm quotes and fee
-        const firmQuotes = await this._fetchFirmQuotesAsync(params, fee);
+        const firmQuotes = await this._fetchFirmQuotesAsync(params, feeWithDetails);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -457,6 +504,7 @@ export class RfqmService {
                     integratorId: params.integrator?.integratorId,
                     allQuotes: firmQuotes,
                     bestQuote,
+                    fee: storedFeeWithDetails,
                 },
                 this._kafkaProducer,
             );
@@ -506,7 +554,7 @@ export class RfqmService {
         await this._dbUtils.writeV2QuoteAsync({
             orderHash,
             chainId: this._chainId,
-            fee: feeToStoredFee(fee),
+            fee: storedFeeWithDetails,
             order: otcOrderToStoredOtcOrder(otcOrder),
             makerUri,
             affiliateAddress,
@@ -517,7 +565,7 @@ export class RfqmService {
         return {
             type: RfqmTypes.OtcOrder,
             price: roundedPrice,
-            gas: gasPrice,
+            gas: feeWithDetails.details.gasPrice,
             buyAmount: makerAmount,
             buyTokenAddress: originalMakerToken,
             sellAmount: takerAmount,
@@ -531,7 +579,7 @@ export class RfqmService {
     public async workerBeforeLogicAsync(workerAddress: string): Promise<boolean> {
         let gasPrice;
         try {
-            gasPrice = await this._getGasPriceEstimationAsync();
+            gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
         } catch (error) {
             logger.error(
                 { errorMessage: error.message },
@@ -677,7 +725,7 @@ export class RfqmService {
         const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
         let gasPrice: BigNumber | undefined;
         try {
-            gasPrice = await this._getGasPriceEstimationAsync();
+            gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
         } catch (error) {
             logger.warn({ errorMessage: error.message }, 'Failed to get gas price for health check');
         }
@@ -1255,7 +1303,7 @@ export class RfqmService {
 
         const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
-        const gasPriceEstimate = await this._getGasPriceEstimationAsync();
+        const gasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
 
         // For the first submission, we use the "fast" gas estimate to approximate the base fee.
         // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
@@ -1373,7 +1421,7 @@ export class RfqmService {
                     }
 
                     // "Fast" gas price estimation; used to approximate the base fee
-                    const newGasPriceEstimate = await this._getGasPriceEstimationAsync();
+                    const newGasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
 
                     if (submissionContext.transactionType === 0) {
                         throw new Error('Non-EIP-1559 transactions are not implemented');
@@ -1466,35 +1514,6 @@ export class RfqmService {
                     })(jobStatus);
             }
         }
-    }
-
-    /**
-     * Internal method to retrieve estimated gas price from the gas station.
-     *
-     * @returns estimated gas price
-     */
-    private async _getGasPriceEstimationAsync(): Promise<BigNumber> {
-        const gasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
-        return gasPriceEstimate;
-    }
-
-    /**
-     * Internal method to calculate fee.
-     */
-    private async _calculateFeeAsync(
-        makerToken: string,
-        takerToken: string,
-        isUnwrap: boolean,
-    ): Promise<{ fee: Fee; gasPrice: BigNumber }> {
-        const gasPrice: BigNumber = await this._getGasPriceEstimationAsync();
-        const gasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
-        const feeAmount = gasPrice.times(gasEstimate);
-        const fee: Fee = {
-            amount: feeAmount,
-            token: this._contractAddresses.etherToken,
-            type: 'fixed',
-        };
-        return { fee, gasPrice };
     }
 
     /**

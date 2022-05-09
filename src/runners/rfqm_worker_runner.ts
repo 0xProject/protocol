@@ -4,6 +4,7 @@
 import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import { SQS } from 'aws-sdk';
+import Axios from 'axios';
 import * as express from 'express';
 import { Counter } from 'prom-client';
 
@@ -11,6 +12,7 @@ import {
     ChainConfiguration,
     CHAIN_CONFIGURATIONS,
     CHAIN_ID,
+    DEFINED_FI_API_KEY,
     ENABLE_PROMETHEUS_METRICS,
     META_TX_WORKER_MNEMONIC,
     PROMETHEUS_PORT,
@@ -18,6 +20,7 @@ import {
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
+    TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
 import { METRICS_PATH } from '../constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
@@ -25,11 +28,12 @@ import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
-import { buildRfqmServiceAsync } from '../utils/rfqm_service_builder';
+import { buildRfqmServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
+import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
@@ -90,7 +94,17 @@ if (require.main === module) {
             throw new Error(`Tried to start worker for chain ${CHAIN_ID}
             but no chain configuration was present`);
         }
-        const rfqmService = await buildRfqmServiceAsync(true, rfqmDbUtils, rfqMakerDbUtils, new ConfigManager(), chain);
+
+        const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
+        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY);
+        const rfqmService = await buildRfqmServiceAsync(
+            true,
+            rfqmDbUtils,
+            rfqMakerDbUtils,
+            tokenPriceOracle,
+            new ConfigManager(),
+            chain,
+        );
 
         if (SENTRY_DSN) {
             Sentry.init({

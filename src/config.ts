@@ -299,6 +299,8 @@ export const DEFINED_FI_API_KEY: string = _.isEmpty(process.env.DEFINED_FI_API_K
     ? ''
     : assertEnvVarType('DEFINED_FI_API_KEY', process.env.DEFINED_FI_API_KEY, EnvVarType.NonEmptyString);
 
+export const TOKEN_PRICE_ORACLE_TIMEOUT: number = 1000;
+
 // Sampling rate of traces reported to Sentry. Should be a number between 0.0 and 1.0 (inclusive).
 export const SENTRY_TRACES_SAMPLE_RATE = _.isEmpty(process.env.SENTRY_TRACES_SAMPLE_RATE)
     ? 0

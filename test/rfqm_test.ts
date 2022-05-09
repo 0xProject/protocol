@@ -26,11 +26,11 @@ import {
     buildRfqMakerService,
     runHttpRfqmServiceAsync,
 } from '../src/runners/http_rfqm_service_runner';
+import { RfqmFeeService } from '../src/services/rfqm_fee_service';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
-import { GasStationAttendantEthereum } from '../src/utils/GasStationAttendantEthereum';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
 import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
@@ -163,10 +163,48 @@ describe('RFQM Integration', () => {
         [takerAddress] = await web3Wrapper.getAvailableAddressesAsync();
 
         // Build dependencies
-        // Create the mock ProtocolFeeUtils
-        const gasStationAttendantMock = mock(GasStationAttendantEthereum);
-        when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(GAS_PRICE);
-        const protocolFeeUtils = instance(gasStationAttendantMock);
+        // Create the mock RfqmFeeService
+        const rfqmFeeServiceMock = mock(RfqmFeeService);
+        when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(GAS_PRICE);
+        when(rfqmFeeServiceMock.calculateGasFeeAsync(anything(), anything(), anything(), anything())).thenResolve({
+            token: '0xToken',
+            amount: new BigNumber(100),
+            type: 'fixed',
+            details: {
+                feeModelVersion: 0,
+                kind: 'gasOnly',
+                gasFeeAmount: new BigNumber(100),
+                gasPrice: GAS_PRICE,
+            },
+        });
+        when(
+            rfqmFeeServiceMock.calculateFeeV1Async(
+                anything(),
+                anything(),
+                anything(),
+                anything(),
+                anything(),
+                anything(),
+                anything(),
+            ),
+        ).thenResolve({
+            token: '0xToken',
+            amount: new BigNumber(300),
+            type: 'fixed',
+            details: {
+                feeModelVersion: 0,
+                kind: 'default',
+                gasFeeAmount: new BigNumber(100),
+                gasPrice: GAS_PRICE,
+                zeroExFeeAmount: new BigNumber(200),
+                configuredTradeSizeBps: 4,
+                tradeSizeBps: 4,
+                feeTokenBaseUnitPriceUsd: new BigNumber(30),
+                takerTokenBaseUnitPriceUsd: null,
+                makerTokenBaseUnitPriceUsd: new BigNumber(20),
+            },
+        });
+        const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);
 
         // Create the mock ConfigManager
         const configManagerMock = mock(ConfigManager);
@@ -275,7 +313,7 @@ describe('RFQM Integration', () => {
         const rfqMakerManager = instance(rfqMakerManagerMock);
         rfqmServiceChainId1337 = new RfqmService(
             1337,
-            protocolFeeUtils,
+            rfqmFeeServiceInstance,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
             rfqBlockchainUtils,
@@ -286,6 +324,7 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerManager,
             /* initialMaxPriorityFeePerGasGwei */ 2,
+            new ConfigManager(),
         );
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
@@ -296,7 +335,7 @@ describe('RFQM Integration', () => {
         const rfqMakerManagerChainId3 = instance(rfqMakerManagerChain3Mock);
         rfqmServiceChainId3 = new RfqmService(
             3,
-            protocolFeeUtils,
+            rfqmFeeServiceInstance,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
             rfqBlockchainUtils,
@@ -307,6 +346,7 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerManagerChainId3,
             /* initialMaxPriorityFeePerGasGwei */ 2,
+            new ConfigManager(),
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);

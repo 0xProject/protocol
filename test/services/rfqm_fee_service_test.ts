@@ -37,11 +37,11 @@ describe('RfqmFeeService', () => {
             const isSelling = true;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(0.345e18);
-            const tradeSizeBps = 5;
+            const configuredTradeSizeBps = 5;
             const configManagerMock = mock(ConfigManager);
             when(configManagerMock.getFeeModelConfiguration(chainId, makerToken, takerToken)).thenReturn({
                 marginRakeRatio: 0,
-                tradeSizeBps,
+                tradeSizeBps: configuredTradeSizeBps,
             });
 
             const gasStationAttendantMock = mock(GasStationAttendantEthereum);
@@ -75,9 +75,10 @@ describe('RfqmFeeService', () => {
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
             const expectedZeroExFeeAmount = assetFillAmount
-                .times(tradeSizeBps * BPS_TO_RATIO)
+                .times(configuredTradeSizeBps * BPS_TO_RATIO)
                 .times(takerTokenPrice)
-                .dividedBy(feeTokenPrice);
+                .dividedBy(feeTokenPrice)
+                .integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
 
             expect(fee.type).toEqual('fixed');
@@ -87,7 +88,8 @@ describe('RfqmFeeService', () => {
             expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
             expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
             expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(expectedZeroExFeeAmount.toNumber());
-            expect(fee.details.tradeSizeBps).toEqual(tradeSizeBps);
+            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
+            expect(fee.details.tradeSizeBps).toEqual(configuredTradeSizeBps);
             expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(feeTokenPrice);
             expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(takerTokenPrice);
             expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(null);
@@ -97,11 +99,11 @@ describe('RfqmFeeService', () => {
             const isSelling = false;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(5000e6);
-            const tradeSizeBps = 4;
+            const configuredTradeSizeBps = 4;
             const configManagerMock = mock(ConfigManager);
             when(configManagerMock.getFeeModelConfiguration(chainId, makerToken, takerToken)).thenReturn({
                 marginRakeRatio: 0,
-                tradeSizeBps,
+                tradeSizeBps: configuredTradeSizeBps,
             });
 
             const gasStationAttendantMock = mock(GasStationAttendantEthereum);
@@ -135,9 +137,10 @@ describe('RfqmFeeService', () => {
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
             const expectedZeroExFeeAmount = assetFillAmount
-                .times(tradeSizeBps * BPS_TO_RATIO)
+                .times(configuredTradeSizeBps * BPS_TO_RATIO)
                 .times(makerTokenPrice)
-                .dividedBy(feeTokenPrice);
+                .dividedBy(feeTokenPrice)
+                .integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
 
             expect(fee.type).toEqual('fixed');
@@ -147,7 +150,8 @@ describe('RfqmFeeService', () => {
             expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
             expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
             expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(expectedZeroExFeeAmount.toNumber());
-            expect(fee.details.tradeSizeBps).toEqual(tradeSizeBps);
+            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
+            expect(fee.details.tradeSizeBps).toEqual(configuredTradeSizeBps);
             expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(feeTokenPrice);
             expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
             expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(makerTokenPrice);
@@ -200,6 +204,7 @@ describe('RfqmFeeService', () => {
             expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
             expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
             expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(0);
+            expect(fee.details.configuredTradeSizeBps).toEqual(0);
             expect(fee.details.tradeSizeBps).toEqual(0);
             expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(null);
             expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
@@ -210,11 +215,11 @@ describe('RfqmFeeService', () => {
             const isSelling = false;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(5000e6);
-            const tradeSizeBps = 4;
+            const configuredTradeSizeBps = 4;
             const configManagerMock = mock(ConfigManager);
             when(configManagerMock.getFeeModelConfiguration(chainId, makerToken, takerToken)).thenReturn({
                 marginRakeRatio: 0,
-                tradeSizeBps,
+                tradeSizeBps: configuredTradeSizeBps,
             });
 
             const gasStationAttendantMock = mock(GasStationAttendantEthereum);
@@ -252,6 +257,7 @@ describe('RfqmFeeService', () => {
             expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
             expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
             expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(0);
+            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
             expect(fee.details.tradeSizeBps).toEqual(0);
             expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(null);
             expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
