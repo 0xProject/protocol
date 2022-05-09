@@ -11,6 +11,7 @@ const TOKEN_GAS_PREMIUM: Record<string, number> = {
     /* DYDX   */ '0x92d6c1e31e14520e676a687f0a93788b716beff5': 140e3,
     /* ENS    */ '0xc18360217d8f7ab5e7c516566761ea12ce7f9d72': 40e3,
     /* HOPR   */ '0xf5581dfefd8fb0e4aec526be659cfab1f8c781da': 70e3,
+    /* LDO    */ '0x5a98fcbea516cf06857215779fd812ca3bef1b32': 100e3,
     /* LINK   */ '0x514910771af9ca656af840dff83e8264ecf986ca': 15e3,
     /* OCEAN  */ '0x967da4048cd07ab37855c090aaf366e4ce1b9f48': 15e3,
     /* SHIB   */ '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce': 15e3,
