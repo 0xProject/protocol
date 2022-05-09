@@ -3,10 +3,10 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
-import { QuoteRequestor } from '../../src/quoteRequestor/quoteRequestor';
+import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../src/services/RfqtService';
 
-jest.mock('../../src/quoteRequestor/quoteRequestor', () => ({
+jest.mock('../../src/quoteRequestor/QuoteRequestor', () => ({
     QuoteRequestor: jest.fn().mockImplementation(() => {
         return {
             requestRfqtIndicativeQuotesAsync: jest.fn().mockResolvedValue([]),

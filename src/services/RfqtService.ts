@@ -3,7 +3,7 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quoteRequestor/quoteRequestor';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 
 /**
  * Central class to contain the logic to handle RFQT Trades.

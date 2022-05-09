@@ -21,7 +21,7 @@ import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
 import { NULL_ADDRESS } from '../../constants';
-import { QuoteRequestor } from '../quoteRequestor';
+import { QuoteRequestor } from '../QuoteRequestor';
 
 import { RfqQuoteEndpoint, testHelpers } from './testHelpers';
 
