@@ -1,5 +1,34 @@
 [
     {
+        "version": "16.57.4",
+        "changes": [
+            {
+                "note": "Remove SnowSwap on mainnet",
+                "pr": 468
+            }
+        ]
+    },
+    {
+        "version": "16.57.3",
+        "changes": [
+            {
+                "note": "Fix a runtime error related to BalancerV2SwapInfoCache",
+                "pr": 472
+            }
+        ],
+        "timestamp": 1652146864
+    },
+    {
+        "version": "16.57.2",
+        "changes": [
+            {
+                "note": "Fix missing AMM quotes on indicative Quote Reports",
+                "pr": 466
+            }
+        ],
+        "timestamp": 1651526551
+    },
+    {
         "version": "16.57.1",
         "changes": [
             {

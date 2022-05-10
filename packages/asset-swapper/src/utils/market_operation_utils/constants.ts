@@ -87,7 +87,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
-            ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Shell,
             ERC20BridgeSource.MultiHop,
@@ -232,7 +231,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.Shell,
-            ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
@@ -735,17 +733,6 @@ export const CURVE_V2_FANTOM_POOLS = {
 
 export const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
-};
-
-export const SNOWSWAP_POOLS = {
-    yUSD: '0xbf7ccd6c446acfcc5df023043f2167b62e81899b',
-    yVault: '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b',
-    // POOL Disabled as it uses WETH over ETH
-    // There is a conflict with Curve and SnowSwap
-    // where Curve uses ETH and SnowSwap uses WETH
-    // To re-enable this we need to flag an WETH
-    // unwrap or not
-    // eth: '0x16bea2e63adade5984298d53a4d4d9c09e278192',
 };
 
 export const SMOOTHY_POOLS = {
@@ -1504,30 +1491,6 @@ export const CURVE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_OPTIMISM_POOLS.tri,
         gasSchedule: 150e3,
     }),
-};
-
-export const SNOWSWAP_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SNOWSWAP_POOLS.yUSD]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.yUSD, MAINNET_TOKENS.ybCRV],
-        pool: SNOWSWAP_POOLS.yUSD,
-        gasSchedule: 990e3,
-    }),
-    [SNOWSWAP_POOLS.yUSD]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.yCRV, MAINNET_TOKENS.bCRV],
-        pool: SNOWSWAP_POOLS.yUSD,
-        gasSchedule: 990e3,
-    }),
-    [SNOWSWAP_POOLS.yVault]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.yDAI, MAINNET_TOKENS.yUSDC, MAINNET_TOKENS.yUSDT, MAINNET_TOKENS.yTUSD],
-        pool: SNOWSWAP_POOLS.yVault,
-        gasSchedule: 1490e3,
-    }),
-    // Unsupported due to collision with WETH and ETH with execution using MixinCurve
-    // [SNOWSWAP_POOLS.eth]: createCurveExchangePool({
-    //     tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.vETH, MAINNET_TOKENS.ankrETH, MAINNET_TOKENS.crETH],
-    //     pool: SNOWSWAP_POOLS.eth,
-    //     gasSchedule: 990e3,
-    // }),
 };
 
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
@@ -2413,7 +2376,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Synapse]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Belt]: fillData => (fillData as CurveFillData).pool.gasSchedule,
