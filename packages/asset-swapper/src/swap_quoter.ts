@@ -383,6 +383,7 @@ export class SwapQuoter {
                 this.expiryBufferMs,
                 rfqtOptions?.metricsProxy,
             );
+            calcOpts.rfqt.rfqClient = rfqClient;
         }
 
         const result: OptimizerResultWithReport = await this._marketOperationUtils.getOptimizerResultAsync(
