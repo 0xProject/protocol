@@ -9,6 +9,10 @@
             {
                 "note": "Offboard Swerve Finance and LinkSwap",
                 "pr": 469
+            },
+            {
+                "note": "Offboard Eth2Dai",
+                "pr": 470
             }
         ]
     },

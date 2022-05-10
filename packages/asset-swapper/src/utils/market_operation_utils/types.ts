@@ -39,6 +39,10 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
+<<<<<<< HEAD
+=======
+    Kyber = 'Kyber',
+>>>>>>> 9eadc5fc2 (chore: Offboard Eth2Dai [TKR-356] (#470))
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
