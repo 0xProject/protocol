@@ -52,7 +52,6 @@ export enum ERC20BridgeSource {
     MultiHop = 'MultiHop',
     Shell = 'Shell',
     Swerve = 'Swerve',
-    SnowSwap = 'SnowSwap',
     SushiSwap = 'SushiSwap',
     Dodo = 'DODO',
     DodoV2 = 'DODO_V2',
