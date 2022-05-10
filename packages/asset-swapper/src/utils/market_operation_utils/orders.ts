@@ -113,20 +113,14 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.MStable, 'MStable');
         case ERC20BridgeSource.Shell:
             return encodeBridgeSourceId(BridgeProtocol.Shell, 'Shell');
-        case ERC20BridgeSource.SnowSwap:
-            return encodeBridgeSourceId(BridgeProtocol.Curve, 'SnowSwap');
         case ERC20BridgeSource.SushiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap');
-        case ERC20BridgeSource.Swerve:
-            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Swerve');
         case ERC20BridgeSource.Uniswap:
             return encodeBridgeSourceId(BridgeProtocol.Uniswap, 'Uniswap');
         case ERC20BridgeSource.UniswapV2:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2');
         case ERC20BridgeSource.DodoV2:
             return encodeBridgeSourceId(BridgeProtocol.DodoV2, 'DodoV2');
-        case ERC20BridgeSource.Linkswap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
         case ERC20BridgeSource.PancakeSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwap');
         case ERC20BridgeSource.PancakeSwapV2:
@@ -230,8 +224,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
     switch (order.source) {
         case ERC20BridgeSource.Curve:
         case ERC20BridgeSource.CurveV2:
-        case ERC20BridgeSource.Swerve:
-        case ERC20BridgeSource.SnowSwap:
         case ERC20BridgeSource.Nerve:
         case ERC20BridgeSource.Synapse:
         case ERC20BridgeSource.Belt:
@@ -278,7 +270,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
-        case ERC20BridgeSource.Linkswap:
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.PancakeSwapV2:
         case ERC20BridgeSource.BakerySwap:
@@ -484,8 +475,6 @@ export const BRIDGE_ENCODERS: {
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,
     [ERC20BridgeSource.CurveV2]: curveEncoder,
-    [ERC20BridgeSource.Swerve]: curveEncoder,
-    [ERC20BridgeSource.SnowSwap]: curveEncoder,
     [ERC20BridgeSource.Nerve]: curveEncoder,
     [ERC20BridgeSource.Synapse]: curveEncoder,
     [ERC20BridgeSource.Belt]: curveEncoder,
@@ -502,7 +491,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
-    [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ShibaSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Pangolin]: routerAddressPathEncoder,
     [ERC20BridgeSource.TraderJoe]: routerAddressPathEncoder,

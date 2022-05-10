@@ -349,28 +349,6 @@ describe('MarketOperationUtils tests', () => {
             fromTokenIdx: 0,
             toTokenIdx: 1,
         },
-        [ERC20BridgeSource.Swerve]: {
-            pool: {
-                poolAddress: randomAddress(),
-                tokens: [TAKER_TOKEN, MAKER_TOKEN],
-                exchangeFunctionSelector: hexUtils.random(4),
-                sellQuoteFunctionSelector: hexUtils.random(4),
-                buyQuoteFunctionSelector: hexUtils.random(4),
-            },
-            fromTokenIdx: 0,
-            toTokenIdx: 1,
-        },
-        [ERC20BridgeSource.SnowSwap]: {
-            pool: {
-                poolAddress: randomAddress(),
-                tokens: [TAKER_TOKEN, MAKER_TOKEN],
-                exchangeFunctionSelector: hexUtils.random(4),
-                sellQuoteFunctionSelector: hexUtils.random(4),
-                buyQuoteFunctionSelector: hexUtils.random(4),
-            },
-            fromTokenIdx: 0,
-            toTokenIdx: 1,
-        },
         [ERC20BridgeSource.Smoothy]: {
             pool: {
                 poolAddress: randomAddress(),
@@ -404,7 +382,6 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Dodo]: {},
         [ERC20BridgeSource.DodoV2]: {},
         [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
-        [ERC20BridgeSource.Linkswap]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
         [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [], router: randomAddress(), poolsPath: [] },
