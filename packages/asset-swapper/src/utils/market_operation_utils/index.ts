@@ -852,6 +852,7 @@ export class MarketOperationUtils {
         return { ...optimizerResult, quoteReport, extendedQuoteReportSources, priceComparisonsReport };
     }
 
+<<<<<<< HEAD
     private async _createOptimizedHopAsync(opts: {
         side: MarketOperation;
         outputAmountPerEth: BigNumber;
@@ -951,6 +952,13 @@ export class MarketOperationUtils {
                     // Multihop routes get their overhead factored in after
                     // path-finding.
                     return ZERO_AMOUNT;
+=======
+    private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
+        void Promise.all(
+            Object.values(this._sampler.poolsCaches).map(async cache => {
+                if (!cache || cache.isFresh(takerToken, makerToken)) {
+                    return Promise.resolve([]);
+>>>>>>> aa1016ee5 (Do not initialize BalancerV2SwapInfoCache on unsupported chains [TKR-365] (#472))
                 }
                 return opts.exchangeProxyOverhead(sourceFlags);
             },
