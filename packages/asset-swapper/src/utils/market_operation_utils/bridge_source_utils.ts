@@ -50,7 +50,6 @@ import {
     SPIRITSWAP_ROUTER_BY_CHAIN_ID,
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
-    SWERVE_MAINNET_INFOS,
     SYNAPSE_AVALANCHE_INFOS,
     SYNAPSE_BSC_INFOS,
     SYNAPSE_FANTOM_INFOS,
@@ -223,19 +222,6 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
         default:
             return [];
     }
-}
-
-export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId !== ChainId.Mainnet) {
-        return [];
-    }
-    return Object.values(SWERVE_MAINNET_INFOS).filter(c =>
-        [makerToken, takerToken].every(
-            t =>
-                (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
-        ),
-    );
 }
 
 export function getNerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
@@ -480,7 +466,6 @@ export function getCurveLikeInfosForPair(
     source:
         | ERC20BridgeSource.Curve
         | ERC20BridgeSource.CurveV2
-        | ERC20BridgeSource.Swerve
         | ERC20BridgeSource.Nerve
         | ERC20BridgeSource.Synapse
         | ERC20BridgeSource.Belt
@@ -500,9 +485,6 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.CurveV2:
             pools = getCurveV2InfosForPair(chainId, takerToken, makerToken);
-            break;
-        case ERC20BridgeSource.Swerve:
-            pools = getSwerveInfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.Nerve:
             pools = getNerveInfosForPair(chainId, takerToken, makerToken);
