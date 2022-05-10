@@ -47,7 +47,6 @@ import {
     SHIBASWAP_ROUTER_BY_CHAIN_ID,
     SMOOTHY_BSC_INFOS,
     SMOOTHY_MAINNET_INFOS,
-    SNOWSWAP_MAINNET_INFOS,
     SPIRITSWAP_ROUTER_BY_CHAIN_ID,
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
@@ -231,19 +230,6 @@ export function getSwerveInfosForPair(chainId: ChainId, takerToken: string, make
         return [];
     }
     return Object.values(SWERVE_MAINNET_INFOS).filter(c =>
-        [makerToken, takerToken].every(
-            t =>
-                (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
-        ),
-    );
-}
-
-export function getSnowSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId !== ChainId.Mainnet) {
-        return [];
-    }
-    return Object.values(SNOWSWAP_MAINNET_INFOS).filter(c =>
         [makerToken, takerToken].every(
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -495,7 +481,6 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Curve
         | ERC20BridgeSource.CurveV2
         | ERC20BridgeSource.Swerve
-        | ERC20BridgeSource.SnowSwap
         | ERC20BridgeSource.Nerve
         | ERC20BridgeSource.Synapse
         | ERC20BridgeSource.Belt
@@ -518,9 +503,6 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.Swerve:
             pools = getSwerveInfosForPair(chainId, takerToken, makerToken);
-            break;
-        case ERC20BridgeSource.SnowSwap:
-            pools = getSnowSwapInfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.Nerve:
             pools = getNerveInfosForPair(chainId, takerToken, makerToken);

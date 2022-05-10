@@ -1427,7 +1427,6 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Swerve:
-                    case ERC20BridgeSource.SnowSwap:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
@@ -1755,7 +1754,6 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Swerve:
-                    case ERC20BridgeSource.SnowSwap:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
