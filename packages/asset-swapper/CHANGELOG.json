@@ -3,8 +3,8 @@
         "version": "16.57.3",
         "changes": [
             {
-                "note": "Add BiSwap on BSC",
-                "pr": 471
+                "note": "Fix a runtime error related to BalancerV2SwapInfoCache",
+                "pr": 472
             }
         ]
     },
