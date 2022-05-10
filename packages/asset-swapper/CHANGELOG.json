@@ -5,6 +5,10 @@
             {
                 "note": "Remove SnowSwap on mainnet",
                 "pr": 468
+            },
+            {
+                "note": "Offboard Swerve Finance and LinkSwap",
+                "pr": 469
             }
         ]
     },
@@ -38,10 +42,6 @@
             {
                 "note": "Added cvxFXS/FXS curve pool on mainnet",
                 "pr": 465
-            },
-            {
-                "note": "Offboard Swerve Finance and LinkSwap",
-                "pr": 469
             }
         ]
     },
