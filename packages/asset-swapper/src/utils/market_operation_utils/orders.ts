@@ -111,8 +111,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Mooniswap, 'Mooniswap');
         case ERC20BridgeSource.MStable:
             return encodeBridgeSourceId(BridgeProtocol.MStable, 'MStable');
-        case ERC20BridgeSource.Eth2Dai:
-            return encodeBridgeSourceId(BridgeProtocol.Oasis, 'Eth2Dai');
         case ERC20BridgeSource.Shell:
             return encodeBridgeSourceId(BridgeProtocol.Shell, 'Shell');
         case ERC20BridgeSource.SushiSwap:
@@ -328,10 +326,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([uniFillData.router]);
             break;
-        case ERC20BridgeSource.Eth2Dai:
-            const oasisFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
-            bridgeData = encoder.encode([oasisFillData.router]);
-            break;
         case ERC20BridgeSource.MStable:
             const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([mStableFillData.router]);
@@ -524,7 +518,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Component]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
-    [ERC20BridgeSource.Eth2Dai]: poolEncoder,
     [ERC20BridgeSource.MStable]: poolEncoder,
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Cream]: poolEncoder,
