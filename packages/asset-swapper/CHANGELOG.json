@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.57.4",
+        "changes": [
+            {
+                "note": "Remove SnowSwap on mainnet",
+                "pr": 468
+            }
+        ]
+    },
+    {
         "version": "16.57.3",
         "changes": [
             {
