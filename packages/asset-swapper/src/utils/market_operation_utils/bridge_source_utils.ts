@@ -62,8 +62,9 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    PLATYPUS_AVALANCHE_INFOS,
 } from './constants';
-import { CurveInfo, ERC20BridgeSource } from './types';
+import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
 
 /**
  * Filter Kyber reserves which should not be used (0xbb bridged reserves)
@@ -459,6 +460,18 @@ export function getMobiusMoneyInfoForPair(chainId: ChainId, takerToken: string, 
             t =>
                 (c.tokens.includes(t) && c.metaTokens === undefined) ||
                 (c.tokens.includes(t) && [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+        ),
+    );
+}
+
+export function getPlatypusInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): PlatypusInfo[] {
+    if (chainId !== ChainId.Avalanche) {
+        return [];
+    }
+    return Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
+        [makerToken, takerToken].every(
+            t =>
+                c.tokens.includes(t),
         ),
     );
 }

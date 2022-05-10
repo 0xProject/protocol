@@ -35,6 +35,7 @@ import {
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
     OrderDomain,
+    PlatypusFillData,
     ShellFillData,
     UniswapV2FillData,
     UniswapV3FillData,
@@ -211,6 +212,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         case ERC20BridgeSource.GMX:
             return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
+        case ERC20BridgeSource.Platypus:
+            return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -379,6 +382,14 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 gmxFillData.tokenAddressPath,
             ]);
             break;
+        case ERC20BridgeSource.Platypus:
+            const platypusFillData = (order as OptimizedMarketBridgeOrder<PlatypusFillData>).fillData;
+            bridgeData = encoder.encode([
+                platypusFillData.router,
+                platypusFillData.pool,
+                platypusFillData.tokenAddressPath,
+            ]);
+            break;
 
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -465,6 +476,7 @@ const balancerV2Encoder = AbiEncoder.create([
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
+const platypusAddressPathEncoder = AbiEncoder.create('(address,address[],address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
 export const BRIDGE_ENCODERS: {
@@ -520,6 +532,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     // Avalanche
     [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
+    [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC

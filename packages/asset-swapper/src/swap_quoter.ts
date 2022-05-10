@@ -357,7 +357,7 @@ export class SwapQuoter {
         if (nativeOrders.length === 0) {
             nativeOrders.push(createDummyOrder(makerToken, takerToken));
         }
-
+        
         //  ** Prepare options for fetching market side liquidity **
         // Scale fees by gas price.
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;

@@ -96,6 +96,7 @@ export enum ERC20BridgeSource {
     TraderJoe = 'TraderJoe',
     // tslint:disable-next-line: enum-naming
     GMX = 'GMX',
+    Platypus = 'Platypus',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -190,6 +191,11 @@ export interface GeistInfo {
     underlyingToken: string;
 }
 
+export interface PlatypusInfo {
+    poolAddress: string;
+    tokens: string[];
+    gasSchedule: number;
+}
 // Internal `fillData` field for `Fill` objects.
 export interface FillData {}
 
@@ -229,6 +235,12 @@ export interface GMXFillData extends FillData {
     router: string;
     reader: string;
     vault: string;
+    tokenAddressPath: string[];
+}
+
+export interface PlatypusFillData extends FillData {
+    router: string;
+    pool: string[];
     tokenAddressPath: string[];
 }
 

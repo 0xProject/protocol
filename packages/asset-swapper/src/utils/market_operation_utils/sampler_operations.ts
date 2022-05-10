@@ -14,6 +14,7 @@ import {
     getCurveLikeInfosForPair,
     getDodoV2Offsets,
     getKyberOffsets,
+    getPlatypusInfoForPair,
     getShellLikeInfosForPair,
     isAllowedKyberReserveId,
     isBadTokenForSource,
@@ -45,6 +46,7 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     NULL_BYTES,
+    PLATYPUS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
@@ -86,6 +88,7 @@ import {
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
+    PlatypusFillData,
     PsmInfo,
     ShellFillData,
     SourceQuoteOperation,
@@ -1248,6 +1251,35 @@ export class SamplerOperations {
         });
     }
 
+    public getPlatypusSellQuotes(
+        router: string,
+        pool: string[],
+        tokenAddressPath: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<PlatypusFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Platypus,
+            fillData: { router, pool, tokenAddressPath },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromPlatypus,
+            params: [pool[0], tokenAddressPath, takerFillAmounts],
+        });
+    }
+    public getPlatypusBuyQuotes(
+        router: string,
+        pool: string[],
+        tokenAddressPath: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<PlatypusFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Platypus,
+            fillData: { router, pool, tokenAddressPath },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromPlatypus,
+            params: [pool[0], tokenAddressPath, makerFillAmounts],
+        });
+    }
+
     public getMedianSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
@@ -1648,8 +1680,19 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
-                    default:
-                        throw new Error(`Unsupported sell sample source: ${source}`);
+                    case ERC20BridgeSource.Platypus: {
+                        return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
+                            this.getPlatypusSellQuotes(
+                            PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
+                            [pool.poolAddress],
+                            [takerToken, makerToken],
+                            takerFillAmounts,
+                            ),
+                        );
+                    }
+                default:
+                    throw new Error(`Unsupported sell sample source: ${source}`);
+
                 }
             }),
         );
@@ -1959,6 +2002,16 @@ export class SamplerOperations {
                             GMX_VAULT_BY_CHAIN_ID[this.chainId],
                             [takerToken, makerToken],
                             makerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.Platypus: {
+                        return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
+                            this.getPlatypusBuyQuotes(
+                            PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
+                            [pool.poolAddress],
+                            [takerToken, makerToken],
+                            makerFillAmounts,
+                            ),
                         );
                     }
                     default:
