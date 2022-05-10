@@ -33,9 +33,7 @@ import {
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
-    LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
-    MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -1425,7 +1423,6 @@ export class SamplerOperations {
                         );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
-                    case ERC20BridgeSource.Swerve:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
@@ -1585,23 +1582,6 @@ export class SamplerOperations {
                             takerToken,
                             takerFillAmounts,
                         );
-                    case ERC20BridgeSource.Linkswap:
-                        if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
-                            return [];
-                        }
-                        return [
-                            [takerToken, makerToken],
-                            ...getIntermediateTokens(makerToken, takerToken, {
-                                default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
-                            }).map(t => [takerToken, t, makerToken]),
-                        ].map(path =>
-                            this.getUniswapV2SellQuotes(
-                                LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
-                                path,
-                                takerFillAmounts,
-                                ERC20BridgeSource.Linkswap,
-                            ),
-                        );
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {
@@ -1751,7 +1731,6 @@ export class SamplerOperations {
                         );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
-                    case ERC20BridgeSource.Swerve:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
@@ -1911,24 +1890,6 @@ export class SamplerOperations {
                         // Unimplemented
                         // return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         return [];
-                    case ERC20BridgeSource.Linkswap:
-                        if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
-                            return [];
-                        }
-                        return [
-                            [takerToken, makerToken],
-                            // LINK is the base asset in many of the pools on Linkswap
-                            ...getIntermediateTokens(makerToken, takerToken, {
-                                default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
-                            }).map(t => [takerToken, t, makerToken]),
-                        ].map(path =>
-                            this.getUniswapV2BuyQuotes(
-                                LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
-                                path,
-                                makerFillAmounts,
-                                ERC20BridgeSource.Linkswap,
-                            ),
-                        );
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {

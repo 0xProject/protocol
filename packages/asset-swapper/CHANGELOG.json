@@ -5,6 +5,10 @@
             {
                 "note": "Remove SnowSwap on mainnet",
                 "pr": 468
+            },
+            {
+                "note": "Offboard Swerve Finance and LinkSwap",
+                "pr": 469
             }
         ]
     },

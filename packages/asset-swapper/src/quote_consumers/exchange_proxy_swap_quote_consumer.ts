@@ -305,7 +305,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (
             this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve, ERC20BridgeSource.Swerve]) &&
+            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve]) &&
             // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
             // into WETH prior/post the trade.
             // ETH buy/sell is supported
