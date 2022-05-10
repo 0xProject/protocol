@@ -722,7 +722,6 @@ export class RfqmService {
      */
     public async runHealthCheckAsync(): Promise<HealthCheckResult> {
         const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync(this._chainId);
-        const registryBalance = await this._blockchainUtils.getAccountBalanceAsync(this._registryAddress);
         let gasPrice: BigNumber | undefined;
         try {
             gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
@@ -731,7 +730,6 @@ export class RfqmService {
         }
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
-            registryBalance,
             this._rfqMakerManager.getRfqmMakerOfferings(),
             this._sqsProducer,
             heartbeats,

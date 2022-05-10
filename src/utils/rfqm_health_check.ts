@@ -39,12 +39,7 @@ export enum HealthCheckStatus {
     Failed = 'failed',
 }
 
-type HealthCheckLabel =
-    | 'registry balance'
-    | 'RFQM_MAINTENANCE_MODE config `true`'
-    | 'queue size'
-    | 'worker balance'
-    | 'worker heartbeat';
+type HealthCheckLabel = 'RFQM_MAINTENANCE_MODE config `true`' | 'queue size' | 'worker balance' | 'worker heartbeat';
 
 interface HealthCheckIssue {
     status: HealthCheckStatus;
@@ -83,7 +78,6 @@ export interface RfqmHealthCheckShortResponse {
  */
 export async function computeHealthCheckAsync(
     isMaintainenceMode: boolean,
-    registryBalance: BigNumber,
     offerings: RfqMakerAssetOfferings,
     producer: Producer,
     heartbeats: RfqmWorkerHeartbeatEntity[],
@@ -92,7 +86,7 @@ export async function computeHealthCheckAsync(
 ): Promise<HealthCheckResult> {
     const pairs = transformPairs(offerings);
 
-    const httpIssues = getHttpIssues(isMaintainenceMode, registryBalance);
+    const httpIssues = getHttpIssues(isMaintainenceMode);
     const httpStatus = getWorstStatus(httpIssues.map((issue) => issue.status));
 
     const queueIssues = await checkSqsQueueAsync(producer);
@@ -102,7 +96,6 @@ export async function computeHealthCheckAsync(
 
     // Prometheus counters
     const severityByLabel: Record<HealthCheckLabel, number> = {
-        'registry balance': statusSeverity(HealthCheckStatus.Operational),
         'RFQM_MAINTENANCE_MODE config `true`': statusSeverity(HealthCheckStatus.Operational),
         'queue size': statusSeverity(HealthCheckStatus.Operational),
         'worker balance': statusSeverity(HealthCheckStatus.Operational),
@@ -166,36 +159,13 @@ function transformPairs(offerings: RfqMakerAssetOfferings): { [pair: string]: He
 /**
  * Creates issues related to the server/API not specific to the worker farm.
  */
-export function getHttpIssues(isMaintainenceMode: boolean, registryBalance: BigNumber): HealthCheckIssue[] {
+export function getHttpIssues(isMaintainenceMode: boolean): HealthCheckIssue[] {
     const issues: HealthCheckIssue[] = [];
     if (isMaintainenceMode) {
         issues.push({
             status: HealthCheckStatus.Maintenance,
             description: 'RFQM is set to maintainence mode via the 0x API configuration',
             label: 'RFQM_MAINTENANCE_MODE config `true`',
-        });
-    }
-
-    if (
-        registryBalance.isLessThan(BALANCE_DEGRADED_THRESHOLD_WEI) &&
-        registryBalance.isGreaterThanOrEqualTo(BALANCE_FAILED_THRESHOLD_WEI)
-    ) {
-        issues.push({
-            status: HealthCheckStatus.Degraded,
-            description: `Registry balance is ${registryBalance
-                .shiftedBy(ETH_DECIMALS * -1)
-                .toFixed(2)} (threshold is ${BALANCE_DEGRADED_THRESHOLD})`,
-            label: 'registry balance',
-        });
-    }
-
-    if (registryBalance.isLessThan(BALANCE_FAILED_THRESHOLD_WEI)) {
-        issues.push({
-            status: HealthCheckStatus.Failed,
-            description: `Registry balance is ${registryBalance
-                .shiftedBy(ETH_DECIMALS * -1)
-                .toFixed(2)} (threshold is ${BALANCE_FAILED_THRESHOLD})`,
-            label: 'registry balance',
         });
     }
     return issues;

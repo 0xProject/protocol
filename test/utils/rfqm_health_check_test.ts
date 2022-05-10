@@ -156,18 +156,9 @@ describe('RFQm Health Check', () => {
 
     describe('getHttpIssues', () => {
         it('goes into maintainence mode', async () => {
-            const issues = getHttpIssues(/* isMaintainenceMode */ true, /* registryBalance */ fullBalance);
+            const issues = getHttpIssues(/* isMaintainenceMode */ true);
 
             expect(issues[0].status).to.equal(HealthCheckStatus.Maintenance);
-        });
-
-        it('produces a FAILED issue with a low registry balance', async () => {
-            const lowRegistryBalance = new BigNumber(0.01).shiftedBy(ETH_DECIMALS);
-
-            const issues = getHttpIssues(/* isMaintainenceMode */ false, lowRegistryBalance);
-
-            expect(issues[0].status).to.equal(HealthCheckStatus.Failed);
-            expect(issues[0].description).to.contain(lowRegistryBalance.shiftedBy(ETH_DECIMALS * -1).toString());
         });
     });
 });
