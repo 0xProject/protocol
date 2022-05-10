@@ -6,7 +6,8 @@
                 "note": "Fix a runtime error related to BalancerV2SwapInfoCache",
                 "pr": 472
             }
-        ]
+        ],
+        "timestamp": 1652146864
     },
     {
         "version": "16.57.2",
