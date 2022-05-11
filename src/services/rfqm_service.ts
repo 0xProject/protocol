@@ -60,6 +60,7 @@ import {
     OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
     OtcOrderSubmitRfqmSignedQuoteResponse,
+    QuoteContext,
     RfqmTypes,
     StatusResponse,
 } from './types';
@@ -304,54 +305,26 @@ export class RfqmService {
     public async fetchIndicativeQuoteAsync(
         params: FetchIndicativeQuoteParams,
     ): Promise<FetchIndicativeQuoteResponse | null> {
+        // Retrieve quote context
+        const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ false);
         const {
-            sellAmount,
-            buyAmount,
-            sellToken: takerToken,
-            buyToken: originalMakerToken,
-            sellTokenDecimals: takerTokenDecimals,
-            buyTokenDecimals: makerTokenDecimals,
-        } = params;
-        let makerToken = originalMakerToken;
+            takerAmount,
+            makerAmount,
+            takerToken,
+            makerToken,
+            originalMakerToken,
+            takerTokenDecimals,
+            makerTokenDecimals,
+            takerAddress,
+            isSelling,
+            assetFillAmount,
+            integrator,
+        } = quoteContext;
 
-        // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
-        const isUnwrap = originalMakerToken === this._nativeTokenAddress;
-        if (isUnwrap) {
-            makerToken = this._nativeWrappedTokenAddress;
-            params.buyToken = this._nativeWrappedTokenAddress;
-        }
-
-        // Get desired fill amount
-        const isSelling = sellAmount !== undefined;
-        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
-
-        // Get the fee and gas price
-        const feeModelVersion = this._configManger.getFeeModelVersion();
-        let feeWithDetails;
-        switch (feeModelVersion) {
-            case 1:
-                feeWithDetails = await this._rfqmFeeService.calculateFeeV1Async(
-                    makerToken,
-                    takerToken,
-                    makerTokenDecimals,
-                    takerTokenDecimals,
-                    isUnwrap,
-                    isSelling,
-                    assetFillAmount,
-                );
-                break;
-            case 0:
-            default:
-                feeWithDetails = await this._rfqmFeeService.calculateGasFeeAsync(
-                    makerToken,
-                    takerToken,
-                    isUnwrap,
-                    feeModelVersion,
-                );
-        }
+        const feeWithDetails = await this._rfqmFeeService.calculateFeeAsync(quoteContext);
 
         // Fetch all indicative quotes
-        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(params, feeWithDetails);
+        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(quoteContext, feeWithDetails);
 
         // Log any quotes that are for the incorrect amount
         indicativeQuotes.forEach((quote) => {
@@ -385,12 +358,12 @@ export class RfqmService {
         if (this._kafkaProducer) {
             await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
-                    taker: params.takerAddress,
+                    taker: takerAddress,
                     buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
-                    buyAmount: params.buyAmount,
-                    sellAmount: params.sellAmount,
-                    integratorId: params.integrator?.integratorId,
+                    buyAmount: makerAmount,
+                    sellAmount: takerAmount,
+                    integratorId: integrator?.integratorId,
                     allQuotes: indicativeQuotes,
                     bestQuote,
                     fee: feeToStoredFee(feeWithDetails),
@@ -429,58 +402,29 @@ export class RfqmService {
      * Fetch the best firm quote available, including a metatransaction. Returns null if no valid quotes found
      */
     public async fetchFirmQuoteAsync(params: FetchFirmQuoteParams): Promise<OtcOrderRfqmQuoteResponse | null> {
-        // Extract params
+        // Retrieve quote context
+        const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ true);
         const {
-            sellAmount,
-            buyAmount,
-            sellToken: takerToken,
-            buyToken: originalMakerToken,
-            sellTokenDecimals: takerTokenDecimals,
-            buyTokenDecimals: makerTokenDecimals,
+            takerAmount,
+            makerAmount,
+            takerToken,
+            makerToken,
+            originalMakerToken,
+            takerTokenDecimals,
+            makerTokenDecimals,
+            takerAddress,
             integrator,
             affiliateAddress,
-        } = params;
-        let makerToken = originalMakerToken;
+            isUnwrap,
+            isSelling,
+            assetFillAmount,
+        } = quoteContext;
 
-        // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
-        const isUnwrap = originalMakerToken === this._nativeTokenAddress;
-        if (isUnwrap) {
-            makerToken = this._nativeWrappedTokenAddress;
-            params.buyToken = this._nativeWrappedTokenAddress;
-        }
-
-        // Quote Requestor specific params
-        const isSelling = sellAmount !== undefined;
-        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
-
-        // Get the fee and gas price
-        const feeModelVersion = this._configManger.getFeeModelVersion();
-        let feeWithDetails;
-        switch (feeModelVersion) {
-            case 1:
-                feeWithDetails = await this._rfqmFeeService.calculateFeeV1Async(
-                    makerToken,
-                    takerToken,
-                    makerTokenDecimals,
-                    takerTokenDecimals,
-                    isUnwrap,
-                    isSelling,
-                    assetFillAmount,
-                );
-                break;
-            case 0:
-            default:
-                feeWithDetails = await this._rfqmFeeService.calculateGasFeeAsync(
-                    makerToken,
-                    takerToken,
-                    isUnwrap,
-                    feeModelVersion,
-                );
-        }
+        const feeWithDetails = await this._rfqmFeeService.calculateFeeAsync(quoteContext);
         const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
 
         // Fetch all firm quotes and fee
-        const firmQuotes = await this._fetchFirmQuotesAsync(params, feeWithDetails);
+        const firmQuotes = await this._fetchFirmQuotesAsync(quoteContext, feeWithDetails);
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -496,12 +440,12 @@ export class RfqmService {
         if (this._kafkaProducer) {
             await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
-                    taker: params.takerAddress,
+                    taker: takerAddress,
                     buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
-                    buyAmount: params.buyAmount,
-                    sellAmount: params.sellAmount,
-                    integratorId: params.integrator?.integratorId,
+                    buyAmount: makerAmount,
+                    sellAmount: takerAmount,
+                    integratorId: integrator?.integratorId,
                     allQuotes: firmQuotes,
                     bestQuote,
                     fee: storedFeeWithDetails,
@@ -531,21 +475,21 @@ export class RfqmService {
         const roundedPrice = price.decimalPlaces(PRICE_DECIMAL_PLACES + 1, BigNumber.ROUND_DOWN);
 
         // Prepare the final takerAmount and makerAmount
-        const takerAmount = isSelling
-            ? sellAmount!
+        const sellAmount = isSelling
+            ? takerAmount!
             : RfqmService._getSellAmountGivenBuyAmountAndQuote(
-                  buyAmount!,
+                  makerAmount!,
                   bestQuote.order.takerAmount,
                   bestQuote.order.makerAmount,
               );
 
-        const makerAmount = isSelling
+        const buyAmount = isSelling
             ? RfqmService._getBuyAmountGivenSellAmountAndQuote(
-                  sellAmount!,
+                  takerAmount!,
                   bestQuote.order.takerAmount,
                   bestQuote.order.makerAmount,
               )
-            : buyAmount!;
+            : makerAmount!;
 
         // Get the Order and its hash
         const orderHash = bestQuote.order.getHash();
@@ -566,9 +510,9 @@ export class RfqmService {
             type: RfqmTypes.OtcOrder,
             price: roundedPrice,
             gas: feeWithDetails.details.gasPrice,
-            buyAmount: makerAmount,
+            buyAmount,
             buyTokenAddress: originalMakerToken,
-            sellAmount: takerAmount,
+            sellAmount,
             sellTokenAddress: bestQuote.order.takerToken,
             allowanceTarget: this._contractAddresses.exchangeProxy,
             order: bestQuote.order,
@@ -1515,26 +1459,70 @@ export class RfqmService {
     }
 
     /**
+     * Internal method to retrieve quote context, based on either indicative or firm quote parameters
+     */
+    private _retrieveQuoteContext(
+        params: FetchIndicativeQuoteParams | FetchFirmQuoteParams,
+        isFirm: boolean,
+    ): QuoteContext {
+        const {
+            sellAmount: takerAmount,
+            buyAmount: makerAmount,
+            sellToken: takerToken,
+            buyToken: originalMakerToken,
+            takerAddress,
+            sellTokenDecimals: takerTokenDecimals,
+            buyTokenDecimals: makerTokenDecimals,
+            integrator,
+            affiliateAddress,
+        } = params;
+
+        const isUnwrap = originalMakerToken === this._nativeTokenAddress;
+        const isSelling = takerAmount !== undefined;
+        const assetFillAmount = isSelling ? takerAmount! : makerAmount!;
+
+        let makerToken = originalMakerToken;
+
+        // If the originalMakerToken is the native token, we will trade the wrapped version and unwrap at the end
+        if (isUnwrap) {
+            makerToken = this._nativeWrappedTokenAddress;
+        }
+
+        // Get the fee and gas price
+        const feeModelVersion = this._configManger.getFeeModelVersion();
+
+        return {
+            isFirm,
+            takerAmount,
+            makerAmount,
+            takerToken,
+            makerToken,
+            originalMakerToken,
+            takerAddress: takerAddress!,
+            takerTokenDecimals,
+            makerTokenDecimals,
+            integrator,
+            affiliateAddress,
+            isUnwrap,
+            isSelling,
+            assetFillAmount,
+            feeModelVersion,
+        };
+    }
+
+    /**
      * Internal method to fetch indicative quotes. Handles fetching both Rfq and Otc quotes
      */
-    private async _fetchIndicativeQuotesAsync(
-        params: FetchIndicativeQuoteParams,
-        fee: Fee,
-    ): Promise<IndicativeQuote[]> {
-        // Extract params
-        const { sellAmount, buyAmount, sellToken: takerToken, buyToken: makerToken, integrator } = params;
-
-        // Quote Requestor specific params
-        const isSelling = sellAmount !== undefined;
-        const marketOperation = isSelling ? MarketOperation.Sell : MarketOperation.Buy;
-        const assetFillAmount = isSelling ? sellAmount! : buyAmount!;
+    private async _fetchIndicativeQuotesAsync(quoteContext: QuoteContext, fee: Fee): Promise<IndicativeQuote[]> {
+        // Extract quote context
+        const { isSelling, assetFillAmount, takerToken, makerToken, integrator } = quoteContext;
 
         // Create Otc Order request options
         const otcOrderParams = QuoteServerClient.makeQueryParameters({
             chainId: this._chainId,
             txOrigin: this._registryAddress,
             takerAddress: NULL_ADDRESS,
-            marketOperation,
+            marketOperation: isSelling ? MarketOperation.Sell : MarketOperation.Buy,
             buyTokenAddress: makerToken,
             sellTokenAddress: takerToken,
             assetFillAmount,
@@ -1553,17 +1541,18 @@ export class RfqmService {
     }
 
     /**
-     * Internal method to fetch firm quotes. Handles fetching both Rfq and Otc quotes
+     * Internal method to fetch firm quotes.
      */
-    private async _fetchFirmQuotesAsync(params: FetchFirmQuoteParams, fee: Fee): Promise<FirmOtcQuote[]> {
-        const quotes = await this._fetchIndicativeQuotesAsync(params, fee);
+    private async _fetchFirmQuotesAsync(quoteContext: QuoteContext, fee: Fee): Promise<FirmOtcQuote[]> {
+        const quotes = await this._fetchIndicativeQuotesAsync(quoteContext, fee);
 
+        const { takerAddress } = quoteContext;
         const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
         const otcQuotes = quotes.map((q) =>
             this._mapIndicativeQuoteToFirmOtcQuote(
                 q,
-                params.takerAddress,
+                takerAddress!,
                 new BigNumber(currentBucket),
                 new BigNumber(nowSeconds),
             ),

@@ -88,3 +88,42 @@ export interface CleanupJobsResponse {
     // with non-pending statuses.
     unmodifiedJobs: string[];
 }
+
+/**
+ * Base interface for quote context, which includes input query parameters, derived
+ * variables, and configuration information.
+ */
+interface QuoteContextBase {
+    isFirm: boolean;
+    takerAmount?: BigNumber;
+    makerAmount?: BigNumber;
+    takerToken: string;
+    makerToken: string;
+    originalMakerToken: string;
+    takerTokenDecimals: number;
+    makerTokenDecimals: number;
+    integrator: Integrator;
+    affiliateAddress?: string;
+    isUnwrap: boolean;
+    isSelling: boolean;
+    assetFillAmount: BigNumber;
+    feeModelVersion: number;
+}
+
+/**
+ * Context for indicative quote
+ */
+interface IndicativeQuoteContext extends QuoteContextBase {
+    isFirm: false;
+    takerAddress?: string;
+}
+
+/**
+ * Context for firm quote
+ */
+interface FirmQuoteContext extends QuoteContextBase {
+    isFirm: true;
+    takerAddress: string;
+}
+
+export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;

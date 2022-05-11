@@ -81,28 +81,7 @@ const buildRfqmServiceForUnitTest = (
 
     const rfqmFeeServiceMock = mock(RfqmFeeService);
     when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
-    when(rfqmFeeServiceMock.calculateGasFeeAsync(anything(), anything(), anything(), anything())).thenResolve({
-        token: '0xToken',
-        amount: new BigNumber(100),
-        type: 'fixed',
-        details: {
-            feeModelVersion: 0,
-            kind: 'gasOnly',
-            gasFeeAmount: new BigNumber(100),
-            gasPrice: MOCK_GAS_PRICE,
-        },
-    });
-    when(
-        rfqmFeeServiceMock.calculateFeeV1Async(
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-            anything(),
-        ),
-    ).thenResolve({
+    when(rfqmFeeServiceMock.calculateFeeAsync(anything())).thenResolve({
         token: '0xToken',
         amount: new BigNumber(300),
         type: 'fixed',

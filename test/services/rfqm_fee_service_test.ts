@@ -5,7 +5,7 @@ import { anything, instance, mock, when } from 'ts-mockito';
 
 import { DEFAULT_FEE_MODEL_CONFIGURATION } from '../../src/config';
 import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../../src/constants';
-import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
+import { FeeWithDetails, RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';
@@ -30,6 +30,18 @@ describe('RfqmFeeService', () => {
 
     const gasPrice = new BigNumber(1e9);
     const gasEstimate = RFQM_TX_OTC_ORDER_GAS_ESTIMATE;
+
+    const integrator = {
+        apiKeys: [],
+        integratorId: 'integratorId',
+        allowedChainIds: [1, 3, 137, 1337],
+        label: 'dummy integrator',
+        plp: true,
+        rfqm: true,
+        rfqt: true,
+    };
+    const takerAddress = 'takerAddress';
+    const feeModelVersion = 1;
 
     describe('calculateFeeV1Async', () => {
         it('should calculate v1 fee for selling correctly', async () => {
@@ -62,15 +74,20 @@ describe('RfqmFeeService', () => {
             );
 
             // When
-            const fee = await feeService.calculateFeeV1Async(
+            const fee = await feeService.calculateFeeAsync({
+                feeModelVersion,
                 makerToken,
                 takerToken,
+                originalMakerToken: makerToken,
                 makerTokenDecimals,
                 takerTokenDecimals,
                 isUnwrap,
                 isSelling,
                 assetFillAmount,
-            );
+                isFirm: true,
+                takerAddress,
+                integrator,
+            });
 
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
@@ -81,18 +98,24 @@ describe('RfqmFeeService', () => {
                 .integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
 
-            expect(fee.type).toEqual('fixed');
-            expect(fee.token).toEqual(feeToken);
-            expect(fee.amount.toNumber()).toEqual(expectedTotalFeeAmount.toNumber());
-            expect(fee.details.kind).toEqual('default');
-            expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
-            expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(expectedZeroExFeeAmount.toNumber());
-            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
-            expect(fee.details.tradeSizeBps).toEqual(configuredTradeSizeBps);
-            expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(feeTokenPrice);
-            expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(takerTokenPrice);
-            expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(null);
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeToken,
+                amount: expectedTotalFeeAmount,
+                details: {
+                    kind: 'default',
+                    feeModelVersion,
+                    gasFeeAmount: expectedGasFeeAmount,
+                    gasPrice,
+                    zeroExFeeAmount: expectedZeroExFeeAmount,
+                    configuredTradeSizeBps,
+                    tradeSizeBps: configuredTradeSizeBps,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: takerTokenPrice,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
         });
         it('should calculate v1 fee for buying correctly', async () => {
             // Given
@@ -124,15 +147,20 @@ describe('RfqmFeeService', () => {
             );
 
             // When
-            const fee = await feeService.calculateFeeV1Async(
+            const fee = await feeService.calculateFeeAsync({
+                feeModelVersion,
                 makerToken,
                 takerToken,
+                originalMakerToken: makerToken,
                 makerTokenDecimals,
                 takerTokenDecimals,
                 isUnwrap,
                 isSelling,
                 assetFillAmount,
-            );
+                isFirm: false,
+                takerAddress,
+                integrator,
+            });
 
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
@@ -143,18 +171,24 @@ describe('RfqmFeeService', () => {
                 .integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
 
-            expect(fee.type).toEqual('fixed');
-            expect(fee.token).toEqual(feeToken);
-            expect(fee.amount.toNumber()).toEqual(expectedTotalFeeAmount.toNumber());
-            expect(fee.details.kind).toEqual('default');
-            expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
-            expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(expectedZeroExFeeAmount.toNumber());
-            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
-            expect(fee.details.tradeSizeBps).toEqual(configuredTradeSizeBps);
-            expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(feeTokenPrice);
-            expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
-            expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(makerTokenPrice);
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeToken,
+                amount: expectedTotalFeeAmount,
+                details: {
+                    kind: 'default',
+                    feeModelVersion,
+                    gasFeeAmount: expectedGasFeeAmount,
+                    gasPrice,
+                    zeroExFeeAmount: expectedZeroExFeeAmount,
+                    configuredTradeSizeBps,
+                    tradeSizeBps: configuredTradeSizeBps,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: makerTokenPrice,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
         });
         it('should not include zeroEx fee for non-configured pairs', async () => {
             // Given
@@ -184,31 +218,42 @@ describe('RfqmFeeService', () => {
             );
 
             // When
-            const fee = await feeService.calculateFeeV1Async(
+            const fee = await feeService.calculateFeeAsync({
+                feeModelVersion,
                 makerToken,
                 takerToken,
+                originalMakerToken: makerToken,
                 makerTokenDecimals,
                 takerTokenDecimals,
                 isUnwrap,
                 isSelling,
                 assetFillAmount,
-            );
+                isFirm: false,
+                takerAddress,
+                integrator,
+            });
 
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
 
-            expect(fee.type).toEqual('fixed');
-            expect(fee.token).toEqual(feeToken);
-            expect(fee.amount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.kind).toEqual('default');
-            expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
-            expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(0);
-            expect(fee.details.configuredTradeSizeBps).toEqual(0);
-            expect(fee.details.tradeSizeBps).toEqual(0);
-            expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(null);
-            expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
-            expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(null);
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeToken,
+                amount: expectedGasFeeAmount,
+                details: {
+                    kind: 'default',
+                    feeModelVersion,
+                    gasFeeAmount: expectedGasFeeAmount,
+                    gasPrice,
+                    zeroExFeeAmount: new BigNumber(0),
+                    configuredTradeSizeBps: 0,
+                    tradeSizeBps: 0,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
         });
         it('should not include zeroEx fee if price oracle is down', async () => {
             // Given
@@ -237,31 +282,44 @@ describe('RfqmFeeService', () => {
             );
 
             // When
-            const fee = await feeService.calculateFeeV1Async(
+
+            // When
+            const fee = await feeService.calculateFeeAsync({
+                feeModelVersion,
                 makerToken,
                 takerToken,
+                originalMakerToken: makerToken,
                 makerTokenDecimals,
                 takerTokenDecimals,
                 isUnwrap,
                 isSelling,
                 assetFillAmount,
-            );
+                isFirm: true,
+                takerAddress,
+                integrator,
+            });
 
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
 
-            expect(fee.type).toEqual('fixed');
-            expect(fee.token).toEqual(feeToken);
-            expect(fee.amount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.kind).toEqual('default');
-            expect(fee.details.gasFeeAmount.toNumber()).toEqual(expectedGasFeeAmount.toNumber());
-            expect(fee.details.gasPrice.toNumber()).toEqual(gasPrice.toNumber());
-            expect(fee.details.zeroExFeeAmount.toNumber()).toEqual(0);
-            expect(fee.details.configuredTradeSizeBps).toEqual(configuredTradeSizeBps);
-            expect(fee.details.tradeSizeBps).toEqual(0);
-            expect(fee.details.feeTokenBaseUnitPriceUsd).toEqual(null);
-            expect(fee.details.takerTokenBaseUnitPriceUsd).toEqual(null);
-            expect(fee.details.makerTokenBaseUnitPriceUsd).toEqual(null);
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeToken,
+                amount: expectedGasFeeAmount,
+                details: {
+                    kind: 'default',
+                    feeModelVersion,
+                    gasFeeAmount: expectedGasFeeAmount,
+                    gasPrice,
+                    zeroExFeeAmount: new BigNumber(0),
+                    configuredTradeSizeBps,
+                    tradeSizeBps: 0,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
         });
     });
 });

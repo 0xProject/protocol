@@ -8,6 +8,8 @@ import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
+import { QuoteContext } from './types';
+
 /**
  * Base interface for FeeBreakdown type.
  */
@@ -106,11 +108,45 @@ export class RfqmFeeService {
     }
 
     /**
+     * Calculate Fee for given quote context.
+     *
+     * @returns estimated fee with details
+     */
+    public async calculateFeeAsync(quoteContext: QuoteContext): Promise<FeeWithDetails> {
+        const {
+            takerToken,
+            makerToken,
+            takerTokenDecimals,
+            makerTokenDecimals,
+            isUnwrap,
+            isSelling,
+            assetFillAmount,
+            feeModelVersion,
+        } = quoteContext;
+
+        switch (feeModelVersion) {
+            case 1:
+                return this._calculateFeeV1Async(
+                    makerToken,
+                    takerToken,
+                    makerTokenDecimals,
+                    takerTokenDecimals,
+                    isUnwrap,
+                    isSelling,
+                    assetFillAmount,
+                );
+            case 0:
+            default:
+                return this._calculateGasFeeAsync(makerToken, takerToken, isUnwrap, feeModelVersion);
+        }
+    }
+
+    /**
      * Calculate gas fee for all fee model versions, based on gas price query and gas estimation.
      *
      * @returns estimated gas fee with `gasOnly` details
      */
-    public async calculateGasFeeAsync(
+    private async _calculateGasFeeAsync(
         makerToken: string,
         takerToken: string,
         isUnwrap: boolean,
@@ -138,7 +174,7 @@ export class RfqmFeeService {
      *
      * @returns fee with `default` details
      */
-    public async calculateFeeV1Async(
+    private async _calculateFeeV1Async(
         makerToken: string,
         takerToken: string,
         makerTokenDecimals: number,
@@ -147,20 +183,21 @@ export class RfqmFeeService {
         isSelling: boolean,
         assetFillAmount: BigNumber,
     ): Promise<FeeWithDetails & { details: DefaultFeeBreakdown }> {
-        const gasFee = await this.calculateGasFeeAsync(makerToken, takerToken, isUnwrap, 1);
-
         const feeModelConfiguration = this._configManager.getFeeModelConfiguration(
             this._chainId,
             makerToken,
             takerToken,
         );
-        const { zeroExFeeAmount, tradeSizeBps, feeTokenBaseUnitPriceUsd, tradeTokenBaseUnitPriceInUsd } =
-            await this._calculateDefaultFeeAsync(
-                /* tradeToken */ isSelling ? takerToken : makerToken,
-                /* tradeTokenDecimals */ isSelling ? takerTokenDecimals : makerTokenDecimals,
-                /* tradeAmount */ assetFillAmount,
-                feeModelConfiguration.tradeSizeBps,
-            );
+        const [gasFee, { zeroExFeeAmount, tradeSizeBps, feeTokenBaseUnitPriceUsd, tradeTokenBaseUnitPriceInUsd }] =
+            await Promise.all([
+                this._calculateGasFeeAsync(makerToken, takerToken, isUnwrap, 1),
+                this._calculateDefaultFeeAsync(
+                    /* tradeToken */ isSelling ? takerToken : makerToken,
+                    /* tradeTokenDecimals */ isSelling ? takerTokenDecimals : makerTokenDecimals,
+                    /* tradeAmount */ assetFillAmount,
+                    feeModelConfiguration.tradeSizeBps,
+                ),
+            ]);
 
         return {
             type: 'fixed',
