@@ -79,7 +79,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
@@ -87,8 +86,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
-            ERC20BridgeSource.Swerve,
-            ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Shell,
             ERC20BridgeSource.MultiHop,
@@ -97,7 +94,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Cream,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
-            ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
@@ -225,7 +221,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Eth2Dai,
             ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
@@ -234,8 +229,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.Shell,
-            ERC20BridgeSource.Swerve,
-            ERC20BridgeSource.SnowSwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
@@ -244,7 +237,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
-            ERC20BridgeSource.Linkswap,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Smoothy,
@@ -739,21 +731,6 @@ export const CURVE_V2_FANTOM_POOLS = {
 
 export const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
-};
-
-export const SWERVE_POOLS = {
-    y: '0x329239599afb305da0a2ec69c58f8a6697f9f88d',
-};
-
-export const SNOWSWAP_POOLS = {
-    yUSD: '0xbf7ccd6c446acfcc5df023043f2167b62e81899b',
-    yVault: '0x4571753311e37ddb44faa8fb78a6df9a6e3c6c0b',
-    // POOL Disabled as it uses WETH over ETH
-    // There is a conflict with Curve and SnowSwap
-    // where Curve uses ETH and SnowSwap uses WETH
-    // To re-enable this we need to flag an WETH
-    // unwrap or not
-    // eth: '0x16bea2e63adade5984298d53a4d4d9c09e278192',
 };
 
 export const SMOOTHY_POOLS = {
@@ -1514,38 +1491,6 @@ export const CURVE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
     }),
 };
 
-export const SWERVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SWERVE_POOLS.y]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT, MAINNET_TOKENS.TUSD],
-        pool: SWERVE_POOLS.y,
-        gasSchedule: 140e3,
-    }),
-};
-
-export const SNOWSWAP_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SNOWSWAP_POOLS.yUSD]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.yUSD, MAINNET_TOKENS.ybCRV],
-        pool: SNOWSWAP_POOLS.yUSD,
-        gasSchedule: 990e3,
-    }),
-    [SNOWSWAP_POOLS.yUSD]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.yCRV, MAINNET_TOKENS.bCRV],
-        pool: SNOWSWAP_POOLS.yUSD,
-        gasSchedule: 990e3,
-    }),
-    [SNOWSWAP_POOLS.yVault]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.yDAI, MAINNET_TOKENS.yUSDC, MAINNET_TOKENS.yUSDT, MAINNET_TOKENS.yTUSD],
-        pool: SNOWSWAP_POOLS.yVault,
-        gasSchedule: 1490e3,
-    }),
-    // Unsupported due to collision with WETH and ETH with execution using MixinCurve
-    // [SNOWSWAP_POOLS.eth]: createCurveExchangePool({
-    //     tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.vETH, MAINNET_TOKENS.ankrETH, MAINNET_TOKENS.crETH],
-    //     pool: SNOWSWAP_POOLS.eth,
-    //     gasSchedule: 990e3,
-    // }),
-};
-
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
     [BELT_POOLS.vPool]: createCurveExchangeUnderlyingPool({
         tokens: [BSC_TOKENS.DAI, BSC_TOKENS.USDC, BSC_TOKENS.USDT, BSC_TOKENS.BUSD],
@@ -1931,11 +1876,6 @@ export const CRYPTO_COM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xceb90e4c17d626be0facd78b79c9c87d7ca181b3',
     },
-    NULL_ADDRESS,
-);
-
-export const LINKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    { [ChainId.Mainnet]: '0xa7ece0911fe8c60bff9e99f8fafcdbe56e07aff1' },
     NULL_ADDRESS,
 );
 
@@ -2430,12 +2370,9 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
         return (fillData as LiquidityProviderFillData).gasCost || 100e3;
     },
-    [ERC20BridgeSource.Eth2Dai]: () => 400e3,
     [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.Swerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.SnowSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Synapse]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Belt]: fillData => (fillData as CurveFillData).pool.gasSchedule,
@@ -2450,7 +2387,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.Linkswap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {

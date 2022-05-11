@@ -829,7 +829,7 @@ export class MarketOperationUtils {
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
         void Promise.all(
             Object.values(this._sampler.poolsCaches).map(async cache => {
-                if (cache.isFresh(takerToken, makerToken)) {
+                if (!cache || cache.isFresh(takerToken, makerToken)) {
                     return Promise.resolve([]);
                 }
                 return cache.getFreshPoolsForPairAsync(takerToken, makerToken);

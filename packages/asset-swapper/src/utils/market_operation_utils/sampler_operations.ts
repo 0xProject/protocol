@@ -33,9 +33,7 @@ import {
     KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
-    LINKSWAP_ROUTER_BY_CHAIN_ID,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
-    MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -107,7 +105,7 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 
 export type PoolsCacheMap = { [key in Exclude<SourcesWithPoolsCache, ERC20BridgeSource.BalancerV2>]: PoolsCache } & {
-    [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache;
+    [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache | undefined;
 };
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
@@ -151,7 +149,10 @@ export class SamplerOperations {
                   ),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
-                  [ERC20BridgeSource.BalancerV2]: new BalancerV2SwapInfoCache(chainId),
+                  [ERC20BridgeSource.BalancerV2]:
+                      BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[chainId] === NULL_ADDRESS
+                          ? undefined
+                          : new BalancerV2SwapInfoCache(chainId),
               };
 
         const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
@@ -571,7 +572,7 @@ export class SamplerOperations {
         });
     }
 
-    public getBalancerV2MulthopSellQuotes(
+    public getBalancerV2MultihopSellQuotes(
         vault: string,
         quoteSwaps: BalancerSwapInfo, // Should always be sell swap steps.
         fillSwaps: BalancerSwapInfo, // Should always be sell swap steps.
@@ -592,7 +593,7 @@ export class SamplerOperations {
         });
     }
 
-    public getBalancerV2MulthopBuyQuotes(
+    public getBalancerV2MultihopBuyQuotes(
         vault: string,
         quoteSwaps: BalancerSwapInfo, // Should always be buy swap steps.
         fillSwaps: BalancerSwapInfo, // Should always be a sell quote.
@@ -1349,7 +1350,7 @@ export class SamplerOperations {
         takerFillAmounts: BigNumber[],
         tokenAdjacencyGraph: TokenAdjacencyGraph = this.tokenAdjacencyGraph,
     ): SourceQuoteOperation[] {
-        // Find the adjacent tokens in the provided tooken adjacency graph,
+        // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
         const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph);
         // Drop out MultiHop and Native as we do not query those here.
@@ -1362,8 +1363,6 @@ export class SamplerOperations {
                     return [];
                 }
                 switch (source) {
-                    case ERC20BridgeSource.Eth2Dai:
-                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapSellQuotes(
@@ -1422,8 +1421,6 @@ export class SamplerOperations {
                         );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
-                    case ERC20BridgeSource.Swerve:
-                    case ERC20BridgeSource.SnowSwap:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
@@ -1499,15 +1496,19 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2: {
-                        const swaps = this.poolsCaches[source].getCachedSwapInfoForPair(takerToken, makerToken);
+                        const cache = this.poolsCaches[source];
+                        if (!cache) {
+                            return [];
+                        }
 
+                        const swaps = cache.getCachedSwapInfoForPair(takerToken, makerToken);
                         const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (!swaps || vault === NULL_ADDRESS) {
                             return [];
                         }
                         // Changed to retrieve queryBatchSwap for swap steps > 1 of length
                         return swaps.swapInfoExactIn.map(swapInfo =>
-                            this.getBalancerV2MulthopSellQuotes(vault, swapInfo, swapInfo, takerFillAmounts, source),
+                            this.getBalancerV2MultihopSellQuotes(vault, swapInfo, swapInfo, takerFillAmounts, source),
                         );
                     }
                     case ERC20BridgeSource.Beethovenx: {
@@ -1578,23 +1579,6 @@ export class SamplerOperations {
                             makerToken,
                             takerToken,
                             takerFillAmounts,
-                        );
-                    case ERC20BridgeSource.Linkswap:
-                        if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
-                            return [];
-                        }
-                        return [
-                            [takerToken, makerToken],
-                            ...getIntermediateTokens(makerToken, takerToken, {
-                                default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
-                            }).map(t => [takerToken, t, makerToken]),
-                        ].map(path =>
-                            this.getUniswapV2SellQuotes(
-                                LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
-                                path,
-                                takerFillAmounts,
-                                ERC20BridgeSource.Linkswap,
-                            ),
                         );
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
@@ -1685,8 +1669,6 @@ export class SamplerOperations {
         return _.flatten(
             _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
                 switch (source) {
-                    case ERC20BridgeSource.Eth2Dai:
-                        return [];
                     case ERC20BridgeSource.Uniswap:
                         return isValidAddress(UNISWAPV1_ROUTER_BY_CHAIN_ID[this.chainId])
                             ? this.getUniswapBuyQuotes(
@@ -1745,8 +1727,6 @@ export class SamplerOperations {
                         );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
-                    case ERC20BridgeSource.Swerve:
-                    case ERC20BridgeSource.SnowSwap:
                     case ERC20BridgeSource.Nerve:
                     case ERC20BridgeSource.Synapse:
                     case ERC20BridgeSource.Belt:
@@ -1822,15 +1802,19 @@ export class SamplerOperations {
                             ),
                         );
                     case ERC20BridgeSource.BalancerV2: {
-                        const swaps = this.poolsCaches[source].getCachedSwapInfoForPair(takerToken, makerToken);
+                        const cache = this.poolsCaches[source];
+                        if (!cache) {
+                            return [];
+                        }
 
+                        const swaps = cache.getCachedSwapInfoForPair(takerToken, makerToken);
                         const vault = BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (!swaps || vault === NULL_ADDRESS) {
                             return [];
                         }
                         // Changed to retrieve queryBatchSwap for swap steps > 1 of length
                         return swaps.swapInfoExactOut.map((quoteSwapInfo, i) =>
-                            this.getBalancerV2MulthopBuyQuotes(
+                            this.getBalancerV2MultihopBuyQuotes(
                                 vault,
                                 quoteSwapInfo,
                                 swaps.swapInfoExactIn[i],
@@ -1902,24 +1886,6 @@ export class SamplerOperations {
                         // Unimplemented
                         // return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         return [];
-                    case ERC20BridgeSource.Linkswap:
-                        if (!isValidAddress(LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId])) {
-                            return [];
-                        }
-                        return [
-                            [takerToken, makerToken],
-                            // LINK is the base asset in many of the pools on Linkswap
-                            ...getIntermediateTokens(makerToken, takerToken, {
-                                default: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.WETH],
-                            }).map(t => [takerToken, t, makerToken]),
-                        ].map(path =>
-                            this.getUniswapV2BuyQuotes(
-                                LINKSWAP_ROUTER_BY_CHAIN_ID[this.chainId],
-                                path,
-                                makerFillAmounts,
-                                ERC20BridgeSource.Linkswap,
-                            ),
-                        );
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {

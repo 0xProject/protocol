@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.57.3 - _May 10, 2022_
+
+    * Fix a runtime error related to BalancerV2SwapInfoCache (#472)
+
 ## v16.57.2 - _May 2, 2022_
 
     * Fix missing AMM quotes on indicative Quote Reports (#466)
