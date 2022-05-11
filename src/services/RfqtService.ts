@@ -15,7 +15,12 @@ import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteR
  * from `0x/asset-swapper`.
  */
 export class RfqtService {
-    constructor(private readonly _quoteRequestor: QuoteRequestor) {}
+    constructor(
+        private readonly _quoteRequestor: Pick<
+            QuoteRequestor,
+            'requestRfqtIndicativeQuotesAsync' | 'requestRfqtFirmQuotesAsync'
+        >,
+    ) {}
 
     /**
      * Pass through to `QuoteRequestor::requestRfqtIndicativeQuotesAsync` to fetch
