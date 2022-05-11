@@ -8,6 +8,7 @@ import { BigNumber } from '@0x/utils';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
+import { IRfqClient } from '../irfq_client';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { SourceFilters } from './source_filters';
@@ -447,6 +448,7 @@ export type OptimizedMarketOrder =
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
+    rfqClient?: IRfqClient;
     quoteRequestor?: QuoteRequestor;
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }
