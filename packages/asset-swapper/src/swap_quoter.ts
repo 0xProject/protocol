@@ -28,6 +28,7 @@ import {
     SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
+import { IRfqClient } from './utils/irfq_client';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { ZERO_AMOUNT } from './utils/market_operation_utils/constants';
 import { SamplerClient } from './utils/market_operation_utils/sampler';
@@ -287,6 +288,7 @@ export class SwapQuoter {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
+        rfqClient: IRfqClient | undefined,
     ): Promise<SwapQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
@@ -336,6 +338,7 @@ export class SwapQuoter {
                 this.expiryBufferMs,
                 rfqtOptions?.metricsProxy,
             );
+            calcOpts.rfqt.rfqClient = rfqClient;
         }
 
         const result: OptimizerResultWithReport = await this._marketOperationUtils.getOptimizerResultAsync(

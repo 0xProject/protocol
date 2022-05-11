@@ -7,9 +7,15 @@ import {
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+<<<<<<< HEAD
 import { Address, Bytes, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { NativeOrderWithFillableAmounts } from '../native_orders';
 import { QuoteRequestor } from '../../utils/quote_requestor';
+=======
+import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
+import { IRfqClient } from '../irfq_client';
+>>>>>>> a7f23a982 (feat: add IRfqClient (#467))
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { SourceFilters } from './source_filters';
@@ -401,6 +407,7 @@ export interface OptimizedRfqOrder extends OptimizedNativeOrder {
 }
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
+    rfqClient?: IRfqClient;
     quoteRequestor?: QuoteRequestor;
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }

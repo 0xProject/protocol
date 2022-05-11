@@ -118,6 +118,20 @@ export {
 } from './types';
 export { affiliateFeeUtils } from './utils/affiliate_fee_utils';
 export {
+<<<<<<< HEAD
+=======
+    IRfqClient,
+    RfqClientV1Price,
+    RfqClientV1PriceRequest,
+    RfqClientV1PriceResponse,
+    RfqClientV1Quote,
+    RfqClientV1QuoteRequest,
+    RfqClientV1QuoteResponse,
+} from './utils/irfq_client';
+export {
+    DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
+    DEFAULT_GAS_SCHEDULE,
+>>>>>>> a7f23a982 (feat: add IRfqClient (#467))
     SOURCE_FLAGS,
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
