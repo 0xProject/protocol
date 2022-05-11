@@ -52,6 +52,7 @@ describe('RFQ maker API tests', () => {
         // Start the server
         const res = await runHttpRfqmServiceAsync(
             mockRfqmServices,
+            new Map(),
             mockRfqAdminService,
             instance(mockRfqMakerService),
             configManagerMock,

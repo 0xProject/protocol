@@ -36,6 +36,7 @@ import { RfqMakerService } from '../services/rfq_maker_service';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServicesAsync, getAxiosRequestConfig, RfqmServices } from '../utils/rfqm_service_builder';
+import { buildRfqtServicesAsync, RfqtServices } from '../utils/rfqtServiceBuilder';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
@@ -60,7 +61,6 @@ if (require.main === module) {
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
-
         const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
         const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY);
 
@@ -72,10 +72,14 @@ if (require.main === module) {
             tokenPriceOracle,
             configManager,
         );
+
+        const rfqtServices = await buildRfqtServicesAsync(CHAIN_CONFIGURATIONS, rfqMakerDbUtils);
+
         const rfqAdminService = buildRfqAdminService(rfqmDbUtils);
         const rfqMakerService = buildRfqMakerService(rfqMakerDbUtils, configManager);
         await runHttpRfqmServiceAsync(
             rfqmServices,
+            rfqtServices,
             rfqAdminService,
             rfqMakerService,
             configManager,
@@ -104,6 +108,7 @@ export function buildRfqMakerService(dbUtils: RfqMakerDbUtils, configManager: Co
  */
 export async function runHttpRfqmServiceAsync(
     rfqmServices: RfqmServices,
+    rfqtServices: RfqtServices,
     rfqAdminService: RfqAdminService,
     rfqMakerService: RfqMakerService,
     configManager: ConfigManager,

@@ -337,6 +337,7 @@ describe('RFQM Integration', () => {
                 [1337, rfqmServiceChainId1337],
                 [3, rfqmServiceChainId3],
             ]),
+            new Map(),
             rfqAdminService,
             rfqMakerService,
             configManager,
