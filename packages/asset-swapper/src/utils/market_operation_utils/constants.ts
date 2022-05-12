@@ -431,6 +431,7 @@ export const MAINNET_TOKENS = {
     RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
     sBTC: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
     tBTC: '0x8daebade922df735c38c80c7ebd708af50815faa',
+    tBTCv2: '0x18084fbA666a33d37592fA2633fD49a74DD93a88',
     hBTC: '0x0316eb71485b0ab14103307bf65a021042c6d380',
     pBTC: '0x5228a22e72ccc52d415ecfd199f99d0665e7733b',
     bBTC: '0x9be89d2a4cd102d8fecc6bf9da793be995c22541',
@@ -741,8 +742,8 @@ export const SMOOTHY_POOLS = {
 };
 
 export const SADDLE_POOLS = {
-    stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
-    bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
+    stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7',
+    bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
 };
@@ -1520,21 +1521,21 @@ export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
 
 // Curve-like sources using custom selectors
 export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SADDLE_POOLS.stables]: {
+    [SADDLE_POOLS.stablesV2]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.stables,
+        poolAddress: SADDLE_POOLS.stablesV2,
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
-    [SADDLE_POOLS.bitcoins]: {
+    [SADDLE_POOLS.bitcoinsV2]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.bitcoins,
-        tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        poolAddress: SADDLE_POOLS.bitcoinsV2,
+        tokens: [ MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
