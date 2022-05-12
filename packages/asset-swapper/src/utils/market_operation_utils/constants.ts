@@ -743,8 +743,6 @@ export const SADDLE_POOLS = {
     bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
-    tBTCMetaV2: '0xA0b4a2667dD60d5CdD7EcFF1084F0CeB8dD84326',
-    sUSDMetapoolV2: '0x824dcD7b044D60df2e89B1bB888e66D8BCf41491',
 };
 
 export const IRONSWAP_POOLS = {
@@ -1556,16 +1554,6 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
-    [SADDLE_POOLS.tBTCMetaV2]: createCurveMetaTriBtcPool({
-        tokens: [MAINNET_TOKENS.tBTCv2],
-        pool: SADDLE_POOLS.tBTCMetaV2,
-        gasSchedule: 482e3,
-    }),
-    [SADDLE_POOLS.sUSDMetapoolV2]: createCurveMetaTriPool({
-        tokens: [MAINNET_TOKENS.sUSD],
-        pool: SADDLE_POOLS.sUSDMetapoolV2,
-        gasSchedule: 411e3,
-    }),
 };
 
 export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
