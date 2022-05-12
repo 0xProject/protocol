@@ -383,6 +383,47 @@ export const MAINNET_TOKENS = {
     USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     USDT: '0xdac17f958d2ee523a2206206994597c13d831ec7',
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+<<<<<<< HEAD
+=======
+    RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
+    sBTC: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
+    tBTC: '0x8daebade922df735c38c80c7ebd708af50815faa',
+    tBTCv2: '0x18084fbA666a33d37592fA2633fD49a74DD93a88',
+    hBTC: '0x0316eb71485b0ab14103307bf65a021042c6d380',
+    pBTC: '0x5228a22e72ccc52d415ecfd199f99d0665e7733b',
+    bBTC: '0x9be89d2a4cd102d8fecc6bf9da793be995c22541',
+    oBTC: '0x8064d9ae6cdf087b1bcd5bdf3531bd5d8c537a68',
+    // aTokens (Aave)
+    aDAI: '0x028171bca77440897b824ca71d1c56cac55b68a3',
+    aUSDC: '0xbcca60bb61934080951369a648fb03df4f96263c',
+    aUSDT: '0x3ed3b47dd13ec9a98b44e6204a523e766b225811',
+    aSUSD: '0x6c5024cd4f8a59110119c56f8933403a539555eb',
+    // Other
+    MKR: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
+    EURS: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
+    sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
+    sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+    stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
+    MANA: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942',
+    KNC: '0xdefa4e8a7bcba345f687a2f1456f5edd9ce97202',
+    AAVE: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
+    sLINK: '0xbbc455cb4f1b9e4bfc4b73970d360c8f032efee6',
+    yUSD: '0x5dbcf33d8c2e976c6b560249878e6f1491bca25c',
+    ybCRV: '0x2994529c0652d127b7842094103715ec5299bbed',
+    yCRV: '0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8',
+    bCRV: '0x3b3ac5386837dc563660fb6a0937dfaa5924333b',
+    yDAI: '0xacd43e627e64355f1861cec6d3a6688b31a6f952',
+    yUSDC: '0x597ad1e0c13bfe8025993d9e79c69e1c0233522e',
+    yUSDT: '0x2f08119c6f07c006695e079aafc638b8789faf18',
+    yTUSD: '0x37d19d1c4e1fa9dc47bd1ea12f742a0887eda74a',
+    crETH: '0xcbc1065255cbc3ab41a6868c22d1f1c573ab89fd',
+    ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
+    vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
+    alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
+    HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
+    // Mirror Protocol
+>>>>>>> 87308e769 (Update saddle mainnet pools (#450))
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
     // StableSwap "open pools" (crv.finance)
@@ -648,8 +689,8 @@ export const SMOOTHY_POOLS = {
 };
 
 export const SADDLE_POOLS = {
-    stables: '0x3911f80530595fbd01ab1516ab61255d75aeb066',
-    bitcoins: '0x4f6a43ad7cba042606decaca730d4ce0a57ac62e',
+    stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7',
+    bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
 };
@@ -1430,21 +1471,21 @@ export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
 
 // Curve-like sources using custom selectors
 export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SADDLE_POOLS.stables]: {
+    [SADDLE_POOLS.stablesV2]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.stables,
+        poolAddress: SADDLE_POOLS.stablesV2,
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
-    [SADDLE_POOLS.bitcoins]: {
+    [SADDLE_POOLS.bitcoinsV2]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.bitcoins,
-        tokens: [MAINNET_TOKENS.tBTC, MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        poolAddress: SADDLE_POOLS.bitcoinsV2,
+        tokens: [ MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
