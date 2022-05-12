@@ -1485,7 +1485,7 @@ export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SADDLE_POOLS.bitcoinsV2,
-        tokens: [ MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
+        tokens: [MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
         metaTokens: undefined,
         gasSchedule: 150e3,
     },
