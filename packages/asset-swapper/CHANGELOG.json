@@ -13,6 +13,10 @@
             {
                 "note": "Offboard Eth2Dai",
                 "pr": 470
+            },
+            {
+                "note": "Add an optional IRfqClient for SwapQuoter",
+                "pr": 467
             }
         ]
     },
