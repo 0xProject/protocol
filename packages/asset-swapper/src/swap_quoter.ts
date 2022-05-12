@@ -288,7 +288,7 @@ export class SwapQuoter {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
-        rfqClient: IRfqClient | undefined,
+        rfqClient?: IRfqClient | undefined,
     ): Promise<SwapQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);
