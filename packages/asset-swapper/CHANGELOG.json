@@ -15,7 +15,7 @@
                 "pr": 470
             },
             {
-                "note": "Add an optional IRfqClient for SwapQuoter",
+                "note": "Add an optional IRfqClient for SwapQuoter#getSwapQuoteAsync",
                 "pr": 467
             }
         ]
