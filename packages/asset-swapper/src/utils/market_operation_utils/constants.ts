@@ -527,6 +527,7 @@ export const BSC_TOKENS = {
     renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
     pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
     nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
+    BSW: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1',
 };
 
 export const POLYGON_TOKENS = {
