@@ -217,7 +217,6 @@ export class SwapHandlers {
             'quoteReport',
             'extendedQuoteReportSources',
             'priceComparisonsReport',
-            'decodedUniqueId',
             'blockNumber',
         );
         if (params.includePriceComparisons && quote.priceComparisonsReport) {

@@ -70,6 +70,15 @@ const omitFillData = (source: QuoteReportEntry) => {
     };
 };
 
+/**
+ * Extracts timestamp from decoded unique identifier for taker transactions.
+ * @param decodedUniqueId unique identifier for an affiliate
+ * @returns timestamp used when the unique identifier is generated
+ */
+const getTimestampFromUniqueId = (decodedUniqueId: string): number => {
+    return parseInt(decodedUniqueId.slice(decodedUniqueId.indexOf('-') + 1), 10);
+};
+
 export const quoteReportUtils = {
     logQuoteReport(logOpts: QuoteReportLogOptions, contextLogger?: PinoLogger): void {
         const _logger = contextLogger ? contextLogger : logger;
@@ -123,7 +132,8 @@ export const quoteReportUtils = {
             const extendedQuoteReport: ExtendedQuoteReport = {
                 quoteId: logOpts.quoteId,
                 taker: logOpts.taker,
-                timestamp: Date.now(),
+                timestamp:
+                    logOpts.submissionBy === 'taker' ? getTimestampFromUniqueId(logOpts.decodedUniqueId) : Date.now(),
                 firmQuoteReport: isFirmQuote,
                 submissionBy: logOpts.submissionBy,
                 buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
