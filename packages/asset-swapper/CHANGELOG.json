@@ -18,7 +18,8 @@
                 "note": "Add an optional IRfqClient for SwapQuoter#getSwapQuoteAsync",
                 "pr": 467
             }
-        ]
+        ],
+        "timestamp": 1652400434
     },
     {
         "version": "16.58.0",
