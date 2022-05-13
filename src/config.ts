@@ -187,7 +187,6 @@ export const getIntegratorIdFromLabel = (label: string): string | undefined => {
 export type RfqWorkFlowType = 'rfqt' | 'rfqm';
 export type RfqOrderType = 'rfq' | 'otc';
 
-export const RFQ_WORKFLOW: RfqWorkFlowType = 'rfqm'; // This code base currently only supports rfqm workflow. rfqt is supported in 0x-api repo.
 export const RFQ_MAKER_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 
 /**
@@ -319,6 +318,7 @@ export const ADMIN_API_KEY: string | undefined = _.isEmpty(process.env.ADMIN_API
     ? undefined
     : assertEnvVarType('ADMIN_API_KEY', process.env.ADMIN_API_KEY, EnvVarType.NonEmptyString);
 
+export const RFQT_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqt');
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
 export const RFQM_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqm');
 export const RFQM_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqm');

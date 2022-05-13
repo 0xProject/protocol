@@ -81,7 +81,7 @@ export class RefreshingQuoteRequestor {
      * Creates a new `QuoteRequestor` instance with new pairs.
      */
     private _createQuoteRequestor(): QuoteRequestor {
-        const rfqAssetOfferings = this._rfqMakerManager.getRfqmMakerOfferings();
+        const rfqAssetOfferings = this._rfqMakerManager.getRfqtMakerOfferingsForRfqOrder();
         return new QuoteRequestor(
             rfqAssetOfferings,
             this._quoteRequestorHttpClient,

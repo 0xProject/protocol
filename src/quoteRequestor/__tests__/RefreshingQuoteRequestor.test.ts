@@ -28,7 +28,7 @@ jest.mock('../../utils/rfq_maker_manager', () => {
     return {
         RfqMakerManager: jest.fn().mockImplementation((...args) => {
             const rmm = new EventEmitter() as unknown as jest.MockedObject<RfqMakerManager>;
-            rmm.getRfqmMakerOfferings = jest.fn().mockReturnValue([]);
+            rmm.getRfqtMakerOfferingsForRfqOrder = jest.fn().mockReturnValue([]);
             return rmm;
         }),
     };

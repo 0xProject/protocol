@@ -15,6 +15,7 @@ import {
     RFQM_MAKER_ID_SET,
     RFQM_MAKER_ID_SET_FOR_OTC_ORDER,
     RFQM_MAKER_ID_SET_FOR_RFQ_ORDER,
+    RFQT_MAKER_ID_SET_FOR_RFQ_ORDER,
     RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
 
@@ -49,7 +50,14 @@ export class ConfigManager {
     }
 
     /**
-     * Get a set of makers that support RFQm workflow with either rfq or otc order types
+     * Get a set of makers that support RFQt workflow with rfq order type
+     */
+    public getRfqtMakerIdSetForRfqOrder(): MakerIdSet {
+        return RFQT_MAKER_ID_SET_FOR_RFQ_ORDER;
+    }
+
+    /**
+     * Get a set of makers that support RFQm workflow
      */
     public getRfqmMakerIdSet(): MakerIdSet {
         return RFQM_MAKER_ID_SET;
