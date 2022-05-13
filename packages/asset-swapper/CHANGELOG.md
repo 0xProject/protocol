@@ -5,6 +5,17 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.59.0 - _May 13, 2022_
+
+    * Remove SnowSwap on mainnet (#468)
+    * Offboard Swerve Finance and LinkSwap (#469)
+    * Offboard Eth2Dai (#470)
+    * Add an optional IRfqClient for SwapQuoter#getSwapQuoteAsync (#467)
+
+## v16.58.0 - _Invalid date_
+
+    * Update Saddle pools on Mainnet (#450)
+
 ## v16.57.3 - _May 10, 2022_
 
     * Fix a runtime error related to BalancerV2SwapInfoCache (#472)
