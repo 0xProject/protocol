@@ -26,7 +26,7 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 
 
 /// @dev Minimal interface for minting StETH
-interface ILido {
+interface IStETH {
     /// @dev Adds eth to the pool
     /// @param _referral optional address for referrals
     /// @return StETH Amount of shares generated
@@ -35,6 +35,33 @@ interface ILido {
     /// @param _sharesAmount amount of shares
     /// @return amount of pooled ETH represented by the shares amount
     function getPooledEthByShares(uint256 _sharesAmount) external view returns (uint256);
+}
+
+/// @dev Minimal interface for wrapping/unwrapping stETH.
+interface IWstETH {
+
+    /**
+     * @notice Exchanges stETH to wstETH
+     * @param _stETHAmount amount of stETH to wrap in exchange for wstETH
+     * @dev Requirements:
+     *  - `_stETHAmount` must be non-zero
+     *  - msg.sender must approve at least `_stETHAmount` stETH to this
+     *    contract.
+     *  - msg.sender must have at least `_stETHAmount` of stETH.
+     * User should first approve _stETHAmount to the WstETH contract
+     * @return Amount of wstETH user receives after wrap
+     */
+    function wrap(uint256 _stETHAmount) external returns (uint256);
+
+    /**
+     * @notice Exchanges wstETH to stETH
+     * @param _wstETHAmount amount of wstETH to uwrap in exchange for stETH
+     * @dev Requirements:
+     *  - `_wstETHAmount` must be non-zero
+     *  - msg.sender must have at least `_wstETHAmount` wstETH.
+     * @return Amount of stETH user receives after unwrap
+     */
+    function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
 
 
@@ -59,12 +86,43 @@ contract MixinLido {
         internal
         returns (uint256 boughtAmount)
     {
-        (ILido lido) = abi.decode(bridgeData, (ILido));
-        if (address(sellToken) == address(WETH) && address(buyToken) == address(lido)) {
+        if (address(sellToken) == address(WETH)) {
+            return _tradeStETH(buyToken, sellAmount, bridgeData);
+        } 
+
+        return _tradeWstETH(sellToken, buyToken, sellAmount, bridgeData);
+    }
+
+    function _tradeStETH(
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+    ) private returns (uint256 boughtAmount) {
+        (IStETH stETH) = abi.decode(bridgeData, (IStETH));
+        if (address(buyToken) == address(stETH)) {
             WETH.withdraw(sellAmount);
-            boughtAmount = lido.getPooledEthByShares(lido.submit{ value: sellAmount}(address(0)));
-        } else {
-            revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
+            return stETH.getPooledEthByShares(stETH.submit{ value: sellAmount}(address(0)));
         }
+
+        revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
+    }
+
+    function _tradeWstETH(
+        IERC20TokenV06 sellToken,
+        IERC20TokenV06 buyToken,
+        uint256 sellAmount,
+        bytes memory bridgeData
+
+    ) private returns(uint256 boughtAmount){
+        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(bridgeData, (IEtherTokenV06, IWstETH));
+        sellToken.approveIfBelow(address(wstETH), sellAmount);
+        if (address(sellToken) == address(stETH) && address(buyToken) == address(wstETH) ) {
+            return wstETH.wrap(sellAmount);
+        }
+        if (address(sellToken) == address(wstETH) && address(buyToken) == address(stETH) ) {
+            return wstETH.unwrap(sellAmount);
+        }
+
+        revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
     }
 }
