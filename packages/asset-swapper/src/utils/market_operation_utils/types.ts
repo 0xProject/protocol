@@ -192,7 +192,7 @@ export interface GeistInfo {
 }
 
 export interface PlatypusInfo {
-    poolAddress: string;
+    poolAddress: string[];
     tokens: string[];
     gasSchedule: number;
 }

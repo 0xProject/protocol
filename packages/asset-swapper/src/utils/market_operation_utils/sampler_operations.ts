@@ -1262,7 +1262,7 @@ export class SamplerOperations {
             fillData: { router, pool, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromPlatypus,
-            params: [pool[0], tokenAddressPath, takerFillAmounts],
+            params: [router, tokenAddressPath, pool, takerFillAmounts],
         });
     }
     public getPlatypusBuyQuotes(
@@ -1273,10 +1273,10 @@ export class SamplerOperations {
     ): SourceQuoteOperation<PlatypusFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Platypus,
-            fillData: { router, pool, tokenAddressPath },
+            fillData: { router, tokenAddressPath, pool },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromPlatypus,
-            params: [pool[0], tokenAddressPath, makerFillAmounts],
+            params: [router, tokenAddressPath, pool, makerFillAmounts],
         });
     }
 
@@ -1684,8 +1684,8 @@ export class SamplerOperations {
                         return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
                             this.getPlatypusSellQuotes(
                             PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
-                            [pool.poolAddress],
-                            [takerToken, makerToken],
+                            pool.poolAddress,
+                            pool.tokens,
                             takerFillAmounts,
                             ),
                         );
@@ -2008,8 +2008,8 @@ export class SamplerOperations {
                         return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
                             this.getPlatypusBuyQuotes(
                             PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
-                            [pool.poolAddress],
-                            [takerToken, makerToken],
+                            pool.poolAddress,
+                            pool.tokens,
                             makerFillAmounts,
                             ),
                         );

@@ -468,12 +468,42 @@ export function getPlatypusInfoForPair(chainId: ChainId, takerToken: string, mak
     if (chainId !== ChainId.Avalanche) {
         return [];
     }
-    return Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
-        [makerToken, takerToken].every(
+    let ptpPools: PlatypusInfo[] = [];
+    const makerTokenPool = Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
+        [makerToken].every(
             t =>
                 c.tokens.includes(t),
         ),
     );
+    const takerTokenPool = Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
+        [takerToken].every(
+            t =>
+                c.tokens.includes(t),
+        ),
+    );
+
+
+    if( makerTokenPool[0].tokens.includes(takerToken)){
+        let pool: PlatypusInfo = {
+            gasSchedule: makerTokenPool[0].gasSchedule,
+            poolAddress: [makerTokenPool[0].poolAddress[0]],
+            tokens: [makerToken,takerToken],
+        };
+        ptpPools.push(pool);
+    }
+    else{
+        const intermediateToken = makerTokenPool[0].tokens.filter(element => takerTokenPool[0].tokens.includes(element));
+        //return similar values from two arrays
+
+        let pool: PlatypusInfo = {
+            gasSchedule: makerTokenPool[0].gasSchedule + makerTokenPool[0].gasSchedule,
+            poolAddress: [makerTokenPool[0].poolAddress[0], takerTokenPool[0].poolAddress[0]],
+            tokens: [makerToken,intermediateToken[0],takerToken],
+        };
+        ptpPools.push(pool);
+    }
+
+    return ptpPools;
 }
 
 export function getShellLikeInfosForPair(

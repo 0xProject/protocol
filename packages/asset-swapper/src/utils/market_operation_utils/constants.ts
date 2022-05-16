@@ -1837,27 +1837,27 @@ export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
 
 export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     [PLATYPUS_AVALANCHE_POOLS.usd]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.usd,
+        poolAddress: [PLATYPUS_AVALANCHE_POOLS.usd],
         tokens: [AVALANCHE_TOKENS.USDT, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.USDt],
         gasSchedule: 350e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.ust]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.ust,
+        poolAddress: [PLATYPUS_AVALANCHE_POOLS.ust],
         tokens: [AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.UST],
         gasSchedule: 350e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.frax]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.frax,
+        poolAddress: [PLATYPUS_AVALANCHE_POOLS.frax],
         tokens: [AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.FRAX], //liq issues
         gasSchedule: 350e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.mim]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.mim,
+        poolAddress: [PLATYPUS_AVALANCHE_POOLS.mim],
         tokens: [AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.nUSDC],
         gasSchedule: 350e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.sAVAX]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.sAVAX,
+        poolAddress: [PLATYPUS_AVALANCHE_POOLS.sAVAX],
         tokens: [AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.sAVAX], //add unwrapping
         gasSchedule: 350e3,
     },
