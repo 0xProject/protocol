@@ -92,6 +92,8 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    Platypus = 'Platypus',
+    GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -351,6 +353,24 @@ export interface GeistFillData extends FillData {
     takerToken: string;
 }
 
+export interface PlatypusInfo {
+    poolAddress: string;
+    tokens: string[];
+    gasSchedule: number;
+}
+
+export interface GMXFillData extends FillData {
+    router: string;
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
+}
+
+export interface PlatypusFillData extends FillData {
+    router: string;
+    pool: string[];
+    tokenAddressPath: string[];
+}
 /**
  * Represents a node on a fill path.
  */

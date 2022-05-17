@@ -110,6 +110,7 @@ import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
 import * as MixinCurveV2 from '../test/generated-artifacts/MixinCurveV2.json';
 import * as MixinDodo from '../test/generated-artifacts/MixinDodo.json';
 import * as MixinDodoV2 from '../test/generated-artifacts/MixinDodoV2.json';
+import * as MixinGMX from '../test/generated-artifacts/MixinGMX.json';
 import * as MixinKyber from '../test/generated-artifacts/MixinKyber.json';
 import * as MixinKyberDmm from '../test/generated-artifacts/MixinKyberDmm.json';
 import * as MixinLido from '../test/generated-artifacts/MixinLido.json';
@@ -118,6 +119,7 @@ import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinNerve from '../test/generated-artifacts/MixinNerve.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
+import * as MixinPlatypus from '../test/generated-artifacts/MixinPlatypus.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
@@ -323,6 +325,7 @@ export const artifacts = {
     MixinCurveV2: MixinCurveV2 as ContractArtifact,
     MixinDodo: MixinDodo as ContractArtifact,
     MixinDodoV2: MixinDodoV2 as ContractArtifact,
+    MixinGMX: MixinGMX as ContractArtifact,
     MixinKyber: MixinKyber as ContractArtifact,
     MixinKyberDmm: MixinKyberDmm as ContractArtifact,
     MixinLido: MixinLido as ContractArtifact,
@@ -331,6 +334,7 @@ export const artifacts = {
     MixinMooniswap: MixinMooniswap as ContractArtifact,
     MixinNerve: MixinNerve as ContractArtifact,
     MixinOasis: MixinOasis as ContractArtifact,
+    MixinPlatypus: MixinPlatypus as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
