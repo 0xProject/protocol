@@ -27,7 +27,6 @@ import {
     LiquidityProviderRegistry,
     MakerPsmFillData,
     MultiHopFillData,
-    PlatypusFillData,
     PlatypusInfo,
     PsmInfo,
     TokenAdjacencyGraph,
@@ -569,7 +568,6 @@ export const AVALANCHE_TOKENS = {
     UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
     YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
-
 };
 
 export const CELO_TOKENS = {
@@ -1839,7 +1837,13 @@ export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
 export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     [PLATYPUS_AVALANCHE_POOLS.usd]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.usd,
-        tokens: [AVALANCHE_TOKENS.USDT, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.USDt],
+        tokens: [
+            AVALANCHE_TOKENS.USDT,
+            AVALANCHE_TOKENS.USDC,
+            AVALANCHE_TOKENS.DAI,
+            AVALANCHE_TOKENS.nUSDC,
+            AVALANCHE_TOKENS.USDt,
+        ],
         gasSchedule: 300e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.yusd]: {
@@ -1849,7 +1853,7 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     },
     [PLATYPUS_AVALANCHE_POOLS.frax]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.frax,
-        tokens: [AVALANCHE_TOKENS.FRAX, AVALANCHE_TOKENS.nUSDC], //liq issues
+        tokens: [AVALANCHE_TOKENS.FRAX, AVALANCHE_TOKENS.nUSDC],
         gasSchedule: 300e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.mim]: {
@@ -1859,7 +1863,7 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     },
     [PLATYPUS_AVALANCHE_POOLS.sAVAX]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.sAVAX,
-        tokens: [AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.sAVAX], //add unwrapping
+        tokens: [AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.sAVAX],
         gasSchedule: 300e3,
     },
 };

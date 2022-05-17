@@ -39,6 +39,7 @@ import {
     PANCAKESWAP_ROUTER_BY_CHAIN_ID,
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     PANGOLIN_ROUTER_BY_CHAIN_ID,
+    PLATYPUS_AVALANCHE_INFOS,
     POLYDEX_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
@@ -62,7 +63,6 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
-    PLATYPUS_AVALANCHE_INFOS,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
 
@@ -469,10 +469,7 @@ export function getPlatypusInfoForPair(chainId: ChainId, takerToken: string, mak
         return [];
     }
     return Object.values(PLATYPUS_AVALANCHE_INFOS).filter(c =>
-        [makerToken, takerToken].every(
-            t =>
-                c.tokens.includes(t),
-        ),
+        [makerToken, takerToken].every(t => c.tokens.includes(t)),
     );
 }
 

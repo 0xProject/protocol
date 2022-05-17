@@ -1672,8 +1672,11 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.GMX: {
-                         //low liquidity mim pool dont quote
-                        if(takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' || makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'){
+                        // low liquidity mim pool dont quote
+                        if (
+                            takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' ||
+                            makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'
+                        ) {
                             return [];
                         }
                         return this.getGMXSellQuotes(
@@ -1687,16 +1690,15 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Platypus: {
                         return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
                             this.getPlatypusSellQuotes(
-                            PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
-                            [pool.poolAddress],
-                            [takerToken, makerToken],
-                            takerFillAmounts,
+                                PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
+                                [pool.poolAddress],
+                                [takerToken, makerToken],
+                                takerFillAmounts,
                             ),
                         );
                     }
-                default:
-                    throw new Error(`Unsupported sell sample source: ${source}`);
-
+                    default:
+                        throw new Error(`Unsupported sell sample source: ${source}`);
                 }
             }),
         );
@@ -2000,8 +2002,11 @@ export class SamplerOperations {
                         return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.GMX: {
-                        //bad mim pool dont quote
-                        if(takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' || makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'){
+                        // bad mim pool dont quote
+                        if (
+                            takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' ||
+                            makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'
+                        ) {
                             return [];
                         }
                         return this.getGMXBuyQuotes(
@@ -2015,10 +2020,10 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Platypus: {
                         return getPlatypusInfoForPair(this.chainId, takerToken, makerToken).map(pool =>
                             this.getPlatypusBuyQuotes(
-                            PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
-                            [pool.poolAddress],
-                            [takerToken,makerToken],
-                            makerFillAmounts,
+                                PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
+                                [pool.poolAddress],
+                                [takerToken, makerToken],
+                                makerFillAmounts,
                             ),
                         );
                     }
