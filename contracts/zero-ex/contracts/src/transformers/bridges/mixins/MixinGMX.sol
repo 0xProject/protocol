@@ -62,14 +62,13 @@ contract MixinGMX {
         address[] memory _path;
         IGmxRouter router;
         IERC20TokenV06[] memory path;
-        
+
         {
             //decode the bridge data
             (_router, reader, vault, _path) = abi.decode(bridgeData, (address, address, address, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly { path := _path }
         }
-
 
         require(path.length >= 2, "MixinGMX/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(

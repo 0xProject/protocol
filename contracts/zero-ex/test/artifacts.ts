@@ -118,6 +118,7 @@ import * as MixinMooniswap from '../test/generated-artifacts/MixinMooniswap.json
 import * as MixinMStable from '../test/generated-artifacts/MixinMStable.json';
 import * as MixinNerve from '../test/generated-artifacts/MixinNerve.json';
 import * as MixinOasis from '../test/generated-artifacts/MixinOasis.json';
+import * as MixinPlatypus from '../test/generated-artifacts/MixinPlatypus.json';
 import * as MixinShell from '../test/generated-artifacts/MixinShell.json';
 import * as MixinUniswap from '../test/generated-artifacts/MixinUniswap.json';
 import * as MixinUniswapV2 from '../test/generated-artifacts/MixinUniswapV2.json';
@@ -331,6 +332,7 @@ export const artifacts = {
     MixinMooniswap: MixinMooniswap as ContractArtifact,
     MixinNerve: MixinNerve as ContractArtifact,
     MixinOasis: MixinOasis as ContractArtifact,
+    MixinPlatypus: MixinPlatypus as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,

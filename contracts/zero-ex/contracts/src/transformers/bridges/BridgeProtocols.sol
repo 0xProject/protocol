@@ -53,4 +53,5 @@ library BridgeProtocols {
     uint128 internal constant AAVEV2      = 23;
     uint128 internal constant COMPOUND    = 24;
     uint128 internal constant GMX         = 25;
+    uint128 internal constant PLATYPUS    = 26;
 }
