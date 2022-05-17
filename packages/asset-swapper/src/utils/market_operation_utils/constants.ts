@@ -933,6 +933,10 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
                     .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
+                // Lido
+                builder
+                    .add(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH)
+                    .add(MAINNET_TOKENS.wstETH, MAINNET_TOKENS.stETH);
             })
             // Build
             .build(),
