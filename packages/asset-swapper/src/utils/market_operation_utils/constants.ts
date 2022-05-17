@@ -113,6 +113,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
+            ERC20BridgeSource.BiSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -258,6 +259,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.BiSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -471,6 +473,14 @@ export const BSC_TOKENS = {
     UST: '0x23396cf899ca06c4472205fc903bdb4de249d6fc',
     WEX: '0xa9c41a46a6b3531d28d5c32f6633dd2ff05dfb90',
     WETH: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
+<<<<<<< HEAD
+=======
+    BTCB: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
+    renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
+    pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
+    nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
+    BSW: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1',
+>>>>>>> f55eaa867 (Add BiSwap (as UniV2 clone) on BSC (#471))
 };
 
 export const POLYGON_TOKENS = {
@@ -1893,6 +1903,13 @@ export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const BISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0x3a6d8ca21d1cf76f653a67577fa0d27453350dd8',
+    },
+    NULL_ADDRESS,
+);
+
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
@@ -2342,6 +2359,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.BiSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
         return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;

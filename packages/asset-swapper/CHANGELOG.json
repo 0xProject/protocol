@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.60.0",
+        "changes": [
+            {
+                "note": "Add BiSwap on BSC",
+                "pr": 467
+            }
+        ]
+    },
+    {
         "version": "16.59.0",
         "changes": [
             {
