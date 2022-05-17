@@ -351,7 +351,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Lido:
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
-            bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            bridgeData = encoder.encode([lidoFillData.stEthTokenAddress, lidoFillData.wstEthTokenAddress]);
             break;
         case ERC20BridgeSource.AaveV2:
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
@@ -568,7 +568,7 @@ export const BRIDGE_ENCODERS: {
         { name: 'path', type: 'bytes' },
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
-    [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Lido]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
