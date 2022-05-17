@@ -28,6 +28,7 @@ import {
     LiquidityProviderRegistry,
     MakerPsmFillData,
     MultiHopFillData,
+    PlatypusInfo,
     PsmInfo,
     TokenAdjacencyGraph,
     UniswapV2FillData,
@@ -182,6 +183,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.GMX,
+            ERC20BridgeSource.Platypus,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -326,6 +329,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.GMX,
+            ERC20BridgeSource.Platypus,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -549,8 +554,10 @@ export const AVALANCHE_TOKENS = {
     DAI: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
     // bridged USDC
     USDC: '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664',
-    // native USDC on Avalanche
+    // native USDC on Avalanche usdc.e
     nUSDC: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
+    // usdt.e
+    USDt: '0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7',
     USDT: '0xc7198437980c041c805a1edcba50c1ce5db95118',
     aDAI: '0x47afa96cdc9fab46904a55a6ad4bf6660b53c38a',
     aUSDC: '0x46a51127c3ce23fb7ab1de06226147f446e4a857',
@@ -560,6 +567,10 @@ export const AVALANCHE_TOKENS = {
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
     MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
     MAG: '0x1d60109178C48E4A937D8AB71699D8eBb6F7c5dE',
+    sAVAX: '0x2b2c81e08f1af8835a78bb2a90ae924ace0ea4be',
+    UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
+    FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
+    YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
 };
 
 export const CELO_TOKENS = {
@@ -820,6 +831,14 @@ export const ACRYPTOS_POOLS = {
     acs4vai: '0x191409d5a4effe25b0f4240557ba2192d18a191e',
     acs4ust: '0x99c92765efc472a9709ced86310d64c4573c4b77',
     acs3btc: '0xbe7caa236544d1b9a0e7f91e94b9f5bfd3b5ca81',
+};
+
+export const PLATYPUS_AVALANCHE_POOLS = {
+    usd: '0x66357dcace80431aee0a7507e2e361b7e2402370',
+    yusd: '0xc828d995c686aaba78a4ac89dfc8ec0ff4c5be83',
+    frax: '0xb8e567fc23c39c94a1f6359509d7b43d1fbed824',
+    mim: '0x30c30d826be87cd0a4b90855c2f38f7fcfe4eaa7',
+    sAVAX: '0x4658ea7e9960d6158a261104aaa160cc953bb6ba',
 };
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
@@ -1792,6 +1811,40 @@ export const ACRYPTOS_BSC_INFOS: { [name: string]: CurveInfo } = {
     }),
 };
 
+export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
+    [PLATYPUS_AVALANCHE_POOLS.usd]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.usd,
+        tokens: [
+            AVALANCHE_TOKENS.USDT,
+            AVALANCHE_TOKENS.USDC,
+            AVALANCHE_TOKENS.DAI,
+            AVALANCHE_TOKENS.nUSDC,
+            AVALANCHE_TOKENS.USDt,
+        ],
+        gasSchedule: 300e3,
+    },
+    [PLATYPUS_AVALANCHE_POOLS.yusd]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.yusd,
+        tokens: [AVALANCHE_TOKENS.YUSD, AVALANCHE_TOKENS.nUSDC],
+        gasSchedule: 300e3,
+    },
+    [PLATYPUS_AVALANCHE_POOLS.frax]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.frax,
+        tokens: [AVALANCHE_TOKENS.FRAX, AVALANCHE_TOKENS.nUSDC],
+        gasSchedule: 300e3,
+    },
+    [PLATYPUS_AVALANCHE_POOLS.mim]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.mim,
+        tokens: [AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.nUSDC],
+        gasSchedule: 300e3,
+    },
+    [PLATYPUS_AVALANCHE_POOLS.sAVAX]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.sAVAX,
+        tokens: [AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.sAVAX],
+        gasSchedule: 300e3,
+    },
+};
+
 /**
  * Kyber reserve prefixes
  * 0xff Fed price reserve
@@ -2324,6 +2377,34 @@ export const SPOOKYSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const GMX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8',
+    },
+    NULL_ADDRESS,
+);
+
+export const GMX_READER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x67b789d48c926006f5132bfce4e976f0a7a63d5d',
+    },
+    NULL_ADDRESS,
+);
+
+export const GMX_VAULT_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x9ab2de34a33fb459b538c43f251eb825645e8595',
+    },
+    NULL_ADDRESS,
+);
+
+export const PLATYPUS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Avalanche]: '0x73256ec7575d999c360c1eec118ecbefd8da7d12',
+    },
+    NULL_ADDRESS,
+);
+
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
         [ChainId.Mainnet]: [
@@ -2526,6 +2607,8 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.GMX]: () => 450e3,
+    [ERC20BridgeSource.Platypus]: () => 450e3,
 
     //
     // Celo

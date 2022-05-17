@@ -28,6 +28,7 @@ import "./CompoundSampler.sol";
 import "./CurveSampler.sol";
 import "./DODOSampler.sol";
 import "./DODOV2Sampler.sol";
+import "./GMXSampler.sol";
 import "./KyberSampler.sol";
 import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
@@ -36,6 +37,7 @@ import "./MakerPSMSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
+import "./PlatypusSampler.sol";
 import "./ShellSampler.sol";
 import "./SmoothySampler.sol";
 import "./TwoHopSampler.sol";
@@ -54,6 +56,7 @@ contract ERC20BridgeSampler is
     CurveSampler,
     DODOSampler,
     DODOV2Sampler,
+    GMXSampler,
     KyberSampler,
     KyberDmmSampler,
     LidoSampler,
@@ -62,6 +65,7 @@ contract ERC20BridgeSampler is
     MStableSampler,
     MooniswapSampler,
     NativeOrderSampler,
+    PlatypusSampler,
     ShellSampler,
     SmoothySampler,
     TwoHopSampler,
