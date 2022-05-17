@@ -1,10 +1,15 @@
 [
+
     {
         "version": "16.60.0",
         "changes": [
             {
                 "note": "Add BiSwap on BSC",
                 "pr": 467
+            },
+            {
+                "note": "Add GMX and Platypus on Avalanche",
+                "pr": 478
             }
         ]
     },
