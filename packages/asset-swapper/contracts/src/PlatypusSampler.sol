@@ -20,6 +20,7 @@ contract PlatypusSampler is
         view
         returns (uint256[] memory makerTokenAmounts)
     {
+
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
@@ -32,7 +33,7 @@ contract PlatypusSampler is
                 if (makerTokenAmounts[i] == 0) {
                     break;
                 }
-            } catch (bytes memory) {
+            } catch (bytes memory result) {
                 // Swallow failures, leaving all results as zero.
                 break;
             }
@@ -71,7 +72,7 @@ contract PlatypusSampler is
         view
         returns (uint256 buyAmount)
     {
-        (address _pool, address[] memory _path ) = abi.decode(takerTokenData, (address, address[]));
+        (address _pool, address[] memory _path ) = abi.decode(makerTokenData, (address, address[]));
 
         (bool success, bytes memory resultData) = address(this).staticcall(abi.encodeWithSelector(
             this.sampleSellsFromPlatypus.selector,

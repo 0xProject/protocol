@@ -568,6 +568,7 @@ export const AVALANCHE_TOKENS = {
     sAVAX: '0x2b2c81e08f1af8835a78bb2a90ae924ace0ea4be',
     UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
+    YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
 
 };
 
@@ -846,7 +847,7 @@ export const ACRYPTOS_POOLS = {
 
 export const PLATYPUS_AVALANCHE_POOLS = {
     usd: '0x66357dcace80431aee0a7507e2e361b7e2402370',
-    ust: '0xe0d166de15665bc4b7185b2e35e847e51316e126',
+    yusd: '0xc828d995c686aaba78a4ac89dfc8ec0ff4c5be83',
     frax: '0xb8e567fc23c39c94a1f6359509d7b43d1fbed824',
     mim: '0x30c30d826be87cd0a4b90855c2f38f7fcfe4eaa7',
     sAVAX: '0x4658ea7e9960d6158a261104aaa160cc953bb6ba',
@@ -1839,27 +1840,27 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     [PLATYPUS_AVALANCHE_POOLS.usd]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.usd,
         tokens: [AVALANCHE_TOKENS.USDT, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.USDt],
-        gasSchedule: 350e3,
+        gasSchedule: 300e3,
     },
-    [PLATYPUS_AVALANCHE_POOLS.ust]: {
-        poolAddress: PLATYPUS_AVALANCHE_POOLS.ust,
-        tokens: [AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.UST],
-        gasSchedule: 350e3,
+    [PLATYPUS_AVALANCHE_POOLS.yusd]: {
+        poolAddress: PLATYPUS_AVALANCHE_POOLS.yusd,
+        tokens: [AVALANCHE_TOKENS.YUSD, AVALANCHE_TOKENS.nUSDC],
+        gasSchedule: 300e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.frax]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.frax,
-        tokens: [AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.FRAX], //liq issues
-        gasSchedule: 350e3,
+        tokens: [AVALANCHE_TOKENS.FRAX, AVALANCHE_TOKENS.nUSDC], //liq issues
+        gasSchedule: 300e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.mim]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.mim,
         tokens: [AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.nUSDC],
-        gasSchedule: 350e3,
+        gasSchedule: 300e3,
     },
     [PLATYPUS_AVALANCHE_POOLS.sAVAX]: {
         poolAddress: PLATYPUS_AVALANCHE_POOLS.sAVAX,
         tokens: [AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.sAVAX], //add unwrapping
-        gasSchedule: 350e3,
+        gasSchedule: 300e3,
     },
 };
 

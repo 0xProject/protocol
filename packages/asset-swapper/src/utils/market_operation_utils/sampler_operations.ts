@@ -1672,6 +1672,10 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.GMX: {
+                         //low liquidity mim pool dont quote
+                        if(takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' || makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'){
+                            return [];
+                        }
                         return this.getGMXSellQuotes(
                             GMX_ROUTER_BY_CHAIN_ID[this.chainId],
                             GMX_READER_BY_CHAIN_ID[this.chainId],
@@ -1996,6 +2000,10 @@ export class SamplerOperations {
                         return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.GMX: {
+                        //bad mim pool dont quote
+                        if(takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' || makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'){
+                            return [];
+                        }
                         return this.getGMXBuyQuotes(
                             GMX_ROUTER_BY_CHAIN_ID[this.chainId],
                             GMX_READER_BY_CHAIN_ID[this.chainId],
@@ -2009,7 +2017,7 @@ export class SamplerOperations {
                             this.getPlatypusBuyQuotes(
                             PLATYPUS_ROUTER_BY_CHAIN_ID[this.chainId],
                             [pool.poolAddress],
-                            [takerToken, makerToken],
+                            [takerToken,makerToken],
                             makerFillAmounts,
                             ),
                         );
