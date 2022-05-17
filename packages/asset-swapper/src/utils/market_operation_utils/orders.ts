@@ -18,10 +18,37 @@ import {
     DODOFillData,
 >>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
     ERC20BridgeSource,
+<<<<<<< HEAD
     CollapsedNativeOrderFill,
     OptimizedGenericBridgeOrder,
     OptimizedLimitOrder,
     OptimizedRfqOrder,
+=======
+    FillData,
+    FinalUniswapV3FillData,
+    GeistFillData,
+    GenericRouterFillData,
+    GMXFillData,
+    KyberDmmFillData,
+    KyberFillData,
+    LidoFillData,
+    LiquidityProviderFillData,
+    MakerPsmFillData,
+    MooniswapFillData,
+    MultiHopFillData,
+    NativeCollapsedFill,
+    NativeLimitOrderFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
+    OrderDomain,
+    PlatypusFillData,
+    ShellFillData,
+    UniswapV2FillData,
+    UniswapV3FillData,
+    UniswapV3PathAmount,
+>>>>>>> 9a28e51f5 (rebased dev and merged)
 } from './types';
 
 // tslint:disable completed-docs
@@ -145,6 +172,10 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         case ERC20BridgeSource.BiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BiSwap');
+        case ERC20BridgeSource.GMX:
+            return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
+        case ERC20BridgeSource.Platypus:
+            return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -309,6 +340,23 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const geistFillData = (order as OptimizedMarketBridgeOrder<GeistFillData>).fillData;
             bridgeData = encoder.encode([geistFillData.lendingPool, geistFillData.gToken]);
             break;
+        case ERC20BridgeSource.GMX:
+            const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
+            bridgeData = encoder.encode([
+                gmxFillData.router,
+                gmxFillData.reader,
+                gmxFillData.vault,
+                gmxFillData.tokenAddressPath,
+            ]);
+            break;
+        case ERC20BridgeSource.Platypus:
+            const platypusFillData = (order as OptimizedMarketBridgeOrder<PlatypusFillData>).fillData;
+            bridgeData = encoder.encode([
+                platypusFillData.router,
+                platypusFillData.pool,
+                platypusFillData.tokenAddressPath,
+            ]);
+            break;
 
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -363,6 +411,8 @@ const balancerV2Encoder = AbiEncoder.create([
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
+const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
+const platypusAddressPathEncoder = AbiEncoder.create('(address,address[],address[])');
 
 export const BRIDGE_ENCODERS: {
     [key in Exclude<
@@ -413,6 +463,9 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
+     // Avalanche
+    [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
+    [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC
