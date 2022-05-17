@@ -2127,8 +2127,8 @@ export const BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
 export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     {
         [ChainId.Mainnet]: {
-            stEthToken: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-            wstEthToken: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+            stEthToken: MAINNET_TOKENS.stETH,
+            wstEthToken: MAINNET_TOKENS.wstETH,
             wethToken: MAINNET_TOKENS.WETH,
         },
     },
