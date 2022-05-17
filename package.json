@@ -3,8 +3,8 @@
     "version": "1.15.0",
     "description": "0x RFQ API",
     "repository": "git@github.com:0xProject/0x-rfq-api.git",
-    "author": "Daniel Pyrathon <kroeger@0x.org>",
-    "license": "Apache-2.0",
+    "author": "0x Labs",
+    "license": "UNLICENSED",
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "clean": "shx rm -rf lib",
