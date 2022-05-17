@@ -115,8 +115,8 @@ contract MixinLido {
 
     ) private returns(uint256 boughtAmount){
         (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(bridgeData, (IEtherTokenV06, IWstETH));
-        sellToken.approveIfBelow(address(wstETH), sellAmount);
         if (address(sellToken) == address(stETH) && address(buyToken) == address(wstETH) ) {
+            sellToken.approveIfBelow(address(wstETH), sellAmount);
             return wstETH.wrap(sellAmount);
         }
         if (address(sellToken) == address(wstETH) && address(buyToken) == address(stETH) ) {
