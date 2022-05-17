@@ -2538,10 +2538,11 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         // WETH -> stETH
         if (lidoFillData.takerToken === wethAddress) {
             return 226e3;
+        } else if (lidoFillData.takerToken === lidoFillData.stEthTokenAddress) {
+            return 120e3;
+        } else {
+            return 95e3;
         }
-
-        // Wrapping or unwraping stETH.
-        return lidoFillData.takerToken === lidoFillData.stEthTokenAddress ? 120e3 : 95e3;
     },
     [ERC20BridgeSource.AaveV2]: (fillData?: FillData) => {
         const aaveFillData = fillData as AaveV2FillData;
