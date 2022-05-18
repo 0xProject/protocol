@@ -173,6 +173,12 @@ contracts/zero-ex/test/generated-wrappers/
 contracts/treasury/generated-wrappers/
 contracts/treasury/test/generated-wrappers/
 
+# foundry artifacts
+contracts/zero-ex/foundry-artifacts/
+
+# foundry cache 
+contracts/zero-ex/foundry-cache/
+
 # Doc README copy
 packages/*/docs/README.md
 
