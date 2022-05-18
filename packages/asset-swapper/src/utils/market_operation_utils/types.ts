@@ -103,6 +103,7 @@ export enum ERC20BridgeSource {
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
     Platypus = 'Platypus',
+    // tslint:disable: enum-naming
     GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
