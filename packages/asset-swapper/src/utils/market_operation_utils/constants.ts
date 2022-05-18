@@ -176,6 +176,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Yoshi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -324,6 +325,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SpookySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Yoshi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -2382,6 +2384,13 @@ export const PLATYPUS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const YOSHI_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Fantom]: '0xe4a4642b19c4d0cba965673cd51422b1eda0a78d',
+    },
+    NULL_ADDRESS,
+);
+
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
         [ChainId.Mainnet]: [
@@ -2598,6 +2607,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.MorpheusSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.Yoshi]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Beethovenx]: () => 100e3,
 };
 

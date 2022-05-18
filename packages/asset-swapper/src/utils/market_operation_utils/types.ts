@@ -113,6 +113,7 @@ export enum ERC20BridgeSource {
     SpookySwap = 'SpookySwap',
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
+    Yoshi = 'Yoshi',
     Geist = 'Geist',
 }
 
