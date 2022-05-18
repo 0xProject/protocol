@@ -62,6 +62,7 @@ import {
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     XSIGMA_MAINNET_INFOS,
+    YOSHI_ROUTER_BY_CHAIN_ID,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
 
@@ -565,7 +566,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
         | ERC20BridgeSource.SpiritSwap
-        | ERC20BridgeSource.BiSwap,
+        | ERC20BridgeSource.BiSwap
+        | ERC20BridgeSource.Yoshi,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -616,6 +618,8 @@ export function uniswapV2LikeRouterAddress(
             return SPIRITSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.BiSwap:
             return BISWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.Yoshi:
+            return YOSHI_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

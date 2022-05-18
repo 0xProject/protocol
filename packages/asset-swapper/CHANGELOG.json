@@ -9,6 +9,10 @@
             {
                 "note": "Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc",
                 "pr": 478
+            },
+            {
+                "note": "Add Yoshi Exchange support in Fantom",
+                "pr": 473
             }
         ]
     },
