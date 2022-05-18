@@ -59,6 +59,7 @@ export interface ChainConfiguration {
     registryAddress: string;
     rpcUrl: string;
     sqsUrl: string;
+    zeroExClientBaseUrl: string;
     // The value of the "tip" the worker will use when it starts
     // submitting transactions
     initialMaxPriorityFeePerGasGwei: number;
@@ -297,6 +298,11 @@ export const SENTRY_DSN = _.isEmpty(process.env.SENTRY_DSN)
 export const DEFINED_FI_API_KEY: string = _.isEmpty(process.env.DEFINED_FI_API_KEY)
     ? ''
     : assertEnvVarType('DEFINED_FI_API_KEY', process.env.DEFINED_FI_API_KEY, EnvVarType.NonEmptyString);
+
+// API Key for 0x API (for ZeroExApiClient)
+export const ZERO_EX_API_KEY: string = _.isEmpty(process.env.ZERO_EX_API_KEY)
+    ? ''
+    : assertEnvVarType('ZERO_EX_API_KEY', process.env.ZERO_EX_API_KEY, EnvVarType.NonEmptyString);
 
 export const TOKEN_PRICE_ORACLE_TIMEOUT: number = 1000;
 

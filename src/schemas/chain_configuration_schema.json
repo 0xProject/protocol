@@ -21,8 +21,19 @@
         },
         "quoteReportTopic": {
             "type": "string"
+        },
+        "zeroExClientBaseUrl": {
+            "type": "string"
         }
     },
-    "required": ["gasStationUrl", "initialMaxPriorityFeePerGasGwei", "name", "registryAddress", "rpcUrl", "sqsUrl"],
+    "required": [
+        "gasStationUrl",
+        "initialMaxPriorityFeePerGasGwei",
+        "name",
+        "registryAddress",
+        "rpcUrl",
+        "sqsUrl",
+        "zeroExClientBaseUrl"
+    ],
     "type": "object"
 }
