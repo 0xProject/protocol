@@ -27,7 +27,6 @@ import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinBancor.sol";
-import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCompound.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
@@ -35,7 +34,6 @@ import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinGMX.sol";
-import "./mixins/MixinKyber.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
@@ -57,7 +55,6 @@ contract BridgeAdapter is
     MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinBancor,
-    MixinCoFiX,
     MixinCompound,
     MixinCurve,
     MixinCurveV2,
@@ -65,7 +62,6 @@ contract BridgeAdapter is
     MixinDodo,
     MixinDodoV2,
     MixinGMX,
-    MixinKyber,
     MixinKyberDmm,
     MixinLido,
     MixinMakerPSM,
@@ -86,7 +82,6 @@ contract BridgeAdapter is
         MixinBalancer()
         MixinBalancerV2()
         MixinBancor(weth)
-        MixinCoFiX()
         MixinCompound(weth)
         MixinCurve(weth)
         MixinCurveV2()
@@ -94,7 +89,6 @@ contract BridgeAdapter is
         MixinDodo()
         MixinDodoV2()
         MixinGMX()
-        MixinKyber(weth)
         MixinLido(weth)
         MixinMakerPSM()
         MixinMooniswap(weth)
@@ -172,14 +166,7 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.KYBER) {
-            boughtAmount = _tradeKyber(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.MAKERPSM) {
+        }else if (protocolId == BridgeProtocols.MAKERPSM) {
             boughtAmount = _tradeMakerPsm(
                 sellToken,
                 buyToken,
@@ -234,13 +221,6 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.BANCOR) {
             boughtAmount = _tradeBancor(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.COFIX) {
-            boughtAmount = _tradeCoFiX(
-                sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
