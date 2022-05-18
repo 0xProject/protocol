@@ -1462,6 +1462,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.UbeSwap:
                     case ERC20BridgeSource.SpiritSwap:
                     case ERC20BridgeSource.SpookySwap:
+                    case ERC20BridgeSource.Yoshi:
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.BiSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
@@ -1792,6 +1793,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.UbeSwap:
                     case ERC20BridgeSource.SpiritSwap:
                     case ERC20BridgeSource.SpookySwap:
+                    case ERC20BridgeSource.Yoshi:
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.BiSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
