@@ -1288,7 +1288,7 @@ export class RfqmService {
                     gasFees,
                     gasPriceEstimate,
                     orderHash,
-                    submissionCount: 0,
+                    submissionCount: 1,
                     workerAddress,
                 },
                 'Submitting transaction',
