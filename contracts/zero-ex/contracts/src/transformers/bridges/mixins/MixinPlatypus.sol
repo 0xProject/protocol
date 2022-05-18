@@ -4,7 +4,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "../IBridgeAdapter.sol";
 
 
 interface IPlatypusRouter {
@@ -45,8 +44,8 @@ contract MixinPlatypus {
             assembly { path := _path }
         }
 
+        //connect to the ptp router
         router = IPlatypusRouter(_router);
-        //corresponding platypus asset pool for the ERC20's in the path
 
         require(path.length >= 2, "MixinPlatypus/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
@@ -56,12 +55,13 @@ contract MixinPlatypus {
         // Grant the Platypus router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 
+        //keep track of the previous balance to confirm amount out
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         (uint256 amountOut, uint256 haircut) = router.swapTokensForTokens(
             // Convert to `buyToken` along this path.
             _path,
-            //
+            // pool to swap on
             _pool,
              // Sell all tokens we hold.
             sellAmount,
@@ -70,8 +70,9 @@ contract MixinPlatypus {
             // Recipient is `this`.
             address(this),
 
-            block.timestamp + 10000
+            block.timestamp + 1
         );
+        //calculate the buy amount from the tokens we recieved
         boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
         return boughtAmount;
     }
