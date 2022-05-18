@@ -24,6 +24,7 @@ import {
 import { CompoundCTokenCache } from './compound_ctoken_cache';
 import {
     AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID,
+    AVALANCHE_TOKENS,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
@@ -1719,8 +1720,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.GMX: {
                         // low liquidity mim pool dont quote
                         if (
-                            takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' ||
-                            makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'
+                            takerToken === AVALANCHE_TOKENS.MIM ||
+                            makerToken === 'AVALANCHE_TOKENS.MIM'
                         ) {
                             return [];
                         }
@@ -2047,8 +2048,8 @@ export class SamplerOperations {
                     case ERC20BridgeSource.GMX: {
                         // bad mim pool dont quote
                         if (
-                            takerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d' ||
-                            makerToken === '0x130966628846bfd36ff31a822705796e8cb8c18d'
+                            takerToken === 'AVALANCHE_TOKENS.MIM' ||
+                            makerToken === 'AVALANCHE_TOKENS.MIM'
                         ) {
                             return [];
                         }
