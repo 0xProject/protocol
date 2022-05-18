@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { constants } from '../constants';
 import { MarketOperation } from '../types';
 
-import { FeeSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
+import { GasSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
 import { getNativeAdjustedTakerFeeAmount } from './utils';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;
@@ -72,7 +72,7 @@ export interface QuoteFillInfo {
 }
 
 export interface QuoteFillInfoOpts {
-    gasSchedule: FeeSchedule;
+    gasSchedule: GasSchedule;
     protocolFeeMultiplier: BigNumber;
     slippage: number;
 }
@@ -140,7 +140,7 @@ export function fillQuoteOrders(
     fillOrders: QuoteFillOrderCall[],
     inputAmount: BigNumber,
     protocolFeePerFillOrder: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
 ): IntermediateQuoteFillResult {
     const result: IntermediateQuoteFillResult = {
         ...EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT,
@@ -151,39 +151,27 @@ export function fillQuoteOrders(
         if (remainingInput.lte(0)) {
             break;
         }
-        for (const fill of fo.order.fills) {
-            if (remainingInput.lte(0)) {
-                break;
-            }
-            const { source, fillData } = fill;
-            const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
-            result.gas += new BigNumber(gas).toNumber();
-            result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
+        const { source, fillData } = fo.order;
+        const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
+        result.gas += new BigNumber(gas).toNumber();
+        result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
 
-            // Actual rates are rarely linear, so fill subfills individually to
-            // get a better approximation of fill size.
-            for (const subFill of fill.subFills) {
-                if (remainingInput.lte(0)) {
-                    break;
-                }
-                const filledInput = solveForInputFillAmount(
-                    remainingInput,
-                    subFill.input,
-                    fo.totalOrderInput,
-                    fo.totalOrderInputFee,
-                );
-                const filledOutput = subFill.output.times(filledInput.div(subFill.input));
-                const filledInputFee = filledInput.div(fo.totalOrderInput).times(fo.totalOrderInputFee);
-                const filledOutputFee = filledOutput.div(fo.totalOrderOutput).times(fo.totalOrderOutputFee);
+        const filledInput = solveForInputFillAmount(
+            remainingInput,
+            fo.order.fill.input,
+            fo.totalOrderInput,
+            fo.totalOrderInputFee,
+        );
+        const filledOutput = fo.order.fill.output.times(filledInput.div(fo.order.fill.input));
+        const filledInputFee = filledInput.div(fo.totalOrderInput).times(fo.totalOrderInputFee);
+        const filledOutputFee = filledOutput.div(fo.totalOrderOutput).times(fo.totalOrderOutputFee);
 
-                result.inputBySource[source] = result.inputBySource[source].plus(filledInput);
-                result.input = result.input.plus(filledInput);
-                result.output = result.output.plus(filledOutput);
-                result.inputFee = result.inputFee.plus(filledInputFee);
-                result.outputFee = result.outputFee.plus(filledOutputFee);
-                remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
-            }
-        }
+        result.inputBySource[source] = result.inputBySource[source].plus(filledInput);
+        result.input = result.input.plus(filledInput);
+        result.output = result.output.plus(filledOutput);
+        result.inputFee = result.inputFee.plus(filledInputFee);
+        result.outputFee = result.outputFee.plus(filledOutputFee);
+        remainingInput = remainingInput.minus(filledInput.plus(filledInputFee));
         // NOTE: V4 Limit orders have Protocol fees
         const protocolFee = hasProtocolFee(fo.order) ? protocolFeePerFillOrder : ZERO_AMOUNT;
         result.protocolFee = result.protocolFee.plus(protocolFee);
@@ -314,7 +302,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: FeeSchedule): number {
+function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: GasSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
         const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);

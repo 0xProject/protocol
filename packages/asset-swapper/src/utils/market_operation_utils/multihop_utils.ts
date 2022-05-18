@@ -9,6 +9,7 @@ import {
     DexSample,
     ExchangeProxyOverhead,
     FeeSchedule,
+    FillAdjustor,
     MarketSideLiquidity,
     MultiHopFillData,
     TokenAdjacencyGraph,
@@ -38,6 +39,7 @@ export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
+    fillAdjustor?: FillAdjustor,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
     const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
     const { twoHopQuotes } = quotes;
@@ -57,7 +59,15 @@ export function getBestTwoHopQuote(
     }
     const best = filteredQuotes
         .map(quote =>
-            getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, feeSchedule, exchangeProxyOverhead),
+            getTwoHopAdjustedRate(
+                side,
+                quote,
+                inputAmount,
+                outputAmountPerEth,
+                feeSchedule,
+                exchangeProxyOverhead,
+                fillAdjustor,
+            ),
         )
         .reduce(
             (prev, curr, i) =>
@@ -70,6 +80,7 @@ export function getBestTwoHopQuote(
                     outputAmountPerEth,
                     feeSchedule,
                     exchangeProxyOverhead,
+                    fillAdjustor,
                 ),
                 quote: filteredQuotes[0],
             },

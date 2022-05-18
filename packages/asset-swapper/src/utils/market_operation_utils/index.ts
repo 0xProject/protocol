@@ -41,19 +41,17 @@ import {
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
-import { createFills } from './fills';
+import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
 import { Path, PathPenaltyOpts } from './path';
-import { findOptimalPathJSAsync, findOptimalRustPathFromSamples } from './path_optimizer';
+import { findOptimalPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
     AggregationError,
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
-    Fill,
     GenerateOptimizedOrdersOpts,
     GetMarketOrdersOpts,
     MarketSideLiquidity,
@@ -61,8 +59,6 @@ import {
     OptimizerResultWithReport,
     OrderDomain,
 } from './types';
-
-const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 
 // tslint:disable:boolean-naming
 
@@ -455,6 +451,7 @@ export class MarketOperationUtils {
                             allowFallback: _opts.allowFallback,
                             gasPrice: _opts.gasPrice,
                             neonRouterNumSamples: _opts.neonRouterNumSamples,
+                            fillAdjustor: _opts.fillAdjustor,
                         },
                     );
                     return optimizerResult;
@@ -516,60 +513,38 @@ export class MarketOperationUtils {
         const takerAmountPerEth = side === MarketOperation.Sell ? inputAmountPerEth : outputAmountPerEth;
         const makerAmountPerEth = side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth;
 
-        let fills: Fill[][];
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
         let optimalPath: Path | undefined;
-        if (SHOULD_USE_RUST_ROUTER) {
-            fills = [[]];
-            optimalPath = findOptimalRustPathFromSamples(
-                side,
-                dexQuotes,
-                [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
-                inputAmount,
-                penaltyOpts,
-                opts.feeSchedule,
-                this._sampler.chainId,
-                opts.neonRouterNumSamples,
-                opts.samplerMetrics,
-            );
-        } else {
-            // Convert native orders and dex quotes into `Fill` objects.
-            fills = createFills({
-                side,
-                orders: [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
-                dexQuotes,
-                targetInput: inputAmount,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                excludedSources: opts.excludedSources,
-                feeSchedule: opts.feeSchedule,
-            });
+        optimalPath = findOptimalPathFromSamples(
+            side,
+            dexQuotes,
+            [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
+            inputAmount,
+            penaltyOpts,
+            opts.feeSchedule,
+            this._sampler.chainId,
+            opts.neonRouterNumSamples,
+            opts.fillAdjustor,
+            opts.samplerMetrics,
+        );
 
-            optimalPath = await findOptimalPathJSAsync(
-                side,
-                fills,
-                inputAmount,
-                opts.runLimit,
-                opts.samplerMetrics,
-                penaltyOpts,
-            );
-        }
+        const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
-        const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
-
-        const { adjustedRate: bestTwoHopRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
+        const { adjustedRate: bestTwoHopAdjustedRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
             marketSideLiquidity,
             opts.feeSchedule,
             opts.exchangeProxyOverhead,
+            opts.fillAdjustor,
         );
-        if (bestTwoHopQuote && bestTwoHopRate.isGreaterThan(optimalPathRate)) {
+
+        if (bestTwoHopQuote && bestTwoHopAdjustedRate.isGreaterThan(optimalPathAdjustedRate)) {
             const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
             return {
                 optimizedOrders: twoHopOrders,
                 liquidityDelivered: bestTwoHopQuote,
                 sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
                 marketSideLiquidity,
-                adjustedRate: bestTwoHopRate,
+                adjustedRate: bestTwoHopAdjustedRate,
                 takerAmountPerEth,
                 makerAmountPerEth,
             };
@@ -580,19 +555,14 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        // Generate a fallback path if required
-        // TODO(kimpers): Will experiment with disabling this and see how it affects revert rate
-        // to avoid yet another router roundtrip
-        // TODO: clean this up if we don't need it
-        // await this._addOptionalFallbackAsync(side, inputAmount, optimalPath, dexQuotes, fills, opts, penaltyOpts);
-        const collapsedPath = optimalPath.collapse(orderOpts);
+        const finalizedPath = optimalPath.finalize(orderOpts);
 
         return {
-            optimizedOrders: collapsedPath.orders,
-            liquidityDelivered: collapsedPath.collapsedFills as CollapsedFill[],
-            sourceFlags: collapsedPath.sourceFlags,
+            optimizedOrders: finalizedPath.orders,
+            liquidityDelivered: finalizedPath.fills,
+            sourceFlags: finalizedPath.sourceFlags,
             marketSideLiquidity,
-            adjustedRate: optimalPathRate,
+            adjustedRate: optimalPathAdjustedRate,
             takerAmountPerEth,
             makerAmountPerEth,
         };
@@ -618,6 +588,7 @@ export class MarketOperationUtils {
             gasPrice: _opts.gasPrice,
             neonRouterNumSamples: _opts.neonRouterNumSamples,
             samplerMetrics: _opts.samplerMetrics,
+            fillAdjustor: _opts.fillAdjustor,
         };
 
         if (nativeOrders.length === 0) {
@@ -630,9 +601,15 @@ export class MarketOperationUtils {
                 ? this.getMarketSellLiquidityAsync.bind(this)
                 : this.getMarketBuyLiquidityAsync.bind(this);
         const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+
+        // Phase 1 Routing
+        // We find an optimized path for ALL the DEX and open-orderbook liquidity
         let optimizerResult: OptimizerResult | undefined;
         try {
-            optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
+            optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, {
+                ...optimizerOpts,
+                fillAdjustor: new IdentityFillAdjustor(),
+            });
         } catch (e) {
             // If no on-chain or off-chain Open Orderbook orders are present, a `NoOptimalPath` will be thrown.
             // If this happens at this stage, there is still a chance that an RFQ order is fillable, therefore
@@ -656,6 +633,17 @@ export class MarketOperationUtils {
         }
 
         // If RFQ liquidity is enabled, make a request to check RFQ liquidity against the first optimizer result
+
+        // Phase 2 Routing
+        // Mix in any off-chain RFQ quotes
+        // Apply any fill adjustments i
+        const phaseTwoOptimizerOpts = {
+            ...optimizerOpts,
+            // Pass in the FillAdjustor for Phase 2 adjustment, in the future we may perform this adjustment
+            // in Phase 1.
+            fillAdjustor: _opts.fillAdjustor,
+        };
+
         const { rfqt } = _opts;
         if (
             marketSideLiquidity.isRfqSupported &&
@@ -716,8 +704,28 @@ export class MarketOperationUtils {
                 });
                 // Re-run optimizer with the new indicative quote
                 if (indicativeQuotes.length > 0) {
+                    // Attach the indicative quotes to the market side liquidity
                     marketSideLiquidity.quotes.rfqtIndicativeQuotes = indicativeQuotes;
-                    optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
+
+                    // Phase 2 Routing
+                    const phase1OptimalSources = optimizerResult
+                        ? optimizerResult.optimizedOrders.map(o => o.source)
+                        : [];
+                    const phase2MarketSideLiquidity: MarketSideLiquidity = {
+                        ...marketSideLiquidity,
+                        quotes: {
+                            ...marketSideLiquidity.quotes,
+                            // Select only the quotes that were chosen in Phase 1
+                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(q =>
+                                phase1OptimalSources.includes(q[0].source),
+                            ),
+                        },
+                    };
+
+                    optimizerResult = await this._generateOptimizedOrdersAsync(
+                        phase2MarketSideLiquidity,
+                        phaseTwoOptimizerOpts,
+                    );
                 }
             } else {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
@@ -775,6 +783,8 @@ export class MarketOperationUtils {
                             fillableTakerFeeAmount: ZERO_AMOUNT,
                         }),
                     );
+
+                    // Attach the firm RFQt quotes to the market side liquidity
                     marketSideLiquidity.quotes.nativeOrders = [
                         ...quotesWithOrderFillableAmounts,
                         ...marketSideLiquidity.quotes.nativeOrders,
@@ -783,7 +793,27 @@ export class MarketOperationUtils {
                     // Re-run optimizer with the new firm quote. This is the second and last time
                     // we run the optimized in a block of code. In this case, we don't catch a potential `NoOptimalPath` exception
                     // and we let it bubble up if it happens.
-                    optimizerResult = await this._generateOptimizedOrdersAsync(marketSideLiquidity, optimizerOpts);
+
+                    // Phase 2 Routing
+                    // Optimization: Filter by what is already currently in the Phase1 output as it doesn't
+                    // seem possible that inclusion of RFQT could impact the sources chosen from Phase 1.
+                    const phase1OptimalSources = optimizerResult
+                        ? optimizerResult.optimizedOrders.map(o => o.source)
+                        : [];
+                    const phase2MarketSideLiquidity: MarketSideLiquidity = {
+                        ...marketSideLiquidity,
+                        quotes: {
+                            ...marketSideLiquidity.quotes,
+                            // Select only the quotes that were chosen in Phase 1
+                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(q =>
+                                phase1OptimalSources.includes(q[0].source),
+                            ),
+                        },
+                    };
+                    optimizerResult = await this._generateOptimizedOrdersAsync(
+                        phase2MarketSideLiquidity,
+                        phaseTwoOptimizerOpts,
+                    );
                 }
             }
         }
@@ -836,75 +866,6 @@ export class MarketOperationUtils {
             }),
         );
     }
-
-    /*
-     * TODO(kimpers): Remove this when we know that it's safe to drop the fallbacks on native orders
-    // tslint:disable-next-line: prefer-function-over-method
-    private async _addOptionalFallbackAsync(
-        side: MarketOperation,
-        inputAmount: BigNumber,
-        optimalPath: Path,
-        dexQuotes: DexSample[][],
-        fills: Fill[][],
-        opts: GenerateOptimizedOrdersOpts,
-        penaltyOpts: PathPenaltyOpts,
-    ): Promise<void> {
-        const maxFallbackSlippage = opts.maxFallbackSlippage || 0;
-        const optimalPathRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
-        // Generate a fallback path if sources requiring a fallback (fragile) are in the optimal path.
-        // Native is relatively fragile (limit order collision, expiry, or lack of available maker balance)
-        // LiquidityProvider is relatively fragile (collision)
-        const fragileSources = [ERC20BridgeSource.Native, ERC20BridgeSource.LiquidityProvider];
-        const fragileFills = optimalPath.fills.filter(f => fragileSources.includes(f.source));
-        if (opts.allowFallback && fragileFills.length !== 0) {
-            // We create a fallback path that is exclusive of Native liquidity
-            // This is the optimal on-chain path for the entire input amount
-            const sturdyPenaltyOpts = {
-                ...penaltyOpts,
-                exchangeProxyOverhead: (sourceFlags: bigint) =>
-                    // tslint:disable-next-line: no-bitwise
-                    penaltyOpts.exchangeProxyOverhead(sourceFlags | optimalPath.sourceFlags),
-            };
-
-            let sturdyOptimalPath: Path | undefined;
-            if (SHOULD_USE_RUST_ROUTER) {
-                const sturdySamples = dexQuotes.filter(
-                    samples => samples.length > 0 && !fragileSources.includes(samples[0].source),
-                );
-                sturdyOptimalPath = findOptimalRustPathFromSamples(
-                    side,
-                    sturdySamples,
-                    [],
-                    inputAmount,
-                    sturdyPenaltyOpts,
-                    opts.feeSchedule,
-                    this._sampler.chainId,
-                    opts.neonRouterNumSamples,
-                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
-                );
-            } else {
-                const sturdyFills = fills.filter(p => p.length > 0 && !fragileSources.includes(p[0].source));
-                sturdyOptimalPath = await findOptimalPathJSAsync(
-                    side,
-                    sturdyFills,
-                    inputAmount,
-                    opts.runLimit,
-                    undefined, // hack: set sampler metrics to undefined to avoid fallback timings
-                    sturdyPenaltyOpts,
-                );
-            }
-            // Calculate the slippage of on-chain sources compared to the most optimal path
-            // if within an acceptable threshold we enable a fallback to prevent reverts
-            if (
-                sturdyOptimalPath !== undefined &&
-                (fragileFills.length === optimalPath.fills.length ||
-                    sturdyOptimalPath.adjustedSlippage(optimalPathRate) <= maxFallbackSlippage)
-            ) {
-                optimalPath.addFallback(sturdyOptimalPath);
-            }
-        }
-    }
-    */
 }
 
 // tslint:disable: max-file-line-count
