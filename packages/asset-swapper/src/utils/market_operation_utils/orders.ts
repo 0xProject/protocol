@@ -463,7 +463,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
-     // Avalanche
+    // Avalanche
     [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
     [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
     // Celo
