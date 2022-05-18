@@ -179,6 +179,9 @@ contracts/zero-ex/foundry-artifacts/
 # foundry cache 
 contracts/zero-ex/foundry-cache/
 
+# typechain wrappers
+contracts/zero-ex/typechain-wrappers/
+
 # Doc README copy
 packages/*/docs/README.md
 

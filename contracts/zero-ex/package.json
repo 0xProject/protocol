@@ -38,7 +38,8 @@
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
         "publish:private": "yarn build && gitpkg publish",
-        "rollback": "node ./lib/scripts/rollback.js"
+        "rollback": "node ./lib/scripts/rollback.js",
+        "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,PositiveSlippageFeeTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,AffiliateFeeTransformer,MetaTransactionsFeature,LogMetadataTransformer,BridgeAdapter,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector,CurveLiquidityProvider,BatchFillNativeOrdersFeature,IBatchFillNativeOrdersFeature,MultiplexFeature,IMultiplexFeature,OtcOrdersFeature,IOtcOrdersFeature",
@@ -65,6 +66,7 @@
         "@0x/sol-compiler": "^4.8.1",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
+        "@typechain/ethers-v5": "^10.0.0",
         "@types/isomorphic-fetch": "^0.0.35",
         "@types/lodash": "4.14.104",
         "@types/mocha": "^5.2.7",
@@ -78,6 +80,7 @@
         "solhint": "^1.4.1",
         "truffle": "^5.0.32",
         "tslint": "5.11.0",
+        "typechain": "^8.0.0",
         "typedoc": "~0.16.11",
         "typescript": "4.6.3"
     },
