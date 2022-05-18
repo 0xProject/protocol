@@ -14,8 +14,6 @@ contract GMXSampler is
         address vault;
         address[] path;
     }
-    // address immutable WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7;
-    // address immutable AVAX = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     function sampleSellsFromGMX(
         address reader,
