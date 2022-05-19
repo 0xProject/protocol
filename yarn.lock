@@ -1381,9 +1381,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@balancer-labs/sdk@^0.1.6":
+"@balancer-labs/sdk@0.1.6":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@balancer-labs/sdk/-/sdk-0.1.6.tgz#1a6f0aacfada7b0afbdf02259ef40ed37d3ecbcb"
+  integrity sha512-r9s7Y2XJks+8V53kqwaqHDAETipgFSEQxI7TFHYigoOtWp/sUaZnlu0kDMv3NuDvya0+t9gp5a0VxbztLwcn+g==
   dependencies:
     "@balancer-labs/sor" "^4.0.0-beta.2"
     axios "^0.24.0"
