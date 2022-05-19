@@ -1,4 +1,4 @@
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 
 import { ONE_HOUR_IN_SECONDS, ONE_SECOND_MS } from '../constants';
 export { Pool };
