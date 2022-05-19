@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.60.1 - _May 19, 2022_
+
+    * Alias Balancer sor to the old version (#481)
+
 ## v16.60.0 - _May 19, 2022_
 
     * Add BiSwap on BSC (#467)
