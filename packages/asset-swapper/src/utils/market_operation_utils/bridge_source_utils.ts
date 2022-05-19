@@ -28,10 +28,7 @@ import {
     IRONSWAP_POLYGON_INFOS,
     JETSWAP_ROUTER_BY_CHAIN_ID,
     JULSWAP_ROUTER_BY_CHAIN_ID,
-    KYBER_BANNED_RESERVES,
-    KYBER_BRIDGED_LIQUIDITY_PREFIX,
     MAX_DODOV2_POOLS_QUERIED,
-    MAX_KYBER_RESERVES_QUERIED,
     MOBIUSMONEY_CELO_INFOS,
     MORPHEUSSWAP_ROUTER_BY_CHAIN_ID,
     MSTABLE_POOLS_BY_CHAIN_ID,
@@ -66,30 +63,9 @@ import {
 } from './constants';
 import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
 
-/**
- * Filter Kyber reserves which should not be used (0xbb bridged reserves)
- * @param reserveId Kyber reserveId
- */
-export function isAllowedKyberReserveId(reserveId: string): boolean {
-    return (
-        reserveId !== NULL_BYTES &&
-        !reserveId.startsWith(KYBER_BRIDGED_LIQUIDITY_PREFIX) &&
-        !KYBER_BANNED_RESERVES.includes(reserveId)
-    );
-}
-
 // tslint:disable-next-line: completed-docs ban-types
 export function isValidAddress(address: string | String): address is string {
     return (typeof address === 'string' || address instanceof String) && address.toString() !== NULL_ADDRESS;
-}
-
-/**
- * Returns the offsets to be used to discover Kyber reserves
- */
-export function getKyberOffsets(): BigNumber[] {
-    return Array(MAX_KYBER_RESERVES_QUERIED)
-        .fill(0)
-        .map((_v, i) => new BigNumber(i));
 }
 
 // tslint:disable completed-docs

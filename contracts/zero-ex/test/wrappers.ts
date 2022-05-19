@@ -108,7 +108,6 @@ export * from '../test/generated-wrappers/mixin_curve_v2';
 export * from '../test/generated-wrappers/mixin_dodo';
 export * from '../test/generated-wrappers/mixin_dodo_v2';
 export * from '../test/generated-wrappers/mixin_g_m_x';
-export * from '../test/generated-wrappers/mixin_kyber';
 export * from '../test/generated-wrappers/mixin_kyber_dmm';
 export * from '../test/generated-wrappers/mixin_lido';
 export * from '../test/generated-wrappers/mixin_m_stable';

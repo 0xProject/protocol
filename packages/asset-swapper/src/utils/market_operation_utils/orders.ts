@@ -100,8 +100,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.CryptoCom, 'CryptoCom');
         case ERC20BridgeSource.Dodo:
             return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
-        case ERC20BridgeSource.Kyber:
-            return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
         case ERC20BridgeSource.LiquidityProvider:
             // "LiquidityProvider" is too long to encode (17 characters).
             return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
@@ -303,10 +301,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
-        case ERC20BridgeSource.Kyber:
-            const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = encoder.encode([kyberFillData.networkProxy, kyberFillData.hint]);
-            break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
             bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
@@ -487,10 +481,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
         { name: 'provider', type: 'address' },
         { name: 'data', type: 'bytes' },
-    ]),
-    [ERC20BridgeSource.Kyber]: AbiEncoder.create([
-        { name: 'kyberNetworkProxy', type: 'address' },
-        { name: 'hint', type: 'bytes' },
     ]),
     [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },

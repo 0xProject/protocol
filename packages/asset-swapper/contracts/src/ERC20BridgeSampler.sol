@@ -29,7 +29,6 @@ import "./CurveSampler.sol";
 import "./DODOSampler.sol";
 import "./DODOV2Sampler.sol";
 import "./GMXSampler.sol";
-import "./KyberSampler.sol";
 import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
 import "./LiquidityProviderSampler.sol";
@@ -57,7 +56,6 @@ contract ERC20BridgeSampler is
     DODOSampler,
     DODOV2Sampler,
     GMXSampler,
-    KyberSampler,
     KyberDmmSampler,
     LidoSampler,
     LiquidityProviderSampler,
