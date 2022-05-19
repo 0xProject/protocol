@@ -92,8 +92,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.BalancerV2Batch, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
-        // case ERC20BridgeSource.CoFiX:
-        //    return encodeBridgeSourceId(BridgeProtocol.CoFiX, 'CoFiX');
         case ERC20BridgeSource.Curve:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
         case ERC20BridgeSource.Cream:

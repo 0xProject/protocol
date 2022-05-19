@@ -122,7 +122,6 @@ export enum BridgeProtocol {
     DodoV2,
     CryptoCom,
     Bancor,
-    CoFiX,
     Nerve,
     MakerPsm,
     BalancerV2,

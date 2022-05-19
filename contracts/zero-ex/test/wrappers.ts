@@ -101,7 +101,6 @@ export * from '../test/generated-wrappers/mixin_balancer';
 export * from '../test/generated-wrappers/mixin_balancer_v2';
 export * from '../test/generated-wrappers/mixin_balancer_v2_batch';
 export * from '../test/generated-wrappers/mixin_bancor';
-export * from '../test/generated-wrappers/mixin_co_fi_x';
 export * from '../test/generated-wrappers/mixin_compound';
 export * from '../test/generated-wrappers/mixin_crypto_com';
 export * from '../test/generated-wrappers/mixin_curve';
