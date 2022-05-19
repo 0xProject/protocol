@@ -32,7 +32,7 @@ library BridgeProtocols {
     uint128 internal constant UNISWAPV2       = 2;
     uint128 internal constant UNISWAP         = 3;
     uint128 internal constant BALANCER        = 4;
-    uint128 internal constant KYBER           = 5;
+    uint128 internal constant KYBER           = 5;  // Not used: deprecated.
     uint128 internal constant MOONISWAP       = 6;
     uint128 internal constant MSTABLE         = 7;
     uint128 internal constant OASIS           = 8;  // Not used: deprecated.
