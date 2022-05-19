@@ -2529,8 +2529,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         return gas;
     },
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
-        // TODO: Different base cost if to/from ETH.
-        let gas = 95e3;
+        let gas = 170e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
         if (path.length > 2) {
             gas += (path.length - 2) * 65e3; // +65k for each hop.
