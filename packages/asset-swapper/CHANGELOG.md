@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.60.0 - _May 19, 2022_
+
+    * Add BiSwap on BSC (#467)
+    * Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc (#478)
+    * Add Yoshi Exchange support in Fantom (#473)
+    * Fix KyberDMM gas underestimation (#479)
+
 ## v16.59.0 - _May 13, 2022_
 
     * Remove SnowSwap on mainnet (#468)

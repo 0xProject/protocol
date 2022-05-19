@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.33.0 - _May 19, 2022_
+
+    * Add support for GMX and Platypus to bridge adapter (#478)
+
 ## v0.32.0 - _April 22, 2022_
 
     * Add support for `BalancerV2Batch` fills in FQT (#462)

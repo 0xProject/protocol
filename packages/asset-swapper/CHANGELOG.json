@@ -18,7 +18,8 @@
                 "note": "Fix KyberDMM gas underestimation",
                 "pr": 479
             }
-        ]
+        ],
+        "timestamp": 1652919697
     },
     {
         "version": "16.59.0",

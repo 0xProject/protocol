@@ -6,7 +6,8 @@
                 "note": "Added Support for GMX and Platypus on Avalanche",
                 "pr": 478
             }
-        ]
+        ],
+        "timestamp": 1652919697
     },
     {
         "version": "11.12.0",
