@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.60.1",
+        "changes": [
+            {
+                "note": "Alias Balancer sor to the old version",
+                "pr": 481
+            }
+        ]
+    },
+    {
         "version": "16.60.0",
         "changes": [
             {
