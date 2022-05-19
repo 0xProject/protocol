@@ -48,7 +48,12 @@ import {
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
 
-const DEFAULT_INCLUDED = [ERC20BridgeSource.SushiSwap, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
+const DEFAULT_INCLUDED = [
+    ERC20BridgeSource.SushiSwap,
+    ERC20BridgeSource.Native,
+    ERC20BridgeSource.Uniswap,
+    ERC20BridgeSource.Curve,
+];
 
 const DEFAULT_EXCLUDED = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources.filter(
     s => !DEFAULT_INCLUDED.includes(s),
@@ -316,6 +321,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Native]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.SushiSwap]: createDecreasingRates(NUM_SAMPLES),
         [ERC20BridgeSource.Uniswap]: createDecreasingRates(NUM_SAMPLES),
+        [ERC20BridgeSource.Curve]: createDecreasingRates(NUM_SAMPLES),
     };
 
     interface FillDataBySource {
@@ -1027,6 +1033,7 @@ describe('MarketOperationUtils tests', () => {
                 rates[ERC20BridgeSource.Native] = [0.4, 0.3, 0.2, 0.1];
                 rates[ERC20BridgeSource.Uniswap] = [0.5, 0.05, 0.05, 0.05];
                 rates[ERC20BridgeSource.SushiSwap] = [0.6, 0.05, 0.05, 0.05];
+                rates[ERC20BridgeSource.Curve] = [0, 0, 0, 0]; // unused
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
@@ -1091,6 +1098,7 @@ describe('MarketOperationUtils tests', () => {
                 const uniswapFeeRate = 0.2;
                 const rates: RatesBySource = {
                     [ERC20BridgeSource.Native]: [0.95, 0.1, 0.1, 0.1],
+                    [ERC20BridgeSource.Curve]: [0.1, 0.1, 0.1, 0.1],
                     [ERC20BridgeSource.SushiSwap]: [0.92, 0.1, 0.1, 0.1],
                     // Effectively [0.8, ~0.5, ~0, ~0]
                     [ERC20BridgeSource.Uniswap]: [1, 0.7, 0.2, 0.2],
@@ -1124,7 +1132,7 @@ describe('MarketOperationUtils tests', () => {
 
             it('can mix one concave source', async () => {
                 const rates: RatesBySource = {
-                    [ERC20BridgeSource.BalancerV2]: [0, 0, 0, 0], // Won't use
+                    [ERC20BridgeSource.Curve]: [0, 0, 0, 0], // Won't use
                     [ERC20BridgeSource.SushiSwap]: [0.5, 0.85, 0.75, 0.75], // Concave
                     [ERC20BridgeSource.Uniswap]: [0.96, 0.2, 0.1, 0.1],
                     [ERC20BridgeSource.Native]: [0.95, 0.2, 0.2, 0.1],
@@ -1156,7 +1164,7 @@ describe('MarketOperationUtils tests', () => {
                 rates[ERC20BridgeSource.Native] = [1, 1, 0.01, 0.01];
                 rates[ERC20BridgeSource.Uniswap] = [1, 1, 0.01, 0.01];
                 rates[ERC20BridgeSource.SushiSwap] = [0.49, 0.49, 0.49, 0.49];
-                rates[ERC20BridgeSource.BalancerV2] = [0.35, 0.2, 0.01, 0.01];
+                rates[ERC20BridgeSource.Curve] = [0.35, 0.2, 0.01, 0.01];
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
@@ -1505,7 +1513,7 @@ describe('MarketOperationUtils tests', () => {
                     [ERC20BridgeSource.Native]: [1, 0.99, 0.98, 0.97], // Effectively [0.94, ~0.93, ~0.92, ~0.91]
                     [ERC20BridgeSource.Uniswap]: [0.96, 0.1, 0.1, 0.1],
                     [ERC20BridgeSource.SushiSwap]: [0.95, 0.1, 0.1, 0.1],
-                    [ERC20BridgeSource.BalancerV2]: [0.1, 0.1, 0.1, 0.1],
+                    [ERC20BridgeSource.Curve]: [0.1, 0.1, 0.1, 0.1],
                 };
                 const feeSchedule = {
                     [ERC20BridgeSource.Native]: _.constant(
