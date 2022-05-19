@@ -73,8 +73,7 @@
         "@0x/typescript-typings": "^5.3.1",
         "@0x/utils": "^6.5.3",
         "@0x/web3-wrapper": "^7.6.5",
-        "@balancer-labs/sdk": "^0.1.6",
-        "@balancer-labs/sor": "0.3.2",
+        "@balancer-labs/sdk": "0.1.6",
         "@bancor/sdk": "0.2.9",
         "@ethersproject/abi": "^5.0.1",
         "@ethersproject/address": "^5.0.1",
@@ -92,7 +91,7 @@
         "graphql-request": "^3.4.0",
         "heartbeats": "^5.0.1",
         "lodash": "^4.17.11",
-        "sorV2": "npm:@balancer-labs/sor"
+        "balancer-labs-sor-v1": "npm:@balancer-labs/sor@0.3.2"
     },
     "devDependencies": {
         "@0x/abi-gen": "^5.8.0",
