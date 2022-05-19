@@ -40,7 +40,6 @@ import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
-import "./mixins/MixinOasis.sol";
 import "./mixins/MixinPlatypus.sol";
 import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
@@ -68,7 +67,6 @@ contract BridgeAdapter is
     MixinMooniswap,
     MixinMStable,
     MixinNerve,
-    MixinOasis,
     MixinPlatypus,
     MixinShell,
     MixinUniswap,
@@ -94,7 +92,6 @@ contract BridgeAdapter is
         MixinMooniswap(weth)
         MixinMStable()
         MixinNerve()
-        MixinOasis()
         MixinPlatypus()
         MixinShell()
         MixinUniswap(weth)
@@ -182,13 +179,6 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.MSTABLE) {
             boughtAmount = _tradeMStable(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.OASIS) {
-            boughtAmount = _tradeOasis(
                 sellToken,
                 buyToken,
                 sellAmount,

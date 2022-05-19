@@ -1980,13 +1980,6 @@ export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
-export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Mainnet]: '0x5e3e0548935a83ad29fb2a9153d331dc6d49020f',
-    },
-    NULL_ADDRESS,
-);
-
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0x1c87257f5e8609940bc751a07bb085bb7f8cdbe6',

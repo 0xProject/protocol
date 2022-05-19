@@ -117,7 +117,6 @@ export enum BridgeProtocol {
     Kyber,
     Mooniswap,
     MStable,
-    Oasis,
     Shell,
     Dodo,
     DodoV2,

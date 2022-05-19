@@ -35,7 +35,7 @@ library BridgeProtocols {
     uint128 internal constant KYBER           = 5;
     uint128 internal constant MOONISWAP       = 6;
     uint128 internal constant MSTABLE         = 7;
-    uint128 internal constant OASIS           = 8;
+    uint128 internal constant OASIS           = 8; // Not used: deprecated.
     uint128 internal constant SHELL           = 9;
     uint128 internal constant DODO            = 10;
     uint128 internal constant DODOV2          = 11;
