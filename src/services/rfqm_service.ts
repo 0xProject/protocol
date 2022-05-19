@@ -451,6 +451,7 @@ export class RfqmService {
                     fee: storedFeeWithDetails,
                 },
                 this._kafkaProducer,
+                this._quoteReportTopic,
             );
         }
 
