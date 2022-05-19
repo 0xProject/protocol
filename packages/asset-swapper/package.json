@@ -1,6 +1,6 @@
 {
     "name": "@0x/asset-swapper",
-    "version": "16.60.0",
+    "version": "16.60.1",
     "engines": {
         "node": ">=6.12"
     },
@@ -82,6 +82,7 @@
         "@ethersproject/strings": "^5.0.10",
         "axios": "^0.21.1",
         "axios-mock-adapter": "^1.19.0",
+        "balancer-labs-sor-v1": "npm:@balancer-labs/sor@0.3.2",
         "cream-sor": "^0.3.3",
         "decimal.js": "^10.2.0",
         "ethereum-types": "^3.7.0",
@@ -90,8 +91,7 @@
         "graphql": "^15.4.0",
         "graphql-request": "^3.4.0",
         "heartbeats": "^5.0.1",
-        "lodash": "^4.17.11",
-        "balancer-labs-sor-v1": "npm:@balancer-labs/sor@0.3.2"
+        "lodash": "^4.17.11"
     },
     "devDependencies": {
         "@0x/abi-gen": "^5.8.0",
