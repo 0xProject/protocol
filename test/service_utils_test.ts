@@ -39,8 +39,8 @@ describe(SUITE_NAME, () => {
         it('will not modify the existing excluded sources if a valid API key is present', () => {
             const tests: [ERC20BridgeSource[], string][] = [
                 [[], 'bar'],
-                [[ERC20BridgeSource.Curve, ERC20BridgeSource.Eth2Dai], 'bar'],
-                [[ERC20BridgeSource.LiquidityProvider, ERC20BridgeSource.Eth2Dai], 'bar'],
+                [[ERC20BridgeSource.Curve, ERC20BridgeSource.UniswapV2], 'bar'],
+                [[ERC20BridgeSource.LiquidityProvider, ERC20BridgeSource.UniswapV2], 'bar'],
             ];
             for (const test of tests) {
                 const [currentExcludedSources, apiKey] = test;

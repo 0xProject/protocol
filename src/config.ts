@@ -497,7 +497,7 @@ const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.KyberDmm];
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Kyber];
         case ChainId.Kovan:
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
@@ -515,7 +515,7 @@ const EXCLUDED_SOURCES = (() => {
             ]);
             return allERC20BridgeSources.filter((s) => !supportedRopstenSources.has(s));
         case ChainId.BSC:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native, ERC20BridgeSource.KyberDmm];
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Polygon:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native, ERC20BridgeSource.KyberDmm];
         case ChainId.Avalanche:
