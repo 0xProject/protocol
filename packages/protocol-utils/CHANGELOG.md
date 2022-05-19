@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.13.0 - _May 19, 2022_
+
+    * Added Support for GMX and Platypus on Avalanche (#478)
+
 ## v11.12.0 - _April 22, 2022_
 
     * Add `BalancerV2Batch` to `BridgeProtocol` enum (#462)
