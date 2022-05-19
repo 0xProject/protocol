@@ -261,12 +261,6 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
-}
-
 export interface MooniswapFillData extends FillData {
     poolAddress: string;
 }

@@ -1,7 +1,7 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
-import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 
 import { SamplerCallResult } from '../../src/types';
 import { ERC20BridgeSamplerContract } from '../../src/wrappers';

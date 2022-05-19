@@ -1,5 +1,5 @@
 import { ChainId } from '@0x/contract-addresses';
-import { BigNumber, NULL_BYTES } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 
 import {
     ACRYPTOS_BSC_INFOS,

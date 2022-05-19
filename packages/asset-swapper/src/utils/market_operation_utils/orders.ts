@@ -23,7 +23,6 @@ import {
     GenericRouterFillData,
     GMXFillData,
     KyberDmmFillData,
-    KyberFillData,
     LidoFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
