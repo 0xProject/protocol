@@ -1383,15 +1383,15 @@ export class RfqmService {
                         continue;
                     }
 
-                    const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas.multipliedBy(
-                        MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER,
-                    );
+                    const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas
+                        .multipliedBy(MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER)
+                        .integerValue(BigNumber.ROUND_CEIL);
 
                     // The RPC nodes still need at least a 0.1 increase in both values to accept the new transaction.
                     // For the new max fee per gas, we'll take the maximum of a 0.1 increase from the last value
                     // or the value from an increase in the base fee.
                     const newMaxFeePerGas = BigNumber.max(
-                        oldMaxFeePerGas.multipliedBy(MAX_FEE_PER_GAS_MULTIPLIER),
+                        oldMaxFeePerGas.multipliedBy(MAX_FEE_PER_GAS_MULTIPLIER).integerValue(BigNumber.ROUND_CEIL),
                         newGasPriceEstimate.multipliedBy(2).plus(newMaxPriorityFeePerGas),
                     );
 
