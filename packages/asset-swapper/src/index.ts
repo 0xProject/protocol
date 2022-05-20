@@ -146,6 +146,10 @@ export {
     ExchangeProxyOverhead,
     Fill,
     GetMarketOrdersRfqOpts,
+<<<<<<< HEAD
+=======
+    LiquidityProviderFillData,
+>>>>>>> 2d16f83e3 (Offboard/clean up Oasis, CoFix, and legacy Kyber [TKR-405] (#482))
     LiquidityProviderRegistry,
     MarketDepth,
     MarketDepthSide,

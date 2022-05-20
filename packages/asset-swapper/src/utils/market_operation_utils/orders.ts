@@ -30,7 +30,6 @@ import {
     GenericRouterFillData,
     GMXFillData,
     KyberDmmFillData,
-    KyberFillData,
     LidoFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
@@ -61,8 +60,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.BalancerV2Batch, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
-        // case ERC20BridgeSource.CoFiX:
-        //    return encodeBridgeSourceId(BridgeProtocol.CoFiX, 'CoFiX');
         case ERC20BridgeSource.Curve:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
         case ERC20BridgeSource.Cream:
@@ -274,10 +271,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
-        case ERC20BridgeSource.Kyber:
-            const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = encoder.encode([kyberFillData.networkProxy, kyberFillData.hint]);
-            break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
             bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
@@ -426,10 +419,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
         { name: 'provider', type: 'address' },
         { name: 'data', type: 'bytes' },
-    ]),
-    [ERC20BridgeSource.Kyber]: AbiEncoder.create([
-        { name: 'kyberNetworkProxy', type: 'address' },
-        { name: 'hint', type: 'bytes' },
     ]),
     [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },

@@ -46,9 +46,12 @@ export enum ERC20BridgeSource {
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     Kyber = 'Kyber',
 >>>>>>> 9eadc5fc2 (chore: Offboard Eth2Dai [TKR-356] (#470))
+=======
+>>>>>>> 2d16f83e3 (Offboard/clean up Oasis, CoFix, and legacy Kyber [TKR-405] (#482))
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -244,8 +247,61 @@ export interface LiquidityProviderFillData extends FillData {
     gasCost: number;
 }
 
+<<<<<<< HEAD
 export interface BridgeFillData {
     encodedFillData: Bytes;
+=======
+export interface BancorFillData extends FillData {
+    path: string[];
+    networkAddress: string;
+}
+
+export interface MooniswapFillData extends FillData {
+    poolAddress: string;
+}
+
+export interface DODOFillData extends FillData {
+    poolAddress: string;
+    isSellBase: boolean;
+    helperAddress: string;
+}
+
+export interface GenericRouterFillData extends FillData {
+    router: string;
+}
+
+export interface MultiHopFillData extends FillData {
+    firstHopSource: SourceQuoteOperation;
+    secondHopSource: SourceQuoteOperation;
+    intermediateToken: string;
+}
+
+export interface MakerPsmExtendedData {
+    isSellOperation: boolean;
+    takerToken: string;
+}
+
+export type MakerPsmFillData = FillData & MakerPsmExtendedData & PsmInfo;
+
+export interface HopInfo {
+    sourceIndex: BigNumber;
+    returnData: string;
+}
+
+export interface UniswapV3PathAmount {
+    uniswapPath: string;
+    inputAmount: BigNumber;
+    gasUsed: number;
+}
+export interface UniswapV3FillData extends FillData {
+    tokenAddressPath: string[];
+    router: string;
+    pathAmounts: UniswapV3PathAmount[];
+}
+
+export interface KyberDmmFillData extends UniswapV2FillData {
+    poolsPath: string[];
+>>>>>>> 2d16f83e3 (Offboard/clean up Oasis, CoFix, and legacy Kyber [TKR-405] (#482))
 }
 
 export interface UniswapV2FillData extends BridgeFillData {
@@ -639,10 +695,4 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
-}
-
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
 }

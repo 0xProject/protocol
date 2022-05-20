@@ -13,10 +13,8 @@ import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
     getDodoV2Offsets,
-    getKyberOffsets,
     getPlatypusInfoForPair,
     getShellLikeInfosForPair,
-    isAllowedKyberReserveId,
     isBadTokenForSource,
     isValidAddress,
     uniswapV2LikeRouterAddress,
@@ -35,7 +33,6 @@ import {
     GMX_READER_BY_CHAIN_ID,
     GMX_ROUTER_BY_CHAIN_ID,
     GMX_VAULT_BY_CHAIN_ID,
-    KYBER_CONFIG_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
@@ -44,7 +41,6 @@ import {
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
-    NULL_BYTES,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
@@ -81,8 +77,6 @@ import {
     GMXFillData,
     HopInfo,
     KyberDmmFillData,
-    KyberFillData,
-    KyberSamplerOpts,
     LidoFillData,
     LidoInfo,
     LiquidityProviderFillData,
@@ -263,54 +257,6 @@ export class SamplerOperations {
             function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
             // tslint:disable-next-line:no-unnecessary-type-assertion
             params: [orders.map(o => o.order as LimitOrderFields), orders.map(o => o.signature), exchangeAddress],
-        });
-    }
-
-    public getKyberSellQuotes(
-        kyberOpts: KyberSamplerOpts,
-        reserveOffset: BigNumber,
-        makerToken: string,
-        takerToken: string,
-        takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Kyber,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromKyberNetwork,
-            params: [{ ...kyberOpts, reserveOffset, hint: NULL_BYTES }, takerToken, makerToken, takerFillAmounts],
-            callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
-                const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
-                    [string, string, BigNumber[]]
-                >('sampleSellsFromKyberNetwork', callResults);
-                fillData.hint = hint;
-                fillData.reserveId = reserveId;
-                fillData.networkProxy = kyberOpts.networkProxy;
-                return isAllowedKyberReserveId(reserveId) ? samples : [];
-            },
-        });
-    }
-
-    public getKyberBuyQuotes(
-        kyberOpts: KyberSamplerOpts,
-        reserveOffset: BigNumber,
-        makerToken: string,
-        takerToken: string,
-        makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Kyber,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromKyberNetwork,
-            params: [{ ...kyberOpts, reserveOffset, hint: NULL_BYTES }, takerToken, makerToken, makerFillAmounts],
-            callback: (callResults: string, fillData: KyberFillData): BigNumber[] => {
-                const [reserveId, hint, samples] = this._samplerContract.getABIDecodedReturnData<
-                    [string, string, BigNumber[]]
-                >('sampleBuysFromKyberNetwork', callResults);
-                fillData.hint = hint;
-                fillData.reserveId = reserveId;
-                fillData.networkProxy = kyberOpts.networkProxy;
-                return isAllowedKyberReserveId(reserveId) ? samples : [];
-            },
         });
     }
 
@@ -1479,16 +1425,6 @@ export class SamplerOperations {
                             return [];
                         }
                         return this.getKyberDmmSellQuotes(kyberDmmRouter, [takerToken, makerToken], takerFillAmounts);
-                    case ERC20BridgeSource.Kyber:
-                        return getKyberOffsets().map(offset =>
-                            this.getKyberSellQuotes(
-                                KYBER_CONFIG_BY_CHAIN_ID[this.chainId],
-                                offset,
-                                makerToken,
-                                takerToken,
-                                takerFillAmounts,
-                            ),
-                        );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Nerve:
@@ -1810,16 +1746,6 @@ export class SamplerOperations {
                             return [];
                         }
                         return this.getKyberDmmBuyQuotes(kyberDmmRouter, [takerToken, makerToken], makerFillAmounts);
-                    case ERC20BridgeSource.Kyber:
-                        return getKyberOffsets().map(offset =>
-                            this.getKyberBuyQuotes(
-                                KYBER_CONFIG_BY_CHAIN_ID[this.chainId],
-                                offset,
-                                makerToken,
-                                takerToken,
-                                makerFillAmounts,
-                            ),
-                        );
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Nerve:

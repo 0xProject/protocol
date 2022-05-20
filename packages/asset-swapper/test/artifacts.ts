@@ -26,7 +26,6 @@ import * as IBalancerV2Vault from '../test/generated-artifacts/IBalancerV2Vault.
 import * as IBancor from '../test/generated-artifacts/IBancor.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IGMX from '../test/generated-artifacts/IGMX.json';
-import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
@@ -36,7 +35,6 @@ import * as ISmoothy from '../test/generated-artifacts/ISmoothy.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberDmmSampler from '../test/generated-artifacts/KyberDmmSampler.json';
-import * as KyberSampler from '../test/generated-artifacts/KyberSampler.json';
 import * as LidoSampler from '../test/generated-artifacts/LidoSampler.json';
 import * as LiquidityProviderSampler from '../test/generated-artifacts/LiquidityProviderSampler.json';
 import * as MakerPSMSampler from '../test/generated-artifacts/MakerPSMSampler.json';
@@ -72,7 +70,6 @@ export const artifacts = {
     FakeTaker: FakeTaker as ContractArtifact,
     GMXSampler: GMXSampler as ContractArtifact,
     KyberDmmSampler: KyberDmmSampler as ContractArtifact,
-    KyberSampler: KyberSampler as ContractArtifact,
     LidoSampler: LidoSampler as ContractArtifact,
     LiquidityProviderSampler: LiquidityProviderSampler as ContractArtifact,
     MStableSampler: MStableSampler as ContractArtifact,
@@ -93,7 +90,6 @@ export const artifacts = {
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
     IGMX: IGMX as ContractArtifact,
-    IKyberNetwork: IKyberNetwork as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,

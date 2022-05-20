@@ -21,7 +21,7 @@ import { generatePseudoRandomSalt } from './utils/utils';
 const CHAIN_ID = 1;
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 // tslint:disable: custom-no-magic-numbers
-describe.skip('DexSampler tests', () => {
+describe('DexSampler tests', () => {
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
     const chainId = ChainId.Mainnet;
@@ -140,40 +140,6 @@ describe.skip('DexSampler tests', () => {
                 dexOrderSampler.getLimitOrderFillableTakerAmounts(ORDERS, exchangeProxyAddress),
             );
             expect(fillableAmounts).to.deep.eq(expectedFillableAmounts);
-        });
-
-        it('getKyberSellQuotes()', async () => {
-            const expectedTakerToken = randomAddress();
-            const expectedMakerToken = randomAddress();
-            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
-            const sampler = new MockSamplerContract({
-                sampleSellsFromKyberNetwork: (_reserveOffset, takerToken, makerToken, fillAmounts) => {
-                    expect(takerToken).to.eq(expectedTakerToken);
-                    expect(makerToken).to.eq(expectedMakerToken);
-                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
-                    return ['0x', '0x', expectedMakerFillAmounts];
-                },
-            });
-            const dexOrderSampler = new DexOrderSampler(
-                chainId,
-                sampler,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                async () => undefined,
-            );
-            const [fillableAmounts] = await dexOrderSampler.executeAsync(
-                dexOrderSampler.getKyberSellQuotes(
-                    { hintHandler: randomAddress(), networkProxy: randomAddress(), weth: randomAddress() },
-                    new BigNumber(0),
-                    expectedMakerToken,
-                    expectedTakerToken,
-                    expectedTakerFillAmounts,
-                ),
-            );
-            expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
         });
 
         it('getLiquidityProviderSellQuotes()', async () => {
@@ -370,7 +336,6 @@ describe.skip('DexSampler tests', () => {
             const expectedMakerToken = randomAddress();
             const sources = [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
             const ratesBySource: RatesBySource = {
-                [ERC20BridgeSource.Kyber]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.Uniswap]: getRandomFloat(0, 100),
                 [ERC20BridgeSource.UniswapV2]: getRandomFloat(0, 100),
             };

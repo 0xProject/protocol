@@ -1,10 +1,9 @@
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
-import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 
 import { SamplerCallResult } from '../../src/types';
-import { KyberSamplerOpts } from '../../src/utils/market_operation_utils/types';
 import { ERC20BridgeSamplerContract } from '../../src/wrappers';
 
 export type GetOrderFillableAssetAmountResult = BigNumber[];
@@ -39,18 +38,6 @@ export type SampleBuysEth2DaiHandler = (
     makerToken: string,
     makerTokenAmounts: BigNumber[],
 ) => SampleResults;
-export type SampleSellsKyberHandler = (
-    opts: KyberSamplerOpts,
-    takerToken: string,
-    makerToken: string,
-    takerTokenAmounts: BigNumber[],
-) => [string, string, SampleResults];
-export type SampleBuysKyberHandler = (
-    reserveId: string,
-    takerToken: string,
-    makerToken: string,
-    makerTokenAmounts: BigNumber[],
-) => [string, SampleResults];
 export type SampleUniswapV2Handler = (router: string, path: string[], assetAmounts: BigNumber[]) => SampleResults;
 export type SampleBuysMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
 export type SampleSellsLPHandler = (
@@ -70,7 +57,6 @@ const DUMMY_PROVIDER = {
 interface Handlers {
     getLimitOrderFillableMakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
-    sampleSellsFromKyberNetwork: SampleSellsKyberHandler;
     sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
     sampleSellsFromUniswap: SampleSellsUniswapHandler;
     sampleSellsFromUniswapV2: SampleUniswapV2Handler;
@@ -120,22 +106,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
             orders,
             signatures,
             constants.NULL_ADDRESS,
-        );
-    }
-
-    public sampleSellsFromKyberNetwork(
-        opts: KyberSamplerOpts,
-        takerToken: string,
-        makerToken: string,
-        takerAssetAmounts: BigNumber[],
-    ): ContractTxFunctionObj<[string, string, BigNumber[]]> {
-        return this._wrapCall(
-            super.sampleSellsFromKyberNetwork,
-            this._handlers.sampleSellsFromKyberNetwork,
-            { ...opts, reserveOffset: new BigNumber(1), hint: NULL_BYTES },
-            takerToken,
-            makerToken,
-            takerAssetAmounts,
         );
     }
 
