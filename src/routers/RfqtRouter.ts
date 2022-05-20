@@ -8,7 +8,7 @@ import { RfqtServices } from '../utils/rfqtServiceBuilder';
 /**
  * Creates an express router for RFQt-related routes
  */
-export function createRfqmRouter(rfqtServices: RfqtServices, configManager: ConfigManager): express.Router {
+export function createRfqtRouter(rfqtServices: RfqtServices, configManager: ConfigManager): express.Router {
     const router = express.Router();
     const handlers = new RfqtHandlers(rfqtServices, configManager);
 

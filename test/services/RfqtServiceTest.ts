@@ -102,6 +102,7 @@ describe('Rfqt Service', () => {
         });
         describe('getV1QuotesAsync', () => {
             it('passes through calls to QuoteRequestor::requestRfqtFirmQuotesAsync', async () => {
+                mockQuoteRequestor.requestRfqtFirmQuotesAsync.mockResolvedValue([]);
                 const rfqtService = new RfqtService(mockQuoteRequestor);
 
                 await rfqtService.getV1QuotesAsync({

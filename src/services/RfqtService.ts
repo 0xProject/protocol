@@ -1,9 +1,9 @@
-import { AltRfqMakerAssetOfferings, SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
+import { AltRfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
+import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 
 /**
  * Central class to contain the logic to handle RFQT Trades.
@@ -18,7 +18,7 @@ export class RfqtService {
     constructor(
         private readonly _quoteRequestor: Pick<
             QuoteRequestor,
-            'requestRfqtIndicativeQuotesAsync' | 'requestRfqtFirmQuotesAsync'
+            'requestRfqtIndicativeQuotesAsync' | 'requestRfqtFirmQuotesAsync' | 'getMakerUriForSignature'
         >,
     ) {}
 
@@ -91,7 +91,7 @@ export class RfqtService {
         takerAddress: string; // expect this to be the taker address
         takerToken: string;
         txOrigin: string;
-    }): Promise<SignedNativeOrder[]> {
+    }): Promise<SignedNativeOrderMM[]> {
         const {
             altRfqAssetOfferings,
             assetFillAmount,
@@ -105,7 +105,7 @@ export class RfqtService {
             txOrigin,
         } = parameters;
 
-        return this._quoteRequestor.requestRfqtFirmQuotesAsync(
+        const quotes = await this._quoteRequestor.requestRfqtFirmQuotesAsync(
             makerToken,
             takerToken,
             assetFillAmount,
@@ -122,5 +122,12 @@ export class RfqtService {
                 txOrigin,
             },
         );
+
+        return quotes.map((q) => {
+            return {
+                ...q,
+                makerUri: this._quoteRequestor.getMakerUriForSignature(q.signature),
+            };
+        });
     }
 }

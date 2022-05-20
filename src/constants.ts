@@ -28,6 +28,7 @@ export const RFQM_NUM_BUCKETS = 1000;
 // API namespaces
 export const METRICS_PATH = '/metrics';
 export const RFQM_PATH = '/rfqm/v1';
+export const RFQT_PATH = '/rfqt/v1';
 export const RFQ_MAKER_PATH = '/maker/v1';
 export const RFQ_MAKER_API_KEY_HEADER = '0x-maker-api-key';
 export const HEALTHCHECK_PATH = '/healthz';

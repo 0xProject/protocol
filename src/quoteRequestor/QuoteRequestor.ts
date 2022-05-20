@@ -44,6 +44,8 @@ export interface V4RFQIndicativeQuoteMM extends V4RFQIndicativeQuote {
     makerUri: string;
 }
 
+export type SignedNativeOrderMM = SignedNativeOrder & { makerUri?: string };
+
 export interface MetricsProxy {
     /**
      * Increments a counter that is tracking valid Firm Quotes that are dropped due to low expiration.

@@ -22,13 +22,14 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { ADMIN_PATH, RFQM_PATH, RFQ_MAKER_PATH } from '../constants';
+import { ADMIN_PATH, RFQM_PATH, RFQT_PATH, RFQ_MAKER_PATH } from '../constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { createRfqmRouter } from '../routers/rfqm_router';
+import { createRfqtRouter } from '../routers/RfqtRouter';
 import { createRfqAdminRouter } from '../routers/rfq_admin_router';
 import { createRfqMakerRouter } from '../routers/rfq_maker_router';
 import { RfqAdminService } from '../services/rfq_admin_service';
@@ -167,6 +168,7 @@ export async function runHttpRfqmServiceAsync(
     });
 
     app.use(RFQM_PATH, createRfqmRouter(rfqmServices, configManager));
+    app.use(RFQT_PATH, createRfqtRouter(rfqtServices, configManager));
     app.use(RFQ_MAKER_PATH, createRfqMakerRouter(rfqMakerService));
     app.use(ADMIN_PATH, createRfqAdminRouter(rfqAdminService, configManager));
 

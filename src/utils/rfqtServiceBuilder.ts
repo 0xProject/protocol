@@ -29,6 +29,7 @@ export async function buildRfqtServicesAsync(
     const services = await Promise.all(
         chainConfigurations.map(async (chain) => {
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
+            await rfqMakerManager.initializeAsync();
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance);
             return new RfqtService(quoteRequestor);
         }),

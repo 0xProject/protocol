@@ -1,4 +1,5 @@
 import { MarketOperation, RfqRequestOpts, SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
+import { Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
@@ -74,6 +75,14 @@ export class RefreshingQuoteRequestor {
             comparisonPrice,
             options,
         );
+    }
+
+    /**
+     * Passthrough to the internal `QuoteRequestor`'s `getMakerUriForSignature`
+     * method.
+     */
+    public getMakerUriForSignature(signature: Signature): string | undefined {
+        return this._quoteRequestor.getMakerUriForSignature(signature);
     }
 
     /**
