@@ -4,12 +4,15 @@ import * as _ from 'lodash';
 
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
+    AltRfqMakerAssetOfferings,
     AssetSwapperContractAddresses,
     MarketOperation,
     NativeOrderWithFillableAmounts,
     SignedNativeOrder,
 } from '../../types';
-import { QuoteRequestor } from '../quote_requestor';
+import { getAltMarketInfo } from '../alt_mm_implementation_utils';
+import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
+import { toSignedNativeOrder } from '../rfq_client_mappers';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
     getNativeAdjustedFillableAmountsFromTakerAmount,
@@ -663,17 +666,49 @@ export class MarketOperationUtils {
             // Timing of RFQT lifecycle
             const timeStart = new Date().getTime();
             const { makerToken, takerToken } = nativeOrders[0].order;
+
+            // Filter Alt Rfq Maker Asset Offerings to the current pair
+            const filteredOfferings: AltRfqMakerAssetOfferings = {};
+            if (rfqt.altRfqAssetOfferings) {
+                const endpoints = Object.keys(rfqt.altRfqAssetOfferings);
+                for (const endpoint of endpoints) {
+                    // Get the current pair if being offered
+                    const offering = getAltMarketInfo(rfqt.altRfqAssetOfferings[endpoint], makerToken, takerToken);
+                    if (offering) {
+                        filteredOfferings[endpoint] = [offering];
+                    }
+                }
+            }
+
             if (rfqt.isIndicative) {
                 // An indicative quote is being requested, and indicative quotes price-aware enabled
                 // Make the RFQT request and then re-run the sampler if new orders come back.
-                const indicativeQuotes = await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
-                    makerToken,
-                    takerToken,
-                    amount,
-                    side,
-                    wholeOrderPrice,
-                    rfqt,
-                );
+
+                const indicativeQuotes =
+                    rfqt.rfqClient !== undefined
+                        ? ((
+                              await rfqt.rfqClient.getV1PricesAsync({
+                                  altRfqAssetOfferings: filteredOfferings,
+                                  assetFillAmount: amount,
+                                  chainId: this._sampler.chainId,
+                                  comparisonPrice: wholeOrderPrice,
+                                  integratorId: rfqt.integrator.integratorId,
+                                  intentOnFilling: rfqt.intentOnFilling,
+                                  makerToken,
+                                  marketOperation: side,
+                                  takerAddress: rfqt.takerAddress,
+                                  takerToken,
+                                  txOrigin: rfqt.txOrigin,
+                              })
+                          ).prices as V4RFQIndicativeQuoteMM[])
+                        : await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
+                              makerToken,
+                              takerToken,
+                              amount,
+                              side,
+                              wholeOrderPrice,
+                              rfqt,
+                          );
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'indicative',
@@ -687,14 +722,31 @@ export class MarketOperationUtils {
             } else {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
                 // Ensure that `intentOnFilling` is enabled and make the request.
-                const firmQuotes = await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
-                    makerToken,
-                    takerToken,
-                    amount,
-                    side,
-                    wholeOrderPrice,
-                    rfqt,
-                );
+                const firmQuotes =
+                    rfqt.rfqClient !== undefined
+                        ? (
+                              await rfqt.rfqClient.getV1QuotesAsync({
+                                  altRfqAssetOfferings: filteredOfferings,
+                                  assetFillAmount: amount,
+                                  chainId: this._sampler.chainId,
+                                  comparisonPrice: wholeOrderPrice,
+                                  integratorId: rfqt.integrator.integratorId,
+                                  intentOnFilling: rfqt.intentOnFilling,
+                                  makerToken,
+                                  marketOperation: side,
+                                  takerAddress: rfqt.takerAddress,
+                                  takerToken,
+                                  txOrigin: rfqt.txOrigin,
+                              })
+                          ).quotes.map(toSignedNativeOrder)
+                        : await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
+                              makerToken,
+                              takerToken,
+                              amount,
+                              side,
+                              wholeOrderPrice,
+                              rfqt,
+                          );
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'firm',
@@ -777,7 +829,7 @@ export class MarketOperationUtils {
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
         void Promise.all(
             Object.values(this._sampler.poolsCaches).map(async cache => {
-                if (cache.isFresh(takerToken, makerToken)) {
+                if (!cache || cache.isFresh(takerToken, makerToken)) {
                     return Promise.resolve([]);
                 }
                 return cache.getFreshPoolsForPairAsync(takerToken, makerToken);

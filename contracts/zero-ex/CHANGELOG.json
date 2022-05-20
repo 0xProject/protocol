@@ -1,5 +1,15 @@
 [
     {
+        "version": "0.33.0",
+        "changes": [
+            {
+                "note": "Add support for GMX and Platypus to bridge adapter",
+                "pr": 478
+            }
+        ],
+        "timestamp": 1652919697
+    },
+    {
         "version": "0.32.0",
         "changes": [
             {

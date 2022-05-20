@@ -5,6 +5,41 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.60.1 - _May 19, 2022_
+
+    * Alias Balancer sor to the old version (#481)
+
+## v16.60.0 - _May 19, 2022_
+
+    * Add BiSwap on BSC (#467)
+    * Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc (#478)
+    * Add Yoshi Exchange support in Fantom (#473)
+    * Fix KyberDMM gas underestimation (#479)
+
+## v16.59.0 - _May 13, 2022_
+
+    * Remove SnowSwap on mainnet (#468)
+    * Offboard Swerve Finance and LinkSwap (#469)
+    * Offboard Eth2Dai (#470)
+    * Add an optional IRfqClient for SwapQuoter#getSwapQuoteAsync (#467)
+
+## v16.58.0 - _Invalid date_
+
+    * Update Saddle pools on Mainnet (#450)
+
+## v16.57.3 - _May 10, 2022_
+
+    * Fix a runtime error related to BalancerV2SwapInfoCache (#472)
+
+## v16.57.2 - _May 2, 2022_
+
+    * Fix missing AMM quotes on indicative Quote Reports (#466)
+
+## v16.57.1 - _Invalid date_
+
+    * Added QUICK/ANY pair on Polygon (#464)
+    * Added cvxFXS/FXS curve pool on mainnet (#465)
+
 ## v16.57.0 - _April 22, 2022_
 
     * Add BalancerV2 batch swap support (#462)

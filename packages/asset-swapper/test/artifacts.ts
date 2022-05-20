@@ -18,26 +18,28 @@ import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
 import * as DODOV2Sampler from '../test/generated-artifacts/DODOV2Sampler.json';
 import * as ERC20BridgeSampler from '../test/generated-artifacts/ERC20BridgeSampler.json';
 import * as FakeTaker from '../test/generated-artifacts/FakeTaker.json';
+import * as GMXSampler from '../test/generated-artifacts/GMXSampler.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
 import * as IBalancerV2Vault from '../test/generated-artifacts/IBalancerV2Vault.json';
 import * as IBancor from '../test/generated-artifacts/IBancor.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
-import * as IKyberNetwork from '../test/generated-artifacts/IKyberNetwork.json';
+import * as IGMX from '../test/generated-artifacts/IGMX.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
+import * as IPlatypus from '../test/generated-artifacts/IPlatypus.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
 import * as ISmoothy from '../test/generated-artifacts/ISmoothy.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberDmmSampler from '../test/generated-artifacts/KyberDmmSampler.json';
-import * as KyberSampler from '../test/generated-artifacts/KyberSampler.json';
 import * as LidoSampler from '../test/generated-artifacts/LidoSampler.json';
 import * as LiquidityProviderSampler from '../test/generated-artifacts/LiquidityProviderSampler.json';
 import * as MakerPSMSampler from '../test/generated-artifacts/MakerPSMSampler.json';
 import * as MooniswapSampler from '../test/generated-artifacts/MooniswapSampler.json';
 import * as MStableSampler from '../test/generated-artifacts/MStableSampler.json';
 import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSampler.json';
+import * as PlatypusSampler from '../test/generated-artifacts/PlatypusSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
 import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
@@ -61,14 +63,15 @@ export const artifacts = {
     DODOV2Sampler: DODOV2Sampler as ContractArtifact,
     ERC20BridgeSampler: ERC20BridgeSampler as ContractArtifact,
     FakeTaker: FakeTaker as ContractArtifact,
+    GMXSampler: GMXSampler as ContractArtifact,
     KyberDmmSampler: KyberDmmSampler as ContractArtifact,
-    KyberSampler: KyberSampler as ContractArtifact,
     LidoSampler: LidoSampler as ContractArtifact,
     LiquidityProviderSampler: LiquidityProviderSampler as ContractArtifact,
     MStableSampler: MStableSampler as ContractArtifact,
     MakerPSMSampler: MakerPSMSampler as ContractArtifact,
     MooniswapSampler: MooniswapSampler as ContractArtifact,
     NativeOrderSampler: NativeOrderSampler as ContractArtifact,
+    PlatypusSampler: PlatypusSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
     SmoothySampler: SmoothySampler as ContractArtifact,
@@ -81,10 +84,11 @@ export const artifacts = {
     IBalancerV2Vault: IBalancerV2Vault as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
-    IKyberNetwork: IKyberNetwork as ContractArtifact,
+    IGMX: IGMX as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
     IMultiBridge: IMultiBridge as ContractArtifact,
+    IPlatypus: IPlatypus as ContractArtifact,
     IShell: IShell as ContractArtifact,
     ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,

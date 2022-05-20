@@ -1,7 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 // import { parsePoolData } from '@balancer-labs'; // TODO - upgrade to v2
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { gql, request } from 'graphql-request';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';

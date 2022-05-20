@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.14.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT on Avalanche and BSC"
+            }
+        ],
+        "timestamp": 1652919697
+    },
+    {
         "version": "6.13.0",
         "changes": [
             {

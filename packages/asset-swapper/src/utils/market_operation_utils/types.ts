@@ -8,6 +8,7 @@ import { BigNumber } from '@0x/utils';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
+import { IRfqClient } from '../irfq_client';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { SourceFilters } from './source_filters';
@@ -37,8 +38,6 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
-    Eth2Dai = 'Eth2Dai',
-    Kyber = 'Kyber',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -51,13 +50,10 @@ export enum ERC20BridgeSource {
     Mooniswap = 'Mooniswap',
     MultiHop = 'MultiHop',
     Shell = 'Shell',
-    Swerve = 'Swerve',
-    SnowSwap = 'SnowSwap',
     SushiSwap = 'SushiSwap',
     Dodo = 'DODO',
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
-    Linkswap = 'Linkswap',
     KyberDmm = 'KyberDMM',
     Smoothy = 'Smoothy',
     Component = 'Component',
@@ -74,6 +70,7 @@ export enum ERC20BridgeSource {
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
+    BiSwap = 'BiSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
@@ -95,6 +92,9 @@ export enum ERC20BridgeSource {
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    Platypus = 'Platypus',
+    // tslint:disable: enum-naming
+    GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -103,6 +103,7 @@ export enum ERC20BridgeSource {
     SpookySwap = 'SpookySwap',
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
+    Yoshi = 'Yoshi',
     Geist = 'Geist',
 }
 export type SourcesWithPoolsCache =
@@ -261,12 +262,6 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
-}
-
 export interface MooniswapFillData extends FillData {
     poolAddress: string;
 }
@@ -354,6 +349,24 @@ export interface GeistFillData extends FillData {
     takerToken: string;
 }
 
+export interface PlatypusInfo {
+    poolAddress: string;
+    tokens: string[];
+    gasSchedule: number;
+}
+
+export interface GMXFillData extends FillData {
+    router: string;
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
+}
+
+export interface PlatypusFillData extends FillData {
+    router: string;
+    pool: string[];
+    tokenAddressPath: string[];
+}
 /**
  * Represents a node on a fill path.
  */
@@ -451,6 +464,7 @@ export type OptimizedMarketOrder =
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
+    rfqClient?: IRfqClient;
     quoteRequestor?: QuoteRequestor;
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }
@@ -672,10 +686,4 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
-}
-
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
 }

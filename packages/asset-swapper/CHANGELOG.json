@@ -1,5 +1,110 @@
 [
     {
+        "version": "16.61.0",
+        "changes": [
+            {
+                "note": "Offboard/clean up Oasis, CoFix, and legacy Kyber",
+                "pr": 482
+            }
+        ]
+    },
+    {
+        "version": "16.60.1",
+        "changes": [
+            {
+                "note": "Alias Balancer sor to the old version",
+                "pr": 481
+            }
+        ],
+        "timestamp": 1652931596
+    },
+    {
+        "version": "16.60.0",
+        "changes": [
+            {
+                "note": "Add BiSwap on BSC",
+                "pr": 467
+            },
+            {
+                "note": "Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc",
+                "pr": 478
+            },
+            {
+                "note": "Add Yoshi Exchange support in Fantom",
+                "pr": 473
+            },
+            {
+                "note": "Fix KyberDMM gas underestimation",
+                "pr": 479
+            }
+        ],
+        "timestamp": 1652919697
+    },
+    {
+        "version": "16.59.0",
+        "changes": [
+            {
+                "note": "Remove SnowSwap on mainnet",
+                "pr": 468
+            },
+            {
+                "note": "Offboard Swerve Finance and LinkSwap",
+                "pr": 469
+            },
+            {
+                "note": "Offboard Eth2Dai",
+                "pr": 470
+            },
+            {
+                "note": "Add an optional IRfqClient for SwapQuoter#getSwapQuoteAsync",
+                "pr": 467
+            }
+        ],
+        "timestamp": 1652400434
+    },
+    {
+        "version": "16.58.0",
+        "changes": [
+            {
+                "note": "Update Saddle pools on Mainnet",
+                "pr": 450
+            }
+        ]
+    },
+    {
+        "version": "16.57.3",
+        "changes": [
+            {
+                "note": "Fix a runtime error related to BalancerV2SwapInfoCache",
+                "pr": 472
+            }
+        ],
+        "timestamp": 1652146864
+    },
+    {
+        "version": "16.57.2",
+        "changes": [
+            {
+                "note": "Fix missing AMM quotes on indicative Quote Reports",
+                "pr": 466
+            }
+        ],
+        "timestamp": 1651526551
+    },
+    {
+        "version": "16.57.1",
+        "changes": [
+            {
+                "note": "Added QUICK/ANY pair on Polygon",
+                "pr": 464
+            },
+            {
+                "note": "Added cvxFXS/FXS curve pool on mainnet",
+                "pr": 465
+            }
+        ]
+    },
+    {
         "version": "16.57.0",
         "changes": [
             {

@@ -27,21 +27,20 @@ import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinBancor.sol";
-import "./mixins/MixinCoFiX.sol";
 import "./mixins/MixinCompound.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
-import "./mixins/MixinKyber.sol";
+import "./mixins/MixinGMX.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
-import "./mixins/MixinOasis.sol";
+import "./mixins/MixinPlatypus.sol";
 import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
@@ -55,21 +54,20 @@ contract BridgeAdapter is
     MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinBancor,
-    MixinCoFiX,
     MixinCompound,
     MixinCurve,
     MixinCurveV2,
     MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
-    MixinKyber,
+    MixinGMX,
     MixinKyberDmm,
     MixinLido,
     MixinMakerPSM,
     MixinMooniswap,
     MixinMStable,
     MixinNerve,
-    MixinOasis,
+    MixinPlatypus,
     MixinShell,
     MixinUniswap,
     MixinUniswapV2,
@@ -82,20 +80,19 @@ contract BridgeAdapter is
         MixinBalancer()
         MixinBalancerV2()
         MixinBancor(weth)
-        MixinCoFiX()
         MixinCompound(weth)
         MixinCurve(weth)
         MixinCurveV2()
         MixinCryptoCom()
         MixinDodo()
         MixinDodoV2()
-        MixinKyber(weth)
+        MixinGMX()
         MixinLido(weth)
         MixinMakerPSM()
         MixinMooniswap(weth)
         MixinMStable()
         MixinNerve()
-        MixinOasis()
+        MixinPlatypus()
         MixinShell()
         MixinUniswap(weth)
         MixinUniswapV2()
@@ -166,14 +163,7 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.KYBER) {
-            boughtAmount = _tradeKyber(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.MAKERPSM) {
+        }else if (protocolId == BridgeProtocols.MAKERPSM) {
             boughtAmount = _tradeMakerPsm(
                 sellToken,
                 buyToken,
@@ -189,13 +179,6 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.MSTABLE) {
             boughtAmount = _tradeMStable(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.OASIS) {
-            boughtAmount = _tradeOasis(
                 sellToken,
                 buyToken,
                 sellAmount,
@@ -232,13 +215,6 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.COFIX) {
-            boughtAmount = _tradeCoFiX(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
         } else if (protocolId == BridgeProtocols.NERVE) {
             boughtAmount = _tradeNerve(
                 sellToken,
@@ -268,6 +244,18 @@ contract BridgeAdapter is
         } else if (protocolId == BridgeProtocols.COMPOUND) {
             boughtAmount = _tradeCompound(
                 sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.GMX) {
+            boughtAmount = _tradeGMX(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.PLATYPUS) {
+            boughtAmount = _tradePlatypus(
                 buyToken,
                 sellAmount,
                 order.bridgeData

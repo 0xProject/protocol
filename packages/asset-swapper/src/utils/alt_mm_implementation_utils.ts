@@ -17,7 +17,10 @@ import {
 
 const SUCCESS_CODE = 201;
 
-function getAltMarketInfo(
+/**
+ * Returns the AltOffering if it exists for a given pair
+ */
+export function getAltMarketInfo(
     offerings: AltOffering[],
     buyTokenAddress: string,
     sellTokenAddress: string,

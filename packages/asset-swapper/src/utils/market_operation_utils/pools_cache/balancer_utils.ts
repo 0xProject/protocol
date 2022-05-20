@@ -1,5 +1,5 @@
-import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { getPoolsWithTokens, parsePoolData } from 'balancer-labs-sor-v1';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { gql, request } from 'graphql-request';
 
 import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';

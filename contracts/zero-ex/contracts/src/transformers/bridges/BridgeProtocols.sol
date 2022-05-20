@@ -32,16 +32,16 @@ library BridgeProtocols {
     uint128 internal constant UNISWAPV2       = 2;
     uint128 internal constant UNISWAP         = 3;
     uint128 internal constant BALANCER        = 4;
-    uint128 internal constant KYBER           = 5;
+    uint128 internal constant KYBER           = 5;  // Not used: deprecated.
     uint128 internal constant MOONISWAP       = 6;
     uint128 internal constant MSTABLE         = 7;
-    uint128 internal constant OASIS           = 8;
+    uint128 internal constant OASIS           = 8;  // Not used: deprecated.
     uint128 internal constant SHELL           = 9;
     uint128 internal constant DODO            = 10;
     uint128 internal constant DODOV2          = 11;
     uint128 internal constant CRYPTOCOM       = 12;
     uint128 internal constant BANCOR          = 13;
-    uint128 internal constant COFIX           = 14;
+    uint128 internal constant COFIX           = 14; // Not used: deprecated.
     uint128 internal constant NERVE           = 15;
     uint128 internal constant MAKERPSM        = 16;
     uint128 internal constant BALANCERV2      = 17;
@@ -53,4 +53,6 @@ library BridgeProtocols {
     uint128 internal constant AAVEV2          = 23;
     uint128 internal constant COMPOUND        = 24;
     uint128 internal constant BALANCERV2BATCH = 25;
+    uint128 internal constant GMX             = 26;
+    uint128 internal constant PLATYPUS        = 27;
 }

@@ -1,4 +1,4 @@
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { getPoolsWithTokens, parsePoolData } from 'cream-sor';
 
 import { BALANCER_MAX_POOLS_FETCHED } from '../constants';

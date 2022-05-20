@@ -21,8 +21,8 @@ import {
     FinalUniswapV3FillData,
     GeistFillData,
     GenericRouterFillData,
+    GMXFillData,
     KyberDmmFillData,
-    KyberFillData,
     LidoFillData,
     LiquidityProviderFillData,
     MakerPsmFillData,
@@ -35,6 +35,7 @@ import {
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
     OrderDomain,
+    PlatypusFillData,
     ShellFillData,
     UniswapV2FillData,
     UniswapV3FillData,
@@ -90,8 +91,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.BalancerV2Batch, 'BalancerV2');
         case ERC20BridgeSource.Bancor:
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
-        // case ERC20BridgeSource.CoFiX:
-        //    return encodeBridgeSourceId(BridgeProtocol.CoFiX, 'CoFiX');
         case ERC20BridgeSource.Curve:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
         case ERC20BridgeSource.Cream:
@@ -100,8 +99,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.CryptoCom, 'CryptoCom');
         case ERC20BridgeSource.Dodo:
             return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
-        case ERC20BridgeSource.Kyber:
-            return encodeBridgeSourceId(BridgeProtocol.Kyber, 'Kyber');
         case ERC20BridgeSource.LiquidityProvider:
             // "LiquidityProvider" is too long to encode (17 characters).
             return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
@@ -111,24 +108,16 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Mooniswap, 'Mooniswap');
         case ERC20BridgeSource.MStable:
             return encodeBridgeSourceId(BridgeProtocol.MStable, 'MStable');
-        case ERC20BridgeSource.Eth2Dai:
-            return encodeBridgeSourceId(BridgeProtocol.Oasis, 'Eth2Dai');
         case ERC20BridgeSource.Shell:
             return encodeBridgeSourceId(BridgeProtocol.Shell, 'Shell');
-        case ERC20BridgeSource.SnowSwap:
-            return encodeBridgeSourceId(BridgeProtocol.Curve, 'SnowSwap');
         case ERC20BridgeSource.SushiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap');
-        case ERC20BridgeSource.Swerve:
-            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Swerve');
         case ERC20BridgeSource.Uniswap:
             return encodeBridgeSourceId(BridgeProtocol.Uniswap, 'Uniswap');
         case ERC20BridgeSource.UniswapV2:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2');
         case ERC20BridgeSource.DodoV2:
             return encodeBridgeSourceId(BridgeProtocol.DodoV2, 'DodoV2');
-        case ERC20BridgeSource.Linkswap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Linkswap');
         case ERC20BridgeSource.PancakeSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'PancakeSwap');
         case ERC20BridgeSource.PancakeSwapV2:
@@ -201,6 +190,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SpookySwap');
         case ERC20BridgeSource.MorpheusSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MorpheusSwap');
+        case ERC20BridgeSource.Yoshi:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Yoshi');
         case ERC20BridgeSource.AaveV2:
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
         case ERC20BridgeSource.Compound:
@@ -211,6 +202,12 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         case ERC20BridgeSource.RadioShack:
             return encodeBridgeSourceId(BridgeProtocol.RadioShack, 'RadioShack');
+        case ERC20BridgeSource.BiSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BiSwap');
+        case ERC20BridgeSource.GMX:
+            return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
+        case ERC20BridgeSource.Platypus:
+            return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -234,8 +231,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
     switch (order.source) {
         case ERC20BridgeSource.Curve:
         case ERC20BridgeSource.CurveV2:
-        case ERC20BridgeSource.Swerve:
-        case ERC20BridgeSource.SnowSwap:
         case ERC20BridgeSource.Nerve:
         case ERC20BridgeSource.Synapse:
         case ERC20BridgeSource.Belt:
@@ -282,7 +277,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
-        case ERC20BridgeSource.Linkswap:
         case ERC20BridgeSource.PancakeSwap:
         case ERC20BridgeSource.PancakeSwapV2:
         case ERC20BridgeSource.BakerySwap:
@@ -304,12 +298,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.SpookySwap:
         case ERC20BridgeSource.MorpheusSwap:
         case ERC20BridgeSource.RadioShack:
+        case ERC20BridgeSource.BiSwap:
+        case ERC20BridgeSource.Yoshi:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
-            break;
-        case ERC20BridgeSource.Kyber:
-            const kyberFillData = (order as OptimizedMarketBridgeOrder<KyberFillData>).fillData;
-            bridgeData = encoder.encode([kyberFillData.networkProxy, kyberFillData.hint]);
             break;
         case ERC20BridgeSource.Mooniswap:
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
@@ -339,10 +331,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Uniswap:
             const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([uniFillData.router]);
-            break;
-        case ERC20BridgeSource.Eth2Dai:
-            const oasisFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
-            bridgeData = encoder.encode([oasisFillData.router]);
             break;
         case ERC20BridgeSource.MStable:
             const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
@@ -379,6 +367,23 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Geist:
             const geistFillData = (order as OptimizedMarketBridgeOrder<GeistFillData>).fillData;
             bridgeData = encoder.encode([geistFillData.lendingPool, geistFillData.gToken]);
+            break;
+        case ERC20BridgeSource.GMX:
+            const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
+            bridgeData = encoder.encode([
+                gmxFillData.router,
+                gmxFillData.reader,
+                gmxFillData.vault,
+                gmxFillData.tokenAddressPath,
+            ]);
+            break;
+        case ERC20BridgeSource.Platypus:
+            const platypusFillData = (order as OptimizedMarketBridgeOrder<PlatypusFillData>).fillData;
+            bridgeData = encoder.encode([
+                platypusFillData.router,
+                platypusFillData.pool,
+                platypusFillData.tokenAddressPath,
+            ]);
             break;
 
         default:
@@ -466,6 +471,8 @@ const balancerV2Encoder = AbiEncoder.create([
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
+const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
+const platypusAddressPathEncoder = AbiEncoder.create('(address,address[],address[])');
 
 export const BRIDGE_ENCODERS: {
     [key in Exclude<
@@ -476,10 +483,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
         { name: 'provider', type: 'address' },
         { name: 'data', type: 'bytes' },
-    ]),
-    [ERC20BridgeSource.Kyber]: AbiEncoder.create([
-        { name: 'kyberNetworkProxy', type: 'address' },
-        { name: 'hint', type: 'bytes' },
     ]),
     [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },
@@ -493,8 +496,6 @@ export const BRIDGE_ENCODERS: {
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,
     [ERC20BridgeSource.CurveV2]: curveEncoder,
-    [ERC20BridgeSource.Swerve]: curveEncoder,
-    [ERC20BridgeSource.SnowSwap]: curveEncoder,
     [ERC20BridgeSource.Nerve]: curveEncoder,
     [ERC20BridgeSource.Synapse]: curveEncoder,
     [ERC20BridgeSource.Belt]: curveEncoder,
@@ -511,7 +512,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
-    [ERC20BridgeSource.Linkswap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ShibaSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Pangolin]: routerAddressPathEncoder,
     [ERC20BridgeSource.TraderJoe]: routerAddressPathEncoder,
@@ -519,6 +519,11 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.RadioShack]: routerAddressPathEncoder,
+    [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
+    // Avalanche
+    [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
+    [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
     // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
     // BSC
@@ -540,7 +545,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Component]: poolEncoder,
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
-    [ERC20BridgeSource.Eth2Dai]: poolEncoder,
     [ERC20BridgeSource.MStable]: poolEncoder,
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Cream]: poolEncoder,
