@@ -38,7 +38,6 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
-    Kyber = 'Kyber',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -260,12 +259,6 @@ export interface LiquidityProviderFillData extends FillData {
 export interface BancorFillData extends FillData {
     path: string[];
     networkAddress: string;
-}
-
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
 }
 
 export interface MooniswapFillData extends FillData {
@@ -692,10 +685,4 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
-}
-
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
 }

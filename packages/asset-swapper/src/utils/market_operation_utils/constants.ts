@@ -22,7 +22,6 @@ import {
     GeistFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
-    KyberSamplerOpts,
     LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
@@ -80,7 +79,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
@@ -111,7 +109,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Native,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Uniswap,
@@ -226,7 +223,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Native,
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
@@ -257,7 +253,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Compound,
         ]),
         [ChainId.Ropsten]: new SourceFilters([
-            ERC20BridgeSource.Kyber,
             ERC20BridgeSource.Native,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Uniswap,
@@ -1847,35 +1842,6 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     },
 };
 
-/**
- * Kyber reserve prefixes
- * 0xff Fed price reserve
- * 0xaa Automated price reserve
- * 0xbb Bridged price reserve (i.e Uniswap/Curve)
- */
-export const KYBER_BRIDGED_LIQUIDITY_PREFIX = '0xbb';
-export const KYBER_BANNED_RESERVES = ['0xff4f6e65426974205175616e7400000000000000000000000000000000000000'];
-export const MAX_KYBER_RESERVES_QUERIED = 5;
-export const KYBER_CONFIG_BY_CHAIN_ID = valueByChainId<KyberSamplerOpts>(
-    {
-        [ChainId.Mainnet]: {
-            networkProxy: '0x9aab3f75489902f3a48495025729a0af77d4b11e',
-            hintHandler: '0xa1C0Fa73c39CFBcC11ec9Eb1Afc665aba9996E2C',
-            weth: MAINNET_TOKENS.WETH,
-        },
-        [ChainId.Ropsten]: {
-            networkProxy: '0x818e6fecd516ecc3849daf6845e3ec868087b755',
-            hintHandler: '0x63f773c026093eef988e803bdd5772dd235a8e71',
-            weth: getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
-        },
-    },
-    {
-        networkProxy: NULL_ADDRESS,
-        hintHandler: NULL_ADDRESS,
-        weth: NULL_ADDRESS,
-    },
-);
-
 export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityProviderRegistry>(
     {
         [ChainId.Mainnet]: {
@@ -1978,13 +1944,6 @@ export const MSTABLE_POOLS_BY_CHAIN_ID = valueByChainId(
             tokens: [] as string[],
         },
     },
-);
-
-export const OASIS_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Mainnet]: '0x5e3e0548935a83ad29fb2a9153d331dc6d49020f',
-    },
-    NULL_ADDRESS,
 );
 
 export const KYBER_DMM_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
@@ -2471,7 +2430,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.LiquidityProvider]: fillData => {
         return (fillData as LiquidityProviderFillData).gasCost || 100e3;
     },
-    [ERC20BridgeSource.Kyber]: () => 450e3,
     [ERC20BridgeSource.Curve]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.CurveV2]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: fillData => (fillData as CurveFillData).pool.gasSchedule,

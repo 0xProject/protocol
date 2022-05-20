@@ -153,7 +153,6 @@ export {
     Fill,
     FillData,
     GetMarketOrdersRfqOpts,
-    KyberFillData,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
     MarketDepth,
