@@ -519,11 +519,11 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.Polygon:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native, ERC20BridgeSource.KyberDmm];
         case ChainId.Avalanche:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native, ERC20BridgeSource.KyberDmm];
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Celo:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Fantom:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native, ERC20BridgeSource.KyberDmm];
+            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Optimism:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
