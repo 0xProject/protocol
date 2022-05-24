@@ -28,7 +28,7 @@ import { artifacts } from '../artifacts';
 import { TestFillQuoteTransformerBridgeContract } from '../generated-wrappers/test_fill_quote_transformer_bridge';
 import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import {
-    BridgeAdapterContract,
+    EthereumBridgeAdapterContract,
     FillQuoteTransformerContract,
     TestFillQuoteTransformerExchangeContract,
     TestFillQuoteTransformerHostContract,
@@ -64,8 +64,8 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             env.txDefaults,
             artifacts,
         );
-        const bridgeAdapter = await BridgeAdapterContract.deployFrom0xArtifactAsync(
-            artifacts.BridgeAdapter,
+        const bridgeAdapter = await EthereumBridgeAdapterContract.deployFrom0xArtifactAsync(
+            artifacts.EthereumBridgeAdapter,
             env.provider,
             env.txDefaults,
             artifacts,

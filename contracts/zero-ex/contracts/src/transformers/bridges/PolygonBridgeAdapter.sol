@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2021 ZeroEx Intl.
+  Copyright 2022 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,83 +22,42 @@ pragma experimental ABIEncoderV2;
 
 import "./IBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV2.sol";
-import "./mixins/MixinBalancer.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
-import "./mixins/MixinBancor.sol";
-import "./mixins/MixinCompound.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
-import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
-import "./mixins/MixinGMX.sol";
 import "./mixins/MixinKyberDmm.sol";
-import "./mixins/MixinLido.sol";
-import "./mixins/MixinMakerPSM.sol";
-import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
-import "./mixins/MixinPlatypus.sol";
-import "./mixins/MixinShell.sol";
-import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
-contract BridgeAdapter is
+contract PolygonBridgeAdapter is
     IBridgeAdapter,
-    MixinAaveV2,
-    MixinBalancer,
     MixinBalancerV2,
     MixinBalancerV2Batch,
-    MixinBancor,
-    MixinCompound,
     MixinCurve,
     MixinCurveV2,
-    MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
-    MixinGMX,
     MixinKyberDmm,
-    MixinLido,
-    MixinMakerPSM,
-    MixinMooniswap,
     MixinMStable,
     MixinNerve,
-    MixinPlatypus,
-    MixinShell,
-    MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
         public
-        MixinAaveV2()
-        MixinBalancer()
-        MixinBalancerV2()
-        MixinBancor(weth)
-        MixinCompound(weth)
         MixinCurve(weth)
-        MixinCurveV2()
-        MixinCryptoCom()
-        MixinDodo()
-        MixinDodoV2()
-        MixinGMX()
-        MixinLido(weth)
-        MixinMakerPSM()
-        MixinMooniswap(weth)
-        MixinMStable()
-        MixinNerve()
-        MixinPlatypus()
-        MixinShell()
-        MixinUniswap(weth)
-        MixinUniswapV2()
-        MixinUniswapV3()
-        MixinZeroExBridge()
-    {}
+    {
+        uint256 chainId;
+        assembly { chainId := chainid() }
+        require(chainId == 137, 'PolygonBridgeAdapter.constructor: wrong chain ID');
+    }
 
     function trade(
         BridgeOrder memory order,
@@ -137,20 +96,6 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.UNISWAP) {
-            boughtAmount = _tradeUniswap(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.BALANCER) {
-            boughtAmount = _tradeBalancer(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
         } else if (protocolId == BridgeProtocols.BALANCERV2) {
             boughtAmount = _tradeBalancerV2(
                 sellToken,
@@ -163,29 +108,8 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        }else if (protocolId == BridgeProtocols.MAKERPSM) {
-            boughtAmount = _tradeMakerPsm(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.MOONISWAP) {
-            boughtAmount = _tradeMooniswap(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
         } else if (protocolId == BridgeProtocols.MSTABLE) {
             boughtAmount = _tradeMStable(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.SHELL) {
-            boughtAmount = _tradeShell(
                 sellToken,
                 buyToken,
                 sellAmount,
@@ -203,18 +127,6 @@ contract BridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.CRYPTOCOM) {
-            boughtAmount = _tradeCryptoCom(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.BANCOR) {
-            boughtAmount = _tradeBancor(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
         } else if (protocolId == BridgeProtocols.NERVE) {
             boughtAmount = _tradeNerve(
                 sellToken,
@@ -223,39 +135,6 @@ contract BridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
             boughtAmount = _tradeKyberDmm(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.LIDO) {
-            boughtAmount = _tradeLido(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.AAVEV2) {
-            boughtAmount = _tradeAaveV2(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.COMPOUND) {
-            boughtAmount = _tradeCompound(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.GMX) {
-            boughtAmount = _tradeGMX(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.PLATYPUS) {
-            boughtAmount = _tradePlatypus(
                 buyToken,
                 sellAmount,
                 order.bridgeData
