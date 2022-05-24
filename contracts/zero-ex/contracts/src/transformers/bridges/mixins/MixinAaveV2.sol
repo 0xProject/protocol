@@ -70,7 +70,7 @@ contract MixinAaveV2 {
         uint256 sellAmount,
         bytes memory bridgeData
     )
-        internal
+        public
         returns (uint256)
     {
         (ILendingPool lendingPool, address aToken) = abi.decode(bridgeData, (ILendingPool, address));

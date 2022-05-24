@@ -15,6 +15,7 @@ export * from '../test/generated-wrappers/erc1155_orders_feature';
 export * from '../test/generated-wrappers/erc165_feature';
 export * from '../test/generated-wrappers/erc721_orders_feature';
 export * from '../test/generated-wrappers/ethereum_bridge_adapter';
+export * from '../test/generated-wrappers/ethereum_sub_adapter1';
 export * from '../test/generated-wrappers/fantom_bridge_adapter';
 export * from '../test/generated-wrappers/fee_collector';
 export * from '../test/generated-wrappers/fee_collector_controller';

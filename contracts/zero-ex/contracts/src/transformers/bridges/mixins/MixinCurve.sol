@@ -55,7 +55,7 @@ contract MixinCurve {
         uint256 sellAmount,
         bytes memory bridgeData
     )
-        internal
+        public
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data to get the Curve metadata.

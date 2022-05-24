@@ -20,16 +20,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "./IBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV2.sol";
-import "./mixins/MixinBalancer.sol";
-import "./mixins/MixinBalancerV2.sol";
-import "./mixins/MixinBalancerV2Batch.sol";
-import "./mixins/MixinBancor.sol";
-import "./mixins/MixinCompound.sol";
-import "./mixins/MixinCurve.sol";
-import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinCryptoCom.sol";
 import "./mixins/MixinDodo.sol";
 import "./mixins/MixinDodoV2.sol";
@@ -43,17 +36,10 @@ import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
+import "./EthereumSubAdapter1.sol";
 
 contract EthereumBridgeAdapter is
     IBridgeAdapter,
-    MixinAaveV2,
-    MixinBalancer,
-    MixinBalancerV2,
-    MixinBalancerV2Batch,
-    MixinBancor,
-    MixinCompound,
-    MixinCurve,
-    MixinCurveV2,
     MixinCryptoCom,
     MixinDodo,
     MixinDodoV2,
@@ -68,11 +54,12 @@ contract EthereumBridgeAdapter is
     MixinUniswapV3,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth)
+    using LibRichErrorsV06 for bytes; 
+    
+    EthereumSubAdapter1 private immutable _subadapter1;
+
+    constructor(IEtherTokenV06 weth, EthereumSubAdapter1 subadapter1)
         public
-        MixinBancor(weth)
-        MixinCompound(weth)
-        MixinCurve(weth)
         MixinLido(weth)
         MixinMooniswap(weth)
         MixinUniswap(weth)
@@ -81,6 +68,8 @@ contract EthereumBridgeAdapter is
         assembly { chainId := chainid() }
         // Allow Ganache for testing
         require(chainId == 1 || chainId == 1337 , 'EthereumBridgeAdapter.constructor: wrong chain ID');
+
+        _subadapter1 = subadapter1;
     }
 
     function trade(
@@ -95,19 +84,21 @@ contract EthereumBridgeAdapter is
     {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.CURVE) {
-            boughtAmount = _tradeCurve(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeCurve.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.CURVEV2) {
-            boughtAmount = _tradeCurveV2(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeCurveV2.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
             boughtAmount = _tradeUniswapV3(
                 sellToken,
@@ -128,24 +119,27 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCER) {
-            boughtAmount = _tradeBalancer(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeBalancer.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.BALANCERV2) {
-            boughtAmount = _tradeBalancerV2(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeBalancerV2.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
-            boughtAmount = _tradeBalancerV2Batch(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeBalancerV2Batch.selector,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.MAKERPSM) {
             boughtAmount = _tradeMakerPsm(
                 sellToken,
@@ -193,11 +187,12 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BANCOR) {
-            boughtAmount = _tradeBancor(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeBancor.selector,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
             boughtAmount = _tradeKyberDmm(
                 buyToken,
@@ -212,19 +207,21 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.AAVEV2) {
-            boughtAmount = _tradeAaveV2(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeAaveV2.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else if (protocolId == BridgeProtocols.COMPOUND) {
-            boughtAmount = _tradeCompound(
+            boughtAmount = _delegateCallSubAdapter(address(_subadapter1), abi.encodeWithSelector(
+                _subadapter1._tradeCompound.selector,
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
-            );
+            ));
         } else {
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
@@ -241,5 +238,18 @@ contract EthereumBridgeAdapter is
             sellAmount,
             boughtAmount
         );
+    }
+
+    function _delegateCallSubAdapter(address subadapter, bytes memory encodedCall)
+        private
+        returns (uint256 boughtAmount)
+    {
+        (bool success, bytes memory resultData) = address(subadapter)
+            .delegatecall(encodedCall);
+        if (!success) {
+            resultData.rrevert();
+        } else {
+            boughtAmount = abi.decode(resultData, (uint256));
+        }
     }
 }

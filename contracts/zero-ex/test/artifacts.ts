@@ -17,6 +17,7 @@ import * as ERC1155OrdersFeature from '../test/generated-artifacts/ERC1155Orders
 import * as ERC165Feature from '../test/generated-artifacts/ERC165Feature.json';
 import * as ERC721OrdersFeature from '../test/generated-artifacts/ERC721OrdersFeature.json';
 import * as EthereumBridgeAdapter from '../test/generated-artifacts/EthereumBridgeAdapter.json';
+import * as EthereumSubAdapter1 from '../test/generated-artifacts/EthereumSubAdapter1.json';
 import * as FantomBridgeAdapter from '../test/generated-artifacts/FantomBridgeAdapter.json';
 import * as FeeCollector from '../test/generated-artifacts/FeeCollector.json';
 import * as FeeCollectorController from '../test/generated-artifacts/FeeCollectorController.json';
@@ -318,6 +319,7 @@ export const artifacts = {
     BridgeProtocols: BridgeProtocols as ContractArtifact,
     CeloBridgeAdapter: CeloBridgeAdapter as ContractArtifact,
     EthereumBridgeAdapter: EthereumBridgeAdapter as ContractArtifact,
+    EthereumSubAdapter1: EthereumSubAdapter1 as ContractArtifact,
     FantomBridgeAdapter: FantomBridgeAdapter as ContractArtifact,
     IBridgeAdapter: IBridgeAdapter as ContractArtifact,
     OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,

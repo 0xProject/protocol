@@ -67,7 +67,7 @@ contract MixinBalancerV2Batch {
         uint256 sellAmount,
         bytes memory bridgeData
     )
-        internal
+        public
         returns (uint256 boughtAmount)
     {
         // Decode the bridge data.

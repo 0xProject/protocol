@@ -67,7 +67,7 @@ contract MixinCompound {
         uint256 sellAmount,
         bytes memory bridgeData
     )
-        internal
+        public
         returns (uint256)
     {
         (address cTokenAddress) = abi.decode(bridgeData, (address));
