@@ -4,9 +4,13 @@
  * -----------------------------------------------------------------------------
  */
 export * from '../generated-wrappers/affiliate_fee_transformer';
+export * from '../generated-wrappers/avalanche_bridge_adapter';
+export * from '../generated-wrappers/b_s_c_bridge_adapter';
 export * from '../generated-wrappers/batch_fill_native_orders_feature';
-export * from '../generated-wrappers/bridge_adapter';
+export * from '../generated-wrappers/celo_bridge_adapter';
 export * from '../generated-wrappers/curve_liquidity_provider';
+export * from '../generated-wrappers/ethereum_bridge_adapter';
+export * from '../generated-wrappers/fantom_bridge_adapter';
 export * from '../generated-wrappers/fee_collector';
 export * from '../generated-wrappers/fee_collector_controller';
 export * from '../generated-wrappers/fill_quote_transformer';
@@ -28,9 +32,11 @@ export * from '../generated-wrappers/log_metadata_transformer';
 export * from '../generated-wrappers/meta_transactions_feature';
 export * from '../generated-wrappers/multiplex_feature';
 export * from '../generated-wrappers/native_orders_feature';
+export * from '../generated-wrappers/optimism_bridge_adapter';
 export * from '../generated-wrappers/otc_orders_feature';
 export * from '../generated-wrappers/ownable_feature';
 export * from '../generated-wrappers/pay_taker_transformer';
+export * from '../generated-wrappers/polygon_bridge_adapter';
 export * from '../generated-wrappers/positive_slippage_fee_transformer';
 export * from '../generated-wrappers/simple_function_registry_feature';
 export * from '../generated-wrappers/transform_erc20_feature';
