@@ -10,7 +10,7 @@ import {
 import {
     AffiliateFeeTransformerContract,
     artifacts as exchangeProxyArtifacts,
-    BridgeAdapterContract,
+    EthereumBridgeAdapterContract,
     FillQuoteTransformerContract,
     fullMigrateAsync as fullMigrateExchangeProxyAsync,
     PayTakerTransformerContract,
@@ -206,8 +206,8 @@ export async function runMigrationsAsync(
 
     // Exchange Proxy //////////////////////////////////////////////////////////
 
-    const bridgeAdapter = await BridgeAdapterContract.deployFrom0xArtifactAsync(
-        exchangeProxyArtifacts.BridgeAdapter,
+    const bridgeAdapter = await EthereumBridgeAdapterContract.deployFrom0xArtifactAsync(
+        exchangeProxyArtifacts.EthereumBridgeAdapter,
         provider,
         txDefaults,
         allArtifacts,

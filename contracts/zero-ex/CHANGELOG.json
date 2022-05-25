@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.34.0",
+        "changes": [
+            {
+                "note": "Splits BridgeAdapter up by chain",
+                "pr": 487
+            }
+        ]
+    },
+    {
         "version": "0.33.0",
         "changes": [
             {

@@ -278,7 +278,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
-            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.BiSwap,
         ]),
         [ChainId.Polygon]: new SourceFilters([
