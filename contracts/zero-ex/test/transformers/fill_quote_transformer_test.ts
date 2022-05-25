@@ -28,7 +28,7 @@ import { artifacts } from '../artifacts';
 import { TestFillQuoteTransformerBridgeContract } from '../generated-wrappers/test_fill_quote_transformer_bridge';
 import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
 import {
-    BridgeAdapterContract,
+    EthereumBridgeAdapterContract,
     FillQuoteTransformerContract,
     TestFillQuoteTransformerExchangeContract,
     TestFillQuoteTransformerHostContract,
@@ -52,7 +52,8 @@ blockchainTests.resets('FillQuoteTransformer', env => {
     let singleProtocolFee: BigNumber;
 
     const GAS_PRICE = 1337;
-    const TEST_BRIDGE_SOURCE = hexUtils.random(32);
+    // Left half is 0, corresponding to BridgeProtocol.Unknown
+    const TEST_BRIDGE_SOURCE = hexUtils.leftPad(hexUtils.random(16), 32);
     const HIGH_BIT = new BigNumber(2).pow(255);
     const REVERT_AMOUNT = new BigNumber('0xdeadbeef');
 
@@ -64,8 +65,8 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             env.txDefaults,
             artifacts,
         );
-        const bridgeAdapter = await BridgeAdapterContract.deployFrom0xArtifactAsync(
-            artifacts.BridgeAdapter,
+        const bridgeAdapter = await EthereumBridgeAdapterContract.deployFrom0xArtifactAsync(
+            artifacts.EthereumBridgeAdapter,
             env.provider,
             env.txDefaults,
             artifacts,
