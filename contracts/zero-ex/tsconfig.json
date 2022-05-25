@@ -42,6 +42,7 @@
         "generated-artifacts/TransformERC20Feature.json",
         "generated-artifacts/WethTransformer.json",
         "generated-artifacts/ZeroEx.json",
+        "test/generated-artifacts/AbstractBridgeAdapter.json",
         "test/generated-artifacts/AffiliateFeeTransformer.json",
         "test/generated-artifacts/AvalancheBridgeAdapter.json",
         "test/generated-artifacts/BSCBridgeAdapter.json",

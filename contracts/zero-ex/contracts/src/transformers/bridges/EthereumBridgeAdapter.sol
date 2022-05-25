@@ -20,7 +20,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./IBridgeAdapter.sol";
+import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
@@ -38,6 +38,7 @@ import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
+import "./mixins/MixinNerve.sol";
 import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
@@ -45,7 +46,7 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract EthereumBridgeAdapter is
-    IBridgeAdapter,
+    AbstractBridgeAdapter(1, "Ethereum"),
     MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2,
@@ -62,6 +63,7 @@ contract EthereumBridgeAdapter is
     MixinMakerPSM,
     MixinMooniswap,
     MixinMStable,
+    MixinNerve,
     MixinShell,
     MixinUniswap,
     MixinUniswapV2,
@@ -76,25 +78,22 @@ contract EthereumBridgeAdapter is
         MixinLido(weth)
         MixinMooniswap(weth)
         MixinUniswap(weth)
-    {
-        uint256 chainId;
-        assembly { chainId := chainid() }
-        // Allow Ganache for testing
-        require(chainId == 1 || chainId == 1337 , 'EthereumBridgeAdapter.constructor: wrong chain ID');
-    }
+    {}
 
-    function trade(
+    function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bool dryRun
     )
-        public
+        internal
         override
-        returns (uint256 boughtAmount)
+        returns (uint256 boughtAmount, bool supportedSource)
     {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.CURVE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCurve(
                 sellToken,
                 buyToken,
@@ -102,6 +101,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.CURVEV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
@@ -109,18 +109,21 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV3(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAP) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswap(
                 sellToken,
                 buyToken,
@@ -128,6 +131,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCER) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBalancer(
                 sellToken,
                 buyToken,
@@ -135,6 +139,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCERV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBalancerV2(
                 sellToken,
                 buyToken,
@@ -142,11 +147,13 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBalancerV2Batch(
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.MAKERPSM) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeMakerPsm(
                 sellToken,
                 buyToken,
@@ -154,6 +161,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.MOONISWAP) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeMooniswap(
                 sellToken,
                 buyToken,
@@ -161,6 +169,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.MSTABLE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeMStable(
                 sellToken,
                 buyToken,
@@ -168,6 +177,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.SHELL) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeShell(
                 sellToken,
                 buyToken,
@@ -175,36 +185,49 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.DODO) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeDodo(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.DODOV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeDodoV2(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.CRYPTOCOM) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCryptoCom(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BANCOR) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBancor(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
+        } else if (protocolId == BridgeProtocols.NERVE) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeNerve(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeKyberDmm(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.LIDO) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeLido(
                 sellToken,
                 buyToken,
@@ -212,6 +235,7 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.AAVEV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeAaveV2(
                 sellToken,
                 buyToken,
@@ -219,13 +243,15 @@ contract EthereumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.COMPOUND) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCompound(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else {
+        } else if (protocolId == BridgeProtocols.UNKNOWN) {
+            if (dryRun) { return (0, true); }            
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,

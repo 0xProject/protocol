@@ -20,8 +20,9 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./IBridgeAdapter.sol";
+import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
+import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
@@ -36,7 +37,8 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract PolygonBridgeAdapter is
-    IBridgeAdapter,
+    AbstractBridgeAdapter(137, "Polygon"),
+    MixinAaveV2,
     MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinCurve,
@@ -53,24 +55,22 @@ contract PolygonBridgeAdapter is
     constructor(IEtherTokenV06 weth)
         public
         MixinCurve(weth)
-    {
-        uint256 chainId;
-        assembly { chainId := chainid() }
-        require(chainId == 137, 'PolygonBridgeAdapter.constructor: wrong chain ID');
-    }
+    {}
 
-    function trade(
+    function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bool dryRun
     )
-        public
+        internal
         override
-        returns (uint256 boughtAmount)
+        returns (uint256 boughtAmount, bool supportedSource)
     {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.CURVE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCurve(
                 sellToken,
                 buyToken,
@@ -78,6 +78,7 @@ contract PolygonBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.CURVEV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
@@ -85,18 +86,21 @@ contract PolygonBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV3(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCERV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBalancerV2(
                 sellToken,
                 buyToken,
@@ -104,11 +108,13 @@ contract PolygonBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeBalancerV2Batch(
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.MSTABLE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeMStable(
                 sellToken,
                 buyToken,
@@ -116,30 +122,43 @@ contract PolygonBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.DODO) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeDodo(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.DODOV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeDodoV2(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.NERVE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeNerve(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeKyberDmm(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else {
+        } else if (protocolId == BridgeProtocols.AAVEV2) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeAaveV2(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.UNKNOWN) {
+            if (dryRun) { return (0, true); }            
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,

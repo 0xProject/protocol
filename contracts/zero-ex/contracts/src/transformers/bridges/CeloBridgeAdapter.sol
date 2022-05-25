@@ -21,50 +21,50 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./IBridgeAdapter.sol";
+import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract CeloBridgeAdapter is
-    IBridgeAdapter,
+    AbstractBridgeAdapter(42220, "Celo"),
     MixinNerve,
     MixinUniswapV2,
     MixinZeroExBridge
 {
     constructor(address _weth)
         public
-    {
-        uint256 chainId;
-        assembly { chainId := chainid() }
-        require(chainId == 42220, 'CeloBridgeAdapter.constructor: wrong chain ID');
-    }
+    {}
 
-    function trade(
+    function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount
+        uint256 sellAmount,
+        bool dryRun
     )
-        public
+        internal
         override
-        returns (uint256 boughtAmount)
+        returns (uint256 boughtAmount, bool supportedSource)
     {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.UNISWAPV2) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.NERVE) {
+            if (dryRun) { return (0, true); }
             boughtAmount = _tradeNerve(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
-        } else {
+        } else if (protocolId == BridgeProtocols.UNKNOWN) {
+            if (dryRun) { return (0, true); }            
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,
