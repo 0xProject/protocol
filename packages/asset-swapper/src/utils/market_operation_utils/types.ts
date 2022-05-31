@@ -167,6 +167,7 @@ export interface PsmInfo {
 export interface LidoInfo {
     stEthToken: string;
     wethToken: string;
+    wstEthToken: string;
 }
 
 /**
@@ -325,7 +326,9 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmo
 
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
+    wstEthTokenAddress: string;
     takerToken: string;
+    makerToken: string;
 }
 
 export interface AaveV2FillData extends FillData {
@@ -385,7 +388,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
     output: BigNumber;
-    // The output fill amount, ajdusted by fees.
+    // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
     // Fill that must precede this one. This enforces certain fills to be contiguous.
     parent?: Fill;

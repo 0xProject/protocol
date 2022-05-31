@@ -1106,8 +1106,10 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                makerToken,
                 takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
+                wstEthTokenAddress: lidoInfo.wstEthToken,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLido,
@@ -1124,8 +1126,10 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                makerToken,
                 takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
+                wstEthTokenAddress: lidoInfo.wstEthToken,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLido,
@@ -1603,16 +1607,10 @@ export class SamplerOperations {
                         ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
-                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
-                        if (
-                            lidoInfo.stEthToken === NULL_ADDRESS ||
-                            lidoInfo.wethToken === NULL_ADDRESS ||
-                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
-                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
-                        ) {
+                        if (!this._isLidoSupported(takerToken, makerToken)) {
                             return [];
                         }
-
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.AaveV2: {
@@ -1683,6 +1681,24 @@ export class SamplerOperations {
             }),
         );
         return allOps;
+    }
+
+    private _isLidoSupported(takerTokenAddress: string, makerTokenAddress: string): boolean {
+        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
+        if (lidoInfo.wethToken === NULL_ADDRESS) {
+            return false;
+        }
+        const takerToken = takerTokenAddress.toLowerCase();
+        const makerToken = makerTokenAddress.toLowerCase();
+        const wethToken = lidoInfo.wethToken.toLowerCase();
+        const stEthToken = lidoInfo.stEthToken.toLowerCase();
+        const wstEthToken = lidoInfo.wstEthToken.toLowerCase();
+
+        if (takerToken === wethToken && makerToken === stEthToken) {
+            return true;
+        }
+
+        return _.difference([stEthToken, wstEthToken], [takerToken, makerToken]).length === 0;
     }
 
     private _getBuyQuoteOperations(
@@ -1924,17 +1940,10 @@ export class SamplerOperations {
                         ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
-                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
-
-                        if (
-                            lidoInfo.stEthToken === NULL_ADDRESS ||
-                            lidoInfo.wethToken === NULL_ADDRESS ||
-                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
-                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
-                        ) {
+                        if (!this._isLidoSupported(takerToken, makerToken)) {
                             return [];
                         }
-
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.AaveV2: {
