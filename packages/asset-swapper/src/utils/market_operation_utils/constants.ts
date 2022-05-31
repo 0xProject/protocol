@@ -22,6 +22,7 @@ import {
     GeistFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
+    LidoFillData,
     LidoInfo,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
@@ -450,6 +451,7 @@ export const MAINNET_TOKENS = {
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
     stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    wstETH: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
     LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
     MANA: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942',
     KNC: '0xdefa4e8a7bcba345f687a2f1456f5edd9ce97202',
@@ -933,6 +935,10 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder
                     .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
                     .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
+                // Lido
+                builder
+                    .add(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH)
+                    .add(MAINNET_TOKENS.wstETH, MAINNET_TOKENS.stETH);
             })
             // Build
             .build(),
@@ -2141,11 +2147,13 @@ export const BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
 export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     {
         [ChainId.Mainnet]: {
-            stEthToken: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+            stEthToken: MAINNET_TOKENS.stETH,
+            wstEthToken: MAINNET_TOKENS.wstETH,
             wethToken: MAINNET_TOKENS.WETH,
         },
     },
     {
+        wstEthToken: NULL_ADDRESS,
         stEthToken: NULL_ADDRESS,
         wethToken: NULL_ADDRESS,
     },
@@ -2541,7 +2549,18 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
 
         return gas;
     },
-    [ERC20BridgeSource.Lido]: () => 226e3,
+    [ERC20BridgeSource.Lido]: (fillData?: FillData) => {
+        const lidoFillData = fillData as LidoFillData;
+        const wethAddress = NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet];
+        // WETH -> stETH
+        if (lidoFillData.takerToken === wethAddress) {
+            return 226e3;
+        } else if (lidoFillData.takerToken === lidoFillData.stEthTokenAddress) {
+            return 120e3;
+        } else {
+            return 95e3;
+        }
+    },
     [ERC20BridgeSource.AaveV2]: (fillData?: FillData) => {
         const aaveFillData = fillData as AaveV2FillData;
         // NOTE: The Aave deposit method is more expensive than the withdraw
