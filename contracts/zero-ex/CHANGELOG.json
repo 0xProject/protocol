@@ -5,6 +5,10 @@
             {
                 "note": "Splits BridgeAdapter up by chain",
                 "pr": 487
+            },
+            {
+                "note": "Add stETH wrap/unwrap support",
+                "pr": 476
             }
         ]
     },

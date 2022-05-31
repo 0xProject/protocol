@@ -174,6 +174,7 @@ export interface PsmInfo {
 export interface LidoInfo {
     stEthToken: string;
     wethToken: string;
+    wstEthToken: string;
 }
 
 /**
@@ -312,8 +313,16 @@ export interface UniswapV3FillData extends BridgeFillData {
     encodedPath: Bytes;
 }
 
+<<<<<<< HEAD
 export interface LiquidityProviderFillData extends BridgeFillData {
     poolAddress: Address;
+=======
+export interface LidoFillData extends FillData {
+    stEthTokenAddress: string;
+    wstEthTokenAddress: string;
+    takerToken: string;
+    makerToken: string;
+>>>>>>> db76da58d (Add stETH wrap/unwrap support [TKR-377] (#476))
 }
 
 export interface CurveFillData extends BridgeFillData {
@@ -370,7 +379,7 @@ export interface Fill {
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
     output: BigNumber;
-    // The output fill amount, ajdusted by fees.
+    // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
     // Fill that must precede this one. This enforces certain fills to be contiguous.
     parent?: Fill;
