@@ -38,7 +38,6 @@ These packages are all under development. See [/contracts/README.md](/contracts/
 | [`@0x/protocol-utils`](/packages/protocol-utils)         | [![npm](https://img.shields.io/npm/v/@0x/protocol-utils.svg)](https://www.npmjs.com/package/@0x/protocol-utils)         | A set of utilities for generating, parsing, signing and validating 0x orders                   |
 | [`@0x/contract-addresses`](/packages/contract-addresses) | [![npm](https://img.shields.io/npm/v/@0x/contract-addresses.svg)](https://www.npmjs.com/package/@0x/contract-addresses) | A tiny utility library for getting known deployed contract addresses for a particular network. |
 | [`@0x/contract-wrappers`](/packages/contract-wrappers)   | [![npm](https://img.shields.io/npm/v/@0x/contract-wrappers.svg)](https://www.npmjs.com/package/@0x/contract-wrappers)   | JS/TS wrappers for interacting with the 0x smart contracts                                     |
-| [`@0x/migrations`](/packages/migrations)                 | [![npm](https://img.shields.io/npm/v/@0x/migrations.svg)](https://www.npmjs.com/package/@0x/migrations)                 | Migration tool for deploying 0x smart contracts on private testnets                            |
 | [`@0x/contract-artifacts`](/packages/contract-artifacts) | [![npm](https://img.shields.io/npm/v/@0x/contract-artifacts.svg)](https://www.npmjs.com/package/@0x/contract-artifacts) | 0x smart contract compilation artifacts                                                        |  |
 
 ## Usage
