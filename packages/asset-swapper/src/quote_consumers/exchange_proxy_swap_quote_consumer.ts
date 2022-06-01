@@ -42,6 +42,7 @@ import {
     FinalUniswapV3FillData,
     LiquidityProviderFillData,
     MooniswapFillData,
+    NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
@@ -377,7 +378,66 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 gasOverhead: ZERO_AMOUNT,
             };
         }
+        if (
+            // select for all chains OtcOrders exists on
+            [ChainId.Mainnet].includes(this.chainId) &&
+            quote.orders.length == 1 &&
+            quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Otc) &&
+            !requiresTransformERC20(optsWithDefaults)
+        ) {
 
+            const otcOrdersData = quote.orders.map(o => o.fillData as NativeOtcOrderFillData);
+            const fillAmountPerOrder = (() => {
+                // Don't think order taker amounts are clipped to actual sell amount
+                // (the last one might be too large) so figure them out manually.
+                let remaining = sellAmount;
+                const fillAmounts = [];
+                for (const o of quote.orders) {
+                    const fillAmount = BigNumber.min(o.takerAmount, remaining);
+                    fillAmounts.push(fillAmount);
+                    remaining = remaining.minus(fillAmount);
+                }
+                return fillAmounts;
+            })();
+
+            // grab the amount to fill on each OtcOrder (if more than 1)
+            let calldata;
+
+            if(isFromETH){
+                calldata = this._exchangeProxy.fillOtcOrderWithEth(
+                    otcOrdersData[0].order, otcOrdersData[0].signature
+                ).getABIEncodedTransactionData();
+            }
+            if(isToETH){
+                calldata = this._exchangeProxy.fillOtcOrderForEth(
+                    otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
+                ).getABIEncodedTransactionData();
+            }
+            else{
+                calldata = this._exchangeProxy.fillOtcOrder(
+                    otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
+                ).getABIEncodedTransactionData();
+            }
+
+            if (
+                this.chainId === ChainId.Mainnet &&
+                isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
+                // return {
+                //     calldataHexString: this._encodeMultiplexBatchFillCalldata(
+                // ...
+                // };
+            }
+
+            // if isToETH
+            // encode for fillOtcOrderForEth
+            // if isFromETH
+            // encode for fillOtcOrderWithEth
+            // else
+            // fillOtcOrder
+            // contracts/zero-ex/contracts/src/features/OtcOrdersFeature.sol
+
+            // if more than 1 OTCOrder, bail and use the BatchMultiPlex encode below
+        }
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
                 calldataHexString: this._encodeMultiplexBatchFillCalldata(

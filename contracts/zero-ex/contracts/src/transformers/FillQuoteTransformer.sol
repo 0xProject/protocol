@@ -27,6 +27,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "../features/interfaces/INativeOrdersFeature.sol";
+import "../features/interfaces/IOtcOrdersFeature.sol";
 import "../features/libs/LibNativeOrder.sol";
 import "./bridges/IBridgeAdapter.sol";
 import "./Transformer.sol";
@@ -52,7 +53,8 @@ contract FillQuoteTransformer is
     enum OrderType {
         Bridge,
         Limit,
-        Rfq
+        Rfq,
+        Otc
     }
 
     struct LimitOrderInfo {
@@ -64,6 +66,13 @@ contract FillQuoteTransformer is
 
     struct RfqOrderInfo {
         LibNativeOrder.RfqOrder order;
+        LibSignature.Signature signature;
+        // Maximum taker token amount of this limit order to fill.
+        uint256 maxTakerTokenFillAmount;
+    }
+
+    struct OtcOrderInfo {
+        LibNativeOrder.OtcOrder order;
         LibSignature.Signature signature;
         // Maximum taker token amount of this limit order to fill.
         uint256 maxTakerTokenFillAmount;
@@ -86,10 +95,12 @@ contract FillQuoteTransformer is
         LimitOrderInfo[] limitOrders;
         // Native RFQ orders. Sorted by fill sequence.
         RfqOrderInfo[] rfqOrders;
+        // Otc orders.
+        OtcOrderInfo[] otcOrders;
 
         // The sequence to fill the orders in. Each item will fill the next
         // order of that type in either `bridgeOrders`, `limitOrders`,
-        // or `rfqOrders.`
+        // `rfqOrders`, or `otcOrders.`
         OrderType[] fillSequence;
 
         // Amount of `sellToken` to sell or `buyToken` to buy.
@@ -123,7 +134,7 @@ contract FillQuoteTransformer is
         uint256 soldAmount;
         uint256 protocolFee;
         uint256 takerTokenBalanceRemaining;
-        uint256[3] currentIndices;
+        uint256[4] currentIndices;
         OrderType currentOrderType;
     }
 
@@ -149,15 +160,19 @@ contract FillQuoteTransformer is
     /// @dev The exchange proxy contract.
     INativeOrdersFeature public immutable zeroEx;
 
+    // @dev the otc orders feature
+    IOtcOrdersFeature public immutable otcOrders;
+
     /// @dev Create this contract.
     /// @param bridgeAdapter_ The bridge adapter contract.
     /// @param zeroEx_ The Exchange Proxy contract.
-    constructor(IBridgeAdapter bridgeAdapter_, INativeOrdersFeature zeroEx_)
+    constructor(IBridgeAdapter bridgeAdapter_, INativeOrdersFeature zeroEx_, IOtcOrdersFeature otcOrders_)
         public
         Transformer()
     {
         bridgeAdapter = bridgeAdapter_;
         zeroEx = zeroEx_;
+        otcOrders = otcOrders_;
     }
 
     /// @dev Sell this contract's entire balance of of `sellToken` in exchange
@@ -230,7 +245,9 @@ contract FillQuoteTransformer is
                 results = _fillLimitOrder(data.limitOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Rfq) {
                 results = _fillRfqOrder(data.rfqOrders[orderIndex], data, state);
-            } else {
+            } else if (state.currentOrderType == OrderType.Otc) {
+                results = _fillOtcOrder(data.otcOrders[orderIndex], data, state);
+            }else {
                 revert("INVALID_ORDER_TYPE");
             }
 
@@ -390,6 +407,65 @@ contract FillQuoteTransformer is
 
         try
             zeroEx.fillRfqOrder
+                (
+                    orderInfo.order,
+                    orderInfo.signature,
+                    takerTokenFillAmount.safeDowncastToUint128()
+                )
+            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+        {
+            results.takerTokenSoldAmount = takerTokenFilledAmount;
+            results.makerTokenBoughtAmount = makerTokenFilledAmount;
+        } catch {}
+    }
+
+    // Fill a single OTC order.
+    function _fillOtcOrder(
+        OtcOrderInfo memory orderInfo,
+        TransformData memory data,
+        FillState memory state
+    )
+        private
+        returns (FillOrderResults memory results)
+    {
+
+        //  /// @dev An OTC limit order.
+        // struct OtcOrder {
+        //     IERC20TokenV06 makerToken;
+        //     IERC20TokenV06 takerToken;
+        //     uint128 makerAmount;
+        //     uint128 takerAmount;
+        //     address maker;
+        //     address taker;
+        //     address txOrigin;
+        //     uint256 expiryAndNonce; // [uint64 expiry, uint64 nonceBucket, uint128 nonce]
+        // }
+
+
+        //decode data and find type of order
+
+        // fillOtcOrder, fillOtcOrderForEth,WithEth
+
+        // multiplexBatchSellEthForToken, multiplexBatchSellTokenForEth, multiplexBatchSellTokenForToken
+
+        // split between otc and regular bridge fqt
+
+
+
+
+        uint256 takerTokenFillAmount = LibSafeMathV06.min256(
+            _computeTakerTokenFillAmount(
+                data,
+                state,
+                orderInfo.order.takerAmount,
+                orderInfo.order.makerAmount,
+                0
+            ),
+            orderInfo.maxTakerTokenFillAmount
+        );
+
+        try
+            otcOrders.fillOtcOrder
                 (
                     orderInfo.order,
                     orderInfo.signature,

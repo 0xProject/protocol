@@ -16,6 +16,8 @@ import {
     FillQuoteTransformerSide as Side,
     LimitOrder,
     LimitOrderFields,
+    OtcOrder,
+    OtcOrderFields,
     RfqOrder,
     RfqOrderFields,
     Signature,
@@ -26,10 +28,11 @@ import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
 import { TestFillQuoteTransformerBridgeContract } from '../generated-wrappers/test_fill_quote_transformer_bridge';
-import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
+import { getRandomLimitOrder, getRandomRfqOrder, getRandomOtcOrder } from '../utils/orders';
 import {
     BridgeAdapterContract,
     FillQuoteTransformerContract,
+    OtcOrdersFeatureContract,
     TestFillQuoteTransformerExchangeContract,
     TestFillQuoteTransformerHostContract,
     TestMintableERC20TokenContract,
@@ -71,6 +74,15 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             artifacts,
             NULL_ADDRESS,
         );
+        const otcOrder = await OtcOrdersFeatureContract.deployFrom0xArtifactAsync(
+            artifacts.OtcOrdersFeature,
+            env.provider,
+            env.txDefaults,
+            artifacts,
+            NULL_ADDRESS,
+            NULL_ADDRESS, // weth
+        );
+
         transformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(
             artifacts.FillQuoteTransformer,
             env.provider,
@@ -78,6 +90,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             artifacts,
             bridgeAdapter.address,
             exchange.address,
+            otcOrder.address
         );
         host = await TestFillQuoteTransformerHostContract.deployFrom0xArtifactAsync(
             artifacts.TestFillQuoteTransformerHost,
@@ -139,6 +152,18 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             takerTokenAmount: getRandomInteger('0.1e18', '1e18'),
             bridgeData: encodeBridgeData(makerTokenAmount.times(fillRatio).integerValue()),
         };
+    }
+
+    function createOTCBridgeOrder(fields: Partial<OtcOrderFields> = {}): OtcOrder {
+        return getRandomOtcOrder({
+            makerToken: makerToken.address,
+            takerToken: takerToken.address,
+            makerAmount: getRandomInteger('0.1e18', '1e18'),
+            takerAmount: getRandomInteger('0.1e18', '1e18'),
+            maker,
+            taker,
+            ...fields,
+        });
     }
 
     function createOrderSignature(preFilledTakerAmount: Numberish = 0): Signature {
@@ -254,6 +279,24 @@ blockchainTests.resets('FillQuoteTransformer', env => {
         }
 
         function fillRfqOrder(oi: FillQuoteTransformerRfqOrderInfo): FillOrderResults {
+            const preFilledTakerAmount = orderSignatureToPreFilledTakerAmount(oi.signature);
+            if (preFilledTakerAmount.gte(oi.order.takerAmount) || preFilledTakerAmount.eq(REVERT_AMOUNT)) {
+                return EMPTY_FILL_ORDER_RESULTS;
+            }
+            const takerTokenFillAmount = BigNumber.min(
+                computeTakerTokenFillAmount(oi.order.takerAmount, oi.order.makerAmount),
+                oi.order.takerAmount.minus(preFilledTakerAmount),
+                oi.maxTakerTokenFillAmount,
+            );
+            const fillRatio = takerTokenFillAmount.div(oi.order.takerAmount);
+            return {
+                ...EMPTY_FILL_ORDER_RESULTS,
+                takerTokenSoldAmount: takerTokenFillAmount,
+                makerTokenBoughtAmount: fillRatio.times(oi.order.makerAmount).integerValue(BigNumber.ROUND_DOWN),
+            };
+        }
+
+        function fillOtcOrder(oi: FillQuoteTransformerRfqOrderInfo): FillOrderResults {
             const preFilledTakerAmount = orderSignatureToPreFilledTakerAmount(oi.signature);
             if (preFilledTakerAmount.gte(oi.order.takerAmount) || preFilledTakerAmount.eq(REVERT_AMOUNT)) {
                 return EMPTY_FILL_ORDER_RESULTS;

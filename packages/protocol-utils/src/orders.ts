@@ -63,7 +63,7 @@ export type LimitOrderFields = typeof LIMIT_ORDER_DEFAULT_VALUES;
 export type RfqOrderFields = typeof RFQ_ORDER_DEFAULT_VALUES;
 export type OtcOrderFields = typeof OTC_ORDER_DEFAULT_VALUES;
 export type BridgeOrderFields = typeof BRIDGE_ORDER_DEFAULT_VALUES;
-export type NativeOrder = RfqOrder | LimitOrder;
+export type NativeOrder = RfqOrder | LimitOrder | OtcOrder;
 
 export enum OrderStatus {
     Invalid = 0,

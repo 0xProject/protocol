@@ -1,7 +1,7 @@
 import { AbiEncoder, BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
-import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from './orders';
+import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields, OtcOrder, OtcOrderFields } from './orders';
 import { Signature, SIGNATURE_ABI } from './signature_utils';
 
 const BRIDGE_ORDER_ABI_COMPONENTS = [
@@ -87,6 +87,7 @@ export enum FillQuoteTransformerOrderType {
     Bridge,
     Limit,
     Rfq,
+    Otc,
 }
 
 /**
@@ -171,6 +172,11 @@ export type FillQuoteTransformerLimitOrderInfo = FillQuoteTransformerNativeOrder
 export type FillQuoteTransformerRfqOrderInfo = FillQuoteTransformerNativeOrderInfo<RfqOrderFields>;
 
 /**
+ * `FillQuoteTransformer.OtcOrderInfo`
+ */
+ export type FillQuoteTransformerOtcOrderInfo = FillQuoteTransformerNativeOrderInfo<OtcOrderFields>;
+
+/**
  * ABI-encode a `FillQuoteTransformer.TransformData` type.
  */
 export function encodeFillQuoteTransformerData(data: FillQuoteTransformerData): string {
@@ -183,6 +189,7 @@ export function encodeFillQuoteTransformerData(data: FillQuoteTransformerData): 
 export function decodeFillQuoteTransformerData(encoded: string): FillQuoteTransformerData {
     return fillQuoteTransformerDataEncoder.decode(encoded).data;
 }
+
 
 /**
  * ABI encoder for `WethTransformer.TransformData`

@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import * as ethjs from 'ethereumjs-util';
 
-import { LimitOrder, RfqOrder } from '../src/orders';
+import { LimitOrder, OtcOrder, RfqOrder } from '../src/orders';
 import { SignatureType } from '../src/signature_utils';
 
 chaiSetup.configure();
@@ -143,6 +143,66 @@ describe('orders', () => {
                 v: 27,
             };
             expect(actual).to.deep.eq(expected);
+        });
+    });
+
+    describe('OtcOrder', () => {
+        const order = new OtcOrder({
+            makerToken: '0x349e8d89e8b37214d9ce3949fc5754152c525bc3',
+            takerToken: '0x83c62b2e67dea0df2a27be0def7a22bd7102642c',
+            makerAmount: new BigNumber(1234),
+            takerAmount: new BigNumber(5678),
+            maker: '0x8d5e5b5b5d187bdce2e0143eb6b3cc44eef3c0cb',
+            taker: '0x615312fb74c31303eab07dea520019bb23f4c6c2',
+            txOrigin: '0x70f2d6c7acd257a6700d745b76c602ceefeb8e20',
+            expiryAndNonce: new BigNumber(1001),
+            chainId: 8008,
+            verifyingContract: '0x6701704d2421c64ee9aa93ec7f96ede81c4be77d',
+        });
+
+        it('can get the struct hash', () => {
+            const actual = order.getStructHash();
+            // const expected = '0x995b6261fa93cd5acd5121f404305f8e9f9c388723f3e53fb05bd5eb534b4899';
+            // expect(actual).to.eq(expected);
+        });
+
+        it('can get the EIP712 hash', () => {
+            const actual = order.getHash();
+            // const expected = '0xb4c40524740dcc4030a62b6d9afe740f6ca24508e59ef0c5bd99d5649a430885';
+            // expect(actual).to.deep.eq(expected);
+        });
+
+        it('can get an EthSign signature with a provider', async () => {
+            const actual = await order.clone({ maker: providerMaker }).getSignatureWithProviderAsync(provider);
+            // const expected = {
+            //     signatureType: SignatureType.EthSign,
+            //     r: '0xed555259efe38e2d679f7bc18385e51ce158576ced6c11630f67ba37b3e59a29',
+            //     s: '0x769211cf3e86b254e3755e1dcf459f5b362ca1c42ec3cf08841d90cb44f2a8e4',
+            //     v: 27,
+            // };
+            // expect(actual).to.deep.eq(expected);
+        });
+
+        it('can get an EthSign signature with a private key', () => {
+            const actual = order.clone({ maker: keyMaker }).getSignatureWithKey(key);
+            // const expected = {
+            //     signatureType: SignatureType.EthSign,
+            //     r: '0xba231f67168d6d1fd2b83e0a3a6b1663ec493b98a8dbe34689c8e8171972522f',
+            //     s: '0x47023a5f73b5f638e9a138de26b35e59847680bee78af0c8251de532e7c39d8b',
+            //     v: 28,
+            // };
+            // expect(actual).to.deep.eq(expected);
+        });
+
+        it('can get an EIP712 signature with a private key', () => {
+            const actual = order.clone({ maker: keyMaker }).getSignatureWithKey(key, SignatureType.EIP712);
+            // const expected = {
+            //     signatureType: SignatureType.EIP712,
+            //     r: '0x824d70ae7cccea382ddd51f773f9745abb928dadbccebbd090ca371d7b8fb741',
+            //     s: '0x7557a009f7cfa207d19a8fd42950458340de718a7b35522051cde6f75ad42cba',
+            //     v: 27,
+            // };
+            // expect(actual).to.deep.eq(expected);
         });
     });
 });

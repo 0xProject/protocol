@@ -641,6 +641,7 @@ export const OPTIMISM_TOKENS = {
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
+    nUSD: '0x67C10C397dD0Ba417329543c1a40eb48AAa7cd00',
 };
 
 export const CURVE_POOLS = {
@@ -770,6 +771,7 @@ export const SYNAPSE_MAINNET_POOLS = {
 
 export const SYNAPSE_OPTIMISM_POOLS = {
     nETHLP: '0xe27bff97ce92c3e1ff7aa9f86781fdd6d48f5ee9',
+    nUSDLP: '0xF44938b0125A6662f9536281aD2CD6c499F22004',
 };
 
 export const SYNAPSE_BSC_POOLS = {
@@ -783,6 +785,7 @@ export const SYNAPSE_POLYGON_POOLS = {
 export const SYNAPSE_FANTOM_POOLS = {
     nUSDLP: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
     nETHLP: '0x8d9ba570d6cb60c7e3e0f31343efe75ab8e65fb1',
+    fUSDTLP: '0x85662fd123280827e11c59973ac9fcbe838dc3b4',
 };
 
 export const SYNAPSE_AVALANCHE_POOLS = {
@@ -1654,6 +1657,24 @@ export const SYNAPSE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
+    [SYNAPSE_FANTOM_POOLS.fUSDTLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_FANTOM_POOLS.fUSDTLP,
+        tokens: [FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT, FANTOM_TOKENS.nUSD],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_FANTOM_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_FANTOM_POOLS.nETHLP,
+        tokens: [FANTOM_TOKENS.WETH, FANTOM_TOKENS.nETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
 };
 
 export const SYNAPSE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
@@ -1675,6 +1696,15 @@ export const SYNAPSE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_OPTIMISM_POOLS.nETHLP,
         tokens: [OPTIMISM_TOKENS.nETH, OPTIMISM_TOKENS.sWETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_OPTIMISM_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_OPTIMISM_POOLS.nUSDLP,
+        tokens: [OPTIMISM_TOKENS.nUSD, OPTIMISM_TOKENS.USDC],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },
