@@ -4,7 +4,6 @@ import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { ONE_MINUTE_MS } from '../constants';
-import { logger } from '../logger';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
 import { MetricsProxy, QuoteRequestor, V4RFQIndicativeQuoteMM } from './QuoteRequestor';
@@ -92,7 +91,6 @@ export class RefreshingQuoteRequestor {
      */
     private _createQuoteRequestor(): QuoteRequestor {
         const rfqAssetOfferings = this._rfqMakerManager.getRfqtMakerOfferingsForRfqOrder();
-        logger.info({ rfqAssetOfferings }, 'Rfqt V1 Asset Offerings are');
         return new QuoteRequestor(
             rfqAssetOfferings,
             this._quoteRequestorHttpClient,
