@@ -246,6 +246,7 @@ export const SLIPPAGE_MODEL_S3_FILE_NAME: string = `SlippageModel-${CHAIN_ID}.js
 export const SLIPPAGE_MODEL_S3_API_VERSION: string = '2006-03-01';
 export const SLIPPAGE_MODEL_S3_FILE_VALID_INTERVAL_MS: number = ONE_HOUR_MS * 2;
 export const SLIPPAGE_MODEL_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
+export const SLIPPAGE_MODEL_MINIMUM_APPLICABLE_VOLUME_USD: BigNumber = new BigNumber(10000);
 
 export const ORDER_WATCHER_URL = _.isEmpty(process.env.ORDER_WATCHER_URL)
     ? 'http://127.0.0.1:8080'

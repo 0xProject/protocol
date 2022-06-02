@@ -13,3 +13,4 @@ ALT_RFQ_MM_API_KEY=averysecurekey
 ALT_RFQ_MM_PROFILE=acoolprofile
 ETH_GAS_STATION_API_URL=https://gas.api.0x.org/source/median?output=eth_gas_station
 INTEGRATORS_ACL='[{"integratorId":"test-integrator-id-1","label":"Test Integrator 1","rfqt":true,"rfqm":true,"plp":false,"apiKeys":["test-api-key-1","test-api-key-2"], "whitelistIntegratorUrls":["http://foo.bar"]},{"integratorId":"test-integrator-id-2","label":"Test Integrator 2","rfqt":false,"rfqm":true,"plp":false,"apiKeys":["test-api-key-3"]}]'
+SLIPPAGE_MODEL_S3_BUCKET_NAME='TestBucket'

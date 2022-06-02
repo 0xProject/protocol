@@ -2,6 +2,7 @@ import { BigNumber } from '@0x/utils';
 import { Counter } from 'prom-client';
 
 import {
+    SLIPPAGE_MODEL_MINIMUM_APPLICABLE_VOLUME_USD,
     SLIPPAGE_MODEL_REFRESH_INTERVAL_MS,
     SLIPPAGE_MODEL_S3_BUCKET_NAME,
     SLIPPAGE_MODEL_S3_FILE_NAME,
@@ -22,7 +23,7 @@ const SLIPPAGE_MODEL_FILE_STALE = new Counter({
     labelNames: ['bucket', 'fileName'],
 });
 
-interface SlippageModel {
+export interface SlippageModel {
     token0: string;
     token1: string;
     source: string;
@@ -78,12 +79,21 @@ const createSlippageModelCache = (slippageModelFileContent: string, logLabels: {
  */
 const calculateExpectedSlippageForModel = (
     token0Amount: BigNumber,
-    maxSlippageInBps: BigNumber,
+    maxSlippageRate: BigNumber,
     slippageModel: SlippageModel,
-): BigNumber => {
-    const slippageTerm = maxSlippageInBps.times(slippageModel.slippageCoefficient);
-    const volumeTerm = token0Amount.times(slippageModel.token0PriceInUsd).times(slippageModel.volumeCoefficient);
-    return slippageTerm.plus(volumeTerm).plus(slippageModel.intercept);
+): BigNumber | null => {
+    const volumeUsd = token0Amount.times(slippageModel.token0PriceInUsd);
+
+    // Volume is too small for a reasonable prediction
+    if (volumeUsd.lte(SLIPPAGE_MODEL_MINIMUM_APPLICABLE_VOLUME_USD)) {
+        return null;
+    }
+
+    const volumeTerm = volumeUsd.times(slippageModel.volumeCoefficient);
+    const slippageTerm = maxSlippageRate.times(ONE_IN_BASE_POINTS).times(slippageModel.slippageCoefficient);
+    const expectedSlippage = slippageTerm.plus(volumeTerm).plus(slippageModel.intercept);
+    const expectedSlippageCap = maxSlippageRate.times(-1); // `maxSlippageRate` is specified with a postive number while `expectedSlippage` is normally negative.
+    return expectedSlippage.lt(expectedSlippageCap) ? expectedSlippageCap : expectedSlippage;
 };
 
 /**
@@ -120,44 +130,44 @@ export class SlippageModelManager {
         sellToken: string,
         buyAmount: BigNumber,
         sellAmount: BigNumber,
-        maxSlippageRate: number,
         sources: GetSwapQuoteResponseLiquiditySource[],
-    ): BigNumber {
-        const maxSlippageInBps = new BigNumber(maxSlippageRate * ONE_IN_BASE_POINTS);
+        maxSlippageRate: number,
+    ): BigNumber | null {
+        const slippageModelCacheForPair = this._cachedSlippageModel.get(pairUtils.toKey(buyToken, sellToken)) || null;
+
+        // Slippage models for given pair is not available
+        if (slippageModelCacheForPair === null) {
+            return null;
+        }
+
         let expectedSlippage: BigNumber = new BigNumber(0);
-        sources.forEach((source) => {
+        for (const source of sources) {
             if (source.proportion.isGreaterThan(0)) {
-                const slippageModel = this._getCachedModel(buyToken, sellToken, source.name);
-                if (slippageModel !== undefined) {
+                const slippageModel = slippageModelCacheForPair.get(source.name) || null;
+                if (slippageModel === null) {
+                    // Slippage model for given source is not available
+                    return null;
+                } else {
                     const token0Amount = source.proportion.times(
                         slippageModel.token0 === buyToken.toLowerCase() ? buyAmount : sellAmount,
                     );
 
                     const expectedSlippageOfSource = calculateExpectedSlippageForModel(
                         token0Amount,
-                        maxSlippageInBps,
+                        new BigNumber(maxSlippageRate),
                         slippageModel,
                     );
+
+                    // Volume for given source is too small for a reasonable prediction
+                    if (expectedSlippageOfSource === null) {
+                        return null;
+                    }
+
                     expectedSlippage = expectedSlippage.plus(source.proportion.times(expectedSlippageOfSource));
                 }
             }
-        });
-        return expectedSlippage;
-    }
-
-    /**
-     * Get the cached slippage model data for a specific pair and source
-     * @param tokenA Address of one token
-     * @param tokenB Address of another token
-     * @param source Name of AMM source
-     * @returns Slippage model
-     */
-    private _getCachedModel(tokenA: string, tokenB: string, sourceName: string): SlippageModel | undefined {
-        const pairKey = pairUtils.toKey(tokenA, tokenB);
-        if (this._cachedSlippageModel.has(pairKey)) {
-            return this._cachedSlippageModel.get(pairKey)!.get(sourceName);
         }
-        return undefined;
+        return expectedSlippage;
     }
 
     /**
