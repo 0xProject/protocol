@@ -66,6 +66,7 @@ export enum ERC20BridgeSource {
     AaveV2 = 'Aave_V2',
     Compound = 'Compound',
     Synapse = 'Synapse',
+    BancorV3 = 'BancorV3',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -257,6 +258,11 @@ export interface LiquidityProviderFillData extends FillData {
 }
 
 export interface BancorFillData extends FillData {
+    path: string[];
+    networkAddress: string;
+}
+
+export interface BancorV3FillData extends FillData {
     path: string[];
     networkAddress: string;
 }

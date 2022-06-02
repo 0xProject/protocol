@@ -382,7 +382,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 platypusFillData.tokenAddressPath,
             ]);
             break;
-
+        case ERC20BridgeSource.BancorV3:
+            const bancorV3FillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
+            bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorFillData.path, bancor]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -506,6 +509,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.MobiusMoney]: curveEncoder,
     // UniswapV2 like, (router, address[])
     [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
+    [ERC20BridgeSource.BancorV3]: routerAddressPathEncoder,
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,

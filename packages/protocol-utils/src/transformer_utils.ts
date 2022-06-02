@@ -138,6 +138,7 @@ export enum BridgeProtocol {
     BalancerV2Batch,
     GMX,
     Platypus,
+    BancorV3,
 }
 // tslint:enable: enum-naming
 
