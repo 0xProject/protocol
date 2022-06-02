@@ -11,6 +11,7 @@ import {
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { Web3Wrapper } from '@0x/dev-utils';
 import { S3 } from 'aws-sdk';
+import axios from 'axios';
 import * as express from 'express';
 import { Server } from 'http';
 import { Kafka } from 'kafkajs';
@@ -20,6 +21,7 @@ import {
     CHAIN_ID,
     ORDER_WATCHER_KAFKA_TOPIC,
     RFQT_TX_ORIGIN_BLACKLIST,
+    RFQ_API_URL,
     SLIPPAGE_MODEL_S3_API_VERSION,
     WEBSOCKET_ORDER_UPDATES_PATH,
 } from './config';
@@ -51,6 +53,7 @@ import {
     MetaTransactionRollingLimiter,
 } from './utils/rate-limiters';
 import { MetaTransactionComposableLimiter } from './utils/rate-limiters/meta_transaction_composable_rate_limiter';
+import { RfqClient } from './utils/rfq_client';
 import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 import { RfqMakerDbUtils } from './utils/rfq_maker_db_utils';
 import { S3Client } from './utils/s3_client';
@@ -192,6 +195,7 @@ export async function getDefaultAppDependenciesAsync(
 
         const configManager: ConfigManager = new ConfigManager();
         const rfqMakerDbUtils: RfqMakerDbUtils = new RfqMakerDbUtils(connection);
+        const rfqClient: RfqClient = new RfqClient(RFQ_API_URL, axios);
         const pairsManager = await createAndInitializePairsManagerAsync(configManager, rfqMakerDbUtils);
 
         const s3Client: S3Client = new S3Client(
@@ -208,6 +212,7 @@ export async function getDefaultAppDependenciesAsync(
             rfqDynamicBlacklist,
             pairsManager,
             slippageModelManager,
+            rfqClient,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(
             provider,

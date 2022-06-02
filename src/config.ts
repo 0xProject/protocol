@@ -338,6 +338,12 @@ export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegrators
 export const RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER: MakerIdsToConfigs = getMakerConfigMapForOrderType('rfq', 'rfqt');
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
+export const RFQ_API_URL: string = resolveEnvVar<string>('RFQ_API_URL', EnvVarType.NonEmptyString, '');
+export const RFQ_CLIENT_ROLLOUT_PERCENT: number = resolveEnvVar<number>(
+    'RFQ_CLIENT_ROLLOUT_PERCENT',
+    EnvVarType.Integer,
+    0,
+);
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
     resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
         addr.toLowerCase(),

@@ -40,6 +40,7 @@ import {
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
+    RFQ_CLIENT_ROLLOUT_PERCENT,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     SWAP_QUOTER_OPTS,
@@ -71,11 +72,13 @@ import {
     TokenMetadataOptionalSymbol,
 } from '../types';
 import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
+import { isHashSmallEnough } from '../utils/hash_utils';
 import { marketDepthUtils } from '../utils/market_depth_utils';
 import { METRICS_PROXY } from '../utils/metrics_service';
 import { paginationUtils } from '../utils/pagination_utils';
 import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
+import { RfqClient } from '../utils/rfq_client';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { SAMPLER_METRICS } from '../utils/sampler_metrics';
 import { serviceUtils } from '../utils/service_utils';
@@ -199,6 +202,7 @@ export class SwapService {
         rfqDynamicBlacklist?: RfqDynamicBlacklist,
         private readonly _pairsManager?: PairsManager,
         private readonly _slippageModelManager?: SlippageModelManager,
+        private readonly _rfqClient?: RfqClient,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -338,12 +342,22 @@ export class SwapService {
                 : buyAmount!.times(affiliateFee.buyTokenPercentageFee + 1).integerValue(BigNumber.ROUND_DOWN);
 
         // Fetch the Swap quote
+        const rfqClient = isHashSmallEnough({
+            message:
+                `${assetSwapperOpts.rfqt?.txOrigin}-${sellToken}-${buyToken}-${amount}-${marketSide}`.toLowerCase(),
+            // tslint:disable-next-line: custom-no-magic-numbers
+            threshold: RFQ_CLIENT_ROLLOUT_PERCENT / 100,
+        })
+            ? this._rfqClient
+            : undefined;
+
         const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
             buyToken,
             sellToken,
             amount!, // was validated earlier
             marketSide,
             assetSwapperOpts,
+            rfqClient,
         );
 
         const {
