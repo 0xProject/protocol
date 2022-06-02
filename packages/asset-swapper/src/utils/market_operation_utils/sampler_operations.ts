@@ -25,6 +25,8 @@ import {
     AVALANCHE_TOKENS,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
+    BANCORV3_NETWORK_BY_CHAIN_ID,
+    BANCORV3_NETWORK_INFO_BY_CHAIN_ID,
     BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     COMPOUND_API_URL_BY_CHAIN_ID,
@@ -707,6 +709,36 @@ export class SamplerOperations {
                 return samples;
             },
         });
+    }
+
+    public getBancorV3SellQuotes(
+        networkAddress: string,
+        path: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.BancorV3,
+            fillData: { networkAddress, path},
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBancorV3,
+            params: [networkAddress, path, takerFillAmounts],
+        });
+    }
+
+    // Unimplemented
+    public getBancorV3BuyQuotes(
+        networkAddress: string,
+        path: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.BancorV3,
+            fillData: { networkAddress, path},
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBancorV3,
+            params: [networkAddress, path, makerFillAmounts],
+        });
+
     }
 
     public getMooniswapSellQuotes(
@@ -1676,6 +1708,13 @@ export class SamplerOperations {
                             ),
                         );
                     }
+                    case ERC20BridgeSource.BancorV3: {
+                        return this.getBancorV3SellQuotes(
+                            BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
+                            [takerToken,makerToken],
+                            takerFillAmounts
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -2002,6 +2041,13 @@ export class SamplerOperations {
                                 [takerToken, makerToken],
                                 makerFillAmounts,
                             ),
+                        );
+                    }
+                    case ERC20BridgeSource.BancorV3: {
+                        return this.getBancorV3SellQuotes(
+                            BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
+                            [takerToken,makerToken],
+                            makerFillAmounts
                         );
                     }
                     default:
