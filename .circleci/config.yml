@@ -10,6 +10,7 @@ jobs:
         working_directory: ~/repo
         steps:
             - checkout
+            - run: git submodule update --init --recursive
             - run: echo 'export PATH=$HOME/CIRCLE_PROJECT_REPONAME/node_modules/.bin:$PATH' >> $BASH_ENV
             - run:
                   name: install-yarn
