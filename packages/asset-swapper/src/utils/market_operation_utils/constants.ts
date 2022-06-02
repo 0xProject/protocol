@@ -67,6 +67,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.Bancor,
+            ERC20BridgeSource.BancorV3,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.SushiSwap,
@@ -219,6 +220,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Balancer,
             ERC20BridgeSource.BalancerV2,
             // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
+            ERC20BridgeSource.BancorV3,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.Shell,
@@ -2045,6 +2047,20 @@ export const BANCOR_REGISTRY_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const BANCORV3_NETWORK_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0xeef417e1d5cc832e619ae18d2f140de2999dd4fb',
+    },
+    NULL_ADDRESS,
+);
+
+export const BANCORV3_NETWORK_INFO_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x8e303d296851b320e6a697bacb979d13c9d6e760',
+    },
+    NULL_ADDRESS,
+);
+
 export const SHELL_POOLS_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
@@ -2489,6 +2505,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
+    [ERC20BridgeSource.BancorV3]: () => 260e3,
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
         let gas = 170e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
