@@ -206,8 +206,13 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
         case ERC20BridgeSource.Platypus:
             return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
+<<<<<<< HEAD
         case ERC20BridgeSource.BancorV3:
             return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
+=======
+        case ERC20BridgeSource.MeshSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MeshSwap');
+>>>>>>> 1f41fe6a2 (feat/add MeshSwap on Polygon [TKR-374] (#491))
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -299,6 +304,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.MorpheusSwap:
         case ERC20BridgeSource.BiSwap:
         case ERC20BridgeSource.Yoshi:
+        case ERC20BridgeSource.MeshSwap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -523,6 +529,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
+    [ERC20BridgeSource.MeshSwap]: routerAddressPathEncoder,
     // Avalanche
     [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
     [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
