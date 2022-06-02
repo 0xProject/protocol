@@ -108,6 +108,7 @@ import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
 import * as MixinBalancerV2 from '../test/generated-artifacts/MixinBalancerV2.json';
 import * as MixinBalancerV2Batch from '../test/generated-artifacts/MixinBalancerV2Batch.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
+import * as MixinBancorV3 from '../test/generated-artifacts/MixinBancorV3.json';
 import * as MixinCompound from '../test/generated-artifacts/MixinCompound.json';
 import * as MixinCryptoCom from '../test/generated-artifacts/MixinCryptoCom.json';
 import * as MixinCurve from '../test/generated-artifacts/MixinCurve.json';
@@ -329,6 +330,7 @@ export const artifacts = {
     MixinBalancerV2: MixinBalancerV2 as ContractArtifact,
     MixinBalancerV2Batch: MixinBalancerV2Batch as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
+    MixinBancorV3: MixinBancorV3 as ContractArtifact,
     MixinCompound: MixinCompound as ContractArtifact,
     MixinCryptoCom: MixinCryptoCom as ContractArtifact,
     MixinCurve: MixinCurve as ContractArtifact,

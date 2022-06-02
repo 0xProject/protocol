@@ -12,6 +12,7 @@ import * as BalancerV2BatchSampler from '../test/generated-artifacts/BalancerV2B
 import * as BalancerV2Common from '../test/generated-artifacts/BalancerV2Common.json';
 import * as BalancerV2Sampler from '../test/generated-artifacts/BalancerV2Sampler.json';
 import * as BancorSampler from '../test/generated-artifacts/BancorSampler.json';
+import * as BancorV3Sampler from '../test/generated-artifacts/BancorV3Sampler.json';
 import * as CompoundSampler from '../test/generated-artifacts/CompoundSampler.json';
 import * as CurveSampler from '../test/generated-artifacts/CurveSampler.json';
 import * as DODOSampler from '../test/generated-artifacts/DODOSampler.json';
@@ -22,6 +23,7 @@ import * as GMXSampler from '../test/generated-artifacts/GMXSampler.json';
 import * as IBalancer from '../test/generated-artifacts/IBalancer.json';
 import * as IBalancerV2Vault from '../test/generated-artifacts/IBalancerV2Vault.json';
 import * as IBancor from '../test/generated-artifacts/IBancor.json';
+import * as IBancorV3 from '../test/generated-artifacts/IBancorV3.json';
 import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IGMX from '../test/generated-artifacts/IGMX.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
@@ -57,6 +59,7 @@ export const artifacts = {
     BalancerV2Common: BalancerV2Common as ContractArtifact,
     BalancerV2Sampler: BalancerV2Sampler as ContractArtifact,
     BancorSampler: BancorSampler as ContractArtifact,
+    BancorV3Sampler: BancorV3Sampler as ContractArtifact,
     CompoundSampler: CompoundSampler as ContractArtifact,
     CurveSampler: CurveSampler as ContractArtifact,
     DODOSampler: DODOSampler as ContractArtifact,
@@ -83,6 +86,7 @@ export const artifacts = {
     IBalancer: IBalancer as ContractArtifact,
     IBalancerV2Vault: IBalancerV2Vault as ContractArtifact,
     IBancor: IBancor as ContractArtifact,
+    IBancorV3: IBancorV3 as ContractArtifact,
     ICurve: ICurve as ContractArtifact,
     IGMX: IGMX as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
