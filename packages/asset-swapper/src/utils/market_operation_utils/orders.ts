@@ -217,7 +217,12 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
 =======
         case ERC20BridgeSource.MeshSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MeshSwap');
+<<<<<<< HEAD
 >>>>>>> 1f41fe6a2 (feat/add MeshSwap on Polygon [TKR-374] (#491))
+=======
+        case ERC20BridgeSource.BancorV3:
+            return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
+>>>>>>> 767b42c54 (add weth/eth wrap/unwrap support for bancorv3)
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
