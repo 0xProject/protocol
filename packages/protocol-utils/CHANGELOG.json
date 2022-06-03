@@ -1,6 +1,6 @@
 [
     {
-        "version": "1.14.0",
+        "version": "11.14.0",
         "changes": [
             {
                 "note": "Adds Support for BancorV3 on Ethereum",
