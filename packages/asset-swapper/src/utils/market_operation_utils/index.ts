@@ -227,7 +227,41 @@ export class MarketOperationUtils {
 
         const [{ decimals: makerTokenDecimals }, { decimals: takerTokenDecimals }] = tokenInfos;
 
+<<<<<<< HEAD
         const isRfqSupported = !!_opts.rfqt;
+=======
+        const [
+            [
+                blockNumber,
+                gasBefore,
+                tokenDecimals,
+                orderFillableTakerAmounts,
+                outputAmountPerEth,
+                inputAmountPerEth,
+                dexQuotes,
+                rawTwoHopQuotes,
+                isTxOriginContract,
+                gasAfter,
+            ],
+        ] = await Promise.all([samplerPromise]);
+        console.log(dexQuotes);
+        // Log the gas metrics
+        _opts.samplerMetrics?.logGasDetails({ gasBefore, gasAfter });
+        _opts.samplerMetrics?.logBlockNumber(blockNumber);
+
+        // Filter out any invalid two hop quotes where we couldn't find a route
+        const twoHopQuotes = rawTwoHopQuotes.filter(
+            q => q && q.fillData && q.fillData.firstHopSource && q.fillData.secondHopSource,
+        );
+
+        const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
+
+        const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
+        const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
+            ...order,
+            ...getNativeAdjustedFillableAmountsFromTakerAmount(order, orderFillableTakerAmounts[i]),
+        }));
+>>>>>>> 83da7caab (fixed bancor sell quotes)
 
         return {
             side: MarketOperation.Sell,

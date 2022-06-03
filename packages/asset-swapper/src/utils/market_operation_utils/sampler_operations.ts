@@ -722,7 +722,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.BancorV3,
             fillData: { networkAddress, path},
             contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromBancorV3,
+            function: this._samplerContract.sampleSellsFromBancorV3,
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
         });
     }
