@@ -713,6 +713,7 @@ export class SamplerOperations {
 
     public getBancorV3SellQuotes(
         networkAddress: string,
+        networkInfoAddress: string,
         path: string[],
         takerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<BancorFillData> {
@@ -721,13 +722,14 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
-            params: [networkAddress, path, takerFillAmounts],
+            params: [networkInfoAddress, path, takerFillAmounts],
         });
     }
 
     // Unimplemented
     public getBancorV3BuyQuotes(
         networkAddress: string,
+        networkInfoAddress: string,
         path: string[],
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<BancorFillData> {
@@ -736,7 +738,7 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
-            params: [networkAddress, path, makerFillAmounts],
+            params: [networkInfoAddress, path, makerFillAmounts],
         });
 
     }
@@ -1711,9 +1713,10 @@ export class SamplerOperations {
                     }
                     case ERC20BridgeSource.BancorV3: {
                         return this.getBancorV3SellQuotes(
+                            BANCORV3_NETWORK_BY_CHAIN_ID[this.chainId],
                             BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
-                            [takerToken,makerToken],
-                            takerFillAmounts
+                            [takerToken, makerToken],
+                            takerFillAmounts,
                         );
                     }
                     default:
@@ -2033,10 +2036,11 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.BancorV3: {
-                        return this.getBancorV3SellQuotes(
+                        return this.getBancorV3BuyQuotes(
+                            BANCORV3_NETWORK_BY_CHAIN_ID[this.chainId],
                             BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
-                            [takerToken,makerToken],
-                            makerFillAmounts
+                            [takerToken, makerToken],
+                            makerFillAmounts,
                         );
                     }
                     default:
