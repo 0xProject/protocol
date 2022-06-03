@@ -26,11 +26,12 @@ import "./interfaces/IBancorV3.sol";
 contract BancorV3Sampler
 {
     /// @dev Gas limit for BancorV3 calls.
-    uint256 constant private BancorV3_CALL_GAS = 150e3; // 150k
+    uint256 constant private BancorV3_CALL_GAS = 1500e3; // 150k
 
     address constant public ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     /// @dev Sample sell quotes from BancorV3.
+    /// @param weth The WETH contract address
     /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -74,6 +75,7 @@ contract BancorV3Sampler
     }
 
     /// @dev Sample buy quotes from BancorV3.
+    /// @param weth The WETH contract address
     /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken.
     /// @param makerTokenAmounts Maker token buy amount for each sample.

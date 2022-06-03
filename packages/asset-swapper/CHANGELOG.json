@@ -5,6 +5,10 @@
             {
                 "note": "Offboard/clean up Oasis, CoFix, and legacy Kyber",
                 "pr": 482
+            },
+            {
+                "note": "Added support for BancorV3 on ethereum mainnet",
+                "pr": 492
             }
         ]
     },

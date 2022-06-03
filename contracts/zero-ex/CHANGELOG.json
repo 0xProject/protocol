@@ -1,5 +1,14 @@
 [
     {
+        "version": "0.35.0",
+        "changes": [
+            {
+                "note": "Adds support for BancorV3 to EthereumBridgeAdapter",
+                "pr": 492
+            }
+        ]
+    },
+    {
         "version": "0.34.0",
         "changes": [
             {
