@@ -723,6 +723,9 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 00983ca7c (fixed bancor sell quotes)
             function: this._samplerContract.sampleSellsFromBancorV3,
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
 =======

@@ -1,12 +1,21 @@
 [
     {
+<<<<<<< HEAD
         "version": "1.14.0",
+=======
+        "version": "11.14.0",
+>>>>>>> 00983ca7c (fixed bancor sell quotes)
         "changes": [
             {
                 "note": "Adds Support for BancorV3 on Ethereum",
                 "pr": 492
             }
+<<<<<<< HEAD
         ]
+=======
+        ],
+
+>>>>>>> 00983ca7c (fixed bancor sell quotes)
     },
     {
         "version": "11.13.0",
