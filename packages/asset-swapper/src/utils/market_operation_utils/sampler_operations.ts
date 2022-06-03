@@ -38,6 +38,7 @@ import {
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
+    MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -47,7 +48,6 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
-    MAINNET_TOKENS,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -720,7 +720,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation<BancorFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.BancorV3,
-            fillData: { networkAddress, path},
+            fillData: { networkAddress, path },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromBancorV3,
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
@@ -735,12 +735,11 @@ export class SamplerOperations {
     ): SourceQuoteOperation<BancorFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.BancorV3,
-            fillData: { networkAddress, path},
+            fillData: { networkAddress, path },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, makerFillAmounts],
         });
-
     }
 
     public getMooniswapSellQuotes(

@@ -244,7 +244,7 @@ export class MarketOperationUtils {
                 gasAfter,
             ],
         ] = await Promise.all([samplerPromise]);
-        console.log(dexQuotes);
+
         // Log the gas metrics
         _opts.samplerMetrics?.logGasDetails({ gasBefore, gasAfter });
         _opts.samplerMetrics?.logBlockNumber(blockNumber);
