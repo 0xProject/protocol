@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.34.0 - _June 3, 2022_
+
+    * Splits BridgeAdapter up by chain (#487)
+    * Add stETH wrap/unwrap support (#476)
+    * Adds support for BancorV3 to EthereumBridgeAdapter (#492)
+
 ## v0.33.0 - _May 19, 2022_
 
     * Add support for GMX and Platypus to bridge adapter (#478)
