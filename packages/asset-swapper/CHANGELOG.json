@@ -13,10 +13,6 @@
             {
                 "note": "Add MeshSwap on Polygon",
                 "pr": 491
-            },
-            {
-                "note": "Added support for BancorV3 on ethereum mainnet",
-                "pr": 492
             }
         ]
     },
