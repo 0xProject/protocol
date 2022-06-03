@@ -2518,7 +2518,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
         }
         return gas;
     },
-    [ERC20BridgeSource.BancorV3]: () => 250e3,
+    [ERC20BridgeSource.BancorV3]: () => 250e3, //revisit gas costs with wrap/unwrap
     [ERC20BridgeSource.KyberDmm]: (fillData?: FillData) => {
         let gas = 170e3;
         const path = (fillData as UniswapV2FillData).tokenAddressPath;
