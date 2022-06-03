@@ -208,6 +208,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
         case ERC20BridgeSource.MeshSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MeshSwap');
+        case ERC20BridgeSource.BancorV3:
+            return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -387,7 +389,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.BancorV3:
             const bancorV3FillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
-            bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorFillData.path, bancor]);
+            bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorV3FillData.path]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
