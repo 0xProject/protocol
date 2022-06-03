@@ -28,6 +28,8 @@ contract BancorV3Sampler
     /// @dev Gas limit for BancorV3 calls.
     uint256 constant private BancorV3_CALL_GAS = 150e3; // 150k
 
+    address constant public ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
     /// @dev Sample sell quotes from BancorV3.
     /// @param router Router to look up tokens and amounts
     /// @param path Token route. Should be takerToken -> makerToken
@@ -35,6 +37,7 @@ contract BancorV3Sampler
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
     function sampleSellsFromBancorV3(
+        address weth,
         address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
@@ -45,6 +48,14 @@ contract BancorV3Sampler
     {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
+
+        if(path[0] == weth){
+            path[0] = ETH;
+        }
+        if(path[1] == weth){
+            path[1] = ETH;
+        }
+
         for (uint256 i = 0; i < numSamples; i++) {
             try
                 IBancorV3(router).tradeOutputBySourceAmount(path[0], path[1], takerTokenAmounts[i])
@@ -69,6 +80,7 @@ contract BancorV3Sampler
     /// @return takerTokenAmounts Taker amounts sold at each maker token
     ///         amount.
     function sampleBuysFromBancorV3(
+        address weth,
         address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
@@ -79,6 +91,14 @@ contract BancorV3Sampler
     {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
+
+        if(path[0] == weth){
+            path[0] = ETH;
+        }
+        if(path[1] == weth){
+            path[1] = ETH;
+        }
+
         for (uint256 i = 0; i < numSamples; i++) {
             try
                 IBancorV3(router).tradeInputByTargetAmount(path[0], path[1], makerTokenAmounts[i])
