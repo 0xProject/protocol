@@ -47,6 +47,7 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
+    MAINNET_TOKENS,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -722,7 +723,7 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
-            params: [networkInfoAddress, path, takerFillAmounts],
+            params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
         });
     }
 
@@ -738,7 +739,7 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
-            params: [networkInfoAddress, path, makerFillAmounts],
+            params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, makerFillAmounts],
         });
 
     }
