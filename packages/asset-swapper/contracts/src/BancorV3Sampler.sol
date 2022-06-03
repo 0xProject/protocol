@@ -26,7 +26,7 @@ import "./interfaces/IBancorV3.sol";
 contract BancorV3Sampler
 {
     /// @dev Gas limit for BancorV3 calls.
-    uint256 constant private BancorV3_CALL_GAS = 1500e3; // 150k
+    uint256 constant private BancorV3_CALL_GAS = 150e3; // 150k
 
     address constant public ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
