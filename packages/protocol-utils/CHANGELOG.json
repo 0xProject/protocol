@@ -6,7 +6,8 @@
                 "note": "Adds Support for BancorV3 on Ethereum",
                 "pr": 492
             }
-        ]
+        ],
+        "timestamp": 1654284040
     },
     {
         "version": "11.13.0",

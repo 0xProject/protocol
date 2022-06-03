@@ -14,7 +14,8 @@
                 "note": "Adds support for BancorV3 to EthereumBridgeAdapter",
                 "pr": 492
             }
-        ]
+        ],
+        "timestamp": 1654284040
     },
     {
         "version": "0.33.0",
