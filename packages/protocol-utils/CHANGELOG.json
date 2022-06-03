@@ -1,5 +1,15 @@
 [
     {
+        "version": "11.14.0",
+        "changes": [
+            {
+                "note": "Adds Support for BancorV3 on Ethereum",
+                "pr": 492
+            }
+        ],
+
+    },
+    {
         "version": "11.13.0",
         "changes": [
             {
