@@ -722,8 +722,13 @@ export class SamplerOperations {
             source: ERC20BridgeSource.BancorV3,
             fillData: { networkAddress, path},
             contract: this._samplerContract,
+<<<<<<< HEAD
             function: this._samplerContract.sampleSellsFromBancorV3,
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
+=======
+            function: this._samplerContract.sampleBuysFromBancorV3,
+            params: [networkInfoAddress, path, takerFillAmounts],
+>>>>>>> 7ac8794b0 (add weth/eth wrap/unwrap support for bancorv3)
         });
     }
 
@@ -738,7 +743,11 @@ export class SamplerOperations {
             fillData: { networkAddress, path},
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromBancorV3,
+<<<<<<< HEAD
             params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, makerFillAmounts],
+=======
+            params: [networkInfoAddress, path, makerFillAmounts],
+>>>>>>> 7ac8794b0 (add weth/eth wrap/unwrap support for bancorv3)
         });
 
     }
