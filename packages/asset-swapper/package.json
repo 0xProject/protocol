@@ -34,7 +34,8 @@
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
         "publish:private": "yarn build && gitpkg publish",
-        "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))"
+        "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))",
+        "list:deps": "yarn lerna list -l"
     },
     "config": {
         "publicInterfaceContracts": "ERC20BridgeSampler,BalanceChecker,FakeTaker",

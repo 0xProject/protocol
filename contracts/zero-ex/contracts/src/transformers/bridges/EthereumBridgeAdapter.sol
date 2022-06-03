@@ -75,6 +75,7 @@ contract EthereumBridgeAdapter is
     constructor(IEtherTokenV06 weth)
         public
         MixinBancor(weth)
+        MixinBancorV3(weth)
         MixinCompound(weth)
         MixinCurve(weth)
         MixinLido(weth)
