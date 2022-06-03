@@ -727,7 +727,6 @@ export class SamplerOperations {
         });
     }
 
-    // Unimplemented
     public getBancorV3BuyQuotes(
         networkAddress: string,
         networkInfoAddress: string,
