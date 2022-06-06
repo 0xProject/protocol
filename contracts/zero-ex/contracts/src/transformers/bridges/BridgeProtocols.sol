@@ -56,4 +56,5 @@ library BridgeProtocols {
     uint128 internal constant GMX             = 26;
     uint128 internal constant PLATYPUS        = 27;
     uint128 internal constant BANCORV3        = 28;
+    uint128 internal constant VELODROME       = 29;
 }
