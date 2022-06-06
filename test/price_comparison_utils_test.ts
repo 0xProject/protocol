@@ -38,7 +38,6 @@ describe(SUITE_NAME, () => {
     describe('getPriceComparisonFromQuote', () => {
         const savingsInEthVsUniswapV1 = new BigNumber('-0.001263636363636364');
         const savingsInEthVsUniswapV2 = new BigNumber('0.004736363636363636');
-        const savingsInEthVsKyber = new BigNumber('0.034736363636363636');
 
         it('returns comparison prices for quote reporter sources when quoting sellAmount', () => {
             const price = buyAmount.div(sellAmount).decimalPlaces(18);
@@ -224,88 +223,6 @@ describe(SUITE_NAME, () => {
                     savingsInEth: null,
                     sellAmount: null,
                     buyAmount: null,
-                },
-            ]);
-        });
-
-        it('returns the Kyber results with highest makerAmount when quoting sellAmount', () => {
-            const higherBuyAmount = buyAmount.plus(1e18);
-            const higherPrice = higherBuyAmount.div(sellAmount).decimalPlaces(18, BigNumber.ROUND_FLOOR);
-
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
-                ChainId.Mainnet,
-                MarketOperation.Sell,
-                {
-                    ...daiWethQuoteBase,
-                    buyAmount: higherBuyAmount,
-                    priceComparisonsReport: {
-                        dexSources: [
-                            {
-                                makerAmount: buyAmount,
-                                takerAmount: sellAmount,
-                                liquiditySource: ERC20BridgeSource.Kyber,
-                                fillData: {},
-                            },
-                            {
-                                makerAmount: higherBuyAmount,
-                                takerAmount: sellAmount,
-                                liquiditySource: ERC20BridgeSource.Kyber,
-                                fillData: {},
-                            },
-                        ],
-                        multiHopSources: [],
-                        nativeSources: [],
-                    },
-                },
-            );
-
-            expect(comparisons).to.deep.include.members([
-                {
-                    name: ERC20BridgeSource.Kyber,
-                    price: higherPrice,
-                    sellAmount,
-                    buyAmount: higherBuyAmount,
-                    gas: new BigNumber(4.71e5),
-                    savingsInEth: savingsInEthVsKyber,
-                },
-            ]);
-        });
-
-        it('returns the Kyber results with lowest takerAmount when quoting buyAmount', () => {
-            const lowerSellAmount = sellAmount.minus(0.01e18);
-            const lowerSellPrice = lowerSellAmount.div(buyAmount).decimalPlaces(18);
-
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                sellAmount: lowerSellAmount,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.Kyber,
-                            fillData: {},
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: lowerSellAmount,
-                            liquiditySource: ERC20BridgeSource.Kyber,
-                            fillData: {},
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
-                },
-            });
-
-            expect(comparisons).to.deep.include.members([
-                {
-                    name: ERC20BridgeSource.Kyber,
-                    price: lowerSellPrice,
-                    sellAmount: lowerSellAmount,
-                    buyAmount,
-                    gas: new BigNumber(4.71e5),
-                    savingsInEth: savingsInEthVsKyber,
                 },
             ]);
         });

@@ -42,13 +42,13 @@ describe(SUITE_NAME, () => {
         // tslint:disable-next-line: boolean-naming
         const { excludedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
             {
-                excludedSources: 'Uniswap,Kyber',
+                excludedSources: 'Uniswap,Curve',
             },
             [],
             'price',
         );
         expect(excludedSources[0]).to.eql(ERC20BridgeSource.Uniswap);
-        expect(excludedSources[1]).to.eql(ERC20BridgeSource.Kyber);
+        expect(excludedSources[1]).to.eql(ERC20BridgeSource.Curve);
         expect(nativeExclusivelyRFQT).to.eql(false);
     });
 
