@@ -14,7 +14,7 @@ import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_u
 
 describe('RFQ Admin Service Logic', () => {
     describe('cleanupJobsAsync', () => {
-        const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+        const expiry = new BigNumber(Date.now() - 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
         const otcOrder = new OtcOrder({
             txOrigin: '0x0000000000000000000000000000000000000000',
             taker: '0x1111111111111111111111111111111111111111',
@@ -50,6 +50,22 @@ describe('RFQ Admin Service Logic', () => {
             verify(
                 dbUtilsMock.updateRfqmJobAsync(deepEqual({ ...BASE_JOB, status: RfqmJobStatus.FailedExpired })),
             ).called();
+        });
+        it('should not modify unexpired jobs', async () => {
+            const job = {
+                ...BASE_JOB,
+                status: RfqmJobStatus.PendingProcessing,
+                expiry: new BigNumber(Date.now() + 60_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
+            };
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+            when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
+            const adminService = new RfqAdminService(instance(dbUtilsMock));
+
+            const res = await adminService.cleanupJobsAsync(['0x00']);
+
+            expect(res.unmodifiedJobs[0]).to.equal(BASE_JOB.orderHash);
+            verify(dbUtilsMock.updateRfqmJobAsync(anything())).never();
         });
         it('should not modify resolved jobs', async () => {
             const job = { ...BASE_JOB, status: RfqmJobStatus.FailedExpired };

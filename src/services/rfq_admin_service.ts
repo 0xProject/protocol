@@ -40,14 +40,17 @@ export class RfqAdminService {
 
             try {
                 const { expiry } = job;
+                const thirtySecondsPastExpiry = expiry.plus(new BigNumber(30));
                 const nowSeconds = new BigNumber(now.getTime() / ONE_SECOND_MS);
-                const thirtySecondsLater = nowSeconds.plus(new BigNumber(30));
 
-                if (expiry.isGreaterThan(thirtySecondsLater)) {
+                if (nowSeconds.isGreaterThan(thirtySecondsPastExpiry)) {
                     job.status = RfqmJobStatus.FailedExpired;
                     await this._dbUtils.updateRfqmJobAsync(job);
                     logger.info({ orderHash }, 'Job status manually updated to failure');
                     modifiedJobs.push(orderHash);
+                } else {
+                    logger.error({ orderHash }, 'Tried to clean up an unexpired job');
+                    unmodifiedJobs.push(orderHash);
                 }
             } catch (error) {
                 logger.error({ orderHash }, 'Failed to clean up the job');

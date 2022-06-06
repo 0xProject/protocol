@@ -17,7 +17,7 @@ import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito
 import { DataSource } from 'typeorm';
 
 import * as config from '../src/config';
-import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, RFQM_PATH, ZERO } from '../src/constants';
+import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, RFQM_PATH, ZERO } from '../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
 import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
@@ -1081,7 +1081,10 @@ describe('RFQM Integration', () => {
         });
 
         it('should return a 200 OK when the jobs are successfully set to failure', async () => {
-            await dbUtils.writeV2JobAsync(MOCK_RFQM_JOB);
+            await dbUtils.writeV2JobAsync({
+                ...MOCK_RFQM_JOB,
+                expiry: new BigNumber(Date.now() - 60_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
+            });
 
             const response = await request(app)
                 .post(`${ADMIN_PATH}/cleanup`)
@@ -1099,7 +1102,12 @@ describe('RFQM Integration', () => {
                 status: RfqmJobStatus.SucceededConfirmed,
                 orderHash: '0x01',
             });
-            await dbUtils.writeV2JobAsync({ ...MOCK_RFQM_JOB, orderHash: '0x02' });
+            await dbUtils.writeV2JobAsync({
+                ...MOCK_RFQM_JOB,
+                expiry: new BigNumber(Date.now() - 60_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
+                orderHash: '0x02',
+            });
+
             const response = await request(app)
                 .post(`${ADMIN_PATH}/cleanup`)
                 .send({ orderHashes: ['0x01', '0x02'] })
