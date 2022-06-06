@@ -270,6 +270,7 @@ export async function buildRfqmServiceAsync(
         configManager,
         kafkaProducer,
         chain.quoteReportTopic,
+        chain.enableAccessList,
     );
 }
 

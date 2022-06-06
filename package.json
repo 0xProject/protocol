@@ -86,6 +86,7 @@
         "@0x/utils": "^6.4.4",
         "@0x/web3-wrapper": "^7.6.1",
         "@ethersproject/hdnode": "^5.2.0",
+        "@ethersproject/transactions": "^5.6.2",
         "@lifeomic/attempt": "^3.0.1",
         "@sentry/node": "^6.17.4",
         "@sentry/tracing": "^6.17.4",

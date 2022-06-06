@@ -7,7 +7,8 @@ import { MetaTransaction, OtcOrder, RfqOrder, Signature } from '@0x/protocol-uti
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
-import { CallData, LogEntry, LogWithDecodedArgs, TxData } from 'ethereum-types';
+import { AccessList } from '@ethersproject/transactions';
+import { CallData, LogEntry, LogWithDecodedArgs, TxAccessList, TxData } from 'ethereum-types';
 import { BigNumber as EthersBigNumber, Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
@@ -66,7 +67,7 @@ export class RfqBlockchainUtils {
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _abiDecoder: AbiDecoder;
     // An ethers.js provider.
-    private readonly _ethersProvider: providers.Provider;
+    private readonly _ethersProvider: providers.JsonRpcProvider;
     // An ethers.js Wallet. Must be populated for RfqBlockchainUtils instances used by RFQM Workers.
     private readonly _ethersWallet: Wallet | undefined;
 
@@ -107,7 +108,7 @@ export class RfqBlockchainUtils {
         provider: SupportedProvider,
         private readonly _exchangeProxyAddress: string,
         private readonly _balanceChecker: BalanceChecker,
-        ethersProvider: providers.Provider,
+        ethersProvider: providers.JsonRpcProvider,
         ethersWallet?: Wallet,
     ) {
         this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
@@ -338,6 +339,59 @@ export class RfqBlockchainUtils {
             if (e instanceof Error) {
                 e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
             }
+            throw e;
+        }
+    }
+
+    /**
+     * Get the access list and the gas estimation of a transaction to the 0x exchange proxy
+     * specified by the address in the `RfqBlockchainUtils` constructor. Uses the provider
+     * to call the `eth_createAccessList` JSON RPC method, then adds the buffer specified.
+     * Note that the implementation is similar to the one in @0x/web3-wrapper. This repo is
+     * migrating away from web3-wrapper in favor of ethers. The original implementation in
+     * web3-wrapper:
+     * https://github.com/0xProject/tools/blob/development/web3-wrapper/src/web3_wrapper.ts#L591
+     *
+     * @param callData the calldata of the transaction.
+     * @param fromAddress the address the transaction will be sent from.
+     * @param buffer the buffer to add for gas estimation. For example, 0.5 will add a 50% buffer. Defaults to `GAS_ESTIMATE_BUFFER`. Set to 0 to disable.
+     * @returns A TxAccessListWithGas object which contains access list and gas estimation for the transaction.
+     */
+    public async createAccessListForExchangeProxyCallAsync(
+        callData: string,
+        fromAddress: string,
+        buffer: number = GAS_ESTIMATE_BUFFER,
+    ): Promise<{ accessList: TxAccessList; gasEstimate: number }> {
+        const transactionRequest: providers.TransactionRequest = {
+            to: this._exchangeProxy.address,
+            data: callData,
+            from: fromAddress,
+        };
+
+        try {
+            const rawResult = await this._ethersProvider.send('eth_createAccessList', [transactionRequest]);
+            const accessList: AccessList = rawResult.accessList;
+            const gasUsed: string = rawResult.gasUsed;
+
+            return {
+                // The type for `accessList` is `AccessList` (Array<{ address: string, storageKeys: Array<string> }>).
+                // The reduce operation is used to transform the array into type `TxAccessList` ([address: string]: string[]) whose keys
+                // are addresses and values are corresponding storage keys. This is useful if we need to remove an address from the object.
+                accessList: accessList.reduce((o: TxAccessList, v: { address: string; storageKeys: string[] }) => {
+                    o[v.address] = o[v.address] || [];
+                    o[v.address].push(...(v.storageKeys || []));
+                    return o;
+                }, {}),
+                gasEstimate: new BigNumber(gasUsed)
+                    .multipliedBy(buffer + 1)
+                    .integerValue(BigNumber.ROUND_CEIL)
+                    .toNumber(),
+            };
+        } catch (e) {
+            if (e instanceof Error) {
+                e.message = `createAccessListForExchangeProxyCallAsync: ${e.message}`;
+            }
+
             throw e;
         }
     }

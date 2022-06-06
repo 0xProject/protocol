@@ -158,6 +158,24 @@ const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     labelNames: ['address', 'chain_id'],
 });
 
+const RFQM_CREATE_ACCESS_LIST_REQUEST = new Counter({
+    name: 'rfqm_create_access_list_request_total',
+    help: 'Number of requests for eth_createAccessList call',
+    labelNames: ['chain_id', 'status'],
+});
+
+const RFQM_GAS_ESTIMATE_ACCESS_LIST = new Gauge({
+    name: 'rfqm_gas_estimate_acess_list',
+    help: 'Gas estimate of transaction with access list',
+    labelNames: ['chain_id'],
+});
+
+const RFQM_GAS_ESTIMATE_NO_ACCESS_LIST = new Gauge({
+    name: 'rfqm_gas_estimate_no_access_list',
+    help: 'Gas estimate of transaction without access list',
+    labelNames: ['chain_id'],
+});
+
 const PRICE_DECIMAL_PLACES = 6;
 
 const MAX_PRIORITY_FEE_PER_GAS_CAP = new BigNumber(128e9); // The maximum tip we're willing to pay
@@ -265,6 +283,7 @@ export class RfqmService {
         private readonly _configManger: ConfigManager,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
+        private readonly _enableAccessList?: boolean,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
@@ -1297,6 +1316,29 @@ export class RfqmService {
 
             nonce = await this._blockchainUtils.getNonceAsync(workerAddress);
             gasEstimate = await this._blockchainUtils.estimateGasForExchangeProxyCallAsync(calldata, workerAddress);
+            let accessListWithGas;
+
+            if (this._enableAccessList) {
+                try {
+                    accessListWithGas = await this._blockchainUtils.createAccessListForExchangeProxyCallAsync(
+                        calldata,
+                        workerAddress,
+                    );
+                    RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'success').inc();
+                } catch (error) {
+                    RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'failure').inc();
+                    logger.warn({ calldata, workerAddress }, 'Failed to create access list');
+                }
+
+                if (accessListWithGas !== undefined && accessListWithGas.gasEstimate) {
+                    logger.info(
+                        { gasEstimate, accessListGasEstimate: accessListWithGas.gasEstimate },
+                        'Regular gas estimate vs access list gas estimate',
+                    );
+                    RFQM_GAS_ESTIMATE_NO_ACCESS_LIST.labels(this._chainId.toString()).set(gasEstimate);
+                    RFQM_GAS_ESTIMATE_ACCESS_LIST.labels(this._chainId.toString()).set(accessListWithGas.gasEstimate);
+                }
+            }
 
             const firstSubmission = await this._submitTransactionAsync(
                 orderHash,

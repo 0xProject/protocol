@@ -1,6 +1,9 @@
 {
     "id": "/chainConfigurationSchema",
     "properties": {
+        "enableAccessList": {
+            "type": "boolean"
+        },
         "gasStationUrl": {
             "type": "string"
         },

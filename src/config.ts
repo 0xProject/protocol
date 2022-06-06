@@ -64,6 +64,7 @@ export interface ChainConfiguration {
     // submitting transactions
     initialMaxPriorityFeePerGasGwei: number;
     quoteReportTopic?: string;
+    enableAccessList?: boolean;
 }
 
 export type ChainConfigurations = ChainConfiguration[];
