@@ -2667,7 +2667,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     //
     // Optimism
     //
-    [ERC20BridgeSource.Velodrome]: () => 160e3, // TODO(kyu):revisit
+    [ERC20BridgeSource.Velodrome]: () => 160e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
