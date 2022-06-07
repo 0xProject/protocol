@@ -49,6 +49,7 @@ import {
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     ZERO_AMOUNT,
+    VELODROME_ROUTER_BY_CHAIN_ID,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
@@ -95,6 +96,7 @@ import {
     TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
+    VelodromeFillData,
 } from './types';
 
 /**
@@ -1301,6 +1303,7 @@ export class SamplerOperations {
             params: [pool[0], tokenAddressPath, takerFillAmounts],
         });
     }
+
     public getPlatypusBuyQuotes(
         router: string,
         pool: string[],
@@ -1313,6 +1316,52 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromPlatypus,
             params: [pool[0], tokenAddressPath, makerFillAmounts],
+        });
+    }
+
+    public getVelodromeSellQuotes(
+        router: string,
+        takerToken: string,
+        makerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<VelodromeFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Velodrome,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromVelodrome,
+            params: [router, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: VelodromeFillData): BigNumber[] => {
+                const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
+                    'sampleSellsFromVelodrome',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.stable = isStable;
+                return samples;
+            },
+        });
+    }
+
+    public getVelodromeBuyQuotes(
+        router: string,
+        takerToken: string,
+        makerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<VelodromeFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Velodrome,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromVelodrome,
+            params: [router, takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: VelodromeFillData): BigNumber[] => {
+                const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
+                    'sampleBuysFromVelodrome',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.stable = isStable;
+                return samples;
+            },
         });
     }
 
@@ -1719,6 +1768,14 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
+                    case ERC20BridgeSource.Velodrome: {
+                        return this.getVelodromeSellQuotes(
+                            VELODROME_ROUTER_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -2054,6 +2111,14 @@ export class SamplerOperations {
                             BANCORV3_NETWORK_BY_CHAIN_ID[this.chainId],
                             BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
                             [takerToken, makerToken],
+                            makerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.Velodrome: {
+                        return this.getVelodromeBuyQuotes(
+                            VELODROME_ROUTER_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
                             makerFillAmounts,
                         );
                     }
