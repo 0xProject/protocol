@@ -5,6 +5,12 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.61.0 - _June 3, 2022_
+
+    * Add stETH wrap/unwrap support (#476)
+    * Offboard/clean up Oasis, CoFix, and legacy Kyber (#482)
+    * Add MeshSwap on Polygon (#491)
+
 ## v16.60.1 - _May 19, 2022_
 
     * Alias Balancer sor to the old version (#481)

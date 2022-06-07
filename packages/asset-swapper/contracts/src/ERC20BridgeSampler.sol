@@ -24,12 +24,12 @@ import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
 import "./BalancerV2BatchSampler.sol";
 import "./BancorSampler.sol";
+import "./BancorV3Sampler.sol";
 import "./CompoundSampler.sol";
 import "./CurveSampler.sol";
 import "./DODOSampler.sol";
 import "./DODOV2Sampler.sol";
 import "./GMXSampler.sol";
-import "./KyberSampler.sol";
 import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
 import "./LiquidityProviderSampler.sol";
@@ -52,12 +52,12 @@ contract ERC20BridgeSampler is
     BalancerV2Sampler,
     BalancerV2BatchSampler,
     BancorSampler,
+    BancorV3Sampler,
     CompoundSampler,
     CurveSampler,
     DODOSampler,
     DODOV2Sampler,
     GMXSampler,
-    KyberSampler,
     KyberDmmSampler,
     LidoSampler,
     LiquidityProviderSampler,

@@ -38,7 +38,6 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
-    Kyber = 'Kyber',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -67,6 +66,7 @@ export enum ERC20BridgeSource {
     AaveV2 = 'Aave_V2',
     Compound = 'Compound',
     Synapse = 'Synapse',
+    BancorV3 = 'BancorV3',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -89,6 +89,7 @@ export enum ERC20BridgeSource {
     FirebirdOneSwap = 'FirebirdOneSwap',
     JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
+    MeshSwap = 'MeshSwap',
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
@@ -168,6 +169,7 @@ export interface PsmInfo {
 export interface LidoInfo {
     stEthToken: string;
     wethToken: string;
+    wstEthToken: string;
 }
 
 /**
@@ -262,10 +264,9 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
+export interface BancorV3FillData extends FillData {
+    path: string[];
+    networkAddress: string;
 }
 
 export interface MooniswapFillData extends FillData {
@@ -332,7 +333,9 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmo
 
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
+    wstEthTokenAddress: string;
     takerToken: string;
+    makerToken: string;
 }
 
 export interface AaveV2FillData extends FillData {
@@ -392,7 +395,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
     output: BigNumber;
-    // The output fill amount, ajdusted by fees.
+    // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
     // Fill that must precede this one. This enforces certain fills to be contiguous.
     parent?: Fill;
@@ -692,10 +695,4 @@ export interface GenerateOptimizedOrdersOpts {
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
-}
-
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
 }
