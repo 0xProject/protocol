@@ -108,6 +108,7 @@ export interface ExtendedQuoteReport {
     sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
     blockNumber: number | undefined;
     estimatedGas: string;
+    estimatedPriceImpact?: string;
 }
 
 export interface PriceComparisonsReport {
