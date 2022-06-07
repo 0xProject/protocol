@@ -98,7 +98,7 @@ export class ZeroExApiClient {
             const makerAmount = new BigNumber(data.buyAmount);
             const takerAmount = new BigNumber(data.sellAmount);
             const estimatedGasWei = new BigNumber(data.estimatedGas);
-            const expectedSlippage = new BigNumber(data.expectedSlippage);
+            const expectedSlippage = new BigNumber(data.expectedSlippage !== null ? data.expectedSlippage : 0);
             const { decodedUniqueId } = data;
             if (makerAmount.isNaN() || takerAmount.isNaN() || estimatedGasWei.isNaN() || expectedSlippage.isNaN()) {
                 throw new Error(`Unexpected body returned from 0xAPI: ${JSON.stringify(data)}`);
@@ -125,7 +125,12 @@ export class ZeroExApiClient {
                 stopTimer({ success: 'false', errorType: FailedFetchErrorType.Other });
             }
             logger.error(
-                { chainId: this._chainConfiguration, zeroExApiQueries: quoteContext, message: error.message },
+                {
+                    chainId: this._chainConfiguration.chainId,
+                    zeroExApiGetQuoteParams,
+                    message: error.message,
+                    body: error.response?.data || null,
+                },
                 'Failed to fetch AMM Quote from 0x API',
             );
             return null;

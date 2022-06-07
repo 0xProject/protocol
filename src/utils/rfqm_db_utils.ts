@@ -80,7 +80,6 @@ export const feeToStoredFee = (fee: Fee): StoredFee => {
                     feeModelVersion: fee.details.feeModelVersion,
                     gasFeeAmount: fee.details.gasFeeAmount.toString(),
                     gasPrice: fee.details.gasPrice.toString(),
-                    configuredTradeSizeBps: fee.details.configuredTradeSizeBps,
                     tradeSizeBps: fee.details.tradeSizeBps,
                     zeroExFeeAmount: fee.details.zeroExFeeAmount.toString(),
                     feeTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.feeTokenBaseUnitPriceUsd!),

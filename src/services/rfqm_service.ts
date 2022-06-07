@@ -1,7 +1,7 @@
 // tslint:disable:max-file-line-count
 import { TooManyRequestsError } from '@0x/api-utils';
 import { AssetSwapperContractAddresses, MarketOperation } from '@0x/asset-swapper';
-import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { OtcOrder, Signature, ZERO } from '@0x/protocol-utils';
 import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
 import {
     getTokenMetadataIfExists,
@@ -340,32 +340,25 @@ export class RfqmService {
             integrator,
         } = quoteContext;
 
-        const feeWithDetails = await this._rfqmFeeService.calculateFeeAsync(quoteContext);
+        // (Optimization) When `quotesWithGasFee` is returned, we can use this value and revise it, to avoid another fetch to MMs
+        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._rfqmFeeService.calculateFeeAsync(
+            quoteContext,
+            this._fetchIndicativeQuotesAsync.bind(this),
+        );
 
-        // Fetch all indicative quotes
-        const indicativeQuotes = await this._fetchIndicativeQuotesAsync(quoteContext, feeWithDetails);
+        // Calculate fees (other than gas fee) to charge MMs
+        const otherFeesAmount = feeWithDetails.amount.minus(feeWithDetails.details.gasFeeAmount);
 
-        // Log any quotes that are for the incorrect amount
-        indicativeQuotes.forEach((quote) => {
-            const quotedAmount = isSelling ? quote.takerAmount : quote.makerAmount;
-            if (quotedAmount.eq(assetFillAmount)) {
-                return;
-            }
-            logger.warn(
-                {
-                    isSelling,
-                    overOrUnder: quotedAmount.gt(assetFillAmount) ? 'overfill' : 'underfill',
-                    requestedAmount: assetFillAmount,
-                    quotedAmount,
-                    quote,
-                },
-                'Maker returned an incorrect amount',
-            );
-        });
+        const finalQuotes = quotesWithGasFee
+            ? await this._rfqmFeeService.reviseQuotesAsync(quotesWithGasFee, otherFeesAmount, quoteContext)
+            : await this._fetchIndicativeQuotesAsync(quoteContext, feeWithDetails);
+
+        // (Quote Report) If otherFees > 0, then we "revised" the quotes from MMs. We want to save both the original quotes (aka intermediateQuotes) and the revised (finalQuotes)
+        const intermediateQuotes = quotesWithGasFee && otherFeesAmount.gt(ZERO) ? quotesWithGasFee : [];
 
         // Get the best quote
         const bestQuote = getBestQuote(
-            indicativeQuotes,
+            finalQuotes,
             isSelling,
             takerToken,
             makerToken,
@@ -383,9 +376,11 @@ export class RfqmService {
                     buyAmount: makerAmount,
                     sellAmount: takerAmount,
                     integratorId: integrator?.integratorId,
-                    allQuotes: indicativeQuotes,
+                    finalQuotes,
+                    intermediateQuotes,
                     bestQuote,
                     fee: feeToStoredFee(feeWithDetails),
+                    ammQuoteUniqueId,
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
@@ -439,21 +434,36 @@ export class RfqmService {
             assetFillAmount,
         } = quoteContext;
 
-        const feeWithDetails = await this._rfqmFeeService.calculateFeeAsync(quoteContext);
-        const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
+        // (Optimization) When `quotesWithGasFee` is returned, we can sometimes reuse it, to avoid another fetch to MMs
+        // NOTE: this optimization differs from the optimization for indicative quotes because we do NOT revise firm quotes
+        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._rfqmFeeService.calculateFeeAsync(
+            quoteContext,
+            this._fetchIndicativeQuotesAsync.bind(this),
+        );
 
-        // Fetch all firm quotes and fee
-        const firmQuotes = await this._fetchFirmQuotesAsync(quoteContext, feeWithDetails);
+        // Calculate fees (other than gas fee) to charge MMs. If there are other fees, we don't reuse `quotesWithGasFee`
+        const otherFeesAmount = feeWithDetails.amount.minus(feeWithDetails.details.gasFeeAmount);
+
+        // If `quotesWithGasFee` have been obtained and there are no other fees, reuse the quotes. Otherwise call MMs with full fee to get new quotes.
+        const finalQuotes =
+            quotesWithGasFee && otherFeesAmount.eq(ZERO)
+                ? await this._convertToFirmQuotesAsync(quotesWithGasFee, quoteContext)
+                : await this._fetchFirmQuotesAsync(quoteContext, feeWithDetails);
+
+        // (Quote Report) If `quotesWithGasFee` have not been reused, save them as intermediate quotes
+        const intermediateQuotes = quotesWithGasFee && otherFeesAmount.gt(ZERO) ? quotesWithGasFee : [];
 
         // Get the best quote
         const bestQuote = getBestQuote(
-            firmQuotes,
+            finalQuotes,
             isSelling,
             takerToken,
             makerToken,
             assetFillAmount,
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
         );
+
+        const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
 
         // Quote Report
         if (this._kafkaProducer) {
@@ -465,9 +475,11 @@ export class RfqmService {
                     buyAmount: makerAmount,
                     sellAmount: takerAmount,
                     integratorId: integrator?.integratorId,
-                    allQuotes: firmQuotes,
+                    finalQuotes,
+                    intermediateQuotes,
                     bestQuote,
                     fee: storedFeeWithDetails,
+                    ammQuoteUniqueId,
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
@@ -1554,7 +1566,7 @@ export class RfqmService {
     }
 
     /**
-     * Internal method to fetch indicative quotes. Handles fetching both Rfq and Otc quotes
+     * Internal method to fetch indicative quotes.
      */
     private async _fetchIndicativeQuotesAsync(quoteContext: QuoteContext, fee: Fee): Promise<IndicativeQuote[]> {
         // Extract quote context
@@ -1580,6 +1592,24 @@ export class RfqmService {
             otcOrderParams,
         );
 
+        // Log any quotes that are for the incorrect amount
+        quotes.forEach((quote) => {
+            const quotedAmount = isSelling ? quote.takerAmount : quote.makerAmount;
+            if (quotedAmount.eq(assetFillAmount)) {
+                return;
+            }
+            logger.warn(
+                {
+                    isSelling,
+                    overOrUnder: quotedAmount.gt(assetFillAmount) ? 'overfill' : 'underfill',
+                    requestedAmount: assetFillAmount,
+                    quotedAmount,
+                    quote,
+                },
+                'Maker returned an incorrect amount',
+            );
+        });
+
         return quotes;
     }
 
@@ -1588,7 +1618,16 @@ export class RfqmService {
      */
     private async _fetchFirmQuotesAsync(quoteContext: QuoteContext, fee: Fee): Promise<FirmOtcQuote[]> {
         const quotes = await this._fetchIndicativeQuotesAsync(quoteContext, fee);
+        return this._convertToFirmQuotesAsync(quotes, quoteContext);
+    }
 
+    /**
+     * Internal method to convert indicative quotes to firm quotes.
+     */
+    private async _convertToFirmQuotesAsync(
+        quotes: IndicativeQuote[],
+        quoteContext: QuoteContext,
+    ): Promise<FirmOtcQuote[]> {
         const { takerAddress } = quoteContext;
         const currentBucket = (await this._cacheClient.getNextOtcOrderBucketAsync(this._chainId)) % RFQM_NUM_BUCKETS;
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);

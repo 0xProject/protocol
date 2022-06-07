@@ -166,21 +166,22 @@ describe('RFQM Integration', () => {
         // Create the mock RfqmFeeService
         const rfqmFeeServiceMock = mock(RfqmFeeService);
         when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(GAS_PRICE);
-        when(rfqmFeeServiceMock.calculateFeeAsync(anything())).thenResolve({
-            token: '0xToken',
-            amount: new BigNumber(300),
-            type: 'fixed',
-            details: {
-                feeModelVersion: 0,
-                kind: 'default',
-                gasFeeAmount: new BigNumber(100),
-                gasPrice: GAS_PRICE,
-                zeroExFeeAmount: new BigNumber(200),
-                configuredTradeSizeBps: 4,
-                tradeSizeBps: 4,
-                feeTokenBaseUnitPriceUsd: new BigNumber(30),
-                takerTokenBaseUnitPriceUsd: null,
-                makerTokenBaseUnitPriceUsd: new BigNumber(20),
+        when(rfqmFeeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({
+            feeWithDetails: {
+                token: '0xToken',
+                amount: new BigNumber(300),
+                type: 'fixed',
+                details: {
+                    feeModelVersion: 1,
+                    kind: 'default',
+                    gasFeeAmount: new BigNumber(100),
+                    gasPrice: GAS_PRICE,
+                    zeroExFeeAmount: new BigNumber(200),
+                    tradeSizeBps: 4,
+                    feeTokenBaseUnitPriceUsd: new BigNumber(30),
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: new BigNumber(20),
+                },
             },
         });
         const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);

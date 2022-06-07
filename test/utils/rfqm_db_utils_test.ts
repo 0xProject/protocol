@@ -93,7 +93,6 @@ describe('RFQM DB utils', () => {
                     feeModelVersion: 1,
                     gasFeeAmount: new BigNumber(5),
                     gasPrice: new BigNumber(50),
-                    configuredTradeSizeBps: 4,
                     tradeSizeBps: 4,
                     zeroExFeeAmount: new BigNumber(10),
                     feeTokenBaseUnitPriceUsd: new BigNumber(3e-15),

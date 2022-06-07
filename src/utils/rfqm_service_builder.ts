@@ -26,6 +26,7 @@ import {
     RFQM_WORKER_INDEX,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
+    ZERO_EX_API_KEY,
 } from '../config';
 import {
     KEEP_ALIVE_TTL,
@@ -51,6 +52,7 @@ import { RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 import { TokenPriceOracle } from './TokenPriceOracle';
+import { ZeroExApiClient } from './ZeroExApiClient';
 
 export type RfqmServices = Map<number, RfqmService>;
 
@@ -246,12 +248,16 @@ export async function buildRfqmServiceAsync(
     if (feeTokenMetadata === undefined) {
         throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
     }
+
+    const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
+
     const rfqmFeeService = new RfqmFeeService(
         chain.chainId,
         feeTokenMetadata,
         configManager,
         gasStationAttendant,
         tokenPriceOracle,
+        zeroExApiClient,
     );
 
     return new RfqmService(
