@@ -48,8 +48,8 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
-    ZERO_AMOUNT,
     VELODROME_ROUTER_BY_CHAIN_ID,
+    ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
