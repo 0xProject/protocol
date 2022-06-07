@@ -49,6 +49,8 @@ contract MixinVelodrome {
     {
 
         (IVelodromeRouter router, bool stable) = abi.decode(bridgeData, (IVelodromeRouter, bool));
+        sellToken.approveIfBelow(address(router), sellAmount);
+
         boughtAmount = router.swapExactTokensForTokensSimple(
             sellAmount,
             0, 
