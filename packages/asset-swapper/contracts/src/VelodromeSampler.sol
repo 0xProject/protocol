@@ -20,9 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "./ApproximateBuys.sol";
-import "./SamplerUtils.sol";
-
+import './ApproximateBuys.sol';
+import './SamplerUtils.sol';
 
 struct VeloRoute {
     address from;
@@ -31,12 +30,19 @@ struct VeloRoute {
 }
 
 interface IVelodromeRouter {
-    function getAmountOut(uint256 amountIn, address tokenIn, address tokenOut) external view returns (uint256 amount, bool stable); 
-    function getAmountsOut(uint amountIn, VeloRoute[] calldata routes) external view returns (uint[] memory amounts); 
+    function getAmountOut(
+        uint256 amountIn,
+        address tokenIn,
+        address tokenOut
+    ) external view returns (uint256 amount, bool stable);
+
+    function getAmountsOut(uint256 amountIn, VeloRoute[] calldata routes)
+        external
+        view
+        returns (uint256[] memory amounts);
 }
 
 contract VelodromeSampler is SamplerUtils, ApproximateBuys {
-
     /// @dev Sample sell quotes from Velodrome
     /// @param router Address of Velodrome router.
     /// @param takerToken Address of the taker token (what to sell).
@@ -49,11 +55,7 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (bool stable, uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (bool stable, uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -62,7 +64,7 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         // Find the most liquid pool based on max(takerTokenAmounts) and stick with it.
         stable = _isMostLiquidPoolStablePool(router, takerToken, makerToken, takerTokenAmounts);
         VeloRoute[] memory routes = new VeloRoute[](1);
-        routes[0] = VeloRoute({from: takerToken, to: makerToken, stable: stable});
+        routes[0] = VeloRoute({ from: takerToken, to: makerToken, stable: stable });
 
         for (uint256 i = 0; i < numSamples; i++) {
             makerTokenAmounts[i] = router.getAmountsOut(takerTokenAmounts[i], routes)[1];
@@ -85,22 +87,17 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (bool stable, uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (bool stable, uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
 
         // Sampling should not mix stable and volatile pools.
         // Find the most liquid pool based on the reverse swap (maker -> taker) and stick with it.
         stable = _isMostLiquidPoolStablePool(router, makerToken, takerToken, makerTokenAmounts);
 
-        // takerTokenAmounts = new uint256[](numSamples);
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                takerTokenData: abi.encode(router, VeloRoute({from: takerToken,to:makerToken,stable:stable })),
-                makerTokenData: abi.encode(router, VeloRoute({to: takerToken,from:makerToken,stable:stable })),
+                takerTokenData: abi.encode(router, VeloRoute({ from: takerToken, to: makerToken, stable: stable })),
+                makerTokenData: abi.encode(router, VeloRoute({ from: makerToken, to: takerToken, stable: stable })),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromVelodrome
             }),
             makerTokenAmounts
@@ -109,17 +106,15 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
 
     function _sampleSellForApproximateBuyFromVelodrome(
         bytes memory takerTokenData,
-        bytes memory /* makerTokenData */,
+        bytes memory, /* makerTokenData */
         uint256 sellAmount
     ) internal view returns (uint256) {
-        (IVelodromeRouter router, VeloRoute memory route) = abi.decode(
-            takerTokenData, (IVelodromeRouter, VeloRoute));
+        (IVelodromeRouter router, VeloRoute memory route) = abi.decode(takerTokenData, (IVelodromeRouter, VeloRoute));
 
         VeloRoute[] memory routes = new VeloRoute[](1);
         routes[0] = route;
         return router.getAmountsOut(sellAmount, routes)[1];
     }
-
 
     /// @dev Returns whether the most liquid pool is a stable pool.
     /// @param router Address of Velodrome router.
@@ -134,7 +129,6 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         uint256[] memory takerTokenAmounts
     ) internal view returns (bool stable) {
         uint256 numSamples = takerTokenAmounts.length;
-        (, stable) = router.getAmountOut(takerTokenAmounts[numSamples-1], takerToken, makerToken);
+        (, stable) = router.getAmountOut(takerTokenAmounts[numSamples - 1], takerToken, makerToken);
     }
-
 }
