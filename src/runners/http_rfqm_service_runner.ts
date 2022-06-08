@@ -154,10 +154,14 @@ export async function runHttpRfqmServiceAsync(
             autoregister: false,
             includeStatusCode: true,
             includePath: true,
+            customLabels: { chainId: undefined },
             normalizePath: [
                 ['/status/.*', '/status/#orderHash'], // converts all /status/0xdeadbeef... => /status/#orderHash
                 ['/api-docs.*', '/api-docs'], // converts all /api-docs/favicon... => /api-docs
             ],
+            transformLabels: (labels, req, res) => {
+                Object.assign(labels, { chainId: req.header('0x-chain-id')! });
+            },
         });
         app.use(metricsMiddleware);
     }
