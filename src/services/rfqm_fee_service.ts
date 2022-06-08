@@ -150,7 +150,7 @@ export const calculateMarginAmount = (
             .times(new BigNumber(1).plus(ammQuote.expectedSlippage))
             .times(makerTokenBaseUnitPriceUsd)
             .div(feeTokenBaseUnitPriceUsd)
-            .minus(ammQuote.estimatedGasWei);
+            .minus(ammQuote.estimatedGasFeeWei);
         if (rfqPrice.gt(ammPrice)) {
             return rfqPrice.minus(ammPrice).integerValue();
         }
@@ -163,7 +163,7 @@ export const calculateMarginAmount = (
             .times(new BigNumber(1).minus(ammQuote.expectedSlippage))
             .times(takerTokenBaseUnitPriceUsd)
             .div(feeTokenBaseUnitPriceUsd)
-            .plus(ammQuote.estimatedGasWei);
+            .plus(ammQuote.estimatedGasFeeWei);
         if (ammPrice.gt(rfqPrice)) {
             return ammPrice.minus(rfqPrice).integerValue();
         }

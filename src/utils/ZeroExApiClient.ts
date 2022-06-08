@@ -28,7 +28,7 @@ export interface AmmQuote {
     makerAmount: BigNumber;
     takerAmount: BigNumber;
     expectedSlippage: BigNumber;
-    estimatedGasWei: BigNumber;
+    estimatedGasFeeWei: BigNumber;
     decodedUniqueId?: string;
 }
 
@@ -36,6 +36,7 @@ interface ZeroExApiGetQuoteResponse {
     buyAmount: string;
     sellAmount: string;
     estimatedGas: string;
+    gasPrice: string;
     expectedSlippage: string;
     decodedUniqueId?: string;
 }
@@ -97,10 +98,17 @@ export class ZeroExApiClient {
             // Parsing and validating 0xAPI response
             const makerAmount = new BigNumber(data.buyAmount);
             const takerAmount = new BigNumber(data.sellAmount);
-            const estimatedGasWei = new BigNumber(data.estimatedGas);
+            const estimatedGas = new BigNumber(data.estimatedGas);
+            const gasPrice = new BigNumber(data.gasPrice);
             const expectedSlippage = new BigNumber(data.expectedSlippage !== null ? data.expectedSlippage : 0);
             const { decodedUniqueId } = data;
-            if (makerAmount.isNaN() || takerAmount.isNaN() || estimatedGasWei.isNaN() || expectedSlippage.isNaN()) {
+            if (
+                makerAmount.isNaN() ||
+                takerAmount.isNaN() ||
+                estimatedGas.isNaN() ||
+                gasPrice.isNaN() ||
+                expectedSlippage.isNaN()
+            ) {
                 throw new Error(`Unexpected body returned from 0xAPI: ${JSON.stringify(data)}`);
             }
             if (!decodedUniqueId) {
@@ -111,7 +119,7 @@ export class ZeroExApiClient {
             const ammQuote: AmmQuote = {
                 makerAmount,
                 takerAmount,
-                estimatedGasWei,
+                estimatedGasFeeWei: estimatedGas.times(gasPrice),
                 expectedSlippage,
                 decodedUniqueId,
             };

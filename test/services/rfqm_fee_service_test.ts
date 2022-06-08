@@ -391,13 +391,13 @@ describe('RfqmFeeService', () => {
 
             const ammMakerAmount = new BigNumber(3450e6);
             const expectedSlippage = new BigNumber(-0.01);
-            const estimatedAmmGasCostWei = new BigNumber(100e9);
+            const estimatedAmmGasFeeWei = new BigNumber(100e9);
             const decodedUniqueId = '1234-5678';
             const ammQuote: AmmQuote = {
                 makerAmount: ammMakerAmount,
                 takerAmount: assetFillAmount,
                 expectedSlippage,
-                estimatedGasWei: estimatedAmmGasCostWei,
+                estimatedGasFeeWei: estimatedAmmGasFeeWei,
                 decodedUniqueId,
             };
 
@@ -466,7 +466,7 @@ describe('RfqmFeeService', () => {
                 .minus(ammMakerAmount.times(new BigNumber(1).plus(0))) // We are currently not accounting for `expectedSlippage` until Matcha accounts for it.
                 .times(makerTokenPrice)
                 .div(feeTokenPrice)
-                .plus(estimatedAmmGasCostWei)
+                .plus(estimatedAmmGasFeeWei)
                 .integerValue();
             const expectedZeroExFeeAmount = expectedMargin.times(marginRakeRatio).integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
@@ -515,13 +515,13 @@ describe('RfqmFeeService', () => {
 
             const ammTakerAmount = new BigNumber(3450e6);
             const expectedSlippage = new BigNumber(-0.1);
-            const estimatedAmmGasCostWei = new BigNumber(100e9);
+            const estimatedAmmGasFeeWei = new BigNumber(100e9);
             const decodedUniqueId = '1234-5678';
             const ammQuote: AmmQuote = {
                 makerAmount: assetFillAmount,
                 takerAmount: ammTakerAmount,
                 expectedSlippage,
-                estimatedGasWei: estimatedAmmGasCostWei,
+                estimatedGasFeeWei: estimatedAmmGasFeeWei,
                 decodedUniqueId,
             };
 
@@ -591,7 +591,7 @@ describe('RfqmFeeService', () => {
                 .minus(mm2TakerAmount)
                 .times(takerTokenPrice)
                 .div(feeTokenPrice)
-                .plus(estimatedAmmGasCostWei)
+                .plus(estimatedAmmGasFeeWei)
                 .integerValue();
             const expectedZeroExFeeAmount = expectedMargin.times(marginRakeRatio).integerValue();
             const expectedTotalFeeAmount = expectedZeroExFeeAmount.plus(expectedGasFeeAmount);
@@ -754,13 +754,13 @@ describe('RfqmFeeService', () => {
 
             const ammMakerAmount = new BigNumber(3450e6);
             const expectedSlippage = new BigNumber(-0.01);
-            const estimatedAmmGasCostWei = new BigNumber(100e9);
+            const estimatedAmmGasFeeWei = new BigNumber(100e9);
             const decodedUniqueId = '1234-5678';
             const ammQuote: AmmQuote = {
                 makerAmount: ammMakerAmount,
                 takerAmount: assetFillAmount,
                 expectedSlippage,
-                estimatedGasWei: estimatedAmmGasCostWei,
+                estimatedGasFeeWei: estimatedAmmGasFeeWei,
                 decodedUniqueId,
             };
 
@@ -848,13 +848,13 @@ describe('RfqmFeeService', () => {
 
             const ammMakerAmount = new BigNumber(4000e6);
             const expectedSlippage = new BigNumber(-0.01);
-            const estimatedAmmGasCostWei = new BigNumber(100e9);
+            const estimatedAmmGasFeeWei = new BigNumber(100e9);
             const decodedUniqueId = '1234-5678';
             const ammQuote: AmmQuote = {
                 makerAmount: ammMakerAmount,
                 takerAmount: assetFillAmount,
                 expectedSlippage,
-                estimatedGasWei: estimatedAmmGasCostWei,
+                estimatedGasFeeWei: estimatedAmmGasFeeWei,
                 decodedUniqueId,
             };
 
@@ -1024,7 +1024,7 @@ describe('RfqmFeeService', () => {
                 makerAmount: new BigNumber(1000e6),
                 takerAmount: assetFillAmount,
                 expectedSlippage: new BigNumber(-0.02),
-                estimatedGasWei: new BigNumber(10e15),
+                estimatedGasFeeWei: new BigNumber(10e15),
             };
 
             const quoteTokenBaseUnitPriceUsd = new BigNumber(1e-6);
@@ -1061,7 +1061,7 @@ describe('RfqmFeeService', () => {
                 makerAmount: assetFillAmount,
                 takerAmount: new BigNumber(1000e6),
                 expectedSlippage: new BigNumber(-0.02),
-                estimatedGasWei: new BigNumber(10e15),
+                estimatedGasFeeWei: new BigNumber(10e15),
             };
 
             const quoteTokenBaseUnitPriceUsd = new BigNumber(1e-6);
@@ -1098,7 +1098,7 @@ describe('RfqmFeeService', () => {
                 makerAmount: assetFillAmount,
                 takerAmount: new BigNumber(1000e6),
                 expectedSlippage: new BigNumber(-0.02),
-                estimatedGasWei: new BigNumber(10e15),
+                estimatedGasFeeWei: new BigNumber(10e15),
             };
 
             const quoteTokenBaseUnitPriceUsd = new BigNumber(1e-6);

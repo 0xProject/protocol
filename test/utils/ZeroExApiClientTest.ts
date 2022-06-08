@@ -30,6 +30,7 @@ describe('ZeroExApiClient', () => {
                 buyAmount: '2040568023',
                 sellAmount: '1000000000000000000',
                 estimatedGas: '126183',
+                gasPrice: '73000000000',
                 expectedSlippage: '-0.0004065694347781162427479482993648',
                 decodedUniqueId: 'a-quoteid-with-timestamp',
             });
@@ -51,7 +52,7 @@ describe('ZeroExApiClient', () => {
             });
             expect(ammQuote?.makerAmount.toString()).toEqual('2040568023');
             expect(ammQuote?.takerAmount.toString()).toEqual('1000000000000000000');
-            expect(ammQuote?.estimatedGasWei.toString()).toEqual('126183');
+            expect(ammQuote?.estimatedGasFeeWei.toString()).toEqual('9211359000000000');
             expect(ammQuote?.expectedSlippage.toString()).toEqual('-0.0004065694347781162427479482993648');
             expect(ammQuote?.decodedUniqueId).toEqual('a-quoteid-with-timestamp');
         });
@@ -82,6 +83,7 @@ describe('ZeroExApiClient', () => {
                 // Missing buyAmount
                 sellAmount: '1000000000000000000',
                 estimatedGas: '126183',
+                gasPrice: '73000000000',
                 expectedSlippage: '-0.0004065694347781162427479482993648',
                 decodedUniqueId: 'a-quoteid-with-timestamp',
             });
