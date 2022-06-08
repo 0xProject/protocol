@@ -162,6 +162,9 @@ export async function runHttpRfqmServiceAsync(
             transformLabels: (labels, req, res) => {
                 Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
             },
+            // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.
+            // tslint:disable-next-line: custom-no-magic-numbers
+            buckets: [0.01, 0.04, 0.1, 0.3, 0.6, 1, 1.5, 2, 2.5, 3, 4, 6, 9],
         });
         app.use(metricsMiddleware);
     }
