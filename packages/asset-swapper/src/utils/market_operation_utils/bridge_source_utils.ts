@@ -7,6 +7,7 @@ import {
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
     BISWAP_ROUTER_BY_CHAIN_ID,
+    MDEX_ROUTER_BY_CHAIN_ID,
     CAFESWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
@@ -545,7 +546,9 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.SpiritSwap
         | ERC20BridgeSource.BiSwap
         | ERC20BridgeSource.Yoshi
-        | ERC20BridgeSource.MeshSwap,
+        | ERC20BridgeSource.MeshSwap
+          ERC20BridgeSource.MDEX,
+
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
@@ -600,6 +603,8 @@ export function uniswapV2LikeRouterAddress(
             return YOSHI_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.MeshSwap:
             return MESHSWAP_ROUTER_BY_CHAIN_ID[chainId];
+        case ERC20BridgeSource.MDEX:
+            return MDEX_ROUTER_BY_CHAIN_ID[chainId];
         default:
             throw new Error(`Unknown UniswapV2 like source ${source}`);
     }

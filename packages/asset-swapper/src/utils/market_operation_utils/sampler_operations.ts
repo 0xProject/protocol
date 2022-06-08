@@ -1448,6 +1448,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Yoshi:
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.BiSwap:
+                    case ERC20BridgeSource.MDEX:
                     case ERC20BridgeSource.MeshSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
@@ -1790,6 +1791,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Yoshi:
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.BiSwap:
+                    case ERC20BridgeSource.MDEX:
                     case ERC20BridgeSource.MeshSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
