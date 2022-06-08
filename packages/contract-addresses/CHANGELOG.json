@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.15.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT on Mainnet"
+            }
+        ],
+        "timestamp": 1654284040
+    },
+    {
         "version": "6.14.0",
         "changes": [
             {

@@ -25,6 +25,8 @@ import {
     AVALANCHE_TOKENS,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCOR_REGISTRY_BY_CHAIN_ID,
+    BANCORV3_NETWORK_BY_CHAIN_ID,
+    BANCORV3_NETWORK_INFO_BY_CHAIN_ID,
     BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     COMPOUND_API_URL_BY_CHAIN_ID,
@@ -36,6 +38,7 @@ import {
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
     LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
+    MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
     MOONISWAP_REGISTRIES_BY_CHAIN_ID,
@@ -709,6 +712,36 @@ export class SamplerOperations {
         });
     }
 
+    public getBancorV3SellQuotes(
+        networkAddress: string,
+        networkInfoAddress: string,
+        path: string[],
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.BancorV3,
+            fillData: { networkAddress, path },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromBancorV3,
+            params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, takerFillAmounts],
+        });
+    }
+
+    public getBancorV3BuyQuotes(
+        networkAddress: string,
+        networkInfoAddress: string,
+        path: string[],
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<BancorFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.BancorV3,
+            fillData: { networkAddress, path },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromBancorV3,
+            params: [MAINNET_TOKENS.WETH, networkInfoAddress, path, makerFillAmounts],
+        });
+    }
+
     public getMooniswapSellQuotes(
         registry: string,
         makerToken: string,
@@ -1106,8 +1139,10 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                makerToken,
                 takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
+                wstEthTokenAddress: lidoInfo.wstEthToken,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromLido,
@@ -1124,8 +1159,10 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Lido,
             fillData: {
+                makerToken,
                 takerToken,
                 stEthTokenAddress: lidoInfo.stEthToken,
+                wstEthTokenAddress: lidoInfo.wstEthToken,
             },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromLido,
@@ -1412,6 +1449,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.RadioShack:
                     case ERC20BridgeSource.BiSwap:
+                    case ERC20BridgeSource.MeshSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1604,16 +1642,10 @@ export class SamplerOperations {
                         ].map(path => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
-                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
-                        if (
-                            lidoInfo.stEthToken === NULL_ADDRESS ||
-                            lidoInfo.wethToken === NULL_ADDRESS ||
-                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
-                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
-                        ) {
+                        if (!this._isLidoSupported(takerToken, makerToken)) {
                             return [];
                         }
-
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.AaveV2: {
@@ -1678,12 +1710,38 @@ export class SamplerOperations {
                             ),
                         );
                     }
+                    case ERC20BridgeSource.BancorV3: {
+                        return this.getBancorV3SellQuotes(
+                            BANCORV3_NETWORK_BY_CHAIN_ID[this.chainId],
+                            BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
+                            [takerToken, makerToken],
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
             }),
         );
         return allOps;
+    }
+
+    private _isLidoSupported(takerTokenAddress: string, makerTokenAddress: string): boolean {
+        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
+        if (lidoInfo.wethToken === NULL_ADDRESS) {
+            return false;
+        }
+        const takerToken = takerTokenAddress.toLowerCase();
+        const makerToken = makerTokenAddress.toLowerCase();
+        const wethToken = lidoInfo.wethToken.toLowerCase();
+        const stEthToken = lidoInfo.stEthToken.toLowerCase();
+        const wstEthToken = lidoInfo.wstEthToken.toLowerCase();
+
+        if (takerToken === wethToken && makerToken === stEthToken) {
+            return true;
+        }
+
+        return _.difference([stEthToken, wstEthToken], [takerToken, makerToken]).length === 0;
     }
 
     private _getBuyQuoteOperations(
@@ -1734,6 +1792,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.MorpheusSwap:
                     case ERC20BridgeSource.RadioShack:
                     case ERC20BridgeSource.BiSwap:
+                    case ERC20BridgeSource.MeshSwap:
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1926,17 +1985,10 @@ export class SamplerOperations {
                         ].map(path => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
-                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
-
-                        if (
-                            lidoInfo.stEthToken === NULL_ADDRESS ||
-                            lidoInfo.wethToken === NULL_ADDRESS ||
-                            takerToken.toLowerCase() !== lidoInfo.wethToken.toLowerCase() ||
-                            makerToken.toLowerCase() !== lidoInfo.stEthToken.toLowerCase()
-                        ) {
+                        if (!this._isLidoSupported(takerToken, makerToken)) {
                             return [];
                         }
-
+                        const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.AaveV2: {
@@ -1993,6 +2045,14 @@ export class SamplerOperations {
                                 [takerToken, makerToken],
                                 makerFillAmounts,
                             ),
+                        );
+                    }
+                    case ERC20BridgeSource.BancorV3: {
+                        return this.getBancorV3BuyQuotes(
+                            BANCORV3_NETWORK_BY_CHAIN_ID[this.chainId],
+                            BANCORV3_NETWORK_INFO_BY_CHAIN_ID[this.chainId],
+                            [takerToken, makerToken],
+                            makerFillAmounts,
                         );
                     }
                     default:

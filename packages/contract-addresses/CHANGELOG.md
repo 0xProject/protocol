@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.15.0 - _June 3, 2022_
+
+    * Redeploy FQT on Mainnet
+
 ## v6.14.0 - _May 19, 2022_
 
     * Redeploy FQT on Avalanche and BSC

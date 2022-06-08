@@ -67,6 +67,7 @@ export enum ERC20BridgeSource {
     Compound = 'Compound',
     Synapse = 'Synapse',
     RadioShack = 'RadioShack',
+    BancorV3 = 'BancorV3',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -89,6 +90,7 @@ export enum ERC20BridgeSource {
     FirebirdOneSwap = 'FirebirdOneSwap',
     JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
+    MeshSwap = 'MeshSwap',
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
@@ -168,6 +170,7 @@ export interface PsmInfo {
 export interface LidoInfo {
     stEthToken: string;
     wethToken: string;
+    wstEthToken: string;
 }
 
 /**
@@ -262,6 +265,11 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
+export interface BancorV3FillData extends FillData {
+    path: string[];
+    networkAddress: string;
+}
+
 export interface MooniswapFillData extends FillData {
     poolAddress: string;
 }
@@ -326,7 +334,9 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmo
 
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
+    wstEthTokenAddress: string;
     takerToken: string;
+    makerToken: string;
 }
 
 export interface AaveV2FillData extends FillData {
@@ -386,7 +396,7 @@ export interface Fill<TFillData extends FillData = FillData> {
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
     output: BigNumber;
-    // The output fill amount, ajdusted by fees.
+    // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
     // Fill that must precede this one. This enforces certain fills to be contiguous.
     parent?: Fill;

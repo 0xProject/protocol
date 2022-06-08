@@ -55,4 +55,5 @@ library BridgeProtocols {
     uint128 internal constant BALANCERV2BATCH = 25;
     uint128 internal constant GMX             = 26;
     uint128 internal constant PLATYPUS        = 27;
+    uint128 internal constant BANCORV3        = 28;
 }

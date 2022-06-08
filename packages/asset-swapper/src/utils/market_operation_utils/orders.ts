@@ -208,6 +208,10 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
         case ERC20BridgeSource.Platypus:
             return encodeBridgeSourceId(BridgeProtocol.Platypus, 'Platypus');
+        case ERC20BridgeSource.MeshSwap:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MeshSwap');
+        case ERC20BridgeSource.BancorV3:
+            return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -300,6 +304,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.RadioShack:
         case ERC20BridgeSource.BiSwap:
         case ERC20BridgeSource.Yoshi:
+        case ERC20BridgeSource.MeshSwap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
@@ -354,7 +359,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Lido:
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
-            bridgeData = encoder.encode([lidoFillData.stEthTokenAddress]);
+            bridgeData = encoder.encode([lidoFillData.stEthTokenAddress, lidoFillData.wstEthTokenAddress]);
             break;
         case ERC20BridgeSource.AaveV2:
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
@@ -385,7 +390,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 platypusFillData.tokenAddressPath,
             ]);
             break;
-
+        case ERC20BridgeSource.BancorV3:
+            const bancorV3FillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
+            bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorV3FillData.path]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -509,6 +517,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.MobiusMoney]: curveEncoder,
     // UniswapV2 like, (router, address[])
     [ERC20BridgeSource.Bancor]: routerAddressPathEncoder,
+    [ERC20BridgeSource.BancorV3]: routerAddressPathEncoder,
     [ERC20BridgeSource.UniswapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.SushiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CryptoCom]: routerAddressPathEncoder,
@@ -521,6 +530,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.RadioShack]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
+    [ERC20BridgeSource.MeshSwap]: routerAddressPathEncoder,
     // Avalanche
     [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
     [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
@@ -572,7 +582,7 @@ export const BRIDGE_ENCODERS: {
         { name: 'path', type: 'bytes' },
     ]),
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
-    [ERC20BridgeSource.Lido]: AbiEncoder.create('(address)'),
+    [ERC20BridgeSource.Lido]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
