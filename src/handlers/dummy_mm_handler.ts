@@ -122,7 +122,12 @@ export class DummyMMHandlers {
         };
     }
 
-    private static _parseSignRequest(req: express.Request): {
+    /**
+     * Parse RFQm sign request.
+     * @param req Incoming sign request.
+     * @returns Parsed RFQm sign request object.
+     */
+    private static _parseSignRfqmRequest(req: express.Request): {
         feeAmount: string;
         feeToken: string;
         order: OtcOrder;
@@ -149,6 +154,38 @@ export class DummyMMHandlers {
             feeAmount: feeAmountRaw as string,
             feeToken: feeTokenRaw as string,
             takerSignature,
+            expiry,
+        };
+    }
+
+    /**
+     * Parse RFQt sign request.
+     * @param req Incoming sign request.
+     * @returns Parsed RFQt sign request object.
+     */
+    private static _parseSignRfqtRequest(req: express.Request): {
+        feeAmount: string;
+        feeToken: string;
+        order: OtcOrder;
+        orderHash: string;
+        expiry: BigNumber;
+    } {
+        const {
+            order: orderRaw,
+            orderHash,
+            feeAmount: feeAmountRaw,
+            feeToken: feeTokenRaw,
+            expiry: expiryRaw,
+        } = req.body;
+
+        const order = new OtcOrder(stringsToOtcOrderFields(orderRaw as any));
+        const expiry = new BigNumber(expiryRaw as string);
+
+        return {
+            order,
+            orderHash: orderHash as string,
+            feeAmount: feeAmountRaw as string,
+            feeToken: feeTokenRaw as string,
             expiry,
         };
     }
@@ -372,8 +409,8 @@ export class DummyMMHandlers {
      * - 1.000_000_000_000_000_000 is considered odd!
      * - 2.000_000_000_000_000_001 is considered even!
      */
-    public async signAsync(req: express.Request, res: express.Response): Promise<void> {
-        const requestParams = DummyMMHandlers._parseSignRequest(req);
+    public async signRfqmV2Async(req: express.Request, res: express.Response): Promise<void> {
+        const requestParams = DummyMMHandlers._parseSignRfqmRequest(req);
         const { order, feeAmount, orderHash } = requestParams;
         const decimals = tokenToDecimals[order.takerToken];
 
@@ -396,6 +433,61 @@ export class DummyMMHandlers {
         const response = {
             feeAmount,
             proceedWithFill: isEven,
+            makerSignature: signature,
+        };
+
+        res.status(HttpStatus.OK).send(response);
+    }
+
+    /**
+     * Signs for even taker amounts, but refuses odd taker amounts, ignoring decimals. The logic is very similar to
+     * `signRfqmV2Async` for consistency.
+     *
+     * Example for WETH:
+     * - 1.000_000_000_000_000_000 is considered odd!
+     * - 2.000_000_000_000_000_001 is considered even!
+     */
+    public async signRfqtV2Async(req: express.Request, res: express.Response): Promise<void> {
+        const requestParams = DummyMMHandlers._parseSignRfqtRequest(req);
+        const { order, feeAmount, orderHash: orderHashParam } = requestParams;
+        const orderHash = order.getHash();
+        const tokenSet = this._tokenSetByChainId.get(Number(requestParams.order.chainId));
+
+        // Check order hash computed from order is the same as order hash in query param
+        if (orderHash !== orderHashParam) {
+            res.status(HttpStatus.BAD_REQUEST).send(
+                `orderHash query param provided ${orderHashParam} is not equal to the actual order hash ${orderHash}`,
+            );
+            return;
+        }
+
+        // Check tokens
+        if (
+            !tokenSet ||
+            !tokenSet.has(order.makerToken.toLowerCase()) ||
+            !tokenSet.has(order.takerToken.toLowerCase())
+        ) {
+            res.status(HttpStatus.NO_CONTENT).send(`No liquidity for ${order.makerToken}:${order.takerToken}`);
+            return;
+        }
+
+        const decimals = tokenToDecimals[order.takerToken];
+        const isEven = order.takerAmount
+            .div(10 ** decimals)
+            .integerValue()
+            .mod(2)
+            .eq(0);
+
+        // Reject
+        if (!isEven) {
+            res.status(HttpStatus.NO_CONTENT).send({});
+            return;
+        }
+
+        // Refuse to sign
+        const signature = ethSignHashWithKey(orderHash, MM_PRIVATE_KEY);
+        const response = {
+            feeAmount,
             makerSignature: signature,
         };
 
