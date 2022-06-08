@@ -59,6 +59,6 @@ contract MixinVelodrome {
             stable,
             address(this),
             block.timestamp + 1
-        )[0];
+        )[1];
     }
 }
