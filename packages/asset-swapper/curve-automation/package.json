@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@apollo/client": "^3.6.4",
-    "graphql": "^16.5.0",
-    "urql": "^2.2.0",
-    "web3": "^1.7.3"
-  }
-}
-
