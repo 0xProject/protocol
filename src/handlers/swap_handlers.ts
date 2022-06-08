@@ -156,9 +156,12 @@ export class SwapHandlers {
             req.log.info({
                 firmQuoteServed: {
                     taker: params.takerAddress,
+                    affiliateAddress: params.affiliateAddress,
                     // TODO (MKR-123): remove once the log consumers have been updated
                     apiKey: params.integrator?.integratorId,
                     integratorId: params.integrator?.integratorId,
+                    integratorLabel: params.integrator?.label,
+                    origin: params.origin,
                     rawApiKey: params.apiKey,
                     buyToken: params.buyToken,
                     sellToken: params.sellToken,
@@ -236,9 +239,12 @@ export class SwapHandlers {
         req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
+                affiliateAddress: params.affiliateAddress,
                 // TODO (MKR-123): remove once the log source is updated
                 apiKey: params.integrator?.integratorId,
                 integratorId: params.integrator?.integratorId,
+                integratorLabel: params.integrator?.label,
+                origin: params.origin,
                 rawApiKey: params.apiKey,
                 buyToken: params.buyToken,
                 sellToken: params.sellToken,
@@ -394,6 +400,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // HACK typescript typing does not allow this valid json-schema
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
     const apiKey: string | undefined = req.header('0x-api-key');
+    const origin: string | undefined = req.header('origin');
     let integratorId: string | undefined;
     if (apiKey) {
         integratorId = getIntegratorIdForApiKey(apiKey);
@@ -553,29 +560,30 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const integrator = integratorId ? getIntegratorByIdOrThrow(integratorId) : undefined;
 
     return {
-        endpoint,
-        takerAddress: takerAddress as string,
-        sellToken,
-        buyToken,
-        sellAmount,
-        buyAmount,
-        slippagePercentage,
-        gasPrice,
-        excludedSources: updatedExcludedSources,
-        includedSources,
         affiliateAddress: affiliateAddress as string,
-        rfqt,
-        skipValidation,
-        apiKey,
-        integrator,
         affiliateFee,
+        apiKey,
+        buyAmount,
+        buyToken,
+        endpoint,
+        excludedSources: updatedExcludedSources,
+        gasPrice,
         includePriceComparisons,
-        shouldSellEntireBalance,
-        isMetaTransaction: false,
-        isETHSell: isNativeSell,
+        includedSources,
+        integrator,
         isETHBuy: isNativeBuy,
+        isETHSell: isNativeSell,
+        isMetaTransaction: false,
         isUnwrap,
         isWrap,
+        origin,
+        rfqt,
+        sellAmount,
+        sellToken,
+        shouldSellEntireBalance,
+        skipValidation,
+        slippagePercentage,
+        takerAddress: takerAddress as string,
     };
 };
 

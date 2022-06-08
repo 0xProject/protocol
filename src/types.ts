@@ -293,6 +293,8 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     isMetaTransaction: boolean;
     // The ID of the integrator associated with the provided API key, if there is one.
     integrator?: Integrator;
+    // The HTTP request origin
+    origin?: string;
 }
 
 // GET /swap/price
