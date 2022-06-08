@@ -160,7 +160,7 @@ export async function runHttpRfqmServiceAsync(
                 ['/api-docs.*', '/api-docs'], // converts all /api-docs/favicon... => /api-docs
             ],
             transformLabels: (labels, req, res) => {
-                Object.assign(labels, { chainId: req.header('0x-chain-id')! });
+                Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
             },
         });
         app.use(metricsMiddleware);
