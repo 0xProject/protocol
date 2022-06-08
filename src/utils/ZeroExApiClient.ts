@@ -63,7 +63,7 @@ export class ZeroExApiClient {
         >,
     ): Promise<AmmQuote | null> {
         const stopTimer = RFQ_AMM_QUOTE_FETCH_REQUEST_DURATION_SECONDS.startTimer({
-            chainId: this._chainConfiguration.toString(),
+            chainId: this._chainConfiguration.chainId.toString(),
         });
 
         // Transform QuoteContext to 0xAPI Get Quote Params
