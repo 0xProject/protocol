@@ -201,7 +201,7 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.MobiusMoney:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         case ERC20BridgeSource.RadioShack:
-            return encodeBridgeSourceId(BridgeProtocol.RadioShack, 'RadioShack');
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'RadioShack');
         case ERC20BridgeSource.BiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BiSwap');
         case ERC20BridgeSource.GMX:
