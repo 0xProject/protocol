@@ -12,6 +12,7 @@ const POLYGON_CHAIN_ID = 137;
 const USDC_POLYGON = '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
 const MM_ADDRESS = '0x06754422cf9f54ae0e67d42fd788b33d8eb4c5d5';
+const INTEGRATOR_ID = '74188355-c85b-4f18-9de4-6dec3ec61b8d';
 const dummyMMHandler = new DummyMMHandlers();
 const emptyOtcOrder = new OtcOrder();
 const emptyOtcOrderParam = {
@@ -141,6 +142,132 @@ describe('DummyMMHandlers', () => {
             expect(response.statusCode).toEqual(HttpStatus.OK);
             const signer = getSignerFromHash(acceptedOtcOrder.getHash(), response.body.makerSignature);
             expect(signer).toEqual(MM_ADDRESS);
+        });
+    });
+
+    describe('getQuoteRfqtV2Async', () => {
+        it('returns BAD_REQUEST when missing integrator id', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .query({
+                    sellTokenAddress: USDC_POLYGON,
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '200',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+        });
+
+        it('returns BAD_REQUEST when integrator id is not whitelisted', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .set('0x-integrator-id', '0123')
+                .query({
+                    sellTokenAddress: USDC_POLYGON,
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '200',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                    integratorId: '0123',
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+        });
+
+        it('returns NO_CONTENT when tokens in the order are not part of provided liquity', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .set('0x-integrator-id', INTEGRATOR_ID)
+                .query({
+                    sellTokenAddress: '0x1234',
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '200',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                    integratorId: INTEGRATOR_ID,
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.NO_CONTENT);
+        });
+
+        it('returns NO_CONTENT when buy/sell amount > 2', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .set('0x-integrator-id', INTEGRATOR_ID)
+                .query({
+                    sellTokenAddress: USDC_POLYGON,
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '20000000000',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                    integratorId: INTEGRATOR_ID,
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.NO_CONTENT);
+        });
+
+        it('returns NO_CONTENT when trading amount is considered odd', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .set('0x-integrator-id', INTEGRATOR_ID)
+                .query({
+                    sellTokenAddress: USDC_POLYGON,
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '1000000',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                    integratorId: INTEGRATOR_ID,
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.NO_CONTENT);
+        });
+
+        it('returns OK the market maker signs the order', async () => {
+            const response = await supertest(
+                express().get('/rfqt/v2/quote', asyncHandler(dummyMMHandler.getQuoteRfqtV2Async.bind(dummyMMHandler))),
+            )
+                .get('/rfqt/v2/quote')
+                .set('0x-integrator-id', INTEGRATOR_ID)
+                .query({
+                    sellTokenAddress: USDC_POLYGON,
+                    buyTokenAddress: USDT_POLYGON,
+                    sellAmountBaseUnits: '200',
+                    txOrigin: '0x123456789',
+                    takerAddress: '0x123456789',
+                    feeToken: USDC_POLYGON,
+                    feeAmount: '10',
+                    chainId: POLYGON_CHAIN_ID.toString(),
+                    integratorId: INTEGRATOR_ID,
+                });
+
+            expect(response.statusCode).toEqual(HttpStatus.OK);
         });
     });
 });

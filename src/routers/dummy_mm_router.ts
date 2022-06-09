@@ -16,6 +16,7 @@ export function createDummyMMRouter(): express.Router {
     router.post('/rfqm/v2/sign', asyncHandler(handlers.signRfqmV2Async.bind(handlers)));
     router.get('/rfqt/v2/price', asyncHandler(handlers.getPriceV2Async.bind(handlers)));
     router.post('/rfqt/v2/sign', asyncHandler(handlers.signRfqtV2Async.bind(handlers)));
+    router.get('/rfqt/v2/quote', asyncHandler(handlers.getQuoteRfqtV2Async.bind(handlers)));
 
     return router;
 }

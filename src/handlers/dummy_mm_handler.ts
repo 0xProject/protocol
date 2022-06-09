@@ -1,6 +1,7 @@
 // tslint:disable:max-file-line-count
 // tslint:disable: custom-no-magic-numbers
 // tslint:disable: prefer-function-over-method
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ethSignHashWithKey, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
 import { SubmitRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
@@ -26,6 +27,8 @@ const MM_ADDRESS = '0x06754422cf9f54ae0e67d42fd788b33d8eb4c5d5';
 
 const ROPSTEN_CHAIN_ID = 3;
 const POLYGON_CHAIN_ID = 137;
+
+const RFQT_NONCE_BUCKET = 0;
 
 const tokenToDecimals: Record<string, number> = {
     [WETH_ROPSTEN]: 18,
@@ -373,6 +376,106 @@ export class DummyMMHandlers {
         };
         res.status(HttpStatus.OK).send(firmQuote);
         return;
+    }
+
+    /**
+     * Simple quoting for RFQt v2 that signs even taker amounts, but refuses to sign odd taker amounts, ignoring decimals.
+     * The max trading size is 2 tokens.
+     *
+     * Example for WETH:
+     * - 1.000_000_000_000_000_000 is considered odd!
+     * - 2.000_000_000_000_000_001 is considered even!
+     */
+    public async getQuoteRfqtV2Async(req: express.Request, res: express.Response): Promise<void> {
+        const params = DummyMMHandlers._parseQuoteRequest(req);
+        const chainId = Number(params.chainId);
+        const tokenSet = this._tokenSetByChainId.get(chainId);
+        const {
+            sellTokenAddress,
+            buyTokenAddress,
+            sellAmountBaseUnits,
+            buyAmountBaseUnits,
+            txOrigin,
+            takerAddress,
+            integratorId,
+            feeAmount,
+        } = params;
+
+        // Check integrator
+        if (!integratorId || !whitelistedIntegrators.has(integratorId)) {
+            res.status(HttpStatus.BAD_REQUEST).send('Invalid integrator id');
+            return;
+        }
+
+        // Check tokens
+        if (
+            !tokenSet ||
+            !tokenSet.has(sellTokenAddress.toLowerCase()) ||
+            !tokenSet.has(buyTokenAddress.toLowerCase())
+        ) {
+            res.status(HttpStatus.NO_CONTENT).send(`No liquidity for ${sellTokenAddress}:${buyTokenAddress}`);
+            return;
+        }
+
+        // Get amount (direction doesn't matter because price is always 1:1)
+        const isSelling = sellAmountBaseUnits !== undefined;
+        const rawAmount = (isSelling ? sellAmountBaseUnits : buyAmountBaseUnits) as string;
+        const amount = new BigNumber(rawAmount);
+
+        // Tokens
+        const takerToken = sellTokenAddress as string;
+        const makerToken = buyTokenAddress as string;
+
+        const decimals = tokenToDecimals[takerToken];
+        // Enforce a 2 units maximum for trading
+        const oneUnit = 10 ** decimals;
+        if (amount.gt(oneUnit * 2)) {
+            res.status(HttpStatus.NO_CONTENT).send('Trading limit for buy/sell tokens should not exceed 2');
+            return;
+        }
+
+        const isEven = amount
+            .div(10 ** decimals)
+            .integerValue()
+            .mod(2)
+            .eq(0);
+
+        // Reject
+        if (!isEven) {
+            res.status(HttpStatus.NO_CONTENT).send({});
+            return;
+        }
+
+        // Expiry and nonce
+        const now = new BigNumber(Date.now());
+        const expiry = now.plus(new BigNumber(5).times(ONE_MINUTE_MS)).div(ONE_SECOND_MS).integerValue();
+        const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
+
+        const otcOrder = new OtcOrder({
+            txOrigin,
+            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                expiry,
+                new BigNumber(RFQT_NONCE_BUCKET),
+                new BigNumber(nowSeconds),
+            ),
+            takerToken,
+            makerToken,
+            makerAmount: amount,
+            takerAmount: amount,
+            maker: MM_ADDRESS,
+            taker: takerAddress,
+            chainId,
+            verifyingContract: getContractAddressesForChainOrThrow(chainId).exchangeProxy,
+        });
+
+        const orderHash = otcOrder.getHash();
+        const signature = ethSignHashWithKey(orderHash, MM_PRIVATE_KEY);
+        const response = {
+            feeAmount,
+            makerSignature: signature,
+        };
+
+        res.status(HttpStatus.OK).send(response);
     }
 
     /**
