@@ -215,6 +215,7 @@ export class DummyMMHandlers {
 
         // Check integrator
         if (!integratorId || !whitelistedIntegrators.has(integratorId)) {
+            res.status(HttpStatus.BAD_REQUEST).send('Invalid integrator id');
             return;
         }
 
@@ -262,6 +263,7 @@ export class DummyMMHandlers {
 
         // Check integrator
         if (!integratorId || !whitelistedIntegrators.has(integratorId)) {
+            res.status(HttpStatus.BAD_REQUEST).send('Invalid integrator id');
             return;
         }
 
@@ -318,6 +320,7 @@ export class DummyMMHandlers {
 
         // Check integrator
         if (!integratorId || !whitelistedIntegrators.has(integratorId)) {
+            res.status(HttpStatus.BAD_REQUEST).send('Invalid integrator id');
             return;
         }
 
