@@ -13,6 +13,10 @@
             {
                 "note": "Add MeshSwap on Polygon",
                 "pr": 491
+            },
+            {
+                "note": "Add MDEX on BSC",
+                "pr": 496
             }
         ],
         "timestamp": 1654284040
