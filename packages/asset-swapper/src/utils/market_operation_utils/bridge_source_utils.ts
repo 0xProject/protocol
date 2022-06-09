@@ -543,8 +543,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.UbeSwap
         | ERC20BridgeSource.MorpheusSwap
         | ERC20BridgeSource.SpookySwap
-        | ERC20BridgeSource.SpiritSwap,
-        | ERC20BridgeSource.RadioShack,
+        | ERC20BridgeSource.SpiritSwap
+        | ERC20BridgeSource.RadioShack
         | ERC20BridgeSource.BiSwap
         | ERC20BridgeSource.Yoshi
         | ERC20BridgeSource.MeshSwap
