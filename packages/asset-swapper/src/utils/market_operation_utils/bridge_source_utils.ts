@@ -546,9 +546,8 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.SpiritSwap
         | ERC20BridgeSource.BiSwap
         | ERC20BridgeSource.Yoshi
-        | ERC20BridgeSource.MeshSwap
-          ERC20BridgeSource.MDEX,
-
+        |  ERC20BridgeSource.MDEX
+        | ERC20BridgeSource.MeshSwap,
 ): string {
     switch (source) {
         case ERC20BridgeSource.UniswapV2:
