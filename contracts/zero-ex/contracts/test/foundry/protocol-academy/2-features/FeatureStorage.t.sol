@@ -20,13 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import "src/features/OtcOrdersFeature.sol";
-import "src/features/TransformERC20Feature.sol";
-import "src/features/UniswapFeature.sol";
-import "src/features/UniswapV3Feature.sol";
 import "src/fixins/FixinCommon.sol";
 import "src/migrations/LibMigrate.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../utils/DeployZeroEx.sol";
 
 contract FibonacciFeature is FixinCommon {
