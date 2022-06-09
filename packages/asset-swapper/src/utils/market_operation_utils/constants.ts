@@ -256,6 +256,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.RadioShack,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -297,6 +298,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.BiSwap,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -322,6 +324,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -335,6 +338,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
+            ERC20BridgeSource.RadioShack,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
