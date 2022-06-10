@@ -202,6 +202,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'MobiusMoney');
         case ERC20BridgeSource.BiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BiSwap');
+        case ERC20BridgeSource.MDex:
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MDex');
         case ERC20BridgeSource.GMX:
             return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
         case ERC20BridgeSource.Platypus:
@@ -300,6 +302,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.SpookySwap:
         case ERC20BridgeSource.MorpheusSwap:
         case ERC20BridgeSource.BiSwap:
+        case ERC20BridgeSource.MDex:
         case ERC20BridgeSource.Yoshi:
         case ERC20BridgeSource.MeshSwap:
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
@@ -525,6 +528,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
+    [ERC20BridgeSource.MDex]: routerAddressPathEncoder,
     [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
     [ERC20BridgeSource.MeshSwap]: routerAddressPathEncoder,
     // Avalanche
