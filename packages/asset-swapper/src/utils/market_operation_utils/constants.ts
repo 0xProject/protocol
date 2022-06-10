@@ -149,7 +149,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BiSwap,
             ERC20BridgeSource.MDex,
             ERC20BridgeSource.KnightSwap,
-
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -298,7 +297,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BiSwap,
             ERC20BridgeSource.MDex,
             ERC20BridgeSource.KnightSwap,
-
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,

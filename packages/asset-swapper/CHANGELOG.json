@@ -17,6 +17,10 @@
             {
                 "note": "Add MDEX on BSC",
                 "pr": 496
+            },
+            {
+                "note": "Add KnightSwap on BSC",
+                "pr": 498
             }
         ],
         "timestamp": 1654284040
