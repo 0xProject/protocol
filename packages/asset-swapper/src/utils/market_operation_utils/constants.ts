@@ -1991,6 +1991,13 @@ export const KNIGHTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const KNIGHTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0x05E61E0cDcD2170a76F9568a110CEe3AFdD6c46f',
+    },
+    NULL_ADDRESS,
+);
+
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
