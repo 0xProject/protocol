@@ -130,6 +130,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.BiSwap,
+            ERC20BridgeSource.MDex,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -283,6 +284,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.BiSwap,
+            ERC20BridgeSource.MDex,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -1960,6 +1962,13 @@ export const BISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const MDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8',
+    },
+    NULL_ADDRESS,
+);
+
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
@@ -2467,6 +2476,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ShibaSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.BiSwap]: uniswapV2CloneGasSchedule,
+    [ERC20BridgeSource.MDex]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Balancer]: () => 120e3,
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
         return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;
