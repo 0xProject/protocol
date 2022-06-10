@@ -203,7 +203,7 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.BiSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'BiSwap');
         case ERC20BridgeSource.MDEX:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MDEX');   
+            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MDEX');
         case ERC20BridgeSource.GMX:
             return encodeBridgeSourceId(BridgeProtocol.GMX, 'GMX');
         case ERC20BridgeSource.Platypus:
@@ -528,7 +528,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.SpookySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.MorpheusSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.BiSwap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.MDEX]: routerAddressPathEncoder,   
+    [ERC20BridgeSource.MDEX]: routerAddressPathEncoder,
     [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
     [ERC20BridgeSource.MeshSwap]: routerAddressPathEncoder,
     // Avalanche
