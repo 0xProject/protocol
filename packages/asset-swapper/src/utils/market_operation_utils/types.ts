@@ -86,6 +86,7 @@ export enum ERC20BridgeSource {
     PancakeSwapV2 = 'PancakeSwap_V2',
     BiSwap = 'BiSwap',
     MDex = 'MDex',
+    KnightSwap = 'KnightSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
