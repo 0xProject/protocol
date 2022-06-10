@@ -26,14 +26,6 @@
             {
                 "note": "Add MeshSwap on Polygon",
                 "pr": 491
-            },
-            {
-                "note": "Add MDEX on BSC",
-                "pr": 496
-            },
-            {
-                "note": "Add KnightSwap on BSC",
-                "pr": 498
             }
         ],
         "timestamp": 1654284040
