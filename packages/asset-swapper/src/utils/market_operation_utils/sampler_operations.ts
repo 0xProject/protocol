@@ -1439,7 +1439,6 @@ export class SamplerOperations {
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
-                    case ERC20BridgeSource.JetSwap:
                     case ERC20BridgeSource.Pangolin:
                     case ERC20BridgeSource.TraderJoe:
                     case ERC20BridgeSource.UbeSwap:
@@ -1783,7 +1782,6 @@ export class SamplerOperations {
                     case ERC20BridgeSource.WaultSwap:
                     case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
-                    case ERC20BridgeSource.JetSwap:
                     case ERC20BridgeSource.Pangolin:
                     case ERC20BridgeSource.TraderJoe:
                     case ERC20BridgeSource.UbeSwap:

@@ -89,7 +89,6 @@ export enum ERC20BridgeSource {
     WaultSwap = 'WaultSwap',
     Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
-    JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
     MeshSwap = 'MeshSwap',
     // Avalanche
