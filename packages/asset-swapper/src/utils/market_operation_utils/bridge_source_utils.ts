@@ -26,7 +26,6 @@ import {
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
     IRONSWAP_POLYGON_INFOS,
-    JETSWAP_ROUTER_BY_CHAIN_ID,
     JULSWAP_ROUTER_BY_CHAIN_ID,
     KNIGHTSWAP_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
@@ -538,7 +537,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.WaultSwap
         | ERC20BridgeSource.Polydex
         | ERC20BridgeSource.ShibaSwap
-        | ERC20BridgeSource.JetSwap
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
         | ERC20BridgeSource.UbeSwap
@@ -584,8 +582,6 @@ export function uniswapV2LikeRouterAddress(
             return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ShibaSwap:
             return SHIBASWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.JetSwap:
-            return JETSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Pangolin:
             return PANGOLIN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.TraderJoe:
