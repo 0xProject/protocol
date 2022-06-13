@@ -158,7 +158,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.WaultSwap,
-            ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
@@ -301,7 +300,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.WaultSwap,
-            ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
@@ -2299,13 +2297,6 @@ export const WAULTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const POLYDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Polygon]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
-    },
-    NULL_ADDRESS,
-);
-
 export const MESHSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Polygon]: '0x10f4a785f458bc144e3706575924889954946639',
@@ -2592,7 +2583,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.MeshSwap]: uniswapV2CloneGasSchedule,
 
     //
