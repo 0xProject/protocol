@@ -26,6 +26,7 @@ import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV3.sol";
+import "./mixins/MixinVelodrome.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract OptimismBridgeAdapter is
@@ -34,6 +35,7 @@ contract OptimismBridgeAdapter is
     MixinCurveV2,
     MixinNerve,
     MixinUniswapV3,
+    MixinVelodrome,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -80,6 +82,14 @@ contract OptimismBridgeAdapter is
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeNerve(
                 sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.VELODROME) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeVelodrome(
+                sellToken,
+                buyToken,
                 sellAmount,
                 order.bridgeData
             );

@@ -122,6 +122,8 @@ export enum ERC20BridgeSource {
     MorpheusSwap = 'MorpheusSwap',
     Yoshi = 'Yoshi',
     Geist = 'Geist',
+    // Optimism
+    Velodrome = 'Velodrome',
 }
 
 // tslint:disable: enum-naming
@@ -369,6 +371,12 @@ export interface PlatypusFillData extends FillData {
     pool: string[];
     tokenAddressPath: string[];
 }
+
+export interface VelodromeFillData extends FillData {
+    router: string;
+    stable: boolean;
+}
+
 /**
  * Represents a node on a fill path.
  */

@@ -53,7 +53,11 @@ import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
 import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
 import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
+<<<<<<< HEAD
 >>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
+=======
+import * as VelodromeSampler from '../test/generated-artifacts/VelodromeSampler.json';
+>>>>>>> 1cc59ab1a (feat: Add Velodrome support [TKR-432] (#494))
 export const artifacts = {
     BalanceChecker: BalanceChecker as ContractArtifact,
 <<<<<<< HEAD
@@ -88,6 +92,7 @@ export const artifacts = {
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
     UtilitySampler: UtilitySampler as ContractArtifact,
+    VelodromeSampler: VelodromeSampler as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
     IBalancerV2Vault: IBalancerV2Vault as ContractArtifact,
     IBancor: IBancor as ContractArtifact,

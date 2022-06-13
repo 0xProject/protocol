@@ -9,6 +9,10 @@
             {
                 "note": "Add KnightSwap on BSC",
                 "pr": 498
+            },
+            {
+                "note": "Add Velodrome support on Optimism",
+                "pr": 494
             }
         ]
     },

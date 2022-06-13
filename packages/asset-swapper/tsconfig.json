@@ -52,7 +52,12 @@
         "test/generated-artifacts/UniswapSampler.json",
         "test/generated-artifacts/UniswapV2Sampler.json",
         "test/generated-artifacts/UniswapV3Sampler.json",
+<<<<<<< HEAD
         "test/generated-artifacts/UtilitySampler.json"
 >>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
+=======
+        "test/generated-artifacts/UtilitySampler.json",
+        "test/generated-artifacts/VelodromeSampler.json"
+>>>>>>> 1cc59ab1a (feat: Add Velodrome support [TKR-432] (#494))
     ]
 }

@@ -51,4 +51,8 @@ export * from '../test/generated-wrappers/uniswap_sampler';
 export * from '../test/generated-wrappers/uniswap_v2_sampler';
 export * from '../test/generated-wrappers/uniswap_v3_sampler';
 export * from '../test/generated-wrappers/utility_sampler';
+<<<<<<< HEAD
 >>>>>>> 470e9a469 (AS: Balancer V2 batchSwap (#462))
+=======
+export * from '../test/generated-wrappers/velodrome_sampler';
+>>>>>>> 1cc59ab1a (feat: Add Velodrome support [TKR-432] (#494))
