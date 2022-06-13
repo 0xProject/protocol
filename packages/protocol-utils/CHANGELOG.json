@@ -1,5 +1,14 @@
 [
     {
+        "version": "11.15.0",
+        "changes": [
+            {
+                "note": "Add Velodrome support",
+                "pr": 494
+            }
+        ]
+    },
+    {
         "version": "11.14.0",
         "changes": [
             {
