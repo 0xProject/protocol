@@ -75,7 +75,6 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.BakerySwap,
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.ApeSwap,
-    ERC20BridgeSource.CafeSwap,
     ERC20BridgeSource.CheeseSwap,
     ERC20BridgeSource.JulSwap,
 ];
@@ -222,7 +221,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ERC20BridgeSource.BakerySwap,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.ApeSwap,
-                ERC20BridgeSource.CafeSwap,
                 ERC20BridgeSource.CheeseSwap,
                 ERC20BridgeSource.JulSwap,
             ])

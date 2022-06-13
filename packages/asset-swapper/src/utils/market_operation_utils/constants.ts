@@ -137,7 +137,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
@@ -282,7 +281,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
@@ -2264,13 +2262,6 @@ export const APESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const CAFESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0x933daea3a5995fb94b14a7696a5f3ffd7b1e385a',
-    },
-    NULL_ADDRESS,
-);
-
 export const CHEESESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0x3047799262d8d2ef41ed2a222205968bc9b0d895',
@@ -2424,7 +2415,6 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
@@ -2602,7 +2592,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.PancakeSwapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.CafeSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
