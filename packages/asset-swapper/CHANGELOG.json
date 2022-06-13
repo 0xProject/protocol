@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.62.1",
+        "changes": [
+            {
+                "note": "Offboard JetSwap, CafeSwap, JulSwap, and PolyDex",
+                "pr": 500
+            }
+        ]
+    },
+    {
         "version": "16.62.0",
         "changes": [
             {
