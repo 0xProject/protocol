@@ -79,7 +79,6 @@ export enum ERC20BridgeSource {
     Ellipsis = 'Ellipsis',
     ApeSwap = 'ApeSwap',
     CheeseSwap = 'CheeseSwap',
-    JulSwap = 'JulSwap',
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',

@@ -138,7 +138,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
@@ -282,7 +281,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
@@ -2269,13 +2267,6 @@ export const CHEESESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const JULSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0xbd67d157502a23309db761c41965600c2ec788b2',
-    },
-    NULL_ADDRESS,
-);
-
 //
 // Polygon
 //
@@ -2416,7 +2407,6 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
         ],
@@ -2593,7 +2583,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
 
