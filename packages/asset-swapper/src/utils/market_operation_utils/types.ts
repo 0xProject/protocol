@@ -85,7 +85,6 @@ export enum ERC20BridgeSource {
     ComethSwap = 'ComethSwap',
     Dfyn = 'Dfyn',
     WaultSwap = 'WaultSwap',
-    Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
     IronSwap = 'IronSwap',
     MeshSwap = 'MeshSwap',

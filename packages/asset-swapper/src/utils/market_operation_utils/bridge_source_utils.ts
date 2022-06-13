@@ -38,7 +38,6 @@ import {
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     PANGOLIN_ROUTER_BY_CHAIN_ID,
     PLATYPUS_AVALANCHE_INFOS,
-    POLYDEX_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
@@ -531,7 +530,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.ComethSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
-        | ERC20BridgeSource.Polydex
         | ERC20BridgeSource.ShibaSwap
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
@@ -570,8 +568,6 @@ export function uniswapV2LikeRouterAddress(
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.WaultSwap:
             return WAULTSWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.Polydex:
-            return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ShibaSwap:
             return SHIBASWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Pangolin:
