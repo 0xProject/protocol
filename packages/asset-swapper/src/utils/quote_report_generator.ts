@@ -228,7 +228,7 @@ export function generateExtendedQuoteReportSources(opts: {
         ..._.flatten(
             quotes.dexQuotes.map(dex =>
                 dex
-                    .filter(quote => isDexSampleForTotalAmount(quote, amount))
+                    .filter(quote => isDexSampleFilter(quote, amount))
                     .map(quote => dexSampleToReportSource(quote, marketOperation)),
             ),
         ),
@@ -356,8 +356,9 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * Checks if a DEX sample is the one that represents the whole amount requested by taker
  * NOTE: this is used for the QuoteReport to filter samples
  */
-function isDexSampleForTotalAmount(ds: DexSample, amount: BigNumber): boolean {
-    return ds.input.eq(amount);
+function isDexSampleFilter(ds: DexSample, amount: BigNumber): boolean {
+    // The entry is for the total amont, not a sampler entry && there was liquidity in the source
+    return ds.input.eq(amount) && ds.output.isGreaterThan(0);
 }
 
 /**
