@@ -40,6 +40,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
     UniswapV3PathAmount,
+    VelodromeFillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -214,6 +215,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'MeshSwap');
         case ERC20BridgeSource.BancorV3:
             return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
+        case ERC20BridgeSource.Velodrome:
+            return encodeBridgeSourceId(BridgeProtocol.Velodrome, 'Velodrome');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -396,6 +399,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.BancorV3:
             const bancorV3FillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
             bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorV3FillData.path]);
+            break;
+        case ERC20BridgeSource.Velodrome:
+            const velodromeFillData = (order as OptimizedMarketBridgeOrder<VelodromeFillData>).fillData;
+            bridgeData = encoder.encode([velodromeFillData.router, velodromeFillData.stable]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -590,6 +597,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
+    [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
 };
 
 function getFillTokenAmounts(fill: CollapsedFill, side: MarketOperation): [BigNumber, BigNumber] {

@@ -108,6 +108,8 @@ export enum ERC20BridgeSource {
     MorpheusSwap = 'MorpheusSwap',
     Yoshi = 'Yoshi',
     Geist = 'Geist',
+    // Optimism
+    Velodrome = 'Velodrome',
 }
 export type SourcesWithPoolsCache =
     | ERC20BridgeSource.Balancer
@@ -378,6 +380,12 @@ export interface PlatypusFillData extends FillData {
     pool: string[];
     tokenAddressPath: string[];
 }
+
+export interface VelodromeFillData extends FillData {
+    router: string;
+    stable: boolean;
+}
+
 /**
  * Represents a node on a fill path.
  */

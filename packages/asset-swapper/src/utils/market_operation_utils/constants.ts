@@ -214,6 +214,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Velodrome,
         ]),
     },
     new SourceFilters([]),
@@ -362,6 +363,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Velodrome,
         ]),
     },
     new SourceFilters([]),
@@ -2423,6 +2425,13 @@ export const YOSHI_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const VELODROME_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Optimism]: '0xa132dab612db5cb9fc9ac426a0cc215a3423f9c9',
+    },
+    NULL_ADDRESS,
+);
+
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
         [ChainId.Mainnet]: [
@@ -2654,6 +2663,11 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Yoshi]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Beethovenx]: () => 100e3,
+
+    //
+    // Optimism
+    //
+    [ERC20BridgeSource.Velodrome]: () => 160e3,
 };
 
 export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
