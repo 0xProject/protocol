@@ -27,6 +27,9 @@
         },
         "zeroExClientBaseUrl": {
             "type": "string"
+        },
+        "feeModelVersion": {
+            "type": "number"
         }
     },
     "required": [

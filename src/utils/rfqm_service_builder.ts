@@ -263,6 +263,7 @@ export async function buildRfqmServiceAsync(
     return new RfqmService(
         chain.chainId,
         rfqmFeeService,
+        chain.feeModelVersion || 0,
         contractAddresses,
         chain.registryAddress,
         rfqBlockchainUtils,
@@ -273,7 +274,6 @@ export async function buildRfqmServiceAsync(
         cacheClient,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
-        configManager,
         kafkaProducer,
         chain.quoteReportTopic,
         chain.enableAccessList,

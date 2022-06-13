@@ -27,7 +27,6 @@ import { logger } from '../../src/logger';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { CacheClient } from '../../src/utils/cache_client';
-import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
@@ -55,6 +54,7 @@ const buildRfqmServiceForUnitTest = (
         kafkaProducer?: KafkaProducer;
         quoteReportTopic?: string;
         enableAccessList?: boolean;
+        feeModelVersion?: number;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -98,6 +98,7 @@ const buildRfqmServiceForUnitTest = (
     return new RfqmService(
         1,
         overrides.rfqmFeeService || rfqmFeeServiceInstance,
+        overrides.feeModelVersion || 0,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
@@ -108,7 +109,6 @@ const buildRfqmServiceForUnitTest = (
         overrides.cacheClient || cacheClientMock,
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
-        new ConfigManager(),
         overrides.kafkaProducer,
         overrides.quoteReportTopic,
         overrides.enableAccessList,

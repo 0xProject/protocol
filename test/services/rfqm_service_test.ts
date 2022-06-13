@@ -20,7 +20,6 @@ import { RfqmService } from '../../src/services/rfqm_service';
 import { OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
-import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
@@ -47,6 +46,7 @@ const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
         rfqmFeeService?: RfqmFeeService;
+        feeModelVersion?: number;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
         producer?: Producer;
@@ -54,7 +54,6 @@ const buildRfqmServiceForUnitTest = (
         cacheClient?: CacheClient;
         rfqMakerManager?: RfqMakerManager;
         initialMaxPriorityFeePerGasGwei?: number;
-        configManager?: ConfigManager;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -115,6 +114,7 @@ const buildRfqmServiceForUnitTest = (
     return new RfqmService(
         overrides.chainId || 1337,
         overrides.rfqmFeeService || rfqmFeeServiceInstance,
+        overrides.feeModelVersion || 0,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
@@ -125,7 +125,6 @@ const buildRfqmServiceForUnitTest = (
         overrides.cacheClient || cacheClientMock,
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
-        overrides.configManager || new ConfigManager(),
     );
 };
 
@@ -193,13 +192,10 @@ describe('RfqmService HTTP Logic', () => {
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
 
-            const configManagerMock = mock(ConfigManager);
-            when(configManagerMock.getFeeModelVersion()).thenReturn(0);
-
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 dbUtils: instance(dbUtilsMock),
-                configManager: instance(configManagerMock),
+                feeModelVersion: 0,
             });
 
             expect(service.submitTakerSignedOtcOrderAsync(params)).to.be.rejectedWith(
@@ -271,14 +267,11 @@ describe('RfqmService HTTP Logic', () => {
                 new BigNumber(10000),
             ]);
 
-            const configManagerMock = mock(ConfigManager);
-            when(configManagerMock.getFeeModelVersion()).thenReturn(0);
-
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
-                configManager: instance(configManagerMock),
+                feeModelVersion: 0,
             });
 
             const submitParams: OtcOrderSubmitRfqmSignedQuoteParams = {
@@ -311,12 +304,9 @@ describe('RfqmService HTTP Logic', () => {
                     quote,
                 ]);
 
-                const configManagerMock = mock(ConfigManager);
-                when(configManagerMock.getFeeModelVersion()).thenReturn(0);
-
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
-                    configManager: instance(configManagerMock),
+                    feeModelVersion: 0,
                 });
 
                 const res = await service.fetchIndicativeQuoteAsync({
@@ -352,12 +342,9 @@ describe('RfqmService HTTP Logic', () => {
                     quote,
                 ]);
 
-                const configManagerMock = mock(ConfigManager);
-                when(configManagerMock.getFeeModelVersion()).thenReturn(4);
-
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
-                    configManager: instance(configManagerMock),
+                    feeModelVersion: 4,
                 });
 
                 const res = await service.fetchIndicativeQuoteAsync({

@@ -294,6 +294,7 @@ describe('RFQM Integration', () => {
         rfqmServiceChainId1337 = new RfqmService(
             1337,
             rfqmFeeServiceInstance,
+            /* feeModelVersion */ 0,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
             rfqBlockchainUtils,
@@ -304,7 +305,6 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerManager,
             /* initialMaxPriorityFeePerGasGwei */ 2,
-            new ConfigManager(),
         );
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
@@ -316,6 +316,7 @@ describe('RFQM Integration', () => {
         rfqmServiceChainId3 = new RfqmService(
             3,
             rfqmFeeServiceInstance,
+            /* feeModelVersion */ 0,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
             rfqBlockchainUtils,
@@ -326,7 +327,6 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerManagerChainId3,
             /* initialMaxPriorityFeePerGasGwei */ 2,
-            new ConfigManager(),
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);

@@ -65,6 +65,7 @@ export interface ChainConfiguration {
     initialMaxPriorityFeePerGasGwei: number;
     quoteReportTopic?: string;
     enableAccessList?: boolean;
+    feeModelVersion?: number;
 }
 
 export type ChainConfigurations = ChainConfiguration[];
@@ -132,8 +133,6 @@ export const FEE_MODEL_CONFIGURATION_MAP: FeeModelConfigurationMap = (() => {
 })();
 
 export const DEFAULT_FEE_MODEL_CONFIGURATION: FeeModelConfiguration = { marginRakeRatio: 0, tradeSizeBps: 0 };
-
-export const FEE_MODEL_VERSION: number = resolveEnvVar<number>('FEE_MODEL_VERSION', EnvVarType.Integer, 0);
 
 /**
  * A taker-integrator of the 0x API.

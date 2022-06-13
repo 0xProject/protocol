@@ -6,7 +6,6 @@ import {
     DEFAULT_FEE_MODEL_CONFIGURATION,
     FeeModelConfiguration,
     FEE_MODEL_CONFIGURATION_MAP,
-    FEE_MODEL_VERSION,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
     Integrator,
@@ -90,12 +89,5 @@ export class ConfigManager {
         }
 
         return DEFAULT_FEE_MODEL_CONFIGURATION;
-    }
-
-    /**
-     * Get fee model version.
-     */
-    public getFeeModelVersion(): number {
-        return FEE_MODEL_VERSION;
     }
 }

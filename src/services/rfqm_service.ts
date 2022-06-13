@@ -35,7 +35,6 @@ import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCod
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
-import { ConfigManager } from '../utils/config_manager';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
@@ -270,6 +269,7 @@ export class RfqmService {
     constructor(
         private readonly _chainId: number,
         private readonly _rfqmFeeService: RfqmFeeService,
+        private readonly _feeModelVersion: number,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
@@ -280,7 +280,6 @@ export class RfqmService {
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
-        private readonly _configManger: ConfigManager,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
         private readonly _enableAccessList?: boolean,
@@ -1543,9 +1542,6 @@ export class RfqmService {
             makerToken = this._nativeWrappedTokenAddress;
         }
 
-        // Get the fee and gas price
-        const feeModelVersion = this._configManger.getFeeModelVersion();
-
         return {
             isFirm,
             takerAmount,
@@ -1561,7 +1557,7 @@ export class RfqmService {
             isUnwrap,
             isSelling,
             assetFillAmount,
-            feeModelVersion,
+            feeModelVersion: this._feeModelVersion,
         };
     }
 
