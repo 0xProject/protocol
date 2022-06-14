@@ -1479,16 +1479,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.PancakeSwapV2:
                     case ERC20BridgeSource.BakerySwap:
                     case ERC20BridgeSource.ApeSwap:
-                    case ERC20BridgeSource.CafeSwap:
                     case ERC20BridgeSource.CheeseSwap:
-                    case ERC20BridgeSource.JulSwap:
                     case ERC20BridgeSource.QuickSwap:
                     case ERC20BridgeSource.ComethSwap:
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
-                    case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
-                    case ERC20BridgeSource.JetSwap:
                     case ERC20BridgeSource.Pangolin:
                     case ERC20BridgeSource.TraderJoe:
                     case ERC20BridgeSource.UbeSwap:
@@ -1831,16 +1827,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.PancakeSwapV2:
                     case ERC20BridgeSource.BakerySwap:
                     case ERC20BridgeSource.ApeSwap:
-                    case ERC20BridgeSource.CafeSwap:
                     case ERC20BridgeSource.CheeseSwap:
-                    case ERC20BridgeSource.JulSwap:
                     case ERC20BridgeSource.QuickSwap:
                     case ERC20BridgeSource.ComethSwap:
                     case ERC20BridgeSource.Dfyn:
                     case ERC20BridgeSource.WaultSwap:
-                    case ERC20BridgeSource.Polydex:
                     case ERC20BridgeSource.ShibaSwap:
-                    case ERC20BridgeSource.JetSwap:
                     case ERC20BridgeSource.Pangolin:
                     case ERC20BridgeSource.TraderJoe:
                     case ERC20BridgeSource.UbeSwap:

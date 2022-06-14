@@ -7,7 +7,6 @@ import {
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
     BISWAP_ROUTER_BY_CHAIN_ID,
-    CAFESWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
@@ -26,8 +25,6 @@ import {
     FIREBIRDONESWAP_BSC_INFOS,
     FIREBIRDONESWAP_POLYGON_INFOS,
     IRONSWAP_POLYGON_INFOS,
-    JETSWAP_ROUTER_BY_CHAIN_ID,
-    JULSWAP_ROUTER_BY_CHAIN_ID,
     KNIGHTSWAP_ROUTER_BY_CHAIN_ID,
     MAX_DODOV2_POOLS_QUERIED,
     MDEX_ROUTER_BY_CHAIN_ID,
@@ -41,7 +38,6 @@ import {
     PANCAKESWAPV2_ROUTER_BY_CHAIN_ID,
     PANGOLIN_ROUTER_BY_CHAIN_ID,
     PLATYPUS_AVALANCHE_INFOS,
-    POLYDEX_ROUTER_BY_CHAIN_ID,
     QUICKSWAP_ROUTER_BY_CHAIN_ID,
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
@@ -529,16 +525,12 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.PancakeSwapV2
         | ERC20BridgeSource.BakerySwap
         | ERC20BridgeSource.ApeSwap
-        | ERC20BridgeSource.CafeSwap
         | ERC20BridgeSource.CheeseSwap
-        | ERC20BridgeSource.JulSwap
         | ERC20BridgeSource.QuickSwap
         | ERC20BridgeSource.ComethSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
-        | ERC20BridgeSource.Polydex
         | ERC20BridgeSource.ShibaSwap
-        | ERC20BridgeSource.JetSwap
         | ERC20BridgeSource.TraderJoe
         | ERC20BridgeSource.Pangolin
         | ERC20BridgeSource.UbeSwap
@@ -566,12 +558,8 @@ export function uniswapV2LikeRouterAddress(
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ApeSwap:
             return APESWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.CafeSwap:
-            return CAFESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.CheeseSwap:
             return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.JulSwap:
-            return JULSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.QuickSwap:
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ComethSwap:
@@ -580,12 +568,8 @@ export function uniswapV2LikeRouterAddress(
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.WaultSwap:
             return WAULTSWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.Polydex:
-            return POLYDEX_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ShibaSwap:
             return SHIBASWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.JetSwap:
-            return JETSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Pangolin:
             return PANGOLIN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.TraderJoe:

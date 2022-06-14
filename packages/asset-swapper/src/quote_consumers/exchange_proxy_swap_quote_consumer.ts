@@ -75,9 +75,7 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.BakerySwap,
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.ApeSwap,
-    ERC20BridgeSource.CafeSwap,
     ERC20BridgeSource.CheeseSwap,
-    ERC20BridgeSource.JulSwap,
 ];
 const FAKE_PROVIDER: any = {
     sendAsync(): void {
@@ -222,9 +220,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ERC20BridgeSource.BakerySwap,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.ApeSwap,
-                ERC20BridgeSource.CafeSwap,
                 ERC20BridgeSource.CheeseSwap,
-                ERC20BridgeSource.JulSwap,
             ])
         ) {
             const source = slippedOrders[0].source;
