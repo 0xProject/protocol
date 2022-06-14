@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.15.0 - _June 14, 2022_
+
+    * Add Velodrome support (#494)
+
 ## v11.14.0 - _June 3, 2022_
 
     * Adds Support for BancorV3 on Ethereum (#492)

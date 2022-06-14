@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.16.0 - _June 14, 2022_
+
+    * Redeploy FQT on Mainnet and Optimism
+
 ## v6.15.0 - _June 3, 2022_
 
     * Redeploy FQT on Mainnet
