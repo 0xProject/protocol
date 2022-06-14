@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.62.0 - _June 14, 2022_
+
+    * Add MDEX on BSC (#496)
+    * Add KnightSwap on BSC (#498)
+    * Add Velodrome support on Optimism (#494)
+    * Do not send empty entries on Quote Report (#501)
+    * KnightSwap/Mdex cosmetic change (#502)
+    * Offboard JetSwap, CafeSwap, JulSwap, and PolyDex (#503)
+
 ## v16.61.0 - _June 3, 2022_
 
     * Add stETH wrap/unwrap support (#476)

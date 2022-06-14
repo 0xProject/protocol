@@ -6,7 +6,8 @@
                 "note": "Adds support for Velodrome OptimismBridgeAdapter",
                 "pr": 494
             }
-        ]
+        ],
+        "timestamp": 1655244958
     },
     {
         "version": "0.34.0",

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.35.0 - _June 14, 2022_
+
+    * Adds support for Velodrome OptimismBridgeAdapter (#494)
+
 ## v0.34.0 - _June 3, 2022_
 
     * Splits BridgeAdapter up by chain (#487)
