@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.62.1",
+        "changes": [
+            {
+                "note": "Remove nUSD from intermediate liquidity to save on sampler gas",
+                "pr": 505
+            }
+        ]
+    },
+    {
         "version": "16.62.0",
         "changes": [
             {

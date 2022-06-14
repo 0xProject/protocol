@@ -852,7 +852,6 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             POLYGON_TOKENS.DAI,
             POLYGON_TOKENS.USDT,
             POLYGON_TOKENS.WBTC,
-            POLYGON_TOKENS.nUSD,
         ],
         [ChainId.Avalanche]: [
             AVALANCHE_TOKENS.WAVAX,
