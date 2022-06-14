@@ -504,8 +504,7 @@ const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
-            // TODO: re-enable Lido once BridgeAdapter includes the latest LidoMixin.
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Lido];
+            return [ERC20BridgeSource.MultiBridge];
         case ChainId.Kovan:
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
@@ -577,9 +576,7 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
             SOURCE_FLAGS.PancakeSwap_V2,
             SOURCE_FLAGS.BakerySwap,
             SOURCE_FLAGS.ApeSwap,
-            SOURCE_FLAGS.CafeSwap,
             SOURCE_FLAGS.CheeseSwap,
-            SOURCE_FLAGS.JulSwap,
         ].includes(sourceFlags) &&
         CHAIN_ID === ChainId.BSC
     ) {
