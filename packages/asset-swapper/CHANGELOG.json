@@ -1,14 +1,5 @@
 [
     {
-        "version": "16.62.1",
-        "changes": [
-            {
-                "note": "Offboard JetSwap, CafeSwap, JulSwap, and PolyDex",
-                "pr": 503
-            }
-        ]
-    },
-    {
         "version": "16.62.0",
         "changes": [
             {
@@ -30,6 +21,10 @@
             {
                 "note": "KnightSwap/Mdex cosmetic change",
                 "pr": 502
+            },
+            {
+                "note": "Offboard JetSwap, CafeSwap, JulSwap, and PolyDex",
+                "pr": 503
             }
         ]
     },
