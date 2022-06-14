@@ -120,13 +120,10 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.BiSwap,
@@ -144,14 +141,12 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.WaultSwap,
-            ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.UniswapV3,
@@ -177,7 +172,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.Geist,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
@@ -276,13 +270,10 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.ACryptos,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.BiSwap,
@@ -300,14 +291,12 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.WaultSwap,
-            ERC20BridgeSource.Polydex,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.UniswapV3,
@@ -333,7 +322,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.Geist,
-            ERC20BridgeSource.JetSwap,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
@@ -2259,23 +2247,9 @@ export const APESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const CAFESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0x933daea3a5995fb94b14a7696a5f3ffd7b1e385a',
-    },
-    NULL_ADDRESS,
-);
-
 export const CHEESESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0x3047799262d8d2ef41ed2a222205968bc9b0d895',
-    },
-    NULL_ADDRESS,
-);
-
-export const JULSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0xbd67d157502a23309db761c41965600c2ec788b2',
     },
     NULL_ADDRESS,
 );
@@ -2312,25 +2286,9 @@ export const WAULTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const POLYDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Polygon]: '0xe5c67ba380fb2f70a47b489e94bced486bb8fb74',
-    },
-    NULL_ADDRESS,
-);
-
 export const MESHSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Polygon]: '0x10f4a785f458bc144e3706575924889954946639',
-    },
-    NULL_ADDRESS,
-);
-
-export const JETSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0xbe65b8f75b9f20f4c522e0067a3887fada714800',
-        [ChainId.Polygon]: '0x5c6ec38fb0e2609672bdf628b1fd605a523e5923',
-        [ChainId.Fantom]: '0x845e76a8691423fbc4ecb8dd77556cb61c09ee25',
     },
     NULL_ADDRESS,
 );
@@ -2435,9 +2393,7 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CafeSwap,
             ERC20BridgeSource.CheeseSwap,
-            ERC20BridgeSource.JulSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
         ],
@@ -2613,9 +2569,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.PancakeSwapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.CafeSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.JulSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
 
@@ -2625,8 +2579,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.Polydex]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.JetSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.MeshSwap]: uniswapV2CloneGasSchedule,
 
     //

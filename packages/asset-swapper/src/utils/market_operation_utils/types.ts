@@ -92,18 +92,14 @@ export enum ERC20BridgeSource {
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
     ApeSwap = 'ApeSwap',
-    CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
-    JulSwap = 'JulSwap',
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
     ComethSwap = 'ComethSwap',
     Dfyn = 'Dfyn',
     WaultSwap = 'WaultSwap',
-    Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
-    JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
     MeshSwap = 'MeshSwap',
     // Avalanche

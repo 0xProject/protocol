@@ -115,12 +115,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'xSigma');
         case ERC20BridgeSource.ApeSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ApeSwap');
-        case ERC20BridgeSource.CafeSwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CafeSwap');
         case ERC20BridgeSource.CheeseSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'CheeseSwap');
-        case ERC20BridgeSource.JulSwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JulSwap');
         case ERC20BridgeSource.UniswapV3:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV3, 'UniswapV3');
         case ERC20BridgeSource.KyberDmm:
@@ -135,16 +131,12 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.CurveV2, 'CurveV2');
         case ERC20BridgeSource.WaultSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'WaultSwap');
-        case ERC20BridgeSource.Polydex:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Polydex');
         case ERC20BridgeSource.FirebirdOneSwap:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'FirebirdOneSwap');
         case ERC20BridgeSource.Lido:
             return encodeBridgeSourceId(BridgeProtocol.Lido, 'Lido');
         case ERC20BridgeSource.ShibaSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ShibaSwap');
-        case ERC20BridgeSource.JetSwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'JetSwap');
         case ERC20BridgeSource.IronSwap:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'IronSwap');
         case ERC20BridgeSource.ACryptos:
@@ -264,16 +256,12 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.PancakeSwapV2:
         case ERC20BridgeSource.BakerySwap:
         case ERC20BridgeSource.ApeSwap:
-        case ERC20BridgeSource.CafeSwap:
         case ERC20BridgeSource.CheeseSwap:
-        case ERC20BridgeSource.JulSwap:
         case ERC20BridgeSource.QuickSwap:
         case ERC20BridgeSource.ComethSwap:
         case ERC20BridgeSource.Dfyn:
         case ERC20BridgeSource.WaultSwap:
-        case ERC20BridgeSource.Polydex:
         case ERC20BridgeSource.ShibaSwap:
-        case ERC20BridgeSource.JetSwap:
         case ERC20BridgeSource.Pangolin:
         case ERC20BridgeSource.TraderJoe:
         case ERC20BridgeSource.UbeSwap:
@@ -494,16 +482,12 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ApeSwap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.CafeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.CheeseSwap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.JulSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.WaultSwap]: routerAddressPathEncoder,
     // Polygon
     [ERC20BridgeSource.QuickSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ComethSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Dfyn]: routerAddressPathEncoder,
-    [ERC20BridgeSource.Polydex]: routerAddressPathEncoder,
-    [ERC20BridgeSource.JetSwap]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,
     [ERC20BridgeSource.Component]: poolEncoder,
