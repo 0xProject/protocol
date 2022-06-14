@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.16.0",
+        "changes": [
+            {
+                "note": "Redeploy FQT on Mainnet and Optimism"
+            }
+        ]
+    },
+    {
         "version": "6.15.0",
         "changes": [
             {
