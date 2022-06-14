@@ -1981,14 +1981,14 @@ export const BISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const MDEX_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.BSC]: '0x7DAe51BD3E3376B8c7c4900E9107f12Be3AF1bA8',
+        [ChainId.BSC]: '0x7dae51bd3e3376b8c7c4900e9107f12be3af1ba8',
     },
     NULL_ADDRESS,
 );
 
 export const KNIGHTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.BSC]: '0x05E61E0cDcD2170a76F9568a110CEe3AFdD6c46f',
+        [ChainId.BSC]: '0x05e61e0cdcd2170a76f9568a110cee3afdd6c46f',
     },
     NULL_ADDRESS,
 );
