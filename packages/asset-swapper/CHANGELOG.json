@@ -17,6 +17,10 @@
             {
                 "note": "Do not send empty entries on Quote Report",
                 "pr": 501
+            },
+            {
+                "note": "KnightSwap/Mdex cosmetic change",
+                "pr": 502
             }
         ]
     },
