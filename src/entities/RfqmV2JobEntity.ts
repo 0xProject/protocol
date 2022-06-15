@@ -1,22 +1,15 @@
 import { BigNumber } from '@0x/asset-swapper';
-import { OtcOrderFields, Signature } from '@0x/protocol-utils';
+import { Signature } from '@0x/protocol-utils';
 import { Column, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 import { BigNumberTransformer } from './transformers';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from './types';
+import { RfqmJobStatus, StoredFee, StoredOtcOrder } from './types';
 
 export type RfqmV2JobConstructorOpts = Pick<
     RfqmV2JobEntity,
     'chainId' | 'expiry' | 'fee' | 'makerUri' | 'order' | 'orderHash'
 > &
     Partial<RfqmV2JobEntity>;
-
-export interface StoredOtcOrder {
-    type: RfqmOrderTypes.Otc;
-    order: StringOtcOrderFields;
-}
-
-type StringOtcOrderFields = Record<keyof OtcOrderFields, string>;
 
 @Entity({ name: 'rfqm_v2_jobs' })
 export class RfqmV2JobEntity {

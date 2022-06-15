@@ -5,11 +5,11 @@ import { FindOptionsWhere, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
-import { RfqmV2JobConstructorOpts, StoredOtcOrder } from '../entities/RfqmV2JobEntity';
+import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee, UnresolvedRfqmJobStatuses } from '../entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOtcOrder, UnresolvedRfqmJobStatuses } from '../entities/types';
 import { FeeWithDetails } from '../services/rfqm_fee_service';
 
 /**

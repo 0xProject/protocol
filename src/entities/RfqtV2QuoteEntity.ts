@@ -2,14 +2,14 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { StoredFee, StoredOtcOrder } from './types';
 
-export type RfqmV2QuoteConstructorOpts = Pick<
-    RfqmV2QuoteEntity,
-    'chainId' | 'fee' | 'makerUri' | 'orderHash' | 'order'
+export type RfqtV2QuoteConstructorOpts = Pick<
+    RfqtV2QuoteEntity,
+    'chainId' | 'fee' | 'integratorId' | 'makerId' | 'makerUri' | 'orderHash' | 'order'
 > &
-    Partial<RfqmV2QuoteEntity>;
+    Partial<RfqtV2QuoteEntity>;
 
-@Entity({ name: 'rfqm_v2_quotes' })
-export class RfqmV2QuoteEntity {
+@Entity({ name: 'rfqt_v2_quotes' })
+export class RfqtV2QuoteEntity {
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })
     public orderHash: string;
 
@@ -20,8 +20,11 @@ export class RfqmV2QuoteEntity {
     @Column({ name: 'chain_id', type: 'integer' })
     public chainId: number;
 
-    @Column({ name: 'integrator_id', type: 'varchar', nullable: true })
-    public integratorId: string | null;
+    @Column({ name: 'integrator_id', type: 'varchar' })
+    public integratorId: string;
+
+    @Column({ name: 'maker_id', type: 'varchar' })
+    public makerId: string;
 
     @Column({ name: 'maker_uri', type: 'varchar' })
     public makerUri: string;
@@ -32,16 +35,11 @@ export class RfqmV2QuoteEntity {
     @Column({ name: 'order', type: 'jsonb' })
     public order: StoredOtcOrder;
 
-    // Whether the maker wrapped native token will be unwrapped to the native token
-    // when passed to the taker
-    @Column({ name: 'is_unwrap', type: 'boolean' })
-    public isUnwrap: boolean;
-
     @Column({ name: 'affiliate_address', type: 'varchar', nullable: true })
     public affiliateAddress: string | null;
 
     // tslint:disable-next-line no-object-literal-type-assertion
-    constructor(opts: RfqmV2QuoteConstructorOpts = {} as RfqmV2QuoteConstructorOpts) {
+    constructor(opts: RfqtV2QuoteConstructorOpts = {} as RfqtV2QuoteConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;
@@ -50,8 +48,8 @@ export class RfqmV2QuoteEntity {
         this.affiliateAddress = opts.affiliateAddress ?? null;
         this.chainId = opts.chainId;
         this.fee = opts.fee;
-        this.integratorId = opts.integratorId ?? null;
-        this.isUnwrap = opts.isUnwrap ?? false;
+        this.integratorId = opts.integratorId;
+        this.makerId = opts.makerId;
         this.makerUri = opts.makerUri;
         this.order = opts.order;
         this.orderHash = opts.orderHash;

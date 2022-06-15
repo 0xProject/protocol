@@ -19,8 +19,7 @@ import { DataSource } from 'typeorm';
 import * as config from '../src/config';
 import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, RFQM_PATH, ZERO } from '../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
-import { StoredOtcOrder } from '../src/entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from '../src/entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOtcOrder } from '../src/entities/types';
 import {
     buildRfqAdminService,
     buildRfqMakerService,

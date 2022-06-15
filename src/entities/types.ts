@@ -1,3 +1,4 @@
+import { OtcOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 export enum RfqmJobStatus {
@@ -129,3 +130,11 @@ export enum RfqmOrderTypes {
     V4Rfq = 'v4Rfq',
     Otc = 'otc',
 }
+
+/******* OTC ********/
+export interface StoredOtcOrder {
+    type: RfqmOrderTypes.Otc;
+    order: StringOtcOrderFields;
+}
+
+export type StringOtcOrderFields = Record<keyof OtcOrderFields, string>;
