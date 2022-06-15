@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.62.1 - _June 15, 2022_
+
+    * Remove nUSD from intermediate liquidity to save on sampler gas (#505)
+
 ## v16.62.0 - _June 14, 2022_
 
     * Add MDEX on BSC (#496)

@@ -6,7 +6,8 @@
                 "note": "Remove nUSD from intermediate liquidity to save on sampler gas",
                 "pr": 505
             }
-        ]
+        ],
+        "timestamp": 1655253622
     },
     {
         "version": "16.62.0",
