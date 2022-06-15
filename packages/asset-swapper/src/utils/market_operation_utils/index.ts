@@ -716,8 +716,8 @@ export class MarketOperationUtils {
                         quotes: {
                             ...marketSideLiquidity.quotes,
                             // Select only the quotes that were chosen in Phase 1
-                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(q =>
-                                phase1OptimalSources.includes(q[0].source),
+                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(
+                                q => q.length > 0 && phase1OptimalSources.includes(q[0].source),
                             ),
                         },
                     };
@@ -805,8 +805,8 @@ export class MarketOperationUtils {
                         quotes: {
                             ...marketSideLiquidity.quotes,
                             // Select only the quotes that were chosen in Phase 1
-                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(q =>
-                                phase1OptimalSources.includes(q[0].source),
+                            dexQuotes: marketSideLiquidity.quotes.dexQuotes.filter(
+                                q => q.length > 0 && phase1OptimalSources.includes(q[0].source),
                             ),
                         },
                     };
