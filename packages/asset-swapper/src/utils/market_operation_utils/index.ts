@@ -747,6 +747,26 @@ export class MarketOperationUtils {
                               wholeOrderPrice,
                               rfqt,
                           );
+
+                const otcQuotes = await rfqt.rfqClient?.getV2QuotesAsync({
+                    assetFillAmount: amount,
+                    chainId: this._sampler.chainId,
+                    integratorId: rfqt.integrator.integratorId,
+                    intentOnFilling: rfqt.intentOnFilling,
+                    makerToken,
+                    marketOperation: side,
+                    takerAddress: rfqt.takerAddress,
+                    takerToken,
+                    txOrigin: rfqt.txOrigin,
+                });
+                const otcQuotesWithFillableAmounts: NativeOrderWithFillableAmounts[] =
+                    otcQuotes === undefined
+                        ? []
+                        : otcQuotes.quotes.map(q => ({
+                              ...q,
+                              type: FillQuoteTransformerOrderType.Otc,
+                          }));
+
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'firm',
@@ -777,6 +797,7 @@ export class MarketOperationUtils {
                     );
                     marketSideLiquidity.quotes.nativeOrders = [
                         ...quotesWithOrderFillableAmounts,
+                        ...otcQuotesWithFillableAmounts,
                         ...marketSideLiquidity.quotes.nativeOrders,
                     ];
 
