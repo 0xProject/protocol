@@ -18,6 +18,7 @@ import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } fro
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
+import { linearBuckets } from 'prom-client';
 import * as validateUUID from 'uuid-validate';
 
 import {
@@ -224,6 +225,9 @@ export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env
 export const RPC_REQUEST_TIMEOUT = _.isEmpty(process.env.RPC_REQUEST_TIMEOUT)
     ? 5000
     : assertEnvVarType('RPC_REQUEST_TIMEOUT', process.env.RPC_REQUEST_TIMEOUT, EnvVarType.Integer);
+
+// Prometheus shared metrics
+export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, RPC_REQUEST_TIMEOUT / 1000 / 0.25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]
 
 // Enable client side content compression when sending RPC requests (default false)
 export const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_REQUEST_COMPRESSION)

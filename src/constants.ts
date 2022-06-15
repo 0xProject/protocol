@@ -1,8 +1,6 @@
 import { BigNumber } from '@0x/utils';
-import { linearBuckets } from 'prom-client';
 
 // tslint:disable:custom-no-magic-numbers
-
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const NULL_BYTES = '0x';
 export const ZRX_DECIMALS = 18;
@@ -102,9 +100,6 @@ export const SINGLE_MESSAGE = 1;
 
 // General cache control
 export const DEFAULT_CACHE_AGE_SECONDS = 13;
-
-// Prometheus shared metrics
-export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, 25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]
 
 // Number of base points in 1
 export const ONE_IN_BASE_POINTS = 10000;
