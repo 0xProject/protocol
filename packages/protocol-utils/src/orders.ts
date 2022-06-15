@@ -48,7 +48,7 @@ const RFQ_ORDER_DEFAULT_VALUES = {
 const OTC_ORDER_DEFAULT_VALUES = {
     ...COMMON_ORDER_DEFAULT_VALUES,
     txOrigin: NULL_ADDRESS,
-    expiryAndNonce: ZERO,
+    expiry: ZERO,
 };
 
 const BRIDGE_ORDER_DEFAULT_VALUES = {

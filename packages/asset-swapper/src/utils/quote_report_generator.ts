@@ -13,6 +13,7 @@ import {
     NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
+    NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     RawQuotes,
 } from './market_operation_utils/types';
@@ -353,7 +354,7 @@ function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollaps
  */
 export function nativeOrderToReportEntry(
     type: FillQuoteTransformerOrderType,
-    fillData: NativeLimitOrderFillData | NativeRfqOrderFillData,
+    fillData: NativeLimitOrderFillData | NativeRfqOrderFillData | NativeOtcOrderFillData,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,

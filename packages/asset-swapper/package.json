@@ -60,9 +60,10 @@
     "dependencies": {
         "@0x/assert": "^3.0.34",
         "@0x/base-contract": "^6.5.0",
-        "@0x/contract-addresses": "^6.14.0",
-        "@0x/contract-wrappers": "^13.20.2",
-        "@0x/contracts-erc20": "^3.3.30",
+        "@0x/contract-addresses": "^6.16.0",
+        "@0x/contract-wrappers": "^13.20.4",
+        "@0x/contracts-erc20": "^3.3.32",
+        "@0x/contracts-test-utils": "^5.4.23",
         "@0x/contracts-zero-ex": "^0.33.0",
         "@0x/dev-utils": "^4.2.14",
         "@0x/json-schemas": "^6.4.4",

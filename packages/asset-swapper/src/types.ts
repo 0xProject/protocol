@@ -5,6 +5,7 @@ import {
     LimitOrderFields,
     RfqOrder,
     RfqOrderFields,
+    OtcOrderFields,
     Signature,
 } from '@0x/protocol-utils';
 import { TakerRequestQueryParamsUnnested, V4SignedRfqOrder } from '@0x/quote-server';
@@ -34,11 +35,11 @@ export interface OrderPrunerOpts {
 
 export interface SignedOrder<T> {
     order: T;
-    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq;
+    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq | FillQuoteTransformerOrderType.Otc;
     signature: Signature;
 }
 
-export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields>;
+export type SignedNativeOrder = SignedOrder<LimitOrderFields> | SignedOrder<RfqOrderFields> | SignedOrder<OtcOrderFields>;
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
 /**

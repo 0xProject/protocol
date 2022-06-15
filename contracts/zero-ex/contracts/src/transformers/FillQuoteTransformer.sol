@@ -20,24 +20,22 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
-import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
-import "../errors/LibTransformERC20RichErrors.sol";
-import "../features/interfaces/INativeOrdersFeature.sol";
-import "../features/interfaces/IOtcOrdersFeature.sol";
-import "../features/libs/LibNativeOrder.sol";
-import "./bridges/IBridgeAdapter.sol";
-import "./Transformer.sol";
-import "./LibERC20Transformer.sol";
+import '@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol';
+import '@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol';
+import '@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol';
+import '@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol';
+import '@0x/contracts-utils/contracts/src/v06/LibMathV06.sol';
+import '../errors/LibTransformERC20RichErrors.sol';
+import '../features/interfaces/INativeOrdersFeature.sol';
+import '../features/libs/LibNativeOrder.sol';
+import './bridges/IBridgeAdapter.sol';
+import './Transformer.sol';
+import './LibERC20Transformer.sol';
+import '../IZeroEx.sol';
 
 /// @dev A transformer that fills an ERC20 market sell/buy quote.
 ///      This transformer shortcuts bridge orders and fills them directly
-contract FillQuoteTransformer is
-    Transformer
-{
+contract FillQuoteTransformer is Transformer {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20Transformer for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
@@ -88,7 +86,6 @@ contract FillQuoteTransformer is
         // The token being bought.
         // This should be an actual token, not the ETH pseudo-token.
         IERC20TokenV06 buyToken;
-
         // External liquidity bridge orders. Sorted by fill sequence.
         IBridgeAdapter.BridgeOrder[] bridgeOrders;
         // Native limit orders. Sorted by fill sequence.
@@ -97,19 +94,16 @@ contract FillQuoteTransformer is
         RfqOrderInfo[] rfqOrders;
         // Otc orders.
         OtcOrderInfo[] otcOrders;
-
         // The sequence to fill the orders in. Each item will fill the next
         // order of that type in either `bridgeOrders`, `limitOrders`,
         // `rfqOrders`, or `otcOrders.`
         OrderType[] fillSequence;
-
         // Amount of `sellToken` to sell or `buyToken` to buy.
         // For sells, setting the high-bit indicates that
         // `sellAmount & LOW_BITS` should be treated as a `1e18` fraction of
         // the current balance of `sellToken`, where
         // `1e18+ == 100%` and `0.5e18 == 50%`, etc.
         uint256 fillAmount;
-
         // Who to transfer unused protocol fees to.
         // May be a valid address or one of:
         // `address(0)`: Stay in flash wallet.
@@ -144,7 +138,7 @@ contract FillQuoteTransformer is
     event ProtocolFeeUnfunded(bytes32 orderHash);
 
     /// @dev The highest bit of a uint256 value.
-    uint256 private constant HIGH_BIT = 2 ** 255;
+    uint256 private constant HIGH_BIT = 2**255;
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
     /// @dev If `refundReceiver` is set to this address, unpsent
@@ -158,21 +152,14 @@ contract FillQuoteTransformer is
     IBridgeAdapter public immutable bridgeAdapter;
 
     /// @dev The exchange proxy contract.
-    INativeOrdersFeature public immutable zeroEx;
-
-    // @dev the otc orders feature
-    IOtcOrdersFeature public immutable otcOrders;
+    IZeroEx public immutable zeroEx;
 
     /// @dev Create this contract.
     /// @param bridgeAdapter_ The bridge adapter contract.
     /// @param zeroEx_ The Exchange Proxy contract.
-    constructor(IBridgeAdapter bridgeAdapter_, INativeOrdersFeature zeroEx_, IOtcOrdersFeature otcOrders_)
-        public
-        Transformer()
-    {
+    constructor(IBridgeAdapter bridgeAdapter_, IZeroEx zeroEx_) public Transformer() {
         bridgeAdapter = bridgeAdapter_;
         zeroEx = zeroEx_;
-        otcOrders = otcOrders_;
     }
 
     /// @dev Sell this contract's entire balance of of `sellToken` in exchange
@@ -180,30 +167,27 @@ contract FillQuoteTransformer is
     ///      to this call. `buyToken` and excess ETH will be transferred back to the caller.
     /// @param context Context information.
     /// @return magicBytes The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 magicBytes)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 magicBytes) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         FillState memory state;
 
         // Validate data fields.
         if (data.sellToken.isTokenETH() || data.buyToken.isTokenETH()) {
-            LibTransformERC20RichErrors.InvalidTransformDataError(
-                LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
-                context.data
-            ).rrevert();
+            LibTransformERC20RichErrors
+                .InvalidTransformDataError(
+                    LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
+                    context.data
+                )
+                .rrevert();
         }
 
-        if (data.bridgeOrders.length
-                + data.limitOrders.length
-                + data.rfqOrders.length != data.fillSequence.length
-        ) {
-            LibTransformERC20RichErrors.InvalidTransformDataError(
-                LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_ARRAY_LENGTH,
-                context.data
-            ).rrevert();
+        if (data.bridgeOrders.length + data.limitOrders.length + data.rfqOrders.length != data.fillSequence.length) {
+            LibTransformERC20RichErrors
+                .InvalidTransformDataError(
+                    LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_ARRAY_LENGTH,
+                    context.data
+                )
+                .rrevert();
         }
 
         state.takerTokenBalanceRemaining = data.sellToken.getTokenBalanceOf(address(this));
@@ -217,8 +201,7 @@ contract FillQuoteTransformer is
             data.sellToken.approveIfBelow(address(zeroEx), data.fillAmount);
             // Compute the protocol fee if a limit order is present.
             if (data.limitOrders.length != 0) {
-                state.protocolFee = uint256(zeroEx.getProtocolFeeMultiplier())
-                    .safeMul(tx.gasprice);
+                state.protocolFee = uint256(zeroEx.getProtocolFeeMultiplier()).safeMul(tx.gasprice);
             }
         }
 
@@ -229,10 +212,14 @@ contract FillQuoteTransformer is
             // Check if we've hit our targets.
             if (data.side == Side.Sell) {
                 // Market sell check.
-                if (state.soldAmount >= data.fillAmount) { break; }
+                if (state.soldAmount >= data.fillAmount) {
+                    break;
+                }
             } else {
                 // Market buy check.
-                if (state.boughtAmount >= data.fillAmount) { break; }
+                if (state.boughtAmount >= data.fillAmount) {
+                    break;
+                }
             }
 
             state.currentOrderType = OrderType(data.fillSequence[i]);
@@ -247,19 +234,15 @@ contract FillQuoteTransformer is
                 results = _fillRfqOrder(data.rfqOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Otc) {
                 results = _fillOtcOrder(data.otcOrders[orderIndex], data, state);
-            }else {
-                revert("INVALID_ORDER_TYPE");
+            } else {
+                revert('INVALID_ORDER_TYPE');
             }
 
             // Accumulate totals.
-            state.soldAmount = state.soldAmount
-                .safeAdd(results.takerTokenSoldAmount);
-            state.boughtAmount = state.boughtAmount
-                .safeAdd(results.makerTokenBoughtAmount);
-            state.ethRemaining = state.ethRemaining
-                .safeSub(results.protocolFeePaid);
-            state.takerTokenBalanceRemaining = state.takerTokenBalanceRemaining
-                .safeSub(results.takerTokenSoldAmount);
+            state.soldAmount = state.soldAmount.safeAdd(results.takerTokenSoldAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(results.makerTokenBoughtAmount);
+            state.ethRemaining = state.ethRemaining.safeSub(results.protocolFeePaid);
+            state.takerTokenBalanceRemaining = state.takerTokenBalanceRemaining.safeSub(results.takerTokenSoldAmount);
             state.currentIndices[uint256(state.currentOrderType)]++;
         }
 
@@ -268,21 +251,15 @@ contract FillQuoteTransformer is
             // Market sell check.
             if (state.soldAmount < data.fillAmount) {
                 LibTransformERC20RichErrors
-                    .IncompleteFillSellQuoteError(
-                        address(data.sellToken),
-                        state.soldAmount,
-                        data.fillAmount
-                    ).rrevert();
+                    .IncompleteFillSellQuoteError(address(data.sellToken), state.soldAmount, data.fillAmount)
+                    .rrevert();
             }
         } else {
             // Market buy check.
             if (state.boughtAmount < data.fillAmount) {
                 LibTransformERC20RichErrors
-                    .IncompleteFillBuyQuoteError(
-                        address(data.buyToken),
-                        state.boughtAmount,
-                        data.fillAmount
-                    ).rrevert();
+                    .IncompleteFillBuyQuoteError(address(data.buyToken), state.boughtAmount, data.fillAmount)
+                    .rrevert();
             }
         }
 
@@ -290,13 +267,13 @@ contract FillQuoteTransformer is
         if (state.ethRemaining > 0 && data.refundReceiver != address(0)) {
             bool transferSuccess;
             if (data.refundReceiver == REFUND_RECEIVER_RECIPIENT) {
-                (transferSuccess,) = context.recipient.call{value: state.ethRemaining}("");
+                (transferSuccess, ) = context.recipient.call{ value: state.ethRemaining }('');
             } else if (data.refundReceiver == REFUND_RECEIVER_SENDER) {
-                (transferSuccess,) = context.sender.call{value: state.ethRemaining}("");
+                (transferSuccess, ) = context.sender.call{ value: state.ethRemaining }('');
             } else {
-                (transferSuccess,) = data.refundReceiver.call{value: state.ethRemaining}("");
+                (transferSuccess, ) = data.refundReceiver.call{ value: state.ethRemaining }('');
             }
-            require(transferSuccess, "FillQuoteTransformer/ETHER_TRANSFER_FALIED");
+            require(transferSuccess, 'FillQuoteTransformer/ETHER_TRANSFER_FALIED');
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
@@ -306,10 +283,7 @@ contract FillQuoteTransformer is
         IBridgeAdapter.BridgeOrder memory order,
         TransformData memory data,
         FillState memory state
-    )
-        private
-        returns (FillOrderResults memory results)
-    {
+    ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = _computeTakerTokenFillAmount(
             data,
             state,
@@ -338,10 +312,7 @@ contract FillQuoteTransformer is
         LimitOrderInfo memory orderInfo,
         TransformData memory data,
         FillState memory state
-    )
-        private
-        returns (FillOrderResults memory results)
-    {
+    ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = LibSafeMathV06.min256(
             _computeTakerTokenFillAmount(
                 data,
@@ -361,22 +332,21 @@ contract FillQuoteTransformer is
         }
 
         try
-            zeroEx.fillLimitOrder
-                {value: state.protocolFee}
-                (
-                    orderInfo.order,
-                    orderInfo.signature,
-                    takerTokenFillAmount.safeDowncastToUint128()
-                )
-            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-        {
+            zeroEx.fillLimitOrder{ value: state.protocolFee }(
+                orderInfo.order,
+                orderInfo.signature,
+                takerTokenFillAmount.safeDowncastToUint128()
+            )
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             if (orderInfo.order.takerTokenFeeAmount > 0) {
                 takerTokenFilledAmount = takerTokenFilledAmount.safeAdd128(
-                    LibMathV06.getPartialAmountFloor(
-                        takerTokenFilledAmount,
-                        orderInfo.order.takerAmount,
-                        orderInfo.order.takerTokenFeeAmount
-                    ).safeDowncastToUint128()
+                    LibMathV06
+                        .getPartialAmountFloor(
+                            takerTokenFilledAmount,
+                            orderInfo.order.takerAmount,
+                            orderInfo.order.takerTokenFeeAmount
+                        )
+                        .safeDowncastToUint128()
                 );
             }
             results.takerTokenSoldAmount = takerTokenFilledAmount;
@@ -390,30 +360,15 @@ contract FillQuoteTransformer is
         RfqOrderInfo memory orderInfo,
         TransformData memory data,
         FillState memory state
-    )
-        private
-        returns (FillOrderResults memory results)
-    {
+    ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = LibSafeMathV06.min256(
-            _computeTakerTokenFillAmount(
-                data,
-                state,
-                orderInfo.order.takerAmount,
-                orderInfo.order.makerAmount,
-                0
-            ),
+            _computeTakerTokenFillAmount(data, state, orderInfo.order.takerAmount, orderInfo.order.makerAmount, 0),
             orderInfo.maxTakerTokenFillAmount
         );
 
         try
-            zeroEx.fillRfqOrder
-                (
-                    orderInfo.order,
-                    orderInfo.signature,
-                    takerTokenFillAmount.safeDowncastToUint128()
-                )
-            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-        {
+            zeroEx.fillRfqOrder(orderInfo.order, orderInfo.signature, takerTokenFillAmount.safeDowncastToUint128())
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
         } catch {}
@@ -424,55 +379,15 @@ contract FillQuoteTransformer is
         OtcOrderInfo memory orderInfo,
         TransformData memory data,
         FillState memory state
-    )
-        private
-        returns (FillOrderResults memory results)
-    {
-
-        //  /// @dev An OTC limit order.
-        // struct OtcOrder {
-        //     IERC20TokenV06 makerToken;
-        //     IERC20TokenV06 takerToken;
-        //     uint128 makerAmount;
-        //     uint128 takerAmount;
-        //     address maker;
-        //     address taker;
-        //     address txOrigin;
-        //     uint256 expiryAndNonce; // [uint64 expiry, uint64 nonceBucket, uint128 nonce]
-        // }
-
-
-        //decode data and find type of order
-
-        // fillOtcOrder, fillOtcOrderForEth,WithEth
-
-        // multiplexBatchSellEthForToken, multiplexBatchSellTokenForEth, multiplexBatchSellTokenForToken
-
-        // split between otc and regular bridge fqt
-
-
-
-
+    ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = LibSafeMathV06.min256(
-            _computeTakerTokenFillAmount(
-                data,
-                state,
-                orderInfo.order.takerAmount,
-                orderInfo.order.makerAmount,
-                0
-            ),
+            _computeTakerTokenFillAmount(data, state, orderInfo.order.takerAmount, orderInfo.order.makerAmount, 0),
             orderInfo.maxTakerTokenFillAmount
         );
 
         try
-            otcOrders.fillOtcOrder
-                (
-                    orderInfo.order,
-                    orderInfo.signature,
-                    takerTokenFillAmount.safeDowncastToUint128()
-                )
-            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-        {
+            zeroEx.fillOtcOrder(orderInfo.order, orderInfo.signature, takerTokenFillAmount.safeDowncastToUint128())
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
         } catch {}
@@ -485,11 +400,7 @@ contract FillQuoteTransformer is
         uint256 orderTakerAmount,
         uint256 orderMakerAmount,
         uint256 orderTakerTokenFeeAmount
-    )
-        private
-        pure
-        returns (uint256 takerTokenFillAmount)
-    {
+    ) private pure returns (uint256 takerTokenFillAmount) {
         if (data.side == Side.Sell) {
             takerTokenFillAmount = data.fillAmount.safeSub(state.soldAmount);
             if (orderTakerTokenFeeAmount != 0) {
@@ -499,34 +410,31 @@ contract FillQuoteTransformer is
                     orderTakerAmount
                 );
             }
-        } else { // Buy
+        } else {
+            // Buy
             takerTokenFillAmount = LibMathV06.getPartialAmountCeil(
                 data.fillAmount.safeSub(state.boughtAmount),
                 orderMakerAmount,
                 orderTakerAmount
             );
         }
-        return LibSafeMathV06.min256(
-            LibSafeMathV06.min256(takerTokenFillAmount, orderTakerAmount),
-            state.takerTokenBalanceRemaining
-        );
+        return
+            LibSafeMathV06.min256(
+                LibSafeMathV06.min256(takerTokenFillAmount, orderTakerAmount),
+                state.takerTokenBalanceRemaining
+            );
     }
 
     // Convert possible proportional values to absolute quantities.
-    function _normalizeFillAmount(uint256 rawAmount, uint256 balance)
-        private
-        pure
-        returns (uint256 normalized)
-    {
+    function _normalizeFillAmount(uint256 rawAmount, uint256 balance) private pure returns (uint256 normalized) {
         if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
             // If the high bit of `rawAmount` is set then the lower 255 bits
             // specify a fraction of `balance`.
-            return LibSafeMathV06.min256(
-                balance
-                    * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
-                    / 1e18,
-                balance
-            );
+            return
+                LibSafeMathV06.min256(
+                    (balance * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)) / 1e18,
+                    balance
+                );
         }
         return rawAmount;
     }

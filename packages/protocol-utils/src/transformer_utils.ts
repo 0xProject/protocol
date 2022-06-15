@@ -39,6 +39,20 @@ const RFQ_ORDER_INFO_ABI_COMPONENTS = [
     { name: 'maxTakerTokenFillAmount', type: 'uint256' },
 ];
 
+const OTC_ORDER_INFO_ABI_COMPONENTS = [
+    {
+        name: 'order',
+        type: 'tuple',
+        components: OtcOrder.STRUCT_ABI,
+    },
+    {
+        name: 'signature',
+        type: 'tuple',
+        components: SIGNATURE_ABI,
+    },
+    { name: 'maxTakerTokenFillAmount', type: 'uint256' },
+];
+
 /**
  * ABI encoder for `FillQuoteTransformer.TransformData`
  */
@@ -64,6 +78,11 @@ export const fillQuoteTransformerDataEncoder = AbiEncoder.create([
                 name: 'rfqOrders',
                 type: 'tuple[]',
                 components: RFQ_ORDER_INFO_ABI_COMPONENTS,
+            },
+            {
+                name: 'otcOrders',
+                type: 'tuple[]',
+                components: OTC_ORDER_INFO_ABI_COMPONENTS,
             },
             { name: 'fillSequence', type: 'uint8[]' },
             { name: 'fillAmount', type: 'uint256' },
@@ -182,6 +201,8 @@ export type FillQuoteTransformerRfqOrderInfo = FillQuoteTransformerNativeOrderIn
 export function encodeFillQuoteTransformerData(data: FillQuoteTransformerData): string {
     return fillQuoteTransformerDataEncoder.encode([data]);
 }
+
+
 
 /**
  * ABI-decode a `FillQuoteTransformer.TransformData` type.
