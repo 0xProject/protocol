@@ -27,6 +27,8 @@ import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 
+import "@0x/contracts-erc20/contracts/src/v06/WETH9.sol";
+
 contract TransformERC20FeatureTest is DeployZeroEx {
     IEtherTokenV06 WETH;
 
