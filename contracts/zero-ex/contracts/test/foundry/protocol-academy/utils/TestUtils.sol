@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
 
+import "src/transformers/LibERC20Transformer.sol";
 
 contract TestUtils is Test {
     uint256 private constant MAX_UINT256_STRING_LENGTH = 78;
@@ -58,4 +59,21 @@ contract TestUtils is Test {
         }
         return nstr;
     }    
+
+    function _findTransformerNonce(
+        address transformer,
+        address deployer
+    )
+        internal
+        pure
+        returns (uint32)
+    {
+        address current;
+        for (uint32 i = 0; i < 1024; i++) {
+            current = LibERC20Transformer.getDeployedAddress(deployer, i);
+            if (current == transformer) {
+                return i;
+            }
+        }
+    }
 }
