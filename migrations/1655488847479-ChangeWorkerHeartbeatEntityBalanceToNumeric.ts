@@ -7,6 +7,7 @@ import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeor
  */
 export class ChangeWorkerHeartbeatEntityBalanceToNumeric1655488847479 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.clearTable('rfqm_worker_heartbeats');
         await queryRunner.changeColumn(
             'rfqm_worker_heartbeats',
             'balance',
@@ -15,6 +16,7 @@ export class ChangeWorkerHeartbeatEntityBalanceToNumeric1655488847479 implements
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.clearTable('rfqm_worker_heartbeats');
         await queryRunner.changeColumn(
             'rfqm_worker_heartbeats',
             'balance',
