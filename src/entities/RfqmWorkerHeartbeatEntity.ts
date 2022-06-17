@@ -17,7 +17,7 @@ export class RfqmWorkerHeartbeatEntity {
     public timestamp!: Date;
 
     // The native token balance of the worker
-    @Column({ name: 'balance', type: 'bigint', transformer: BigNumberTransformer })
+    @Column({ name: 'balance', type: 'numeric', transformer: BigNumberTransformer })
     public balance: BigNumber;
 
     // The worker index assigned to the worker's ENV by Kubernetes
