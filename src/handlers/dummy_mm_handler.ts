@@ -475,6 +475,8 @@ export class DummyMMHandlers {
         const signature = ethSignHashWithKey(orderHash, MM_PRIVATE_KEY);
         const response = {
             feeAmount,
+            order: otcOrder,
+            orderHash,
             makerSignature: signature,
         };
 
