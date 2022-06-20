@@ -130,8 +130,8 @@ export enum CurveFunctionSelectors {
     get_dy_v2 = '0x556d6e9f',
     get_dy_underlying_v2 = '0x85f11d1e',
     // Smoothy
-    // swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
-    // get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
+    swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
+    get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
     // Nerve BSC, Saddle Mainnet, Synapse
     swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
     calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
