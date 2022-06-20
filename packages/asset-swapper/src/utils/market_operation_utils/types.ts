@@ -82,7 +82,6 @@ export enum ERC20BridgeSource {
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
-    ComethSwap = 'ComethSwap',
     Dfyn = 'Dfyn',
     WaultSwap = 'WaultSwap',
     FirebirdOneSwap = 'FirebirdOneSwap',
