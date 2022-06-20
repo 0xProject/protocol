@@ -705,7 +705,7 @@ export class RfqmService {
         }
         return computeHealthCheckAsync(
             RFQM_MAINTENANCE_MODE,
-            this._rfqMakerManager.getRfqmMakerOfferings(),
+            this._rfqMakerManager.getRfqmV2MakerOfferings(),
             this._sqsProducer,
             heartbeats,
             this._chainId,
@@ -1580,7 +1580,7 @@ export class RfqmService {
             isLastLook: true,
             fee,
         });
-        const otcOrderMakerUris = this._rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(makerToken, takerToken);
+        const otcOrderMakerUris = this._rfqMakerManager.getRfqmV2MakerUrisForPair(makerToken, takerToken);
 
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(
             otcOrderMakerUris,

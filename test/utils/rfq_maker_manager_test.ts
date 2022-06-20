@@ -2,7 +2,6 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { expect } from 'chai';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { MakerIdSet } from '../../src/config';
@@ -13,16 +12,14 @@ import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { CHAIN_ID } from '../constants';
 
 const createMockConfigManager = (
-    rfqmMakers: MakerIdSet,
-    rfqmRfqMakers: MakerIdSet,
+    rfqtRfqMakers: MakerIdSet,
+    rfqtOtcMakers: MakerIdSet,
     rfqmOtcMakers: MakerIdSet,
-    rfqtRfqMakers: MakerIdSet = new Set(),
 ): ConfigManager => {
     const configManagerMock = mock(ConfigManager);
-    when(configManagerMock.getRfqmMakerIdSet()).thenReturn(rfqmMakers);
-    when(configManagerMock.getRfqmMakerIdSetForRfqOrder()).thenReturn(rfqmRfqMakers);
     when(configManagerMock.getRfqmMakerIdSetForOtcOrder()).thenReturn(rfqmOtcMakers);
     when(configManagerMock.getRfqtMakerIdSetForRfqOrder()).thenReturn(rfqtRfqMakers);
+    when(configManagerMock.getRfqtMakerIdSetForOtcOrder()).thenReturn(rfqtOtcMakers);
 
     return instance(configManagerMock);
 };
@@ -64,22 +61,22 @@ describe('RfqMakerManager', () => {
         },
     ];
 
-    describe('getRfqmMakerUrisForPairOnOtcOrder', () => {
+    describe('getRfqmV2MakerUrisForPair', () => {
         it('should return a list of maker uris for a given config', async () => {
             // Given
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenA, tokenB]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
+            const makerUris = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenA, tokenB);
 
             // Then
-            expect(makerUris).to.deep.eq(['https://maker1.asdf', 'https://maker2.asdf']);
+            expect(makerUris).toEqual(['https://maker1.asdf', 'https://maker2.asdf']);
         });
 
         it('should ignore ordering when considering pairs', async () => {
@@ -87,18 +84,18 @@ describe('RfqMakerManager', () => {
             rfqMaker[0].pairs = [[tokenA, tokenB]];
             rfqMaker[1].pairs = [[tokenB, tokenA]];
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris1 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
-            const makerUris2 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenB, tokenA); // order doesn't matter
+            const makerUris1 = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenB, tokenA); // order doesn't matter
+            const makerUris2 = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenB, tokenA); // order doesn't matter
 
             // Then
-            expect(makerUris1).to.deep.eq(['https://maker1.asdf', 'https://maker2.asdf']);
-            expect(makerUris2).to.deep.eq(['https://maker1.asdf', 'https://maker2.asdf']);
+            expect(makerUris1).toEqual(['https://maker1.asdf', 'https://maker2.asdf']);
+            expect(makerUris2).toEqual(['https://maker1.asdf', 'https://maker2.asdf']);
         });
 
         it('should ignore casing when considering pairs', async () => {
@@ -110,40 +107,20 @@ describe('RfqMakerManager', () => {
             rfqMaker[0].pairs = [[token_0xd, token_0xF]];
             rfqMaker[1].pairs = [[token_0xd.toLowerCase(), token_0xF.toLowerCase()]]; // case doesn't matter
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSet);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
-            const makerUris1 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(token_0xd, token_0xF);
-            const makerUris2 = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(
+            const makerUris1 = rfqMakerManager.getRfqmV2MakerUrisForPair(token_0xd, token_0xF);
+            const makerUris2 = rfqMakerManager.getRfqmV2MakerUrisForPair(
                 token_0xd.toUpperCase(),
                 token_0xF.toUpperCase(),
             ); // case doesn't matter
 
             // Then
-            expect(makerUris1).to.deep.eq(makerUris2);
-        });
-
-        it('should filter for only those uris that offer OtcOrder', async () => {
-            // Given
-            rfqMaker[0].pairs = [[tokenA, tokenB]];
-            rfqMaker[1].pairs = [[tokenA, tokenB]];
-            const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
-
-            const makerIdSetForMaker2Only: MakerIdSet = new Set();
-            makerIdSetForMaker2Only.add('maker2');
-            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSetForMaker2Only);
-
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
-            await rfqMakerManager.initializeAsync();
-
-            // When
-            const uris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenB);
-
-            // Then
-            expect(uris).to.deep.eq(['https://maker2.asdf']);
+            expect(makerUris1).toEqual(makerUris2);
         });
 
         it('should return [] if no maker uris are providing liquidity', async () => {
@@ -154,21 +131,21 @@ describe('RfqMakerManager', () => {
 
             const makerIdSetForMaker2Only: MakerIdSet = new Set();
             makerIdSetForMaker2Only.add('maker2');
-            const configManager = createMockConfigManager(makerIdSet, new Set(), makerIdSetForMaker2Only);
+            const configManager = createMockConfigManager(new Set(), makerIdSet, makerIdSetForMaker2Only);
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
-            const uris = rfqMakerManager.getRfqmMakerUrisForPairOnOtcOrder(tokenA, tokenC);
+            const uris = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenA, tokenC);
 
             // Then
-            expect(uris).to.deep.eq([]);
+            expect(uris).toEqual([]);
         });
     });
 
-    describe('getRfqmMakerOfferingsForRfqOrder', () => {
-        it('should return the RfqMakerAssetOfferings for RfqOrder', async () => {
+    describe('getRfqtV2MakerOfferings', () => {
+        it('should return the RfqMakerAssetOfferings for OtcOrder', async () => {
             // Given
             const rfqMakerForMaker123 = [...rfqMaker];
             rfqMakerForMaker123[0].pairs = [[tokenA, tokenB]];
@@ -178,8 +155,8 @@ describe('RfqMakerManager', () => {
                 chainId: CHAIN_ID,
                 pairs: [[tokenA, tokenC]],
                 updatedAt: new Date(),
-                rfqtUri: null,
-                rfqmUri: 'https://maker3.asdf',
+                rfqtUri: 'https://maker3.asdf',
+                rfqmUri: null,
             });
 
             const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMakerForMaker123);
@@ -193,17 +170,17 @@ describe('RfqMakerManager', () => {
             await rfqMakerManager.initializeAsync();
 
             // When
-            const assetOfferings = rfqMakerManager.getRfqmMakerOfferingsForRfqOrder();
+            const assetOfferings = rfqMakerManager.getRfqtV2MakerOfferings();
 
             // Then
-            expect(assetOfferings).to.deep.eq({
+            expect(assetOfferings).toEqual({
                 'https://maker2.asdf': [[tokenA, tokenB]],
                 'https://maker3.asdf': [[tokenA, tokenC]],
             });
         });
     });
 
-    describe('getRfqtMakerOfferingsForRfqOrder', () => {
+    describe('getRfqtV1MakerOfferings', () => {
         it('should return the RfqMakerAssetOfferings for RfqOrder', async () => {
             // Given
             const rfqMakerForMaker123 = [...rfqMaker];
@@ -223,19 +200,35 @@ describe('RfqMakerManager', () => {
             const makerIdSetWithMakers23: MakerIdSet = new Set();
             makerIdSetWithMakers23.add('maker2');
             makerIdSetWithMakers23.add('maker3');
-            const configManager = createMockConfigManager(new Set(), new Set(), new Set(), makerIdSetWithMakers23);
+            const configManager = createMockConfigManager(makerIdSetWithMakers23, new Set(), new Set());
 
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
             await rfqMakerManager.initializeAsync();
 
             // When
-            const assetOfferings = rfqMakerManager.getRfqtMakerOfferingsForRfqOrder();
+            const assetOfferings = rfqMakerManager.getRfqtV1MakerOfferings();
 
             // Then
-            expect(assetOfferings).to.deep.eq({
+            expect(assetOfferings).toEqual({
                 'https://maker2.asdf': [[tokenA, tokenB]],
                 'https://maker3.asdf': [[tokenA, tokenC]],
             });
+        });
+    });
+    describe('getRfqtV2MakersForPair', () => {
+        it('should return the market makers trading rfqt-otc', async () => {
+            rfqMaker[0].pairs = [[tokenB, tokenA]];
+            rfqMaker[1].pairs = [[tokenB, tokenB]]; // This maker should not be included in the result
+
+            const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
+            const configManager = createMockConfigManager(new Set(), new Set(['maker1', 'maker2']), new Set());
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
+            await rfqMakerManager.initializeAsync();
+
+            const makers = rfqMakerManager.getRfqtV2MakersForPair(tokenA, tokenB);
+
+            expect(makers.length).toEqual(1);
+            expect(makers[0].makerId).toEqual('maker1');
         });
     });
 });

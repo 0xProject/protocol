@@ -280,11 +280,11 @@ describe('RFQM Integration', () => {
 
         // Create the mock RfqMakerManager
         const rfqMakerManagerMock = mock(RfqMakerManager);
-        when(rfqMakerManagerMock.getRfqmMakerUrisForPairOnOtcOrder(anyString(), anyString())).thenReturn([
+        when(rfqMakerManagerMock.getRfqmV2MakerUrisForPair(anyString(), anyString())).thenReturn([
             MARKET_MAKER_2,
             MARKET_MAKER_3,
         ]);
-        when(rfqMakerManagerMock.getRfqmMakerOfferings()).thenReturn({
+        when(rfqMakerManagerMock.getRfqmV2MakerOfferings()).thenReturn({
             'https://mock-rfqm1.club': [
                 ['0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c', '0x0b1ba0af832d7c05fd64161e0db78e85978e8082'],
             ],
@@ -308,7 +308,7 @@ describe('RFQM Integration', () => {
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
         const rfqMakerManagerChain3Mock = mock(RfqMakerManager);
-        when(rfqMakerManagerChain3Mock.getRfqmMakerOfferings()).thenReturn({
+        when(rfqMakerManagerChain3Mock.getRfqmV2MakerOfferings()).thenReturn({
             'https://mock-rfqm1.club': [],
         });
         const rfqMakerManagerChainId3 = instance(rfqMakerManagerChain3Mock);

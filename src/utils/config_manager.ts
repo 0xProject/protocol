@@ -13,12 +13,12 @@ import {
     RFQM_API_KEY_WHITELIST,
     RFQM_MAKER_ID_SET,
     RFQM_MAKER_ID_SET_FOR_OTC_ORDER,
-    RFQM_MAKER_ID_SET_FOR_RFQ_ORDER,
+    RFQT_MAKER_ID_SET_FOR_OTC_ORDER,
     RFQT_MAKER_ID_SET_FOR_RFQ_ORDER,
     RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
 
-import { pairUtils } from './pair_utils';
+import { toPairString } from './pair_utils';
 
 const getApiKeyHash = (apiKey: string): string => createHash('sha256').update(apiKey).digest('base64');
 
@@ -63,10 +63,10 @@ export class ConfigManager {
     }
 
     /**
-     * Get a set of makers that support RFQm workflow with rfq order type
+     * Get a set of makers that support RFQt workflow with otc order type
      */
-    public getRfqmMakerIdSetForRfqOrder(): MakerIdSet {
-        return RFQM_MAKER_ID_SET_FOR_RFQ_ORDER;
+    public getRfqtMakerIdSetForOtcOrder(): MakerIdSet {
+        return RFQT_MAKER_ID_SET_FOR_OTC_ORDER;
     }
 
     /**
@@ -81,7 +81,7 @@ export class ConfigManager {
      */
     public getFeeModelConfiguration(chainId: number, tokenA: string, tokenB: string): FeeModelConfiguration {
         if (FEE_MODEL_CONFIGURATION_MAP.has(chainId)) {
-            const pairKey = pairUtils.toKey(tokenA, tokenB);
+            const pairKey = toPairString(tokenA, tokenB);
             const innerMap = FEE_MODEL_CONFIGURATION_MAP.get(chainId)!;
             if (innerMap.has(pairKey)) {
                 return innerMap.get(pairKey)!;

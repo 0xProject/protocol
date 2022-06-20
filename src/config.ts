@@ -21,7 +21,7 @@ import {
     ONE_MINUTE_MS,
 } from './constants';
 import { schemas } from './schemas';
-import { pairUtils } from './utils/pair_utils';
+import { toPairString } from './utils/pair_utils';
 import { schemaUtils } from './utils/schema_utils';
 
 // tslint:disable:no-bitwise
@@ -124,7 +124,7 @@ export const FEE_MODEL_CONFIGURATION_MAP: FeeModelConfigurationMap = (() => {
             if (!acc.has(chainId)) {
                 acc.set(chainId, new Map<string, FeeModelConfiguration>());
             }
-            acc.get(chainId)!.set(pairUtils.toKey(tokenA, tokenB), { marginRakeRatio, tradeSizeBps });
+            acc.get(chainId)!.set(toPairString(tokenA, tokenB), { marginRakeRatio, tradeSizeBps });
             return acc;
         }, new Map</* chainId */ number, Map</* pairKey */ string, FeeModelConfiguration>>());
     } catch (e) {
@@ -324,9 +324,9 @@ export const ADMIN_API_KEY: string | undefined = _.isEmpty(process.env.ADMIN_API
     ? undefined
     : assertEnvVarType('ADMIN_API_KEY', process.env.ADMIN_API_KEY, EnvVarType.NonEmptyString);
 
-export const RFQT_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqt');
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
-export const RFQM_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqm');
+export const RFQT_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqt');
+export const RFQT_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqt');
 export const RFQM_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqm');
 
 /**
