@@ -348,17 +348,6 @@ describe('MarketOperationUtils tests', () => {
             fromTokenIdx: 0,
             toTokenIdx: 1,
         },
-        [ERC20BridgeSource.Smoothy]: {
-            pool: {
-                poolAddress: randomAddress(),
-                tokens: [TAKER_TOKEN, MAKER_TOKEN],
-                exchangeFunctionSelector: hexUtils.random(4),
-                sellQuoteFunctionSelector: hexUtils.random(4),
-                buyQuoteFunctionSelector: hexUtils.random(4),
-            },
-            fromTokenIdx: 0,
-            toTokenIdx: 1,
-        },
         [ERC20BridgeSource.Saddle]: {
             pool: {
                 poolAddress: randomAddress(),
