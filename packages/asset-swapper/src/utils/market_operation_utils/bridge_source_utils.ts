@@ -519,7 +519,6 @@ export function uniswapV2LikeRouterAddress(
     source:
         | ERC20BridgeSource.UniswapV2
         | ERC20BridgeSource.SushiSwap
-        | ERC20BridgeSource.CryptoCom
         | ERC20BridgeSource.PancakeSwap
         | ERC20BridgeSource.PancakeSwapV2
         | ERC20BridgeSource.BakerySwap
@@ -546,8 +545,6 @@ export function uniswapV2LikeRouterAddress(
             return UNISWAPV2_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.SushiSwap:
             return SUSHISWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.CryptoCom:
-            return CRYPTO_COM_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.PancakeSwap:
             return PANCAKESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.PancakeSwapV2:
