@@ -380,7 +380,6 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
         [ERC20BridgeSource.DodoV2]: {},
-        [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
         [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [], router: randomAddress(), poolsPath: [] },
