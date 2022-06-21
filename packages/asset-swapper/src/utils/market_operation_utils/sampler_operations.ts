@@ -475,62 +475,6 @@ export class SamplerOperations {
         });
     }
 
-    public getSmoothySellQuotes(
-        pool: CurveInfo,
-        fromTokenIdx: number,
-        toTokenIdx: number,
-        takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<CurveFillData> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Smoothy,
-            fillData: {
-                pool,
-                fromTokenIdx,
-                toTokenIdx,
-            },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromSmoothy,
-            params: [
-                {
-                    poolAddress: pool.poolAddress,
-                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
-                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
-                },
-                new BigNumber(fromTokenIdx),
-                new BigNumber(toTokenIdx),
-                takerFillAmounts,
-            ],
-        });
-    }
-
-    public getSmoothyBuyQuotes(
-        pool: CurveInfo,
-        fromTokenIdx: number,
-        toTokenIdx: number,
-        makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<CurveFillData> {
-        return new SamplerContractOperation({
-            source: ERC20BridgeSource.Smoothy,
-            fillData: {
-                pool,
-                fromTokenIdx,
-                toTokenIdx,
-            },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromSmoothy,
-            params: [
-                {
-                    poolAddress: pool.poolAddress,
-                    sellQuoteFunctionSelector: pool.sellQuoteFunctionSelector,
-                    buyQuoteFunctionSelector: pool.buyQuoteFunctionSelector,
-                },
-                new BigNumber(fromTokenIdx),
-                new BigNumber(toTokenIdx),
-                makerFillAmounts,
-            ],
-        });
-    }
-
     public getBalancerV2MultihopSellQuotes(
         vault: string,
         quoteSwaps: BalancerSwapInfo, // Should always be sell swap steps.
@@ -1530,15 +1474,6 @@ export class SamplerOperations {
                                 source,
                             ),
                         );
-                    case ERC20BridgeSource.Smoothy:
-                        return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getSmoothySellQuotes(
-                                pool,
-                                pool.tokens.indexOf(takerToken),
-                                pool.tokens.indexOf(makerToken),
-                                takerFillAmounts,
-                            ),
-                        );
                     case ERC20BridgeSource.Shell:
                     case ERC20BridgeSource.Component:
                         return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
@@ -1875,15 +1810,6 @@ export class SamplerOperations {
                                 pool.makerTokenIdx,
                                 makerFillAmounts,
                                 source,
-                            ),
-                        );
-                    case ERC20BridgeSource.Smoothy:
-                        return getCurveLikeInfosForPair(this.chainId, takerToken, makerToken, source).map(pool =>
-                            this.getSmoothyBuyQuotes(
-                                pool,
-                                pool.tokens.indexOf(takerToken),
-                                pool.tokens.indexOf(makerToken),
-                                makerFillAmounts,
                             ),
                         );
                     case ERC20BridgeSource.Shell:
