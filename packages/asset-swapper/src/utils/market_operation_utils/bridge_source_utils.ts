@@ -8,7 +8,6 @@ import {
     BELT_BSC_INFOS,
     BISWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
-    COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_AVALANCHE_INFOS,
@@ -527,7 +526,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.ApeSwap
         | ERC20BridgeSource.CheeseSwap
         | ERC20BridgeSource.QuickSwap
-        | ERC20BridgeSource.ComethSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
         | ERC20BridgeSource.ShibaSwap
@@ -562,8 +560,6 @@ export function uniswapV2LikeRouterAddress(
             return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.QuickSwap:
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.ComethSwap:
-            return COMETHSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Dfyn:
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.WaultSwap:
