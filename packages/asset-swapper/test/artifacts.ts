@@ -31,7 +31,6 @@ import * as IMStable from '../test/generated-artifacts/IMStable.json';
 import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
 import * as IPlatypus from '../test/generated-artifacts/IPlatypus.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
-import * as ISmoothy from '../test/generated-artifacts/ISmoothy.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
 import * as KyberDmmSampler from '../test/generated-artifacts/KyberDmmSampler.json';
@@ -44,7 +43,6 @@ import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSamp
 import * as PlatypusSampler from '../test/generated-artifacts/PlatypusSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
-import * as SmoothySampler from '../test/generated-artifacts/SmoothySampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
@@ -78,7 +76,6 @@ export const artifacts = {
     PlatypusSampler: PlatypusSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
-    SmoothySampler: SmoothySampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
@@ -96,7 +93,6 @@ export const artifacts = {
     IMultiBridge: IMultiBridge as ContractArtifact,
     IPlatypus: IPlatypus as ContractArtifact,
     IShell: IShell as ContractArtifact,
-    ISmoothy: ISmoothy as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
     TestNativeOrderSampler: TestNativeOrderSampler as ContractArtifact,

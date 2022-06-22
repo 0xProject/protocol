@@ -135,8 +135,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Ellipsis');
         case ERC20BridgeSource.Component:
             return encodeBridgeSourceId(BridgeProtocol.Shell, 'Component');
-        case ERC20BridgeSource.Smoothy:
-            return encodeBridgeSourceId(BridgeProtocol.Curve, 'Smoothy');
         case ERC20BridgeSource.Saddle:
             return encodeBridgeSourceId(BridgeProtocol.Nerve, 'Saddle');
         case ERC20BridgeSource.XSigma:
@@ -151,8 +149,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.KyberDmm, 'KyberDmm');
         case ERC20BridgeSource.QuickSwap:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'QuickSwap');
-        case ERC20BridgeSource.ComethSwap:
-            return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'ComethSwap');
         case ERC20BridgeSource.Dfyn:
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Dfyn');
         case ERC20BridgeSource.CurveV2:
@@ -236,7 +232,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Synapse:
         case ERC20BridgeSource.Belt:
         case ERC20BridgeSource.Ellipsis:
-        case ERC20BridgeSource.Smoothy:
         case ERC20BridgeSource.Saddle:
         case ERC20BridgeSource.XSigma:
         case ERC20BridgeSource.FirebirdOneSwap:
@@ -284,7 +279,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.ApeSwap:
         case ERC20BridgeSource.CheeseSwap:
         case ERC20BridgeSource.QuickSwap:
-        case ERC20BridgeSource.ComethSwap:
         case ERC20BridgeSource.Dfyn:
         case ERC20BridgeSource.WaultSwap:
         case ERC20BridgeSource.ShibaSwap:
@@ -506,7 +500,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Synapse]: curveEncoder,
     [ERC20BridgeSource.Belt]: curveEncoder,
     [ERC20BridgeSource.Ellipsis]: curveEncoder,
-    [ERC20BridgeSource.Smoothy]: curveEncoder,
     [ERC20BridgeSource.Saddle]: curveEncoder,
     [ERC20BridgeSource.XSigma]: curveEncoder,
     [ERC20BridgeSource.FirebirdOneSwap]: curveEncoder,
@@ -544,7 +537,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.WaultSwap]: routerAddressPathEncoder,
     // Polygon
     [ERC20BridgeSource.QuickSwap]: routerAddressPathEncoder,
-    [ERC20BridgeSource.ComethSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Dfyn]: routerAddressPathEncoder,
     // Generic pools
     [ERC20BridgeSource.Shell]: poolEncoder,

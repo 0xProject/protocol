@@ -8,7 +8,6 @@ import {
     BELT_BSC_INFOS,
     BISWAP_ROUTER_BY_CHAIN_ID,
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
-    COMETHSWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_AVALANCHE_INFOS,
@@ -42,8 +41,6 @@ import {
     SADDLE_MAINNET_INFOS,
     SHELL_POOLS_BY_CHAIN_ID,
     SHIBASWAP_ROUTER_BY_CHAIN_ID,
-    SMOOTHY_BSC_INFOS,
-    SMOOTHY_MAINNET_INFOS,
     SPIRITSWAP_ROUTER_BY_CHAIN_ID,
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
@@ -325,30 +322,6 @@ export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, ma
     );
 }
 
-export function getSmoothyInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId === ChainId.BSC) {
-        return Object.values(SMOOTHY_BSC_INFOS).filter(c =>
-            [makerToken, takerToken].every(
-                t =>
-                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                    (c.tokens.includes(t) &&
-                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
-            ),
-        );
-    } else if (chainId === ChainId.Mainnet) {
-        return Object.values(SMOOTHY_MAINNET_INFOS).filter(c =>
-            [makerToken, takerToken].every(
-                t =>
-                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                    (c.tokens.includes(t) &&
-                        [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
-            ),
-        );
-    } else {
-        return [];
-    }
-}
-
 export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
@@ -456,7 +429,6 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Synapse
         | ERC20BridgeSource.Belt
         | ERC20BridgeSource.Ellipsis
-        | ERC20BridgeSource.Smoothy
         | ERC20BridgeSource.Saddle
         | ERC20BridgeSource.IronSwap
         | ERC20BridgeSource.XSigma
@@ -483,9 +455,6 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.Ellipsis:
             pools = getEllipsisInfosForPair(chainId, takerToken, makerToken);
-            break;
-        case ERC20BridgeSource.Smoothy:
-            pools = getSmoothyInfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.Saddle:
             pools = getSaddleInfosForPair(chainId, takerToken, makerToken);
@@ -527,7 +496,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.ApeSwap
         | ERC20BridgeSource.CheeseSwap
         | ERC20BridgeSource.QuickSwap
-        | ERC20BridgeSource.ComethSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
         | ERC20BridgeSource.ShibaSwap
@@ -562,8 +530,6 @@ export function uniswapV2LikeRouterAddress(
             return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.QuickSwap:
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.ComethSwap:
-            return COMETHSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Dfyn:
             return DFYN_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.WaultSwap:

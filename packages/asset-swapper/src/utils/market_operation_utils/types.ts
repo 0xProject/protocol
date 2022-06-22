@@ -55,7 +55,6 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     KyberDmm = 'KyberDMM',
-    Smoothy = 'Smoothy',
     Component = 'Component',
     Saddle = 'Saddle',
     XSigma = 'xSigma',
@@ -82,7 +81,6 @@ export enum ERC20BridgeSource {
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
-    ComethSwap = 'ComethSwap',
     Dfyn = 'Dfyn',
     WaultSwap = 'WaultSwap',
     FirebirdOneSwap = 'FirebirdOneSwap',
@@ -132,7 +130,7 @@ export enum CurveFunctionSelectors {
     exchange_underlying_v2 = '0x65b2489b',
     get_dy_v2 = '0x556d6e9f',
     get_dy_underlying_v2 = '0x85f11d1e',
-    // Smoothy
+    // Smoothy(deprecated)
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
     // Nerve BSC, Saddle Mainnet, Synapse

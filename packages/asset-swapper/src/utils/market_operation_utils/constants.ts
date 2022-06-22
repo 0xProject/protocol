@@ -98,7 +98,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
-            ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
@@ -135,7 +134,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
-            ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.LiquidityProvider,
@@ -150,7 +148,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.QuickSwap,
-            ERC20BridgeSource.ComethSwap,
             ERC20BridgeSource.Dfyn,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Curve,
@@ -241,7 +238,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
-            ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.XSigma,
@@ -278,7 +274,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
-            ERC20BridgeSource.Smoothy,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.LiquidityProvider,
@@ -293,7 +288,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.QuickSwap,
-            ERC20BridgeSource.ComethSwap,
             ERC20BridgeSource.Dfyn,
             ERC20BridgeSource.MStable,
             ERC20BridgeSource.Curve,
@@ -742,10 +736,6 @@ export const CURVE_V2_FANTOM_POOLS = {
 
 export const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
-};
-
-export const SMOOTHY_POOLS = {
-    syUSD: '0xe5859f4efc09027a9b718781dcb2c6910cac6e91',
 };
 
 export const SADDLE_POOLS = {
@@ -1589,39 +1579,6 @@ export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     },
 };
 
-export const SMOOTHY_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SMOOTHY_POOLS.syUSD]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap_uint256,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.get_swap_amount,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SMOOTHY_POOLS.syUSD,
-        tokens: [
-            MAINNET_TOKENS.USDT,
-            MAINNET_TOKENS.USDC,
-            MAINNET_TOKENS.DAI,
-            MAINNET_TOKENS.TUSD,
-            MAINNET_TOKENS.sUSD,
-            MAINNET_TOKENS.BUSD,
-            MAINNET_TOKENS.PAX,
-            MAINNET_TOKENS.GUSD,
-        ],
-        metaTokens: undefined,
-        gasSchedule: 190e3,
-    },
-};
-
-export const SMOOTHY_BSC_INFOS: { [name: string]: CurveInfo } = {
-    [SMOOTHY_POOLS.syUSD]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap_uint256,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.get_swap_amount,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SMOOTHY_POOLS.syUSD,
-        tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDT, BSC_TOKENS.USDC, BSC_TOKENS.DAI, BSC_TOKENS.PAX, BSC_TOKENS.UST],
-        metaTokens: undefined,
-        gasSchedule: 90e3,
-    },
-};
-
 export const NERVE_BSC_INFOS: { [name: string]: CurveInfo } = {
     [NERVE_POOLS.threePool]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
@@ -2276,13 +2233,6 @@ export const QUICKSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const COMETHSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Polygon]: '0x93bcdc45f7e62f89a8e901dc4a0e2c6c427d9f25',
-    },
-    NULL_ADDRESS,
-);
-
 export const DFYN_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Polygon]: '0xa102072a4c07f06ec3b4900fdc4c7b80b6c57429',
@@ -2450,7 +2400,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Synapse]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Belt]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Ellipsis]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.Smoothy]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.IronSwap]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.XSigma]: fillData => (fillData as CurveFillData).pool.gasSchedule,
@@ -2589,7 +2538,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     // Polygon
     //
     [ERC20BridgeSource.QuickSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.ComethSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Dfyn]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.MeshSwap]: uniswapV2CloneGasSchedule,
 

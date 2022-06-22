@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.62.2",
+        "changes": [
+            {
+                "note": "Offboard Smoothy and ComethSwap",
+                "pr": 509
+            }
+        ]
+    },
+    {
         "version": "16.62.1",
         "changes": [
             {
