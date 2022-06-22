@@ -1,7 +1,7 @@
 import { MarketOperation } from '@0x/asset-swapper';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import { schemas as quoteServerSchemas, SignRequest, SubmitRequest } from '@0x/quote-server';
+import { schemas as quoteServerSchemas, SignRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
@@ -15,12 +15,6 @@ import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { IndicativeQuote, QuoteServerPriceParams } from '../types';
-
-const MARKET_MAKER_LAST_LOOK_LATENCY = new Summary({
-    name: 'market_maker_last_look_latency',
-    help: 'Latency for Last Look request to Market Makers',
-    labelNames: ['makerUri'],
-});
 
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',
@@ -286,54 +280,5 @@ export class QuoteServerClient {
 
         timerStopFn();
         return makerSignature;
-    }
-
-    /**
-     * Confirm the Last Look for an RfqOrder
-     */
-    public async confirmLastLookAsync(makerUri: string, payload: SubmitRequest): Promise<boolean> {
-        const timerStopFn = MARKET_MAKER_LAST_LOOK_LATENCY.labels(makerUri).startTimer();
-        try {
-            const response = await this._axiosInstance.post(`${makerUri}/submit`, payload, {
-                timeout: ONE_SECOND_MS * 2,
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const validationResult = schemaValidator.validate(response.data, quoteServerSchemas.submitReceiptSchema);
-            if (validationResult.errors && validationResult.errors.length > 0) {
-                const errorsMsg = validationResult.errors.map((err) => JSON.stringify(err)).join(',');
-                throw new Error(`Error from validator: ${errorsMsg}`);
-            }
-            const responseFee: Fee = {
-                amount: new BigNumber(response.data.fee.amount),
-                token: response.data.fee.token,
-                type: response.data.fee.type,
-            };
-
-            if (!_.isEqual(responseFee, payload.fee)) {
-                throw new Error('Fee in response is not equal to fee in request');
-            }
-
-            if (response.data.signedOrderHash !== payload.orderHash) {
-                throw new Error(
-                    `Requested trade for order hash ${payload.orderHash} - received response for order hash ${response.data.signedOrderHash}`,
-                );
-            }
-
-            if (response.data.takerTokenFillAmount !== payload.takerTokenFillAmount.toString()) {
-                throw new Error(
-                    'takerTokenFillableAmount in response is not equal to takerTokenFillableAmount in request',
-                );
-            }
-
-            return response.data.proceedWithFill === true;
-        } catch (error) {
-            logger.error(
-                { errorMessage: error.message, makerUri },
-                'Encountered an error when confirming last look with market maker',
-            );
-            return false;
-        } finally {
-            timerStopFn();
-        }
     }
 }
