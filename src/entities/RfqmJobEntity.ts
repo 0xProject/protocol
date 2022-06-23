@@ -3,12 +3,20 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { BigNumberTransformer } from './transformers';
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export interface StoredFee {
     token: string;
     amount: string;
     type: 'fixed' | 'bps';
 }
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export enum RfqmJobStatus {
     // Transaction has been enqueued and will be processed once a worker is available
     PendingEnqueued = 'pending_enqueued',
@@ -46,6 +54,10 @@ export enum RfqmJobStatus {
     SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export enum RfqmOrderTypes {
     V4Rfq = 'v4Rfq',
 }
@@ -55,13 +67,25 @@ export interface V4RfqStoredOrder {
     order: V4StringRfqOrderFields;
 }
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export interface V4RfqStoredOrder {
     type: RfqmOrderTypes.V4Rfq;
     order: V4StringRfqOrderFields;
 }
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export type StoredOrder = V4RfqStoredOrder;
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export interface V4StringRfqOrderFields {
     txOrigin: string;
     maker: string;
@@ -79,7 +103,10 @@ export interface V4StringRfqOrderFields {
 
 export type RfqmJobConstructorOpts = Pick<RfqmJobEntity, 'calldata' | 'chainId' | 'expiry' | 'makerUri' | 'orderHash'> &
     Partial<RfqmJobEntity>;
-
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 @Entity({ name: 'rfqm_jobs' })
 export class RfqmJobEntity {
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })

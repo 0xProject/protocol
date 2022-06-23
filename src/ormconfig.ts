@@ -14,14 +14,12 @@ import {
     RfqmQuoteEntity,
     RfqmTransactionSubmissionEntity,
     RfqmWorkerHeartbeatEntity,
-    SignedOrderEntity,
     SignedOrderV4Entity,
     TransactionEntity,
 } from './entities';
 
 const entities = [
     BlockedAddressEntity,
-    SignedOrderEntity,
     PersistentSignedOrderEntity,
     TransactionEntity,
     KeyValueEntity,

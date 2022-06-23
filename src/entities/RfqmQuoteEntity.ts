@@ -2,9 +2,17 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { StoredFee, StoredOrder } from './RfqmJobEntity';
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 export type RfqmQuoteConstructorOpts = Pick<RfqmQuoteEntity, 'chainId' | 'makerUri' | 'orderHash'> &
     Partial<RfqmQuoteEntity>;
 
+/**
+ * @deprecated
+ * Kept here to ensure existing migrations type check
+ */
 @Entity({ name: 'rfqm_quotes' })
 export class RfqmQuoteEntity {
     @PrimaryColumn({ name: 'order_hash', type: 'varchar' })
