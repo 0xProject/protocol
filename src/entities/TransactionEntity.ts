@@ -4,10 +4,31 @@ import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } fro
 
 import { META_TXN_RELAY_EXPECTED_MINED_SEC } from '../config';
 import { ONE_SECOND_MS, ZERO } from '../constants';
-import { TransactionStates } from '../types';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
 import { TransactionEntityOpts } from './types';
+
+enum TransactionStates {
+    // transaction has been constructed, but not yet submitted to the network.
+    Unsubmitted = 'unsubmitted',
+    // transaction has been submitted to the network.
+    Submitted = 'submitted',
+    // transaction has been spotted in the mempool.
+    Mempool = 'mempool',
+    // transaction has not been mined in the expected time.
+    Stuck = 'stuck',
+    // transaction has been mined.
+    Included = 'included',
+    // transaction is confirmed.
+    Confirmed = 'confirmed',
+    // transaction is no longer in the mempool.
+    Dropped = 'dropped',
+    // transaction has been aborted because a new transaction with the same
+    // nonce has been mined.
+    Aborted = 'aborted',
+    // transaction was in an unsubmitted state for too long.
+    Cancelled = 'cancelled',
+}
 
 @Entity({ name: 'transactions' })
 export class TransactionEntity {
