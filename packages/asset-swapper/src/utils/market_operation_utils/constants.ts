@@ -96,6 +96,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Lido,
+            ERC20BridgeSource.USDiPsm,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Component,
@@ -236,6 +237,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
+            ERC20BridgeSource.USDiPsm,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Component,
@@ -2008,6 +2010,12 @@ export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
         psmAddress: NULL_ADDRESS,
     },
 );
+export const USDI_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
+    {
+            [ChainId.Mainnet]: '0x2a54ba2964c8cd459dc568853f79813a60761b58',
+    },
+    NULL_ADDRESS,
+);
 
 export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
     {
@@ -2419,6 +2427,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     },
     [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 200e3,
+    [ERC20BridgeSource.USDiPsm]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
         return psmFillData.takerToken === psmFillData.gemTokenAddress ? 210e3 : 290e3;

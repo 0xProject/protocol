@@ -42,7 +42,7 @@ These packages are all under development. See [/contracts/README.md](/contracts/
 
 ## Usage
 
-Node version 6.x or 8.x is required.
+Node version 16.13.x is required.
 
 Most of the packages require additional typings for external dependencies.
 You can include those by prepending the `@0x/typescript-typings` package to your [`typeRoots`](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) config.
@@ -59,7 +59,7 @@ We strongly recommend that the community help us make improvements and determine
 
 ### Install dependencies
 
-Make sure you are using Yarn v1.9.4. To install using brew:
+Make sure you are using Yarn v1.22.0. To install using brew:
 
 ```bash
 brew install yarn@1.9.4

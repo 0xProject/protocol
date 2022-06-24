@@ -48,6 +48,7 @@ import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
 import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.json';
 import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
+import * as USDiPSMSampler from '../test/generated-artifacts/USDiPSMSampler.json';
 import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
 import * as VelodromeSampler from '../test/generated-artifacts/VelodromeSampler.json';
 export const artifacts = {
@@ -77,6 +78,7 @@ export const artifacts = {
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
+    USDiPSMSampler: USDiPSMSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,

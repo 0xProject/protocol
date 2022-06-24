@@ -40,6 +40,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
     UniswapV3PathAmount,
+    USDiPsmFillData,
     VelodromeFillData,
 } from './types';
 
@@ -103,6 +104,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
         case ERC20BridgeSource.LiquidityProvider:
             // "LiquidityProvider" is too long to encode (17 characters).
             return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
+        case ERC20BridgeSource.USDiPsm:
+            return encodeBridgeSourceId(BridgeProtocol.USDiPsm, 'USDiPsm');
         case ERC20BridgeSource.MakerPsm:
             return encodeBridgeSourceId(BridgeProtocol.MakerPsm, 'MakerPsm');
         case ERC20BridgeSource.Mooniswap:
@@ -329,6 +332,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([mStableFillData.router]);
             break;
+
+        case ERC20BridgeSource.USDiPsm:
+            const USDiFillData = (order as OptimizedMarketBridgeOrder<USDiPsmFillData>).fillData;
+            bridgeData = encoder.encode([USDiFillData.psmAddress]);
+            break;
         case ERC20BridgeSource.MakerPsm:
             const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
             bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
@@ -465,6 +473,10 @@ const makerPsmEncoder = AbiEncoder.create([
     { name: 'psmAddress', type: 'address' },
     { name: 'gemTokenAddress', type: 'address' },
 ]);
+
+const USDiPsmEncoder = AbiEncoder.create([
+    { name: 'psmAddress', type: 'address' },
+]);
 const balancerV2Encoder = AbiEncoder.create([
     { name: 'vault', type: 'address' },
     { name: 'poolId', type: 'bytes32' },
@@ -548,6 +560,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
+    [ERC20BridgeSource.USDiPsm]: USDiPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: AbiEncoder.create([
         { name: 'vault', type: 'address' },
         {

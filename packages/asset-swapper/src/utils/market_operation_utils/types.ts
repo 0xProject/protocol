@@ -46,6 +46,7 @@ export enum ERC20BridgeSource {
     Cream = 'CREAM',
     Bancor = 'Bancor',
     MakerPsm = 'MakerPsm',
+    USDiPsm = 'USDiPsm',
     MStable = 'mStable',
     Mooniswap = 'Mooniswap',
     MultiHop = 'MultiHop',
@@ -293,6 +294,11 @@ export interface MakerPsmExtendedData {
 }
 
 export type MakerPsmFillData = FillData & MakerPsmExtendedData & PsmInfo;
+
+export interface USDiPsmExtendedData {
+    psmAddress: string;
+}
+export type USDiPsmFillData = FillData & USDiPsmExtendedData;
 
 export interface HopInfo {
     sourceIndex: BigNumber;

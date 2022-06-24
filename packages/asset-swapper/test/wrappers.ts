@@ -43,6 +43,7 @@ export * from '../test/generated-wrappers/sampler_utils';
 export * from '../test/generated-wrappers/shell_sampler';
 export * from '../test/generated-wrappers/test_native_order_sampler';
 export * from '../test/generated-wrappers/two_hop_sampler';
+export * from '../test/generated-wrappers/u_s_di_p_s_m_sampler';
 export * from '../test/generated-wrappers/uniswap_sampler';
 export * from '../test/generated-wrappers/uniswap_v2_sampler';
 export * from '../test/generated-wrappers/uniswap_v3_sampler';

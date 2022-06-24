@@ -44,6 +44,7 @@ import "./mixins/MixinShell.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
+import "./mixins/MixinUSDiPSM.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract EthereumBridgeAdapter is
@@ -70,6 +71,7 @@ contract EthereumBridgeAdapter is
     MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
+    MixinUSDiPSM,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -260,7 +262,16 @@ contract EthereumBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.UNKNOWN) {
+        } else if (protocolId == BridgeProtocols.USDIPSM) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeUSDiPsm(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        }
+        else if (protocolId == BridgeProtocols.UNKNOWN) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeZeroExBridge(
                 sellToken,

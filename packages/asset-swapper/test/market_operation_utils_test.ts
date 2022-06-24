@@ -372,6 +372,7 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
         [ERC20BridgeSource.Uniswap]: { router: randomAddress() },
         [ERC20BridgeSource.MakerPsm]: {},
+        [ERC20BridgeSource.USDiPsm]: {},
         [ERC20BridgeSource.KyberDmm]: { tokenAddressPath: [], router: randomAddress(), poolsPath: [] },
     };
 

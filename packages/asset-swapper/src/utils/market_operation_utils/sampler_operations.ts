@@ -48,6 +48,7 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
+    USDI_ADDRESS_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
@@ -96,6 +97,7 @@ import {
     TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
+    USDiPsmFillData,
     VelodromeFillData,
 } from './types';
 
@@ -1035,6 +1037,44 @@ export class SamplerOperations {
             },
         });
     }
+    public getUSDiPsmSellQuotes(
+        psmAddress: string,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<USDiPsmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.USDiPsm,
+            fillData: {
+                isSellOperation: true,
+                takerToken,
+                makerToken,
+                psmAddress,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromUSDiPsm,
+            params: [psmAddress, takerToken, makerToken, takerFillAmounts],
+        });
+    }
+    public getUSDiPsmBuyQuotes(
+        psmAddress: string,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<USDiPsmFillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.USDiPsm,
+            fillData: {
+                isSellOperation: false,
+                takerToken,
+                makerToken,
+                psmAddress,
+            },
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromUSDiPsm,
+            params: [psmAddress, takerToken, makerToken, makerFillAmounts],
+        });
+    }
 
     public getMakerPsmSellQuotes(
         psmInfo: PsmInfo,
@@ -1605,6 +1645,13 @@ export class SamplerOperations {
                             takerToken,
                             takerFillAmounts,
                         );
+
+                    case ERC20BridgeSource.USDiPsm:
+                        const psmAddress = USDI_ADDRESS_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(psmAddress)) {
+                            return [];
+                        }
+                        return this.getUSDiPsmSellQuotes(psmAddress, makerToken, takerToken, takerFillAmounts);
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {
@@ -1943,6 +1990,13 @@ export class SamplerOperations {
                         // Unimplemented
                         // return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         return [];
+
+                    case ERC20BridgeSource.USDiPsm:
+                        const psmAddress = USDI_ADDRESS_BY_CHAIN_ID[this.chainId];
+                        if (!isValidAddress(psmAddress)) {
+                            return [];
+                        }
+                        return this.getUSDiPsmBuyQuotes(psmAddress, makerToken, takerToken, makerFillAmounts);
                     case ERC20BridgeSource.MakerPsm:
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {
