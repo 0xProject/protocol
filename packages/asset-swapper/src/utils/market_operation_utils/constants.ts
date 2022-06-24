@@ -2012,7 +2012,7 @@ export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
 );
 export const USDI_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
     {
-            [ChainId.Mainnet]: '0x2a54ba2964c8cd459dc568853f79813a60761b58',
+        [ChainId.Mainnet]: '0x2a54ba2964c8cd459dc568853f79813a60761b58',
     },
     NULL_ADDRESS,
 );
