@@ -77,5 +77,6 @@
     "resolutions": {
         "merkle-patricia-tree": "3.0.0",
         "**/bignumber.js": "^9.0.2"
-    }
+    },
+    "version": "1.9.4"
 }
