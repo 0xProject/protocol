@@ -2,7 +2,13 @@ import Axios, { AxiosRequestConfig } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 
-import { ChainConfigurations, RFQ_PROXY_ADDRESS, RFQ_PROXY_PORT } from '../config';
+import {
+    ALT_RFQ_MM_API_KEY,
+    ALT_RFQ_MM_PROFILE,
+    ChainConfigurations,
+    RFQ_PROXY_ADDRESS,
+    RFQ_PROXY_PORT,
+} from '../config';
 import { KEEP_ALIVE_TTL } from '../constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
@@ -26,11 +32,18 @@ export async function buildRfqtServicesAsync(
 ): Promise<RfqtServices> {
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     const configManager = new ConfigManager();
+    const altRfqOptions =
+        ALT_RFQ_MM_API_KEY !== undefined && ALT_RFQ_MM_PROFILE !== undefined
+            ? {
+                  altRfqApiKey: ALT_RFQ_MM_API_KEY!,
+                  altRfqProfile: ALT_RFQ_MM_PROFILE!,
+              }
+            : undefined;
     const services = await Promise.all(
         chainConfigurations.map(async (chain) => {
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
             await rfqMakerManager.initializeAsync();
-            const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance);
+            const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
             return new RfqtService(quoteRequestor);
         }),
     );
