@@ -13,6 +13,8 @@ import { Integrator } from '../../config';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../services/RfqtService';
 import { ConfigManager } from '../../utils/config_manager';
+import { QuoteServerClient } from '../../utils/quote_server_client';
+import { RfqMakerManager } from '../../utils/rfq_maker_manager';
 import { RfqtHandlers } from '../RfqtHandlers';
 
 jest.mock('../../services/RfqtService', () => {
@@ -36,9 +38,12 @@ jest.mock('../../utils/config_manager', () => {
     };
 });
 
-// tslint:disable-next-line: no-object-literal-type-assertion
-const mockRfqtService = jest.mocked(new RfqtService({} as QuoteRequestor));
+// tslint:disable: no-object-literal-type-assertion
+const mockRfqtService = jest.mocked(
+    new RfqtService(0, {} as RfqMakerManager, {} as QuoteRequestor, {} as QuoteServerClient),
+);
 const mockConfigManager = jest.mocked(new ConfigManager());
+// tslint:enable: no-object-literal-type-assertion
 
 // tslint:disable-next-line: custom-no-magic-numbers
 const rfqtHandlers = new RfqtHandlers(new Map([[1337, mockRfqtService]]), mockConfigManager);

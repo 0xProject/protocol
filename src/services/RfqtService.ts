@@ -3,10 +3,87 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
+import { NULL_ADDRESS } from '../constants';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
+import {
+    QuoteServerPriceParams,
+    RequireOnlyOne,
+    RfqtV2PricesApiRequestParams,
+    RfqtV2PricesApiResponseParams,
+} from '../types';
+import { QuoteServerClient } from '../utils/quote_server_client';
+import { RfqMakerManager } from '../utils/rfq_maker_manager';
+
+type RfqtV2PricesApiRequestParamsWithIntegrator = Omit<RfqtV2PricesApiRequestParams, 'integratorId'> & {
+    integrator: Integrator;
+};
 
 /**
- * Central class to contain the logic to handle RFQT Trades.
+ * Converts the parameters of an RFQt v2 prices request from 0x API
+ * into the format needed for `QuoteServerClient` to call the market makers
+ */
+function transformRfqtV2PricesParameters(
+    p: RfqtV2PricesApiRequestParamsWithIntegrator,
+    chainId: number,
+): QuoteServerPriceParams {
+    const buyTokenAddress = p.makerToken;
+    const sellTokenAddress = p.takerToken;
+    // Typescript gymnastics with `baseUnits` to caputure the "oneof" nature--
+    // By packaging them in their own little object, the type becomes:
+    //
+    // { buyAmountBaseUnits: BigNumber, sellAmountBaseUnits: undefined } |
+    // { buyAmountBaseUnits: undefined, sellAmountBaseUnits: BigNumber }
+    //
+    // This is different from not packaging them together, where the types would be:
+    //
+    // buyAmountBaseUnits: BigNumber | undefined
+    // sellAmountBaseUnits: BigNumber | undefined
+    const baseUnits =
+        p.marketOperation === MarketOperation.Buy
+            ? {
+                  buyAmountBaseUnits: p.assetFillAmount,
+                  sellAmountBaseUnits: undefined,
+              }
+            : {
+                  // This is a SELL
+                  buyAmountBaseUnits: undefined,
+                  sellAmountBaseUnits: p.assetFillAmount,
+              };
+
+    const mmRequestParameters = {
+        ...baseUnits,
+        buyTokenAddress,
+        sellTokenAddress,
+        chainId,
+        feeAmount: new BigNumber(0),
+        feeToken: NULL_ADDRESS,
+        integratorId: p.integrator.integratorId,
+        takerAddress: p.takerAddress,
+        txOrigin: p.txOrigin,
+    };
+
+    // Convert mmRequestParameters values to strings
+    const stringParameters = ((
+        o: typeof mmRequestParameters,
+    ): RequireOnlyOne<
+        Record<keyof typeof mmRequestParameters, string>,
+        'buyAmountBaseUnits' | 'sellAmountBaseUnits'
+    > => {
+        return Object.keys(o).reduce((result, key) => {
+            const value: { toString: () => string } | undefined = o[key as keyof typeof mmRequestParameters];
+            if (value !== undefined && value.toString) {
+                const stringValue = value.toString();
+                result[key] = stringValue;
+            }
+            return result;
+        }, {} as any);
+    })(mmRequestParameters);
+
+    return stringParameters;
+}
+
+/**
+ * Contains the logic to handle RFQT Trades.
  *
  * `"v1"` functions support `MetaTransaction` trades while
  * `"v2"` functions (will) support `OtcOrder` trades.
@@ -16,10 +93,15 @@ import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../
  */
 export class RfqtService {
     constructor(
+        private readonly _chainId: number,
+        private readonly _rfqMakerManager: RfqMakerManager,
+        // Used for RFQt v1 requests
         private readonly _quoteRequestor: Pick<
             QuoteRequestor,
             'requestRfqtIndicativeQuotesAsync' | 'requestRfqtFirmQuotesAsync' | 'getMakerUriForSignature'
         >,
+        // Used for RFQt v2 requests
+        private readonly _quoteServerClient: QuoteServerClient,
     ) {}
 
     /**
@@ -129,5 +211,57 @@ export class RfqtService {
                 makerUri: this._quoteRequestor.getMakerUriForSignature(q.signature),
             };
         });
+    }
+
+    /**
+     * Accepts data sent by 0x API and fetches prices from Market Makers
+     * configured on the given pair.
+     *
+     * Note that by this point, 0x API should be sending the null address
+     * as the `takerAddress` and the taker's address as the `txOrigin`.
+     */
+    public async getV2PricesAsync(
+        parameters: RfqtV2PricesApiRequestParamsWithIntegrator,
+    ): Promise<RfqtV2PricesApiResponseParams> {
+        const { integrator, makerToken, takerToken } = parameters;
+
+        // Fetch the makers active on this pair
+        const makers = this._rfqMakerManager
+            .getRfqtV2MakersForPair(makerToken, takerToken)
+            .filter((m) => m.rfqtUri !== null);
+
+        // Short circuit if no makers are active
+        if (!makers.length) {
+            return [];
+        }
+
+        // TODO (haozhuo): check to see if MM passes circuit breaker
+
+        const prices = (
+            await this._quoteServerClient.batchGetPriceV2Async(
+                makers.map((m) => /* won't be null because of previous `filter` operstion */ m.rfqtUri!),
+                integrator,
+                transformRfqtV2PricesParameters(parameters, this._chainId),
+            )
+        ).map((price) => {
+            const maker = makers.find((m) => m.rfqtUri === price.makerUri);
+            if (!maker) {
+                throw new Error(`Could not find maker with URI ${price.makerUri}`);
+            }
+            return {
+                expiry: price.expiry,
+                makerAddress: price.maker,
+                makerAmount: price.makerAmount,
+                makerId: maker.makerId,
+                makerToken: price.makerToken,
+                makerUri: price.makerUri,
+                takerAmount: price.takerAmount,
+                takerToken: price.takerToken,
+            };
+        });
+
+        // TODO (byeongminP): filter out invalid prices (firm quote validator)
+
+        return prices;
     }
 }

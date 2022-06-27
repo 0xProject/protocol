@@ -1,4 +1,5 @@
 import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
@@ -26,6 +27,36 @@ export interface FirmOtcQuote {
     order: OtcOrder;
     makerSignature?: Signature;
 }
+
+/**
+ * Parameters for the request from 0x API
+ * to 0x RFQ api for the RFQt v2 `prices` endpoint
+ */
+export interface RfqtV2PricesApiRequestParams {
+    assetFillAmount: BigNumber;
+    makerToken: string;
+    marketOperation: MarketOperation;
+    takerToken: string; // expect this to be NULL_ADDRESS
+    takerAddress: string;
+    txOrigin: string; // expect this to be the taker address
+    intentOnFilling: boolean;
+    integratorId: string;
+}
+
+/**
+ * Response format for the response to 0x API
+ * from 0x RFQ API for the RFQt v2 `prices` endpoint
+ */
+export type RfqtV2PricesApiResponseParams = {
+    expiry: BigNumber;
+    makerAddress: string;
+    makerAmount: BigNumber;
+    makerId: string;
+    makerToken: string;
+    makerUri: string;
+    takerAmount: BigNumber;
+    takerToken: string;
+}[];
 
 export type QuoteServerPriceParams = RequireOnlyOne<
     {

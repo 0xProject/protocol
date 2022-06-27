@@ -14,6 +14,7 @@ import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteReque
 import { RfqtService } from '../services/RfqtService';
 
 import { ConfigManager } from './config_manager';
+import { QuoteServerClient } from './quote_server_client';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 
@@ -44,7 +45,8 @@ export async function buildRfqtServicesAsync(
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
             await rfqMakerManager.initializeAsync();
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
-            return new RfqtService(quoteRequestor);
+            const quoteServerClient = new QuoteServerClient(axiosInstance);
+            return new RfqtService(chain.chainId, rfqMakerManager, quoteRequestor, quoteServerClient);
         }),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));
