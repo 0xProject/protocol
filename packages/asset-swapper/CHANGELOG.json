@@ -1,5 +1,18 @@
 [
     {
+        "version": "16.63.0",
+        "changes": [
+            {
+                "note": "Remove JS router",
+                "pr": 480
+            },
+            {
+                "note": "Removed Median price in favour of best gas adjusted price",
+                "pr": 480
+            }
+        ]
+    },
+    {
         "version": "16.62.2",
         "changes": [
             {
