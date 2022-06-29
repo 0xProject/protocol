@@ -269,7 +269,7 @@ describe('MarketOperationUtils tests', () => {
         };
     }
 
-    type GetMedianRateOperation = (
+    type GetBestNativeTokenSellRateOperation = (
         sources: ERC20BridgeSource[],
         makerToken: string,
         takerToken: string,
@@ -278,7 +278,7 @@ describe('MarketOperationUtils tests', () => {
         liquidityProviderAddress?: string,
     ) => BigNumber;
 
-    function createGetMedianSellRate(rate: Numberish): GetMedianRateOperation {
+    function createGetBestNativeSellRate(rate: Numberish): GetBestNativeTokenSellRateOperation {
         return (
             _sources: ERC20BridgeSource[],
             _makerToken: string,
@@ -385,7 +385,7 @@ describe('MarketOperationUtils tests', () => {
         },
         getSellQuotes: createGetMultipleSellQuotesOperationFromRates(DEFAULT_RATES),
         getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(DEFAULT_RATES),
-        getMedianSellRate: createGetMedianSellRate(1),
+        getBestNativeTokenSellRate: createGetBestNativeSellRate(1),
         getTwoHopSellQuotes: (..._params: any[]) => [],
         getTwoHopBuyQuotes: (..._params: any[]) => [],
         isAddressContract: (..._params: any[]) => false,
@@ -1062,7 +1062,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_MAKER_RATE),
                 });
                 const improvedOrdersResponse = await getMarketSellOrdersAsync(
                     marketOperationUtils,
@@ -1100,7 +1100,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_MAKER_RATE),
                 });
                 const improvedOrdersResponse = await getMarketSellOrdersAsync(
                     marketOperationUtils,
@@ -1127,7 +1127,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_MAKER_RATE),
                 });
                 const improvedOrdersResponse = await getMarketSellOrdersAsync(
                     marketOperationUtils,
@@ -1236,7 +1236,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_MAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_MAKER_RATE),
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const gasPrice = 100e9; // 100 gwei
@@ -1513,7 +1513,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_TAKER_RATE),
                 });
                 const improvedOrdersResponse = await getMarketBuyOrdersAsync(
                     marketOperationUtils,
@@ -1553,7 +1553,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_TAKER_RATE),
                 });
                 const improvedOrdersResponse = await getMarketBuyOrdersAsync(
                     marketOperationUtils,
@@ -1609,7 +1609,7 @@ describe('MarketOperationUtils tests', () => {
                 };
                 replaceSamplerOps({
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                    getMedianSellRate: createGetMedianSellRate(ETH_TO_TAKER_RATE),
+                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_TAKER_RATE),
                 });
                 const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>

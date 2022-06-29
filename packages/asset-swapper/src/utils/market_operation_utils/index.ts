@@ -163,18 +163,20 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getBestNativeTokenSellRate(
                 feeSourceFilters.sources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
+                _opts.feeSchedule,
             ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getBestNativeTokenSellRate(
                 feeSourceFilters.sources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
+                _opts.feeSchedule,
             ),
             // Get sell quotes for taker -> maker.
             this._sampler.getSellQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
@@ -274,18 +276,20 @@ export class MarketOperationUtils {
             // Get native order fillable amounts.
             this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getBestNativeTokenSellRate(
                 feeSourceFilters.sources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
+                _opts.feeSchedule,
             ),
             // Get ETH -> taker token price.
-            this._sampler.getMedianSellRate(
+            this._sampler.getBestNativeTokenSellRate(
                 feeSourceFilters.sources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
+                _opts.feeSchedule,
             ),
             // Get buy quotes for taker -> maker.
             this._sampler.getBuyQuotes(quoteSourceFilters.sources, makerToken, takerToken, sampleAmounts),
@@ -380,11 +384,12 @@ export class MarketOperationUtils {
                 this._sampler.getLimitOrderFillableMakerAmounts(orders, this.contractAddresses.exchangeProxy),
             ),
             ...batchNativeOrders.map(orders =>
-                this._sampler.getMedianSellRate(
+                this._sampler.getBestNativeTokenSellRate(
                     feeSourceFilters.sources,
                     orders[0].order.takerToken,
                     this._nativeFeeToken,
                     this._nativeFeeTokenAmount,
+                    _opts.feeSchedule,
                 ),
             ),
             ...batchNativeOrders.map((orders, i) =>

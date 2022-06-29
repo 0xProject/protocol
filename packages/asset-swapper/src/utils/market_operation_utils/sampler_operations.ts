@@ -75,6 +75,7 @@ import {
     DexSample,
     DODOFillData,
     ERC20BridgeSource,
+    FeeSchedule,
     GeistFillData,
     GeistInfo,
     GenericRouterFillData,
@@ -1309,16 +1310,22 @@ export class SamplerOperations {
         });
     }
 
-    public getMedianSellRate(
+    /**
+     * Returns the best price for the native token
+     * Best is calculated according to the fee schedule, so the price of the
+     * best source, fee adjusted, will be returned.
+     */
+    public getBestNativeTokenSellRate(
         sources: ERC20BridgeSource[],
         makerToken: string,
-        takerToken: string,
-        takerFillAmount: BigNumber,
+        nativeToken: string,
+        nativeFillAmount: BigNumber,
+        feeSchedule: FeeSchedule,
     ): BatchedOperation<BigNumber> {
-        if (makerToken.toLowerCase() === takerToken.toLowerCase()) {
+        if (makerToken.toLowerCase() === nativeToken.toLowerCase()) {
             return SamplerOperations.constant(new BigNumber(1));
         }
-        const subOps = this._getSellQuoteOperations(sources, makerToken, takerToken, [takerFillAmount], {
+        const subOps = this._getSellQuoteOperations(sources, makerToken, nativeToken, [nativeFillAmount], {
             default: [],
         });
         return this._createBatch(
@@ -1327,15 +1334,35 @@ export class SamplerOperations {
                 if (samples.length === 0) {
                     return ZERO_AMOUNT;
                 }
-                const flatSortedSamples = samples
-                    .reduce((acc, v) => acc.concat(...v))
-                    .filter(v => !v.isZero())
-                    .sort((a, b) => a.comparedTo(b));
-                if (flatSortedSamples.length === 0) {
-                    return ZERO_AMOUNT;
-                }
-                const medianSample = flatSortedSamples[Math.floor(flatSortedSamples.length / 2)];
-                return medianSample.div(takerFillAmount);
+
+                const adjustedPrices = subOps.map((s, i) => {
+                    // If the source gave us nothing, skip it and return a default
+                    if (samples[i].length === 0 || samples[i][0].isZero()) {
+                        return { adjustedPrice: ZERO_AMOUNT, source: s.source, price: ZERO_AMOUNT };
+                    }
+                    const v = samples[i][0];
+                    const price = v.dividedBy(nativeFillAmount);
+                    // Create an adjusted price to avoid selecting the following:
+                    // * a source that is too expensive to arbitrage given the gas environment
+                    // * when a number of sources are poorly priced or liquidity is low
+
+                    // Fee is already gas * gasPrice
+                    const fee = feeSchedule[subOps[i].source]
+                        ? feeSchedule[subOps[i].source]!(subOps[i].fillData).fee
+                        : ZERO_AMOUNT;
+                    const adjustedNativeAmount = nativeFillAmount.plus(fee);
+                    const adjustedPrice = v.div(adjustedNativeAmount);
+                    return {
+                        adjustedPrice,
+                        source: subOps[i].source,
+                        price,
+                    };
+                });
+
+                const sortedPrices = adjustedPrices.sort((a, b) => a.adjustedPrice.comparedTo(b.adjustedPrice));
+                const selectedPrice = sortedPrices[sortedPrices.length - 1].price;
+
+                return selectedPrice;
             },
             () => ZERO_AMOUNT,
         );
