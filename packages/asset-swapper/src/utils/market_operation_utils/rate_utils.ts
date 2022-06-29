@@ -1,9 +1,20 @@
+import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { DexSample, ERC20BridgeSource, ExchangeProxyOverhead, FeeSchedule, MultiHopFillData } from './types';
+import { adjustOutput } from './fills';
+import { IdentityFillAdjustor } from './identity_fill_adjustor';
+import {
+    DexSample,
+    ERC20BridgeSource,
+    ExchangeProxyOverhead,
+    FeeSchedule,
+    Fill,
+    FillAdjustor,
+    MultiHopFillData,
+} from './types';
 
 // tslint:disable:no-bitwise
 
@@ -18,20 +29,55 @@ export function getTwoHopAdjustedRate(
     outputAmountPerEth: BigNumber,
     fees: FeeSchedule = {},
     exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
+    fillAdjustor: FillAdjustor = new IdentityFillAdjustor(),
 ): BigNumber {
     const { output, input, fillData } = twoHopQuote;
     if (input.isLessThan(targetInput) || output.isZero()) {
         return ZERO_AMOUNT;
     }
-    const penalty = outputAmountPerEth.times(
-        exchangeProxyOverhead(
-            SOURCE_FLAGS.MultiHop |
-                SOURCE_FLAGS[fillData.firstHopSource.source] |
-                SOURCE_FLAGS[fillData.secondHopSource.source],
-        ).plus(fees[ERC20BridgeSource.MultiHop]!(fillData)),
-    );
-    const adjustedOutput = side === MarketOperation.Sell ? output.minus(penalty) : output.plus(penalty);
-    return side === MarketOperation.Sell ? adjustedOutput.div(input) : input.div(adjustedOutput);
+
+    // Flags to indicate which sources are used
+    const flags =
+        SOURCE_FLAGS.MultiHop |
+        SOURCE_FLAGS[fillData.firstHopSource.source] |
+        SOURCE_FLAGS[fillData.secondHopSource.source];
+
+    // Penalty of going to those sources in terms of output
+    const sourcePenalty = outputAmountPerEth.times(fees[ERC20BridgeSource.MultiHop]!(fillData).fee).integerValue();
+
+    // Create a Fill so it can be adjusted by the `FillAdjustor`
+    const fill: Fill = {
+        ...twoHopQuote,
+        flags,
+        type: FillQuoteTransformerOrderType.Bridge,
+        adjustedOutput: adjustOutput(side, twoHopQuote.output, sourcePenalty),
+        sourcePathId: `${ERC20BridgeSource.MultiHop}-${fillData.firstHopSource.source}-${fillData.secondHopSource.source}`,
+        // We don't have this information at this stage
+        gas: 0,
+    };
+    // Adjust the individual Fill
+    // HACK: Chose the worst of slippage between the two sources in multihop
+    const adjustedOutputLeft = fillAdjustor.adjustFills(
+        side,
+        [{ ...fill, source: fillData.firstHopSource.source }],
+        targetInput,
+    )[0].adjustedOutput;
+    const adjustedOutputRight = fillAdjustor.adjustFills(
+        side,
+        [{ ...fill, source: fillData.secondHopSource.source }],
+        targetInput,
+    )[0].adjustedOutput;
+    // In Sells, output smaller is worse (you're getting less out)
+    // In Buys, output larger is worse (it's costing you more)
+    const fillAdjustedOutput =
+        side === MarketOperation.Sell
+            ? BigNumber.min(adjustedOutputLeft, adjustedOutputRight)
+            : BigNumber.max(adjustedOutputLeft, adjustedOutputRight);
+
+    const pathPenalty = outputAmountPerEth.times(exchangeProxyOverhead(flags)).integerValue();
+    const pathAdjustedOutput = adjustOutput(side, fillAdjustedOutput, pathPenalty);
+
+    return getRate(side, input, pathAdjustedOutput);
 }
 
 /**
@@ -59,6 +105,8 @@ export function getCompleteRate(
 
 /**
  * Computes the rate given the input/output of a path.
+ *
+ * If it is a sell, output/input. If it is a buy, input/output.
  */
 export function getRate(side: MarketOperation, input: BigNumber, output: BigNumber): BigNumber {
     if (input.eq(0) || output.eq(0)) {

@@ -401,44 +401,9 @@ export interface Fill<TFillData extends FillData = FillData> {
     output: BigNumber;
     // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
-    // Fill that must precede this one. This enforces certain fills to be contiguous.
-    parent?: Fill;
-    // The index of the fill in the original path.
-    index: number;
+    // The expected gas cost of this fill
+    gas: number;
 }
-
-/**
- * Represents continguous fills on a path that have been merged together.
- */
-export interface CollapsedFill<TFillData extends FillData = FillData> {
-    source: ERC20BridgeSource;
-    type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData: TFillData;
-    // Unique ID of the original source path this fill belongs to.
-    // This is generated when the path is generated and is useful to distinguish
-    // paths that have the same `source` IDs but are distinct (e.g., Curves).
-    sourcePathId: string;
-    /**
-     * Total input amount (sum of `subFill`s)
-     */
-    input: BigNumber;
-    /**
-     * Total output amount (sum of `subFill`s)
-     */
-    output: BigNumber;
-    /**
-     * Quantities of all the fills that were collapsed.
-     */
-    subFills: Array<{
-        input: BigNumber;
-        output: BigNumber;
-    }>;
-}
-
-/**
- * A `CollapsedFill` wrapping a native order.
- */
-export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
@@ -448,24 +413,21 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     takerToken: string;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
-    fills: CollapsedFill[];
+    fill: Omit<Fill, 'flags' | 'fillData' | 'sourcePathId' | 'source' | 'type'>; // Remove duplicates which have been brought into the OrderBase interface
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
     extends OptimizedMarketOrderBase<TFillData> {
     type: FillQuoteTransformerOrderType.Bridge;
-    fillData: TFillData;
     sourcePathId: string;
 }
 
 export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
     type: FillQuoteTransformerOrderType.Limit;
-    fillData: NativeLimitOrderFillData;
 }
 
 export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
     type: FillQuoteTransformerOrderType.Rfq;
-    fillData: NativeRfqOrderFillData;
 }
 
 /**
@@ -482,8 +444,12 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }
 
-export type FeeEstimate = (fillData: FillData) => number | BigNumber;
+export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
+
+export type GasEstimate = (fillData: FillData) => number;
+export type GasSchedule = Partial<{ [key in ERC20BridgeSource]: GasEstimate }>;
+
 export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
 
 /**
@@ -547,7 +513,7 @@ export interface GetMarketOrdersOpts {
     /**
      * Estimated gas consumed by each liquidity source.
      */
-    gasSchedule: FeeSchedule;
+    gasSchedule: GasSchedule;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different
@@ -582,6 +548,11 @@ export interface GetMarketOrdersOpts {
      * Sampler metrics for recording data on the sampler service and operations
      */
     samplerMetrics?: SamplerMetrics;
+
+    /**
+     * Adjusts fills individual fills based on caller supplied criteria
+     */
+    fillAdjustor: FillAdjustor;
 }
 
 export interface SamplerMetrics {
@@ -627,7 +598,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
-    liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    liquidityDelivered: Readonly<Fill[] | DexSample<MultiHopFillData>>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
     takerAmountPerEth: BigNumber;
@@ -695,8 +666,13 @@ export interface GenerateOptimizedOrdersOpts {
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
     samplerMetrics?: SamplerMetrics;
+    fillAdjustor: FillAdjustor;
 }
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
+}
+
+export interface FillAdjustor {
+    adjustFills: (side: MarketOperation, fills: Fill[], amount: BigNumber) => Fill[];
 }

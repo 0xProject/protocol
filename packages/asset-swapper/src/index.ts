@@ -4,7 +4,7 @@ export {
     ContractTxFunctionObj,
     SendTransactionOpts,
 } from '@0x/base-contract';
-export { ContractAddresses } from '@0x/contract-addresses';
+export { ContractAddresses, ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 export {
     V4RFQFirmQuote,
     V4RFQIndicativeQuote,
@@ -132,6 +132,7 @@ export {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    ZERO_AMOUNT,
 } from './utils/market_operation_utils/constants';
 export {
     Parameters,
@@ -141,7 +142,6 @@ export {
 export {
     BalancerFillData,
     BancorFillData,
-    CollapsedFill,
     CurveFillData,
     CurveFunctionSelectors,
     CurveInfo,
@@ -150,7 +150,9 @@ export {
     ERC20BridgeSource,
     ExchangeProxyOverhead,
     FeeSchedule,
+    GasSchedule,
     Fill,
+    FillAdjustor,
     FillData,
     GetMarketOrdersRfqOpts,
     LiquidityProviderFillData,
@@ -159,7 +161,6 @@ export {
     MarketDepthSide,
     MooniswapFillData,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeRfqOrderFillData,
     NativeLimitOrderFillData,
     NativeFillData,
@@ -168,6 +169,7 @@ export {
     TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';
+export { IdentityFillAdjustor } from './utils/market_operation_utils/identity_fill_adjustor';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {
     BridgeQuoteReportEntry,
@@ -191,3 +193,5 @@ export type Native = ERC20BridgeSource.Native;
 export type MultiHop = ERC20BridgeSource.MultiHop;
 
 export { rfqtMocker, RfqtQuoteEndpoint } from './utils/rfqt_mocker';
+
+export { adjustOutput } from './utils/market_operation_utils/fills';

@@ -282,7 +282,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // ETH buy/sell is supported
             ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
         ) {
-            const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
+            const fillData = slippedOrders[0].fillData as CurveFillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -311,7 +311,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
         ) {
-            const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
+            const fillData = slippedOrders[0].fillData as MooniswapFillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(

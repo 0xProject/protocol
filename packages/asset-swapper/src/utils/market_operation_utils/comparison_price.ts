@@ -48,7 +48,7 @@ export function getComparisonPrices(
     } else {
         try {
             const fillFeeInEth = new BigNumber(
-                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }),
+                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }).fee,
             );
             const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
             feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);

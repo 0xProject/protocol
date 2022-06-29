@@ -5,12 +5,11 @@ import _ = require('lodash');
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     FillData,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
@@ -123,7 +122,7 @@ export interface PriceComparisonsReport {
 export function generateQuoteReport(
     marketOperation: MarketOperation,
     nativeOrders: NativeOrderWithFillableAmounts[],
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    liquidityDelivered: ReadonlyArray<Fill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
@@ -174,7 +173,7 @@ export function generateQuoteReport(
 export function generateExtendedQuoteReportSources(
     marketOperation: MarketOperation,
     quotes: RawQuotes,
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    liquidityDelivered: ReadonlyArray<Fill> | DexSample<MultiHopFillData>,
     amount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
@@ -343,7 +342,7 @@ export function multiHopSampleToReportSource(
     }
 }
 
-function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {
+function _isNativeOrderFromCollapsedFill(cf: Fill): cf is Fill<NativeFillData> {
     const { type } = cf;
     return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
 }
