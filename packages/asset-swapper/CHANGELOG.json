@@ -10,7 +10,8 @@
                 "note": "Removed Median price in favour of best gas adjusted price",
                 "pr": 480
             }
-        ]
+        ],
+        "timestamp": 1656491792
     },
     {
         "version": "16.62.2",
