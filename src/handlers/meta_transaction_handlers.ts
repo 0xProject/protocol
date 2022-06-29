@@ -1,7 +1,6 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { assert } from '@0x/assert';
-import { ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
-import { ChainId } from '@0x/contract-addresses';
+import { ChainId, ERC20BridgeSource, Signature, SwapQuoterError } from '@0x/asset-swapper';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -82,7 +81,13 @@ export class MetaTransactionHandlers {
             if (params.includePriceComparisons && quoteReport) {
                 const marketSide = params.sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;
                 quoteResponse.priceComparisons = priceComparisonUtils
-                    .getPriceComparisonFromQuote(CHAIN_ID, marketSide, metaTransactionQuote)
+                    .getPriceComparisonFromQuote(
+                        CHAIN_ID,
+                        marketSide,
+                        metaTransactionQuote,
+                        undefined,
+                        DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+                    )
                     ?.map((sc) => priceComparisonUtils.renameNative(sc));
             }
 
@@ -165,6 +170,8 @@ export class MetaTransactionHandlers {
                     CHAIN_ID,
                     marketSide,
                     metaTransactionPriceCalculation,
+                    undefined,
+                    DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
                 );
                 metaTransactionPriceResponse.priceComparisons = priceComparisons?.map((pc) =>
                     priceComparisonUtils.renameNative(pc),

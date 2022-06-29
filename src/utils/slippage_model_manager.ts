@@ -1,8 +1,10 @@
-import { ERC20BridgeSource } from '@0x/asset-swapper';
+import { ERC20BridgeSource, NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '@0x/asset-swapper';
+import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import { Counter } from 'prom-client';
 
 import {
+    CHAIN_ID,
     SLIPPAGE_MODEL_REFRESH_INTERVAL_MS,
     SLIPPAGE_MODEL_S3_BUCKET_NAME,
     SLIPPAGE_MODEL_S3_FILE_NAME,
@@ -75,6 +77,15 @@ const createSlippageModelCache = (slippageModelFileContent: string, logLabels: {
 };
 
 /**
+ * If the token is represented as 0xeeee.. than convert to the wrapped token
+ * representation (e.g WETH)
+ */
+const normalizeTokenAddress = (token: string): string => {
+    const isNativeAsset = isNativeSymbolOrAddress(token, CHAIN_ID);
+    return isNativeAsset ? NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID].toLowerCase() : token.toLowerCase();
+};
+
+/**
  * Calculate `expectedSlippage` of an order based on slippage model
  */
 const calculateExpectedSlippageForModel = (
@@ -129,6 +140,8 @@ export class SlippageModelManager {
         sources: GetSwapQuoteResponseLiquiditySource[],
         maxSlippageRate: number,
     ): BigNumber | null {
+        const normalizedBuyToken = normalizeTokenAddress(buyToken);
+        const normalizedSellToken = normalizeTokenAddress(sellToken);
         let expectedSlippage = new BigNumber(0);
         for (const source of sources) {
             if (source.proportion.isEqualTo(0)) {
@@ -136,8 +149,8 @@ export class SlippageModelManager {
             }
 
             const singleSourceSlippage = this._calculateSingleSourceExpectedSlippage(
-                buyToken,
-                sellToken,
+                normalizedBuyToken,
+                normalizedSellToken,
                 buyAmount,
                 sellAmount,
                 source,

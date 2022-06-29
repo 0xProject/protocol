@@ -35,6 +35,7 @@ import {
 } from '../config';
 import {
     AFFILIATE_DATA_SELECTOR,
+    DEFAULT_ENABLE_SLIPPAGE_PROTECTION,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     MARKET_DEPTH_DEFAULT_DISTRIBUTION,
     MARKET_DEPTH_MAX_SAMPLES,
@@ -224,7 +225,13 @@ export class SwapHandlers {
         );
         if (params.includePriceComparisons && quote.priceComparisonsReport) {
             const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
-            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(CHAIN_ID, side, quote);
+            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                CHAIN_ID,
+                side,
+                quote,
+                this._swapService.slippageModelManager,
+                params.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+            );
             response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
         const duration = (new Date().getTime() - begin) / ONE_SECOND_MS;
@@ -279,7 +286,13 @@ export class SwapHandlers {
         if (params.includePriceComparisons && quote.priceComparisonsReport) {
             const marketSide = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
             response.priceComparisons = priceComparisonUtils
-                .getPriceComparisonFromQuote(CHAIN_ID, marketSide, quote)
+                .getPriceComparisonFromQuote(
+                    CHAIN_ID,
+                    marketSide,
+                    quote,
+                    this._swapService.slippageModelManager,
+                    params.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+                )
                 ?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
 
@@ -525,18 +538,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         ]);
     }
 
-    // Log the request if it passes all validations
-    req.log.info({
-        type: 'swapRequest',
-        endpoint,
-        updatedExcludedSources,
-        nativeExclusivelyRFQT,
-        // TODO (MKR-123): Remove once the log source has been updated.
-        apiKey: integratorId || 'N/A',
-        integratorId: integratorId || 'N/A',
-        rawApiKey: apiKey || 'N/A',
-    });
-
     const rfqt: Pick<RfqRequestOpts, 'intentOnFilling' | 'isIndicative' | 'nativeExclusivelyRFQ'> | undefined = (() => {
         if (apiKey) {
             if (endpoint === 'quote' && takerAddress) {
@@ -558,6 +559,26 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
 
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const integrator = integratorId ? getIntegratorByIdOrThrow(integratorId) : undefined;
+
+    // tslint:disable:boolean-naming
+    const enableSlippageProtection = parseOptionalBooleanParam(
+        req.query.enableSlippageProtection as string,
+        DEFAULT_ENABLE_SLIPPAGE_PROTECTION,
+    );
+
+    // Log the request if it passes all validations
+    req.log.info({
+        type: 'swapRequest',
+        endpoint,
+        updatedExcludedSources,
+        nativeExclusivelyRFQT,
+        // TODO (MKR-123): Remove once the log source has been updated.
+        apiKey: integratorId || 'N/A',
+        integratorId: integratorId || 'N/A',
+        integratorLabel: integrator?.label || 'N/A',
+        rawApiKey: apiKey || 'N/A',
+        enableSlippageProtection,
+    });
 
     return {
         affiliateAddress: affiliateAddress as string,
@@ -584,8 +605,20 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         skipValidation,
         slippagePercentage,
         takerAddress: takerAddress as string,
+        enableSlippageProtection,
     };
 };
+
+/**
+ * If undefined, use the default value, else parse the value as a boolean.
+ */
+
+function parseOptionalBooleanParam(param: string | undefined, defaultValue: boolean): boolean {
+    if (param === undefined || param === '') {
+        return defaultValue;
+    }
+    return param === 'true';
+}
 
 /*
  * Extract the quote ID from the quote filldata

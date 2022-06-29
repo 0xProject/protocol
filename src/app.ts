@@ -4,11 +4,12 @@ require('./apm');
 import {
     artifacts,
     AssetSwapperContractAddresses,
+    ChainId,
     ContractAddresses,
     ERC20BridgeSamplerContract,
+    getContractAddressesForChainOrThrow,
     SupportedProvider,
 } from '@0x/asset-swapper';
-import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { Web3Wrapper } from '@0x/dev-utils';
 import { S3 } from 'aws-sdk';
 import axios from 'axios';

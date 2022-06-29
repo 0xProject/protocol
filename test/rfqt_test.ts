@@ -1,5 +1,6 @@
 // tslint:disable:max-file-line-count
 import {
+    ContractAddresses,
     ERC20BridgeSource,
     MockedRfqQuoteResponse,
     RfqOrder,
@@ -8,7 +9,6 @@ import {
     RfqtQuoteEndpoint,
     Signature,
 } from '@0x/asset-swapper';
-import { ContractAddresses } from '@0x/contract-addresses';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';

@@ -1,4 +1,4 @@
-import { ChainId } from '@0x/contract-addresses';
+import { ChainId } from '@0x/asset-swapper';
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { IZeroExContract } from '@0x/contracts-zero-ex';
 import { MetaTransaction, RfqOrder, Signature } from '@0x/protocol-utils';

@@ -1,6 +1,7 @@
 import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import {
     AffiliateFeeType,
+    ChainId,
     ContractAddresses,
     ERC20BridgeSource,
     ExtendedQuoteReportSources,
@@ -11,7 +12,6 @@ import {
     Signature,
     SupportedProvider,
 } from '@0x/asset-swapper';
-import { ChainId } from '@0x/contract-addresses';
 import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -235,6 +235,7 @@ export interface SourceComparison {
     savingsInEth: BigNumber | null;
     buyAmount: BigNumber | null;
     sellAmount: BigNumber | null;
+    expectedSlippage: BigNumber | null;
 }
 
 export interface AffiliateFee {
@@ -295,6 +296,8 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
     integrator?: Integrator;
     // The HTTP request origin
     origin?: string;
+    // Whether the optimal route accounts for expected slippage for each liquidity source
+    enableSlippageProtection?: boolean;
 }
 
 // GET /swap/price

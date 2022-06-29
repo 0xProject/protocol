@@ -2,8 +2,7 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { ERC20BridgeSource } from '@0x/asset-swapper';
-import { ChainId } from '@0x/contract-addresses';
+import { ChainId, ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
@@ -60,6 +59,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -71,6 +72,7 @@ describe(SUITE_NAME, () => {
                     buyAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
 
                 // Native sample not found
@@ -81,6 +83,7 @@ describe(SUITE_NAME, () => {
                     savingsInEth: null,
                     sellAmount: null,
                     buyAmount: null,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -88,21 +91,27 @@ describe(SUITE_NAME, () => {
         it('returns comparison prices for quote reporter sources when quoting buyAmount', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
 
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.Uniswap,
-                            fillData: {},
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    ...daiWethQuoteBase,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.Uniswap,
+                                fillData: {},
+                            },
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 // Uniswap sample found
@@ -113,6 +122,7 @@ describe(SUITE_NAME, () => {
                     buyAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
 
                 // Native sample not found
@@ -123,6 +133,7 @@ describe(SUITE_NAME, () => {
                     savingsInEth: null,
                     sellAmount: null,
                     buyAmount: null,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -154,6 +165,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -165,6 +178,7 @@ describe(SUITE_NAME, () => {
                     buyAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
 
                 // Native placeholder instead of invalid 0 amount result
@@ -175,6 +189,7 @@ describe(SUITE_NAME, () => {
                     savingsInEth: null,
                     sellAmount: null,
                     buyAmount: null,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -182,27 +197,33 @@ describe(SUITE_NAME, () => {
         it('filters out incomplete samples with 0 takerAmount when quoting buyAmount', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
 
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.Uniswap,
-                            fillData: {},
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: ZERO,
-                            liquiditySource: ERC20BridgeSource.MStable,
-                            fillData: {},
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    ...daiWethQuoteBase,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.Uniswap,
+                                fillData: {},
+                            },
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: ZERO,
+                                liquiditySource: ERC20BridgeSource.MStable,
+                                fillData: {},
+                            },
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 // Uniswap sample found
@@ -213,6 +234,7 @@ describe(SUITE_NAME, () => {
                     buyAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
 
                 // Native placeholder instead of invalid 0 amount result
@@ -223,6 +245,7 @@ describe(SUITE_NAME, () => {
                     savingsInEth: null,
                     sellAmount: null,
                     buyAmount: null,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -258,6 +281,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -269,6 +294,7 @@ describe(SUITE_NAME, () => {
                     buyAmount: wethAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -279,28 +305,34 @@ describe(SUITE_NAME, () => {
 
             const price = usdcAmount.div(wethAmount).times(1e12).decimalPlaces(6);
 
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                buyTokenAddress: WETH.tokenAddress,
-                sellTokenAddress: USDC.tokenAddress,
-                buyAmount: wethAmount,
-                sellAmount: usdcAmount,
-                sellTokenToEthRate: ethToDaiRate,
-                buyTokenToEthRate: ethToDaiRate,
-                gasPrice,
-                estimatedGas,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: wethAmount,
-                            takerAmount: usdcAmount,
-                            liquiditySource: ERC20BridgeSource.Uniswap,
-                            fillData: {},
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    buyTokenAddress: WETH.tokenAddress,
+                    sellTokenAddress: USDC.tokenAddress,
+                    buyAmount: wethAmount,
+                    sellAmount: usdcAmount,
+                    sellTokenToEthRate: ethToDaiRate,
+                    buyTokenToEthRate: ethToDaiRate,
+                    gasPrice,
+                    estimatedGas,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: wethAmount,
+                                takerAmount: usdcAmount,
+                                liquiditySource: ERC20BridgeSource.Uniswap,
+                                fillData: {},
+                            },
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 // Uniswap sample found
@@ -311,6 +343,7 @@ describe(SUITE_NAME, () => {
                     buyAmount: wethAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -345,6 +378,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -356,47 +391,54 @@ describe(SUITE_NAME, () => {
                     buyAmount: daiAmount,
                     gas: new BigNumber(111e3),
                     savingsInEth: savingsInEthVsUniswapV1,
+                    expectedSlippage: null,
                 },
             ]);
         });
 
         it('returns the sample with lowest gas usage for the same output amounts when quoting buyAmount', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                // Path length > 2 receives a higher gas estimate
-                                tokenAddressPath: [{}, {}, {}],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    ...daiWethQuoteBase,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    // Path length > 2 receives a higher gas estimate
+                                    tokenAddressPath: [{}, {}, {}],
+                                },
                             },
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                tokenAddressPath: [],
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    tokenAddressPath: [],
+                                },
                             },
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                // Path length > 2 receives a higher gas estimate
-                                tokenAddressPath: [{}, {}, {}],
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    // Path length > 2 receives a higher gas estimate
+                                    tokenAddressPath: [{}, {}, {}],
+                                },
                             },
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 {
@@ -406,6 +448,7 @@ describe(SUITE_NAME, () => {
                     sellAmount,
                     gas: new BigNumber(1.71e5),
                     savingsInEth: savingsInEthVsUniswapV2,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -451,6 +494,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -461,6 +506,7 @@ describe(SUITE_NAME, () => {
                     sellAmount,
                     gas: new BigNumber(1.71e5),
                     savingsInEth: savingsInEthVsUniswapV2,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -496,6 +542,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -506,38 +554,45 @@ describe(SUITE_NAME, () => {
                     sellAmount,
                     gas: new BigNumber(1.71e5),
                     savingsInEth: savingsInEthVsUniswapV2,
+                    expectedSlippage: null,
                 },
             ]);
         });
 
         it('returns the overall cheapest sample taking gas into account for buyAmount quotes', () => {
             const price = sellAmount.div(buyAmount).decimalPlaces(18);
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                // Path length > 2 receives a higher gas estimate
-                                tokenAddressPath: [{}, {}, {}],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    ...daiWethQuoteBase,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    // Path length > 2 receives a higher gas estimate
+                                    tokenAddressPath: [{}, {}, {}],
+                                },
                             },
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                tokenAddressPath: [],
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    tokenAddressPath: [],
+                                },
                             },
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 {
@@ -547,6 +602,7 @@ describe(SUITE_NAME, () => {
                     sellAmount,
                     gas: new BigNumber(1.71e5),
                     savingsInEth: savingsInEthVsUniswapV2,
+                    expectedSlippage: null,
                 },
             ]);
         });
@@ -583,6 +639,8 @@ describe(SUITE_NAME, () => {
                         nativeSources: [],
                     },
                 },
+                undefined,
+                0,
             );
 
             expect(comparisons).to.deep.include.members([
@@ -593,39 +651,46 @@ describe(SUITE_NAME, () => {
                     savingsInEth: ZERO,
                     buyAmount: buyAmount.plus(1e18),
                     sellAmount,
+                    expectedSlippage: null,
                 },
             ]);
         });
 
         it('ignores gas cost when sellTokenToEthRate is 0 for buyAmount quotes', () => {
             const price = sellAmount.minus(0.004e18).div(buyAmount).decimalPlaces(18, BigNumber.ROUND_CEIL);
-            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(ChainId.Mainnet, MarketOperation.Buy, {
-                ...daiWethQuoteBase,
-                sellTokenToEthRate: ZERO,
-                priceComparisonsReport: {
-                    dexSources: [
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                // Path length > 2 receives a higher gas estimate
-                                tokenAddressPath: [{}, {}, {}],
+            const comparisons = priceComparisonUtils.getPriceComparisonFromQuote(
+                ChainId.Mainnet,
+                MarketOperation.Buy,
+                {
+                    ...daiWethQuoteBase,
+                    sellTokenToEthRate: ZERO,
+                    priceComparisonsReport: {
+                        dexSources: [
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount.minus(0.004e18), // Taker needs to sell $1.33 less but $1.66 higher gas costs
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    // Path length > 2 receives a higher gas estimate
+                                    tokenAddressPath: [{}, {}, {}],
+                                },
                             },
-                        },
-                        {
-                            makerAmount: buyAmount,
-                            takerAmount: sellAmount,
-                            liquiditySource: ERC20BridgeSource.UniswapV2,
-                            fillData: {
-                                tokenAddressPath: [],
+                            {
+                                makerAmount: buyAmount,
+                                takerAmount: sellAmount,
+                                liquiditySource: ERC20BridgeSource.UniswapV2,
+                                fillData: {
+                                    tokenAddressPath: [],
+                                },
                             },
-                        },
-                    ],
-                    multiHopSources: [],
-                    nativeSources: [],
+                        ],
+                        multiHopSources: [],
+                        nativeSources: [],
+                    },
                 },
-            });
+                undefined,
+                0,
+            );
 
             expect(comparisons).to.deep.include.members([
                 {
@@ -635,6 +700,7 @@ describe(SUITE_NAME, () => {
                     savingsInEth: ZERO,
                     buyAmount,
                     sellAmount: sellAmount.minus(0.004e18),
+                    expectedSlippage: null,
                 },
             ]);
         });

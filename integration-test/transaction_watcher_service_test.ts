@@ -1,4 +1,4 @@
-import { ChainId } from '@0x/contract-addresses';
+import { ChainId } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { Web3ProviderEngine } from '@0x/dev-utils';
 import { RPCSubprovider, SupportedProvider } from '@0x/subproviders';

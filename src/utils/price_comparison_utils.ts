@@ -1,12 +1,12 @@
 import {
+    ChainId,
     DEFAULT_GAS_SCHEDULE,
     ERC20BridgeSource,
-    FeeSchedule,
+    GasSchedule,
     PriceComparisonsReport,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     UniswapV2FillData,
 } from '@0x/asset-swapper';
-import { ChainId } from '@0x/contract-addresses';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -18,9 +18,11 @@ import { GAS_LIMIT_BUFFER_MULTIPLIER, TX_BASE_GAS, ZERO } from '../constants';
 import { logger } from '../logger';
 import { SourceComparison } from '../types';
 
+import { SlippageModelManager } from './slippage_model_manager';
+
 // NOTE: Our internal Uniswap gas usage may be lower than the Uniswap UI usage
 // Therefore we need to adjust the gas estimates to be representative of using the Uniswap UI.
-const gasScheduleWithOverrides: FeeSchedule = {
+const gasScheduleWithOverrides: GasSchedule = {
     ...DEFAULT_GAS_SCHEDULE,
     [ERC20BridgeSource.UniswapV2]: (fillData) => {
         let gas = 1.5e5;
@@ -51,6 +53,7 @@ const NULL_SOURCE_COMPARISONS = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources
             savingsInEth: null,
             buyAmount: null,
             sellAmount: null,
+            expectedSlippage: null,
         });
         return memo;
     },
@@ -62,9 +65,11 @@ export const priceComparisonUtils = {
         chainId: ChainId,
         side: MarketOperation,
         quote: PartialQuote,
+        slippageModelManager: SlippageModelManager | undefined,
+        maxSlippageRate: number,
     ): SourceComparison[] | undefined {
         try {
-            return getPriceComparisonFromQuoteOrThrow(chainId, side, quote);
+            return getPriceComparisonFromQuoteOrThrow(chainId, side, quote, slippageModelManager, maxSlippageRate);
         } catch (e) {
             logger.error(`Error calculating price comparisons, skipping [${e}]`);
             return undefined;
@@ -94,6 +99,8 @@ function getPriceComparisonFromQuoteOrThrow(
     chainId: ChainId,
     side: MarketOperation,
     quote: PartialQuote,
+    slippageModelManager: SlippageModelManager | undefined,
+    maxSlippageRate: number,
 ): SourceComparison[] | undefined {
     // Set up variables for calculation
     const buyToken = getTokenMetadataIfExists(quote.buyTokenAddress, chainId);
@@ -130,6 +137,18 @@ function getPriceComparisonFromQuoteOrThrow(
         const unitMakerAmountAfterGasCosts = isSelling ? unitMakerAmount.minus(gasCost) : unitMakerAmount;
         const unitTakerAmount = Web3Wrapper.toUnitAmount(source.takerAmount, sellToken.decimals);
         const unitTakerAmountAfterGasCosts = isSelling ? unitTakerAmount : unitTakerAmount.plus(gasCost);
+        let expectedSlippage = null;
+
+        if (slippageModelManager) {
+            expectedSlippage = slippageModelManager?.calculateExpectedSlippage(
+                quote.buyTokenAddress,
+                quote.sellTokenAddress,
+                source.makerAmount,
+                source.takerAmount,
+                [{ name: source.liquiditySource, proportion: new BigNumber(1) }],
+                maxSlippageRate,
+            );
+        }
 
         return {
             ...source,
@@ -138,6 +157,7 @@ function getPriceComparisonFromQuoteOrThrow(
             unitMakerAmount,
             unitTakerAmountAfterGasCosts,
             unitMakerAmountAfterGasCosts,
+            expectedSlippage,
         };
     });
 
@@ -187,6 +207,19 @@ function getPriceComparisonFromQuoteOrThrow(
             ? savingsInTokens.dividedBy(quoteTokenToEthRate).decimalPlaces(ethToken.decimals)
             : ZERO;
 
+        let expectedSlippage = null;
+
+        if (slippageModelManager) {
+            expectedSlippage = slippageModelManager?.calculateExpectedSlippage(
+                quote.buyTokenAddress,
+                quote.sellTokenAddress,
+                source.makerAmount,
+                source.takerAmount,
+                [{ name: source.liquiditySource, proportion: new BigNumber(1) }],
+                maxSlippageRate,
+            );
+        }
+
         return {
             name: liquiditySource,
             price,
@@ -194,6 +227,7 @@ function getPriceComparisonFromQuoteOrThrow(
             buyAmount: source.makerAmount,
             gas,
             savingsInEth,
+            expectedSlippage,
         };
     });
 

@@ -1,5 +1,5 @@
 // tslint:disable custom-no-magic-numbers
-import { ChainId } from '@0x/contract-addresses';
+import { ChainId } from '@0x/asset-swapper';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
 import { artifacts as zeroExArtifacts, fullMigrateAsync, IZeroExContract } from '@0x/contracts-zero-ex';

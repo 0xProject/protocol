@@ -47,6 +47,10 @@
         },
         "feeRecipient": {
             "$ref": "/addressSchema"
+        },
+        "enableSlippageProtection": {
+            "type": "string",
+            "enum": ["true", "false"]
         }
     },
     "oneOf": [

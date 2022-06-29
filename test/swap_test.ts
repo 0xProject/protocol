@@ -1,6 +1,5 @@
 // tslint:disable:max-file-line-count
-import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ERC20BridgeSource, LimitOrderFields } from '@0x/asset-swapper';
-import { ChainId } from '@0x/contract-addresses';
+import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ChainId, ERC20BridgeSource, LimitOrderFields } from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { assertRoughlyEquals, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
@@ -15,7 +14,9 @@ import 'mocha';
 import supertest from 'supertest';
 
 // Force reload of the app avoid variables being polluted between test suites
+// Warning: You probably don't want to move this
 delete require.cache[require.resolve('../src/app')];
+
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import * as config from '../src/config';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH } from '../src/constants';

@@ -1,5 +1,6 @@
 // tslint:disable: prefer-function-over-method
-import { ChainId } from '@0x/contract-addresses';
+
+import { ChainId } from '@0x/asset-swapper';
 
 import {
     CHAIN_ID,
