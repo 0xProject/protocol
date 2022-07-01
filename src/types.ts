@@ -2,6 +2,9 @@ import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from './constants';
+import { GaslessApprovalTypes } from './services/types';
+
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
         [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
@@ -26,6 +29,62 @@ export interface FirmOtcQuote {
     makerUri: string;
     order: OtcOrder;
     makerSignature?: Signature;
+}
+
+/**
+ * Approval is an object that encapsulates the EIP-712 context that will eventually be signed by takers
+ * for gasless approvals. There are multiple flavors of these approval objects, which can be distinguished
+ * by their `kind`
+ */
+export type Approval = ExecuteMetaTransactionApproval | PermitApproval;
+export interface ExecuteMetaTransactionApproval {
+    kind: GaslessApprovalTypes.ExecuteMetaTransaction;
+    eip712: {
+        types: typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
+        primaryType: 'MetaTransaction';
+        domain: EIP712Domain;
+        message: {
+            nonce: number;
+            from: string;
+            functionSignature: string;
+        };
+    };
+}
+
+export interface PermitApproval {
+    kind: GaslessApprovalTypes.Permit;
+    eip712: {
+        types: typeof PERMIT_EIP_712_TYPES;
+        primaryType: 'Permit';
+        domain: EIP712Domain;
+        message: {
+            owner: string;
+            spender: string;
+            value: string;
+            nonce: string;
+            deadline: string;
+        };
+    };
+}
+
+export interface EIP712Context {
+    types: Record<string, EIP712DataField[]>;
+    primaryType: string;
+    domain: EIP712Domain;
+    message: Record<string, any>;
+}
+
+export interface EIP712Domain {
+    name?: string;
+    version?: string;
+    chainId?: number;
+    verifyingContract?: string;
+    salt?: string;
+}
+
+interface EIP712DataField {
+    name: string;
+    type: string;
 }
 
 /**

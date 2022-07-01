@@ -8,6 +8,12 @@ export enum RfqmTypes {
     OtcOrder = 'otc',
 }
 
+export enum GaslessApprovalTypes {
+    ExecuteMetaTransaction = 'executeMetaTransaction::approve',
+    Permit = 'permit',
+    DaiPermit = 'daiPermit',
+}
+
 export interface FetchIndicativeQuoteParams {
     affiliateAddress?: string;
     buyAmount?: BigNumber;

@@ -61,3 +61,21 @@ export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, 25); // [ 0,  0
 
 // Default list of background jobs that the processor would execute
 export const DEFAULT_BACKGROUND_JOB_TYPES = 'no_op';
+
+export const EXECUTE_META_TRANSACTION_EIP_712_TYPES = {
+    MetaTransaction: [
+        { name: 'nonce', type: 'uint256' },
+        { name: 'from', type: 'address' },
+        { name: 'functionSignature', type: 'bytes' },
+    ],
+};
+
+export const PERMIT_EIP_712_TYPES = {
+    Permit: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint256' },
+    ],
+};
