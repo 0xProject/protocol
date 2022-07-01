@@ -1,0 +1,12 @@
+{
+    "0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Balancer (PoS)",
+            "version": "1",
+            "verifyingContract": "0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x32c4fbeda87cdb850369b7f826a1e4a3a59d257ee86ccf924b4e5adb2bec3d91"
+    }
+}
