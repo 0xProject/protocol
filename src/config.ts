@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 import * as validateUUID from 'uuid-validate';
 
 import {
+    DEFAULT_BACKGROUND_JOB_TYPES,
     DEFAULT_ETH_GAS_STATION_API_URL,
     DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_LOCAL_POSTGRES_URI,
@@ -312,6 +313,14 @@ export const SENTRY_TRACES_SAMPLE_RATE = _.isEmpty(process.env.SENTRY_TRACES_SAM
     : assertEnvVarType('SENTRY_TRACES_SAMPLE_RATE', process.env.SENTRY_TRACES_SAMPLE_RATE, EnvVarType.Rate);
 
 export const REDIS_URI = _.isEmpty(process.env.REDIS_URI) ? DEFAULT_LOCAL_REDIS_URI : process.env.REDIS_URI;
+
+export const REDIS_BACKGROUND_JOB_URI = _.isEmpty(process.env.REDIS_BACKGROUND_JOB_URI)
+    ? DEFAULT_LOCAL_REDIS_URI
+    : process.env.REDIS_BACKGROUND_JOB_URI;
+
+export const BACKGROUND_JOB_TYPES = _.isEmpty(process.env.BACKGROUND_JOB_TYPES)
+    ? DEFAULT_BACKGROUND_JOB_TYPES
+    : process.env.BACKGROUND_JOB_TYPES;
 
 // Should the logger include time field in the output logs, defaults to true.
 export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIMESTAMP)

@@ -12,6 +12,7 @@ export const DEFAULT_LOCAL_REDIS_URI = 'redis://localhost';
 export const DEFAULT_LOGGER_INCLUDE_TIMESTAMP = true;
 export const ONE_SECOND_MS = 1000;
 export const ONE_MINUTE_S = 60;
+export const ONE_HOUR_S = ONE_MINUTE_S * 60;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const HEX_BASE = 16;
@@ -57,3 +58,6 @@ export const SINGLE_MESSAGE = 1;
 
 // Prometheus shared metrics
 export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, 25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]
+
+// Default list of background jobs that the processor would execute
+export const DEFAULT_BACKGROUND_JOB_TYPES = 'no_op';
