@@ -140,6 +140,7 @@ export enum BridgeProtocol {
     Platypus,
     BancorV3,
     Velodrome,
+    SpiritV2,
 }
 // tslint:enable: enum-naming
 

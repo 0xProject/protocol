@@ -49,6 +49,7 @@ import {
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
+    SPIRITV2_ROUTER_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -98,6 +99,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
     VelodromeFillData,
+    SpiritV2FillData,
 } from './types';
 
 /**
@@ -1310,6 +1312,52 @@ export class SamplerOperations {
         });
     }
 
+    public getSpiritV2SellQuotes(
+        router: string,
+        takerToken: string,
+        makerToken: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SpiritV2FillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.SpiritV2,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromSpiritV2,
+            params: [router, takerToken, makerToken, takerFillAmounts],
+            callback: (callResults: string, fillData: SpiritV2FillData): BigNumber[] => {
+                const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
+                    'sampleSellsFromSpiritV2',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.stable = isStable;
+                return samples;
+            },
+        });
+    }
+
+    public getSpiritV2BuyQuotes(
+        router: string,
+        takerToken: string,
+        makerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SpiritV2FillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.SpiritV2,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromSpiritV2,
+            params: [router, takerToken, makerToken, makerFillAmounts],
+            callback: (callResults: string, fillData: SpiritV2FillData): BigNumber[] => {
+                const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
+                    'sampleBuysFromSpiritV2',
+                    callResults,
+                );
+                fillData.router = router;
+                fillData.stable = isStable;
+                return samples;
+            },
+        });
+    }
+
     /**
      * Returns the best price for the native token
      * Best is calculated according to the fee schedule, so the price of the
@@ -1733,6 +1781,14 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
+                    case ERC20BridgeSource.SpiritV2: {
+                        return this.getSpiritV2SellQuotes(
+                            SPIRITV2_ROUTER_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -2060,6 +2116,14 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Velodrome: {
                         return this.getVelodromeBuyQuotes(
                             VELODROME_ROUTER_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
+                            makerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.SpiritV2: {
+                        return this.getSpiritV2BuyQuotes(
+                            SPIRITV2_ROUTER_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
                             makerFillAmounts,

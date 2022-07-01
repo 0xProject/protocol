@@ -42,6 +42,7 @@ import {
     UniswapV3FillData,
     UniswapV3PathAmount,
     VelodromeFillData,
+    SpiritV2FillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -210,7 +211,10 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
         case ERC20BridgeSource.Velodrome:
             return encodeBridgeSourceId(BridgeProtocol.Velodrome, 'Velodrome');
+        case ERC20BridgeSource.SpiritV2:
+            return encodeBridgeSourceId(BridgeProtocol.SpiritV2, 'SpiritV2');
         default:
+            
             throw new Error(AggregationError.NoBridgeForSource);
     }
 }
@@ -390,6 +394,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Velodrome:
             const velodromeFillData = (order as OptimizedMarketBridgeOrder<VelodromeFillData>).fillData;
             bridgeData = encoder.encode([velodromeFillData.router, velodromeFillData.stable]);
+            break;
+        case ERC20BridgeSource.SpiritV2:
+            const spiritV2FillData = (order as OptimizedMarketBridgeOrder<SpiritV2FillData>).fillData;
+            bridgeData = encoder.encode([spiritV2FillData.router, spiritV2FillData.stable]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
