@@ -534,8 +534,8 @@ export const POLYGON_TOKENS = {
     BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
-    ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
-    deUSDC: '0x1dDcaa4Ed761428ae348BEfC6718BCb12e63bFaa',
+    ANY: '0x6ab6d61428fde76768d7b45d8bfeec19c6ef91a8',
+    deUSDC: '0x1ddcaa4ed761428ae348befc6718bcb12e63bfaa',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -718,7 +718,7 @@ export const CURVE_AVALANCHE_POOLS = {
     aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
     mim: '0xaea2e71b631fa93683bcf256a8689dfa0e094fcd',
     USDC: '0x3a43a5851a3e3e0e25a3c1089670269786be1577',
-    deUSDC: '​0xd39016475200ab8957e9c772c949ef54bda69111',
+    deUSDC: '0xd39016475200ab8957e9C772C949Ef54bDA69111',
 };
 
 export const CURVE_V2_AVALANCHE_POOLS = {
@@ -1404,7 +1404,7 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POLYGON_POOLS.deUSDC]: createCurveExchangeUnderlyingPool({
         tokens: [POLYGON_TOKENS.deUSDC, POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
         pool: CURVE_POLYGON_POOLS.deUSDC,
-        gasSchedule: 350e3,
+        gasSchedule: 150e3,
     }),
 };
 
@@ -1438,7 +1438,7 @@ export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 150e3,
     }),
     [CURVE_AVALANCHE_POOLS.deUSDC]: createCurveExchangePool({
-        tokens: [AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
+        tokens: [AVALANCHE_TOKENS.deUSDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
         pool: CURVE_AVALANCHE_POOLS.USDC,
         gasSchedule: 150e3,
     }),
