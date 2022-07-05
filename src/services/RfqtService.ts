@@ -9,7 +9,7 @@ import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2PricesApiRequest, RfqtV2P
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
-type RfqtV2PricesApiRequestParamsWithIntegrator = Omit<RfqtV2PricesApiRequest, 'integratorId'> & {
+type RfqtV2PricesApiRequestWithIntegrator = Omit<RfqtV2PricesApiRequest, 'integratorId'> & {
     integrator: Integrator;
 };
 
@@ -18,7 +18,7 @@ type RfqtV2PricesApiRequestParamsWithIntegrator = Omit<RfqtV2PricesApiRequest, '
  * into the format needed for `QuoteServerClient` to call the market makers
  */
 function transformRfqtV2PricesParameters(
-    p: RfqtV2PricesApiRequestParamsWithIntegrator,
+    p: RfqtV2PricesApiRequestWithIntegrator,
     chainId: number,
 ): QuoteServerPriceParams {
     const buyTokenAddress = p.makerToken;
@@ -215,9 +215,7 @@ export class RfqtService {
      * Note that by this point, 0x API should be sending the null address
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
-    public async getV2PricesAsync(
-        parameters: RfqtV2PricesApiRequestParamsWithIntegrator,
-    ): Promise<RfqtV2PricesApiResponse> {
+    public async getV2PricesAsync(parameters: RfqtV2PricesApiRequestWithIntegrator): Promise<RfqtV2PricesApiResponse> {
         const { integrator, makerToken, takerToken } = parameters;
 
         // Fetch the makers active on this pair
@@ -234,9 +232,10 @@ export class RfqtService {
 
         const prices = (
             await this._quoteServerClient.batchGetPriceV2Async(
-                makers.map((m) => /* won't be null because of previous `filter` operstion */ m.rfqtUri!),
+                makers.map((m) => /* won't be null because of previous `filter` operation */ m.rfqtUri!),
                 integrator,
                 transformRfqtV2PricesParameters(parameters, this._chainId),
+                (url) => `${url}/rfqt/v2/price`,
             )
         ).map((price) => {
             const maker = makers.find((m) => m.rfqtUri === price.makerUri);

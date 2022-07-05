@@ -274,6 +274,7 @@ describe('Rfqt Service', () => {
                       "takerAddress": "0x0",
                       "txOrigin": "0xtakeraddress",
                     },
+                    [Function],
                   ]
                 `);
             });
@@ -327,6 +328,7 @@ describe('Rfqt Service', () => {
                       "takerAddress": "0x0",
                       "txOrigin": "0xtakeraddress",
                     },
+                    [Function],
                   ]
               `);
             });

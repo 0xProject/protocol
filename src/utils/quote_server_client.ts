@@ -133,6 +133,7 @@ export class QuoteServerClient {
      * @param makerUri - the maker URI
      * @param integrator - the integrator
      * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
+     * @param makerUriToUrl - function to transform the maker URI into its `price` endpoint
      * @returns - a Promise containing the indicative quote if available, else undefined
      * @throws - Will throw an error if a 4xx or 5xx is returned
      */
@@ -140,8 +141,9 @@ export class QuoteServerClient {
         makerUri: string,
         integrator: Integrator,
         parameters: QuoteServerPriceParams,
+        makerUriToUrl: (u: string) => string,
     ): Promise<IndicativeQuote | undefined> {
-        const response = await this._axiosInstance.get(`${makerUri}/rfqm/v2/price`, {
+        const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
             headers: {
                 '0x-request-uuid': uuid.v4(),
@@ -178,20 +180,22 @@ export class QuoteServerClient {
      * @param makerUris - a list of maker URIs
      * @param integrator - the integrator
      * @param parameters - the query parameters (created via {@link QuoteServerClient.makeQueryParameters} )
+     * @param makerUriToUrl - function to transform the maker URI into its `price` endpoint
      * @returns - a Promise containing a list of indicative quotes
      */
     public async batchGetPriceV2Async(
         makerUris: string[],
         integrator: Integrator,
         parameters: QuoteServerPriceParams,
+        makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/price`,
     ): Promise<IndicativeQuote[]> {
         return Promise.all(
-            makerUris.map(async (uri) => {
-                return this.getPriceV2Async(uri, integrator, parameters).catch((err) => {
+            makerUris.map(async (makerUri) => {
+                return this.getPriceV2Async(makerUri, integrator, parameters, makerUriToUrl).catch((err) => {
                     logger.error(
                         {
                             errorMessage: err?.message,
-                            makerUri: uri,
+                            makerUri,
                             status: err?.response?.status ?? 'unknown',
                         },
                         'Encountered an error requesting an indicative quote',

@@ -211,7 +211,12 @@ describe('QuoteServerClient', () => {
                 axiosMock.onGet(`${makerUri}/rfqm/v2/price`).replyOnce(HttpStatus.OK, response);
 
                 // When
-                const indicativeQuote = await client.getPriceV2Async(makerUri, integrator, request);
+                const indicativeQuote = await client.getPriceV2Async(
+                    makerUri,
+                    integrator,
+                    request,
+                    (uri) => `${uri}/rfqm/v2/price`,
+                );
 
                 // Then
                 const expectedResponse = {
@@ -248,7 +253,7 @@ describe('QuoteServerClient', () => {
 
                 try {
                     // When
-                    await client.getPriceV2Async(makerUri, integrator, request);
+                    await client.getPriceV2Async(makerUri, integrator, request, (uri) => `${uri}/rfqm/v2/price`);
                     expect.fail('Should not succeed');
                 } catch (err) {
                     // Then

@@ -1094,6 +1094,7 @@ export class RfqmService {
                         job.makerUri,
                         integrator,
                         otcOrderParams,
+                        (u: string) => `${u}/rfqm/v2/price`,
                     );
                     if (!priceResponse) {
                         throw new Error('Failed to get a price response');
