@@ -5,6 +5,15 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.63.0 - _June 29, 2022_
+
+    * Remove JS router (#480)
+    * Removed Median price in favour of best gas adjusted price (#480)
+
+## v16.62.2 - _Invalid date_
+
+    * Offboard Smoothy and ComethSwap (#509)
+
 ## v16.62.1 - _June 15, 2022_
 
     * Remove nUSD from intermediate liquidity to save on sampler gas (#505)

@@ -5,6 +5,7 @@ import { formatBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
 
+import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
@@ -19,6 +20,7 @@ import {
     FeeSchedule,
     FillData,
     FinalUniswapV3FillData,
+    GasSchedule,
     GeistFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
@@ -2395,7 +2397,7 @@ const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
  * the ethereum transaction cost (21k)
  */
 // tslint:disable:custom-no-magic-numbers
-export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
+export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
         const nativeFillData = fillData as { type: FillQuoteTransformerOrderType };
@@ -2583,9 +2585,20 @@ export const DEFAULT_GAS_SCHEDULE: Required<FeeSchedule> = {
     [ERC20BridgeSource.Velodrome]: () => 160e3,
 };
 
-export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = { ...DEFAULT_GAS_SCHEDULE };
+export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
+    acc[key as ERC20BridgeSource] = (fillData: FillData) => {
+        return {
+            gas: DEFAULT_GAS_SCHEDULE[key as ERC20BridgeSource](fillData),
+            fee: ZERO_AMOUNT,
+        };
+    };
+    return acc;
+    // tslint:disable-next-line:no-object-literal-type-assertion
+}, {} as Required<FeeSchedule>);
 
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
+
+export const DEFAULT_FEE_ESTIMATE = { gas: 0, fee: ZERO_AMOUNT };
 
 // tslint:enable:custom-no-magic-numbers
 
@@ -2607,4 +2620,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     shouldIncludePriceComparisonsReport: false,
     tokenAdjacencyGraph: { default: [] },
     neonRouterNumSamples: 14,
+    fillAdjustor: new IdentityFillAdjustor(),
 };

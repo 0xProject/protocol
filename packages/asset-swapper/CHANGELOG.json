@@ -1,12 +1,24 @@
 [
     {
-        "version": "16.62.3",
+        "version": "16.63.1",
         "changes": [
             {
                 "note": "Add debridge curve pools",
                 "pr": 512
             }
         ]
+        "version": "16.63.0",
+        "changes": [
+            {
+                "note": "Remove JS router",
+                "pr": 480
+            },
+            {
+                "note": "Removed Median price in favour of best gas adjusted price",
+                "pr": 480
+            }
+        ],
+        "timestamp": 1656491792
     },
     {
         "version": "16.62.2",

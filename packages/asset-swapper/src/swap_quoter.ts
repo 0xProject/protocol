@@ -33,8 +33,8 @@ import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
     ERC20BridgeSource,
-    FeeSchedule,
     FillData,
+    GasSchedule,
     GetMarketOrdersOpts,
     MarketDepth,
     MarketDepthSide,
@@ -366,9 +366,11 @@ export class SwapQuoter {
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
+            feeSchedule: _.mapValues(opts.gasSchedule, gasCost => (fillData: FillData) => {
+                const gas = gasCost ? gasCost(fillData) : 0;
+                const fee = gasPrice.times(gas);
+                return { gas, fee };
+            }),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
         // pass the QuoteRequestor on if rfqt enabled
@@ -502,7 +504,7 @@ function createSwapQuote(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): SwapQuote {
     const {
@@ -562,7 +564,7 @@ function calculateQuoteInfo(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
@@ -591,25 +593,23 @@ function calculateQuoteInfo(
 function calculateTwoHopQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
-    const [firstHopFill] = firstHopOrder.fills;
-    const [secondHopFill] = secondHopOrder.fills;
     const gas = new BigNumber(
         gasSchedule[ERC20BridgeSource.MultiHop]!({
-            firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
-            secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
+            firstHopSource: _.pick(firstHopOrder, 'source', 'fillData'),
+            secondHopSource: _.pick(secondHopOrder, 'source', 'fillData'),
         }),
     ).toNumber();
     const isSell = operation === MarketOperation.Sell;
 
     return {
         bestCaseQuoteInfo: {
-            makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
-            takerAmount: isSell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAmount: isSell ? firstHopFill.input : firstHopFill.output,
+            makerAmount: isSell ? secondHopOrder.fill.output : secondHopOrder.fill.input,
+            takerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
+            totalTakerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
@@ -635,7 +635,7 @@ function calculateTwoHopQuoteInfo(
             [ERC20BridgeSource.MultiHop]: {
                 proportion: new BigNumber(1),
                 intermediateToken: secondHopOrder.takerToken,
-                hops: [firstHopFill.source, secondHopFill.source],
+                hops: [firstHopOrder.source, secondHopOrder.source],
             },
         },
     };
