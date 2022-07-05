@@ -91,7 +91,7 @@ interface EIP712DataField {
  * Parameters for the request from 0x API
  * to 0x RFQ api for the RFQt v2 `prices` endpoint
  */
-export interface RfqtV2PricesApiRequestParams {
+export interface RfqtV2PricesApiRequest {
     assetFillAmount: BigNumber;
     makerToken: string;
     marketOperation: MarketOperation;
@@ -106,7 +106,7 @@ export interface RfqtV2PricesApiRequestParams {
  * Response format for the response to 0x API
  * from 0x RFQ API for the RFQt v2 `prices` endpoint
  */
-export type RfqtV2PricesApiResponseParams = {
+export type RfqtV2PricesApiResponse = {
     expiry: BigNumber;
     makerAddress: string;
     makerAmount: BigNumber;

@@ -5,16 +5,11 @@ import { BigNumber } from '@0x/utils';
 import { Integrator } from '../config';
 import { NULL_ADDRESS } from '../constants';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import {
-    QuoteServerPriceParams,
-    RequireOnlyOne,
-    RfqtV2PricesApiRequestParams,
-    RfqtV2PricesApiResponseParams,
-} from '../types';
+import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2PricesApiRequest, RfqtV2PricesApiResponse } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
-type RfqtV2PricesApiRequestParamsWithIntegrator = Omit<RfqtV2PricesApiRequestParams, 'integratorId'> & {
+type RfqtV2PricesApiRequestParamsWithIntegrator = Omit<RfqtV2PricesApiRequest, 'integratorId'> & {
     integrator: Integrator;
 };
 
@@ -222,7 +217,7 @@ export class RfqtService {
      */
     public async getV2PricesAsync(
         parameters: RfqtV2PricesApiRequestParamsWithIntegrator,
-    ): Promise<RfqtV2PricesApiResponseParams> {
+    ): Promise<RfqtV2PricesApiResponse> {
         const { integrator, makerToken, takerToken } = parameters;
 
         // Fetch the makers active on this pair
