@@ -6,6 +6,7 @@ import { ethSignHashWithKey, OtcOrder, RfqOrder, Signature } from '@0x/protocol-
 import { SubmitRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
+import { Wallet } from 'ethers';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
@@ -22,11 +23,17 @@ const DAI_POLYGON = '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063';
 const USDC_POLYGON = '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
 
-const MM_PRIVATE_KEY = '0xf0d8f376ca991256ddb256fb7cd28d68d971b07f5c0cf62cf0294c1ff8078a90';
-const MM_ADDRESS = '0x06754422cf9f54ae0e67d42fd788b33d8eb4c5d5';
+const RFQ1_MUMBAI = '0xbeA1BcA733A6f58C363d9ecCfc62a806Fa1afEe7';
+const RFQ2_MUMBAI = '0x72115b83Bb0dc128785F3A66ad7D2dc484852d0C';
+const RFQ3_MUMBAI = '0xb0A53DD97d672486f35787D23DC285A621537f21';
+
+const MM_PRIVATE_KEY =
+    process.env.MM_PRIVATE_KEY || '0xf0d8f376ca991256ddb256fb7cd28d68d971b07f5c0cf62cf0294c1ff8078a90';
+const MM_ADDRESS = new Wallet(MM_PRIVATE_KEY).address;
 
 const ROPSTEN_CHAIN_ID = 3;
 const POLYGON_CHAIN_ID = 137;
+const MUMBAI_CHAIN_ID = 80001;
 
 const RFQT_NONCE_BUCKET = 0;
 
@@ -38,12 +45,16 @@ const tokenToDecimals: Record<string, number> = {
     [DAI_POLYGON]: 18,
     [USDC_POLYGON]: 6,
     [USDT_POLYGON]: 6,
+    [RFQ1_MUMBAI]: 18,
+    [RFQ2_MUMBAI]: 18,
+    [RFQ3_MUMBAI]: 18,
 };
 
 const whitelistedIntegrators = new Set([
     '74188355-c85b-4f18-9de4-6dec3ec61b8d',
     '301e83b5-61f4-409b-bc61-8886dd56189d',
     '1c016c87-3128-4f78-b0f5-e90038d165ef',
+    '83b02232-83ca-4e1e-af5d-46c563d6688e', // RFQ Load Tester
 ]);
 
 /**
@@ -202,6 +213,10 @@ export class DummyMMHandlers {
         this._tokenSetByChainId.set(
             POLYGON_CHAIN_ID,
             new Set([USDC_POLYGON.toLowerCase(), USDT_POLYGON.toLowerCase()]),
+        );
+        this._tokenSetByChainId.set(
+            MUMBAI_CHAIN_ID,
+            new Set([RFQ1_MUMBAI.toLowerCase(), RFQ2_MUMBAI.toLowerCase(), RFQ3_MUMBAI.toLowerCase()]),
         );
     }
 

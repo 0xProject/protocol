@@ -18,9 +18,6 @@ spec:
       app.kubernetes.io/component: dummy-mm
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
       labels:
         app.kubernetes.io/name: rfqm
         app.kubernetes.io/component: dummy-mm
@@ -49,24 +46,6 @@ spec:
           ports:
             - containerPort: 3001
               name: http
-            - containerPort: 8080
-              name: prom
           env:
             - name: NODE_ENV
               value: "production"
-            - name: HTTP_PORT
-              value: "3001"
-            - name: LOGGER_INCLUDE_TIMESTAMP
-              value: "false"
-            - name: ETHEREUM_RPC_URL
-              value: ""
-            - name: CHAIN_ID
-              value: "3"
-            - name: ETH_GAS_STATION_API_URL
-              value: ""
-            - name: ENABLE_PROMETHEUS_METRICS
-              value: "true"
-            - name: PROMETHEUS_PORT
-              value: "8080"
-            - name: AWS_REGION
-              value: "us-east-1"
