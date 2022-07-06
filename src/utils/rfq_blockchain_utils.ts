@@ -9,11 +9,15 @@ import { AbiDecoder, BigNumber, providerUtils } from '@0x/utils';
 import { HDNode } from '@ethersproject/hdnode';
 import { AccessList } from '@ethersproject/transactions';
 import { CallData, LogEntry, LogWithDecodedArgs, TxAccessList, TxData } from 'ethereum-types';
-import { BigNumber as EthersBigNumber, Contract, providers, utils, Wallet } from 'ethers';
+import { BigNumber as EthersBigNumber, constants, Contract, providers, utils, Wallet } from 'ethers';
 import { resolveProperties } from 'ethers/lib/utils';
 
-import { NULL_ADDRESS, ZERO } from '../constants';
+import { abis } from '../abis';
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, NULL_ADDRESS, ZERO } from '../constants';
+import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
+import { GaslessApprovalTypes } from '../services/types';
+import { Approval, ExecuteMetaTransactionApproval } from '../types';
 
 import { BalanceChecker } from './balance_checker';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
@@ -554,5 +558,83 @@ export class RfqBlockchainUtils {
      */
     public async isValidOrderSignerAsync(makerAddress: string, signerAddress: string): Promise<boolean> {
         return this._exchangeProxy.isValidOrderSigner(makerAddress, signerAddress).callAsync();
+    }
+
+    /**
+     * Get the gasless approval object which encapsulates the EIP-712 context that would be signed by the `takerAddress`
+     * for gasless approval. The two main schemes for gasless approvals are `executeMetaTransaction` and `permit`.
+     *
+     * @param chainId Id of the chain.
+     * @param token The address of the token.
+     * @param takerAddress The address of the taker.
+     * @returns The corresponding gasless approval oject or null if the token does not support gasless approval (does not exist in our EIP-712 token registry).
+     */
+    public async getGaslessApprovalAsync(
+        chainId: number,
+        token: string,
+        takerAddress: string,
+    ): Promise<Approval | null> {
+        // If the token does not exist in the token registry, return null
+        if (!EIP_712_REGISTRY.hasOwnProperty(chainId) || !EIP_712_REGISTRY[chainId].hasOwnProperty(token)) {
+            return null;
+        }
+
+        const tokenEIP721 = EIP_712_REGISTRY[chainId][token];
+        switch (tokenEIP721.kind) {
+            case GaslessApprovalTypes.ExecuteMetaTransaction:
+                const nonce = await this.getMetaTransactionNonceAsync(token, takerAddress);
+                // generate calldata for approve with max number of uint256 as amount
+                const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
+                const { data: approveCalldata } = await erc20.populateTransaction.approve(
+                    this._exchangeProxyAddress,
+                    constants.MaxUint256,
+                );
+
+                const executeMetaTransactionApproval: ExecuteMetaTransactionApproval = {
+                    kind: GaslessApprovalTypes.ExecuteMetaTransaction,
+                    eip712: {
+                        types: EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+                        primaryType: 'MetaTransaction',
+                        domain: tokenEIP721.domain,
+                        message: {
+                            nonce: nonce.toNumber(),
+                            from: takerAddress,
+                            functionSignature: approveCalldata!,
+                        },
+                    },
+                };
+
+                return executeMetaTransactionApproval;
+            default:
+                throw new Error(`Gasless approval kind ${tokenEIP721.kind} is not implemented yet`);
+        }
+    }
+
+    /**
+     * Get the amount (in base unit) of `token` `spender` will be allowed to spend on behalf on `owner` (the allowance). Note that
+     * base unit means 10 ** decimals (decimals of the token).
+     *
+     * @param token The address of the token.
+     * @param owner The address that owns certain amount of `token`.
+     * @param spender The address that would like to spend token on behalf of `owner`.
+     * @returns The amount (in base unit) of tokens spender is allowed to spend.
+     */
+    public async getAllowanceAsync(token: string, owner: string, spender: string): Promise<BigNumber> {
+        const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
+        const allowance = await erc20.allowance(owner, spender);
+        return new BigNumber(allowance.toString());
+    }
+
+    /**
+     * Get nonce for meta transaction. This is used by contracts that support Biconomy's `executeMetaTransaction` which includes bridged tokens on Polygon.
+     *
+     * @param token The address of the token.
+     * @param takerAddress The address of the taker.
+     * @returns Nonce.
+     */
+    public async getMetaTransactionNonceAsync(token: string, takerAddress: string): Promise<BigNumber> {
+        const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
+        const nonce = await erc20.getNonce(takerAddress);
+        return new BigNumber(nonce.toString());
     }
 }
