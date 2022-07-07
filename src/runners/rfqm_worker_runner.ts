@@ -13,6 +13,7 @@ import {
     CHAIN_CONFIGURATIONS,
     CHAIN_ID,
     DEFINED_FI_API_KEY,
+    DEFINED_FI_ENDPOINT,
     ENABLE_PROMETHEUS_METRICS,
     META_TX_WORKER_MNEMONIC,
     PROMETHEUS_PORT,
@@ -96,7 +97,7 @@ if (require.main === module) {
         }
 
         const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
-        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY);
+        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
         const rfqmService = await buildRfqmServiceAsync(
             true,
             rfqmDbUtils,

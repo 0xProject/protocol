@@ -41,7 +41,7 @@ describe('TokenPriceOracle', () => {
                 .onPost('https://api.defined.fi')
                 .replyOnce(HttpStatus.OK, fakeDefinedUSDCResponseForETH);
 
-            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey');
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi');
             const result = await tokenPriceOracle.batchFetchTokenPriceAsync([
                 { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
                 { chainId: 3, tokenAddress: '0xWETHContractAddress', tokenDecimals: 18 },
@@ -64,7 +64,7 @@ describe('TokenPriceOracle', () => {
         });
 
         it("returns null priceInUsd when it couldn't fetch the price", async () => {
-            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey');
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi');
 
             // Test the case when server returns non-200 response
             axiosMock.onPost('https://api.defined.fi').replyOnce(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -106,7 +106,7 @@ describe('TokenPriceOracle', () => {
         });
 
         it('caches the result', async () => {
-            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey');
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi');
 
             const fakeDefinedFiResponseForUSDC = {
                 data: {
@@ -146,7 +146,7 @@ describe('TokenPriceOracle', () => {
 
         it('invalidates cache after configured TTL', async () => {
             // Set Cache TTL to 5 seconds
-            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 5000);
+            const tokenPriceOracle = new TokenPriceOracle(axiosClient, 'fakeApiKey', 'https://api.defined.fi', 5000);
 
             const fakeDefinedFiResponseForUSDC = {
                 data: {
@@ -184,6 +184,27 @@ describe('TokenPriceOracle', () => {
             ]);
             expect(axiosMock.history.post).toHaveLength(2);
             expect(result[0]?.toNumber()).toBe(2.1e-18);
+        });
+
+        it('uses custom endpoint if provided', async () => {
+            axiosMock.onPost('https://custom-endpoint.local').replyOnce(HttpStatus.OK, {
+                data: {
+                    getPrice: {
+                        priceUsd: 1.1,
+                    },
+                },
+            });
+
+            const tokenPriceOracle = new TokenPriceOracle(
+                axiosClient,
+                'fakeApiKey',
+                'https://custom-endpoint.local',
+                5000,
+            );
+            await tokenPriceOracle.batchFetchTokenPriceAsync([
+                { chainId: 1, tokenAddress: '0xUSDCContractAddress', tokenDecimals: 18 },
+            ]);
+            expect(axiosMock.history.post[0].url).toBe('https://custom-endpoint.local');
         });
     });
 });

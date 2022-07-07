@@ -45,6 +45,7 @@ export class TokenPriceOracle {
     public constructor(
         private readonly _axiosInstance: AxiosInstance,
         private readonly _definedFiApiKey: string,
+        private readonly _definedFiEndpoint: string,
         private readonly _cacheTTLMs: number = 20000,
     ) {
         if (!_definedFiApiKey) {
@@ -81,7 +82,7 @@ export class TokenPriceOracle {
         });
         try {
             const { data } = await this._axiosInstance.post(
-                'https://api.defined.fi',
+                this._definedFiEndpoint,
                 {
                     query: `
                         query getPrice {

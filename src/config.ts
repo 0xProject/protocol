@@ -300,6 +300,11 @@ export const DEFINED_FI_API_KEY: string = _.isEmpty(process.env.DEFINED_FI_API_K
     ? ''
     : assertEnvVarType('DEFINED_FI_API_KEY', process.env.DEFINED_FI_API_KEY, EnvVarType.NonEmptyString);
 
+// Endpoint for Defined.fi's token price API, default to https://api.defined.fi
+export const DEFINED_FI_ENDPOINT: string = _.isEmpty(process.env.DEFINED_FI_ENDPOINT)
+    ? 'https://api.defined.fi'
+    : assertEnvVarType('DEFINED_FI_ENDPOINT', process.env.DEFINED_FI_ENDPOINT, EnvVarType.NonEmptyString);
+
 // API Key for 0x API (for ZeroExApiClient)
 export const ZERO_EX_API_KEY: string = _.isEmpty(process.env.ZERO_EX_API_KEY)
     ? ''

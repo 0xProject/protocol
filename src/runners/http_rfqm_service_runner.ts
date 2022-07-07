@@ -17,6 +17,7 @@ import {
     CHAIN_CONFIGURATIONS,
     defaultHttpServiceConfig,
     DEFINED_FI_API_KEY,
+    DEFINED_FI_ENDPOINT,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
@@ -63,7 +64,7 @@ if (require.main === module) {
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
         const configManager = new ConfigManager();
         const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
-        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY);
+        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
 
         const rfqmServices = await buildRfqmServicesAsync(
             /* asWorker = */ false,
