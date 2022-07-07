@@ -165,6 +165,8 @@ function getGasStationAttendant(
             return new GasStationAttendantEthereum(gasOracle);
         case /* polygon */ 137:
             return new GasStationAttendantPolygon(protocolFeeUtils);
+        case /* mumbai */ 80001:
+            return new GasStationAttendantPolygon(protocolFeeUtils);
         default:
             throw new Error(`Gas station attendant not configured for chain: ${chain.name}`);
     }
