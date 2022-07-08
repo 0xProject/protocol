@@ -8,5 +8,15 @@
             "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
         },
         "domainSeparator": "0x32c4fbeda87cdb850369b7f826a1e4a3a59d257ee86ccf924b4e5adb2bec3d91"
+    },
+    "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": {
+        "kind": "permit",
+        "domain": {
+            "name": "USD Coin (PoS)",
+            "version": "1",
+            "verifyingContract": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x294369e003769a2d4d625e8a9ebebffa09ff70dd7c708497d8b56d2c2d199a19"
     }
 }
