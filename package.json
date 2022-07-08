@@ -88,7 +88,7 @@
         "@0x/protocol-utils": "^1.9.3",
         "@0x/quote-server": "^8.0.0",
         "@0x/subproviders": "~6.6.5",
-        "@0x/token-metadata": "^0.1.6",
+        "@0x/token-metadata": "^0.1.16",
         "@0x/types": "^3.3.4",
         "@0x/utils": "^6.4.4",
         "@0x/web3-wrapper": "^7.6.1",
