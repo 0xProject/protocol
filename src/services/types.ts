@@ -2,6 +2,7 @@ import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
+import { EIP712Context } from '../types';
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
@@ -14,15 +15,7 @@ export enum GaslessApprovalTypes {
     DaiPermit = 'daiPermit',
 }
 
-export interface FetchIndicativeQuoteParams {
-    affiliateAddress?: string;
-    buyAmount?: BigNumber;
-    buyToken: string;
-    buyTokenDecimals: number;
-    integrator: Integrator;
-    sellAmount?: BigNumber;
-    sellToken: string;
-    sellTokenDecimals: number;
+export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
     takerAddress?: string;
 }
 
@@ -36,7 +29,12 @@ export interface FetchIndicativeQuoteResponse {
     sellTokenAddress: string;
 }
 
-export interface FetchFirmQuoteParams {
+export interface FetchFirmQuoteParams extends FetchQuoteParamsBase {
+    takerAddress: string;
+    checkApproval: boolean;
+}
+
+export interface FetchQuoteParamsBase {
     affiliateAddress?: string;
     buyAmount?: BigNumber;
     buyToken: string;
@@ -45,7 +43,6 @@ export interface FetchFirmQuoteParams {
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
-    takerAddress: string;
 }
 
 export interface BaseRfqmQuoteResponse {
@@ -74,6 +71,14 @@ export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
     type: RfqmTypes.OtcOrder;
     order: OtcOrder;
     orderHash: string;
+    approval?: ApprovalResponse;
+}
+
+export interface ApprovalResponse {
+    isRequired: boolean;
+    isGaslessAvailable?: boolean;
+    type?: GaslessApprovalTypes;
+    eip712?: EIP712Context;
 }
 
 export interface StatusResponse {

@@ -1,5 +1,5 @@
 {
-    "id": "/SwapQuoteRequestSchema",
+    "id": "/FirmQuoteRequestSchema",
     "properties": {
         "sellToken": {
             "type": "string"
@@ -19,34 +19,9 @@
         "affiliateAddress": {
             "$ref": "/addressSchema"
         },
-        "gasPrice": {
-            "$ref": "/wholeNumberSchema"
-        },
-        "slippagePercentage": {
-            "$ref": "/numberSchema"
-        },
-        "excludedSources": {
-            "type": "string"
-        },
-        "includedSources": {
-            "type": "string"
-        },
-        "intentOnFilling": {
+        "checkApproval": {
             "type": "string",
             "enum": ["true", "false"]
-        },
-        "skipValidation": {
-            "type": "string",
-            "enum": ["true", "false"]
-        },
-        "sellTokenPercentageFee": {
-            "$ref": "/numberSchema"
-        },
-        "buyTokenPercentageFee": {
-            "$ref": "/numberSchema"
-        },
-        "feeRecipient": {
-            "$ref": "/addressSchema"
         }
     },
     "oneOf": [
@@ -59,5 +34,6 @@
             "required": ["buyAmount"]
         }
     ],
+    "required": ["sellToken", "buyToken", "takerAddress"],
     "type": "object"
 }

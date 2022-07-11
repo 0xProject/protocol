@@ -8,8 +8,9 @@ import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
+import { constants } from 'ethers';
 import { Producer } from 'sqs-producer';
-import { anything, instance, mock, when } from 'ts-mockito';
+import { anything, instance, mock, spy, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
@@ -17,7 +18,7 @@ import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity }
 import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
-import { OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
+import { ApprovalResponse, OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
@@ -25,9 +26,11 @@ import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_u
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL } from '../constants';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
+const MOCK_TOKEN = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const MOCK_GAS_PRICE = new BigNumber(100000000000);
 const MOCK_MM_URI = 'https://mm-address';
 const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
@@ -103,6 +106,15 @@ const buildRfqmServiceForUnitTest = (
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
         WORKER_FULL_BALANCE_WEI,
+    );
+    when(rfqBlockchainUtilsMock.getAllowanceAsync(anything(), anything(), anything())).thenResolve(
+        new BigNumber(constants.MaxUint256.toString()),
+        new BigNumber(0),
+        new BigNumber(0),
+    );
+    when(rfqBlockchainUtilsMock.getGaslessApprovalAsync(anything(), anything(), anything())).thenResolve(
+        null,
+        MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     );
     const dbUtilsMock = mock(RfqmDbUtils);
     const sqsMock = mock(Producer);
@@ -705,6 +717,7 @@ describe('RfqmService HTTP Logic', () => {
                     buyTokenDecimals: 18,
                     sellTokenDecimals: 18,
                     sellAmount,
+                    checkApproval: false,
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
@@ -755,6 +768,7 @@ describe('RfqmService HTTP Logic', () => {
                     buyTokenDecimals: 18,
                     sellTokenDecimals: 18,
                     sellAmount,
+                    checkApproval: false,
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
@@ -803,6 +817,7 @@ describe('RfqmService HTTP Logic', () => {
                     buyTokenDecimals: 18,
                     sellTokenDecimals: 18,
                     sellAmount: new BigNumber(333),
+                    checkApproval: false,
                 });
 
                 if (res === null) {
@@ -811,6 +826,122 @@ describe('RfqmService HTTP Logic', () => {
                 }
 
                 expect(res.price.toNumber()).to.equal(0.3333333);
+            });
+
+            it('should not call `getGaslessApprovalResponseAsync` if checkApproval is false', async () => {
+                const sellAmount = new BigNumber(100);
+                const contractAddresses = getContractAddressesForChainOrThrow(1);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(101),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
+
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({
+                    quoteServerClient: instance(quoteServerClientMock),
+                    dbUtils,
+                    cacheClient: instance(cacheClientMock),
+                });
+                const spiedService = spy(service);
+                when(spiedService.getGaslessApprovalResponseAsync(anything(), anything(), anything())).thenThrow(
+                    new Error('`getGaslessApprovalResponseAsync` should not be called'),
+                );
+
+                const res = await service.fetchFirmQuoteAsync({
+                    integrator: MOCK_INTEGRATOR,
+                    takerAddress,
+                    buyToken: contractAddresses.zrxToken,
+                    sellToken: contractAddresses.etherToken,
+                    buyTokenDecimals: 18,
+                    sellTokenDecimals: 18,
+                    sellAmount,
+                    checkApproval: false,
+                });
+
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+
+                expect(res?.sellAmount).to.equal(sellAmount);
+                expect(res?.price.toNumber()).to.equal(1.01);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(res?.approval).to.equal(undefined);
+            });
+
+            it('should return the correct approval if checkApproval is true', async () => {
+                const sellAmount = new BigNumber(100);
+                const contractAddresses = getContractAddressesForChainOrThrow(1);
+                const quote: IndicativeQuote = {
+                    maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                    makerToken: contractAddresses.zrxToken,
+                    makerAmount: new BigNumber(101),
+                    takerToken: contractAddresses.etherToken,
+                    takerAmount: new BigNumber(100),
+                    expiry: NEVER_EXPIRES,
+                    makerUri: MOCK_MM_URI,
+                };
+
+                const cacheClientMock = mock(CacheClient);
+                when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+
+                // Mock out the dbUtils
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
+                const dbUtils = instance(dbUtilsMock);
+
+                const quoteServerClientMock = mock(QuoteServerClient);
+                when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
+                    quote,
+                ]);
+                const service = buildRfqmServiceForUnitTest({
+                    quoteServerClient: instance(quoteServerClientMock),
+                    dbUtils,
+                    cacheClient: instance(cacheClientMock),
+                });
+                const approval: ApprovalResponse = {
+                    isRequired: true,
+                    isGaslessAvailable: true,
+                    type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                    eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
+                };
+                const spiedService = spy(service);
+                when(spiedService.getGaslessApprovalResponseAsync(anything(), anything(), anything())).thenResolve(
+                    approval,
+                );
+
+                const res = await service.fetchFirmQuoteAsync({
+                    integrator: MOCK_INTEGRATOR,
+                    takerAddress,
+                    buyToken: contractAddresses.zrxToken,
+                    sellToken: contractAddresses.etherToken,
+                    buyTokenDecimals: 18,
+                    sellTokenDecimals: 18,
+                    sellAmount,
+                    checkApproval: true,
+                });
+
+                expect(res).to.exist; // tslint:disable-line: no-unused-expression
+                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+
+                expect(res?.sellAmount).to.equal(sellAmount);
+                expect(res?.price.toNumber()).to.equal(1.01);
+                expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+                expect(res?.approval).to.eql(approval);
             });
         });
 
@@ -854,6 +985,7 @@ describe('RfqmService HTTP Logic', () => {
                     buyTokenDecimals: 18,
                     sellTokenDecimals: 18,
                     buyAmount: new BigNumber(100),
+                    checkApproval: false,
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
@@ -903,6 +1035,7 @@ describe('RfqmService HTTP Logic', () => {
                     buyTokenDecimals: 18,
                     sellTokenDecimals: 18,
                     buyAmount: new BigNumber(100),
+                    checkApproval: false,
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
@@ -911,6 +1044,38 @@ describe('RfqmService HTTP Logic', () => {
                 expect(res?.sellAmount.toNumber()).to.equal(80); // result is scaled
                 expect(res?.price.toNumber()).to.equal(0.8);
                 expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+            });
+        });
+    });
+
+    describe('getGaslessApprovalResponseAsync', () => {
+        it('returns correct approval field', async () => {
+            const service = buildRfqmServiceForUnitTest();
+
+            let approval = await service.getGaslessApprovalResponseAsync(
+                MOCK_WORKER_REGISTRY_ADDRESS,
+                MOCK_TOKEN,
+                new BigNumber(100),
+            );
+            expect(approval).to.eql({ isRequired: false });
+
+            approval = await service.getGaslessApprovalResponseAsync(
+                MOCK_WORKER_REGISTRY_ADDRESS,
+                MOCK_TOKEN,
+                new BigNumber(100),
+            );
+            expect(approval).to.eql({ isRequired: true, isGaslessAvailable: false });
+
+            approval = await service.getGaslessApprovalResponseAsync(
+                MOCK_WORKER_REGISTRY_ADDRESS,
+                MOCK_TOKEN,
+                new BigNumber(100),
+            );
+            expect(approval).to.eql({
+                isRequired: true,
+                isGaslessAvailable: true,
+                type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
             });
         });
     });

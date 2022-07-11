@@ -53,6 +53,7 @@ import { SubmissionContext } from '../utils/SubmissionContext';
 
 import { RfqmFeeService } from './rfqm_fee_service';
 import {
+    ApprovalResponse,
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchIndicativeQuoteResponse,
@@ -536,6 +537,11 @@ export class RfqmService {
             integratorId: integrator.integratorId,
             isUnwrap,
         });
+
+        const approval = params.checkApproval
+            ? await this.getGaslessApprovalResponseAsync(takerAddress!, takerToken, sellAmount)
+            : null;
+
         RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
             type: RfqmTypes.OtcOrder,
@@ -548,6 +554,55 @@ export class RfqmService {
             allowanceTarget: this._contractAddresses.exchangeProxy,
             order: bestQuote.order,
             orderHash,
+            // use approval variable directly is not ideal as we don't want to include approval field if `approval` is null
+            ...(approval && { approval }),
+        };
+    }
+
+    /**
+     * Get the value of the approval response in firm quote responses. The approval response contains whether an approval is required, is gasless approval
+     * is available for the token (optional), the type of the gasless approval (optional) and the EIP712 context (optional).
+     *
+     * @param takerAddress The address of the taker.
+     * @param tokenToApprove Token address to be approved.
+     * @param sellAmount Amount of token to sell in base unit.
+     * @returns The approval response.
+     */
+    public async getGaslessApprovalResponseAsync(
+        takerAddress: string,
+        tokenToApprove: string,
+        sellAmount: BigNumber,
+    ): Promise<ApprovalResponse> {
+        const allowance = await this._blockchainUtils.getAllowanceAsync(
+            tokenToApprove,
+            takerAddress,
+            this._blockchainUtils.getExchangeProxyAddress(),
+        );
+        const isRequired = allowance.lte(sellAmount);
+        if (!isRequired) {
+            return {
+                isRequired,
+            };
+        }
+
+        const gaslessApproval = await this._blockchainUtils.getGaslessApprovalAsync(
+            this._chainId,
+            tokenToApprove,
+            takerAddress,
+        );
+        const isGaslessAvailable = gaslessApproval !== null;
+        if (!isGaslessAvailable) {
+            return {
+                isRequired,
+                isGaslessAvailable,
+            };
+        }
+
+        return {
+            isRequired,
+            isGaslessAvailable,
+            type: gaslessApproval.kind,
+            eip712: gaslessApproval.eip712,
         };
     }
 

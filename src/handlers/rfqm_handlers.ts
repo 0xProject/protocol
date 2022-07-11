@@ -19,6 +19,7 @@ import { RfqmService } from '../services/rfqm_service';
 import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
+    FetchQuoteParamsBase,
     OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
 } from '../services/types';
@@ -195,18 +196,11 @@ export class RfqmHandlers {
     private async _parseFetchFirmQuoteParamsAsync(
         req: express.Request,
     ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
-        // Same as indicative except requires takerAddress
-        const { chainId, params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
-        const takerAddress = params.takerAddress || '';
-        if (takerAddress === '') {
-            throw new ValidationError([
-                {
-                    field: 'takerAddress',
-                    code: ValidationErrorCodes.RequiredField,
-                    reason: `The field takerAddress is missing`,
-                },
-            ]);
-        } else if (!addressUtils.isAddress(takerAddress)) {
+        schemaUtils.validateSchema(req.query, schemas.firmQuoteRequestSchema as any);
+        const takerAddress = req.query.takerAddress;
+        const shouldCheckApproval = req.query.checkApproval === 'true' ? true : false;
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+        if (!addressUtils.isAddress(takerAddress as string)) {
             throw new ValidationError([
                 {
                     field: 'takerAddress',
@@ -219,7 +213,8 @@ export class RfqmHandlers {
             chainId,
             params: {
                 ...params,
-                takerAddress,
+                takerAddress: takerAddress as string,
+                checkApproval: shouldCheckApproval,
             },
         };
     }
@@ -259,13 +254,31 @@ export class RfqmHandlers {
     private async _parseFetchIndicativeQuoteParamsAsync(
         req: express.Request,
     ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
-        // HACK - reusing the validation for Swap Quote as the interface here is a subset
-        schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
+        schemaUtils.validateSchema(req.query, schemas.indicativeQuoteRequestSchema as any);
+        const { takerAddress } = req.query;
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+
+        return {
+            chainId,
+            params: {
+                ...params,
+                takerAddress: takerAddress as string,
+            },
+        };
+    }
+
+    /**
+     * Parse shared params of indicative and firm quotes.
+     *
+     * @param req The request object.
+     * @returns Chain ID and parsed shared params of indicative and firm quotes.
+     */
+    private async _parseIndicativeAndFirmQuoteSharedParamsAsync(
+        req: express.Request,
+    ): Promise<{ chainId: number; params: FetchQuoteParamsBase }> {
         const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
-
-        // Parse string params
-        const { takerAddress, affiliateAddress } = req.query;
+        const { affiliateAddress } = req.query;
 
         // Parse tokens
         const sellTokenRaw = req.query.sellToken as string;
@@ -322,7 +335,6 @@ export class RfqmHandlers {
                 sellAmount,
                 sellToken: sellTokenContractAddress,
                 sellTokenDecimals,
-                takerAddress: takerAddress as string,
                 affiliateAddress: affiliateAddress as string,
             },
         };

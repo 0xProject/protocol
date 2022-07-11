@@ -7,6 +7,10 @@ import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
 
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES } from '../src/constants';
+import { GaslessApprovalTypes } from '../src/services/types';
+import { ExecuteMetaTransactionApproval } from '../src/types';
+
 export const CHAIN_ID = 1337;
 // tslint:disable-next-line:custom-no-magic-numbers
 export const MAX_INT = new BigNumber(2).pow(256).minus(1);
@@ -72,4 +76,22 @@ export const TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG: LogWithDecodedArgs<IZeroEx
     transactionIndex: 70,
     transactionHash: '0x2b723137d9328fbe5e64bc2729ef5b1d846bb1d242ae2f3c016b9f70715aa818',
     event: 'RfqOrderFilled',
+};
+export const MOCK_EXECUTE_META_TRANSACTION_APPROVAL: ExecuteMetaTransactionApproval = {
+    kind: GaslessApprovalTypes.ExecuteMetaTransaction,
+    eip712: {
+        types: EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+        primaryType: 'MetaTransaction',
+        domain: {
+            name: 'Fake Token',
+            version: '1',
+            verifyingContract: '0x12345',
+            salt: 'salt',
+        },
+        message: {
+            nonce: 1,
+            from: WORKER_TEST_ADDRESS,
+            functionSignature: 'sig',
+        },
+    },
 };

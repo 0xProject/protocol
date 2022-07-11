@@ -40,6 +40,7 @@ import {
     CONTRACT_ADDRESSES,
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
+    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
@@ -607,6 +608,53 @@ describe('RFQM Integration', () => {
             );
         });
 
+        it('should return a 400 BAD REQUEST if buyToken is missing', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+            });
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/price?${params.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
+        it('should return a 400 BAD REQUEST if sellToken is missing', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+            });
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/price?${params.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
+        it('should return a 400 BAD REQUEST if both sellAmount and buyAmount are missing', async () => {
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                takerAddress,
+            });
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/price?${params.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
         it('should return a 400 BAD REQUEST Error if trading an unknown token', async () => {
             const sellAmount = 100000000000000000;
             const UNKNOWN_TOKEN = 'RACCOONS_FOREVER';
@@ -720,6 +768,7 @@ describe('RFQM Integration', () => {
             expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
+            expect(appResponse.body.approval).to.equal(undefined);
         });
 
         it('should return a 200 OK with a firm quote when OtcOrder pricing is available for sells', async () => {
@@ -771,6 +820,71 @@ describe('RFQM Integration', () => {
             expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
+            expect(appResponse.body.approval).to.equal(undefined);
+        });
+
+        it('should return a 200 OK with a firm quote when OtcOrder pricing is available for sells and checkApproval is true', async () => {
+            when(rfqBlockchainUtilsMock.getAllowanceAsync(anything(), anything(), anything())).thenResolve(
+                new BigNumber(0),
+            );
+            when(rfqBlockchainUtilsMock.getGaslessApprovalAsync(anything(), anything(), anything())).thenResolve(
+                MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+            );
+
+            const sellAmount = 100000000000000000;
+            const winningQuote = 200000000000000000;
+            const losingQuote = 150000000000000000;
+            const zeroExApiParams = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+                checkApproval: 'true',
+            });
+
+            const headers = {
+                Accept: 'application/json, text/plain, */*',
+                '0x-api-key': INTEGRATOR_ID,
+                '0x-integrator-id': INTEGRATOR_ID,
+            };
+
+            const baseResponse = {
+                takerAmount: sellAmount.toString(),
+                makerToken: contractAddresses.zrxToken,
+                takerToken: contractAddresses.etherToken,
+                expiry: '1903620548', // in the year 2030
+            };
+
+            mockAxios.onGet(`${MARKET_MAKER_2}/rfqm/v2/price`, { headers }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: winningQuote.toString(),
+                maker: MARKET_MAKER_2_ADDR,
+            });
+            mockAxios.onGet(`${MARKET_MAKER_3}/rfqm/v2/price`, { headers }).replyOnce(HttpStatus.OK, {
+                ...baseResponse,
+                makerAmount: losingQuote.toString(),
+                maker: MARKET_MAKER_3_ADDR,
+            });
+
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${zeroExApiParams.toString()}`)
+                .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            const expectedPrice = '2';
+            const expectedApproval = {
+                isRequired: true,
+                isGaslessAvailable: true,
+                type: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.kind,
+                eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
+            };
+            expect(appResponse.body.price).to.equal(expectedPrice);
+            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
+            expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
+            expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
+            expect(appResponse.body.approval).to.eql(expectedApproval);
         });
 
         it('should return a 400 BAD REQUEST if api key is missing', async () => {
@@ -790,6 +904,69 @@ describe('RFQM Integration', () => {
                 .expect('Content-Type', /json/);
 
             expect(appResponse.body.reason).to.equal('Invalid API key');
+        });
+
+        it('should return a 400 BAD REQUEST if takerAddress is missing', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+            });
+
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${params.toString()}`)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
+        it('should return a 400 BAD REQUEST if buyToken is missing', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                sellToken: 'WETH',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+            });
+
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${params.toString()}`)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
+        it('should return a 400 BAD REQUEST if sellToken is missing', async () => {
+            const sellAmount = 100000000000000000;
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellAmount: sellAmount.toString(),
+                takerAddress,
+            });
+
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${params.toString()}`)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
+        });
+
+        it('should return a 400 BAD REQUEST if both sellAmount and buyAmount are missing', async () => {
+            const params = new URLSearchParams({
+                buyToken: 'ZRX',
+                sellToken: 'WETH',
+                takerAddress,
+            });
+
+            const appResponse = await request(app)
+                .get(`${RFQM_PATH}/quote?${params.toString()}`)
+                .expect(HttpStatus.BAD_REQUEST)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.reason).to.equal('Validation Failed');
         });
     });
 
