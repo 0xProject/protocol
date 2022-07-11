@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/constants';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
-import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../src/entities/types';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../src/entities/types';
 import { GaslessApprovalTypes } from '../src/services/types';
 import { ExecuteMetaTransactionApproval } from '../src/types';
 import {
@@ -195,7 +195,6 @@ describe('RFQM Database', () => {
                 blockMined,
                 nonce,
                 status: RfqmTransactionSubmissionStatus.Submitted,
-                type: RfqmTransactionSubmissionType.Trade,
             };
             await dbUtils.writeV2TransactionSubmissionAsync(rfqmTransactionSubmissionEntityOpts);
 

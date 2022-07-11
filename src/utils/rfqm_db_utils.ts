@@ -226,7 +226,6 @@ export class RfqmDbUtils {
 
     /**
      * [RFQm v2] Queries the rfqm_v2_transaction_submission table with the given orderHash
-     * TODO:(phil) - add a `type` to this function after the migration is fully rolled out
      */
     public async findV2TransactionSubmissionsByOrderHashAsync(
         orderHash: string,

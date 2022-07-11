@@ -30,7 +30,7 @@ import {
 } from '../constants';
 import { RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../entities/types';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
@@ -1790,7 +1790,6 @@ export class RfqmService {
             to: this._blockchainUtils.getExchangeProxyAddress(),
             nonce,
             status: RfqmTransactionSubmissionStatus.Presubmit,
-            type: RfqmTransactionSubmissionType.Trade,
         };
 
         const transactionSubmissionEntity = await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(

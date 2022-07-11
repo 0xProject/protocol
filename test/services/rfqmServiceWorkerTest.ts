@@ -22,12 +22,7 @@ import {
     RfqmV2JobEntity,
     RfqmV2TransactionSubmissionEntity,
 } from '../../src/entities';
-import {
-    RfqmJobStatus,
-    RfqmOrderTypes,
-    RfqmTransactionSubmissionStatus,
-    RfqmTransactionSubmissionType,
-} from '../../src/entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
 import { logger } from '../../src/logger';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
@@ -739,7 +734,6 @@ describe('RfqmService Worker Logic', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 21,
-                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -851,7 +845,6 @@ describe('RfqmService Worker Logic', () => {
                 maxFeePerGas: new BigNumber(100000),
                 maxPriorityFeePerGas: new BigNumber(100),
                 nonce: 21,
-                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
@@ -1029,7 +1022,6 @@ describe('RfqmService Worker Logic', () => {
                 orderHash: '0xorderhash',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 to: '0xto',
@@ -1188,7 +1180,6 @@ describe('RfqmService Worker Logic', () => {
                 status: RfqmTransactionSubmissionStatus.Presubmit,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const mockTransactionRequest: providers.TransactionRequest = {};
@@ -1200,7 +1191,6 @@ describe('RfqmService Worker Logic', () => {
                 orderHash: '0xorderhash',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 to: '0xto',
@@ -1366,7 +1356,6 @@ describe('RfqmService Worker Logic', () => {
                 status: RfqmTransactionSubmissionStatus.Presubmit,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const mockTransactionRequest: providers.TransactionRequest = {};
@@ -1378,7 +1367,6 @@ describe('RfqmService Worker Logic', () => {
                 orderHash: '0xorderhash',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 to: '0xto',
@@ -1533,7 +1521,6 @@ describe('RfqmService Worker Logic', () => {
                 status: RfqmTransactionSubmissionStatus.Presubmit,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 blockHash: '0xblockhash',
@@ -1710,7 +1697,6 @@ describe('RfqmService Worker Logic', () => {
                 status: RfqmTransactionSubmissionStatus.Submitted,
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const rfqmFeeServiceMock = mock(RfqmFeeService);
@@ -1787,7 +1773,6 @@ describe('RfqmService Worker Logic', () => {
                 orderHash: '0xorderhash',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 to: '0xto',
@@ -1952,7 +1937,6 @@ describe('RfqmService Worker Logic', () => {
                 orderHash: '0xorderhash',
                 to: '0xexchangeproxyaddress',
                 transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
             });
             const mockTransactionReceipt: providers.TransactionReceipt = {
                 to: '0xto',

@@ -89,11 +89,6 @@ function isJobResolved(status: RfqmJobStatus): boolean {
  */
 export const UnresolvedRfqmJobStatuses = Object.values(RfqmJobStatus).filter((v) => !isJobResolved(v));
 
-export enum RfqmTransactionSubmissionType {
-    Trade = 'trade',
-    Approval = 'approval',
-}
-
 export enum RfqmTransactionSubmissionStatus {
     DroppedAndReplaced = 'dropped_and_replaced',
     Presubmit = 'presubmit', // Transaction created but not yet broadcast
