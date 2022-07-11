@@ -2,6 +2,8 @@ import { BigNumber } from '@0x/asset-swapper';
 import { Signature } from '@0x/protocol-utils';
 import { Column, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
+import { Approval } from '../types';
+
 import { BigNumberTransformer } from './transformers';
 import { RfqmJobStatus, StoredFee, StoredOtcOrder } from './types';
 
@@ -79,6 +81,16 @@ export class RfqmV2JobEntity {
     @Column({ name: 'll_reject_price_difference_bps', type: 'integer', nullable: true })
     public llRejectPriceDifferenceBps: number | null;
 
+    // The optional approval object that contains the EIP-712 context (which includes
+    // the message that the taker will sign). This is stored to help us prepare the
+    // calldata for gasless approvals
+    @Column({ name: 'approval', type: 'jsonb', nullable: true })
+    public approval: Approval | null;
+
+    // The signature for the approval.
+    @Column({ name: 'approval_signature', type: 'jsonb', nullable: true })
+    public approvalSignature: Signature | null;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
@@ -92,6 +104,8 @@ export class RfqmV2JobEntity {
         }
 
         this.affiliateAddress = opts.affiliateAddress ?? null;
+        this.approval = opts.approval ?? null;
+        this.approvalSignature = opts.approvalSignature ?? null;
         this.chainId = opts.chainId;
         this.expiry = opts.expiry;
         this.fee = opts.fee;

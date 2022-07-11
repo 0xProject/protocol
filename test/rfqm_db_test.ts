@@ -4,9 +4,11 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
 
-import { ONE_MINUTE_MS, ZERO } from '../src/constants';
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/constants';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../src/entities/types';
+import { GaslessApprovalTypes } from '../src/services/types';
+import { ExecuteMetaTransactionApproval } from '../src/types';
 import {
     feeToStoredFee,
     otcOrderToStoredOtcOrder,
@@ -50,6 +52,26 @@ const takerSignature: Signature = {
     r: '0xd00d00',
     s: '0xcaca',
     signatureType: 1,
+};
+
+const approval: ExecuteMetaTransactionApproval = {
+    kind: GaslessApprovalTypes.ExecuteMetaTransaction,
+    eip712: {
+        types: EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+        primaryType: 'MetaTransaction',
+        domain: {
+            name: 'Balancer (PoS)',
+            version: '1',
+            verifyingContract: '0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3',
+            salt: '0x0000000000000000000000000000000000000000000000000000000000000089',
+        },
+        message: {
+            nonce: 1,
+            from: '0x1111111111111111111111111111111111111111',
+            functionSignature:
+                '0x095ea7b3000000000000000000000000def1c0ded9bec7f1a1670819833240f027b25effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+        },
+    },
 };
 
 // tx properties
@@ -106,6 +128,7 @@ describe('RFQM Database', () => {
         it('should be able to write, update, and read the rfqm_v2_job table', async () => {
             // Write
             await dbUtils.writeV2JobAsync({
+                approval,
                 chainId,
                 status: RfqmJobStatus.PendingProcessing,
                 expiry: otcOrder.expiry,
@@ -123,6 +146,7 @@ describe('RFQM Database', () => {
             expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
             expect(storedJob?.status).to.equal(RfqmJobStatus.PendingProcessing);
             expect(storedJob?.takerSignature).to.deep.eq(takerSignature);
+            expect(storedJob?.approval).to.deep.eq(approval);
 
             // Update
             await dbUtils.updateV2JobAsync(otcOrderHash, true, { status: RfqmJobStatus.SucceededConfirmed });
