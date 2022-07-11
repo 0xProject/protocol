@@ -537,6 +537,7 @@ export const POLYGON_TOKENS = {
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
     ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
+    deUSDC: '0x1ddcaa4ed761428ae348befc6718Bcb12e63bfaa',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -563,6 +564,7 @@ export const AVALANCHE_TOKENS = {
     UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
     YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
+    deUSDC: '0x28690ec942671ac8d9Bc442b667ec338ede6dfd3',
 };
 
 export const CELO_TOKENS = {
@@ -707,6 +709,7 @@ export const CURVE_V2_POOLS = {
 export const CURVE_POLYGON_POOLS = {
     aave: '0x445fe580ef8d70ff569ab36e80c647af338db351',
     ren: '0xc2d95eef97ec6c17551d45e77b590dc1f9117c67',
+    deUSDC: '0xda43bfd7ecc6835aa6f1761ced30b986a574c0d2',
 };
 
 export const CURVE_V2_POLYGON_POOLS = {
@@ -717,6 +720,7 @@ export const CURVE_AVALANCHE_POOLS = {
     aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
     mim: '0xaea2e71b631fa93683bcf256a8689dfa0e094fcd',
     USDC: '0x3a43a5851a3e3e0e25a3c1089670269786be1577',
+    deUSDC: '0xd39016475200ab8957e9c772c949ef54bda69111',
 };
 
 export const CURVE_V2_AVALANCHE_POOLS = {
@@ -1399,6 +1403,11 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POLYGON_POOLS.ren,
         gasSchedule: 350e3,
     }),
+    [CURVE_POLYGON_POOLS.deUSDC]: createCurveExchangeUnderlyingPool({
+        tokens: [POLYGON_TOKENS.deUSDC, POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+        pool: CURVE_POLYGON_POOLS.deUSDC,
+        gasSchedule: 150e3,
+    }),
 };
 
 export const CURVE_V2_POLYGON_INFOS: { [name: string]: CurveInfo } = {
@@ -1428,6 +1437,11 @@ export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_AVALANCHE_POOLS.USDC]: createCurveExchangePool({
         tokens: [AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.nUSDC],
         pool: CURVE_AVALANCHE_POOLS.USDC,
+        gasSchedule: 150e3,
+    }),
+    [CURVE_AVALANCHE_POOLS.deUSDC]: createCurveExchangePool({
+        tokens: [AVALANCHE_TOKENS.deUSDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
+        pool: CURVE_AVALANCHE_POOLS.deUSDC,
         gasSchedule: 150e3,
     }),
 };
