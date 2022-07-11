@@ -55,10 +55,11 @@ const tokenToDecimals: Record<string, number> = {
 };
 
 const whitelistedIntegrators = new Set([
-    '74188355-c85b-4f18-9de4-6dec3ec61b8d',
-    '301e83b5-61f4-409b-bc61-8886dd56189d',
-    '1c016c87-3128-4f78-b0f5-e90038d165ef',
+    '74188355-c85b-4f18-9de4-6dec3ec61b8d', // RH
+    '301e83b5-61f4-409b-bc61-8886dd56189d', // RH Testnets
+    '1c016c87-3128-4f78-b0f5-e90038d165ef', // 0x RFQ
     '83b02232-83ca-4e1e-af5d-46c563d6688e', // RFQ Load Tester
+    '37f254d7-8fcf-4e97-ab6b-060364c0eaf5', // Simbot
 ]);
 
 /**
