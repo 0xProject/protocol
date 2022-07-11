@@ -102,7 +102,7 @@ export enum ERC20BridgeSource {
     MorpheusSwap = 'MorpheusSwap',
     Yoshi = 'Yoshi',
     Geist = 'Geist',
-    SpiritV2 = 'SpiritV2',
+    Solidly = 'Solidly',
 
     // Optimism
     Velodrome = 'Velodrome',
@@ -382,7 +382,7 @@ export interface VelodromeFillData extends FillData {
     stable: boolean;
 }
 
-export interface SpiritV2FillData extends FillData {
+export interface SolidlyFillData extends FillData {
     router: string;
     stable: boolean;
 }

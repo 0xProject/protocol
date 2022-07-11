@@ -124,7 +124,7 @@ import * as MixinMStable from '..\test\generated-artifacts\MixinMStable.json';
 import * as MixinNerve from '..\test\generated-artifacts\MixinNerve.json';
 import * as MixinPlatypus from '..\test\generated-artifacts\MixinPlatypus.json';
 import * as MixinShell from '..\test\generated-artifacts\MixinShell.json';
-import * as MixinSpiritV2 from '..\test\generated-artifacts\MixinSpiritV2.json';
+import * as MixinSolidly from '..\test\generated-artifacts\MixinSolidly.json';
 import * as MixinUniswap from '..\test\generated-artifacts\MixinUniswap.json';
 import * as MixinUniswapV2 from '..\test\generated-artifacts\MixinUniswapV2.json';
 import * as MixinUniswapV3 from '..\test\generated-artifacts\MixinUniswapV3.json';
@@ -336,12 +336,11 @@ export const artifacts = {
     MixinNerve: MixinNerve as ContractArtifact,
     MixinPlatypus: MixinPlatypus as ContractArtifact,
     MixinShell: MixinShell as ContractArtifact,
-    MixinSpiritV2: MixinSpiritV2 as ContractArtifact,
+    MixinSolidly: MixinSolidly as ContractArtifact,
     MixinUniswap: MixinUniswap as ContractArtifact,
     MixinUniswapV2: MixinUniswapV2 as ContractArtifact,
     MixinUniswapV3: MixinUniswapV3 as ContractArtifact,
     MixinVelodrome: MixinVelodrome as ContractArtifact,
-    MixinSpiritV2: MixinSpiritV2 as ContractArtifact,
     MixinZeroExBridge: MixinZeroExBridge as ContractArtifact,
     OptimismBridgeAdapter: OptimismBridgeAdapter as ContractArtifact,
     PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,

@@ -23,35 +23,35 @@ pragma experimental ABIEncoderV2;
 import './ApproximateBuys.sol';
 import './SamplerUtils.sol';
 
-struct VeloRoute {
+struct SolidlyRoute {
     address from;
     address to;
     bool stable;
 }
 
-interface IVelodromeRouter {
+interface ISolidlyRouter {
     function getAmountOut(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
     ) external view returns (uint256 amount, bool stable);
 
-    function getAmountsOut(uint256 amountIn, VeloRoute[] calldata routes)
+    function getAmountsOut(uint256 amountIn, SolidlyRoute[] calldata routes)
         external
         view
         returns (uint256[] memory amounts);
 }
 
-contract VelodromeSampler is SamplerUtils, ApproximateBuys {
-    /// @dev Sample sell quotes from Velodrome
-    /// @param router Address of Velodrome router.
+contract SolidlySampler is SamplerUtils, ApproximateBuys {
+    /// @dev Sample sell quotes from Solidly
+    /// @param router Address of Solidly router.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample (sorted in ascending order).
     /// @return stable Whether the pool is a stable pool (vs volatile).
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
-    function sampleSellsFromVelodrome(
-        IVelodromeRouter router,
+    function sampleSellsFromSolidly(
+        ISolidlyRouter router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
@@ -63,8 +63,8 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         // Sampling should not mix stable and volatile pools.
         // Find the most liquid pool based on max(takerTokenAmounts) and stick with it.
         stable = _isMostLiquidPoolStablePool(router, takerToken, makerToken, takerTokenAmounts);
-        VeloRoute[] memory routes = new VeloRoute[](1);
-        routes[0] = VeloRoute({ from: takerToken, to: makerToken, stable: stable });
+        SolidlyRoute[] memory routes = new SolidlyRoute[](1);
+        routes[0] = SolidlyRoute({ from: takerToken, to: makerToken, stable: stable });
 
         for (uint256 i = 0; i < numSamples; i++) {
             makerTokenAmounts[i] = router.getAmountsOut(takerTokenAmounts[i], routes)[1];
@@ -75,15 +75,15 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         }
     }
 
-    /// @dev Sample buy quotes from Velodrome.
-    /// @param router Address of Velodrome router.
+    /// @dev Sample buy quotes from Solidly.
+    /// @param router Address of Solidly router.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample.
     /// @return stable Whether the pool is a stable pool (vs volatile).
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
-    function sampleBuysFromVelodrome(
-        IVelodromeRouter router,
+    function sampleBuysFromSolidly(
+        ISolidlyRouter router,
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
@@ -96,34 +96,34 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
 
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                takerTokenData: abi.encode(router, VeloRoute({ from: takerToken, to: makerToken, stable: stable })),
-                makerTokenData: abi.encode(router, VeloRoute({ from: makerToken, to: takerToken, stable: stable })),
-                getSellQuoteCallback: _sampleSellForApproximateBuyFromVelodrome
+                takerTokenData: abi.encode(router, SolidlyRoute({ from: takerToken, to: makerToken, stable: stable })),
+                makerTokenData: abi.encode(router, SolidlyRoute({ from: makerToken, to: takerToken, stable: stable })),
+                getSellQuoteCallback: _sampleSellForApproximateBuyFromSolidly
             }),
             makerTokenAmounts
         );
     }
 
-    function _sampleSellForApproximateBuyFromVelodrome(
+    function _sampleSellForApproximateBuyFromSolidly(
         bytes memory takerTokenData,
         bytes memory, /* makerTokenData */
         uint256 sellAmount
     ) internal view returns (uint256) {
-        (IVelodromeRouter router, VeloRoute memory route) = abi.decode(takerTokenData, (IVelodromeRouter, VeloRoute));
+        (ISolidlyRouter router, SolidlyRoute memory route) = abi.decode(takerTokenData, (ISolidlydromeRouter, VSolidlyRoute));
 
-        VeloRoute[] memory routes = new VeloRoute[](1);
+        SolidlyRoute[] memory routes = new SolidlyRoute[](1);
         routes[0] = route;
         return router.getAmountsOut(sellAmount, routes)[1];
     }
 
     /// @dev Returns whether the most liquid pool is a stable pool.
-    /// @param router Address of Velodrome router.
+    /// @param router Address of Solidly router.
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token buy amount for each sample (sorted in ascending order)
     /// @return stable Whether the pool is a stable pool (vs volatile).
     function _isMostLiquidPoolStablePool(
-        IVelodromeRouter router,
+        ISolidlyRouter router,
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts

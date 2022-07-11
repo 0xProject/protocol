@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-interface ISpiritV2Router {
+interface ISolidlyRouter {
     function swapExactTokensForTokensSimple(
         uint256 amountIn,
         uint256 amountOutMin,
@@ -35,10 +35,10 @@ interface ISpiritV2Router {
     ) external returns (uint256[] memory amounts); 
 }
 
-contract MixinSpiritV2 {
+contract MixinSolidly {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeSpiritV2(
+    function _tradeSolidly(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
@@ -48,7 +48,7 @@ contract MixinSpiritV2 {
         returns (uint256 boughtAmount)
     {
 
-        (ISpiritV2Router router, bool stable) = abi.decode(bridgeData, (ISpiritV2Router, bool));
+        (ISolidlyRouter router, bool stable) = abi.decode(bridgeData, (ISolidlyRouter, bool));
         sellToken.approveIfBelow(address(router), sellAmount);
 
         boughtAmount = router.swapExactTokensForTokensSimple(

@@ -50,7 +50,7 @@ import * as UniswapV2Sampler from '../test/generated-artifacts/UniswapV2Sampler.
 import * as UniswapV3Sampler from '../test/generated-artifacts/UniswapV3Sampler.json';
 import * as UtilitySampler from '../test/generated-artifacts/UtilitySampler.json';
 import * as VelodromeSampler from '../test/generated-artifacts/VelodromeSampler.json';
-import * as SpiritV2Sampler from '../test/generated-artifacts/SpiritV2Sampler.json';
+import * as SolidlySampler from '../test/generated-artifacts/SolidlySampler.json';
 
 export const artifacts = {
     ApproximateBuys: ApproximateBuys as ContractArtifact,
@@ -84,7 +84,7 @@ export const artifacts = {
     UniswapV3Sampler: UniswapV3Sampler as ContractArtifact,
     UtilitySampler: UtilitySampler as ContractArtifact,
     VelodromeSampler: VelodromeSampler as ContractArtifact,
-    SpiritV2Sampler: SpiritV2Sampler as ContractArtifact,
+    SolidlySampler: SolidlySampler as ContractArtifact,
     IBalancer: IBalancer as ContractArtifact,
     IBalancerV2Vault: IBalancerV2Vault as ContractArtifact,
     IBancor: IBancor as ContractArtifact,

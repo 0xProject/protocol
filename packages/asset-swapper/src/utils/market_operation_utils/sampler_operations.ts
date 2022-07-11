@@ -49,7 +49,7 @@ import {
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
-    SPIRITV2_ROUTER_BY_CHAIN_ID,
+    SOLIDLY_ROUTER_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -99,7 +99,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
     VelodromeFillData,
-    SpiritV2FillData,
+    SolidlyFillData,
 } from './types';
 
 /**
@@ -1312,20 +1312,20 @@ export class SamplerOperations {
         });
     }
 
-    public getSpiritV2SellQuotes(
+    public getSolidlySellQuotes(
         router: string,
         takerToken: string,
         makerToken: string,
         takerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<SpiritV2FillData> {
+    ): SourceQuoteOperation<SolidlyFillData> {
         return new SamplerContractOperation({
-            source: ERC20BridgeSource.SpiritV2,
+            source: ERC20BridgeSource.Solidly,
             contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromSpiritV2,
+            function: this._samplerContract.sampleSellsFromSolidly,
             params: [router, takerToken, makerToken, takerFillAmounts],
-            callback: (callResults: string, fillData: SpiritV2FillData): BigNumber[] => {
+            callback: (callResults: string, fillData: SolidlyFillData): BigNumber[] => {
                 const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
-                    'sampleSellsFromSpiritV2',
+                    'sampleSellsFromSolidly',
                     callResults,
                 );
                 fillData.router = router;
@@ -1335,20 +1335,20 @@ export class SamplerOperations {
         });
     }
 
-    public getSpiritV2BuyQuotes(
+    public getSolidlyBuyQuotes(
         router: string,
         takerToken: string,
         makerToken: string,
         makerFillAmounts: BigNumber[],
-    ): SourceQuoteOperation<SpiritV2FillData> {
+    ): SourceQuoteOperation<SolidlyFillData> {
         return new SamplerContractOperation({
-            source: ERC20BridgeSource.SpiritV2,
+            source: ERC20BridgeSource.Solidly,
             contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromSpiritV2,
+            function: this._samplerContract.sampleBuysFromSolidly,
             params: [router, takerToken, makerToken, makerFillAmounts],
-            callback: (callResults: string, fillData: SpiritV2FillData): BigNumber[] => {
+            callback: (callResults: string, fillData: SolidlyFillData): BigNumber[] => {
                 const [isStable, samples] = this._samplerContract.getABIDecodedReturnData<[boolean, BigNumber[]]>(
-                    'sampleBuysFromSpiritV2',
+                    'sampleBuysFromSolidly',
                     callResults,
                 );
                 fillData.router = router;
@@ -1781,9 +1781,9 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
-                    case ERC20BridgeSource.SpiritV2: {
-                        return this.getSpiritV2SellQuotes(
-                            SPIRITV2_ROUTER_BY_CHAIN_ID[this.chainId],
+                    case ERC20BridgeSource.Solidly: {
+                        return this.getSolidlySellQuotes(
+                            SOLIDLY_ROUTER_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
                             takerFillAmounts,
@@ -2121,9 +2121,9 @@ export class SamplerOperations {
                             makerFillAmounts,
                         );
                     }
-                    case ERC20BridgeSource.SpiritV2: {
-                        return this.getSpiritV2BuyQuotes(
-                            SPIRITV2_ROUTER_BY_CHAIN_ID[this.chainId],
+                    case ERC20BridgeSource.Solidly: {
+                        return this.getSolidlyBuyQuotes(
+                            SOLIDLY_ROUTER_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
                             makerFillAmounts,
