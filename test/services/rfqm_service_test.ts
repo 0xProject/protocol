@@ -15,7 +15,12 @@ import { anything, instance, mock, spy, when } from 'ts-mockito';
 import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../../src/entities';
-import { RfqmJobStatus, RfqmOrderTypes, RfqmTransactionSubmissionStatus } from '../../src/entities/types';
+import {
+    RfqmJobStatus,
+    RfqmOrderTypes,
+    RfqmTransactionSubmissionStatus,
+    RfqmTransactionSubmissionType,
+} from '../../src/entities/types';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { ApprovalResponse, OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
@@ -1202,6 +1207,7 @@ describe('RfqmService HTTP Logic', () => {
                     transactionHash: '0x01',
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 0,
                 });
                 const submission2 = new RfqmV2TransactionSubmissionEntity({
@@ -1210,6 +1216,7 @@ describe('RfqmService HTTP Logic', () => {
                     transactionHash: '0x02',
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 1,
                 });
 
@@ -1260,6 +1267,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 0,
                 });
                 const submission2 = new RfqmV2TransactionSubmissionEntity({
@@ -1269,6 +1277,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 1,
                 });
 
@@ -1311,6 +1320,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 0,
                 });
                 const submission2 = new RfqmV2TransactionSubmissionEntity({
@@ -1320,6 +1330,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 1,
                 });
 
@@ -1362,6 +1373,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 0,
                 });
                 const submission2 = new RfqmV2TransactionSubmissionEntity({
@@ -1371,6 +1383,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.RevertedUnconfirmed,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 1,
                 });
 
@@ -1404,6 +1417,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 0,
                 });
                 const submission2 = new RfqmV2TransactionSubmissionEntity({
@@ -1413,6 +1427,7 @@ describe('RfqmService HTTP Logic', () => {
                     status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
                     from: job.order.order.txOrigin,
                     to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
                     nonce: 1,
                 });
 

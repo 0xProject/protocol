@@ -2,19 +2,16 @@ import { BigNumber } from '@0x/asset-swapper';
 import { Column, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
-import { RfqmTransactionSubmissionStatus } from './types';
+import { RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from './types';
 
 export type RfqmV2TransactionSubmissionEntityConstructorOpts = Pick<
     RfqmV2TransactionSubmissionEntity,
-    'from' | 'nonce' | 'orderHash' | 'to' | 'transactionHash'
+    'from' | 'nonce' | 'orderHash' | 'to' | 'transactionHash' | 'type'
 > &
     Partial<RfqmV2TransactionSubmissionEntity>;
 
 @Entity({ name: 'rfqm_v2_transaction_submissions' })
 export class RfqmV2TransactionSubmissionEntity {
-    // Differentiator for different flavors of RFQM transactions
-    public kind: 'rfqm_v2_transaction_submission';
-
     @PrimaryColumn({ name: 'transaction_hash', type: 'varchar' })
     public transactionHash: string;
 
@@ -61,12 +58,13 @@ export class RfqmV2TransactionSubmissionEntity {
     @Column({ name: 'status', type: 'varchar' })
     public status: RfqmTransactionSubmissionStatus;
 
+    @Column({ name: 'type', type: 'varchar' })
+    public type: RfqmTransactionSubmissionType;
+
     constructor(
         // tslint:disable-next-line no-object-literal-type-assertion
         opts: RfqmV2TransactionSubmissionEntityConstructorOpts = {} as RfqmV2TransactionSubmissionEntityConstructorOpts,
     ) {
-        this.kind = 'rfqm_v2_transaction_submission';
-
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;
@@ -83,6 +81,7 @@ export class RfqmV2TransactionSubmissionEntity {
         this.status = opts.status ?? RfqmTransactionSubmissionStatus.Submitted;
         this.to = opts.to;
         this.transactionHash = opts.transactionHash;
+        this.type = opts.type;
         this.updatedAt = opts.updatedAt ?? null;
     }
 }
