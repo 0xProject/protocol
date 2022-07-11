@@ -27,6 +27,10 @@ const RFQ1_MUMBAI = '0xbeA1BcA733A6f58C363d9ecCfc62a806Fa1afEe7';
 const RFQ2_MUMBAI = '0x72115b83Bb0dc128785F3A66ad7D2dc484852d0C';
 const RFQ3_MUMBAI = '0xb0A53DD97d672486f35787D23DC285A621537f21';
 
+const EXCHANGE_PROXY_OVERRIDE: { [key: number]: string } = {
+    80001: '0x924dd2BF617863Ae94c44BA804cc09AEfAC82B9D', // 0x contract that we deployed on Mumbai for load testing.
+};
+
 const MM_PRIVATE_KEY =
     process.env.MM_PRIVATE_KEY || '0xf0d8f376ca991256ddb256fb7cd28d68d971b07f5c0cf62cf0294c1ff8078a90';
 const MM_ADDRESS = new Wallet(MM_PRIVATE_KEY).address;
@@ -469,6 +473,11 @@ export class DummyMMHandlers {
         const expiry = now.plus(new BigNumber(5).times(ONE_MINUTE_MS)).div(ONE_SECOND_MS).integerValue();
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
 
+        // Get Exchange Proxy contract address
+        const exchangeProxyContractAddress: string = EXCHANGE_PROXY_OVERRIDE[chainId]
+            ? EXCHANGE_PROXY_OVERRIDE[chainId]
+            : getContractAddressesForChainOrThrow(chainId).exchangeProxy;
+
         const otcOrder = new OtcOrder({
             txOrigin,
             expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
@@ -483,7 +492,7 @@ export class DummyMMHandlers {
             maker: MM_ADDRESS,
             taker: takerAddress,
             chainId,
-            verifyingContract: getContractAddressesForChainOrThrow(chainId).exchangeProxy,
+            verifyingContract: exchangeProxyContractAddress,
         });
 
         const orderHash = otcOrder.getHash();
