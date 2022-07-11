@@ -5,6 +5,7 @@ import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities';
+import { RfqmTransactionSubmissionType } from '../../src/entities/types';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { SubmissionContext } from '../../src/utils/SubmissionContext';
 
@@ -23,6 +24,7 @@ describe('SubmissionContext', () => {
 
         it('requires all transactions to have unique hashes', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -31,6 +33,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -46,6 +49,7 @@ describe('SubmissionContext', () => {
 
         it('requires all transactions to have the same nonce', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -54,6 +58,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',
@@ -69,6 +74,7 @@ describe('SubmissionContext', () => {
 
         it('requires all transactions to have the same gas format', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -77,6 +83,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',
@@ -93,6 +100,7 @@ describe('SubmissionContext', () => {
 
         it('fails for invalid EIP-1559 transactions', () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -107,6 +115,7 @@ describe('SubmissionContext', () => {
     describe('get transactionType', () => {
         it('handles type-0 transactions', () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -122,6 +131,7 @@ describe('SubmissionContext', () => {
 
         it('handles type-2 transactions', () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -140,6 +150,7 @@ describe('SubmissionContext', () => {
     describe('maxGasPrice', () => {
         it('throws for EIP-1559 transactions', () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -156,6 +167,7 @@ describe('SubmissionContext', () => {
 
         it('gets the max gas price', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -164,6 +176,7 @@ describe('SubmissionContext', () => {
                 gasPrice: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',
@@ -184,6 +197,7 @@ describe('SubmissionContext', () => {
     describe('maxGasFees', () => {
         it('throws for non-EIP-1559 transactions', () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -199,6 +213,7 @@ describe('SubmissionContext', () => {
 
         it('gets the max gas fees', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -208,6 +223,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',
@@ -232,6 +248,7 @@ describe('SubmissionContext', () => {
             const fakeEarlierMs = 1640307189361;
             const fakeLaterMs = 1650307189361;
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 createdAt: new Date(fakeLaterMs),
                 transactionHash: '0x1',
                 from: '0xfrom',
@@ -242,7 +259,7 @@ describe('SubmissionContext', () => {
                 maxPriorityFeePerGas: new BigNumber(1),
             });
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
-                //
+                type: RfqmTransactionSubmissionType.Trade,
                 createdAt: new Date(fakeEarlierMs), // Transaction 2 is older
                 transactionHash: '0x2',
                 from: '0xfrom',
@@ -265,6 +282,7 @@ describe('SubmissionContext', () => {
     describe('getReceiptsAsync', () => {
         it('returns null if no transactions have been mined', async () => {
             const transaction = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -283,6 +301,7 @@ describe('SubmissionContext', () => {
 
         it('returns one transaction receipt have been mined', async () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -293,6 +312,7 @@ describe('SubmissionContext', () => {
             });
 
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',
@@ -333,6 +353,7 @@ describe('SubmissionContext', () => {
 
         it('throws if multiple receipts are returned', () => {
             const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x1',
                 from: '0xfrom',
                 to: '0xto',
@@ -343,6 +364,7 @@ describe('SubmissionContext', () => {
             });
 
             const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                type: RfqmTransactionSubmissionType.Trade,
                 transactionHash: '0x2',
                 from: '0xfrom',
                 to: '0xto',

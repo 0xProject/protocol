@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { instance, mock, when } from 'ts-mockito';
 
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities/RfqmV2TransactionSubmissionEntity';
+import { RfqmTransactionSubmissionType } from '../../src/entities/types';
 import { GasOracle } from '../../src/utils/GasOracle';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { calculateGasEstimate } from '../../src/utils/rfqm_gas_estimate_utils';
@@ -87,6 +88,7 @@ describe('GasStationAttendantEthereum', () => {
                 nonce: 0,
                 maxFeePerGas: new BigNumber(3),
                 maxPriorityFeePerGas: new BigNumber(2),
+                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const submissionContext = new SubmissionContext(instance(mock(RfqBlockchainUtils)), [transaction1]);
@@ -113,6 +115,7 @@ describe('GasStationAttendantEthereum', () => {
                 nonce: 0,
                 maxFeePerGas: new BigNumber(2002),
                 maxPriorityFeePerGas: new BigNumber(2),
+                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const submissionContext = new SubmissionContext(instance(mock(RfqBlockchainUtils)), [transaction1]);

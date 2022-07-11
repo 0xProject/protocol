@@ -168,8 +168,8 @@ They can also be triggered manually by using `yarn release`, which requires a [G
 
 This project uses [TypeORM](https://github.com/typeorm/typeorm). It makes it easier for anyone to switch out the backing database used by this project. By default, this project uses a [PostgreSQL](https://www.postgresql.org/) database.
 
-To add a migration, you may use the following command:
+To add a migration, you may use the following command (prefer PascalCase):
 
 ```
-yarn db:migration:create -n myMigration
+yarn db:migration:create -n MyMigration
 ```

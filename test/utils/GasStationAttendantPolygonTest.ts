@@ -5,6 +5,7 @@ import { instance, mock, when } from 'ts-mockito';
 
 import { GWEI_DECIMALS } from '../../src/constants';
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities/RfqmV2TransactionSubmissionEntity';
+import { RfqmTransactionSubmissionType } from '../../src/entities/types';
 import { GasStationAttendantPolygon } from '../../src/utils/GasStationAttendantPolygon';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { SubmissionContext } from '../../src/utils/SubmissionContext';
@@ -100,6 +101,7 @@ describe('GasStationAttendantPolygon', () => {
                 nonce: 0,
                 maxFeePerGas: new BigNumber(3),
                 maxPriorityFeePerGas: new BigNumber(2),
+                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const submissionContext = new SubmissionContext(instance(mock(RfqBlockchainUtils)), [transaction1]);
@@ -128,6 +130,7 @@ describe('GasStationAttendantPolygon', () => {
                 nonce: 0,
                 maxFeePerGas: new BigNumber(101).times(Math.pow(10, GWEI_DECIMALS)),
                 maxPriorityFeePerGas: new BigNumber(100).times(Math.pow(10, GWEI_DECIMALS)),
+                type: RfqmTransactionSubmissionType.Trade,
             });
 
             const submissionContext = new SubmissionContext(instance(mock(RfqBlockchainUtils)), [transaction1]);
