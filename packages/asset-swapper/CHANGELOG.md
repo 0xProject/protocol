@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.63.1 - _July 12, 2022_
+
+    * Better error handling for balancer cache (#515)
+
 ## v16.63.0 - _June 29, 2022_
 
     * Remove JS router (#480)
