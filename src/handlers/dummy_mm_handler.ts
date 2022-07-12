@@ -23,12 +23,12 @@ const DAI_POLYGON = '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063';
 const USDC_POLYGON = '0x2791bca1f2de4661ed88a30c99a7a9449aa84174';
 const USDT_POLYGON = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f';
 
-const RFQ1_MUMBAI = '0xbeA1BcA733A6f58C363d9ecCfc62a806Fa1afEe7';
-const RFQ2_MUMBAI = '0x72115b83Bb0dc128785F3A66ad7D2dc484852d0C';
-const RFQ3_MUMBAI = '0xb0A53DD97d672486f35787D23DC285A621537f21';
+const RFQ1_MUMBAI = '0xbea1bca733a6f58c363d9eccfc62a806fa1afee7';
+const RFQ2_MUMBAI = '0x72115b83bb0dc128785f3a66ad7d2dc484852d0c';
+const RFQ3_MUMBAI = '0xb0a53dd97d672486f35787d23dc285a621537f21';
 
 const EXCHANGE_PROXY_OVERRIDE: { [key: number]: string } = {
-    80001: '0x924dd2BF617863Ae94c44BA804cc09AEfAC82B9D', // 0x contract that we deployed on Mumbai for load testing.
+    80001: '0x924dd2bf617863ae94c44ba804cc09aefac82b9d', // 0x contract that we deployed on Mumbai for load testing.
 };
 
 const MM_PRIVATE_KEY =
