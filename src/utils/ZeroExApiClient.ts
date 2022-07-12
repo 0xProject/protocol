@@ -10,13 +10,18 @@ import { QuoteContext } from '../services/types';
  * With this summary metric, some of the things you can do are:
  * - Get the rate of failed requests
  * - Get the rate of success requests
- * - Get the p99 of request duration of success/failed requests
+ * - Get the p99 of request duration of success/failed requests (with the sliding window of 1 minute)
  */
 const RFQ_AMM_QUOTE_FETCH_REQUEST_DURATION_SECONDS = new Summary({
     name: 'rfq_amm_quote_fetch_request_duration_seconds',
     help: 'Histogram of request duration of AMM Quote fetch request',
     percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
     labelNames: ['chainId', 'success', 'errorType'],
+    // Set sliding window to 1 minutes
+    maxAgeSeconds: 60,
+    // The more number of age buckets, the smoother the time window is moved
+    // but it also consumes more memory & CPU for maintaining the bucket.
+    ageBuckets: 5,
 });
 
 enum FailedFetchErrorType {

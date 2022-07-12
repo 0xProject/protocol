@@ -10,16 +10,19 @@ import { logger } from '../logger';
  *      rate(rfq_token_price_fetch_request_duration_seconds_count{success="false"}[5m])
  * - Get the rate of success price fetch requests:
  *      rate(rfq_token_price_fetch_request_duration_seconds_count{success="true"}[5m])
- * - Get the p95 of request duration of all success price fetch:
- *      rate(rfq_token_price_fetch_request_duration_seconds{quantile="0.99", success="true"}[5m])
- *      /
- *      rate(rfq_token_price_fetch_request_duration_seconds_count{quantile="0.99", success="true"}[5m])
+ * - Get the p95 of request duration of all success price fetch (with the sliding window of 1 minute):
+ *      rfq_token_price_fetch_request_duration_seconds{quantile="0.99", success="true"}
  */
 const RFQ_TOKEN_PRICE_FETCH_REQUEST_DURATION_SECONDS = new Summary({
     name: 'rfq_token_price_fetch_request_duration_seconds',
     help: 'Histogram of request duration of token price fetch request',
     percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
     labelNames: ['chainId', 'success'],
+    // Set sliding window to 1 minutes
+    maxAgeSeconds: 60,
+    // The more number of age buckets, the smoother the time window is moved
+    // but it also consumes more memory & CPU for maintaining the bucket.
+    ageBuckets: 5,
 });
 
 export interface FetchTokenPriceParams {
