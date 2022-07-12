@@ -2,6 +2,8 @@ import { getPoolsWithTokens, parsePoolData } from 'balancer-labs-sor-v1';
 import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { gql, request } from 'graphql-request';
 
+import { DEFAULT_WARNING_LOGGER } from '../../../constants';
+import { LogFunction } from '../../../types';
 import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
 import { CacheValue, PoolsCache } from './pools_cache';
@@ -24,6 +26,7 @@ export class BalancerPoolsCache extends PoolsCache {
         cache: { [key: string]: CacheValue } = {},
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
+        private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
     ) {
         super(cache);
         void this._loadTopPoolsAsync();
@@ -49,7 +52,14 @@ export class BalancerPoolsCache extends PoolsCache {
             [from: string]: { [to: string]: Pool[] };
         } = {};
 
-        const pools = await this._fetchTopPoolsAsync();
+        let pools: BalancerPoolResponse[];
+        try {
+            pools = await this._fetchTopPoolsAsync();
+        } catch (err) {
+            this._warningLogger(err, 'Failed to fetch top pools for Balancer V1');
+            return;
+        }
+
         for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {

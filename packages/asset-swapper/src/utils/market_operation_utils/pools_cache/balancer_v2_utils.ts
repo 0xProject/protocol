@@ -114,7 +114,14 @@ export class BalancerV2PoolsCache extends PoolsCache {
             [from: string]: { [to: string]: Pool[] };
         } = {};
 
-        const pools = await this._fetchTopPoolsAsync();
+        let pools: BalancerPoolResponse[];
+        try {
+            pools = await this._fetchTopPoolsAsync();
+        } catch (err) {
+            this._warningLogger(err, 'Failed to fetch top pools for Balancer V2');
+            return;
+        }
+
         for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {
