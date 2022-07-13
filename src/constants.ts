@@ -105,4 +105,4 @@ export const DEFAULT_CACHE_AGE_SECONDS = 13;
 export const ONE_IN_BASE_POINTS = 10000;
 
 // Whether Slippage Protect is enabled by default
-export const DEFAULT_ENABLE_SLIPPAGE_PROTECTION = false;
+export const DEFAULT_ENABLE_SLIPPAGE_PROTECTION = true;
