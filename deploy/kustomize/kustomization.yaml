@@ -1,3 +1,6 @@
 bases:
 - api
+- bull-board
+- processor
+- scheduler
 - worker

@@ -1,11 +1,10 @@
 /**
  * Runs the RFQM MetaTransaction Consumer
  */
-import { createMetricsRouter, MetricsService, pino } from '@0x/api-utils';
+import { pino } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
 import { SQS } from 'aws-sdk';
 import Axios from 'axios';
-import * as express from 'express';
 import { Counter } from 'prom-client';
 
 import {
@@ -14,16 +13,13 @@ import {
     CHAIN_ID,
     DEFINED_FI_API_KEY,
     DEFINED_FI_ENDPOINT,
-    ENABLE_PROMETHEUS_METRICS,
     META_TX_WORKER_MNEMONIC,
-    PROMETHEUS_PORT,
     RFQM_WORKER_INDEX,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { METRICS_PATH } from '../constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
@@ -32,6 +28,7 @@ import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
+import { startMetricsServer } from '../utils/runner_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
@@ -167,21 +164,4 @@ export function createRfqmWorker(
     });
 
     return consumer;
-}
-
-function startMetricsServer(): void {
-    if (ENABLE_PROMETHEUS_METRICS) {
-        const metricsService = new MetricsService();
-        const metricsRouter = createMetricsRouter(metricsService);
-        const metricsApp = express();
-
-        metricsApp.use(METRICS_PATH, metricsRouter);
-        const metricsServer = metricsApp.listen(PROMETHEUS_PORT, () => {
-            logger.info(`Metrics (HTTP) listening on port ${PROMETHEUS_PORT}`);
-        });
-
-        metricsServer.on('error', (error) => {
-            logger.error(error);
-        });
-    }
 }

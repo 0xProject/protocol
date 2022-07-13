@@ -10,7 +10,7 @@ import { BackgroundJobBlueprint } from '../../background-jobs/blueprint';
 import { BackgroundJobData, BackgroundJobResult } from '../../background-jobs/types';
 import { BACKGROUND_JOB_TYPES, REDIS_BACKGROUND_JOB_URI } from '../../config';
 import { logger } from '../../logger';
-import { closeRedisConnectionsAsync, closeWorkersAsync } from '../../utils/background_job_runner_utils';
+import { closeRedisConnectionsAsync, closeWorkersAsync, startMetricsServer } from '../../utils/runner_utils';
 
 const connections: Redis[] = [];
 const workers: Worker[] = [];
@@ -61,6 +61,8 @@ if (require.main === module) {
     // tslint:disable:no-floating-promises
     // Promise rejections would be handled by the unhandledRejection handler
     (async () => {
+        // Start the metrics server
+        startMetricsServer();
         // Prepare Redis connections
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!, {
             maxRetriesPerRequest: null,

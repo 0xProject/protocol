@@ -14,7 +14,7 @@ import { BackgroundJobData, BackgroundJobResult } from '../../background-jobs/ty
 import { BACKGROUND_JOB_TYPES, defaultHttpServiceConfig, REDIS_BACKGROUND_JOB_URI } from '../../config';
 import { logger } from '../../logger';
 import { errorHandler } from '../../middleware/error_handling';
-import { closeRedisConnectionsAsync } from '../../utils/background_job_runner_utils';
+import { closeRedisConnectionsAsync } from '../../utils/runner_utils';
 
 const BULLMQ_UI_PORT = 3002;
 const connections: Redis[] = [];

@@ -1,6 +1,10 @@
+import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { Worker } from 'bullmq';
+import * as express from 'express';
 import Redis from 'ioredis';
 
+import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT } from '../config';
+import { METRICS_PATH } from '../constants';
 import { logger } from '../logger';
 
 /**
@@ -33,5 +37,25 @@ export async function closeWorkersAsync(workers: Worker[]): Promise<void> {
                 `Failed to shutdown worker ${worker.name}`,
             );
         }
+    }
+}
+
+/**
+ * Start the metrics server.
+ */
+export function startMetricsServer(): void {
+    if (ENABLE_PROMETHEUS_METRICS) {
+        const metricsService = new MetricsService();
+        const metricsRouter = createMetricsRouter(metricsService);
+        const metricsApp = express();
+
+        metricsApp.use(METRICS_PATH, metricsRouter);
+        const metricsServer = metricsApp.listen(PROMETHEUS_PORT, () => {
+            logger.info(`Metrics (HTTP) listening on port ${PROMETHEUS_PORT}`);
+        });
+
+        metricsServer.on('error', (error) => {
+            logger.error({ errorMessage: error, stack: error.stack }, 'Error in metrics server');
+        });
     }
 }

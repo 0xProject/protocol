@@ -6,7 +6,7 @@ import backgroundJobNoOp from '../src/background-jobs/no_op';
 import { REDIS_BACKGROUND_JOB_URI } from '../src/config';
 import { ONE_SECOND_MS } from '../src/constants';
 import { ScheduledBackgroundJob, Scheduler } from '../src/scheduler';
-import { closeRedisConnectionsAsync, closeWorkersAsync } from '../src/utils/background_job_runner_utils';
+import { closeRedisConnectionsAsync, closeWorkersAsync } from '../src/utils/runner_utils';
 
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
 

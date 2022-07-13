@@ -10,7 +10,7 @@ import backgroundJobNoOp from '../../background-jobs/no_op';
 import { REDIS_BACKGROUND_JOB_URI } from '../../config';
 import { logger } from '../../logger';
 import { ScheduledBackgroundJob, Scheduler } from '../../scheduler';
-import { closeRedisConnectionsAsync } from '../../utils/background_job_runner_utils';
+import { closeRedisConnectionsAsync, startMetricsServer } from '../../utils/runner_utils';
 
 const connections: Redis[] = [];
 
@@ -54,6 +54,8 @@ if (require.main === module) {
     // tslint:disable:no-floating-promises
     // Promise rejections would be handled by the unhandledRejection handler
     (async () => {
+        // Start the metrics server
+        startMetricsServer();
         // Prepare Redis connections
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!);
         connections.push(connection);
