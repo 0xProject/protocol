@@ -23,6 +23,8 @@ export { SamplerMetrics } from './utils/market_operation_utils/types';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { MetricsProxy } from './utils/quote_requestor';
 
+export type Address = string;
+
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
  * permittedOrderFeeTypes: A set of all the takerFee types that OrderPruner will filter for
