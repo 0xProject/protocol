@@ -7,7 +7,7 @@ import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
 import { GeistSampler } from '../../noop_samplers/GeistSampler';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
-import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
+import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { AaveV2ReservesCache } from './aave_reserves_cache';
 import { BancorService } from './bancor_service';
