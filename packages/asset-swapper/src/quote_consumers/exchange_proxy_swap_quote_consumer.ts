@@ -367,7 +367,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // OTC orders
         if (
-            [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
+            [ChainId.Mainnet, ChainId.Ropsten].includes(this.chainId) && // @todo goerli and polygon?
             quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Otc) &&
             !requiresTransformERC20(optsWithDefaults)
         ) {
@@ -598,12 +598,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         for_loop: for (const [i, order] of quote.orders.entries()) {
             switch_statement: switch (order.source) {
                 case ERC20BridgeSource.Native:
-                    if (order.type !== (FillQuoteTransformerOrderType.Rfq || FillQuoteTransformerOrderType.Otc)) {
+                    if (order.type !== FillQuoteTransformerOrderType.Rfq && order.type !== FillQuoteTransformerOrderType.Otc) {
                         // Should never happen because we check `isMultiplexBatchFillCompatible`
                         // before calling this function.
                         throw new Error('Multiplex batch fill only supported for RFQ native orders and OTC Orders');
                     }
-                    if (order.type !== FillQuoteTransformerOrderType.Rfq) {
+                    if (order.type !== FillQuoteTransformerOrderType.Otc) {
                         subcalls.push({
                             id: MultiplexSubcall.Rfq,
                             sellAmount: order.takerAmount,
