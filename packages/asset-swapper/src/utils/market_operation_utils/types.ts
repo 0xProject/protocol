@@ -438,7 +438,8 @@ export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrd
 export type OptimizedMarketOrder =
     | OptimizedMarketBridgeOrder<FillData>
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
+    | OptimizedMarketOrderBase<NativeOtcOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     rfqClient?: IRfqClient;
