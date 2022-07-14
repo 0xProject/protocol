@@ -12,6 +12,7 @@ import {
     FillQuoteTransformerData,
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType as OrderType,
+    FillQuoteTransformerOtcOrderInfo,
     FillQuoteTransformerRfqOrderInfo,
     FillQuoteTransformerSide as Side,
     LimitOrder,
@@ -28,7 +29,7 @@ import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
 import { TestFillQuoteTransformerBridgeContract } from '../generated-wrappers/test_fill_quote_transformer_bridge';
-import { getRandomLimitOrder, getRandomRfqOrder, getRandomOtcOrder } from '../utils/orders';
+import { getRandomLimitOrder, getRandomOtcOrder, getRandomRfqOrder } from '../utils/orders';
 import {
     EthereumBridgeAdapterContract,
     FillQuoteTransformerContract,
@@ -268,6 +269,24 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             };
         }
 
+        function fillOtcOrder(oi: FillQuoteTransformerOtcOrderInfo): FillOrderResults {
+            const preFilledTakerAmount = orderSignatureToPreFilledTakerAmount(oi.signature);
+            if (preFilledTakerAmount.gte(oi.order.takerAmount) || preFilledTakerAmount.eq(REVERT_AMOUNT)) {
+                return EMPTY_FILL_ORDER_RESULTS;
+            }
+            const takerTokenFillAmount = BigNumber.min(
+                computeTakerTokenFillAmount(oi.order.takerAmount, oi.order.makerAmount),
+                oi.order.takerAmount.minus(preFilledTakerAmount),
+                oi.maxTakerTokenFillAmount,
+            );
+            const fillRatio = takerTokenFillAmount.div(oi.order.takerAmount);
+            return {
+                ...EMPTY_FILL_ORDER_RESULTS,
+                takerTokenSoldAmount: takerTokenFillAmount,
+                makerTokenBoughtAmount: fillRatio.times(oi.order.makerAmount).integerValue(BigNumber.ROUND_DOWN),
+            };
+        }
+
         function fillRfqOrder(oi: FillQuoteTransformerRfqOrderInfo): FillOrderResults {
             const preFilledTakerAmount = orderSignatureToPreFilledTakerAmount(oi.signature);
             if (preFilledTakerAmount.gte(oi.order.takerAmount) || preFilledTakerAmount.eq(REVERT_AMOUNT)) {
@@ -308,6 +327,11 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 case OrderType.Limit:
                     {
                         results = fillLimitOrder(data.limitOrders[orderIndices[orderType]]);
+                    }
+                    break;
+                case OrderType.Otc:
+                    {
+                        results = fillOtcOrder(data.otcOrders[orderIndices[orderType]]);
                     }
                     break;
                 case OrderType.Rfq:
@@ -407,8 +431,8 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             buyToken: makerToken.address,
             bridgeOrders: [],
             limitOrders: [],
-            rfqOrders: [],
             otcOrders: [],
+            rfqOrders: [],
             fillSequence: [],
             fillAmount: MAX_UINT256,
             refundReceiver: NULL_ADDRESS,
@@ -462,7 +486,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
     }
 
     describe('sell quotes', () => {
-        it('can fully sell to a single bridge order with -1 fillAmount', async () => {
+        it.only('can fully sell to a single bridge order with -1 fillAmount', async () => {
             const bridgeOrders = [createBridgeOrder()];
             const data = createTransformData({
                 bridgeOrders,
@@ -639,6 +663,24 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             return assertFinalBalancesAsync(qfr);
         });
 
+        it('can fully sell to a single OTC order', async () => {
+            const otcOrders = [createOtcOrder()];
+            const data = createTransformData({
+                otcOrders: otcOrders.map(o => ({
+                    order: o,
+                    maxTakerTokenFillAmount: MAX_UINT256,
+                    signature: createOrderSignature(),
+                })),
+                fillAmount: BigNumber.sum(...otcOrders.map(o => o.takerAmount)),
+                fillSequence: otcOrders.map(() => OrderType.Rfq),
+            });
+            const qfr = getExpectedQuoteFillResults(data, createSimulationState());
+            await executeTransformAsync({
+                data,
+                takerTokenBalance: qfr.takerTokensSpent,
+            });
+            return assertFinalBalancesAsync(qfr);
+        });
         it('can fully sell to a single RFQ order', async () => {
             const rfqOrders = [createRfqOrder()];
             const data = createTransformData({
@@ -1128,6 +1170,30 @@ blockchainTests.resets('FillQuoteTransformer', env => {
                 data,
                 takerTokenBalance: qfr.takerTokensSpent,
                 ethBalance: qfr.protocolFeePaid,
+            });
+            return assertFinalBalancesAsync(qfr);
+        });
+
+        it('can fully buy to a single OTC order', async () => {
+            const otcOrders = [createOtcOrder()];
+            const totalTakerTokens = BigNumber.sum(...otcOrders.map(o => o.takerAmount));
+            const data = createTransformData({
+                side: Side.Buy,
+                otcOrders: otcOrders.map(o => ({
+                    order: o,
+                    maxTakerTokenFillAmount: MAX_UINT256,
+                    signature: createOrderSignature(),
+                })),
+                fillAmount: BigNumber.sum(...otcOrders.map(o => o.makerAmount)),
+                fillSequence: otcOrders.map(() => OrderType.Rfq),
+            });
+            const qfr = getExpectedQuoteFillResults(
+                data,
+                createSimulationState({ takerTokenBalance: totalTakerTokens }),
+            );
+            await executeTransformAsync({
+                data,
+                takerTokenBalance: qfr.takerTokensSpent,
             });
             return assertFinalBalancesAsync(qfr);
         });

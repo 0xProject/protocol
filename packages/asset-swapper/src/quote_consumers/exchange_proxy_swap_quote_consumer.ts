@@ -342,7 +342,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             !requiresTransformERC20(optsWithDefaults)
         ) {
             const rfqOrdersData = quote.orders.map(o => o.fillData as NativeRfqOrderFillData);
-            const fillAmountPerOrder =  generateFillAmounts(sellAmount, quote);
+            const fillAmountPerOrder = generateFillAmounts(sellAmount, quote);
             const callData =
                 quote.orders.length === 1
                     ? this._exchangeProxy
@@ -365,34 +365,35 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             };
         }
 
-        //OTC orders
-        if(
+        // OTC orders
+        if (
             [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
             quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Otc) &&
             !requiresTransformERC20(optsWithDefaults)
-        ){
+        ) {
             const otcOrdersData = quote.orders.map(o => o.fillData as NativeOtcOrderFillData);
             const fillAmountPerOrder = generateFillAmounts(sellAmount, quote);
-            // grab the amount to fill on each OtcOrder (if more than 1)
+            // grab the amount to fill on each OtcOrder (if more than 1, fallback to multiplexBatchFill)
 
             let callData;
-
-            
-            if(quote.orders.length === 1){
-                if(isFromETH){
-                    callData = this._exchangeProxy.fillOtcOrderWithEth(
-                        otcOrdersData[0].order, otcOrdersData[0].signature
-                    ).getABIEncodedTransactionData();
+            // if we have more than one otc order we want to batch fill them,
+            if (quote.orders.length === 1) {
+                // if the otc orders takerToken is the native asset
+                if (isFromETH) {
+                    callData = this._exchangeProxy
+                        .fillOtcOrderWithEth(otcOrdersData[0].order, otcOrdersData[0].signature)
+                        .getABIEncodedTransactionData();
                 }
-                if(isToETH){
-                    callData = this._exchangeProxy.fillOtcOrderForEth(
-                        otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
-                    ).getABIEncodedTransactionData();
-                }
-                else{
-                    callData = this._exchangeProxy.fillOtcOrder(
-                        otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
-                    ).getABIEncodedTransactionData();
+                // if the otc orders makerToken is the native asset
+                if (isToETH) {
+                    callData = this._exchangeProxy
+                        .fillOtcOrderForEth(otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0])
+                        .getABIEncodedTransactionData();
+                } else {
+                    // if the otc order contains 2 erc20 tokens
+                    callData = this._exchangeProxy
+                        .fillOtcOrder(otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0])
+                        .getABIEncodedTransactionData();
                 }
                 return {
                     calldataHexString: callData,
@@ -402,8 +403,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     gasOverhead: ZERO_AMOUNT,
                 };
             }
-            
-            
         }
 
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
@@ -604,7 +603,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         // before calling this function.
                         throw new Error('Multiplex batch fill only supported for RFQ native orders and OTC Orders');
                     }
-                    if (order.type !== FillQuoteTransformerOrderType.Rfq){
+                    if (order.type !== FillQuoteTransformerOrderType.Rfq) {
                         subcalls.push({
                             id: MultiplexSubcall.Rfq,
                             sellAmount: order.takerAmount,
@@ -773,15 +772,15 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 }
 
-function generateFillAmounts(sellAmount: BigNumber, quote: MarketBuySwapQuote | MarketSellSwapQuote): BigNumber[]{
-        let remaining = sellAmount;
-        const fillAmounts = [];
-        for (const o of quote.orders) {
-            const fillAmount = BigNumber.min(o.takerAmount, remaining);
-            fillAmounts.push(fillAmount);
-            remaining = remaining.minus(fillAmount);
-        }
-        return fillAmounts;
+function generateFillAmounts(sellAmount: BigNumber, quote: MarketBuySwapQuote | MarketSellSwapQuote): BigNumber[] {
+    let remaining = sellAmount;
+    const fillAmounts = [];
+    for (const o of quote.orders) {
+        const fillAmount = BigNumber.min(o.takerAmount, remaining);
+        fillAmounts.push(fillAmount);
+        remaining = remaining.minus(fillAmount);
+    }
+    return fillAmounts;
 }
 
 function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): OptimizedMarketOrder[] {
