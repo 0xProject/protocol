@@ -31,7 +31,7 @@ describe('TokenAdjacencyGraphBuilder and TokenAdjacencyGraph', () => {
         });
 
         it('ignores an existing to token', async () => {
-            const graph = new TokenAdjacencyGraphBuilder([])
+            const graph = new TokenAdjacencyGraphBuilder()
                 .add('token_a', 'token_b')
                 .add('token_a', 'token_b')
                 .build();

@@ -6,6 +6,10 @@ export class TokenAdjacencyGraph {
     private readonly _graph: Map<Address, Address[]>;
     private readonly _defaultTokens: readonly Address[];
 
+    public static getEmptyGraph(): TokenAdjacencyGraph {
+        return new TokenAdjacencyGraphBuilder().build();
+    }
+
     /** Prefer using {@link TokenAdjacencyGraphBuilder}. */
     constructor(graph: Map<Address, Address[]>, defaultTokens: readonly Address[]) {
         this._graph = graph;
@@ -31,7 +35,7 @@ export class TokenAdjacencyGraphBuilder {
     private readonly _graph: Map<Address, Address[]>;
     private readonly _defaultTokens: readonly Address[];
 
-    constructor(defaultTokens: readonly string[]) {
+    constructor(defaultTokens: readonly string[] = []) {
         this._graph = new Map();
         this._defaultTokens = defaultTokens.map(addr => addr.toLowerCase());
     }

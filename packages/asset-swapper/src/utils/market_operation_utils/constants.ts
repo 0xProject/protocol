@@ -3,7 +3,7 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 
-import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
+import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
 
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { SourceFilters } from './source_filters';
@@ -32,7 +32,6 @@ import {
     MultiHopFillData,
     PlatypusInfo,
     PsmInfo,
-    TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
 } from './types';
@@ -903,9 +902,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
 // attaching to a default intermediary token (stables or ETH etc) can have a large impact
 export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
     {
-        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet],
-        })
+        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet])
             .tap(builder => {
                 // Mirror Protocol
                 builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
@@ -929,19 +926,13 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             })
             // Build
             .build(),
-        [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
-        }).build(),
-        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
-        })
+        [ChainId.BSC]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC]).build(),
+        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
             .tap(builder => {
                 builder.add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY).add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
             })
             .build(),
-        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
-        })
+        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche])
             .tap(builder => {
                 // Synapse nETH/aWETH pool
                 builder
@@ -951,17 +942,15 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
             })
             .build(),
-        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
-        }).build(),
-        [ChainId.Celo]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
-        }).build(),
-        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
-        }).build(),
+        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder(
+            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
+        ).build(),
+        [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(
+            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+        ).build(),
     },
-    new TokenAdjacencyGraphBuilder({ default: [] }).build(),
+    TokenAdjacencyGraph.getEmptyGraph(),
 );
 
 export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
@@ -2604,7 +2593,7 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     allowFallback: true,
     shouldGenerateQuoteReport: true,
     shouldIncludePriceComparisonsReport: false,
-    tokenAdjacencyGraph: { default: [] },
+    tokenAdjacencyGraph: TokenAdjacencyGraph.getEmptyGraph(),
     neonRouterNumSamples: 14,
     fillAdjustor: new IdentityFillAdjustor(),
 };

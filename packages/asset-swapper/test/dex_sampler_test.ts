@@ -13,7 +13,8 @@ import * as _ from 'lodash';
 
 import { SignedOrder } from '../src/types';
 import { DexOrderSampler, getSampleAmounts } from '../src/utils/market_operation_utils/sampler';
-import { ERC20BridgeSource, TokenAdjacencyGraph } from '../src/utils/market_operation_utils/types';
+import { ERC20BridgeSource } from '../src/utils/market_operation_utils/types';
+import { TokenAdjacencyGraphBuilder } from '../src/utils/token_adjacency_graph';
 
 import { MockSamplerContract } from './utils/mock_sampler_contract';
 import { generatePseudoRandomSalt } from './utils/utils';
@@ -29,7 +30,7 @@ describe('DexSampler tests', () => {
     const wethAddress = getContractAddressesForChainOrThrow(CHAIN_ID).etherToken;
     const exchangeProxyAddress = getContractAddressesForChainOrThrow(CHAIN_ID).exchangeProxy;
 
-    const tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [wethAddress] };
+    const tokenAdjacencyGraph = new TokenAdjacencyGraphBuilder([wethAddress]).build();
 
     describe('getSampleAmounts()', () => {
         const FILL_AMOUNT = getRandomInteger(1, 1e18);

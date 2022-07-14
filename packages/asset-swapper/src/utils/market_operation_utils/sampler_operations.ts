@@ -7,6 +7,7 @@ import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
 import { GeistSampler } from '../../noop_samplers/GeistSampler';
 import { SamplerCallResult, SignedNativeOrder } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
+import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
 
 import { AaveV2ReservesCache } from './aave_reserves_cache';
 import { BancorService } from './bancor_service';
@@ -53,7 +54,6 @@ import {
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
-import { getIntermediateTokens } from './multihop_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_utils_new';
 import { SamplerContractOperation } from './sampler_contract_operation';
@@ -94,7 +94,6 @@ import {
     ShellFillData,
     SourceQuoteOperation,
     SourcesWithPoolsCache,
-    TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
     VelodromeFillData,
@@ -140,7 +139,7 @@ export class SamplerOperations {
         public readonly chainId: ChainId,
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         poolsCaches?: PoolsCacheMap,
-        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = { default: [] },
+        protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = TokenAdjacencyGraph.getEmptyGraph(),
         liquidityProviderRegistry: LiquidityProviderRegistry = {},
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
@@ -810,7 +809,7 @@ export class SamplerOperations {
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
+        const intermediateTokens = this.tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         const subOps = intermediateTokens.map(intermediateToken => {
             const firstHopOps = this._getSellQuoteOperations(_sources, intermediateToken, takerToken, [ZERO_AMOUNT]);
             const secondHopOps = this._getSellQuoteOperations(_sources, makerToken, intermediateToken, [ZERO_AMOUNT]);
@@ -865,7 +864,7 @@ export class SamplerOperations {
         if (_sources.length === 0) {
             return SamplerOperations.constant([]);
         }
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
+        const intermediateTokens = this.tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         const subOps = intermediateTokens.map(intermediateToken => {
             const firstHopOps = this._getBuyQuoteOperations(_sources, intermediateToken, takerToken, [
                 new BigNumber(0),
@@ -1325,9 +1324,13 @@ export class SamplerOperations {
         if (makerToken.toLowerCase() === nativeToken.toLowerCase()) {
             return SamplerOperations.constant(new BigNumber(1));
         }
-        const subOps = this._getSellQuoteOperations(sources, makerToken, nativeToken, [nativeFillAmount], {
-            default: [],
-        });
+        const subOps = this._getSellQuoteOperations(
+            sources,
+            makerToken,
+            nativeToken,
+            [nativeFillAmount],
+            TokenAdjacencyGraph.getEmptyGraph(),
+        );
         return this._createBatch(
             subOps,
             (samples: BigNumber[][]) => {
@@ -1423,7 +1426,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation[] {
         // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, tokenAdjacencyGraph);
+        const intermediateTokens = tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         // Drop out MultiHop and Native as we do not query those here.
         const _sources = SELL_SOURCE_FILTER_BY_CHAIN_ID[this.chainId]
             .exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native])
@@ -1767,7 +1770,7 @@ export class SamplerOperations {
     ): SourceQuoteOperation[] {
         // Find the adjacent tokens in the provided token adjacency graph,
         // e.g if this is DAI->USDC we may check for DAI->WETH->USDC
-        const intermediateTokens = getIntermediateTokens(makerToken, takerToken, this.tokenAdjacencyGraph);
+        const intermediateTokens = this.tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         const _sources = BATCH_SOURCE_FILTERS.getAllowed(sources);
         return _.flatten(
             _sources.map((source): SourceQuoteOperation | SourceQuoteOperation[] => {
