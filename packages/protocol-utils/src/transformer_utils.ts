@@ -1,7 +1,7 @@
 import { AbiEncoder, BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as ethjs from 'ethereumjs-util';
 
-import { LimitOrder, LimitOrderFields, RfqOrder, RfqOrderFields } from './orders';
+import { LimitOrder, LimitOrderFields, OtcOrder, OtcOrderFields, RfqOrder, RfqOrderFields } from './orders';
 import { Signature, SIGNATURE_ABI } from './signature_utils';
 
 const BRIDGE_ORDER_ABI_COMPONENTS = [
@@ -39,6 +39,21 @@ const RFQ_ORDER_INFO_ABI_COMPONENTS = [
     { name: 'maxTakerTokenFillAmount', type: 'uint256' },
 ];
 
+const OTC_ORDER_INFO_ABI_COMPONENTS = [
+    {
+        name: 'order',
+        type: 'tuple',
+        components: OtcOrder.STRUCT_ABI,
+    },
+    {
+        name: 'signature',
+        type: 'tuple',
+        components: SIGNATURE_ABI,
+    },
+    { name: 'maxTakerTokenFillAmount', type: 'uint256' },
+];
+
+
 /**
  * ABI encoder for `FillQuoteTransformer.TransformData`
  */
@@ -65,6 +80,11 @@ export const fillQuoteTransformerDataEncoder = AbiEncoder.create([
                 type: 'tuple[]',
                 components: RFQ_ORDER_INFO_ABI_COMPONENTS,
             },
+            {
+                name: 'otcOrders',
+                type: 'tuple[]',
+                components: OTC_ORDER_INFO_ABI_COMPONENTS,
+            },
             { name: 'fillSequence', type: 'uint8[]' },
             { name: 'fillAmount', type: 'uint256' },
             { name: 'refundReceiver', type: 'address' },
@@ -87,6 +107,7 @@ export enum FillQuoteTransformerOrderType {
     Bridge,
     Limit,
     Rfq,
+    Otc
 }
 
 /**
@@ -99,6 +120,7 @@ export interface FillQuoteTransformerData {
     bridgeOrders: FillQuoteTransformerBridgeOrder[];
     limitOrders: FillQuoteTransformerLimitOrderInfo[];
     rfqOrders: FillQuoteTransformerRfqOrderInfo[];
+    otcOrders: FillQuoteTransformerOtcOrderInfo[];
     fillSequence: FillQuoteTransformerOrderType[];
     fillAmount: BigNumber;
     refundReceiver: string;
@@ -175,6 +197,11 @@ export type FillQuoteTransformerLimitOrderInfo = FillQuoteTransformerNativeOrder
  * `FillQuoteTransformer.RfqOrderInfo`
  */
 export type FillQuoteTransformerRfqOrderInfo = FillQuoteTransformerNativeOrderInfo<RfqOrderFields>;
+
+/**
+ * `FillQuoteTransformer.RfqOrderInfo`
+ */
+export type FillQuoteTransformerOtcOrderInfo = FillQuoteTransformerNativeOrderInfo<OtcOrderFields>;
 
 /**
  * ABI-encode a `FillQuoteTransformer.TransformData` type.

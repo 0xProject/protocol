@@ -113,11 +113,12 @@ function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrder
  */
 export function getFQTTransformerDataFromOptimizedOrders(
     orders: OptimizedMarketOrder[],
-): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
-    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
+): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'> {
+    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'> = {
         bridgeOrders: [],
         limitOrders: [],
         rfqOrders: [],
+        otcOrders: [],
         fillSequence: [],
     };
 

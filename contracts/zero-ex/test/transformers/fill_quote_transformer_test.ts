@@ -16,6 +16,8 @@ import {
     FillQuoteTransformerSide as Side,
     LimitOrder,
     LimitOrderFields,
+    OtcOrder,
+    OtcOrderFields,
     RfqOrder,
     RfqOrderFields,
     Signature,
@@ -26,7 +28,7 @@ import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
 import { TestFillQuoteTransformerBridgeContract } from '../generated-wrappers/test_fill_quote_transformer_bridge';
-import { getRandomLimitOrder, getRandomRfqOrder } from '../utils/orders';
+import { getRandomLimitOrder, getRandomRfqOrder, getRandomOtcOrder } from '../utils/orders';
 import {
     EthereumBridgeAdapterContract,
     FillQuoteTransformerContract,
@@ -140,6 +142,18 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             takerTokenAmount: getRandomInteger('0.1e18', '1e18'),
             bridgeData: encodeBridgeData(makerTokenAmount.times(fillRatio).integerValue()),
         };
+    }
+
+    function createOtcOrder(fields: Partial<OtcOrderFields> = {}): OtcOrder {
+        return getRandomOtcOrder({
+            makerToken: makerToken.address,
+            takerToken: takerToken.address,
+            makerAmount: getRandomInteger('0.1e18', '1e18'),
+            takerAmount: getRandomInteger('0.1e18', '1e18'),
+            maker,
+            taker,
+            ...fields,
+        });
     }
 
     function createOrderSignature(preFilledTakerAmount: Numberish = 0): Signature {
@@ -394,6 +408,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             bridgeOrders: [],
             limitOrders: [],
             rfqOrders: [],
+            otcOrders: [],
             fillSequence: [],
             fillAmount: MAX_UINT256,
             refundReceiver: NULL_ADDRESS,

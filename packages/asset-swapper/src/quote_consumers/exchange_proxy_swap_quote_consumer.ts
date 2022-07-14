@@ -42,6 +42,7 @@ import {
     FinalUniswapV3FillData,
     LiquidityProviderFillData,
     MooniswapFillData,
+    NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
@@ -365,6 +366,56 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                               true,
                           )
                           .getABIEncodedTransactionData();
+            return {
+                calldataHexString: callData,
+                ethAmount: ZERO_AMOUNT,
+                toAddress: this._exchangeProxy.address,
+                allowanceTarget: this._exchangeProxy.address,
+                gasOverhead: ZERO_AMOUNT,
+            };
+        }
+
+        //OTC orders
+
+        if(
+            [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
+            !isToETH &&
+            !isFromETH &&
+            quote.orders.every(o => o.type === FillQuoteTransformerOrderType.Otc) &&
+            !requiresTransformERC20(optsWithDefaults)
+        ){
+            const otcOrdersData = quote.orders.map(o => o.fillData as NativeOtcOrderFillData);
+            const fillAmountPerOrder = (() => {
+                // Don't think order taker amounts are clipped to actual sell amount
+                // (the last one might be too large) so figure them out manually.
+                let remaining = sellAmount;
+                const fillAmounts = [];
+                for (const o of quote.orders) {
+                    const fillAmount = BigNumber.min(o.takerAmount, remaining);
+                    fillAmounts.push(fillAmount);
+                    remaining = remaining.minus(fillAmount);
+                }
+                return fillAmounts;
+            })();
+
+            // grab the amount to fill on each OtcOrder (if more than 1)
+            let callData;
+
+            if(isFromETH){
+                callData = this._exchangeProxy.fillOtcOrderWithEth(
+                    otcOrdersData[0].order, otcOrdersData[0].signature
+                ).getABIEncodedTransactionData();
+            }
+            if(isToETH){
+                callData = this._exchangeProxy.fillOtcOrderForEth(
+                    otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
+                ).getABIEncodedTransactionData();
+            }
+            else{
+                callData = this._exchangeProxy.fillOtcOrder(
+                    otcOrdersData[0].order, otcOrdersData[0].signature, fillAmountPerOrder[0]
+                ).getABIEncodedTransactionData();
+            }
             return {
                 calldataHexString: callData,
                 ethAmount: ZERO_AMOUNT,
