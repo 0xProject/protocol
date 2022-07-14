@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.64.0",
+        "changes": [
+            {
+                "note": "Add support for OTC orders in the fillQuoteTransformer",
+                "pr": 516
+            }
+        ]
+    },
+    {
         "version": "16.63.1",
         "changes": [
             {

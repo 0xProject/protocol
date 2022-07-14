@@ -1,5 +1,14 @@
 [
     {
+        "version": "11.16.0",
+        "changes": [
+            {
+                "note": "Add Otc order support to the fillQuoteTransformer",
+                "pr": 516
+            }
+        ]
+    },
+    {
         "version": "11.15.0",
         "changes": [
             {
