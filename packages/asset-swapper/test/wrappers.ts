@@ -41,6 +41,7 @@ export * from '../test/generated-wrappers/native_order_sampler';
 export * from '../test/generated-wrappers/platypus_sampler';
 export * from '../test/generated-wrappers/sampler_utils';
 export * from '../test/generated-wrappers/shell_sampler';
+export * from '../test/generated-wrappers/synthetix_sampler';
 export * from '../test/generated-wrappers/test_native_order_sampler';
 export * from '../test/generated-wrappers/two_hop_sampler';
 export * from '../test/generated-wrappers/uniswap_sampler';
