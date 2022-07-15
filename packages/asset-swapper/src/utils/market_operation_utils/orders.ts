@@ -38,6 +38,7 @@ import {
     OrderDomain,
     PlatypusFillData,
     ShellFillData,
+    SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
     UniswapV3PathAmount,
@@ -210,6 +211,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.BancorV3, 'BancorV3');
         case ERC20BridgeSource.Velodrome:
             return encodeBridgeSourceId(BridgeProtocol.Velodrome, 'Velodrome');
+        case ERC20BridgeSource.Synthetix:
+            return encodeBridgeSourceId(BridgeProtocol.Synthetix, 'Synthetix');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -391,6 +394,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             const velodromeFillData = (order as OptimizedMarketBridgeOrder<VelodromeFillData>).fillData;
             bridgeData = encoder.encode([velodromeFillData.router, velodromeFillData.stable]);
             break;
+        case ERC20BridgeSource.Synthetix:
+            const fillData = (order as OptimizedMarketBridgeOrder<SynthetixFillData>).fillData;
+            bridgeData = encoder.encode([fillData.takerTokenSymbol, fillData.makerTokenSymbol]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -517,6 +524,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
+    [ERC20BridgeSource.Synthetix]: AbiEncoder.create('(bytes32,bytes32)'),
 };
 
 function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, BigNumber] {

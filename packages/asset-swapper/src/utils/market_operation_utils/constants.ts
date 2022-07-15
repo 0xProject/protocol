@@ -107,6 +107,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Synthetix,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -255,6 +256,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
             ERC20BridgeSource.Synapse,
+            ERC20BridgeSource.Synthetix,
             // TODO: enable after FQT has been redeployed on Ethereum mainnet
             // ERC20BridgeSource.AaveV2,
             // ERC20BridgeSource.Compound,
@@ -460,6 +462,11 @@ export const MAINNET_TOKENS = {
     EURS: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
     sEUR: '0xd71ecff9342a5ced620049e616c5035f1db98620',
     sETH: '0x5e74c9036fb86bd7ecdcb084a0673efc32ea31cb',
+    sJPY: '0xf6b1c627e95bfc3c1b4c9b825a032ff0fbf3e07d',
+    sGBP: '0x97fe22e7341a0cd8db6f6c021a24dc8f4dad855f',
+    sAUD: '0xf48e200eaf9906362bb1442fca31e0835773b8b4',
+    sKRW: '0x269895a3df4d73b077fc823dd6da1b95f72aaf9b',
+    sCHF: '0x0f83287ff768d1c1e17a42f44d644d7f22e8ee1d',
     stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
     wstETH: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
     LINK: '0x514910771af9ca656af840dff83e8264ecf986ca',
@@ -947,8 +954,19 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
                 builder.addBidirectional(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY);
                 // Lido
                 builder.addBidirectional(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH);
+                // Synthetix Atomic Swap
+                builder.addCompleteSubgraph([
+                    MAINNET_TOKENS.sBTC,
+                    MAINNET_TOKENS.sETH,
+                    MAINNET_TOKENS.sUSD,
+                    MAINNET_TOKENS.sEUR,
+                    MAINNET_TOKENS.sJPY,
+                    MAINNET_TOKENS.sGBP,
+                    MAINNET_TOKENS.sAUD,
+                    MAINNET_TOKENS.sKRW,
+                    MAINNET_TOKENS.sCHF,
+                ]);
             })
-            // Build
             .build(),
         [ChainId.BSC]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC]).build(),
         [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
@@ -970,6 +988,7 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
         [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
         [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(
             DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+            // TODO:  add Synthetix Atomic Swap
         ).build(),
     },
     TokenAdjacencyGraph.getEmptyGraph(),
@@ -2365,6 +2384,18 @@ export const VELODROME_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const SYNTHETIX_CURRENCY_KEY_BY_ADDRESS = new Map([
+    [MAINNET_TOKENS.sBTC, 'sBTC'],
+    [MAINNET_TOKENS.sETH, 'sETH'],
+    [MAINNET_TOKENS.sUSD, 'sUSD'],
+    [MAINNET_TOKENS.sEUR, 'sEUR'],
+    [MAINNET_TOKENS.sJPY, 'sJPY'],
+    [MAINNET_TOKENS.sAUD, 'sAUD'],
+    [MAINNET_TOKENS.sGBP, 'sGBP'],
+    [MAINNET_TOKENS.sCHF, 'sCHF'],
+    [MAINNET_TOKENS.sKRW, 'sKRW'],
+]);
+
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
         [ChainId.Mainnet]: [
@@ -2548,7 +2579,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
             return compoundFillData.takerToken === wethAddress ? 210e3 : 250e3;
         }
     },
-
+    [ERC20BridgeSource.Synthetix]: () => 575e3, // TODO(kyu): reivsit this value
     //
     // BSC
     //

@@ -1,6 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
 import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
+import { formatBytes32String } from '@ethersproject/strings';
 import * as _ from 'lodash';
 
 import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
@@ -47,6 +48,7 @@ import {
     NULL_ADDRESS,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
+    SYNTHETIX_CURRENCY_KEY_BY_ADDRESS,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
@@ -94,6 +96,7 @@ import {
     ShellFillData,
     SourceQuoteOperation,
     SourcesWithPoolsCache,
+    SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
     VelodromeFillData,
@@ -1309,6 +1312,38 @@ export class SamplerOperations {
         });
     }
 
+    public getSynthetixAtomicExchangeSellQuotes(
+        takerTokenSymbol: string,
+        makerTokenSymbol: string,
+        takerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SynthetixFillData> {
+        const takerTokenSymbolBytes32 = formatBytes32String(takerTokenSymbol);
+        const makerTokenSymbolBytes32 = formatBytes32String(makerTokenSymbol);
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Synthetix,
+            contract: this._samplerContract,
+            fillData: { takerTokenSymbol: takerTokenSymbolBytes32, makerTokenSymbol: makerTokenSymbolBytes32 },
+            function: this._samplerContract.sampleSellsFromSynthetix,
+            params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, takerFillAmounts],
+        });
+    }
+
+    public getSynthetixAtomicExchangeBuyQuotes(
+        takerTokenSymbol: string,
+        makerTokenSymbol: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<SynthetixFillData> {
+        const takerTokenSymbolBytes32 = formatBytes32String(takerTokenSymbol);
+        const makerTokenSymbolBytes32 = formatBytes32String(makerTokenSymbol);
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.Synthetix,
+            contract: this._samplerContract,
+            fillData: { takerTokenSymbol: takerTokenSymbolBytes32, makerTokenSymbol: makerTokenSymbolBytes32 },
+            function: this._samplerContract.sampleBuysFromSynthetix,
+            params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, makerFillAmounts],
+        });
+    }
+
     /**
      * Returns the best price for the native token
      * Best is calculated according to the fee schedule, so the price of the
@@ -1736,6 +1771,18 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
+                    case ERC20BridgeSource.Synthetix: {
+                        const takerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(takerToken.toLowerCase());
+                        const makerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(makerToken.toLowerCase());
+                        if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
+                            return [];
+                        }
+                        return this.getSynthetixAtomicExchangeSellQuotes(
+                            takerTokenSymbol,
+                            makerTokenSymbol,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -2065,6 +2112,18 @@ export class SamplerOperations {
                             VELODROME_ROUTER_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
+                            makerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.Synthetix: {
+                        const takerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(takerToken.toLowerCase());
+                        const makerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(makerToken.toLowerCase());
+                        if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
+                            return [];
+                        }
+                        return this.getSynthetixAtomicExchangeBuyQuotes(
+                            takerTokenSymbol,
+                            makerTokenSymbol,
                             makerFillAmounts,
                         );
                     }

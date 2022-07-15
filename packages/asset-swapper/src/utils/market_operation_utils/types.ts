@@ -67,6 +67,7 @@ export enum ERC20BridgeSource {
     Compound = 'Compound',
     Synapse = 'Synapse',
     BancorV3 = 'BancorV3',
+    Synthetix = 'Synthetix',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -379,6 +380,11 @@ export interface PlatypusFillData extends FillData {
 export interface VelodromeFillData extends FillData {
     router: string;
     stable: boolean;
+}
+
+export interface SynthetixFillData extends FillData {
+    takerTokenSymbol: string;
+    makerTokenSymbol: string;
 }
 
 /**
