@@ -122,6 +122,7 @@ export * from '../test/generated-wrappers/mixin_mooniswap';
 export * from '../test/generated-wrappers/mixin_nerve';
 export * from '../test/generated-wrappers/mixin_platypus';
 export * from '../test/generated-wrappers/mixin_shell';
+export * from '../test/generated-wrappers/mixin_synthetix';
 export * from '../test/generated-wrappers/mixin_uniswap';
 export * from '../test/generated-wrappers/mixin_uniswap_v2';
 export * from '../test/generated-wrappers/mixin_uniswap_v3';
