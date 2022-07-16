@@ -217,6 +217,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Velodrome,
+            ERC20BridgeSource.Synthetix,
         ]),
     },
     new SourceFilters([]),
@@ -366,6 +367,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Velodrome,
+            ERC20BridgeSource.Synthetix,
         ]),
     },
     new SourceFilters([]),
@@ -649,10 +651,6 @@ export const FANTOM_TOKENS = {
     gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
 };
 
-export const GEIST_FANTOM_POOLS = {
-    lendingPool: '0x9fad24f572045c7869117160a571b2e50b10d068',
-};
-
 export const OPTIMISM_TOKENS = {
     WETH: '0x4200000000000000000000000000000000000006',
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
@@ -661,6 +659,21 @@ export const OPTIMISM_TOKENS = {
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
+    // Synthetix synths:
+    sAAVE: '0x00b8d5a5e1ac97cb4341c4bc4367443c8776e8d9',
+    sAVAX: '0xb2b42b231c68cbb0b4bf2ffebf57782fd97d3da4',
+    sBTC: '0x298b9b95708152ff6968aafd889c6586e9169f1d',
+    sETH: '0xe405de8f52ba7559f9df3c368500b6e6ae6cee49',
+    sEUR: '0xfbc4198702e81ae77c06d58f81b629bdf36f0a71',
+    sLINK: '0xc5db22719a06418028a40a9b5e9a7c02959d0d08',
+    sMATIC: '0x81ddfac111913d3d5218dea999216323b7cd6356',
+    sSOL: '0x8b2f7ae8ca8ee8428b6d76de88326bb413db2766',
+    sUNI: '0xf5a6115aa582fd1beea22bc93b7dc7a785f60d03',
+    sUSD: '0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9',
+};
+
+export const GEIST_FANTOM_POOLS = {
+    lendingPool: '0x9fad24f572045c7869117160a571b2e50b10d068',
 };
 
 export const CURVE_POOLS = {
@@ -986,10 +999,23 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
         ).build(),
         [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
-        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(
-            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
-            // TODO:  add Synthetix Atomic Swap
-        ).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism])
+            .tap(builder => {
+                // Synthetix Atomic Swap
+                builder.addCompleteSubgraph([
+                    OPTIMISM_TOKENS.sAAVE,
+                    OPTIMISM_TOKENS.sAVAX,
+                    OPTIMISM_TOKENS.sBTC,
+                    OPTIMISM_TOKENS.sETH,
+                    OPTIMISM_TOKENS.sEUR,
+                    OPTIMISM_TOKENS.sLINK,
+                    OPTIMISM_TOKENS.sMATIC,
+                    OPTIMISM_TOKENS.sSOL,
+                    OPTIMISM_TOKENS.sUNI,
+                    OPTIMISM_TOKENS.sUSD,
+                ]);
+            })
+            .build(),
     },
     TokenAdjacencyGraph.getEmptyGraph(),
 );
@@ -2384,17 +2410,38 @@ export const VELODROME_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const SYNTHETIX_CURRENCY_KEY_BY_ADDRESS = new Map([
-    [MAINNET_TOKENS.sBTC, 'sBTC'],
-    [MAINNET_TOKENS.sETH, 'sETH'],
-    [MAINNET_TOKENS.sUSD, 'sUSD'],
-    [MAINNET_TOKENS.sEUR, 'sEUR'],
-    [MAINNET_TOKENS.sJPY, 'sJPY'],
-    [MAINNET_TOKENS.sAUD, 'sAUD'],
-    [MAINNET_TOKENS.sGBP, 'sGBP'],
-    [MAINNET_TOKENS.sCHF, 'sCHF'],
-    [MAINNET_TOKENS.sKRW, 'sKRW'],
-]);
+export const SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID = valueByChainId<Map<string, string>>(
+    {
+        // There is no easy way to find out what synths are supported on mainnet.
+        // The below list is based on https://sips.synthetix.io/sccp/sccp-190.
+        [ChainId.Mainnet]: new Map([
+            [MAINNET_TOKENS.sAUD, 'sAUD'],
+            [MAINNET_TOKENS.sBTC, 'sBTC'],
+            [MAINNET_TOKENS.sCHF, 'sCHF'],
+            [MAINNET_TOKENS.sETH, 'sETH'],
+            [MAINNET_TOKENS.sEUR, 'sEUR'],
+            [MAINNET_TOKENS.sGBP, 'sGBP'],
+            [MAINNET_TOKENS.sJPY, 'sJPY'],
+            [MAINNET_TOKENS.sKRW, 'sKRW'],
+            [MAINNET_TOKENS.sUSD, 'sUSD'],
+        ]),
+        // Supported assets can be find through SynthUtil::synthsRates.
+        // Low liquidity tokens can be excluded.
+        [ChainId.Optimism]: new Map([
+            [OPTIMISM_TOKENS.sAAVE, 'sAAVE'],
+            [OPTIMISM_TOKENS.sAVAX, 'sAVAX'],
+            [OPTIMISM_TOKENS.sBTC, 'sBTC'],
+            [OPTIMISM_TOKENS.sETH, 'sETH'],
+            [OPTIMISM_TOKENS.sEUR, 'sEUR'],
+            [OPTIMISM_TOKENS.sLINK, 'sLINK'],
+            [OPTIMISM_TOKENS.sMATIC, 'sMATIC'],
+            [OPTIMISM_TOKENS.sSOL, 'sSOL'],
+            [OPTIMISM_TOKENS.sUNI, 'sUNI'],
+            [OPTIMISM_TOKENS.sUSD, 'sUSD'],
+        ]),
+    },
+    new Map(),
+);
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
@@ -2579,7 +2626,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
             return compoundFillData.takerToken === wethAddress ? 210e3 : 250e3;
         }
     },
-    [ERC20BridgeSource.Synthetix]: () => 575e3, // TODO(kyu): reivsit this value
+    [ERC20BridgeSource.Synthetix]: () => 580e3,
     //
     // BSC
     //

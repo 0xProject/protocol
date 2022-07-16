@@ -54,9 +54,8 @@ contract MixinSynthetix {
     IReadProxyAddressResolver private constant readProxyOptimism =
         IReadProxyAddressResolver(0x1Cb059b7e74fD21665968C908806143E744D5F30);
 
-    // TODO(kyu): update reward address
     address private constant rewardAddress =
-        0x0000000000000000000000000000000000000000;
+        0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
     bytes32 constant trackingCode =
         0x3058000000000000000000000000000000000000000000000000000000000000;
 

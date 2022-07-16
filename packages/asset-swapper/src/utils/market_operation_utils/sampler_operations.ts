@@ -48,7 +48,7 @@ import {
     NULL_ADDRESS,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    SYNTHETIX_CURRENCY_KEY_BY_ADDRESS,
+    SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
@@ -1772,8 +1772,9 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Synthetix: {
-                        const takerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(takerToken.toLowerCase());
-                        const makerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(makerToken.toLowerCase());
+                        const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
+                        const takerTokenSymbol = currencyKeyMap.get(takerToken.toLowerCase());
+                        const makerTokenSymbol = currencyKeyMap.get(makerToken.toLowerCase());
                         if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
                             return [];
                         }
@@ -2116,8 +2117,9 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Synthetix: {
-                        const takerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(takerToken.toLowerCase());
-                        const makerTokenSymbol = SYNTHETIX_CURRENCY_KEY_BY_ADDRESS.get(makerToken.toLowerCase());
+                        const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
+                        const takerTokenSymbol = currencyKeyMap.get(takerToken.toLowerCase());
+                        const makerTokenSymbol = currencyKeyMap.get(makerToken.toLowerCase());
                         if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
                             return [];
                         }
