@@ -195,7 +195,7 @@ describe('RfqmService HTTP Logic', () => {
             when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([existingJob]);
             when(dbUtilsMock.findV2QuoteByOrderHashAsync(otcOrder.getHash())).thenResolve(quote);
             const params: OtcOrderSubmitRfqmSignedQuoteParams = {
-                integrator: MOCK_INTEGRATOR,
+                type: RfqmTypes.OtcOrder,
                 order: otcOrder,
                 signature: {
                     r: '',
@@ -203,7 +203,6 @@ describe('RfqmService HTTP Logic', () => {
                     signatureType: SignatureType.EthSign,
                     v: 1,
                 },
-                type: RfqmTypes.OtcOrder,
             };
             const metatransactionMock = mock(MetaTransaction);
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
@@ -292,15 +291,17 @@ describe('RfqmService HTTP Logic', () => {
             });
 
             const submitParams: OtcOrderSubmitRfqmSignedQuoteParams = {
-                integrator: MOCK_INTEGRATOR,
+                type: RfqmTypes.OtcOrder,
                 order: newOtcOrder,
                 signature: ethSignHashWithKey(newOtcOrder.getHash(), takerPrivateKey),
-                type: RfqmTypes.OtcOrder,
             };
             const result = await service.submitTakerSignedOtcOrderAsync(submitParams);
             expect(result.type).to.equal('otc');
         });
     });
+
+    // TODO: submit with approval tests (MKR-531)
+    describe.skip('submitTakerSignedOtcOrderWithApprovalAsync', () => {});
 
     describe('fetchIndicativeQuoteAsync', () => {
         describe('sells', () => {

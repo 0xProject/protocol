@@ -20,14 +20,17 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
+    GaslessApprovalTypes,
     OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
+    SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
     RawOtcOrderFields,
     StringSignatureFields,
+    stringsToEIP712Context,
     stringsToOtcOrderFields,
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
@@ -178,13 +181,29 @@ export class RfqmHandlers {
     }
 
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const { chainId, params } = this._parseSubmitSignedQuoteParams(req);
-        RFQM_SIGNED_QUOTE_SUBMITTED.labels(params.integrator.integratorId, params.integrator.integratorId).inc();
+        const { chainId, integrator, params } = this._parseSubmitSignedQuoteParams(req);
+        RFQM_SIGNED_QUOTE_SUBMITTED.labels(integrator.integratorId, integrator.integratorId).inc();
         try {
             const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
             res.status(HttpStatus.CREATED).send(response);
         } catch (err) {
             req.log.error(err, 'Encountered an error while queuing a signed quote');
+            if (isAPIError(err)) {
+                throw err;
+            } else {
+                throw new InternalServerError(`An unexpected error occurred`);
+            }
+        }
+    }
+
+    public async submitSignedQuoteWithApprovalAsync(req: express.Request, res: express.Response): Promise<void> {
+        const { chainId, integrator, params } = this._parseSubmitSignedQuoteWithApprovalParams(req);
+        RFQM_SIGNED_QUOTE_SUBMITTED.labels(integrator.integratorId, integrator.integratorId).inc();
+        try {
+            const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderWithApprovalAsync(params);
+            res.status(HttpStatus.CREATED).send(response);
+        } catch (err) {
+            req.log.error(err, 'Encountered an error while queuing a signed quote with approval');
             if (isAPIError(err)) {
                 throw err;
             } else {
@@ -342,6 +361,7 @@ export class RfqmHandlers {
 
     private _parseSubmitSignedQuoteParams(req: express.Request): {
         chainId: number;
+        integrator: Integrator;
         params: OtcOrderSubmitRfqmSignedQuoteParams;
     } {
         const type = req.body.type as RfqmTypes;
@@ -353,11 +373,11 @@ export class RfqmHandlers {
             const signature = stringsToSignature(req.body.signature as StringSignatureFields);
             return {
                 chainId,
+                integrator,
                 params: {
                     type,
                     order,
                     signature,
-                    integrator,
                 },
             };
         } else {
@@ -369,6 +389,60 @@ export class RfqmHandlers {
                 },
             ]);
         }
+    }
+
+    private _parseSubmitSignedQuoteWithApprovalParams(req: express.Request): {
+        chainId: number;
+        integrator: Integrator;
+        params: SubmitRfqmSignedQuoteWithApprovalParams;
+    } {
+        const chainId = extractChainId(req);
+        const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
+
+        const { approval, trade } = req.body;
+
+        const parsedParams: Partial<SubmitRfqmSignedQuoteWithApprovalParams> = {};
+
+        // Parse approval params
+        if (approval.type === GaslessApprovalTypes.ExecuteMetaTransaction) {
+            // TODO: validate eip712 by producing a calldata, and then making an eth_call
+            const eip712 = stringsToEIP712Context(approval.eip712);
+            const signature = stringsToSignature(approval.signature as StringSignatureFields);
+            parsedParams.approval = {
+                type: approval.type,
+                eip712,
+                signature,
+            };
+        } else {
+            throw new ValidationError([
+                {
+                    field: 'approval',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: `${approval.type} is an invalid value for Approval 'type'`,
+                },
+            ]);
+        }
+
+        // Parse trade params
+        if (trade.type === RfqmTypes.OtcOrder) {
+            const order = new OtcOrder(stringsToOtcOrderFields(trade.order as RawOtcOrderFields));
+            const signature = stringsToSignature(trade.signature as StringSignatureFields);
+            parsedParams.trade = {
+                type: trade.type,
+                order,
+                signature,
+            };
+        } else {
+            throw new ValidationError([
+                {
+                    field: 'type',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: `${trade.type} is an invalid value for Trade 'type'`,
+                },
+            ]);
+        }
+
+        return { chainId, integrator, params: parsedParams as SubmitRfqmSignedQuoteWithApprovalParams };
     }
 }
 

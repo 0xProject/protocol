@@ -1070,7 +1070,11 @@ describe('RFQM Integration', () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .send({
+                    type: RfqmTypes.OtcOrder,
+                    order,
+                    signature: takerSignature,
+                })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.NOT_FOUND)
@@ -1191,6 +1195,10 @@ describe('RFQM Integration', () => {
             expect(appResponse.body.validationErrors[0].reason).to.equal(`signature is not valid`);
         });
     });
+
+    // TODO: submit with approval tests (MKR-531)
+    // tslint:disable-next-line: no-empty
+    describe.skip('rfqm/v1/submit-with-approval', () => {});
 
     describe('rfqm/v1/status/:orderHash', () => {
         it('should return a 404 NOT FOUND if the order hash is not found', () => {

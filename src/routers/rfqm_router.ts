@@ -16,6 +16,7 @@ export function createRfqmRouter(rfqmServices: RfqmServices, configManager: Conf
     router.get('/quote', asyncHandler(handlers.getFirmQuoteAsync.bind(handlers)));
     router.get('/status/:orderHash', asyncHandler(handlers.getStatusAsync.bind(handlers)));
     router.post('/submit', asyncHandler(handlers.submitSignedQuoteAsync.bind(handlers)));
+    router.post('/submit-with-approval', asyncHandler(handlers.submitSignedQuoteWithApprovalAsync.bind(handlers)));
 
     return router;
 }

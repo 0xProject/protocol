@@ -82,7 +82,7 @@ export interface EIP712Domain {
     salt?: string;
 }
 
-interface EIP712DataField {
+export interface EIP712DataField {
     name: string;
     type: string;
 }

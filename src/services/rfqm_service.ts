@@ -63,6 +63,8 @@ import {
     QuoteContext,
     RfqmTypes,
     StatusResponse,
+    SubmitRfqmSignedQuoteWithApprovalParams,
+    SubmitRfqmSignedQuoteWithApprovalResponse,
 } from './types';
 
 export const BLOCK_FINALITY_THRESHOLD = 3;
@@ -768,6 +770,24 @@ export class RfqmService {
         );
     }
 
+    public async submitTakerSignedOtcOrderWithApprovalAsync(
+        params: SubmitRfqmSignedQuoteWithApprovalParams,
+    ): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
+        // TODO: Submit approval logic (MKR-531)
+        if (params.approval) {
+            // approval logic
+        }
+
+        // submit OtcOrder
+        const submitOrderParams = params.trade;
+        const submitTakerSignedOtcOrderRes = await this.submitTakerSignedOtcOrderAsync(submitOrderParams);
+
+        return {
+            ...submitTakerSignedOtcOrderRes,
+            // ADD MORE PARAMS HERE
+        };
+    }
+
     /**
      * Validates and enqueues the Taker Signed Otc Order for submission
      */
@@ -776,7 +796,7 @@ export class RfqmService {
     ): Promise<OtcOrderSubmitRfqmSignedQuoteResponse> {
         const { order } = params;
         let { signature: takerSignature } = params;
-        const orderHash = params.order.getHash();
+        const orderHash = order.getHash();
         const takerAddress = order.taker.toLowerCase();
         const makerAddress = order.maker.toLowerCase();
         const takerToken = order.takerToken.toLowerCase();
@@ -790,7 +810,7 @@ export class RfqmService {
 
         // validate that the expiration window is long enough to fill quote
         const currentTimeMs = new Date().getTime();
-        if (!params.order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)) {
+        if (!order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)) {
             RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             throw new ValidationError([
                 {

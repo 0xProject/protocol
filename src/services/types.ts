@@ -55,18 +55,6 @@ export interface BaseRfqmQuoteResponse {
     sellTokenAddress: string;
 }
 
-export interface OtcOrderSubmitRfqmSignedQuoteParams {
-    integrator: Integrator;
-    order: OtcOrder;
-    signature: Signature;
-    type: RfqmTypes.OtcOrder;
-}
-
-export interface OtcOrderSubmitRfqmSignedQuoteResponse {
-    type: RfqmTypes.OtcOrder;
-    orderHash: string;
-}
-
 export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
     type: RfqmTypes.OtcOrder;
     order: OtcOrder;
@@ -79,6 +67,33 @@ export interface ApprovalResponse {
     isGaslessAvailable?: boolean;
     type?: GaslessApprovalTypes;
     eip712?: EIP712Context;
+}
+
+export interface OtcOrderSubmitRfqmSignedQuoteParams {
+    type: RfqmTypes.OtcOrder;
+    order: OtcOrder;
+    signature: Signature;
+}
+
+export interface OtcOrderSubmitRfqmSignedQuoteResponse {
+    type: RfqmTypes.OtcOrder;
+    orderHash: string;
+}
+
+interface SubmitApprovalParams {
+    type: GaslessApprovalTypes;
+    eip712: EIP712Context;
+    signature: Signature;
+}
+
+export interface SubmitRfqmSignedQuoteWithApprovalParams {
+    approval?: SubmitApprovalParams;
+    trade: OtcOrderSubmitRfqmSignedQuoteParams;
+}
+
+export interface SubmitRfqmSignedQuoteWithApprovalResponse {
+    type: RfqmTypes.OtcOrder;
+    orderHash: string;
 }
 
 export interface StatusResponse {
