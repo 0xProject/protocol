@@ -1,4 +1,54 @@
 {
+    "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": {
+        "kind": "permit",
+        "domain": {
+            "name": "USD Coin (PoS)",
+            "version": "1",
+            "verifyingContract": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x294369e003769a2d4d625e8a9ebebffa09ff70dd7c708497d8b56d2c2d199a19"
+    },
+    "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Wrapped Ether",
+            "version": "1",
+            "verifyingContract": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x2739d6640de1503427ab7c5bd20094483387d4f8de3af1aeb1cfbf826f1b5b30"
+    },
+    "0xc2132d05d31c914a87c6611c10748aeb04b58e8f": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "(PoS) Tether USD",
+            "version": "1",
+            "verifyingContract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x0f8f519db239ec11dcf89825eafd97bf780acf9eef72f79af1926ccad4120ca0"
+    },
+    "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "(PoS) Wrapped BTC",
+            "version": "1",
+            "verifyingContract": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x2363d9601e5ca2e04327ef03d7610d9eee2aeec7c19272c0e9db88c8361214fc"
+    },
+    "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "(PoS) Dai Stablecoin",
+            "version": "1",
+            "verifyingContract": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x4502f8ea5562bb0fe4a86a6e8af9801e7e0cc8a828eeba5406417175e606d1f0"
+    },
     "0x9a71012b13ca4d3d0cdc72a177df3ef03b0e76a3": {
         "kind": "executeMetaTransaction::approve",
         "domain": {
@@ -9,14 +59,504 @@
         },
         "domainSeparator": "0x32c4fbeda87cdb850369b7f826a1e4a3a59d257ee86ccf924b4e5adb2bec3d91"
     },
-    "0x2791bca1f2de4661ed88a30c99a7a9449aa84174": {
-        "kind": "permit",
+    "0xd6df932a45c0f255f85145f286ea0b292b21c90b": {
+        "kind": "executeMetaTransaction::approve",
         "domain": {
-            "name": "USD Coin (PoS)",
+            "name": "Aave (PoS)",
             "version": "1",
-            "verifyingContract": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+            "verifyingContract": "0xd6df932a45c0f255f85145f286ea0b292b21c90b",
             "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
         },
-        "domainSeparator": "0x294369e003769a2d4d625e8a9ebebffa09ff70dd7c708497d8b56d2c2d199a19"
+        "domainSeparator": "0x024ba84bf7bec241bad910a3658dd1a358bd97c426ba1cbdb82e2421f6e04d6b"
+    },
+    "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "ChainLink Token",
+            "version": "1",
+            "verifyingContract": "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x17014055787cc1830863f9a0c9553500bbd2cfed502d75d2654ace274f049b32"
+    },
+    "0x172370d5cd63279efa6d502dab29171933a610af": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "CRV (PoS)",
+            "version": "1",
+            "verifyingContract": "0x172370d5cd63279efa6d502dab29171933a610af",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x1c09eba0fda040f3458bc853dc97bf78a4315c54341c6b68f84287e3c29d9dc5"
+    },
+    "0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Aavegotchi GHST Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x0f755127eb1fe838f69cf16d71299d7c8c10323cbd2793af20efb2c5c5addfa3"
+    },
+    "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Telcoin (PoS)",
+            "version": "1",
+            "verifyingContract": "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x86946f1e08cf66069334b1438bc3a5eca44a0efb740aad7f5abed8d9f64fc6a8"
+    },
+    "0x5d47baba0d66083c52009271faf3f50dcc01023c": {
+        "kind": "permit",
+        "domain": {
+            "name": "ApeSwapFinance Banana",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x5d47baba0d66083c52009271faf3f50dcc01023c"
+        },
+        "domainSeparator": "0x060cb2b1eb91f11c00308626fc5703c06adac8eddc2f56f89feb4fec8881d34a"
+    },
+    "0x4e78011ce80ee02d2c3e649fb657e45898257815": {
+        "kind": "permit",
+        "domain": {
+            "name": "Klima DAO",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x4e78011ce80ee02d2c3e649fb657e45898257815"
+        },
+        "domainSeparator": "0x5f9cbb5c65cf6894a63d7b299d265d0c1d9b5d99804e8ac39472c034be1ea0aa"
+    },
+    "0xb33eaad8d922b1083446dc23f610c2567fb5180f": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Uniswap (PoS)",
+            "version": "1",
+            "verifyingContract": "0xb33eaad8d922b1083446dc23f610c2567fb5180f",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xfa788fbdcc1c43b353d17ebf9a7b73a810228394e5c66e0d84913aa0bbde2e89"
+    },
+    "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "(PoS) Decentraland MANA",
+            "version": "1",
+            "verifyingContract": "0xa1c57f48f0deb89f569dfbe6e2b7f46d33606fd4",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x89bb6b5771994dccaba18f97c55a51b5348d1962674b11be1200c767a89882c0"
+    },
+    "0x5fe2b58c013d7601147dcdd68c143a77499f5531": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Graph Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x5fe2b58c013d7601147dcdd68c143a77499f5531",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x357f021409ee9e07ef59bdccfab8ef0926ca1381ec5a02e5de552c1c131069dc"
+    },
+    "0xa55870278d6389ec5b524553d03c04f5677c061e": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "XCAD Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0xa55870278d6389ec5b524553d03c04f5677c061e",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xf7f1bc06871f9a92603fb278f3d581bf359e73fcc85e540c33035d9bde038c1d"
+    },
+    "0x692597b009d13c4049a947cab2239b7d6517875f": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Wrapped UST Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x692597b009d13c4049a947cab2239b7d6517875f",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x67e02d106182d4b315f3632238f06415562761617a9b5e6cd32d2cdda8f7b94e"
+    },
+    "0xe5417af564e4bfda1c483642db72007871397896": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Gains Network",
+            "version": "1",
+            "verifyingContract": "0xe5417af564e4bfda1c483642db72007871397896",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x7c4a48e1d0365f3f6c8c89e44e3c1ffe535cd712becbd068705bcd26f46994fc"
+    },
+    "0x3a58a54c066fdc0f2d55fc9c89f0415c92ebf3c4": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Staked MATIC (PoS)",
+            "version": "1",
+            "verifyingContract": "0x3a58a54c066fdc0f2d55fc9c89f0415c92ebf3c4",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xe08bb9b12f5ca0255ab670c1f276a7042c6c5ae5da2e9f0617a70ef2f6ae670d"
+    },
+    "0x1b815d120b3ef02039ee11dc2d33de7aa4a8c603": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Wootrade Network (PoS)",
+            "version": "1",
+            "verifyingContract": "0x1b815d120b3ef02039ee11dc2d33de7aa4a8c603",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xbbb07709f13490dc490fe42e30fdd63ee58e2c53207c700a711a01c94c224e2d"
+    },
+    "0xef938b6da8576a896f6e0321ef80996f4890f9c4": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Decentral Games (PoS)",
+            "version": "1",
+            "verifyingContract": "0xef938b6da8576a896f6e0321ef80996f4890f9c4",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x613d0a19c59ab653267c7e4dd261dc794a29b63563e23adaff75b2201c062f33"
+    },
+    "0x45c32fa6df82ead1e2ef74d17b76547eddfaff89": {
+        "kind": "permit",
+        "domain": {
+            "name": "Frax",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x45c32fa6df82ead1e2ef74d17b76547eddfaff89"
+        },
+        "domainSeparator": "0x662c57e9a76c01c325c112730038819c2ed3ee92e139862af33871c92c6bb697"
+    },
+    "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "SushiToken (PoS)",
+            "version": "1",
+            "verifyingContract": "0x0b3f868e0be5597d5db7feb59e1cadbb0fdda50a",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x54fc86ba2993693a3328a980715f0c05feadb0c01d3d70f646eafc64c8d70ca4"
+    },
+    "0xe7804d91dfcde7f776c90043e03eaa6df87e6395": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "DFX Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0xe7804d91dfcde7f776c90043e03eaa6df87e6395",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x811a33773355174b5dc22b30a4ee4fd31884a27ca0cd5ea9239f06e77b379786"
+    },
+    "0xe0cca86b254005889ac3a81e737f56a14f4a38f5": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Alta Finance",
+            "version": "1",
+            "verifyingContract": "0xe0cca86b254005889ac3a81e737f56a14f4a38f5",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xf45e2e9c69d0a6d9876e137ffebc3c74e189c572661ac57709b75aee289e11ce"
+    },
+    "0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "JPY Coin (PoS)",
+            "version": "1",
+            "verifyingContract": "0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xbd21e99ca69f2481e6946ebd22d362e66f1e761b1fba716ddcf68718931913d6"
+    },
+    "0x0d0b8488222f7f83b23e365320a4021b12ead608": {
+        "kind": "permit",
+        "domain": {
+            "name": "NextEarthToken",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x0d0b8488222f7f83b23e365320a4021b12ead608"
+        },
+        "domainSeparator": "0xfdb12118a4971767bcc6e2b003af2cda6c19cc714824149e2205600d80eb2b24"
+    },
+    "0xfbdd194376de19a88118e84e279b977f165d01b8": {
+        "kind": "permit",
+        "domain": {
+            "name": "beefy.finance",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xfbdd194376de19a88118e84e279b977f165d01b8"
+        },
+        "domainSeparator": "0x8c19b5ebaecacf71c6d1a541174179329192d48dc4f47442d0a3dd7348f6be3a"
+    },
+    "0xd8ca34fd379d9ca3c6ee3b3905678320f5b45195": {
+        "kind": "permit",
+        "domain": {
+            "name": "Governance OHM",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xd8ca34fd379d9ca3c6ee3b3905678320f5b45195"
+        },
+        "domainSeparator": "0x74275ff2144ad0f91df4b75671fc3a8fdc06afa4bcee354349b96a55f8723596"
+    },
+    "0xb35fcbcf1fd489fce02ee146599e893fdcdc60e6": {
+        "kind": "permit",
+        "domain": {
+            "name": "DeRace Token",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xb35fcbcf1fd489fce02ee146599e893fdcdc60e6"
+        },
+        "domainSeparator": "0xe55718c87fb889f407e5fca15a3323ddee2276705a2bd24ce9150e6f21907099"
+    },
+    "0xfa68fb4628dff1028cfec22b4162fccd0d45efb6": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Liquid Staking Matic (PoS)",
+            "version": "1",
+            "verifyingContract": "0xfa68fb4628dff1028cfec22b4162fccd0d45efb6",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x12e3645faf2508b5ee07285f7eb9fc3711d95df310736eb9f66ac655ec5278c4"
+    },
+    "0x2e1ad108ff1d8c782fcbbb89aad783ac49586756": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "TrueUSD (PoS)",
+            "version": "1",
+            "verifyingContract": "0x2e1ad108ff1d8c782fcbbb89aad783ac49586756",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xe403660558261acac1ace2ca79b5fcdece1b86631b2cabb3f7adfc49077c28eb"
+    },
+    "0x16eccfdbb4ee1a85a33f3a9b21175cd7ae753db4": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Route",
+            "version": "1",
+            "verifyingContract": "0x16eccfdbb4ee1a85a33f3a9b21175cd7ae753db4",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xe4bf33a5ec61acb283744de040526d4fd6985e0a597e92be6c9ff29e5da688fc"
+    },
+    "0xa3c322ad15218fbfaed26ba7f616249f7705d945": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Metaverse (PoS)",
+            "version": "1",
+            "verifyingContract": "0xa3c322ad15218fbfaed26ba7f616249f7705d945",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x40dfa0c0b0f4d3e60fa53f1b08cf4f8a0872e4e27bc3e38593079623f858b610"
+    },
+    "0xadbe0eac80f955363f4ff47b0f70189093908c04": {
+        "kind": "permit",
+        "domain": {
+            "name": "MetalSwap",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xadbe0eac80f955363f4ff47b0f70189093908c04"
+        },
+        "domainSeparator": "0x4a514c59b061ec5615f9688a949cd0fe5d6140b5e0c6c0c39d20c21deac8ec14"
+    },
+    "0xaa7dbd1598251f856c12f63557a4c4397c253cea": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Moss Carbon Credit (PoS)",
+            "version": "1",
+            "verifyingContract": "0xaa7dbd1598251f856c12f63557a4c4397c253cea",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x72cc11e3b1945c676b4994ab2664c027362eb16ab151f3cdb8098e022ddeab29"
+    },
+    "0xae740d42e4ff0c5086b2b5b5d149eb2f9e1a754f": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Wrapped Ether (PoS)",
+            "version": "1",
+            "verifyingContract": "0xae740d42e4ff0c5086b2b5b5d149eb2f9e1a754f",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xec6d78c9d96c6f08f660bf11f86025663737ff12118392785190d390b7bf0840"
+    },
+    "0x1a3acf6d19267e2d3e7f898f42803e90c9219062": {
+        "kind": "permit",
+        "domain": {
+            "name": "Frax Share",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x1a3acf6d19267e2d3e7f898f42803e90c9219062"
+        },
+        "domainSeparator": "0x9823eb4d1084063bce9ccdc90916c0518ff370aac0ee0801355cd58c94956ebc"
+    },
+    "0x14af1f2f02dccb1e43402339099a05a5e363b83c": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Kromatika (PoS)",
+            "version": "1",
+            "verifyingContract": "0x14af1f2f02dccb1e43402339099a05a5e363b83c",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x6259d4ae5acdfadb019539aa8041b88af7427af43fa3117049af810bad1c5f2c"
+    },
+    "0xacd4e2d936be9b16c01848a3742a34b3d5a5bdfa": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Mechanium",
+            "version": "1",
+            "verifyingContract": "0xacd4e2d936be9b16c01848a3742a34b3d5a5bdfa",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xd1f94f143486152273adc5e2ee77282388c9f0e9c7a0fbf42e7d381b0f16d574"
+    },
+    "0x1631244689ec1fecbdd22fb5916e920dfc9b8d30": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "OVR (PoS)",
+            "version": "1",
+            "verifyingContract": "0x1631244689ec1fecbdd22fb5916e920dfc9b8d30",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x39b4f171d17e05e0982f5af7661f49b75b20c0b43603a5c33f7079dd0e92c644"
+    },
+    "0x8a0e8b4b0903929f47c3ea30973940d4a9702067": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "InsurAce (PoS)",
+            "version": "1",
+            "verifyingContract": "0x8a0e8b4b0903929f47c3ea30973940d4a9702067",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x92bee95ceae9a086949076dc7961931dde49de56cf9366a2ba3e81d856fd5b49"
+    },
+    "0x692c44990e4f408ba0917f5c78a83160c1557237": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Thales DAO Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x692c44990e4f408ba0917f5c78a83160c1557237",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x18ed4ed1e651eeac779396ffd1520653424639594200e3fb9964422b5e76236e"
+    },
+    "0xf915fdda4c882731c0456a4214548cd13a822886": {
+        "kind": "permit",
+        "domain": {
+            "name": "Fuse",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xf915fdda4c882731c0456a4214548cd13a822886"
+        },
+        "domainSeparator": "0xcd5e7b18248e785d153e8693d0c8663251fc0f2f225eb0132241ee0b276c02e3"
+    },
+    "0xa649325aa7c5093d12d6f98eb4378deae68ce23f": {
+        "kind": "permit",
+        "domain": {
+            "name": "Binance",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0xa649325aa7c5093d12d6f98eb4378deae68ce23f"
+        },
+        "domainSeparator": "0xfff4df655e1e5a6ea64bf989fdc7743d35b0d7a3ad09445fd90839d3b95239bf"
+    },
+    "0x614389eaae0a6821dc49062d56bda3d9d45fa2ff": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Orbs (PoS)",
+            "version": "1",
+            "verifyingContract": "0x614389eaae0a6821dc49062d56bda3d9d45fa2ff",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x6101c443b1c8b6cd73d1db6d92794f9588dc12842a22867821dd2c58387ced0d"
+    },
+    "0x2bc07124d8dac638e290f401046ad584546bc47b": {
+        "kind": "permit",
+        "domain": {
+            "name": "TOWER",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x2bc07124d8dac638e290f401046ad584546bc47b"
+        },
+        "domainSeparator": "0x74bb74f027967f9cf8534310daffe7077b73e6dac582dbd0e8395509729d4648"
+    },
+    "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Wrapped LUNA Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x24834bbec7e39ef42f4a75eaf8e5b6486d3f0e57",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x60e0fb0136e09168d7bc604f4c2277fe0024576b216cc29807ca0528f335df0c"
+    },
+    "0xfe712251173a2cd5f5be2b46bb528328ea3565e1": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Metaverse Index (PoS)",
+            "version": "1",
+            "verifyingContract": "0xfe712251173a2cd5f5be2b46bb528328ea3565e1",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xb312b8e4ca07bbe8ec1b893a260915be3e6e695ea1177da9dc92b776075e6223"
+    },
+    "0x3809dcdd5dde24b37abe64a5a339784c3323c44f": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "TrustSwap Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0x3809dcdd5dde24b37abe64a5a339784c3323c44f",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x05390bb1dea6ffc8ffb2fa7fb2c4461abce86ca3cc8429a8ec3655f9407f6cb6"
+    },
+    "0x35f80a39eefe33d0dfd2ad2daa6ad6a9d472cebd": {
+        "kind": "permit",
+        "domain": {
+            "name": "Spintop",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x35f80a39eefe33d0dfd2ad2daa6ad6a9d472cebd"
+        },
+        "domainSeparator": "0x22547ecdb0abe31c3c605c3a6a3c2ece16bd218aba7c7f73f3152ba19401cd90"
+    },
+    "0x4e1581f01046efdd7a1a2cdb0f82cdd7f71f2e59": {
+        "kind": "permit",
+        "domain": {
+            "name": "IceToken",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x4e1581f01046efdd7a1a2cdb0f82cdd7f71f2e59"
+        },
+        "domainSeparator": "0x22ad6cbceee5e18e16bbd71ef83700145613aaeb4260e8442d4d7e64718d9526"
+    },
+    "0x8d520c8e66091cfd6743fe37fbe3a09505616c4b": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "CosplayToken (PoS)",
+            "version": "1",
+            "verifyingContract": "0x8d520c8e66091cfd6743fe37fbe3a09505616c4b",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x30c974cd0425fcb57688bffcaa8a5f52870eeea6dbd53cc310fba13a6a0579ce"
+    },
+    "0xa9f37d84c856fda3812ad0519dad44fa0a3fe207": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Melon Token (PoS)",
+            "version": "1",
+            "verifyingContract": "0xa9f37d84c856fda3812ad0519dad44fa0a3fe207",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x5dca11689c106339520b66fe5725a9703cdafa1062091948c45a3a54589e6441"
+    },
+    "0x5c947eb80d096a5e332bf79bfdc9feb3d0a201d7": {
+        "kind": "permit",
+        "domain": {
+            "name": "Spit Token",
+            "version": "1",
+            "chainId": 137,
+            "verifyingContract": "0x5c947eb80d096a5e332bf79bfdc9feb3d0a201d7"
+        },
+        "domainSeparator": "0xce0ccd319046c79e1db11e8e30bb37f98eb3f6882895139ea6ce54c5bad5f6fe"
     }
 }
