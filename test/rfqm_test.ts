@@ -218,7 +218,7 @@ describe('RFQM Integration', () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
-        when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+        when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
             new BigNumber(1),
             new BigNumber(1),
         ]);

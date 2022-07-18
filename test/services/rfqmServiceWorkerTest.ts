@@ -323,7 +323,7 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(5),
                 new BigNumber(100),
             ]);
@@ -402,7 +402,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(undefined);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);
@@ -481,7 +481,7 @@ describe('RfqmService Worker Logic', () => {
             );
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);
@@ -559,7 +559,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);
@@ -649,7 +649,7 @@ describe('RfqmService Worker Logic', () => {
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);
@@ -752,7 +752,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);
@@ -931,7 +931,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockQuoteServerClient.signV2Async(anything(), anything(), anything())).thenResolve(validEIP712Sig);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(1000000000),
                 new BigNumber(1000000000),
             ]);

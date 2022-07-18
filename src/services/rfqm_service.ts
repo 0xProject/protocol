@@ -866,7 +866,7 @@ export class RfqmService {
         }
 
         // validate that order is fillable by both the maker and the taker according to balances and allowances
-        const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+        const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
             [makerAddress, takerAddress],
             [makerToken, takerToken],
         );
@@ -1064,7 +1064,7 @@ export class RfqmService {
             logger.info({ workerAddress, orderHash }, 'Order already signed');
         } else {
             // validate that order is fillable by both the maker and the taker according to balances and allowances
-            const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+            const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
                 [otcOrder.maker, otcOrder.taker],
                 [otcOrder.makerToken, otcOrder.takerToken],
             );
@@ -1299,7 +1299,7 @@ export class RfqmService {
 
             // Attempt to gather extra context upon eth_call failure
             try {
-                const [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+                const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
                     [otcOrder.maker, otcOrder.taker],
                     [otcOrder.makerToken, otcOrder.takerToken],
                 );

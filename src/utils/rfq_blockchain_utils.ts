@@ -122,10 +122,19 @@ export class RfqBlockchainUtils {
     }
 
     /**
-     * Fetches the token balances for a given list of addresses and tokens
+     * Fetches min value between balance for a list of addresses against the specified tokens. The index of
+     * an address in `addresses` must correspond with the index of a token in `tokens`.
+     */
+    public async getMinOfBalancesAndAllowancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
+        return this._balanceChecker.getMinOfBalancesAndAllowancesAsync(addresses, tokens, this._exchangeProxyAddress);
+    }
+
+    /**
+     * Fetches the balances for a list of addresses against the specified tokens. The index of
+     * an address in `addresses` must correspond with the index of a token in `tokens`.
      */
     public async getTokenBalancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
-        return this._balanceChecker.getTokenBalancesAsync(addresses, tokens, this._exchangeProxyAddress);
+        return this._balanceChecker.getTokenBalancesAsync(addresses, tokens);
     }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker

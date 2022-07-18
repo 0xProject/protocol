@@ -33,7 +33,7 @@ export class BalanceChecker {
      * @param tokens - an array of tokens
      * @returns - an array of BigNumbers
      */
-    public async getTokenBalancesAsync(
+    public async getMinOfBalancesAndAllowancesAsync(
         addresses: string[],
         tokens: string[],
         allowanceTarget: string,
@@ -61,5 +61,34 @@ export class BalanceChecker {
         return this._balanceCheckerContract
             .getMinOfBalancesOrAllowances(addresses, tokens, allowanceTarget)
             .callAsync(txOpts, BlockParamLiteral.Latest);
+    }
+
+    /**
+     * Fetches the balances for a list of addresses against the specified tokens.
+     *
+     * The index of an address in `addresses` must correspond with the index of a token in `tokens`.
+     */
+    public async getTokenBalancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
+        if (addresses.length !== tokens.length) {
+            throw new Error(
+                `expected length of addresses and tokens must be the same, actual: ${addresses.length} and ${tokens.length}`,
+            );
+        }
+
+        // HACK: this checks to see if we're using a real implementation of the balanceCheckerContract or using an override
+        // We do this because ganache doesn't allow for overrides. In all other environments, we should use overrides
+        const shouldUseOverrides = this._balanceCheckerContract.address.toLowerCase() === RANDOM_ADDRESS;
+
+        const txOpts = shouldUseOverrides
+            ? {
+                  overrides: {
+                      [RANDOM_ADDRESS]: {
+                          code: this._balanceCheckerBytecode,
+                      },
+                  },
+              }
+            : {};
+
+        return this._balanceCheckerContract.balances(addresses, tokens).callAsync(txOpts, BlockParamLiteral.Latest);
     }
 }

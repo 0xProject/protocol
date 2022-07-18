@@ -75,7 +75,7 @@ describe('RFQ Blockchain Utils', () => {
             'The token that originally belongs to the maker',
             'makerToken',
             new BigNumber(18),
-            new BigNumber(1000000),
+            new BigNumber(0),
         );
 
         takerToken = await DummyERC20TokenContract.deployFrom0xArtifactAsync(
@@ -86,7 +86,7 @@ describe('RFQ Blockchain Utils', () => {
             'The token that originally belongs to the maker',
             'takerToken',
             new BigNumber(18),
-            new BigNumber(1000000),
+            new BigNumber(0),
         );
 
         // Deploy Balance Checker (only necessary for Ganache because ganache doesn't have overrides)
@@ -174,9 +174,9 @@ describe('RFQ Blockchain Utils', () => {
         takerBalance = takerAmount.times(numTrades);
 
         await makerToken.mint(makerBalance).awaitTransactionSuccessAsync({ from: maker });
-        await makerToken.approve(zeroEx.address, makerBalance).awaitTransactionSuccessAsync({ from: maker });
+        await makerToken.approve(zeroEx.address, makerBalance.times(2)).awaitTransactionSuccessAsync({ from: maker });
         await takerToken.mint(takerBalance).awaitTransactionSuccessAsync({ from: taker });
-        await takerToken.approve(zeroEx.address, takerBalance).awaitTransactionSuccessAsync({ from: taker });
+        await takerToken.approve(zeroEx.address, takerBalance.times(2)).awaitTransactionSuccessAsync({ from: taker });
 
         const ethersProvider = new providers.JsonRpcProvider();
         const ethersWallet = new Wallet(WORKER_TEST_PRIVATE_KEY, ethersProvider);
@@ -196,12 +196,45 @@ describe('RFQ Blockchain Utils', () => {
         }
     });
 
+    describe('getMinOfBalancesAndAllowancesAsync', () => {
+        it('should fetch min of token balances and allowances', async () => {
+            const addresses = [maker, maker, taker, taker];
+            const tokens = [makerToken.address, takerToken.address, makerToken.address, takerToken.address];
+            const res = await rfqBlockchainUtils.getMinOfBalancesAndAllowancesAsync(addresses, tokens);
+            expect(res).to.deep.eq([makerBalance, ZERO, ZERO, takerBalance]);
+        });
+
+        it('should fail if length of addresses and tokens are different', async () => {
+            const addresses: string[] = [];
+            const tokens = [makerToken.address];
+
+            try {
+                await rfqBlockchainUtils.getMinOfBalancesAndAllowancesAsync(addresses, tokens);
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('expected length of addresses and tokens must be the same');
+            }
+        });
+    });
+
     describe('getTokenBalancesAsync', () => {
-        it('should fetch initial token balances', async () => {
+        it('should fetch token balances', async () => {
             const addresses = [maker, maker, taker, taker];
             const tokens = [makerToken.address, takerToken.address, makerToken.address, takerToken.address];
             const res = await rfqBlockchainUtils.getTokenBalancesAsync(addresses, tokens);
             expect(res).to.deep.eq([makerBalance, ZERO, ZERO, takerBalance]);
+        });
+
+        it('should fail if length of addresses and tokens are different', async () => {
+            const addresses: string[] = [];
+            const tokens = [makerToken.address];
+
+            try {
+                await rfqBlockchainUtils.getTokenBalancesAsync(addresses, tokens);
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('expected length of addresses and tokens must be the same');
+            }
         });
     });
 

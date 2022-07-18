@@ -278,7 +278,7 @@ describe('RfqmService HTTP Logic', () => {
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
