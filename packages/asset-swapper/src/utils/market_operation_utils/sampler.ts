@@ -3,10 +3,11 @@ import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import { SamplerOverrides } from '../../types';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
+import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { BancorService } from './bancor_service';
 import { PoolsCacheMap, SamplerOperations } from './sampler_operations';
-import { BatchedOperation, LiquidityProviderRegistry, TokenAdjacencyGraph } from './types';
+import { BatchedOperation, LiquidityProviderRegistry } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.

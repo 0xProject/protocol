@@ -10,6 +10,7 @@ import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts }
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
 import { IRfqClient } from '../irfq_client';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
+import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { SourceFilters } from './source_filters';
 
@@ -640,11 +641,6 @@ export interface RawQuotes {
     rfqtIndicativeQuotes: V4RFQIndicativeQuoteMM[];
     twoHopQuotes: Array<DexSample<MultiHopFillData>>;
     dexQuotes: Array<Array<DexSample<FillData>>>;
-}
-
-export interface TokenAdjacencyGraph {
-    [token: string]: string[];
-    default: string[];
 }
 
 export interface LiquidityProviderRegistry {

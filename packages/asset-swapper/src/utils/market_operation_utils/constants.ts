@@ -3,7 +3,7 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 
-import { TokenAdjacencyGraphBuilder } from '../token_adjacency_graph_builder';
+import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
 
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { SourceFilters } from './source_filters';
@@ -32,7 +32,6 @@ import {
     MultiHopFillData,
     PlatypusInfo,
     PsmInfo,
-    TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
 } from './types';
@@ -903,65 +902,49 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
 // attaching to a default intermediary token (stables or ETH etc) can have a large impact
 export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
     {
-        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet],
-        })
+        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet])
             .tap(builder => {
                 // Mirror Protocol
                 builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
                 // Convex and Curve
-                builder.add(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV).add(MAINNET_TOKENS.CRV, MAINNET_TOKENS.cvxCRV);
+                builder.addBidirectional(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV);
                 // Convex and FXS
-                builder.add(MAINNET_TOKENS.cvxFXS, MAINNET_TOKENS.FXS).add(MAINNET_TOKENS.FXS, MAINNET_TOKENS.cvxFXS);
+                builder.addBidirectional(MAINNET_TOKENS.cvxFXS, MAINNET_TOKENS.FXS);
                 // FEI TRIBE liquid in UniV2
-                builder.add(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE).add(MAINNET_TOKENS.TRIBE, MAINNET_TOKENS.FEI);
+                builder.addBidirectional(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE);
                 // FRAX ecosystem
-                builder.add(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.FXS).add(MAINNET_TOKENS.FXS, MAINNET_TOKENS.FRAX);
-                builder.add(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.OHM).add(MAINNET_TOKENS.OHM, MAINNET_TOKENS.FRAX);
+                builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.FXS);
+                builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.OHM);
                 // REDACTED CARTEL
-                builder
-                    .add(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY)
-                    .add(MAINNET_TOKENS.BTRFLY, MAINNET_TOKENS.OHMV2);
+                builder.addBidirectional(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY);
                 // Lido
-                builder
-                    .add(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH)
-                    .add(MAINNET_TOKENS.wstETH, MAINNET_TOKENS.stETH);
+                builder.addBidirectional(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH);
             })
             // Build
             .build(),
-        [ChainId.BSC]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC],
-        }).build(),
-        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon],
-        })
+        [ChainId.BSC]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC]).build(),
+        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
             .tap(builder => {
-                builder.add(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY).add(POLYGON_TOKENS.ANY, POLYGON_TOKENS.QUICK);
+                builder.addBidirectional(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY);
             })
             .build(),
-        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche],
-        })
+        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche])
             .tap(builder => {
                 // Synapse nETH/aWETH pool
-                builder
-                    .add(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH)
-                    .add(AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH);
+                builder.addBidirectional(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH);
                 // Trader Joe MAG/MIM pool
-                builder.add(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG).add(AVALANCHE_TOKENS.MAG, AVALANCHE_TOKENS.MIM);
+                builder.addBidirectional(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG);
             })
             .build(),
-        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
-        }).build(),
-        [ChainId.Celo]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo],
-        }).build(),
-        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder({
-            default: DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
-        }).build(),
+        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder(
+            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
+        ).build(),
+        [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
+        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(
+            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism],
+        ).build(),
     },
-    new TokenAdjacencyGraphBuilder({ default: [] }).build(),
+    TokenAdjacencyGraph.getEmptyGraph(),
 );
 
 export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
@@ -2604,7 +2587,7 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     allowFallback: true,
     shouldGenerateQuoteReport: true,
     shouldIncludePriceComparisonsReport: false,
-    tokenAdjacencyGraph: { default: [] },
+    tokenAdjacencyGraph: TokenAdjacencyGraph.getEmptyGraph(),
     neonRouterNumSamples: 14,
     fillAdjustor: new IdentityFillAdjustor(),
 };

@@ -166,9 +166,10 @@ export {
     NativeFillData,
     OptimizedMarketOrder,
     SourceQuoteOperation,
-    TokenAdjacencyGraph,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';
+
+export { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from './utils/token_adjacency_graph';
 export { IdentityFillAdjustor } from './utils/market_operation_utils/identity_fill_adjustor';
 export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 export {

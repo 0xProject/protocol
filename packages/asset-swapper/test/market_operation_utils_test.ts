@@ -15,7 +15,7 @@ import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import * as _ from 'lodash';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation, QuoteRequestor, RfqRequestOpts, SignedNativeOrder } from '../src';
+import { MarketOperation, QuoteRequestor, RfqRequestOpts, SignedNativeOrder, TokenAdjacencyGraph } from '../src';
 import { Integrator } from '../src/types';
 import { MarketOperationUtils } from '../src/utils/market_operation_utils/';
 import {
@@ -39,7 +39,6 @@ import {
     MarketSideLiquidity,
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
-    TokenAdjacencyGraph,
 } from '../src/utils/market_operation_utils/types';
 
 const MAKER_TOKEN = randomAddress();
@@ -57,7 +56,7 @@ const DEFAULT_EXCLUDED = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources
 );
 const BUY_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
 const SELL_SOURCES = SELL_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources;
-const TOKEN_ADJACENCY_GRAPH: TokenAdjacencyGraph = { default: [] };
+const TOKEN_ADJACENCY_GRAPH = TokenAdjacencyGraph.getEmptyGraph();
 
 const SIGNATURE = { v: 1, r: NULL_BYTES, s: NULL_BYTES, signatureType: SignatureType.EthSign };
 const FOO_INTEGRATOR: Integrator = {
