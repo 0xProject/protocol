@@ -1322,7 +1322,11 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
-            fillData: { takerTokenSymbol: takerTokenSymbolBytes32, makerTokenSymbol: makerTokenSymbolBytes32 },
+            fillData: {
+                takerTokenSymbolBytes32,
+                makerTokenSymbolBytes32,
+                chainId: this.chainId,
+            },
             function: this._samplerContract.sampleSellsFromSynthetix,
             params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, takerFillAmounts],
         });
@@ -1338,7 +1342,11 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
-            fillData: { takerTokenSymbol: takerTokenSymbolBytes32, makerTokenSymbol: makerTokenSymbolBytes32 },
+            fillData: {
+                takerTokenSymbolBytes32,
+                makerTokenSymbolBytes32,
+                chainId: this.chainId,
+            },
             function: this._samplerContract.sampleBuysFromSynthetix,
             params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, makerFillAmounts],
         });

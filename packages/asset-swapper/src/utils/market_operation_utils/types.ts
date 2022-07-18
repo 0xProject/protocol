@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
@@ -383,8 +384,10 @@ export interface VelodromeFillData extends FillData {
 }
 
 export interface SynthetixFillData extends FillData {
-    takerTokenSymbol: string;
-    makerTokenSymbol: string;
+    takerTokenSymbolBytes32: string;
+    makerTokenSymbolBytes32: string;
+    // Only needed for gas estimation.
+    chainId: ChainId;
 }
 
 /**

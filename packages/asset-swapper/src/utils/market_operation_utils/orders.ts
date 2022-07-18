@@ -396,7 +396,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Synthetix:
             const fillData = (order as OptimizedMarketBridgeOrder<SynthetixFillData>).fillData;
-            bridgeData = encoder.encode([fillData.takerTokenSymbol, fillData.makerTokenSymbol]);
+            bridgeData = encoder.encode([fillData.takerTokenSymbolBytes32, fillData.makerTokenSymbolBytes32]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);

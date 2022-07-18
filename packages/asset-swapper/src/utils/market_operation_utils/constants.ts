@@ -1,7 +1,7 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { formatBytes32String } from '@ethersproject/strings';
+import { formatBytes32String, parseBytes32String } from '@ethersproject/strings';
 
 import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
 
@@ -32,6 +32,7 @@ import {
     MultiHopFillData,
     PlatypusInfo,
     PsmInfo,
+    SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
 } from './types';
@@ -2626,7 +2627,28 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
             return compoundFillData.takerToken === wethAddress ? 210e3 : 250e3;
         }
     },
-    [ERC20BridgeSource.Synthetix]: () => 580e3,
+    [ERC20BridgeSource.Synthetix]: (fillData?: FillData) => {
+        const { chainId, makerTokenSymbolBytes32, takerTokenSymbolBytes32 } = fillData as SynthetixFillData;
+        const makerTokenSymbol = parseBytes32String(makerTokenSymbolBytes32);
+        const takerTokenSymbol = parseBytes32String(takerTokenSymbolBytes32);
+
+        // Gas cost widely varies by token on mainnet.
+        if (chainId === ChainId.Mainnet) {
+            if (takerTokenSymbol === 'sBTC' || makerTokenSymbol === 'sBTC') {
+                return 800e3;
+            }
+            if (takerTokenSymbol === 'sETH' || makerTokenSymbol === 'sETH') {
+                return 700e3;
+            }
+            return 580e3;
+        }
+
+        // Optimism
+        if (takerTokenSymbol === 'sUSD' || makerTokenSymbol === 'sUSD') {
+            return 480e3;
+        }
+        return 580e3;
+    },
     //
     // BSC
     //
