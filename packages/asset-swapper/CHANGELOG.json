@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.64.0",
+        "changes": [
+            {
+                "note": "Refactor `TokenAdjacency` and `TokenAdjacencyBuilder`",
+                "pr": 517
+            }
+        ]
+    },
+    {
         "version": "16.63.1",
         "changes": [
             {
