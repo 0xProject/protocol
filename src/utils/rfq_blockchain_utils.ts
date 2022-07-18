@@ -637,4 +637,37 @@ export class RfqBlockchainUtils {
         const nonce = await erc20.getNonce(takerAddress);
         return new BigNumber(nonce.toString());
     }
+
+    /**
+     * Generates calldata for gasless approval submission.
+     *
+     * @param token The address of the token.
+     * @param approval The Approval object, which consists of 'kind' and eip712 object.
+     * @param signature The gasless approval transaction signed by taker.
+     * @returns Generated calldata.
+     */
+    public async generateApprovalCalldataAsync(
+        token: string,
+        approval: Approval,
+        signature: Signature,
+    ): Promise<string> {
+        const { kind, eip712 } = approval;
+        switch (kind) {
+            case GaslessApprovalTypes.ExecuteMetaTransaction:
+                const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
+                const { data } = await erc20.populateTransaction.executeMetaTransaction(
+                    eip712.message.from,
+                    eip712.message.functionSignature,
+                    signature.r,
+                    signature.s,
+                    signature.v,
+                );
+                if (!data) {
+                    throw new Error(`Cannot generate approval submission calldata for ${approval.kind}`);
+                }
+                return data;
+            default:
+                throw new Error(`Gasless approval kind ${approval.kind} is not implemented yet`);
+        }
+    }
 }
