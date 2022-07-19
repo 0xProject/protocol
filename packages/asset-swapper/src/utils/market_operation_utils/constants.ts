@@ -2203,9 +2203,9 @@ export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId(
 
 export const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = valueByChainId<string>(
     {
-        [ChainId.Fantom]: 'https://graph-node.beets-ftm-node.com/subgraphs/name/beethovenx',
+        [ChainId.Fantom]: 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx',
     },
-    'https://graph-node.beets-ftm-node.com/subgraphs/name/beethovenx',
+    'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx',
 );
 
 export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(

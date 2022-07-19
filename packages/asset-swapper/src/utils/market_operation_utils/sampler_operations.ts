@@ -154,10 +154,7 @@ export class SamplerOperations {
         this.poolsCaches = poolsCaches
             ? poolsCaches
             : {
-                  [ERC20BridgeSource.Beethovenx]: new BalancerV2PoolsCache(
-                      chainId,
-                      BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN[chainId],
-                  ),
+                  [ERC20BridgeSource.Beethovenx]: new BalancerV2PoolsCache(BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN[chainId]),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
                   [ERC20BridgeSource.BalancerV2]:

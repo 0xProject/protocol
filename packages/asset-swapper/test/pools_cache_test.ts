@@ -3,6 +3,10 @@ import * as chai from 'chai';
 import 'mocha';
 
 import {
+    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
+    BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
+} from '../src/utils/market_operation_utils/constants';
+import {
     BalancerPoolsCache,
     BalancerV2PoolsCache,
     CreamPoolsCache,
@@ -43,22 +47,37 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [daiAddress, wethAddress],
             ];
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });
 
     describe('BalancerV2PoolsCache', () => {
-        const cache = new BalancerV2PoolsCache(ChainId.Mainnet);
-        it('fetches pools', async () => {
+        it('fetches pools (Balancer - Mainnet)', async () => {
+            const subgraphUrl = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[ChainId.Mainnet];
+            const cache = new BalancerV2PoolsCache(subgraphUrl!);
             const pairs = [
                 [wethAddress, wbtcAddress],
                 [wethAddress, balAddress],
             ];
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+            );
+        });
+
+        it('fetches pools (Beethoven X - Fantom)', async () => {
+            const subgraphUrl = BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN[ChainId.Fantom];
+            const cache = new BalancerV2PoolsCache(subgraphUrl);
+            const wftmAddress = '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83';
+            const beetsAddress = '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e';
+            const fantomWethAddress = '0x74b23882a30290451a17c44f4f05243b6b58c76d';
+
+            const pairs = [
+                [wftmAddress, beetsAddress],
+                [wftmAddress, fantomWethAddress],
+            ];
+            await Promise.all(
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });
@@ -71,8 +90,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [creamAddress, wethAddress],
             ];
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });

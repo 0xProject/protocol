@@ -50,8 +50,7 @@ export class BalancerV2PoolsCache extends PoolsCache {
     }
 
     constructor(
-        chainId: ChainId,
-        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId]!,
+        private readonly subgraphUrl: string,
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
@@ -62,19 +61,6 @@ export class BalancerV2PoolsCache extends PoolsCache {
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
     }
-
-    // protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-    //     try {
-    //         const poolData = (await getPoolsWithTokens(takerToken, makerToken)).pools;
-    //         // Sort by maker token balance (descending)
-    //         const pools = parsePoolData(poolData, takerToken, makerToken).sort((a, b) =>
-    //             b.balanceOut.minus(a.balanceOut).toNumber(),
-    //         );
-    //         return pools.length > this.maxPoolsFetched ? pools.slice(0, this.maxPoolsFetched) : pools;
-    //     } catch (err) {
-    //         return [];
-    //     }
-    // }
 
     protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
         const query = gql`
