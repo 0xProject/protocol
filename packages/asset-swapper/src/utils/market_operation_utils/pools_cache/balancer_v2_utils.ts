@@ -6,14 +6,14 @@ import { gql, request } from 'graphql-request';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
-import {
-    BALANCER_MAX_POOLS_FETCHED,
-    BALANCER_TOP_POOLS_FETCHED,
-    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
-} from '../constants';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
 import { parsePoolData } from './balancer_sor_v2';
 import { CacheValue, PoolsCache } from './pools_cache';
+
+const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = new Map<ChainId, string>([
+    [ChainId.Fantom, 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx'],
+]);
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -29,6 +29,15 @@ interface BalancerPoolResponse {
 }
 
 export class BalancerV2PoolsCache extends PoolsCache {
+    public static createBeethovenXPoolCache(chainId: ChainId): BalancerV2PoolsCache | undefined {
+        const subgraphUrl = BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN.get(chainId);
+        if (subgraphUrl === undefined) {
+            return undefined;
+        }
+
+        return new BalancerV2PoolsCache(subgraphUrl);
+    }
+
     private static _parseSubgraphPoolData(pool: any, takerToken: string, makerToken: string): Pool {
         const tToken = pool.tokens.find((t: any) => t.address === takerToken);
         const mToken = pool.tokens.find((t: any) => t.address === makerToken);
