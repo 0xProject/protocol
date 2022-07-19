@@ -1698,8 +1698,8 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.GMX: {
-                        // low liquidity mim pool dont quote
-                        if (takerToken === AVALANCHE_TOKENS.MIM || makerToken === 'AVALANCHE_TOKENS.MIM') {
+                        // MIM has no liquidity.
+                        if (takerToken === AVALANCHE_TOKENS.MIM || makerToken === AVALANCHE_TOKENS.MIM) {
                             return [];
                         }
                         return this.getGMXSellQuotes(
@@ -2030,8 +2030,8 @@ export class SamplerOperations {
                         return this.getCompoundBuyQuotes(cToken.tokenAddress, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.GMX: {
-                        // bad mim pool dont quote
-                        if (takerToken === 'AVALANCHE_TOKENS.MIM' || makerToken === 'AVALANCHE_TOKENS.MIM') {
+                        // MIM has no liquidity.
+                        if (takerToken === AVALANCHE_TOKENS.MIM || makerToken === AVALANCHE_TOKENS.MIM) {
                             return [];
                         }
                         return this.getGMXBuyQuotes(
