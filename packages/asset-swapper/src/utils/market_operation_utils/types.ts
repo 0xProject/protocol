@@ -108,11 +108,6 @@ export enum ERC20BridgeSource {
     // Optimism
     Velodrome = 'Velodrome',
 }
-export type SourcesWithPoolsCache =
-    | ERC20BridgeSource.Balancer
-    | ERC20BridgeSource.BalancerV2
-    | ERC20BridgeSource.Beethovenx
-    | ERC20BridgeSource.Cream;
 
 // tslint:disable: enum-naming
 /**

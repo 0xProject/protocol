@@ -57,7 +57,7 @@ import {
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_utils_new';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SamplerNoOperation } from './sampler_no_operation';
@@ -96,7 +96,6 @@ import {
     PsmInfo,
     ShellFillData,
     SourceQuoteOperation,
-    SourcesWithPoolsCache,
     SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
@@ -115,9 +114,12 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
  */
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 
-export type PoolsCacheMap = { [key in Exclude<SourcesWithPoolsCache, ERC20BridgeSource.BalancerV2>]: PoolsCache } & {
+export interface PoolsCacheMap {
+    [ERC20BridgeSource.Balancer]: BalancerPoolsCache;
     [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache | undefined;
-};
+    [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache;
+    [ERC20BridgeSource.Cream]: CreamPoolsCache;
+}
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
 
