@@ -28,6 +28,7 @@ import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract FantomBridgeAdapter is
@@ -38,6 +39,7 @@ contract FantomBridgeAdapter is
     MixinCurveV2,
     MixinNerve,
     MixinUniswapV2,
+    MixinWOOFi,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -98,6 +100,14 @@ contract FantomBridgeAdapter is
         } else if (protocolId == BridgeProtocols.AAVEV2) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeAaveV2(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.WOOFi) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeWOOFi(
                 sellToken,
                 buyToken,
                 sellAmount,

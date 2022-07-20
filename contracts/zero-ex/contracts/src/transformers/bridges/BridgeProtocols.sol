@@ -58,4 +58,5 @@ library BridgeProtocols {
     uint128 internal constant BANCORV3        = 28;
     uint128 internal constant VELODROME       = 29;
     uint128 internal constant SYNTHETIX       = 30;
+    uint128 internal constant WOOFi           = 31;
 }
