@@ -47,6 +47,7 @@ export enum ChainId {
     Mainnet = 1,
     Ropsten = 3,
     Rinkeby = 4,
+    Goerli = 5,
     Kovan = 42,
     Ganache = 1337,
     BSC = 56,
@@ -55,6 +56,7 @@ export enum ChainId {
     Avalanche = 43114,
     Fantom = 250,
     Celo = 42220,
+    // Arbitrum = 42161,
     Optimism = 10,
 }
 

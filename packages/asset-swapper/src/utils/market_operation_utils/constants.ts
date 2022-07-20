@@ -60,6 +60,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Mainnet]: defaultValue,
         [ChainId.Ropsten]: defaultValue,
         [ChainId.Rinkeby]: defaultValue,
+        [ChainId.Goerli]: defaultValue,
         [ChainId.Kovan]: defaultValue,
         [ChainId.Ganache]: defaultValue,
         [ChainId.BSC]: defaultValue,
@@ -122,6 +123,13 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
+        [ChainId.Goerli]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Uniswap,
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.UniswapV3,
+        ]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.BSC]: new SourceFilters([
             ERC20BridgeSource.BakerySwap,
@@ -260,6 +268,13 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Mooniswap,
         ]),
+        [ChainId.Goerli]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.Uniswap,
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.UniswapV3,
+        ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -366,6 +381,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Ropsten]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
+        [ChainId.Goerli]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.Polygon]: [ERC20BridgeSource.QuickSwap, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
         [ChainId.Avalanche]: [ERC20BridgeSource.Pangolin, ERC20BridgeSource.TraderJoe, ERC20BridgeSource.SushiSwap],
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
@@ -851,6 +867,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
             '0xad6d458402f60fd3bd25163575031acdce07538d', // DAI
             '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
+        ],
+        [ChainId.Goerli]: [
+            getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
+            '0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844', // DAI
+            '0x07865c6E87B9F70255377e024ace6630C1Eaa37F', // USDC
         ],
         [ChainId.Polygon]: [
             POLYGON_TOKENS.WMATIC,
@@ -1833,6 +1854,7 @@ export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95',
         [ChainId.Ropsten]: '0x9c83dce8ca20e9aaf9d3efc003b2ea62abc08351',
+        [ChainId.Goerli]: '0x9c83dce8ca20e9aaf9d3efc003b2ea62abc08351',
     },
     NULL_ADDRESS,
 );
@@ -1841,6 +1863,7 @@ export const UNISWAPV2_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
         [ChainId.Ropsten]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
+        [ChainId.Goerli]: '0xf164fc0ec4e93095b804a4795bbe1e041497b92a',
     },
     NULL_ADDRESS,
 );
@@ -1850,6 +1873,7 @@ export const SUSHISWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Mainnet]: '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f',
         [ChainId.BSC]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Ropsten]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
+        [ChainId.Goerli]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Polygon]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Avalanche]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
         [ChainId.Fantom]: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
@@ -2153,6 +2177,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Ropsten]: {
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.Goerli]: {
             quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
