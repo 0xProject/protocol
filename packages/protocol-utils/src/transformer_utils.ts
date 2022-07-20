@@ -141,6 +141,7 @@ export enum BridgeProtocol {
     BancorV3,
     Velodrome,
     Synthetix,
+    WOOFi,
 }
 // tslint:enable: enum-naming
 
