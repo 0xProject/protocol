@@ -4,7 +4,7 @@ import { BigNumber } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
-import { adjustOutput } from './fills';
+import { adjustOutput, ethToOutputAmount } from './fills';
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import {
     DexSample,
@@ -27,6 +27,7 @@ export function getTwoHopAdjustedRate(
     twoHopQuote: DexSample<MultiHopFillData>,
     targetInput: BigNumber,
     outputAmountPerEth: BigNumber,
+    inputAmountPerEth: BigNumber,
     fees: FeeSchedule = {},
     exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
     fillAdjustor: FillAdjustor = new IdentityFillAdjustor(),
@@ -43,7 +44,32 @@ export function getTwoHopAdjustedRate(
         SOURCE_FLAGS[fillData.secondHopSource.source];
 
     // Penalty of going to those sources in terms of output
-    const sourcePenalty = outputAmountPerEth.times(fees[ERC20BridgeSource.MultiHop]!(fillData).fee).integerValue();
+    // const outputPerEthRate = outputAmountPerEth.eq(ZERO_AMOUNT)
+    console.log({
+        targetInput,
+        output: twoHopQuote.output,
+        price: twoHopQuote.output.dividedBy(targetInput),
+        outputAmountPerEth,
+        inputAmountPerEth,
+        guess: ethToOutputAmount({
+            input: targetInput,
+            output: twoHopQuote.output,
+            inputAmountPerEth,
+            outputAmountPerEth: ZERO_AMOUNT,
+            ethAmount: 1,
+        }),
+    });
+
+    const outputEthRate = outputAmountPerEth.isZero()
+        ? ethToOutputAmount({
+              input: targetInput,
+              output: twoHopQuote.output,
+              inputAmountPerEth,
+              outputAmountPerEth: ZERO_AMOUNT,
+              ethAmount: 1,
+          })
+        : outputAmountPerEth;
+    const sourcePenalty = outputEthRate.times(fees[ERC20BridgeSource.MultiHop]!(fillData).fee).integerValue();
 
     // Create a Fill so it can be adjusted by the `FillAdjustor`
     const fill: Fill = {
@@ -74,7 +100,7 @@ export function getTwoHopAdjustedRate(
             ? BigNumber.min(adjustedOutputLeft, adjustedOutputRight)
             : BigNumber.max(adjustedOutputLeft, adjustedOutputRight);
 
-    const pathPenalty = outputAmountPerEth.times(exchangeProxyOverhead(flags)).integerValue();
+    const pathPenalty = outputEthRate.times(exchangeProxyOverhead(flags)).integerValue();
     const pathAdjustedOutput = adjustOutput(side, fillAdjustedOutput, pathPenalty);
 
     return getRate(side, input, pathAdjustedOutput);

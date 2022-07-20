@@ -23,7 +23,8 @@ export function getBestTwoHopQuote(
     exchangeProxyOverhead?: ExchangeProxyOverhead,
     fillAdjustor?: FillAdjustor,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
-    const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
+    const { side, inputAmount, outputAmountPerEth, quotes, inputAmountPerEth } = marketSideLiquidity;
+    console.log({ outputAmountPerEth });
     const { twoHopQuotes } = quotes;
     // Ensure the expected data we require exists. In the case where all hops reverted
     // or there were no sources included that allowed for multi hop,
@@ -46,6 +47,7 @@ export function getBestTwoHopQuote(
                 quote,
                 inputAmount,
                 outputAmountPerEth,
+                inputAmountPerEth,
                 feeSchedule,
                 exchangeProxyOverhead,
                 fillAdjustor,
@@ -60,6 +62,7 @@ export function getBestTwoHopQuote(
                     filteredQuotes[0],
                     inputAmount,
                     outputAmountPerEth,
+                    inputAmountPerEth,
                     feeSchedule,
                     exchangeProxyOverhead,
                     fillAdjustor,

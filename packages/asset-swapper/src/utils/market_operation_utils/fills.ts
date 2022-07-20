@@ -29,7 +29,7 @@ export function ethToOutputAmount({
 }): BigNumber {
     return !outputAmountPerEth.isZero()
         ? outputAmountPerEth.times(ethAmount).integerValue()
-        : inputAmountPerEth.times(ethAmount).times(output.dividedToIntegerBy(input));
+        : inputAmountPerEth.times(ethAmount).times(output.dividedBy(input));
 }
 
 export function nativeOrderToFill(
