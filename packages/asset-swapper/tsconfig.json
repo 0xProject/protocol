@@ -34,6 +34,7 @@
         "test/generated-artifacts/IShell.json",
         "test/generated-artifacts/IUniswapExchangeQuotes.json",
         "test/generated-artifacts/IUniswapV2Router01.json",
+        "test/generated-artifacts/IWooPP.json",
         "test/generated-artifacts/KyberDmmSampler.json",
         "test/generated-artifacts/LidoSampler.json",
         "test/generated-artifacts/LiquidityProviderSampler.json",
@@ -51,6 +52,7 @@
         "test/generated-artifacts/UniswapV2Sampler.json",
         "test/generated-artifacts/UniswapV3Sampler.json",
         "test/generated-artifacts/UtilitySampler.json",
-        "test/generated-artifacts/VelodromeSampler.json"
+        "test/generated-artifacts/VelodromeSampler.json",
+        "test/generated-artifacts/WooPPSampler.json"
     ]
 }

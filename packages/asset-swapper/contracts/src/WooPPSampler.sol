@@ -2,8 +2,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 import "./interfaces/IWooPP.sol";
-import "../SamplerUtils.sol";
-import "../ApproximateBuys.sol";
+import "./SamplerUtils.sol";
+import "./ApproximateBuys.sol";
 
 
 contract WooPPSampler is SamplerUtils, ApproximateBuys{
