@@ -129,7 +129,7 @@
         "erc20Proxy": "0x0000000000000000000000000000000000000000",
         "erc721Proxy": "0x0000000000000000000000000000000000000000",
         "zrxToken": "0x0000000000000000000000000000000000000000",
-        "etherToken": "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+        "etherToken": "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6",
         "exchangeV2": "0x0000000000000000000000000000000000000000",
         "exchange": "0x0000000000000000000000000000000000000000",
         "assetProxyOwner": "0x0000000000000000000000000000000000000000",
@@ -153,18 +153,18 @@
         "chainlinkStopLimit": "0x0000000000000000000000000000000000000000",
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
-        "exchangeProxyGovernor": "0x7Cee06249e371a1eCF8107e912294432F7F70832",
+        "exchangeProxyGovernor": "0x7cee06249e371a1ecf8107e912294432f7f70832",
         "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
-        "exchangeProxyTransformerDeployer": "0x2BEF57fFDe3098Eeed9fa4F9166a81d7377533dc",
-        "exchangeProxyFlashWallet": "0xdB6f1920A889355780aF7570773609Bd8Cb1f498",
+        "exchangeProxyTransformerDeployer": "0x2bef57ffde3098eeed9fa4f9166a81d7377533dc",
+        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0xad550dbEF7b93A42e335062E808D66a70eca5a0a", 
-            "payTakerTransformer": "0xBd3fEC19E4d91a79B329b6B4A6f210c66a40A97F",
-            "affiliateFeeTransformer": "0x59E7371b613a6f3879694Bf9db2fE3117C92A927",
-            "fillQuoteTransformer": "0x3eDBf102250d59230Ff6D3FC648F97c094F3Cb27",
-            "positiveSlippageFeeTransformer": "0x48997b11bbc15c2FA2f141C9E93a0A2ab789A761"
+            "wethTransformer": "0xad550dbef7b93a42e335062e808d66a70eca5a0a", 
+            "payTakerTransformer": "0xbd3fec19e4d91a79b329b6b4a6f210c66a40a97f",
+            "affiliateFeeTransformer": "0x59e7371b613a6f3879694bf9db2fe3117c92a927",
+            "fillQuoteTransformer": "0x3edbf102250d59230ff6d3fc648f97c094f3cb27",
+            "positiveSlippageFeeTransformer": "0x48997b11bbc15c2fa2f141c9e93a0a2ab789a761"
         }
     },
     "42": {
