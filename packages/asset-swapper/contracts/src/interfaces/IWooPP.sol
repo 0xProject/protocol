@@ -1,6 +1,6 @@
 pragma solidity ^0.6;
 
-interface IWooFI {
+interface IWooPP {
     
     /// @dev get the quote token address (immutable)
     /// @return address of quote token
