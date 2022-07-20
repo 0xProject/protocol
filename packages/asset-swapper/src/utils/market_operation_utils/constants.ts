@@ -991,6 +991,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.BSC]: getContractAddressesForChainOrThrow(ChainId.BSC).etherToken,
         [ChainId.Ganache]: getContractAddressesForChainOrThrow(ChainId.Ganache).etherToken,
         [ChainId.Ropsten]: getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
+        [ChainId.Goerli]: getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
         [ChainId.Rinkeby]: getContractAddressesForChainOrThrow(ChainId.Rinkeby).etherToken,
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
@@ -1854,7 +1855,7 @@ export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95',
         [ChainId.Ropsten]: '0x9c83dce8ca20e9aaf9d3efc003b2ea62abc08351',
-        [ChainId.Goerli]: '0x9c83dce8ca20e9aaf9d3efc003b2ea62abc08351',
+        [ChainId.Goerli]: '0x6Ce570d02D73d4c384b46135E87f8C592A8c86dA',
     },
     NULL_ADDRESS,
 );
