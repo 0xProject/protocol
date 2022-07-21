@@ -1378,7 +1378,7 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromWooPP,
             params: [pool, takerToken, makerToken, makerFillAmounts],
-        })
+        });
     }
 
     public getWOOFiBuyQuotes(
@@ -1392,8 +1392,12 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
             params: [pool, takerToken, makerToken, makerFillAmounts],
+<<<<<<< HEAD
         })
 >>>>>>> 9626082a6 (Add BSC support)
+=======
+        });
+>>>>>>> 293225bfa (yarn prettier)
     }
 
     /**
