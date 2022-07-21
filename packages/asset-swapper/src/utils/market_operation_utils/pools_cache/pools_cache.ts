@@ -10,7 +10,7 @@ export interface CacheValue {
 // tslint:disable:custom-no-magic-numbers
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
-const DEFAULT_TIMEOUT_MS = 1000;
+const DEFAULT_TIMEOUT_MS = 3000;
 // tslint:enable:custom-no-magic-numbers
 
 export abstract class PoolsCache {
@@ -23,7 +23,7 @@ export abstract class PoolsCache {
     }
 
     constructor(
-        protected readonly _cache: { [key: string]: CacheValue },
+        protected readonly _cache: Map<string, CacheValue>,
         protected readonly _cacheTimeMs: number = DEFAULT_CACHE_TIME_MS,
     ) {}
 
@@ -42,7 +42,7 @@ export abstract class PoolsCache {
         ignoreExpired: boolean = true,
     ): string[] | undefined {
         const key = PoolsCache._getKey(takerToken, makerToken);
-        const value = this._cache[key];
+        const value = this._cache.get(key);
         if (ignoreExpired) {
             return value === undefined ? [] : value.pools.map(pool => pool.id);
         }
@@ -62,21 +62,18 @@ export abstract class PoolsCache {
 
     protected async _getAndSaveFreshPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         const key = PoolsCache._getKey(takerToken, makerToken);
-        const value = this._cache[key];
+        const value = this._cache.get(key);
         if (value === undefined || value.expiresAt >= Date.now()) {
             const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
             const expiresAt = Date.now() + this._cacheTimeMs;
             this._cachePoolsForPair(takerToken, makerToken, pools, expiresAt);
         }
-        return this._cache[key].pools;
+        return this._cache.get(key)!.pools;
     }
 
     protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[], expiresAt: number): void {
         const key = PoolsCache._getKey(takerToken, makerToken);
-        this._cache[key] = {
-            pools,
-            expiresAt,
-        };
+        this._cache.set(key, { pools, expiresAt });
     }
 
     protected abstract _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]>;
