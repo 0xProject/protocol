@@ -14,9 +14,14 @@ const DEFAULT_TIMEOUT_MS = 1000;
 // tslint:enable:custom-no-magic-numbers
 
 export abstract class PoolsCache {
+    protected static _getKey(takerToken: string, makerToken: string): string {
+        return `${takerToken}-${makerToken}`;
+    }
+
     protected static _isExpired(value: CacheValue): boolean {
         return Date.now() >= value.expiresAt;
     }
+
     constructor(
         protected readonly _cache: { [key: string]: CacheValue },
         protected readonly _cacheTimeMs: number = DEFAULT_CACHE_TIME_MS,
@@ -36,7 +41,7 @@ export abstract class PoolsCache {
         makerToken: string,
         ignoreExpired: boolean = true,
     ): string[] | undefined {
-        const key = JSON.stringify([takerToken, makerToken]);
+        const key = PoolsCache._getKey(takerToken, makerToken);
         const value = this._cache[key];
         if (ignoreExpired) {
             return value === undefined ? [] : value.pools.map(pool => pool.id);
@@ -56,7 +61,7 @@ export abstract class PoolsCache {
     }
 
     protected async _getAndSaveFreshPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-        const key = JSON.stringify([takerToken, makerToken]);
+        const key = PoolsCache._getKey(takerToken, makerToken);
         const value = this._cache[key];
         if (value === undefined || value.expiresAt >= Date.now()) {
             const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
@@ -67,7 +72,7 @@ export abstract class PoolsCache {
     }
 
     protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[], expiresAt: number): void {
-        const key = JSON.stringify([takerToken, makerToken]);
+        const key = PoolsCache._getKey(takerToken, makerToken);
         this._cache[key] = {
             pools,
             expiresAt,
