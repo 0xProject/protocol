@@ -68,7 +68,11 @@ export enum ERC20BridgeSource {
     Compound = 'Compound',
     Synapse = 'Synapse',
     BancorV3 = 'BancorV3',
+<<<<<<< HEAD
     Synthetix = 'Synthetix',
+=======
+    WOOFi = 'WOOFi',
+>>>>>>> 9626082a6 (Add BSC support)
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -371,6 +375,10 @@ export interface PlatypusFillData extends FillData {
     router: string;
     pool: string[];
     tokenAddressPath: string[];
+}
+
+export interface WOOFiFillData extends FillData {
+    poolAddress: string;
 }
 
 export interface VelodromeFillData extends FillData {
