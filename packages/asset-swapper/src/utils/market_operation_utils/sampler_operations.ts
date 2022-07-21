@@ -49,6 +49,7 @@ import {
     PLATYPUS_ROUTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID,
+    SYNTHETIX_READ_PROXY_BY_CHAIN_ID,
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
@@ -1312,7 +1313,8 @@ export class SamplerOperations {
         });
     }
 
-    public getSynthetixAtomicExchangeSellQuotes(
+    public getSynthetixSellQuotes(
+        readProxy: string,
         takerTokenSymbol: string,
         makerTokenSymbol: string,
         takerFillAmounts: BigNumber[],
@@ -1328,11 +1330,12 @@ export class SamplerOperations {
                 chainId: this.chainId,
             },
             function: this._samplerContract.sampleSellsFromSynthetix,
-            params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, takerFillAmounts],
+            params: [readProxy, takerTokenSymbolBytes32, makerTokenSymbolBytes32, takerFillAmounts],
         });
     }
 
-    public getSynthetixAtomicExchangeBuyQuotes(
+    public getSynthetixBuyQuotes(
+        readProxy: string,
         takerTokenSymbol: string,
         makerTokenSymbol: string,
         makerFillAmounts: BigNumber[],
@@ -1348,7 +1351,7 @@ export class SamplerOperations {
                 chainId: this.chainId,
             },
             function: this._samplerContract.sampleBuysFromSynthetix,
-            params: [takerTokenSymbolBytes32, makerTokenSymbolBytes32, makerFillAmounts],
+            params: [readProxy, takerTokenSymbolBytes32, makerTokenSymbolBytes32, makerFillAmounts],
         });
     }
 
@@ -1780,13 +1783,15 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Synthetix: {
+                        const readProxy = SYNTHETIX_READ_PROXY_BY_CHAIN_ID[this.chainId];
                         const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
                         const takerTokenSymbol = currencyKeyMap.get(takerToken.toLowerCase());
                         const makerTokenSymbol = currencyKeyMap.get(makerToken.toLowerCase());
                         if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
                             return [];
                         }
-                        return this.getSynthetixAtomicExchangeSellQuotes(
+                        return this.getSynthetixSellQuotes(
+                            readProxy,
                             takerTokenSymbol,
                             makerTokenSymbol,
                             takerFillAmounts,
@@ -2125,13 +2130,15 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Synthetix: {
+                        const readProxy = SYNTHETIX_READ_PROXY_BY_CHAIN_ID[this.chainId];
                         const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
                         const takerTokenSymbol = currencyKeyMap.get(takerToken.toLowerCase());
                         const makerTokenSymbol = currencyKeyMap.get(makerToken.toLowerCase());
                         if (takerTokenSymbol === undefined || makerTokenSymbol === undefined) {
                             return [];
                         }
-                        return this.getSynthetixAtomicExchangeBuyQuotes(
+                        return this.getSynthetixBuyQuotes(
+                            readProxy,
                             takerTokenSymbol,
                             makerTokenSymbol,
                             makerFillAmounts,

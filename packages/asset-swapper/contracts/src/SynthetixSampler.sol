@@ -59,10 +59,6 @@ interface IExchanger {
 }
 
 contract SynthetixSampler {
-    IReadProxyAddressResolver private constant readProxyEthereum =
-        IReadProxyAddressResolver(0x4E3b31eB0E5CB73641EE1E65E7dCEFe520bA3ef2);
-    IReadProxyAddressResolver private constant readProxyOptimism =
-        IReadProxyAddressResolver(0x1Cb059b7e74fD21665968C908806143E744D5F30);
 
     /// @dev Sample sell quotes from Synthetix Atomic Swap.
     /// @param takerTokenSymbol Symbol (currency key) of the taker token (what to sell).
@@ -70,6 +66,7 @@ contract SynthetixSampler {
     /// @param takerTokenAmounts Taker token sell amount for each sample (sorted in ascending order).
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromSynthetix(
+        IReadProxyAddressResolver readProxy,
         bytes32 takerTokenSymbol,
         bytes32 makerTokenSymbol,
         uint256[] memory takerTokenAmounts
@@ -81,6 +78,7 @@ contract SynthetixSampler {
         }
 
         makerTokenAmounts[0] = exchange(
+            readProxy,
             takerTokenAmounts[0],
             takerTokenSymbol,
             makerTokenSymbol
@@ -100,12 +98,14 @@ contract SynthetixSampler {
     /// @param makerTokenAmounts Maker token buy amount for each sample (sorted in ascending order).
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromSynthetix(
+        IReadProxyAddressResolver readProxy,
         bytes32 takerTokenSymbol,
         bytes32 makerTokenSymbol,
         uint256[] memory makerTokenAmounts
     ) public view returns (uint256[] memory takerTokenAmounts) {
         // Since Synthetix atomic have a fixed rate, we can pick any reasonablely size takerTokenAmount (fixed to 1 ether here) and calculate the rest.
         uint256 amountReceivedForEther = exchange(
+            readProxy,
             1 ether,
             takerTokenSymbol,
             makerTokenSymbol
@@ -122,24 +122,24 @@ contract SynthetixSampler {
     }
 
     function exchange(
+        IReadProxyAddressResolver readProxy,
         uint256 sourceAmount,
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey
     ) private view returns (uint256 amountReceived) {
+        IExchanger exchanger = getExchanger(readProxy);
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
 
         if (chainId == 1) {
-            IExchanger exchanger = getExchanger(readProxyEthereum);
             (amountReceived, , ) = exchanger.getAmountsForAtomicExchange(
                 sourceAmount,
                 sourceCurrencyKey,
                 destinationCurrencyKey
             );
         } else {
-            IExchanger exchanger = getExchanger(readProxyOptimism);
             (amountReceived, , ) = exchanger.getAmountsForExchange(
                 sourceAmount,
                 sourceCurrencyKey,

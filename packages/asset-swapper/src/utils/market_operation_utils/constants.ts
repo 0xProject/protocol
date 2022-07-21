@@ -2411,6 +2411,14 @@ export const VELODROME_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
+export const SYNTHETIX_READ_PROXY_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.Mainnet]: '0x4e3b31eb0e5cb73641ee1e65e7dcefe520ba3ef2',
+        [ChainId.Optimism]: '0x1cb059b7e74fd21665968c908806143e744d5f30',
+    },
+    NULL_ADDRESS,
+);
+
 export const SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID = valueByChainId<Map<string, string>>(
     {
         // There is no easy way to find out what synths are supported on mainnet.
