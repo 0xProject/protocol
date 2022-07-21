@@ -49,11 +49,6 @@ interface IAddressResolver {
 }
 
 contract MixinSynthetix {
-    IReadProxyAddressResolver private constant readProxyEthereum =
-        IReadProxyAddressResolver(0x4E3b31eB0E5CB73641EE1E65E7dCEFe520bA3ef2);
-    IReadProxyAddressResolver private constant readProxyOptimism =
-        IReadProxyAddressResolver(0x1Cb059b7e74fD21665968C908806143E744D5F30);
-
     address private constant rewardAddress =
         0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
     bytes32 constant trackingCode =
@@ -63,10 +58,17 @@ contract MixinSynthetix {
         public
         returns (uint256 boughtAmount)
     {
-        (bytes32 sourceCurrencyKey, bytes32 destinationCurrencyKey) = abi
-            .decode(bridgeData, (bytes32, bytes32));
+        (
+            IReadProxyAddressResolver readProxy,
+            bytes32 sourceCurrencyKey,
+            bytes32 destinationCurrencyKey
+        ) = abi.decode(
+                bridgeData,
+                (IReadProxyAddressResolver, bytes32, bytes32)
+            );
 
         boughtAmount = exchange(
+            readProxy,
             sourceCurrencyKey,
             destinationCurrencyKey,
             sellAmount
@@ -74,17 +76,18 @@ contract MixinSynthetix {
     }
 
     function exchange(
+        IReadProxyAddressResolver readProxy,
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey,
         uint256 sellAmount
     ) internal returns (uint256 boughtAmount) {
+        ISynthetix synthetix = getSynthetix(readProxy);
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
 
         if (chainId == 1) {
-            ISynthetix synthetix = getSynthetix(readProxyEthereum);
             boughtAmount = synthetix.exchangeAtomically(
                 sourceCurrencyKey,
                 sellAmount,
@@ -93,7 +96,6 @@ contract MixinSynthetix {
                 0
             );
         } else {
-            ISynthetix synthetix = getSynthetix(readProxyOptimism);
             boughtAmount = synthetix.exchangeWithTracking(
                 sourceCurrencyKey,
                 sellAmount,

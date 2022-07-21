@@ -396,7 +396,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             break;
         case ERC20BridgeSource.Synthetix:
             const fillData = (order as OptimizedMarketBridgeOrder<SynthetixFillData>).fillData;
-            bridgeData = encoder.encode([fillData.takerTokenSymbolBytes32, fillData.makerTokenSymbolBytes32]);
+            bridgeData = encoder.encode([
+                fillData.readProxy,
+                fillData.takerTokenSymbolBytes32,
+                fillData.makerTokenSymbolBytes32,
+            ]);
             break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
@@ -524,7 +528,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
-    [ERC20BridgeSource.Synthetix]: AbiEncoder.create('(bytes32,bytes32)'),
+    [ERC20BridgeSource.Synthetix]: AbiEncoder.create('(address,bytes32,bytes32)'),
 };
 
 function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, BigNumber] {

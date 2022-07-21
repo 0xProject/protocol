@@ -1325,6 +1325,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
             fillData: {
+                readProxy,
                 takerTokenSymbolBytes32,
                 makerTokenSymbolBytes32,
                 chainId: this.chainId,
@@ -1346,6 +1347,7 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
             fillData: {
+                readProxy,
                 takerTokenSymbolBytes32,
                 makerTokenSymbolBytes32,
                 chainId: this.chainId,
