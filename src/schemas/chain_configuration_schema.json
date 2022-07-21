@@ -30,6 +30,9 @@
         },
         "feeModelVersion": {
             "type": "number"
+        },
+        "exchangeProxyContractAddressOverride": {
+            "type": "string"
         }
     },
     "required": [

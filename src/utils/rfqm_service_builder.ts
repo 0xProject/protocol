@@ -131,18 +131,24 @@ async function deploySamplerContractAsync(
  * Determines the contract addresses needed for the network. For testing (ganache)
  * required contracts are deployed
  * @param provider provider to the network, used for ganache deployment
- * @param chainId the network chain id
+ * @param chainConfiguration used for getting chainId and exchangeProxyContractAddressOverride
  */
 export async function getContractAddressesForNetworkOrThrowAsync(
     provider: SupportedProvider,
-    chainId: number,
+    chainConfiguration: Pick<ChainConfiguration, 'chainId' | 'exchangeProxyContractAddressOverride'>,
 ): Promise<AssetSwapperContractAddresses> {
+    const { chainId, exchangeProxyContractAddressOverride } = chainConfiguration;
     let contractAddresses = getContractAddressesForChainOrThrow(chainId.toString() as any);
     // In a testnet where the environment does not support overrides
     // so we deploy the latest sampler
     if (chainId === ChainId.Ganache) {
         const sampler = await deploySamplerContractAsync(provider, chainId);
         contractAddresses = { ...contractAddresses, erc20BridgeSampler: sampler.address };
+    }
+    // If 0x Exchange Proxy contract address override is defined in the chain config
+    // we use address instead of the one provided from `@0x/contract-addresses`
+    if (exchangeProxyContractAddressOverride) {
+        contractAddresses = { ...contractAddresses, exchangeProxy: exchangeProxyContractAddressOverride };
     }
     return contractAddresses;
 }
@@ -216,7 +222,7 @@ export async function buildRfqmServiceAsync(
 
     const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
     await rfqMakerManager.initializeAsync();
-    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain.chainId);
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
     const protocolFeeUtils = ProtocolFeeUtils.getInstance(

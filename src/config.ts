@@ -67,6 +67,13 @@ export interface ChainConfiguration {
     quoteReportTopic?: string;
     enableAccessList?: boolean;
     feeModelVersion?: number;
+    // Use this config to override the 0x Exchange Proxy contract address.
+    // There might be a case when we want a different exchange
+    // proxy contract than what is defined from @0x/contract-addresses repo.
+    //
+    // i.e. testing a new feature that hasn't been deployed to the official
+    // contract yet
+    exchangeProxyContractAddressOverride?: string;
 }
 
 export type ChainConfigurations = ChainConfiguration[];
