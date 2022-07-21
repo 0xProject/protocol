@@ -569,7 +569,7 @@ export const AVALANCHE_TOKENS = {
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
     YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
     deUSDC: '0x28690ec942671ac8d9Bc442b667ec338ede6dfd3',
-    WOO: '0xabc9547b534519ff73921b1fba6e672b5f58d083'
+    WOO: '0xabc9547b534519ff73921b1fba6e672b5f58d083',
 };
 
 export const CELO_TOKENS = {
@@ -629,7 +629,7 @@ export const FANTOM_TOKENS = {
     gWBTC: '0x38aca5484b8603373acc6961ecd57a6a594510a3',
     gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
     gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
-    WOO: '0x6626c47c00f1d87902fc13eecfac3ed06d5e8d8a'
+    WOO: '0x6626c47c00f1d87902fc13eecfac3ed06d5e8d8a',
 };
 
 export const GEIST_FANTOM_POOLS = {
@@ -839,14 +839,12 @@ export const PLATYPUS_AVALANCHE_POOLS = {
     sAVAX: '0x4658ea7e9960d6158a261104aaa160cc953bb6ba',
 };
 
-
 export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
     },
     NULL_ADDRESS,
 );
-
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     {

@@ -1323,7 +1323,7 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromWooPP,
             params: [pool, takerToken, makerToken, makerFillAmounts],
-        })
+        });
     }
 
     public getWOOFiBuyQuotes(
@@ -1337,7 +1337,7 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
             params: [pool, takerToken, makerToken, makerFillAmounts],
-        })
+        });
     }
 
     /**

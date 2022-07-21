@@ -29,6 +29,7 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
     }
 
     /// @dev Sample sell quotes from WooFI.
+    /// @param pool Address of the pool we are sampling from
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample (sorted in ascending order).
@@ -60,6 +61,7 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         }
 
     /// @dev Sample buy quotes from WooFI.
+    /// @param pool Address of the pool we are sampling from
     /// @param takerToken Address of the taker token (what to sell).
     /// @param makerToken Address of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token sell amount for each sample (sorted in ascending order).
