@@ -862,14 +862,9 @@ export class MarketOperationUtils {
     }
 
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {
-        void Promise.all(
-            Object.values(this._sampler.poolsCaches).map(async cache => {
-                if (!cache || cache.isFresh(takerToken, makerToken)) {
-                    return Promise.resolve([]);
-                }
-                return cache.getFreshPoolsForPairAsync(takerToken, makerToken);
-            }),
-        );
+        _.values(this._sampler.poolsCaches)
+            .filter(cache => cache !== undefined && !cache.isFresh(takerToken, makerToken))
+            .forEach(cache => cache?.getFreshPoolsForPairAsync(takerToken, makerToken));
     }
 }
 
