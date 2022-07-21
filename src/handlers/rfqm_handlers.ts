@@ -404,23 +404,24 @@ export class RfqmHandlers {
         const parsedParams: Partial<SubmitRfqmSignedQuoteWithApprovalParams> = {};
 
         // Parse approval params
-        if (approval.type === GaslessApprovalTypes.ExecuteMetaTransaction) {
-            // TODO: validate eip712 by producing a calldata, and then making an eth_call
-            const eip712 = stringsToEIP712Context(approval.eip712);
-            const signature = stringsToSignature(approval.signature as StringSignatureFields);
-            parsedParams.approval = {
-                type: approval.type,
-                eip712,
-                signature,
-            };
-        } else {
-            throw new ValidationError([
-                {
-                    field: 'approval',
-                    code: ValidationErrorCodes.FieldInvalid,
-                    reason: `${approval.type} is an invalid value for Approval 'type'`,
-                },
-            ]);
+        if (approval) {
+            if (approval.type === GaslessApprovalTypes.ExecuteMetaTransaction) {
+                const eip712 = stringsToEIP712Context(approval.eip712);
+                const signature = stringsToSignature(approval.signature as StringSignatureFields);
+                parsedParams.approval = {
+                    type: approval.type,
+                    eip712,
+                    signature,
+                };
+            } else {
+                throw new ValidationError([
+                    {
+                        field: 'approval',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: `${approval.type} is an invalid value for Approval 'type'`,
+                    },
+                ]);
+            }
         }
 
         // Parse trade params
