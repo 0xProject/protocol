@@ -29,9 +29,9 @@ import {
     ZERO_EX_API_KEY,
 } from '../config';
 import {
+    DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-    RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
 } from '../constants';
 import { logger } from '../logger';
 import { RfqmFeeService } from '../services/rfqm_fee_service';
@@ -278,7 +278,7 @@ export async function buildRfqmServiceAsync(
         rfqmDbUtils,
         sqsProducer,
         quoteServerClient,
-        RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+        chain.rfqmWorkerTransactionWatcherSleepTimeMs || DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,

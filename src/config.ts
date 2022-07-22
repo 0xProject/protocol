@@ -74,6 +74,11 @@ export interface ChainConfiguration {
     // i.e. testing a new feature that hasn't been deployed to the official
     // contract yet
     exchangeProxyContractAddressOverride?: string;
+    // Use this config to change the sleep time between a transacion's on-chain status check.
+    // You should set the sleep time close to the chain's block time.
+    // The smaller sleep time, the more frequent a transaction is checked to see it has been
+    // settled on-chain but it also consumes more RPC calls.
+    rfqmWorkerTransactionWatcherSleepTimeMs?: number;
 }
 
 export type ChainConfigurations = ChainConfiguration[];

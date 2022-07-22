@@ -33,6 +33,9 @@
         },
         "exchangeProxyContractAddressOverride": {
             "type": "string"
+        },
+        "rfqmWorkerTransactionWatcherSleepTimeMs": {
+            "type": "number"
         }
     },
     "required": [
