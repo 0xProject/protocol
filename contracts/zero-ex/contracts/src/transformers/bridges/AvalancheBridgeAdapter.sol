@@ -122,7 +122,7 @@ contract AvalancheBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.WOOFi) {
+        } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeWOOFi(
                 sellToken,
