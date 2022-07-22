@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.17.0",
+        "changes": [
+            {
+                "note": "Goerli and Mumbai support"
+            }
+        ]
+    },
+    {
         "version": "6.16.0",
         "changes": [
             {
