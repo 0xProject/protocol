@@ -1592,20 +1592,17 @@ export class SamplerOperations {
                                 ),
                         ];
                     case ERC20BridgeSource.Balancer:
-                        return (
-                            this.poolsCaches[ERC20BridgeSource.Balancer].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || []
-                        ).map(balancerPool =>
-                            this.getBalancerSellQuotes(
-                                balancerPool,
-                                makerToken,
-                                takerToken,
-                                takerFillAmounts,
-                                ERC20BridgeSource.Balancer,
-                            ),
-                        );
+                        return this.poolsCaches[ERC20BridgeSource.Balancer]
+                            .getPoolAddressesForPair(takerToken, makerToken)
+                            .map(balancerPool =>
+                                this.getBalancerSellQuotes(
+                                    balancerPool,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    ERC20BridgeSource.Balancer,
+                                ),
+                            );
                     case ERC20BridgeSource.BalancerV2: {
                         const cache = this.poolsCaches[source];
                         if (!cache) {
@@ -1627,15 +1624,14 @@ export class SamplerOperations {
                         if (cache === undefined) {
                             return [];
                         }
-                        const poolIds = cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
-
+                        const poolAddresses = cache.getPoolAddressesForPair(takerToken, makerToken);
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
                         }
-                        return poolIds.map(poolId =>
+                        return poolAddresses.map(poolAddress =>
                             this.getBalancerV2SellQuotes(
-                                { poolId, vault },
+                                { poolId: poolAddress, vault },
                                 makerToken,
                                 takerToken,
                                 takerFillAmounts,
@@ -1644,20 +1640,17 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Cream:
-                        return (
-                            this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || []
-                        ).map(creamPool =>
-                            this.getBalancerSellQuotes(
-                                creamPool,
-                                makerToken,
-                                takerToken,
-                                takerFillAmounts,
-                                ERC20BridgeSource.Cream,
-                            ),
-                        );
+                        return this.poolsCaches[ERC20BridgeSource.Cream]
+                            .getPoolAddressesForPair(takerToken, makerToken)
+                            .map(creamPool =>
+                                this.getBalancerSellQuotes(
+                                    creamPool,
+                                    makerToken,
+                                    takerToken,
+                                    takerFillAmounts,
+                                    ERC20BridgeSource.Cream,
+                                ),
+                            );
                     case ERC20BridgeSource.Dodo:
                         if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                             return [];
@@ -1948,20 +1941,17 @@ export class SamplerOperations {
                                 ),
                         ];
                     case ERC20BridgeSource.Balancer:
-                        return (
-                            this.poolsCaches[ERC20BridgeSource.Balancer].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || []
-                        ).map(poolAddress =>
-                            this.getBalancerBuyQuotes(
-                                poolAddress,
-                                makerToken,
-                                takerToken,
-                                makerFillAmounts,
-                                ERC20BridgeSource.Balancer,
-                            ),
-                        );
+                        return this.poolsCaches[ERC20BridgeSource.Balancer]
+                            .getPoolAddressesForPair(takerToken, makerToken)
+                            .map(poolAddress =>
+                                this.getBalancerBuyQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    ERC20BridgeSource.Balancer,
+                                ),
+                            );
                     case ERC20BridgeSource.BalancerV2: {
                         const cache = this.poolsCaches[source];
                         if (!cache) {
@@ -1989,8 +1979,7 @@ export class SamplerOperations {
                         if (cache === undefined) {
                             return [];
                         }
-                        const poolIds = cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
-
+                        const poolIds = cache.getPoolAddressesForPair(takerToken, makerToken) || [];
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
                             return [];
@@ -2006,20 +1995,17 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Cream:
-                        return (
-                            this.poolsCaches[ERC20BridgeSource.Cream].getCachedPoolAddressesForPair(
-                                takerToken,
-                                makerToken,
-                            ) || []
-                        ).map(poolAddress =>
-                            this.getBalancerBuyQuotes(
-                                poolAddress,
-                                makerToken,
-                                takerToken,
-                                makerFillAmounts,
-                                ERC20BridgeSource.Cream,
-                            ),
-                        );
+                        return this.poolsCaches[ERC20BridgeSource.Cream]
+                            .getPoolAddressesForPair(takerToken, makerToken)
+                            .map(poolAddress =>
+                                this.getBalancerBuyQuotes(
+                                    poolAddress,
+                                    makerToken,
+                                    takerToken,
+                                    makerFillAmounts,
+                                    ERC20BridgeSource.Cream,
+                                ),
+                            );
                     case ERC20BridgeSource.Dodo:
                         if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                             return [];
