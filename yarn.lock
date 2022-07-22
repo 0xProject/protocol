@@ -732,10 +732,6 @@
     js-sha3 "^0.7.0"
     uuid "^3.3.2"
 
-"@0x/contract-addresses@0xProject/gitpkg-registry#0x-contract-addresses-v6.17.0-d3538a41a":
-  version "6.17.0"
-  resolved "https://codeload.github.com/0xProject/gitpkg-registry/tar.gz/d3637f8a7f370a6e710be14288baa27372253da3"
-
 "@0x/contracts-asset-proxy@^3.7.19":
   version "3.7.19"
   resolved "https://registry.yarnpkg.com/@0x/contracts-asset-proxy/-/contracts-asset-proxy-3.7.19.tgz#ee621a233f4d77b439c74c5b8d70db2e1ed001c4"
@@ -917,7 +913,6 @@
 "@0x/neon-router@^0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@0x/neon-router/-/neon-router-0.3.5.tgz#895e7a2dc65d492a413daaea283cbc0ca6df83fa"
-  integrity sha512-8wizP3smc5o4jVg1smZzCCFo4ohOrgDhO4JFjF+/oNHbFImlGHOvmH9HQ2FJXAXiLEOTxrbp3T5XxP5GNATq3w==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
 
@@ -3759,7 +3754,6 @@ bigi@1.4.2, bigi@^1.1.0:
 bignumber.js@7.2.1, bignumber.js@^9.0.0, bignumber.js@^9.0.2, bignumber.js@~4.1.0, bignumber.js@~9.0.0, bignumber.js@~9.0.2:
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.2.tgz#71c6c6bed38de64e24a65ebe16cfcf23ae693673"
-  integrity sha512-GAcQvbpsM0pUb0zw1EI0KhQEZ+lRwR5fYaAp3vPOYuP7aDvGy6cVN6XHLauvF8SOga2y0dcLcjt3iQDTSEliyw==
 
 binary-extensions@^2.0.0:
   version "2.1.0"
@@ -6298,7 +6292,6 @@ fake-merkle-patricia-tree@^1.0.1:
 fast-abi@^0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/fast-abi/-/fast-abi-0.0.4.tgz#c6a547d0fe75862a9eea6fe5aa7ab135e6ab62a0"
-  integrity sha512-BM/x54z6i5L+VnHk1c1xt4sSlx4SCIZNQJ3tNBrM88ytOSd/JY/2pRVkx/RxY3sdF6X5exgB6YVemCqVLzQzUA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.4"
     cargo-cp-artifact "^0.1.6"
