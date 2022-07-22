@@ -6,7 +6,7 @@ import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
 import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
-import { CacheValue, PoolsCache } from './pools_cache';
+import { AbstractPoolsCache, CacheValue } from './pools_cache';
 
 // tslint:disable:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -20,7 +20,7 @@ interface BalancerPoolResponse {
     totalWeight: string;
 }
 
-export class BalancerPoolsCache extends PoolsCache {
+export class BalancerPoolsCache extends AbstractPoolsCache {
     constructor(
         private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
         cache: Map<string, CacheValue> = new Map(),

@@ -58,9 +58,8 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [wftmAddress, fantomWethAddress],
             ];
 
-            expect(cache).not.null();
             await Promise.all(
-                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache!, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });

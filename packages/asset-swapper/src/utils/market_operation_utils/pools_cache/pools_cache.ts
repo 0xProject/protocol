@@ -13,7 +13,13 @@ const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
 const DEFAULT_TIMEOUT_MS = 3000;
 // tslint:enable:custom-no-magic-numbers
 
-export abstract class PoolsCache {
+export interface PoolsCache {
+    getFreshPoolsForPairAsync(takerToken: string, makerToken: string, timeoutMs?: number): Promise<Pool[]>;
+    getPoolAddressesForPair(takerToken: string, makerToken: string): string[];
+    isFresh(takerToken: string, makerToken: string): boolean;
+}
+
+export abstract class AbstractPoolsCache implements PoolsCache {
     protected static _getKey(takerToken: string, makerToken: string): string {
         return `${takerToken}-${makerToken}`;
     }
@@ -51,18 +57,18 @@ export abstract class PoolsCache {
 
     public isFresh(takerToken: string, makerToken: string): boolean {
         const value = this._getValue(takerToken, makerToken);
-        return !PoolsCache._isExpired(value);
+        return !AbstractPoolsCache._isExpired(value);
     }
 
     protected _getValue(takerToken: string, makerToken: string): CacheValue | undefined {
-        const key = PoolsCache._getKey(takerToken, makerToken);
+        const key = AbstractPoolsCache._getKey(takerToken, makerToken);
         return this._cache.get(key);
     }
 
     protected async _getAndSaveFreshPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-        const key = PoolsCache._getKey(takerToken, makerToken);
+        const key = AbstractPoolsCache._getKey(takerToken, makerToken);
         const value = this._cache.get(key);
-        if (!PoolsCache._isExpired(value)) {
+        if (!AbstractPoolsCache._isExpired(value)) {
             return value!.pools;
         }
 
@@ -73,7 +79,7 @@ export abstract class PoolsCache {
     }
 
     protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[], expiresAt: number): void {
-        const key = PoolsCache._getKey(takerToken, makerToken);
+        const key = AbstractPoolsCache._getKey(takerToken, makerToken);
         this._cache.set(key, { pools, expiresAt });
     }
 

@@ -3,9 +3,9 @@ import { getPoolsWithTokens, parsePoolData } from 'cream-sor';
 
 import { BALANCER_MAX_POOLS_FETCHED } from '../constants';
 
-import { CacheValue, PoolsCache } from './pools_cache';
+import { CacheValue, AbstractPoolsCache } from './pools_cache';
 
-export class CreamPoolsCache extends PoolsCache {
+export class CreamPoolsCache extends AbstractPoolsCache {
     constructor(
         _cache: Map<string, CacheValue> = new Map(),
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
