@@ -33,6 +33,7 @@ interface IWooPP {
         address to,
         address rebateTo
     ) external returns (uint256 quoteAmount);
+
     function sellQuote(
         IERC20TokenV06 baseToken,
         uint256 quoteAmount,
@@ -49,7 +50,7 @@ contract MixinWOOFi{
     using LibERC20TokenV06 for IEtherTokenV06;
     using LibSafeMathV06 for uint256;
 
-    uint internal constant UINT_MAX = type(uint).max;
+    address constant rebateAddress = 0xBfdcBB4C05843163F491C24f9c0019c510786304;
 
     // /// @dev Swaps an exact amount of input tokens for as many output tokens as possible.
     // /// @param _amountIn Amount of input tokens to send
@@ -60,10 +61,8 @@ contract MixinWOOFi{
     // /// @param pool WOOFi pool where the swap will happen
     function _swap(
         uint _amountIn, 
-        uint _minAmountOut, 
         IERC20TokenV06 _tokenIn, 
         IERC20TokenV06 _tokenOut, 
-        address _to,
         address pool
     ) internal {
         uint realToAmount;
@@ -72,17 +71,17 @@ contract MixinWOOFi{
             realToAmount = IWooPP(pool).sellQuote(
                 _tokenOut,
                 _amountIn,
-                _minAmountOut,
-                _to,
-                0xBfdcBB4C05843163F491C24f9c0019c510786304
+                1,
+                address(this),
+                rebateAddress
             );
         } else if (_tokenOut == quoteToken) {
             realToAmount = IWooPP(pool).sellBase(
                 _tokenIn, 
                 _amountIn, 
-                _minAmountOut, 
-                _to, 
-                0xBfdcBB4C05843163F491C24f9c0019c510786304
+                1, 
+                address(this), 
+                rebateAddress
             );
         } else {
             uint256 quoteAmount = IWooPP(pool).sellBase(
@@ -90,14 +89,14 @@ contract MixinWOOFi{
                 _amountIn, 
                 0, 
                 address(this), 
-                0xBfdcBB4C05843163F491C24f9c0019c510786304
+                rebateAddress
             );
             realToAmount = IWooPP(pool).sellQuote(
                 _tokenOut, 
                 quoteAmount, 
-                _minAmountOut, 
-                _to, 
-                0xBfdcBB4C05843163F491C24f9c0019c510786304
+                1, 
+                address(this), 
+                rebateAddress
             );
         }
     }
@@ -116,17 +115,11 @@ contract MixinWOOFi{
         // Grant the  pool an allowance to sell the first token.
         sellToken.approveIfBelow(address(_pool), sellAmount);
         //track the balance to know how much we bought
-        uint256 beforeBalance = buyToken.balanceOf(address(this));
-        _swap(
+        boughtAmount = _swap(
             sellAmount,
-            1,
             sellToken,
             buyToken,
-            address(this),
             _pool
         );
-
-        //calculate the difference in balance from preswap->postswap to find how many tokens out
-        boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 }
