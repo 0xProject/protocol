@@ -2176,7 +2176,6 @@ export const LIDO_INFO_BY_CHAIN = valueByChainId<LidoInfo>(
     },
 );
 
-export const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 export const BALANCER_TOP_POOLS_FETCHED = 250;
 export const BALANCER_MAX_POOLS_FETCHED = 3;
 

@@ -12,6 +12,8 @@ import { parsePoolData } from './balancer_sor_v2';
 import { NoOpPoolsCache } from './no_op_pools_cache';
 import { AbstractPoolsCache, CacheValue, PoolsCache } from './pools_cache';
 
+// tslint:disable: member-ordering
+
 const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = new Map<ChainId, string>([
     [ChainId.Fantom, 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx'],
 ]);
@@ -59,7 +61,7 @@ export class BalancerV2PoolsCache extends AbstractPoolsCache {
         };
     }
 
-    constructor(
+    private constructor(
         private readonly subgraphUrl: string,
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,

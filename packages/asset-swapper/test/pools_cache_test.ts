@@ -33,7 +33,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     }
 
     describe('BalancerPoolsCache', () => {
-        const cache = new BalancerPoolsCache();
+        const cache = BalancerPoolsCache.create(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [usdcAddress, daiAddress],
@@ -65,7 +65,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     });
 
     describe('CreamPoolsCache', () => {
-        const cache = new CreamPoolsCache();
+        const cache = CreamPoolsCache.create(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [usdcAddress, creamAddress],

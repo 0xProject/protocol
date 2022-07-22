@@ -1,7 +1,8 @@
 import { Pool, PoolsCache } from './pools_cache';
 
+// tslint:disable:prefer-function-over-method
+
 export class NoOpPoolsCache implements PoolsCache {
-    // tslint:disable-next-line: prefer-function-over-method
     public async getFreshPoolsForPairAsync(
         _takerToken: string,
         _makerToken: string,
@@ -10,12 +11,10 @@ export class NoOpPoolsCache implements PoolsCache {
         return [];
     }
 
-    // tslint:disable-next-line: prefer-function-over-method
     public getPoolAddressesForPair(_takerToken: string, _makerToken: string): string[] {
         return [];
     }
 
-    // tslint:disable-next-line: prefer-function-over-method
     public isFresh(_takerToken: string, _makerToken: string): boolean {
         return true;
     }
