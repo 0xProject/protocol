@@ -61,7 +61,7 @@
     "dependencies": {
         "@0x/assert": "^3.0.34",
         "@0x/base-contract": "^6.5.0",
-        "@0x/contract-addresses": "^6.16.0",
+        "@0x/contract-addresses": "0xProject/gitpkg-registry#0x-contract-addresses-v6.17.0-d3538a41a",
         "@0x/contract-wrappers": "^13.20.4",
         "@0x/contracts-erc20": "^3.3.32",
         "@0x/contracts-zero-ex": "^0.35.0",
