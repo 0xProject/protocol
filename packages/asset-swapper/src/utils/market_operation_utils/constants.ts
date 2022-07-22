@@ -129,10 +129,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
         ]),
-        [ChainId.PolygonMumbai]: new SourceFilters([
-            ERC20BridgeSource.Native,
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.PolygonMumbai]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.BSC]: new SourceFilters([
             ERC20BridgeSource.BakerySwap,
@@ -278,10 +275,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
         ]),
-        [ChainId.PolygonMumbai]: new SourceFilters([
-            ERC20BridgeSource.Native,
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.PolygonMumbai]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),

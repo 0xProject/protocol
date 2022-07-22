@@ -160,7 +160,7 @@
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0xad550dbef7b93a42e335062e808d66a70eca5a0a", 
+            "wethTransformer": "0xad550dbef7b93a42e335062e808d66a70eca5a0a",
             "payTakerTransformer": "0xbd3fec19e4d91a79b329b6b4a6f210c66a40a97f",
             "affiliateFeeTransformer": "0x59e7371b613a6f3879694bf9db2fe3117c92a927",
             "fillQuoteTransformer": "0x3edbf102250d59230ff6d3fc648f97c094f3cb27",
