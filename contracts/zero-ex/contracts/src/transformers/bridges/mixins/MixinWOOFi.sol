@@ -24,10 +24,10 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 /// @dev WooFI pool interface.
 interface IWooPP {
-    function quoteToken() external view returns (IERC20TokenV06);
+    function quoteToken() external view returns (address);
 
     function sellBase(
-        IERC20TokenV06 baseToken,
+        address baseToken,
         uint256 baseAmount,
         uint256 minQuoteAmount,
         address to,
@@ -35,7 +35,7 @@ interface IWooPP {
     ) external returns (uint256 quoteAmount);
 
     function sellQuote(
-        IERC20TokenV06 baseToken,
+        address baseToken,
         uint256 quoteAmount,
         uint256 minBaseAmount,
         address to,
@@ -61,12 +61,12 @@ contract MixinWOOFi{
     // /// @param pool WOOFi pool where the swap will happen
     function _swap(
         uint _amountIn, 
-        IERC20TokenV06 _tokenIn, 
-        IERC20TokenV06 _tokenOut, 
+        address _tokenIn, 
+        address _tokenOut, 
         address pool
-    ) internal {
-        uint realToAmount;
-        IERC20TokenV06 quoteToken = IWooPP(pool).quoteToken();
+    ) internal returns(uint256 realToAmount){
+        uint256 realToAmount;
+        address quoteToken = IWooPP(pool).quoteToken();
         if (_tokenIn == quoteToken) {
             realToAmount = IWooPP(pool).sellQuote(
                 _tokenOut,
@@ -111,15 +111,16 @@ contract MixinWOOFi{
         returns (uint256 boughtAmount)
     {
         (address _pool) = abi.decode(bridgeData, (address));
+        uint256 beforeBalance = buyToken.balanceOf(address(this));
+        sellToken.approveIfBelow((_pool), sellAmount);
 
-        // Grant the  pool an allowance to sell the first token.
-        sellToken.approveIfBelow(address(_pool), sellAmount);
         //track the balance to know how much we bought
-        boughtAmount = _swap(
+        _swap(
             sellAmount,
-            sellToken,
-            buyToken,
+            address(sellToken),
+            address(buyToken),
             _pool
         );
+        boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 }

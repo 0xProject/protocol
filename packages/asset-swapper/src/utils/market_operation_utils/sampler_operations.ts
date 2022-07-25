@@ -1313,30 +1313,32 @@ export class SamplerOperations {
     }
 
     public getWOOFiSellQuotes(
-        pool: string,
+        poolAddress: string,
         takerToken: string,
         makerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<WOOFiFillData> {
         return new SamplerContractOperation({
+            fillData: { poolAddress },
             source: ERC20BridgeSource.WOOFi,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromWooPP,
-            params: [pool, takerToken, makerToken, makerFillAmounts],
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
     public getWOOFiBuyQuotes(
-        pool: string,
+        poolAddress: string,
         takerToken: string,
         makerToken: string,
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<WOOFiFillData> {
         return new SamplerContractOperation({
+            fillData: { poolAddress },
             source: ERC20BridgeSource.WOOFi,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
-            params: [pool, takerToken, makerToken, makerFillAmounts],
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
