@@ -535,7 +535,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
     [ERC20BridgeSource.Synthetix]: AbiEncoder.create('(address,bytes32,bytes32)'),
-    [ERC20BridgeSource.WOOFi]: poolEncoder,
+    [ERC20BridgeSource.WOOFi]: AbiEncoder.create('(address)'),
 };
 
 function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, BigNumber] {
