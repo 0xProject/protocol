@@ -157,8 +157,6 @@ export {
     GetMarketOrdersRfqOpts,
     LiquidityProviderFillData,
     LiquidityProviderRegistry,
-    MarketDepth,
-    MarketDepthSide,
     MooniswapFillData,
     MultiHopFillData,
     NativeRfqOrderFillData,

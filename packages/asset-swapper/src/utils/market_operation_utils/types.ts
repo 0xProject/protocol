@@ -617,15 +617,6 @@ export interface OptimizerResultWithReport extends OptimizerResult {
     priceComparisonsReport?: PriceComparisonsReport;
 }
 
-export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
-
-export interface MarketDepth {
-    bids: MarketDepthSide;
-    asks: MarketDepthSide;
-    makerTokenDecimals: number;
-    takerTokenDecimals: number;
-}
-
 export interface MarketSideLiquidity {
     side: MarketOperation;
     inputAmount: BigNumber;
