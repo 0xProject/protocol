@@ -276,7 +276,8 @@ describe('RFQM Integration', () => {
         const quoteServerClient = new QuoteServerClient(axiosClient);
 
         // Create the CacheClient
-        const redisClient = redis.createClient();
+        const redisClient: redis.RedisClientType = redis.createClient();
+        await redisClient.connect();
         cacheClient = new CacheClient(redisClient);
 
         // Create the mock RfqMakerManager

@@ -245,7 +245,8 @@ export async function buildRfqmServiceAsync(
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
-    const redisClient = redis.createClient({ url: REDIS_URI });
+    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
+    await redisClient.connect();
     const cacheClient = new CacheClient(redisClient);
 
     const kafkaProducer = getKafkaProducer();
