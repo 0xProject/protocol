@@ -21,6 +21,7 @@ import { Producer } from 'sqs-producer';
 import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX } from '../config';
 import {
     ETH_DECIMALS,
+    EXECUTE_META_TRANSACTION_EIP_712_TYPES,
     GWEI_DECIMALS,
     NULL_ADDRESS,
     ONE_MINUTE_S,
@@ -29,11 +30,11 @@ import {
     RFQM_NUM_BUCKETS,
 } from '../constants';
 import { RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
-import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
+import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote } from '../types';
+import { Approval, EIP712Context, EIP712DataField, FirmOtcQuote, IndicativeQuote } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
@@ -57,6 +58,7 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchIndicativeQuoteResponse,
+    GaslessApprovalTypes,
     OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
     OtcOrderSubmitRfqmSignedQuoteResponse,
@@ -770,22 +772,75 @@ export class RfqmService {
         );
     }
 
+    /**
+     * Validates and enqueues the Taker Signed Otc Order with approval for submission.
+     * Can also be used to submit order without approval if approval params are not supplied.
+     */
     public async submitTakerSignedOtcOrderWithApprovalAsync(
         params: SubmitRfqmSignedQuoteWithApprovalParams,
     ): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
-        // TODO: Submit approval logic (MKR-531)
-        if (params.approval) {
-            // approval logic
+        let submitRfqmSignedQuoteWithApprovalRes: SubmitRfqmSignedQuoteWithApprovalResponse;
+        const { approval, trade } = params;
+
+        if (approval) {
+            let signature: Signature = approval.signature;
+            const orderHash = trade.order.getHash();
+
+            // validate and convert EIP712 context to corresponding Approval object
+            const parsedApproval = this._convertEIP712ContextToApproval(approval.type, approval.eip712, orderHash);
+
+            // pad approval signature if there are missing bytes
+            const paddedSignature = padSignature(signature);
+            if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
+                logger.warn(
+                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                    'Got approval signature with missing bytes',
+                );
+                signature = paddedSignature;
+            }
+
+            // perform an eth_call on the approval object and signature
+            try {
+                const takerToken = trade.order.takerToken.toLowerCase();
+                const approvalCalldata = await this._blockchainUtils.generateApprovalCalldataAsync(
+                    takerToken,
+                    parsedApproval,
+                    approval.signature,
+                );
+                await retry(
+                    async () => {
+                        return this._blockchainUtils.simulateTransactionAsync(takerToken, approvalCalldata);
+                    },
+                    {
+                        delay: ONE_SECOND_MS,
+                        factor: 1,
+                        maxAttempts: 3,
+                        handleError: (error, context, _options) => {
+                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                            logger.warn(
+                                { attemptNumber, attemptsRemaining, errorMessage: error.message, stack: error.stack },
+                                'Error during eth_call approval validation. Retrying.',
+                            );
+                        },
+                    },
+                );
+            } catch (error) {
+                logger.error({ errorMessage: error.message }, 'Eth call approval validation failed');
+                throw new Error('Eth call approval validation failed');
+            }
+
+            const rfqmApprovalOpts: RfqmV2JobApprovalOpts = {
+                approval: parsedApproval,
+                approvalSignature: approval.signature,
+            };
+
+            submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade, rfqmApprovalOpts);
+        } else {
+            // proceed with submitTakerSignedOtcOrderAsync if approval is not provided
+            submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade);
         }
 
-        // submit OtcOrder
-        const submitOrderParams = params.trade;
-        const submitTakerSignedOtcOrderRes = await this.submitTakerSignedOtcOrderAsync(submitOrderParams);
-
-        return {
-            ...submitTakerSignedOtcOrderRes,
-            // ADD MORE PARAMS HERE
-        };
+        return submitRfqmSignedQuoteWithApprovalRes;
     }
 
     /**
@@ -793,6 +848,7 @@ export class RfqmService {
      */
     public async submitTakerSignedOtcOrderAsync(
         params: OtcOrderSubmitRfqmSignedQuoteParams,
+        rfqmApprovalOpts?: RfqmV2JobApprovalOpts,
     ): Promise<OtcOrderSubmitRfqmSignedQuoteResponse> {
         const { order } = params;
         let { signature: takerSignature } = params;
@@ -865,11 +921,21 @@ export class RfqmService {
             ]);
         }
 
-        // validate that order is fillable by both the maker and the taker according to balances and allowances
-        const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
-            [makerAddress, takerAddress],
-            [makerToken, takerToken],
-        );
+        // Validate that order is fillable by both the maker and the taker according to balances and/or allowances.
+        // If rfqmApprovalOpts is not passed, allowances are not checked at this stage since gasless approval has not been done yet.
+        let makerBalance: BigNumber;
+        let takerBalance: BigNumber;
+        if (rfqmApprovalOpts) {
+            [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+                [makerAddress, takerAddress],
+                [makerToken, takerToken],
+            );
+        } else {
+            [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
+                [makerAddress, takerAddress],
+                [makerToken, takerToken],
+            );
+        }
         if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
             RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
             logger.warn(
@@ -893,7 +959,7 @@ export class RfqmService {
         }
 
         // prepare the job
-        const rfqmJobOpts: RfqmV2JobConstructorOpts = {
+        let rfqmJobOpts: RfqmV2JobConstructorOpts = {
             orderHash: quote.orderHash!,
             createdAt: new Date(),
             expiry: order.expiry,
@@ -907,6 +973,14 @@ export class RfqmService {
             affiliateAddress: quote.affiliateAddress,
             isUnwrap: quote.isUnwrap,
         };
+
+        // if approval opts are supplied, add params to job table
+        if (rfqmApprovalOpts) {
+            rfqmJobOpts = {
+                ...rfqmJobOpts,
+                ...rfqmApprovalOpts,
+            };
+        }
 
         // this insert will fail if a job has already been created, ensuring
         // that a signed quote cannot be queued twice
@@ -1922,5 +1996,83 @@ export class RfqmService {
             }),
         ).then((x) => x.filter(isDefined));
         return result;
+    }
+
+    /**
+     * Validates and converts EIP-712 context to an Approval object.
+     * @param kind Type of gasless approval
+     * @param eip712 EIP-712 context parsed from the handler
+     * @param orderHash The order hash, only used for logging in case of validation error
+     * @returns The Approval object
+     */
+    // tslint:disable-next-line: prefer-function-over-method
+    private _convertEIP712ContextToApproval(
+        kind: GaslessApprovalTypes,
+        eip712: EIP712Context,
+        orderHash: string,
+    ): Approval {
+        const { types, primaryType, domain, message } = eip712;
+        switch (kind) {
+            case GaslessApprovalTypes.ExecuteMetaTransaction:
+                const parsedTypes = types as typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
+                if (!parsedTypes) {
+                    logger.warn({ kind, types, orderHash }, 'Invalid types field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'types',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid types field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                if (primaryType !== 'MetaTransaction') {
+                    logger.warn({ kind, primaryType, orderHash }, 'Invalid primaryType field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'primaryType',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid primaryType field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                if (
+                    !_.isEqual(
+                        _.keys(message),
+                        types.MetaTransaction.map((dataField: EIP712DataField) => dataField.name),
+                    )
+                ) {
+                    logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'message',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid message field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                return {
+                    kind,
+                    eip712: {
+                        types: parsedTypes,
+                        primaryType,
+                        domain,
+                        message: {
+                            nonce: message.nonce,
+                            from: message.from,
+                            functionSignature: message.functionSignature,
+                        },
+                    },
+                };
+            case GaslessApprovalTypes.Permit:
+            default:
+                logger.warn({ kind, orderHash }, 'Invalid kind provided for Approval');
+                throw new ValidationError([
+                    {
+                        field: 'kind',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: `Cannot convert EIP-712 context to Approval of kind ${kind}`,
+                    },
+                ]);
+        }
     }
 }

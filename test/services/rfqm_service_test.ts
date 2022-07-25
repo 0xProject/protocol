@@ -5,12 +5,13 @@
 import { TooManyRequestsError } from '@0x/api-utils';
 import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
+import { eip712SignHashWithKey, ethSignHashWithKey, MetaTransaction, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { constants } from 'ethers';
+import _ from 'lodash';
 import { Producer } from 'sqs-producer';
-import { anything, instance, mock, spy, when } from 'ts-mockito';
+import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
@@ -23,8 +24,14 @@ import {
 } from '../../src/entities/types';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
-import { ApprovalResponse, OtcOrderSubmitRfqmSignedQuoteParams, RfqmTypes } from '../../src/services/types';
-import { IndicativeQuote } from '../../src/types';
+import {
+    ApprovalResponse,
+    GaslessApprovalTypes,
+    OtcOrderSubmitRfqmSignedQuoteParams,
+    RfqmTypes,
+    SubmitRfqmSignedQuoteWithApprovalParams,
+} from '../../src/services/types';
+import { EIP712Context, IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
@@ -300,8 +307,273 @@ describe('RfqmService HTTP Logic', () => {
         });
     });
 
-    // TODO: submit with approval tests (MKR-531)
-    describe.skip('submitTakerSignedOtcOrderWithApprovalAsync', () => {});
+    describe.only('submitTakerSignedOtcOrderWithApprovalAsync', () => {
+        it('should fail if eip-712 context is malformed', async () => {
+            // const takerPrivateKey = '0xe13ae9fa0166b501a2ab50e7b6fbb65819add7376da9b4fbb3bf3ae48cd9dcd3';
+            // const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const otcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: '0x1111111111111111111111111111111111111111',
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const malformedEip712Context: EIP712Context = {
+                types: {
+                    MetaTransaction: [
+                        { name: 'nonce', type: 'uint256' },
+                        { name: 'from', type: 'address' },
+                        { name: 'functionSignature', type: 'bytes' },
+                    ],
+                },
+                primaryType: 'MetaTransaction',
+                domain: {},
+                message: {},
+            };
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+                approval: {
+                    type: GaslessApprovalTypes.ExecuteMetaTransaction,
+                    eip712: malformedEip712Context,
+                    signature: {
+                        r: '',
+                        s: '',
+                        v: 28,
+                        signatureType: SignatureType.EIP712,
+                    },
+                },
+                trade: {
+                    type: RfqmTypes.OtcOrder,
+                    order: otcOrder,
+                    signature: {
+                        r: '',
+                        s: '',
+                        v: 28,
+                        signatureType: SignatureType.EthSign,
+                    },
+                },
+            };
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
+                feeModelVersion: 0,
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
+            });
+            try {
+                await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
+                expect.fail('should fail approval object conversion');
+            } catch (e) {
+                expect(e.validationErrors).to.not.deep.eq([]);
+                expect(e.validationErrors[0].reason).to.contain('Invalid message field provided');
+                verify(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).never();
+            }
+        });
+        it('should fail if approval params generate an invalid calldata', async () => {
+            const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const otcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: '0x1111111111111111111111111111111111111111',
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const eip712Context: EIP712Context = {
+                types: {
+                    MetaTransaction: [
+                        { name: 'nonce', type: 'uint256' },
+                        { name: 'from', type: 'address' },
+                        { name: 'functionSignature', type: 'bytes' },
+                    ],
+                },
+                primaryType: 'MetaTransaction',
+                domain: {},
+                message: {
+                    nonce: expiry,
+                    from: takerAddress,
+                    functionSignature: '',
+                },
+            };
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+                approval: {
+                    type: GaslessApprovalTypes.ExecuteMetaTransaction,
+                    eip712: eip712Context,
+                    signature: {
+                        r: '',
+                        s: '',
+                        v: 28,
+                        signatureType: SignatureType.EIP712,
+                    },
+                },
+                trade: {
+                    type: RfqmTypes.OtcOrder,
+                    order: otcOrder,
+                    signature: {
+                        r: '',
+                        s: '',
+                        v: 28,
+                        signatureType: SignatureType.EthSign,
+                    },
+                },
+            };
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
+                '0xinvalidcalldata',
+            );
+            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenReject();
+            const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
+                feeModelVersion: 0,
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
+            });
+            try {
+                await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
+                expect.fail('should fail eth call approval validation');
+            } catch (e) {
+                expect(e.message).to.contain('Eth call approval validation failed');
+                verify(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).once();
+                verify(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thrice();
+            }
+        });
+        it('should proceed with trade submission if approval is empty', async () => {
+            const takerPrivateKey = '0xe13ae9fa0166b501a2ab50e7b6fbb65819add7376da9b4fbb3bf3ae48cd9dcd3';
+            const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const otcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: takerAddress,
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([]);
+            when(dbUtilsMock.findV2QuoteByOrderHashAsync(otcOrder.getHash())).thenResolve({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                makerUri: 'http://foo.bar',
+                order: otcOrderToStoredOtcOrder(otcOrder),
+                orderHash: '',
+                isUnwrap: false,
+            });
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+                new BigNumber(10000),
+            ]);
+            const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
+                feeModelVersion: 0,
+                dbUtils: instance(dbUtilsMock),
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
+            });
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+                trade: {
+                    type: RfqmTypes.OtcOrder,
+                    order: otcOrder,
+                    signature: ethSignHashWithKey(otcOrder.getHash(), takerPrivateKey),
+                },
+            };
+            const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
+            expect(result.type).to.equal('otc');
+            verify(dbUtilsMock.writeV2JobAsync(anything())).once();
+        });
+        it('should save job with approval params to DB', async () => {
+            const takerPrivateKey = '0xe13ae9fa0166b501a2ab50e7b6fbb65819add7376da9b4fbb3bf3ae48cd9dcd3';
+            const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
+            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+            const otcOrder = new OtcOrder({
+                txOrigin: '0x0000000000000000000000000000000000000000',
+                taker: takerAddress,
+                maker: '0x2222222222222222222222222222222222222222',
+                makerToken: '0x3333333333333333333333333333333333333333',
+                takerToken: '0x4444444444444444444444444444444444444444',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
+                chainId: 1,
+                verifyingContract: '0x0000000000000000000000000000000000000000',
+            });
+            const eip712Context: EIP712Context = {
+                types: {
+                    MetaTransaction: [
+                        { name: 'nonce', type: 'uint256' },
+                        { name: 'from', type: 'address' },
+                        { name: 'functionSignature', type: 'bytes' },
+                    ],
+                },
+                primaryType: 'MetaTransaction',
+                domain: {},
+                message: {
+                    nonce: expiry,
+                    from: takerAddress,
+                    functionSignature: '',
+                },
+            };
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([]);
+            when(dbUtilsMock.findV2QuoteByOrderHashAsync(otcOrder.getHash())).thenResolve({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                makerUri: 'http://foo.bar',
+                order: otcOrderToStoredOtcOrder(otcOrder),
+                orderHash: '',
+                isUnwrap: false,
+            });
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+                new BigNumber(10000),
+            ]);
+            when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
+                '0xvalidcalldata',
+            );
+            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
+            const service = buildRfqmServiceForUnitTest({
+                chainId: 1,
+                feeModelVersion: 0,
+                dbUtils: instance(dbUtilsMock),
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
+            });
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+                trade: {
+                    type: RfqmTypes.OtcOrder,
+                    order: otcOrder,
+                    signature: ethSignHashWithKey(otcOrder.getHash(), takerPrivateKey),
+                },
+                approval: {
+                    type: GaslessApprovalTypes.ExecuteMetaTransaction,
+                    eip712: eip712Context,
+                    signature: eip712SignHashWithKey(otcOrder.getHash(), takerPrivateKey),
+                },
+            };
+            const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
+            expect(result.type).to.equal('otc');
+            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).never();
+            verify(dbUtilsMock.writeV2JobAsync(anything())).once();
+        });
+    });
 
     describe('fetchIndicativeQuoteAsync', () => {
         describe('sells', () => {

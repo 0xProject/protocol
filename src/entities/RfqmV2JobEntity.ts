@@ -7,6 +7,8 @@ import { Approval } from '../types';
 import { BigNumberTransformer } from './transformers';
 import { RfqmJobStatus, StoredFee, StoredOtcOrder } from './types';
 
+export type RfqmV2JobApprovalOpts = Pick<RfqmV2JobEntity, 'approval' | 'approvalSignature'>;
+
 export type RfqmV2JobConstructorOpts = Pick<
     RfqmV2JobEntity,
     'chainId' | 'expiry' | 'fee' | 'makerUri' | 'order' | 'orderHash'

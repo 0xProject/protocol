@@ -210,6 +210,29 @@ export class RfqBlockchainUtils {
     }
 
     /**
+     * Simulate the transaction with calldata.
+     */
+    public async simulateTransactionAsync(to: string, calldata: string): Promise<void> {
+        try {
+            await this._ethersProvider.call({
+                to,
+                data: calldata,
+            });
+        } catch (err) {
+            logger.error(
+                {
+                    to,
+                    calldata,
+                    errorMessage: err.message,
+                    stack: err.stack,
+                },
+                'validation failed',
+            );
+            throw err;
+        }
+    }
+
+    /**
      * Estimate the gas for fillTakerSignedOtcOrder and fillTakerSignedOtcOrderForEth
      * NOTE: can also be used for validation
      *
