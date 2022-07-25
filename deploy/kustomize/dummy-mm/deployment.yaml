@@ -22,6 +22,8 @@ spec:
         app.kubernetes.io/name: rfqm
         app.kubernetes.io/component: dummy-mm
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
       containers:
         - image: 0x-rfq-api:latest
           name: rfq-dummy-mm

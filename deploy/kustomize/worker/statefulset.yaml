@@ -22,6 +22,8 @@ spec:
         app.kubernetes.io/name: rfqm
         app.kubernetes.io/component: worker
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
       terminationGracePeriodSeconds: 300
       containers:
       - image: 0x-rfq-api-worker:latest
@@ -34,8 +36,6 @@ spec:
         env:
         - name: NODE_ENV
           value: production
-        - name: HTTP_PORT
-          value: "3000"
         - name: LOGGER_INCLUDE_TIMESTAMP
           value: "false"
         - name: AWS_REGION
@@ -43,21 +43,16 @@ spec:
         - name: META_TX_WORKER_MNEMONIC
         - name: POSTGRES_URI
         - name: REDIS_URI
-        - name: ETHEREUM_RPC_URL
         - name: CHAIN_ID
           value: "1"
-        - name: ETH_GAS_STATION_API_URL
         - name: ENABLE_PROMETHEUS_METRICS
           value: "true"
         - name: PROMETHEUS_PORT
           value: "8080"
         - name: RFQM_META_TX_SQS_REGION
           value: us-east-1
-        - name: MESH_WEBSOCKET_URI
-        - name: MESH_HTTP_URI
         - name: RFQ_PROXY_ADDRESS
         - name: RFQ_PROXY_PORT
-          value: "8080"
         livenessProbe:
           failureThreshold: 3
           httpGet:

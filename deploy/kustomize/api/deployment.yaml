@@ -25,6 +25,8 @@ spec:
         app.kubernetes.io/name: rfqm
         app.kubernetes.io/component: api
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
       containers:
         - image: 0x-rfq-api:latest
           name: rfqm-api
@@ -62,12 +64,6 @@ spec:
               value: ""
             - name: REDIS_URI
               value: ""
-            - name: ETHEREUM_RPC_URL
-              value: ""
-            - name: CHAIN_ID
-              value: "1"
-            - name: ETH_GAS_STATION_API_URL
-              value: ""
             - name: ENABLE_PROMETHEUS_METRICS
               value: "true"
             - name: PROMETHEUS_PORT
@@ -78,6 +74,4 @@ spec:
               value: "false"
             - name: INTEGRATORS_ACL
             - name: RFQ_PROXY_ADDRESS
-              value: ""
             - name: RFQ_PROXY_PORT
-              value: "8080"
