@@ -6,7 +6,6 @@ import {
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
 } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import {
-    findTokenAddressOrThrow,
     getTokenMetadataIfExists,
     isNativeSymbolOrAddress,
     isNativeWrappedSymbolOrAddress,
@@ -26,7 +25,6 @@ import {
     getIntegratorIdForApiKey,
     KAFKA_BROKERS,
     MATCHA_INTEGRATOR_ID,
-    NATIVE_WRAPPED_TOKEN_SYMBOL,
     PLP_API_KEY_WHITELIST,
     PROMETHEUS_REQUEST_BUCKETS,
     RFQT_API_KEY_WHITELIST,
@@ -37,8 +35,6 @@ import {
     AFFILIATE_DATA_SELECTOR,
     DEFAULT_ENABLE_SLIPPAGE_PROTECTION,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-    MARKET_DEPTH_DEFAULT_DISTRIBUTION,
-    MARKET_DEPTH_MAX_SAMPLES,
     ONE_SECOND_MS,
     SWAP_DOCS_URL,
 } from '../constants';
@@ -319,45 +315,6 @@ export class SwapHandlers {
             );
         }
 
-        res.status(HttpStatus.OK).send(response);
-    }
-
-    public async getMarketDepthAsync(req: express.Request, res: express.Response): Promise<void> {
-        // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-        const buyTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.buyToken as string, CHAIN_ID)
-            ? NATIVE_WRAPPED_TOKEN_SYMBOL
-            : (req.query.buyToken as string);
-        const sellTokenSymbolOrAddress = isNativeSymbolOrAddress(req.query.sellToken as string, CHAIN_ID)
-            ? NATIVE_WRAPPED_TOKEN_SYMBOL
-            : (req.query.sellToken as string);
-
-        if (buyTokenSymbolOrAddress === sellTokenSymbolOrAddress) {
-            throw new ValidationError([
-                {
-                    field: 'buyToken',
-                    code: ValidationErrorCodes.InvalidAddress,
-                    reason: `Invalid pair ${sellTokenSymbolOrAddress}/${buyTokenSymbolOrAddress}`,
-                },
-            ]);
-        }
-        const response = await this._swapService.calculateMarketDepthAsync({
-            buyToken: findTokenAddressOrThrow(buyTokenSymbolOrAddress, CHAIN_ID),
-            sellToken: findTokenAddressOrThrow(sellTokenSymbolOrAddress, CHAIN_ID),
-            sellAmount: new BigNumber(req.query.sellAmount as string),
-            // tslint:disable-next-line:radix custom-no-magic-numbers
-            numSamples: req.query.numSamples ? parseInt(req.query.numSamples as string) : MARKET_DEPTH_MAX_SAMPLES,
-            sampleDistributionBase: req.query.sampleDistributionBase
-                ? parseFloat(req.query.sampleDistributionBase as string)
-                : MARKET_DEPTH_DEFAULT_DISTRIBUTION,
-            excludedSources:
-                req.query.excludedSources === undefined
-                    ? []
-                    : parseUtils.parseStringArrForERC20BridgeSources((req.query.excludedSources as string).split(',')),
-            includedSources:
-                req.query.includedSources === undefined
-                    ? []
-                    : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(',')),
-        });
         res.status(HttpStatus.OK).send(response);
     }
 

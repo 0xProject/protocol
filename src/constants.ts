@@ -79,11 +79,6 @@ export const GWEI_DECIMALS = 9;
 export const META_TXN_MIN_SIGNER_ETH_BALANCE = 0.1;
 export const SIGNER_STATUS_DB_KEY = 'signer_status';
 
-// Market Depth
-export const MARKET_DEPTH_MAX_SAMPLES = 50;
-export const MARKET_DEPTH_DEFAULT_DISTRIBUTION = 1.05;
-export const MARKET_DEPTH_END_PRICE_SLIPPAGE_PERC = 20;
-
 // Logging
 export const NUMBER_SOURCES_PER_LOG_LINE = 12;
 
