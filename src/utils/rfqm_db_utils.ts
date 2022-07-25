@@ -290,13 +290,14 @@ export class RfqmDbUtils {
     }
 
     /**
-     * [RFQm v2] writes to the rfqm_v2_transaction_submission table
+     * [RFQm v2] writes to the rfqm_v2_transaction_submission table. Should not error on duplicate
+     * primary key (PK), since the PK is essentially a hash of the contents of the table, minus status
      */
     public async writeV2TransactionSubmissionAsync(
         constructorOpts: RfqmV2TransactionSubmissionEntityConstructorOpts,
     ): Promise<RfqmV2TransactionSubmissionEntity> {
         const entity = new RfqmV2TransactionSubmissionEntity(constructorOpts);
-        await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).insert(entity);
+        await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).save(entity);
 
         return entity;
     }

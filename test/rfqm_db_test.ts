@@ -225,6 +225,35 @@ describe('RFQM Database', () => {
             expect(updatedTransactionSubmission.transactionHash).to.equal(transactionHash);
             expect(updatedTransactionSubmission.status).to.equal(RfqmTransactionSubmissionStatus.SucceededConfirmed);
         });
+
+        it('should not run into duplicate key issues if attempting to write to the same hash', async () => {
+            // Write
+            const rfqmTransactionSubmissionEntityOpts: RfqmV2TransactionSubmissionEntityConstructorOpts = {
+                transactionHash,
+                orderHash: otcOrderHash,
+                createdAt,
+                from,
+                to,
+                gasPrice,
+                gasUsed,
+                blockMined,
+                nonce,
+                status: RfqmTransactionSubmissionStatus.Submitted,
+                type: RfqmTransactionSubmissionType.Trade,
+            };
+            await dbUtils.writeV2TransactionSubmissionAsync(rfqmTransactionSubmissionEntityOpts);
+
+            // Write again - should not error
+            await dbUtils.writeV2TransactionSubmissionAsync(rfqmTransactionSubmissionEntityOpts);
+
+            // Read
+            const transactionSubmissions = await dbUtils.findV2TransactionSubmissionsByOrderHashAsync(otcOrderHash);
+            expect(transactionSubmissions.length).to.equal(1);
+
+            const transactionSubmission = transactionSubmissions[0];
+            expect(transactionSubmission.transactionHash).to.equal(transactionHash);
+            expect(transactionSubmission.status).to.equal(RfqmTransactionSubmissionStatus.Submitted);
+        });
     });
 });
 // tslint:disable-line:max-file-line-count
