@@ -9,7 +9,14 @@ import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmWorkerHeartbeatEntity } from '../entities/RfqmWorkerHeartbeatEntity';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOtcOrder, UnresolvedRfqmJobStatuses } from '../entities/types';
+import {
+    RfqmJobStatus,
+    RfqmOrderTypes,
+    RfqmTransactionSubmissionType,
+    StoredFee,
+    StoredOtcOrder,
+    UnresolvedRfqmJobStatuses,
+} from '../entities/types';
 import { FeeWithDetails } from '../services/rfqm_fee_service';
 
 /**
@@ -226,13 +233,13 @@ export class RfqmDbUtils {
 
     /**
      * [RFQm v2] Queries the rfqm_v2_transaction_submission table with the given orderHash
-     * TODO:(phil) - add a `type` to this function after the migration is fully rolled out
      */
     public async findV2TransactionSubmissionsByOrderHashAsync(
         orderHash: string,
+        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
     ): Promise<RfqmV2TransactionSubmissionEntity[]> {
         return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).find({
-            where: { orderHash },
+            where: { orderHash, type },
         });
     }
 

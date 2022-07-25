@@ -1495,10 +1495,12 @@ describe('RfqmService HTTP Logic', () => {
 
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
-                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
-                    submission1,
-                    submission2,
-                ]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 const jobStatus = await service.getOrderStatusAsync('0x00');
@@ -1556,10 +1558,12 @@ describe('RfqmService HTTP Logic', () => {
 
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
-                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
-                    submission1,
-                    submission2,
-                ]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 const jobStatus = await service.getOrderStatusAsync('0x00');
@@ -1609,10 +1613,12 @@ describe('RfqmService HTTP Logic', () => {
 
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
-                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
-                    submission1,
-                    submission2,
-                ]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 const jobStatus = await service.getOrderStatusAsync('0x00');
@@ -1661,16 +1667,21 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 const dbUtilsMock = mock(RfqmDbUtils);
-                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
-                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
-                    submission1,
-                    submission2,
-                ]);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                expect(async () => {
+                try {
                     await service.getOrderStatusAsync('0x00');
-                }).to.throw; // tslint:disable-line no-unused-expression
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Expected exactly one successful transaction submission');
+                }
             });
 
             it('should throw if the job is successful but there are multiple successful transactions', async () => {
@@ -1706,15 +1717,642 @@ describe('RfqmService HTTP Logic', () => {
 
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
-                when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash)).thenResolve([
-                    submission1,
-                    submission2,
-                ]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                expect(async () => {
+                try {
                     await service.getOrderStatusAsync('0x00');
-                }).to.throw; // tslint:disable-line no-unused-expression
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Expected exactly one successful transaction submission');
+                }
+            });
+
+            it('should return submitted with approval and trade transaction submissions for submitted jobs', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.PendingSubmitted,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const orderStatus = await service.getOrderStatusAsync('0x00');
+
+                if (orderStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (orderStatus.status !== 'submitted') {
+                    expect.fail('Status should be submitted');
+                    throw new Error();
+                }
+                expect(orderStatus.approvalTransactions).to.have.length(2);
+                expect(orderStatus.approvalTransactions).to.deep.include({
+                    hash: '0x01',
+                    timestamp: +approvalTransaction1Time.valueOf(),
+                });
+                expect(orderStatus.approvalTransactions).to.deep.include({
+                    hash: '0x02',
+                    timestamp: +approvalTransaction2Time.valueOf(),
+                });
+                expect(orderStatus.transactions).to.have.length(2);
+                expect(orderStatus.transactions).to.deep.include({
+                    hash: '0x03',
+                    timestamp: +tradeTransaction1Time.valueOf(),
+                });
+                expect(orderStatus.transactions).to.deep.include({
+                    hash: '0x04',
+                    timestamp: +tradeTransaction2Time.valueOf(),
+                });
+            });
+
+            it('should return failed with approval and trade transaction submissions for failed jobs', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.FailedExpired,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const orderStatus = await service.getOrderStatusAsync('0x00');
+
+                if (orderStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (orderStatus.status !== 'failed') {
+                    expect.fail('Status should be failed');
+                    throw new Error();
+                }
+                expect(orderStatus.approvalTransactions).to.have.length(2);
+                expect(orderStatus.approvalTransactions).to.deep.include({
+                    hash: '0x01',
+                    timestamp: +approvalTransaction1Time.valueOf(),
+                });
+                expect(orderStatus.approvalTransactions).to.deep.include({
+                    hash: '0x02',
+                    timestamp: +approvalTransaction2Time.valueOf(),
+                });
+                expect(orderStatus.transactions).to.have.length(2);
+                expect(orderStatus.transactions).to.deep.include({
+                    hash: '0x03',
+                    timestamp: +tradeTransaction1Time.valueOf(),
+                });
+                expect(orderStatus.transactions).to.deep.include({
+                    hash: '0x04',
+                    timestamp: +tradeTransaction2Time.valueOf(),
+                });
+            });
+
+            it('should return succeeded for a successful job, with the succeeded job and include correct `transactions` and `approvalTransactions`', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededUnconfirmed,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const orderStatus = await service.getOrderStatusAsync('0x00');
+
+                if (orderStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (orderStatus.status !== 'succeeded') {
+                    expect.fail('Status should be succeeded');
+                    throw new Error();
+                }
+
+                if (!orderStatus.approvalTransactions) {
+                    expect.fail('Approval transactions not present');
+                    throw new Error();
+                }
+
+                expect(orderStatus.approvalTransactions[0]).to.contain({
+                    hash: '0x02',
+                    timestamp: +approvalTransaction2Time.valueOf(),
+                });
+                expect(orderStatus.transactions[0]).to.contain({
+                    hash: '0x04',
+                    timestamp: +tradeTransaction2Time.valueOf(),
+                });
+            });
+
+            it('should return confirmed for a successful confirmed job and include correct `transactions` and `approvalTransactions`', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededConfirmed,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const orderStatus = await service.getOrderStatusAsync('0x00');
+
+                if (orderStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                if (orderStatus.status !== 'confirmed') {
+                    expect.fail('Status should be confirmed');
+                    throw new Error();
+                }
+
+                if (!orderStatus.approvalTransactions) {
+                    expect.fail('Approval transactions not present');
+                    throw new Error();
+                }
+
+                expect(orderStatus.approvalTransactions[0]).to.contain({
+                    hash: '0x02',
+                    timestamp: +approvalTransaction2Time.valueOf(),
+                });
+                expect(orderStatus.transactions[0]).to.contain({
+                    hash: '0x04',
+                    timestamp: +tradeTransaction2Time.valueOf(),
+                });
+            });
+
+            it('should throw if the job is successful but there are no successful transactions for approval', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededUnconfirmed,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    status: RfqmTransactionSubmissionStatus.RevertedUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                try {
+                    await service.getOrderStatusAsync('0x00');
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Expected exactly one successful transaction submission');
+                }
+            });
+
+            it('should throw if the job is successful but there are multiple successful transactions for approval', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededUnconfirmed,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x02',
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                try {
+                    await service.getOrderStatusAsync('0x00');
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Expected exactly one successful transaction submission');
+                }
+            });
+
+            it('should throw if the job is successful but the successful transaciton has no hash for approval', async () => {
+                const now = Date.now();
+                const approvalTransaction1Time = now + 3;
+                const approvalTransaction2Time = now + 7;
+                const tradeTransaction1Time = now + 10;
+                const tradeTransaction2Time = now + 20;
+
+                const job = {
+                    ...BASE_JOB,
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    status: RfqmJobStatus.SucceededUnconfirmed,
+                };
+
+                const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x01',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 0,
+                });
+                const approvalSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(approvalTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '',
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Approval,
+                    nonce: 1,
+                });
+                const tradeSubmission1 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction1Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x03',
+                    status: RfqmTransactionSubmissionStatus.DroppedAndReplaced,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 2,
+                });
+                const tradeSubmission2 = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(tradeTransaction2Time),
+                    orderHash: job.orderHash,
+                    transactionHash: '0x04',
+                    status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+                    from: job.order.order.txOrigin,
+                    to: job.order.order.verifyingContract,
+                    type: RfqmTransactionSubmissionType.Trade,
+                    nonce: 3,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Approval,
+                    ),
+                ).thenResolve([approvalSubmission1, approvalSubmission2]);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([tradeSubmission1, tradeSubmission2]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                try {
+                    await service.getOrderStatusAsync('0x00');
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('does not have a hash');
+                }
             });
         });
     });

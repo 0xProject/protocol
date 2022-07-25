@@ -96,10 +96,16 @@ export interface SubmitRfqmSignedQuoteWithApprovalResponse {
     orderHash: string;
 }
 
+export interface TransactionDetails {
+    hash: string;
+    timestamp: number /* unix ms */;
+}
+
 export interface StatusResponse {
     status: 'pending' | 'submitted' | 'failed' | 'succeeded' | 'confirmed';
     // For pending, expect no transactions. For successful transactions, expect just the mined transaction.
-    transactions: { hash: string; timestamp: number /* unix ms */ }[];
+    transactions: TransactionDetails[];
+    approvalTransactions?: TransactionDetails[];
 }
 
 /**

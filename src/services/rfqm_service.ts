@@ -67,6 +67,7 @@ import {
     StatusResponse,
     SubmitRfqmSignedQuoteWithApprovalParams,
     SubmitRfqmSignedQuoteWithApprovalResponse,
+    TransactionDetails,
 } from './types';
 
 export const BLOCK_FINALITY_THRESHOLD = 3;
@@ -269,6 +270,56 @@ export class RfqmService {
         // Solving for y given the following proportion:
         // y / sellAmount =  quotedMakerAmount / quotedTakerAmount
         return quotedMakerAmount.div(quotedTakerAmount).times(sellAmount).decimalPlaces(0);
+    }
+
+    /**
+     * Transform a transaction submission to type `TransactionDetails`.
+     *
+     * @returns Corresponding `TransactionDetails` or null if transaction hash is not available.
+     */
+    private static _transformTransactionSubmission(
+        transactionSubmission: RfqmV2TransactionSubmissionEntity,
+    ): TransactionDetails | null {
+        const { transactionHash: hash, createdAt } = transactionSubmission;
+        return hash ? { hash, timestamp: createdAt.getTime() } : null;
+    }
+
+    /**
+     * Get details of the successful transaction submission (there will only be one).
+     *
+     * @param opts Options object that contains:
+     *             - `orderHash`: The hash of the order.
+     *             - `type`: The type of the transaction submissions.
+     *             - `transactionSubmssions`: List of transaction submissions to filter.
+     * @returns The details (hash and timestamp) of the successful transaction submission.
+     * @throws - When the number of the successful transaction submission is not 1
+     *         - The successful transaction submission does not have transaction hash
+     */
+    private static _getSuccessfulTransactionSubmissionDetails(opts: {
+        orderHash: string;
+        type: RfqmTransactionSubmissionType;
+        transactionSubmssions: RfqmV2TransactionSubmissionEntity[];
+    }): TransactionDetails {
+        const { orderHash, type, transactionSubmssions } = opts;
+        const successfulTransactionSubmissions = transactionSubmssions.filter(
+            (s) =>
+                s.status === RfqmTransactionSubmissionStatus.SucceededUnconfirmed ||
+                s.status === RfqmTransactionSubmissionStatus.SucceededConfirmed,
+        );
+        if (successfulTransactionSubmissions.length !== 1) {
+            throw new Error(
+                `Expected exactly one successful transaction submission of type ${type} for order ${orderHash}; found ${successfulTransactionSubmissions.length}`,
+            );
+        }
+        const successfulTransactionSubmission = successfulTransactionSubmissions[0];
+        const successfulTransactionSubmissionDetails = this._transformTransactionSubmission(
+            successfulTransactionSubmission,
+        );
+        if (!successfulTransactionSubmissionDetails) {
+            throw new Error(`Successful transaction of type ${type} does not have a hash for order ${orderHash}`);
+        }
+
+        return successfulTransactionSubmissionDetails;
     }
 
     constructor(
@@ -670,13 +721,11 @@ export class RfqmService {
     }
 
     public async getOrderStatusAsync(orderHash: string): Promise<StatusResponse | null> {
-        const transformSubmission = (submission: RfqmV2TransactionSubmissionEntity) => {
-            const { transactionHash: hash, createdAt } = submission;
-            return hash ? { hash, timestamp: createdAt.getTime() } : null;
+        const transformSubmissions = (submissions: RfqmV2TransactionSubmissionEntity[]) => {
+            // `_transformTransactionSubmission` is a static method so no-unbound-method does not apply here
+            // tslint:disable-next-line:no-unbound-method
+            return submissions.map(RfqmService._transformTransactionSubmission).flatMap((s) => (s ? s : []));
         };
-
-        const transformSubmissions = (submissions: RfqmV2TransactionSubmissionEntity[]) =>
-            submissions.map(transformSubmission).flatMap((s) => (s ? s : []));
 
         const job = await this._dbUtils.findV2JobByOrderHashAsync(orderHash);
 
@@ -694,7 +743,18 @@ export class RfqmService {
             };
         }
 
-        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(orderHash);
+        const tradeTransactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+            orderHash,
+            RfqmTransactionSubmissionType.Trade,
+        );
+        const shouldIncludeApproval = !!job.approval;
+        let approvalTransactionSubmissions: RfqmV2TransactionSubmissionEntity[] = [];
+        if (shouldIncludeApproval) {
+            approvalTransactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                orderHash,
+                RfqmTransactionSubmissionType.Approval,
+            );
+        }
 
         switch (status) {
             case RfqmJobStatus.PendingEnqueued:
@@ -704,7 +764,10 @@ export class RfqmService {
             case RfqmJobStatus.PendingSubmitted:
                 return {
                     status: 'submitted',
-                    transactions: transformSubmissions(transactionSubmissions),
+                    transactions: transformSubmissions(tradeTransactionSubmissions),
+                    ...(shouldIncludeApproval && {
+                        approvalTransactions: transformSubmissions(approvalTransactionSubmissions),
+                    }),
                 };
             case RfqmJobStatus.FailedEthCallFailed:
             case RfqmJobStatus.FailedExpired:
@@ -721,28 +784,31 @@ export class RfqmService {
             case RfqmJobStatus.FailedValidationNoTakerSignature:
                 return {
                     status: 'failed',
-                    transactions: transformSubmissions(transactionSubmissions),
+                    transactions: transformSubmissions(tradeTransactionSubmissions),
+                    ...(shouldIncludeApproval && {
+                        approvalTransactions: transformSubmissions(approvalTransactionSubmissions),
+                    }),
                 };
             case RfqmJobStatus.SucceededConfirmed:
             case RfqmJobStatus.SucceededUnconfirmed:
-                const successfulTransactions = transactionSubmissions.filter(
-                    (s) =>
-                        s.status === RfqmTransactionSubmissionStatus.SucceededUnconfirmed ||
-                        s.status === RfqmTransactionSubmissionStatus.SucceededConfirmed,
-                );
-                if (successfulTransactions.length !== 1) {
-                    throw new Error(
-                        `Expected exactly one successful transmission for order ${orderHash}; found ${successfulTransactions.length}`,
-                    );
-                }
-                const successfulTransaction = successfulTransactions[0];
-                const successfulTransactionData = transformSubmission(successfulTransaction);
-                if (!successfulTransactionData) {
-                    throw new Error(`Successful transaction did not have a hash`);
-                }
                 return {
                     status: status === RfqmJobStatus.SucceededUnconfirmed ? 'succeeded' : 'confirmed',
-                    transactions: [successfulTransactionData],
+                    transactions: [
+                        RfqmService._getSuccessfulTransactionSubmissionDetails({
+                            orderHash,
+                            type: RfqmTransactionSubmissionType.Trade,
+                            transactionSubmssions: tradeTransactionSubmissions,
+                        }),
+                    ],
+                    ...(shouldIncludeApproval && {
+                        approvalTransactions: [
+                            RfqmService._getSuccessfulTransactionSubmissionDetails({
+                                orderHash,
+                                type: RfqmTransactionSubmissionType.Approval,
+                                transactionSubmssions: approvalTransactionSubmissions,
+                            }),
+                        ],
+                    }),
                 };
             default:
                 ((_x: never): never => {
