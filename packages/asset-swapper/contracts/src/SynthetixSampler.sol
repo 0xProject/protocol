@@ -64,17 +64,19 @@ contract SynthetixSampler {
     /// @param takerTokenSymbol Symbol (currency key) of the taker token (what to sell).
     /// @param makerTokenSymbol Symbol (currency key) of the maker token (what to buy).
     /// @param takerTokenAmounts Taker token sell amount for each sample (sorted in ascending order).
+    /// @return synthetix Synthetix address.
     /// @return makerTokenAmounts Maker amounts bought at each taker token amount.
     function sampleSellsFromSynthetix(
         IReadProxyAddressResolver readProxy,
         bytes32 takerTokenSymbol,
         bytes32 makerTokenSymbol,
         uint256[] memory takerTokenAmounts
-    ) public view returns (uint256[] memory makerTokenAmounts) {
+    ) public view returns (address synthetix, uint256[] memory makerTokenAmounts) {
+        synthetix = getSynthetixAddress(readProxy);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         if (numSamples == 0) {
-            return makerTokenAmounts;
+            return (synthetix, makerTokenAmounts);
         }
 
         makerTokenAmounts[0] = exchange(
@@ -96,13 +98,15 @@ contract SynthetixSampler {
     /// @param takerTokenSymbol Symbol (currency key) of the taker token (what to sell).
     /// @param makerTokenSymbol Symbol (currency key) of the maker token (what to buy).
     /// @param makerTokenAmounts Maker token buy amount for each sample (sorted in ascending order).
+    /// @return synthetix Synthetix address.
     /// @return takerTokenAmounts Taker amounts sold at each maker token amount.
     function sampleBuysFromSynthetix(
         IReadProxyAddressResolver readProxy,
         bytes32 takerTokenSymbol,
         bytes32 makerTokenSymbol,
         uint256[] memory makerTokenAmounts
-    ) public view returns (uint256[] memory takerTokenAmounts) {
+    ) public view returns (address synthetix, uint256[] memory takerTokenAmounts) {
+        synthetix = getSynthetixAddress(readProxy);
         // Since Synthetix atomic have a fixed rate, we can pick any reasonablely size takerTokenAmount (fixed to 1 ether here) and calculate the rest.
         uint256 amountReceivedForEther = exchange(
             readProxy,
@@ -146,6 +150,14 @@ contract SynthetixSampler {
                 destinationCurrencyKey
             );
         }
+    }
+
+    function getSynthetixAddress(IReadProxyAddressResolver readProxy)
+        private
+        view
+        returns (address)
+    {
+        return IAddressResolver(readProxy.target()).getAddress("Synthetix");
     }
 
     function getExchanger(IReadProxyAddressResolver readProxy)

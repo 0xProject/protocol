@@ -1324,14 +1324,19 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
-            fillData: {
-                readProxy,
-                takerTokenSymbolBytes32,
-                makerTokenSymbolBytes32,
-                chainId: this.chainId,
-            },
             function: this._samplerContract.sampleSellsFromSynthetix,
             params: [readProxy, takerTokenSymbolBytes32, makerTokenSymbolBytes32, takerFillAmounts],
+            callback: (callResults: string, fillData: SynthetixFillData): BigNumber[] => {
+                const [synthetix, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
+                    'sampleSellsFromSynthetix',
+                    callResults,
+                );
+                fillData.readProxy;
+                fillData.takerTokenSymbolBytes32 = takerTokenSymbolBytes32;
+                fillData.makerTokenSymbolBytes32 = makerTokenSymbolBytes32;
+                fillData.chainId = this.chainId;
+                return samples;
+            },
         });
     }
 
@@ -1346,14 +1351,19 @@ export class SamplerOperations {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.Synthetix,
             contract: this._samplerContract,
-            fillData: {
-                readProxy,
-                takerTokenSymbolBytes32,
-                makerTokenSymbolBytes32,
-                chainId: this.chainId,
-            },
             function: this._samplerContract.sampleBuysFromSynthetix,
             params: [readProxy, takerTokenSymbolBytes32, makerTokenSymbolBytes32, makerFillAmounts],
+            callback: (callResults: string, fillData: SynthetixFillData): BigNumber[] => {
+                const [synthetix, samples] = this._samplerContract.getABIDecodedReturnData<[string, BigNumber[]]>(
+                    'sampleBuysFromSynthetix',
+                    callResults,
+                );
+                fillData.readProxy;
+                fillData.takerTokenSymbolBytes32 = takerTokenSymbolBytes32;
+                fillData.makerTokenSymbolBytes32 = makerTokenSymbolBytes32;
+                fillData.chainId = this.chainId;
+                return samples;
+            },
         });
     }
 
