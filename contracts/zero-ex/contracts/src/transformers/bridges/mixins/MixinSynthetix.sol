@@ -40,14 +40,6 @@ interface ISynthetix {
     ) external returns (uint256 amountReceived);
 }
 
-interface IReadProxyAddressResolver {
-    function target() external view returns (address);
-}
-
-interface IAddressResolver {
-    function getAddress(bytes32 name) external view returns (address);
-}
-
 contract MixinSynthetix {
     address private constant rewardAddress =
         0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
@@ -59,16 +51,16 @@ contract MixinSynthetix {
         returns (uint256 boughtAmount)
     {
         (
-            IReadProxyAddressResolver readProxy,
+            ISynthetix synthetix,
             bytes32 sourceCurrencyKey,
             bytes32 destinationCurrencyKey
         ) = abi.decode(
                 bridgeData,
-                (IReadProxyAddressResolver, bytes32, bytes32)
+                (ISynthetix, bytes32, bytes32)
             );
 
         boughtAmount = exchange(
-            readProxy,
+            synthetix,
             sourceCurrencyKey,
             destinationCurrencyKey,
             sellAmount
@@ -76,12 +68,11 @@ contract MixinSynthetix {
     }
 
     function exchange(
-        IReadProxyAddressResolver readProxy,
+        ISynthetix synthetix,
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey,
         uint256 sellAmount
     ) internal returns (uint256 boughtAmount) {
-        ISynthetix synthetix = getSynthetix(readProxy);
         uint256 chainId;
         assembly {
             chainId := chainid()
@@ -104,16 +95,5 @@ contract MixinSynthetix {
                 trackingCode
             );
         }
-    }
-
-    function getSynthetix(IReadProxyAddressResolver readProxy)
-        private
-        view
-        returns (ISynthetix)
-    {
-        return
-            ISynthetix(
-                IAddressResolver(readProxy.target()).getAddress("Synthetix")
-            );
     }
 }

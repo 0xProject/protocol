@@ -397,7 +397,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.Synthetix:
             const fillData = (order as OptimizedMarketBridgeOrder<SynthetixFillData>).fillData;
             bridgeData = encoder.encode([
-                fillData.readProxy,
+                fillData.synthetix,
                 fillData.takerTokenSymbolBytes32,
                 fillData.makerTokenSymbolBytes32,
             ]);

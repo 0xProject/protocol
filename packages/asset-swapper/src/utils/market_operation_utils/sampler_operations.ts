@@ -1331,7 +1331,7 @@ export class SamplerOperations {
                     'sampleSellsFromSynthetix',
                     callResults,
                 );
-                fillData.readProxy;
+                fillData.synthetix = synthetix;
                 fillData.takerTokenSymbolBytes32 = takerTokenSymbolBytes32;
                 fillData.makerTokenSymbolBytes32 = makerTokenSymbolBytes32;
                 fillData.chainId = this.chainId;
@@ -1358,7 +1358,7 @@ export class SamplerOperations {
                     'sampleBuysFromSynthetix',
                     callResults,
                 );
-                fillData.readProxy;
+                fillData.synthetix = synthetix;
                 fillData.takerTokenSymbolBytes32 = takerTokenSymbolBytes32;
                 fillData.makerTokenSymbolBytes32 = makerTokenSymbolBytes32;
                 fillData.chainId = this.chainId;

@@ -384,7 +384,7 @@ export interface VelodromeFillData extends FillData {
 }
 
 export interface SynthetixFillData extends FillData {
-    readProxy: string;
+    synthetix: string;
     takerTokenSymbolBytes32: string;
     makerTokenSymbolBytes32: string;
     // Only needed for gas estimation.
