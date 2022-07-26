@@ -9,6 +9,10 @@
             {
                 "note": "Add Synthetix support`",
                 "pr": 518
+            },
+            {
+                "note": "Replace Beethoven X subgraph URL",
+                "pr": 519
             }
         ]
     },
