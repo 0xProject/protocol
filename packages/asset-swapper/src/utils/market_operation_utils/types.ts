@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
@@ -67,6 +68,7 @@ export enum ERC20BridgeSource {
     Compound = 'Compound',
     Synapse = 'Synapse',
     BancorV3 = 'BancorV3',
+    Synthetix = 'Synthetix',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
@@ -379,6 +381,14 @@ export interface PlatypusFillData extends FillData {
 export interface VelodromeFillData extends FillData {
     router: string;
     stable: boolean;
+}
+
+export interface SynthetixFillData extends FillData {
+    synthetix: string;
+    takerTokenSymbolBytes32: string;
+    makerTokenSymbolBytes32: string;
+    // Only needed for gas estimation.
+    chainId: ChainId;
 }
 
 /**

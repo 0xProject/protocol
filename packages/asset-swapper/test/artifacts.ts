@@ -43,6 +43,7 @@ import * as NativeOrderSampler from '../test/generated-artifacts/NativeOrderSamp
 import * as PlatypusSampler from '../test/generated-artifacts/PlatypusSampler.json';
 import * as SamplerUtils from '../test/generated-artifacts/SamplerUtils.json';
 import * as ShellSampler from '../test/generated-artifacts/ShellSampler.json';
+import * as SynthetixSampler from '../test/generated-artifacts/SynthetixSampler.json';
 import * as TestNativeOrderSampler from '../test/generated-artifacts/TestNativeOrderSampler.json';
 import * as TwoHopSampler from '../test/generated-artifacts/TwoHopSampler.json';
 import * as UniswapSampler from '../test/generated-artifacts/UniswapSampler.json';
@@ -76,6 +77,7 @@ export const artifacts = {
     PlatypusSampler: PlatypusSampler as ContractArtifact,
     SamplerUtils: SamplerUtils as ContractArtifact,
     ShellSampler: ShellSampler as ContractArtifact,
+    SynthetixSampler: SynthetixSampler as ContractArtifact,
     TwoHopSampler: TwoHopSampler as ContractArtifact,
     UniswapSampler: UniswapSampler as ContractArtifact,
     UniswapV2Sampler: UniswapV2Sampler as ContractArtifact,

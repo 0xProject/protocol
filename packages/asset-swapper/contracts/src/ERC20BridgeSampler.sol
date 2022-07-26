@@ -39,6 +39,7 @@ import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
 import "./PlatypusSampler.sol";
 import "./ShellSampler.sol";
+import "./SynthetixSampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
@@ -67,6 +68,7 @@ contract ERC20BridgeSampler is
     NativeOrderSampler,
     PlatypusSampler,
     ShellSampler,
+    SynthetixSampler,
     TwoHopSampler,
     UniswapSampler,
     UniswapV2Sampler,

@@ -41,6 +41,7 @@ import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinShell.sol";
+import "./mixins/MixinSynthetix.sol";
 import "./mixins/MixinUniswap.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
@@ -67,6 +68,7 @@ contract EthereumBridgeAdapter is
     MixinMStable,
     MixinNerve,
     MixinShell,
+    MixinSynthetix,
     MixinUniswap,
     MixinUniswapV2,
     MixinUniswapV3,
@@ -257,6 +259,12 @@ contract EthereumBridgeAdapter is
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeBancorV3(
                 buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.SYNTHETIX) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeSynthetix(
                 sellAmount,
                 order.bridgeData
             );
