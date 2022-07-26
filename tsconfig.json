@@ -6,7 +6,7 @@
         "outDir": "lib",
         "strict": true,
         "downlevelIteration": true,
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "sourceMap": true,
