@@ -6,14 +6,14 @@ import { gql, request } from 'graphql-request';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
-import {
-    BALANCER_MAX_POOLS_FETCHED,
-    BALANCER_TOP_POOLS_FETCHED,
-    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
-} from '../constants';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
 import { parsePoolData } from './balancer_sor_v2';
 import { CacheValue, PoolsCache } from './pools_cache';
+
+const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = new Map<ChainId, string>([
+    [ChainId.Fantom, 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx'],
+]);
 
 // tslint:disable-next-line:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -29,6 +29,15 @@ interface BalancerPoolResponse {
 }
 
 export class BalancerV2PoolsCache extends PoolsCache {
+    public static createBeethovenXPoolCache(chainId: ChainId): BalancerV2PoolsCache | undefined {
+        const subgraphUrl = BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN.get(chainId);
+        if (subgraphUrl === undefined) {
+            return undefined;
+        }
+
+        return new BalancerV2PoolsCache(subgraphUrl);
+    }
+
     private static _parseSubgraphPoolData(pool: any, takerToken: string, makerToken: string): Pool {
         const tToken = pool.tokens.find((t: any) => t.address === takerToken);
         const mToken = pool.tokens.find((t: any) => t.address === makerToken);
@@ -50,8 +59,7 @@ export class BalancerV2PoolsCache extends PoolsCache {
     }
 
     constructor(
-        chainId: ChainId,
-        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId]!,
+        private readonly subgraphUrl: string,
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
@@ -62,19 +70,6 @@ export class BalancerV2PoolsCache extends PoolsCache {
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
     }
-
-    // protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-    //     try {
-    //         const poolData = (await getPoolsWithTokens(takerToken, makerToken)).pools;
-    //         // Sort by maker token balance (descending)
-    //         const pools = parsePoolData(poolData, takerToken, makerToken).sort((a, b) =>
-    //             b.balanceOut.minus(a.balanceOut).toNumber(),
-    //         );
-    //         return pools.length > this.maxPoolsFetched ? pools.slice(0, this.maxPoolsFetched) : pools;
-    //     } catch (err) {
-    //         return [];
-    //     }
-    // }
 
     protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
         const query = gql`

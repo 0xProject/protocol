@@ -17,8 +17,6 @@ const expect = chai.expect;
 const usdcAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const daiAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const wethAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-const wbtcAddress = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
-const balAddress = '0xba100000625a3754423978a60c9317c58a424e3d';
 const creamAddress = '0x2ba592f78db6436527729929aaf6c908497cb200';
 
 const timeoutMs = 5000;
@@ -43,22 +41,26 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [daiAddress, wethAddress],
             ];
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });
 
     describe('BalancerV2PoolsCache', () => {
-        const cache = new BalancerV2PoolsCache(ChainId.Mainnet);
-        it('fetches pools', async () => {
+        it('fetches pools (Beethoven X - Fantom)', async () => {
+            const cache = BalancerV2PoolsCache.createBeethovenXPoolCache(ChainId.Fantom);
+            const wftmAddress = '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83';
+            const beetsAddress = '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e';
+            const fantomWethAddress = '0x74b23882a30290451a17c44f4f05243b6b58c76d';
+
             const pairs = [
-                [wethAddress, wbtcAddress],
-                [wethAddress, balAddress],
+                [wftmAddress, beetsAddress],
+                [wftmAddress, fantomWethAddress],
             ];
+
+            expect(cache).not.null();
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache!, takerToken, makerToken)),
             );
         });
     });
@@ -71,8 +73,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [creamAddress, wethAddress],
             ];
             await Promise.all(
-                // tslint:disable-next-line:promise-function-async
-                pairs.map(([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });

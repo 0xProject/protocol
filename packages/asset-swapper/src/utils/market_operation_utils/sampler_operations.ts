@@ -29,7 +29,6 @@ import {
     BANCOR_REGISTRY_BY_CHAIN_ID,
     BANCORV3_NETWORK_BY_CHAIN_ID,
     BANCORV3_NETWORK_INFO_BY_CHAIN_ID,
-    BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN,
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
     COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
@@ -57,7 +56,7 @@ import {
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_utils_new';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SamplerNoOperation } from './sampler_no_operation';
@@ -96,7 +95,6 @@ import {
     PsmInfo,
     ShellFillData,
     SourceQuoteOperation,
-    SourcesWithPoolsCache,
     SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
@@ -115,9 +113,12 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
  */
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 
-export type PoolsCacheMap = { [key in Exclude<SourcesWithPoolsCache, ERC20BridgeSource.BalancerV2>]: PoolsCache } & {
+export interface PoolsCacheMap {
+    [ERC20BridgeSource.Balancer]: BalancerPoolsCache;
     [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache | undefined;
-};
+    [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache | undefined;
+    [ERC20BridgeSource.Cream]: CreamPoolsCache;
+}
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
 
@@ -154,10 +155,7 @@ export class SamplerOperations {
         this.poolsCaches = poolsCaches
             ? poolsCaches
             : {
-                  [ERC20BridgeSource.Beethovenx]: new BalancerV2PoolsCache(
-                      chainId,
-                      BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN[chainId],
-                  ),
+                  [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache.createBeethovenXPoolCache(chainId),
                   [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
                   [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
                   [ERC20BridgeSource.BalancerV2]:
@@ -1625,8 +1623,11 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Beethovenx: {
-                        const poolIds =
-                            this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
+                        const cache = this.poolsCaches[source];
+                        if (cache === undefined) {
+                            return [];
+                        }
+                        const poolIds = cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
@@ -1984,8 +1985,11 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.Beethovenx: {
-                        const poolIds =
-                            this.poolsCaches[source].getCachedPoolAddressesForPair(takerToken, makerToken) || [];
+                        const cache = this.poolsCaches[source];
+                        if (cache === undefined) {
+                            return [];
+                        }
+                        const poolIds = cache.getCachedPoolAddressesForPair(takerToken, makerToken) || [];
 
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
