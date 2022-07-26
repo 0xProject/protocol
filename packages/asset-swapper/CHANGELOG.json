@@ -5,6 +5,10 @@
             {
                 "note": "Refactor `TokenAdjacency` and `TokenAdjacencyBuilder`",
                 "pr": 517
+            },
+            {
+                "note": "Add Synthetix support`",
+                "pr": 518
             }
         ]
     },
