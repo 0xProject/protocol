@@ -1,4 +1,4 @@
-// tslint:disable:custom-no-magic-numbers max-file-line-count
+// tslint:disable:max-file-line-count
 import { assert } from '@0x/assert';
 import {
     BlockParamLiteral,

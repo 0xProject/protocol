@@ -201,7 +201,6 @@ export class MetaTransactionService {
 
         // Make sure gasPrice is not 3X the current fast EthGasStation gas price
         const currentFastGasPrice = await ethGasStationUtils.getGasPriceOrThrowAsync();
-        // tslint:disable-next-line:custom-no-magic-numbers
         if (currentFastGasPrice.lt(gasPrice) && gasPrice.minus(currentFastGasPrice).gte(currentFastGasPrice.times(3))) {
             throw new Error('Gas price too high');
         }

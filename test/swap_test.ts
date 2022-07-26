@@ -118,7 +118,6 @@ describe(SUITE_NAME, () => {
                 makerToken: ZRX_TOKEN_ADDRESS,
                 takerToken: WETH_TOKEN_ADDRESS,
                 makerAmount: ONE_THOUSAND_IN_BASE,
-                // tslint:disable:custom-no-magic-numbers
                 takerAmount: ONE_THOUSAND_IN_BASE.multipliedBy(2),
                 maker: makerAdddress,
             },
@@ -126,7 +125,6 @@ describe(SUITE_NAME, () => {
                 makerToken: ZRX_TOKEN_ADDRESS,
                 takerToken: WETH_TOKEN_ADDRESS,
                 makerAmount: MAX_MINT_AMOUNT,
-                // tslint:disable:custom-no-magic-numbers
                 takerAmount: ONE_THOUSAND_IN_BASE.multipliedBy(3),
                 maker: makerAdddress,
             },

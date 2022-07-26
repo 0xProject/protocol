@@ -26,18 +26,14 @@ const gasScheduleWithOverrides: GasSchedule = {
     ...DEFAULT_GAS_SCHEDULE,
     [ERC20BridgeSource.UniswapV2]: (fillData) => {
         let gas = 1.5e5;
-        // tslint:disable-next-line:custom-no-magic-numbers
         if ((fillData as UniswapV2FillData).tokenAddressPath.length > 2) {
-            // tslint:disable-next-line:custom-no-magic-numbers
             gas += 5e4;
         }
         return gas;
     },
     [ERC20BridgeSource.SushiSwap]: (fillData) => {
         let gas = 1.5e5;
-        // tslint:disable-next-line:custom-no-magic-numbers
         if ((fillData as UniswapV2FillData).tokenAddressPath.length > 2) {
-            // tslint:disable-next-line:custom-no-magic-numbers
             gas += 5e4;
         }
         return gas;

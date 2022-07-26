@@ -11,7 +11,6 @@ export const numberUtils = {
     randomHexNumberOfLength: (numberLength: number): string => {
         let res = '';
         for (let i = 0; i < numberLength; i++) {
-            // tslint:disable-next-line:custom-no-magic-numbers
             res = `${res}${numberUtils.randomNumberInclusive(1, 15).toString(16)}`;
         }
         return res;

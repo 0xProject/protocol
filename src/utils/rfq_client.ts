@@ -40,7 +40,6 @@ export class RfqClient implements IRfqClient {
     public async getV1PricesAsync(request: RfqClientV1PriceRequest): Promise<RfqClientV1PriceResponse> {
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/rfqt/v1/prices`, request, {
-                // tslint:disable-next-line: custom-no-magic-numbers
                 timeout: RFQT_REQUEST_MAX_RESPONSE_MS + 150,
                 headers: {
                     '0x-chain-id': request.chainId,
@@ -69,7 +68,6 @@ export class RfqClient implements IRfqClient {
     public async getV1QuotesAsync(request: RfqClientV1QuoteRequest): Promise<RfqClientV1QuoteResponse> {
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/rfqt/v1/quotes`, request, {
-                // tslint:disable-next-line: custom-no-magic-numbers
                 timeout: RFQT_REQUEST_MAX_RESPONSE_MS + 150,
                 headers: {
                     '0x-chain-id': request.chainId,

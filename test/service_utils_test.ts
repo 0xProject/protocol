@@ -12,7 +12,6 @@ import { randomSellQuote } from './utils/mocks';
 
 const SUITE_NAME = 'serviceUtils';
 
-// tslint:disable:custom-no-magic-numbers
 describe(SUITE_NAME, () => {
     describe('excludeProprietarySources', () => {
         it('will exclude liquidity provider if an API key is not present or invalid', () => {

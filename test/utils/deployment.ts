@@ -52,7 +52,7 @@ export async function setupDependenciesAsync(suiteName: string, logType?: LogTyp
 
     // Wait for the dependencies to boot up.
     await waitForDependencyStartupAsync(up);
-    await sleepAsync(10); // tslint:disable-line:custom-no-magic-numbers
+    await sleepAsync(10);
     await confirmPostgresConnectivityAsync();
     await confirmRedisConnectivityAsync();
 }
@@ -133,7 +133,7 @@ async function waitForDependencyStartupAsync(logStream: ChildProcessWithoutNullS
         });
         setTimeout(() => {
             reject(new Error('Timed out waiting for dependency logs'));
-        }, 60000); // tslint:disable-line:custom-no-magic-numbers
+        }, 60000);
     });
 }
 
@@ -141,7 +141,7 @@ async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<v
     try {
         await Promise.all([
             // delay before retrying
-            new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
+            new Promise<void>((resolve) => setTimeout(resolve, 2000)),
             async () => {
                 await initDBConnectionAsync();
             },
@@ -159,7 +159,7 @@ async function confirmRedisConnectivityAsync(maxTries: number = 5): Promise<void
     try {
         await Promise.all([
             // delay before retrying
-            new Promise<void>((resolve) => setTimeout(resolve, 2000)), // tslint:disable-line:custom-no-magic-numbers
+            new Promise<void>((resolve) => setTimeout(resolve, 2000)),
             async () => {
                 const redisClient = redis.createClient({ url: REDIS_URI });
                 return new Promise((resolve, reject) => {

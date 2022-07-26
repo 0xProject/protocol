@@ -24,7 +24,6 @@ import { OrderWatcherEvent, orderWatcherEventToSRAOrder } from '../utils/order_w
 import { schemaUtils } from '../utils/schema_utils';
 
 const getRandomKafkaConsumerGroupId = (): string => {
-    // tslint:disable:custom-no-magic-numbers
     const randomHex = hexUtils.random(4).substr(2);
     return `sra_0x_api_service_${randomHex}`;
 };

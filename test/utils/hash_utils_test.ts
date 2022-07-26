@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
 // tslint:disable: boolean-naming
 
 import { expect } from '@0x/contracts-test-utils';

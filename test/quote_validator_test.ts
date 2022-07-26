@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
 import { RfqOrderFields } from '@0x/asset-swapper';
 import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { Web3Wrapper } from '@0x/dev-utils';

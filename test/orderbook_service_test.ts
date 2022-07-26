@@ -29,7 +29,7 @@ const EMPTY_PAGINATED_RESPONSE = {
     records: [],
 };
 
-const TOMORROW = new BigNumber(Date.now() + 24 * 3600); // tslint:disable-line:custom-no-magic-numbers
+const TOMORROW = new BigNumber(Date.now() + 24 * 3600);
 
 async function saveSignedOrdersAsync(connection: Connection, orders: SRAOrder[]): Promise<void> {
     await connection.getRepository(OrderWatcherSignedOrderEntity).save(orders.map(orderUtils.serializeOrder));
@@ -205,7 +205,6 @@ describe(SUITE_NAME, () => {
             }
 
             // Run the tests synchronously; fill in default values
-            // tslint:disable:custom-no-magic-numbers
             for (const [i, _test] of testCases.entries()) {
                 const test = fillInDefaultTestCaseValues(_test, i);
                 await runTestCaseForGetOrdersFilters(
@@ -228,7 +227,6 @@ describe(SUITE_NAME, () => {
                 test[3][3] = test[3][3] || {};
                 return test;
             }
-            // tslint:enable:custom-no-magic-numbers
         });
     });
     describe('addOrdersAsync, addPersistentOrdersAsync', () => {

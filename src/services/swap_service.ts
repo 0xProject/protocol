@@ -127,10 +127,8 @@ export class SwapService {
         // 0.99187 -> 0.812%
         const estimatedPriceImpactPercentage = new BigNumber(1)
             .minus(actualPriceToEstimatedPriceRatio)
-            // tslint:disable:custom-no-magic-numbers
             .times(100)
             .decimalPlaces(4, BigNumber.ROUND_CEIL);
-        // tslint:enable:custom-no-magic-numbers
 
         // In theory, price impact should always be positive
         // the sellTokenToEthRate and buyTokenToEthRate are calculated
@@ -286,7 +284,6 @@ export class SwapService {
         // means all integrators will be enabled.
 
         if (shouldEnableRfqt) {
-            // tslint:disable-next-line:custom-no-magic-numbers
             const altRfqAssetOfferings = await this._getAltMarketOfferingsAsync(1500);
 
             _rfqt = {
@@ -349,7 +346,6 @@ export class SwapService {
         const rfqClient = isHashSmallEnough({
             message:
                 `${assetSwapperOpts.rfqt?.txOrigin}-${sellToken}-${buyToken}-${amount}-${marketSide}`.toLowerCase(),
-            // tslint:disable-next-line: custom-no-magic-numbers
             threshold: RFQ_CLIENT_ROLLOUT_PERCENT / 100,
         })
             ? this._rfqClient
@@ -427,7 +423,6 @@ export class SwapService {
                         fauxGasEstimate,
                         realGasEstimate,
                         delta: realGasEstimate.minus(fauxGasEstimate),
-                        // tslint:disable-next-line:radix custom-no-magic-numbers
                         accuracy: realGasEstimate.minus(fauxGasEstimate).dividedBy(realGasEstimate).toFixed(4),
                         buyToken,
                         sellToken,
@@ -797,7 +792,6 @@ export class SwapService {
                     return {};
                 }
                 // refresh cache every 6 hours
-                // tslint:disable-next-line:custom-no-magic-numbers
             }, ONE_MINUTE_MS * 360);
         }
 

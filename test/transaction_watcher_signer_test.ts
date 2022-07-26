@@ -2,8 +2,6 @@ import { expect } from '@0x/contracts-test-utils';
 
 import { TransactionWatcherSignerService } from '../src/services/transaction_watcher_signer_service';
 
-// tslint:disable:custom-no-magic-numbers
-
 const SUITE_NAME = 'transaction watcher signer tests';
 describe(SUITE_NAME, () => {
     describe('.getSortedSignersByAvailability', () => {

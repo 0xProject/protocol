@@ -12,7 +12,6 @@ const SQS_QUEUE_SIZE_FAILED_THRESHOLD = 20; // More messages sitting in queue th
 const RECENT_HEARTBEAT_AGE_THRESHOLD = 5; // (minutes) Heartbeats older than this will produce a DEGRADED issue. A FAILED issue is produced if NO heartbeats are newer than this.
 
 const BALANCE_FAILED_THRESHOLD = 0.04; // (eth) If NO worker has a balance higher than this, a FAILED issue gets created.
-// tslint:disable-next-line: custom-no-magic-numbers
 const BALANCE_DEGRADED_THRESHOLD = 0.1; // (eth) If < 2 workers have a balance lower than this, a DEGRADED issue gets created.
 
 const MS_IN_MINUTE = 60000;
@@ -229,7 +228,6 @@ export async function checkSqsQueueAsync(producer: Producer): Promise<HealthChec
  * Higher values are more severe. (Oh to have SwiftLang enums here.)
  */
 function statusSeverity(status: HealthCheckStatus): number {
-    // tslint:disable custom-no-magic-numbers
     switch (status) {
         case HealthCheckStatus.Failed:
             return 4;
@@ -242,7 +240,6 @@ function statusSeverity(status: HealthCheckStatus): number {
         default:
             throw new Error(`Received unknown status: ${status}`);
     }
-    // tslint:enable custom-no-magic-numbers
 }
 
 /**

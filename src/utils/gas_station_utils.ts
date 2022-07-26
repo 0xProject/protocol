@@ -30,10 +30,8 @@ export const ethGasStationUtils = {
     getGasPriceOrThrowAsync: async (txConfirmationSpeed: 'fast' | 'fastest' = 'fast'): Promise<BigNumber> => {
         const gasInfo = await getGasInfoAsync();
         // Eth Gas Station result is gwei * 10
-        // tslint:disable-next-line:custom-no-magic-numbers
         const BASE_TEN = 10;
         const gasPriceGwei = new BigNumber(gasInfo[txConfirmationSpeed] / BASE_TEN);
-        // tslint:disable-next-line:custom-no-magic-numbers
         const unit = new BigNumber(BASE_TEN).pow(9);
         const gasPriceWei = unit.times(gasPriceGwei);
         return gasPriceWei;

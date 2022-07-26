@@ -1,4 +1,3 @@
-// tslint:disable:custom-no-magic-numbers
 // tslint:disable:max-file-line-count
 
 import { BigNumber } from '@0x/asset-swapper';

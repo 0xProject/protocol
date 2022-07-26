@@ -283,7 +283,6 @@ export class TransactionWatcherSignerService {
                         takerAddress: tx.takerAddress,
                         // NOTE: to not leak full keys we log only the part of
                         // the API key that was rate limited.
-                        // tslint:disable-next-line:custom-no-magic-numbers
                         apiKey: tx.apiKey!.substring(0, 8),
                     });
                     tx.status = TransactionStates.Cancelled;

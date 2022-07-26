@@ -50,7 +50,7 @@ describe('Config', () => {
             expect(rfqtKeys[1]).to.eql('test-api-key-2');
 
             const rfqmKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqm');
-            expect(rfqmKeys.length).to.eql(3); // tslint:disable-line: custom-no-magic-numbers
+            expect(rfqmKeys.length).to.eql(3);
             expect(rfqmKeys[0]).to.eql('test-api-key-1');
             expect(rfqmKeys[1]).to.eql('test-api-key-2');
             expect(rfqmKeys[2]).to.eql('test-api-key-3');

@@ -38,7 +38,6 @@ import { ganacheZrxWethRfqOrderExchangeProxy, rfqtIndicativeQuoteResponse } from
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
 
-// tslint:disable-next-line: custom-no-magic-numbers
 const KEEP_ALIVE_TTL = 5 * 60 * 1000;
 
 const quoteRequestorHttpClient = Axios.create({
@@ -56,7 +55,6 @@ let blockchainLifecycle: BlockchainLifecycle;
 
 let dependencies: AppDependencies;
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const SUITE_NAME = 'rfqt tests';
 
