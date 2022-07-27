@@ -61,7 +61,7 @@ export interface PermitApproval {
             owner: string;
             spender: string;
             value: string;
-            nonce: string;
+            nonce: number;
             deadline: string;
         };
     };

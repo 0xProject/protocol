@@ -26,6 +26,7 @@ import {
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
+    PERMIT_EIP_712_TYPES,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
@@ -2079,7 +2080,7 @@ export class RfqmService {
     ): Approval {
         const { types, primaryType, domain, message } = eip712;
         switch (kind) {
-            case GaslessApprovalTypes.ExecuteMetaTransaction:
+            case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const parsedTypes = types as typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
                 if (!parsedTypes) {
                     logger.warn({ kind, types, orderHash }, 'Invalid types field provided for Approval');
@@ -2129,7 +2130,60 @@ export class RfqmService {
                         },
                     },
                 };
-            case GaslessApprovalTypes.Permit:
+            }
+            case GaslessApprovalTypes.Permit: {
+                const parsedTypes = types as typeof PERMIT_EIP_712_TYPES;
+                if (!parsedTypes) {
+                    logger.warn({ kind, types, orderHash }, 'Invalid types field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'types',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid types field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                if (primaryType !== 'Permit') {
+                    logger.warn({ kind, primaryType, orderHash }, 'Invalid primaryType field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'primaryType',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid primaryType field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                if (
+                    !_.isEqual(
+                        _.keys(message),
+                        types.Permit.map((dataField: EIP712DataField) => dataField.name),
+                    )
+                ) {
+                    logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');
+                    throw new ValidationError([
+                        {
+                            field: 'message',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: `Invalid message field provided for Approval of kind ${kind}`,
+                        },
+                    ]);
+                }
+                return {
+                    kind,
+                    eip712: {
+                        types: parsedTypes,
+                        primaryType,
+                        domain,
+                        message: {
+                            owner: message.owner,
+                            spender: message.spender,
+                            value: message.value,
+                            nonce: message.nonce,
+                            deadline: message.deadline,
+                        },
+                    },
+                };
+            }
             default:
                 logger.warn({ kind, orderHash }, 'Invalid kind provided for Approval');
                 throw new ValidationError([

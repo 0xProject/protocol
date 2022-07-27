@@ -7,9 +7,9 @@ import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
 
-import { EXECUTE_META_TRANSACTION_EIP_712_TYPES } from '../src/constants';
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../src/constants';
 import { GaslessApprovalTypes } from '../src/services/types';
-import { ExecuteMetaTransactionApproval } from '../src/types';
+import { ExecuteMetaTransactionApproval, PermitApproval } from '../src/types';
 
 export const CHAIN_ID = 1337;
 // tslint:disable-next-line:custom-no-magic-numbers
@@ -98,3 +98,27 @@ export const MOCK_EXECUTE_META_TRANSACTION_APPROVAL: ExecuteMetaTransactionAppro
 };
 export const MOCK_EXECUTE_META_TRANSACTION_CALLDATA =
     '0x0c53c51c000000000000000000000000e834ec434daba538cd1b9fe1582052b880bd7e6300000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000def1c0ded9bec7f1a1670819833240f027b25effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000';
+
+export const MOCK_PERMIT_APPROVAL: PermitApproval = {
+    kind: GaslessApprovalTypes.Permit,
+    eip712: {
+        types: PERMIT_EIP_712_TYPES,
+        primaryType: 'Permit',
+        domain: {
+            name: 'Fake Token',
+            version: '1',
+            verifyingContract: '0x12345',
+            salt: 'salt',
+        },
+        message: {
+            owner: '0x9016cc2122b52ff5d9937c0c1422b78d7e81ceea',
+            spender: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
+            value: '0xffffffffffffffffffffffffffffffffffffffff',
+            nonce: 1,
+            deadline: '123456789',
+        },
+    },
+};
+
+export const MOCK_PERMIT_CALLDATA =
+    '0xd505accf0000000000000000000000009016cc2122b52ff5d9937c0c1422b78d7e81ceea000000000000000000000000def1c0ded9bec7f1a1670819833240f027b25eff000000000000000000000000ffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000075bcd15000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';

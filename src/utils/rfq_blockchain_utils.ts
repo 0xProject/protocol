@@ -13,11 +13,18 @@ import { BigNumber as EthersBigNumber, constants, Contract, providers, utils, Wa
 import { resolveProperties } from 'ethers/lib/utils';
 
 import { abis } from '../abis';
-import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, NULL_ADDRESS, ZERO } from '../constants';
+import {
+    EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+    NULL_ADDRESS,
+    ONE_MINUTE_MS,
+    ONE_SECOND_MS,
+    PERMIT_EIP_712_TYPES,
+    ZERO,
+} from '../constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
 import { GaslessApprovalTypes } from '../services/types';
-import { Approval, ExecuteMetaTransactionApproval } from '../types';
+import { Approval, ExecuteMetaTransactionApproval, PermitApproval } from '../types';
 
 import { BalanceChecker } from './balance_checker';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
@@ -611,9 +618,9 @@ export class RfqBlockchainUtils {
             return null;
         }
 
-        const tokenEIP721 = EIP_712_REGISTRY[chainId][token];
-        switch (tokenEIP721.kind) {
-            case GaslessApprovalTypes.ExecuteMetaTransaction:
+        const tokenEIP712 = EIP_712_REGISTRY[chainId][token];
+        switch (tokenEIP712.kind) {
+            case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const nonce = await this.getMetaTransactionNonceAsync(token, takerAddress);
                 // generate calldata for approve with max number of uint256 as amount
                 const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
@@ -627,7 +634,7 @@ export class RfqBlockchainUtils {
                     eip712: {
                         types: EXECUTE_META_TRANSACTION_EIP_712_TYPES,
                         primaryType: 'MetaTransaction',
-                        domain: tokenEIP721.domain,
+                        domain: tokenEIP712.domain,
                         message: {
                             nonce: nonce.toNumber(),
                             from: takerAddress,
@@ -637,8 +644,30 @@ export class RfqBlockchainUtils {
                 };
 
                 return executeMetaTransactionApproval;
+            }
+            case GaslessApprovalTypes.Permit: {
+                const nonce = await this.getPermitNonceAsync(token, takerAddress);
+                const tenMinutesAfterNowS = (Date.now() + ONE_MINUTE_MS * 10) / ONE_SECOND_MS;
+                const permitApproval: PermitApproval = {
+                    kind: GaslessApprovalTypes.Permit,
+                    eip712: {
+                        types: PERMIT_EIP_712_TYPES,
+                        primaryType: 'Permit',
+                        domain: tokenEIP712.domain,
+                        message: {
+                            owner: takerAddress,
+                            spender: this._exchangeProxyAddress,
+                            value: constants.MaxUint256.toString(),
+                            nonce: nonce.toNumber(),
+                            deadline: tenMinutesAfterNowS.toString(),
+                        },
+                    },
+                };
+
+                return permitApproval;
+            }
             default:
-                throw new Error(`Gasless approval kind ${tokenEIP721.kind} is not implemented yet`);
+                throw new Error(`Gasless approval kind ${tokenEIP712.kind} is not implemented yet`);
         }
     }
 
@@ -671,6 +700,19 @@ export class RfqBlockchainUtils {
     }
 
     /**
+     * Get permit nonce, which is used by contracts that support EIP-2612 standards.
+     *
+     * @param token The address of the token.
+     * @param takerAddress The address of the taker.
+     * @returns Nonce.
+     */
+    public async getPermitNonceAsync(token: string, takerAddress: string): Promise<BigNumber> {
+        const erc20 = new Contract(token, abis.permitERC20, this._ethersProvider);
+        const nonce = await erc20.nonces(takerAddress);
+        return new BigNumber(nonce.toString());
+    }
+
+    /**
      * Generates calldata for gasless approval submission.
      *
      * @param token The address of the token.
@@ -685,7 +727,7 @@ export class RfqBlockchainUtils {
     ): Promise<string> {
         const { kind, eip712 } = approval;
         switch (kind) {
-            case GaslessApprovalTypes.ExecuteMetaTransaction:
+            case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const erc20 = new Contract(token, abis.polygonBridgedERC20, this._ethersProvider);
                 const { data } = await erc20.populateTransaction.executeMetaTransaction(
                     eip712.message.from,
@@ -695,11 +737,28 @@ export class RfqBlockchainUtils {
                     signature.v,
                 );
                 if (!data) {
-                    throw new Error(`Cannot generate approval submission calldata for ${approval.kind}`);
+                    throw new Error(`Cannot generate approval submission calldata for ${kind}`);
                 }
                 return data;
+            }
+            case GaslessApprovalTypes.Permit: {
+                const erc20 = new Contract(token, abis.permitERC20, this._ethersProvider);
+                const { data } = await erc20.populateTransaction.permit(
+                    eip712.message.owner,
+                    eip712.message.spender,
+                    eip712.message.value,
+                    eip712.message.deadline,
+                    signature.v,
+                    signature.r,
+                    signature.s,
+                );
+                if (!data) {
+                    throw new Error(`Cannot generate approval submission calldata for ${kind}`);
+                }
+                return data;
+            }
             default:
-                throw new Error(`Gasless approval kind ${approval.kind} is not implemented yet`);
+                throw new Error(`Gasless approval kind ${kind} is not implemented yet`);
         }
     }
 }

@@ -21,6 +21,8 @@ import {
     MATCHA_AFFILIATE_ADDRESS,
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
     MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
+    MOCK_PERMIT_APPROVAL,
+    MOCK_PERMIT_CALLDATA,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
     WORKER_TEST_PRIVATE_KEY,
@@ -502,6 +504,19 @@ describe('RFQ Blockchain Utils', () => {
             };
             const calldata = await rfqBlockchainUtils.generateApprovalCalldataAsync(token, approval, signature);
             expect(calldata).to.eq(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
+        });
+
+        it.only('generates permit calldata', async () => {
+            const token = makerToken.address;
+            const approval = MOCK_PERMIT_APPROVAL;
+            const signature: Signature = {
+                r: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                s: '0x0000000000000000000000000000000000000000000000000000000000000000',
+                v: 28,
+                signatureType: 2,
+            };
+            const calldata = await rfqBlockchainUtils.generateApprovalCalldataAsync(token, approval, signature);
+            expect(calldata).to.eq(MOCK_PERMIT_CALLDATA);
         });
     });
 });
