@@ -5,6 +5,13 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.64.0 - _July 27, 2022_
+
+    * Refactor `TokenAdjacency` and `TokenAdjacencyBuilder` (#517)
+    * Add Synthetix support` (#518)
+    * Replace Beethoven X subgraph URL (#519)
+    * Remove Mooniswap on Ethereum mainnet (#529)
+
 ## v16.63.1 - _July 12, 2022_
 
     * Better error handling for balancer cache (#515)

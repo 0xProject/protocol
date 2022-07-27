@@ -9,7 +9,8 @@
                 "note": "Redeploy FQT on Mainnet and Optimism",
                 "pr": 530
             }
-        ]
+        ],
+        "timestamp": 1658950329
     },
     {
         "version": "6.16.0",

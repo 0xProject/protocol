@@ -18,7 +18,8 @@
                 "note": "Remove Mooniswap on Ethereum mainnet",
                 "pr": 529
             }
-        ]
+        ],
+        "timestamp": 1658950329
     },
     {
         "version": "16.63.1",

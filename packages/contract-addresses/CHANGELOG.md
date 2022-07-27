@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.17.0 - _July 27, 2022_
+
+    * Goerli and Mumbai
+    * Redeploy FQT on Mainnet and Optimism (#530)
+
 ## v6.16.0 - _June 14, 2022_
 
     * Redeploy FQT on Mainnet and Optimism

@@ -6,7 +6,8 @@
                 "note": "Add Synthetix support in Ethereum and Optimism bridge adapters",
                 "pr": 518
             }
-        ]
+        ],
+        "timestamp": 1658950329
     },
     {
         "version": "0.35.0",

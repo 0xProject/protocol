@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.0 - _July 27, 2022_
+
+    * Add Synthetix support` (#518)
+
 ## v11.15.0 - _June 14, 2022_
 
     * Add Velodrome support (#494)

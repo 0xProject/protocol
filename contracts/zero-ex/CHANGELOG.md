@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.36.0 - _July 27, 2022_
+
+    * Add Synthetix support in Ethereum and Optimism bridge adapters (#518)
+
 ## v0.35.0 - _June 14, 2022_
 
     * Adds support for Velodrome OptimismBridgeAdapter (#494)
