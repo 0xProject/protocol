@@ -4,6 +4,10 @@
         "changes": [
             {
                 "note": "Goerli and Mumbai"
+            },
+            {
+                "note": "Redeploy FQT on Mainnet and Optimism",
+                "pr": 530
             }
         ]
     },
