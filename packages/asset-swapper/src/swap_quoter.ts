@@ -109,7 +109,7 @@ export class SwapQuoter {
         };
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            options.ethGasStationUrl,
+            options.zeroExGasApiUrl,
         );
         // Allow the sampler bytecode to be overwritten using geths override functionality
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');

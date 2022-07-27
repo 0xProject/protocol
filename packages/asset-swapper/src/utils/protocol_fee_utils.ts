@@ -6,22 +6,29 @@ import { SwapQuoterError } from '../types';
 
 const MAX_ERROR_COUNT = 5;
 
+interface GasOracleResponse {
+    result: {
+        // gas price in wei
+        fast: number;
+    };
+}
+
 export class ProtocolFeeUtils {
     private static _instance: ProtocolFeeUtils;
-    private readonly _ethGasStationUrl!: string;
+    private readonly _zeroExGasApiUrl: string;
     private readonly _gasPriceHeart: any;
     private _gasPriceEstimation: BigNumber = constants.ZERO_AMOUNT;
     private _errorCount: number = 0;
 
     public static getInstance(
         gasPricePollingIntervalInMs: number,
-        ethGasStationUrl: string = constants.ETH_GAS_STATION_API_URL,
+        zeroExGasApiUrl: string = constants.ZERO_EX_GAS_API_URL,
         initialGasPrice: BigNumber = constants.ZERO_AMOUNT,
     ): ProtocolFeeUtils {
         if (!ProtocolFeeUtils._instance) {
             ProtocolFeeUtils._instance = new ProtocolFeeUtils(
                 gasPricePollingIntervalInMs,
-                ethGasStationUrl,
+                zeroExGasApiUrl,
                 initialGasPrice,
             );
         }
@@ -48,27 +55,21 @@ export class ProtocolFeeUtils {
 
     private constructor(
         gasPricePollingIntervalInMs: number,
-        ethGasStationUrl: string = constants.ETH_GAS_STATION_API_URL,
+        zeroExGasApiUrl: string = constants.ZERO_EX_GAS_API_URL,
         initialGasPrice: BigNumber = constants.ZERO_AMOUNT,
     ) {
         this._gasPriceHeart = heartbeats.createHeart(gasPricePollingIntervalInMs);
         this._gasPriceEstimation = initialGasPrice;
-        this._ethGasStationUrl = ethGasStationUrl;
+        this._zeroExGasApiUrl = zeroExGasApiUrl;
         this._initializeHeartBeat();
     }
 
     // tslint:disable-next-line: prefer-function-over-method
     private async _getGasPriceFromGasStationOrThrowAsync(): Promise<BigNumber> {
         try {
-            const res = await fetch(this._ethGasStationUrl);
-            const gasInfo = await res.json();
-            // Eth Gas Station result is gwei * 10
-            // tslint:disable-next-line:custom-no-magic-numbers
-            const BASE_TEN = 10;
-            const gasPriceGwei = new BigNumber(gasInfo.fast / BASE_TEN);
-            // tslint:disable-next-line:custom-no-magic-numbers
-            const unit = new BigNumber(BASE_TEN).pow(9);
-            const gasPriceWei = unit.times(gasPriceGwei);
+            const res = await fetch(this._zeroExGasApiUrl);
+            const gasInfo: GasOracleResponse = await res.json();
+            const gasPriceWei = new BigNumber(gasInfo.result.fast);
             // Reset the error count to 0 once we have a successful response
             this._errorCount = 0;
             return gasPriceWei;
