@@ -37,7 +37,6 @@ import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinLido.sol";
 import "./mixins/MixinMakerPSM.sol";
-import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinShell.sol";
@@ -64,7 +63,6 @@ contract EthereumBridgeAdapter is
     MixinKyberDmm,
     MixinLido,
     MixinMakerPSM,
-    MixinMooniswap,
     MixinMStable,
     MixinNerve,
     MixinShell,
@@ -81,7 +79,6 @@ contract EthereumBridgeAdapter is
         MixinCompound(weth)
         MixinCurve(weth)
         MixinLido(weth)
-        MixinMooniswap(weth)
         MixinUniswap(weth)
     {}
 
@@ -160,14 +157,6 @@ contract EthereumBridgeAdapter is
         } else if (protocolId == BridgeProtocols.MAKERPSM) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeMakerPsm(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        } else if (protocolId == BridgeProtocols.MOONISWAP) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeMooniswap(
                 sellToken,
                 buyToken,
                 sellAmount,

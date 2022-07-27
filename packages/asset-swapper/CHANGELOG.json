@@ -13,6 +13,10 @@
             {
                 "note": "Replace Beethoven X subgraph URL",
                 "pr": 519
+            },
+            {
+                "note": "Remove Mooniswap on Ethereum mainnet",
+                "pr": 529
             }
         ]
     },

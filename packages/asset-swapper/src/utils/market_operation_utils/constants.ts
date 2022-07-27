@@ -89,7 +89,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Bancor,
             ERC20BridgeSource.BancorV3,
             ERC20BridgeSource.MStable,
-            ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Shell,
             ERC20BridgeSource.MultiHop,
@@ -120,7 +119,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Curve,
-            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -239,7 +237,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Bancor, // FIXME: Bancor Buys not implemented in Sampler
             ERC20BridgeSource.BancorV3,
             ERC20BridgeSource.MStable,
-            ERC20BridgeSource.Mooniswap,
             ERC20BridgeSource.Shell,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.MultiHop,
@@ -270,7 +267,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Curve,
-            ERC20BridgeSource.Mooniswap,
         ]),
         [ChainId.Goerli]: new SourceFilters([
             ERC20BridgeSource.Native,
@@ -2003,7 +1999,6 @@ export const KNIGHTSWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
 
 export const MOONISWAP_REGISTRIES_BY_CHAIN_ID = valueByChainId(
     {
-        [ChainId.Mainnet]: ['0xbaf9a5d4b0052359326a6cdab54babaa3a3a9643'],
         [ChainId.BSC]: ['0xd41b24bba51fac0e4827b6f94c0d6ddeb183cd64'],
     },
     [] as string[],
@@ -2071,14 +2066,6 @@ export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
         ilkIdentifier: NULL_BYTES,
         psmAddress: NULL_ADDRESS,
     },
-);
-
-export const MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Mainnet]: '0xa2033d6ba88756ce6a87584d69dc87bda9a4f889',
-        [ChainId.Ropsten]: '0x87e0393aee0fb8c10b8653c6507c182264fe5a34',
-    },
-    NULL_ADDRESS,
 );
 
 export const BANCOR_REGISTRY_BY_CHAIN_ID = valueByChainId<string>(
