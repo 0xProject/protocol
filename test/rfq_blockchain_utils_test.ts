@@ -506,7 +506,7 @@ describe('RFQ Blockchain Utils', () => {
             expect(calldata).to.eq(MOCK_EXECUTE_META_TRANSACTION_CALLDATA);
         });
 
-        it.only('generates permit calldata', async () => {
+        it('generates permit calldata', async () => {
             const token = makerToken.address;
             const approval = MOCK_PERMIT_APPROVAL;
             const signature: Signature = {
