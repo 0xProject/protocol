@@ -190,6 +190,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -339,6 +340,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -877,6 +879,7 @@ export const PLATYPUS_AVALANCHE_POOLS = {
 export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
+        [ChainId.Avalanche]: '0x1df3009c57a8B143c6246149F00B090Bce3b8f88',
     },
     NULL_ADDRESS,
 );
@@ -2672,7 +2675,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.WOOFi]: () => 450e3,
+    [ERC20BridgeSource.WOOFi]: () => 600e3,
 
     //
     // Polygon
