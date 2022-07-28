@@ -32,7 +32,7 @@
         "start:service:processor": "node -r dotenv/config lib/src/runners/background/processor_runner.js",
         "start:service:bull_board": "node -r dotenv/config lib/src/runners/background/bull_board_runner.js",
         "start": "node -r dotenv/config lib/src/index.js",
-        "test": "jest --forceExit --runInBand",
+        "test": "NODE_OPTIONS=--max-old-space-size=4096 jest --forceExit --runInBand",
         "watch": "tsc -w -p tsconfig.json"
     },
     "config": {
