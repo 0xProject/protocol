@@ -5,7 +5,11 @@ import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities';
-import { RfqmTransactionSubmissionType } from '../../src/entities/types';
+import {
+    RfqmTransactionSubmissionStatus,
+    RfqmTransactionSubmissionType,
+    SubmissionContextStatus,
+} from '../../src/entities/types';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { SubmissionContext } from '../../src/utils/SubmissionContext';
 
@@ -417,6 +421,78 @@ describe('SubmissionContext', () => {
                 const currentBlock = 103;
 
                 expect(SubmissionContext.isBlockConfirmed(currentBlock, receiptBlock)).to.equal(true);
+            });
+        });
+
+        describe('submissionContextStatus', () => {
+            it('should return `PendingSubmitted` if none of the transactions is resolved', async () => {
+                const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                    type: RfqmTransactionSubmissionType.Trade,
+                    transactionHash: '0x1',
+                    from: '0xfrom',
+                    to: '0xto',
+                    orderHash: '0xOrderhash',
+                    nonce: 0,
+                    maxFeePerGas: new BigNumber(1),
+                    maxPriorityFeePerGas: new BigNumber(1),
+                    status: RfqmTransactionSubmissionStatus.Submitted,
+                });
+
+                const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                    type: RfqmTransactionSubmissionType.Trade,
+                    transactionHash: '0x2',
+                    from: '0xfrom',
+                    to: '0xto',
+                    orderHash: '0xOrderhash',
+                    nonce: 0,
+                    maxFeePerGas: new BigNumber(1),
+                    maxPriorityFeePerGas: new BigNumber(1),
+                    status: RfqmTransactionSubmissionStatus.Submitted,
+                });
+
+                const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                    transaction1,
+                    transaction2,
+                ]);
+
+                expect(submissionContext.submissionContextStatus).to.deep.equal(
+                    SubmissionContextStatus.PendingSubmitted,
+                );
+            });
+
+            it('should return the correct status if one of the transactions is resolved', async () => {
+                const transaction1 = new RfqmV2TransactionSubmissionEntity({
+                    type: RfqmTransactionSubmissionType.Trade,
+                    transactionHash: '0x1',
+                    from: '0xfrom',
+                    to: '0xto',
+                    orderHash: '0xOrderhash',
+                    nonce: 0,
+                    maxFeePerGas: new BigNumber(1),
+                    maxPriorityFeePerGas: new BigNumber(1),
+                    status: RfqmTransactionSubmissionStatus.Submitted,
+                });
+
+                const transaction2 = new RfqmV2TransactionSubmissionEntity({
+                    type: RfqmTransactionSubmissionType.Trade,
+                    transactionHash: '0x2',
+                    from: '0xfrom',
+                    to: '0xto',
+                    orderHash: '0xOrderhash',
+                    nonce: 0,
+                    maxFeePerGas: new BigNumber(1),
+                    maxPriorityFeePerGas: new BigNumber(1),
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                });
+
+                const submissionContext = new SubmissionContext(instance(mockBlockchainUtils), [
+                    transaction1,
+                    transaction2,
+                ]);
+
+                expect(submissionContext.submissionContextStatus).to.deep.equal(
+                    SubmissionContextStatus.SucceededConfirmed,
+                );
             });
         });
     });

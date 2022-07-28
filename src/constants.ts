@@ -79,3 +79,7 @@ export const PERMIT_EIP_712_TYPES = {
         { name: 'deadline', type: 'uint256' },
     ],
 };
+
+// Default buffer for gas estimation returned by `eth_estimateGas`. For example, 0.5 means to
+// add a 50% buffer.
+export const GAS_ESTIMATE_BUFFER = 0.5;

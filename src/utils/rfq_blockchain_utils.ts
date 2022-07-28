@@ -225,17 +225,11 @@ export class RfqBlockchainUtils {
                 to,
                 data: calldata,
             });
-        } catch (err) {
-            logger.error(
-                {
-                    to,
-                    calldata,
-                    errorMessage: err.message,
-                    stack: err.stack,
-                },
-                'validation failed',
-            );
-            throw err;
+        } catch (e) {
+            if (e instanceof Error) {
+                e.message = `simulateTransactionAsync: ${e.message}`;
+            }
+            throw e;
         }
     }
 
@@ -351,6 +345,26 @@ export class RfqBlockchainUtils {
     }
 
     /**
+     * Generalized version for `estimateGasForExchangeProxyCallAsync`.
+     * Estimate gas (in wei) given a transaction request using `eth_estimateGas` JSON RPC method.
+     * The transaction request contains information related to the transaction (from, to, data, etc.).
+     *
+     * @param transactionRequest Transaction request object which contains information about the transaction.
+     * @returns The gas estimate for the transaction in wei.
+     */
+    public async estimateGasForAsync(transactionRequest: providers.TransactionRequest): Promise<number> {
+        try {
+            const gasEstimate = await this._ethersProvider.estimateGas(transactionRequest);
+            return gasEstimate.toNumber();
+        } catch (e) {
+            if (e instanceof Error) {
+                e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
+            }
+            throw e;
+        }
+    }
+
+    /**
      * Estimates the gas of a transaction to the 0x exchange proxy
      * specified by the address in the `RfqBlockchainUtils` constructor.
      * Uses the provider to call the `eth_estimateGas` JSON RPC method,
@@ -382,6 +396,48 @@ export class RfqBlockchainUtils {
             if (e instanceof Error) {
                 e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
             }
+            throw e;
+        }
+    }
+
+    /**
+     * Generalized version for `createAccessListForExchangeProxyCallAsync`.
+     * Get the access list and the gas estimation given a transaction request. Uses the provider
+     * to call the `eth_createAccessList` JSON RPC method.
+     *
+     * The transaction request contains information related to the transaction (from, to, data, etc.).
+     * Note that the implementation is similar to the one in @0x/web3-wrapper. This repo is
+     * migrating away from web3-wrapper in favor of ethers. The original implementation in
+     * web3-wrapper:
+     * https://github.com/0xProject/tools/blob/development/web3-wrapper/src/web3_wrapper.ts#L591
+     *
+     * @param transactionRequest Transaction request object which contains information about the transaction.
+     * @returns A TxAccessListWithGas object which contains access list and gas estimation for the transaction.
+     */
+    public async createAccessListForAsync(
+        transactionRequest: providers.TransactionRequest,
+    ): Promise<{ accessList: TxAccessList; gasEstimate: number }> {
+        try {
+            const rawResult = await this._ethersProvider.send('eth_createAccessList', [transactionRequest]);
+            const accessList: AccessList = rawResult.accessList;
+            const gasUsed: string = rawResult.gasUsed;
+
+            return {
+                // The type for `accessList` is `AccessList` (Array<{ address: string, storageKeys: Array<string> }>).
+                // The reduce operation is used to transform the array into type `TxAccessList` ([address: string]: string[]) whose keys
+                // are addresses and values are corresponding storage keys. This is useful if we need to remove an address from the object.
+                accessList: accessList.reduce((o: TxAccessList, v: { address: string; storageKeys: string[] }) => {
+                    o[v.address] = o[v.address] || [];
+                    o[v.address].push(...(v.storageKeys || []));
+                    return o;
+                }, {}),
+                gasEstimate: new BigNumber(gasUsed).toNumber(),
+            };
+        } catch (e) {
+            if (e instanceof Error) {
+                e.message = `createAccessListForExchangeProxyCallAsync: ${e.message}`;
+            }
+
             throw e;
         }
     }

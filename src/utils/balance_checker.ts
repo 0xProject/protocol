@@ -31,6 +31,7 @@ export class BalanceChecker {
      *
      * @param addresses - an array of addresses
      * @param tokens - an array of tokens
+     * @param allowanceTarget - Target address to check for allowance.
      * @returns - an array of BigNumbers
      */
     public async getMinOfBalancesAndAllowancesAsync(

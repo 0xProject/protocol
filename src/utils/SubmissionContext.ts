@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
 import { RfqmV2TransactionSubmissionEntity } from '../entities';
-import { RfqmJobStatus, RfqmTransactionSubmissionStatus } from '../entities/types';
+import { RfqmJobStatus, RfqmTransactionSubmissionStatus, SubmissionContextStatus } from '../entities/types';
 import { BLOCK_FINALITY_THRESHOLD } from '../services/rfqm_service';
 
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
@@ -31,6 +31,64 @@ export class SubmissionContext {
         // We specify a finality threshold of n blocks deep to have greater confidence
         // in the transaction receipt
         return currentBlock - receiptBlockNumber >= BLOCK_FINALITY_THRESHOLD;
+    }
+
+    /**
+     * Get corresponding job status given status of submission context for `RfqmTransactionSubmissionType.Approval`.
+     * Different submission context status would trigger different job status transition.
+     *
+     * @returns Corresponding job status.
+     */
+    public static approvalSubmissionContextStatusToJobStatus(
+        submissionContextStatus: SubmissionContextStatus,
+    ): RfqmJobStatus {
+        switch (submissionContextStatus) {
+            case SubmissionContextStatus.FailedExpired:
+                return RfqmJobStatus.FailedExpired;
+            case SubmissionContextStatus.FailedRevertedConfirmed:
+                return RfqmJobStatus.FailedRevertedConfirmed;
+            case SubmissionContextStatus.FailedRevertedUnconfirmed:
+                return RfqmJobStatus.FailedRevertedUnconfirmed;
+            case SubmissionContextStatus.PendingSubmitted:
+            case SubmissionContextStatus.SucceededConfirmed:
+            case SubmissionContextStatus.SucceededUnconfirmed:
+                // For the first version of gasless approval, a successful approval submission
+                // would still keep the job in pending submitted status
+                return RfqmJobStatus.PendingSubmitted;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(submissionContextStatus);
+        }
+    }
+
+    /**
+     * Get corresponding job status given status of submission context for `RfqmTransactionSubmissionType.Trade`.
+     * Different submission context status would trigger different job status transition.
+     *
+     * @param submissionContextStatus Status of submission context.
+     */
+    public static tradeSubmissionContextStatusToJobStatus(
+        submissionContextStatus: SubmissionContextStatus,
+    ): RfqmJobStatus {
+        switch (submissionContextStatus) {
+            case SubmissionContextStatus.FailedExpired:
+                return RfqmJobStatus.FailedExpired;
+            case SubmissionContextStatus.FailedRevertedConfirmed:
+                return RfqmJobStatus.FailedRevertedConfirmed;
+            case SubmissionContextStatus.FailedRevertedUnconfirmed:
+                return RfqmJobStatus.FailedRevertedUnconfirmed;
+            case SubmissionContextStatus.PendingSubmitted:
+                return RfqmJobStatus.PendingSubmitted;
+            case SubmissionContextStatus.SucceededConfirmed:
+                return RfqmJobStatus.SucceededConfirmed;
+            case SubmissionContextStatus.SucceededUnconfirmed:
+                return RfqmJobStatus.SucceededUnconfirmed;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(submissionContextStatus);
+        }
     }
 
     constructor(blockchainUtils: RfqBlockchainUtils, transactions: RfqmV2TransactionSubmissionEntity[]) {
@@ -196,6 +254,39 @@ export class SubmissionContext {
             }
         }
         return RfqmJobStatus.PendingSubmitted;
+    }
+
+    /**
+     * Returns the submission context status given the statuses of the transactions. A submission context contains
+     * multiple transactions and the submission context status is the collective status for all transactions.
+     */
+    public get submissionContextStatus():
+        | SubmissionContextStatus.PendingSubmitted
+        | SubmissionContextStatus.FailedRevertedConfirmed
+        | SubmissionContextStatus.FailedRevertedUnconfirmed
+        | SubmissionContextStatus.SucceededConfirmed
+        | SubmissionContextStatus.SucceededUnconfirmed {
+        for (const transaction of this._transactions) {
+            switch (transaction.status) {
+                case RfqmTransactionSubmissionStatus.DroppedAndReplaced:
+                    continue;
+                case RfqmTransactionSubmissionStatus.Presubmit:
+                    continue;
+                case RfqmTransactionSubmissionStatus.RevertedConfirmed:
+                    return SubmissionContextStatus.FailedRevertedConfirmed;
+                case RfqmTransactionSubmissionStatus.RevertedUnconfirmed:
+                    return SubmissionContextStatus.FailedRevertedUnconfirmed;
+                case RfqmTransactionSubmissionStatus.Submitted:
+                    continue;
+                case RfqmTransactionSubmissionStatus.SucceededConfirmed:
+                    return SubmissionContextStatus.SucceededConfirmed;
+                case RfqmTransactionSubmissionStatus.SucceededUnconfirmed:
+                    return SubmissionContextStatus.SucceededUnconfirmed;
+                default:
+                    throw new Error(`Transaction status ${transaction.status} should not be reached`);
+            }
+        }
+        return SubmissionContextStatus.PendingSubmitted;
     }
 
     /**

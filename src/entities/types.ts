@@ -104,6 +104,20 @@ export enum RfqmTransactionSubmissionStatus {
     SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
+/**
+ * `SubmissionContext` contains multiple submissions with different gas prices. `SubmissionContextStatus`
+ * is the collective status of all submissions contained within the submission context. It marks the final result of a
+ * submission action which may contain several submission attempts.
+ */
+export enum SubmissionContextStatus {
+    FailedExpired = 'failed_expired',
+    FailedRevertedConfirmed = 'failed_reverted_confirmed',
+    FailedRevertedUnconfirmed = 'failed_reverted_unconfirmed',
+    PendingSubmitted = 'pending_submitted',
+    SucceededConfirmed = 'succeeded_confirmed',
+    SucceededUnconfirmed = 'succeeded_unconfirmed',
+}
+
 export interface StoredFee {
     token: string;
     amount: string;

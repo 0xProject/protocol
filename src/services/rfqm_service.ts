@@ -22,6 +22,7 @@ import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX } from '../config'
 import {
     ETH_DECIMALS,
     EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+    GAS_ESTIMATE_BUFFER,
     GWEI_DECIMALS,
     NULL_ADDRESS,
     ONE_MINUTE_S,
@@ -32,7 +33,12 @@ import {
 } from '../constants';
 import { RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../entities/types';
+import {
+    RfqmJobStatus,
+    RfqmTransactionSubmissionStatus,
+    RfqmTransactionSubmissionType,
+    SubmissionContextStatus,
+} from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import { Approval, EIP712Context, EIP712DataField, FirmOtcQuote, IndicativeQuote } from '../types';
@@ -1108,19 +1114,28 @@ export class RfqmService {
             job.workerAddress = workerAddress;
             await this._dbUtils.updateRfqmJobAsync(job);
 
-            let calldata: string;
+            if (job.approval) {
+                // approval and trade workflow
+                await this.processApprovalAndTradeAsync(job, workerAddress);
+            } else {
+                // trade only workflow
+                // TODO: Use `prepareTradeAsync` and `submitToChainAsync` when gasless approval
+                //       feature is verfied and stablized. The logic here is intentionally
+                //       unchanged as we don't want to change existing flow.
+                let calldata: string;
 
-            const prepareV2JobResult = await this.prepareV2JobAsync(job, workerAddress);
-            job = prepareV2JobResult.job;
-            calldata = prepareV2JobResult.calldata;
-            // Step 3: Send to blockchain
-            const finalStatus = await this.submitJobToChainAsync(job, workerAddress, calldata);
+                const prepareV2JobResult = await this.prepareV2JobAsync(job, workerAddress);
+                job = prepareV2JobResult.job;
+                calldata = prepareV2JobResult.calldata;
+                // Step 3: Send to blockchain
+                const finalStatus = await this.submitJobToChainAsync(job, workerAddress, calldata);
 
-            // Step 4: Close out job
-            job.status = finalStatus;
-            await this._dbUtils.updateRfqmJobAsync(job);
-            if (finalStatus === RfqmJobStatus.FailedExpired) {
-                throw new Error('Job expired');
+                // Step 4: Close out job
+                job.status = finalStatus;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                if (finalStatus === RfqmJobStatus.FailedExpired) {
+                    throw new Error('Job expired');
+                }
             }
             logger.info({ orderHash, workerAddress }, 'Job completed without errors');
             RFQM_JOB_COMPLETED.labels(workerAddress, this._chainId.toString()).inc();
@@ -1130,6 +1145,172 @@ export class RfqmService {
         } finally {
             timerStopFunction();
         }
+    }
+
+    /**
+     * Process approval (gasless approval) and trade (swap with the 0x exchange proxy) submissions. For the first version,
+     * they will be processed SEQUENTIALLY. In the future, we want to send the two transaction in parallel.
+     * The reason we can't parallelize the submissions is both function would modify job.status.
+     *
+     * The method would:
+     * 1. Perform preliminary check on the job object (and updates job status to `PendingProcessing`)
+     * 2. Getting the market maker signature
+     * 3. Prepare approval
+     * 4. Submit approval
+     * 5. Wait until the approval transaction is successfully confirmed
+     * 6. Prepare trade (since the method has already got the market maker signature, it's not performed here)
+     * 7. Submit trade
+     */
+    public async processApprovalAndTradeAsync(job: RfqmV2JobEntity, workerAddress: string): Promise<void> {
+        const { approval, approvalSignature } = job;
+        if (!approval || !approvalSignature) {
+            throw new Error('Non-approval job should not be processed by `processApprovalAndTradeAsync`');
+        }
+
+        // Perform preliminary check and last look
+        await this.checkJobPreprocessingAsync(job);
+        await this.checkLastLookAsync(job, workerAddress, false);
+
+        const tokenToApprove = job.order.order.takerToken;
+        const approvalCalldata = await this.prepareApprovalAsync(job, tokenToApprove, approval, approvalSignature);
+        const approvalStatus = await this.submitToChainAsync({
+            to: tokenToApprove,
+            from: workerAddress,
+            calldata: approvalCalldata,
+            expiry: job.expiry,
+            orderHash: job.orderHash,
+            submissionType: RfqmTransactionSubmissionType.Approval,
+            onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
+                job,
+                RfqmTransactionSubmissionType.Approval,
+            ),
+        });
+
+        // Prepare and submit trade only if approval transaction is successful
+        if (approvalStatus === SubmissionContextStatus.SucceededConfirmed) {
+            const tradeCalldata = await this.prepareTradeAsync(job, workerAddress, false);
+            await this.submitToChainAsync({
+                to: this._blockchainUtils.getExchangeProxyAddress(),
+                from: workerAddress,
+                calldata: tradeCalldata,
+                expiry: job.expiry,
+                orderHash: job.orderHash,
+                submissionType: RfqmTransactionSubmissionType.Trade,
+                onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
+                    job,
+                    RfqmTransactionSubmissionType.Trade,
+                ),
+            });
+        }
+    }
+
+    /**
+     * Perform preliminary checks on a job before processing.
+     *
+     * The method would:
+     * 1. Call `RfqmService.validateJob` and check result. If there is an error, update the job status and throw exception
+     * 2. Make sure job.takerSignature is present or throw exception
+     * 3. Update job status to `PendingProcessing` if current status is `PendingEnqueued`
+     */
+    public async checkJobPreprocessingAsync(job: RfqmV2JobEntity, now: Date = new Date()): Promise<void> {
+        const { orderHash, takerSignature } = job;
+        const errorStatus = RfqmService.validateJob(job, now);
+        if (errorStatus !== null) {
+            job.status = errorStatus;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
+            if (errorStatus === RfqmJobStatus.FailedExpired) {
+                RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
+            }
+            logger.error({ orderHash, errorStatus }, 'Job failed validation');
+            throw new Error('Job failed validation');
+        }
+
+        // Existence of taker signature has already been checked by
+        // `RfqmService.validateJob(job)`. Refine the type.
+        if (!takerSignature) {
+            throw new Error('No taker signature present');
+        }
+
+        if (job.status === RfqmJobStatus.PendingEnqueued) {
+            job.status = RfqmJobStatus.PendingProcessing;
+            await this._dbUtils.updateRfqmJobAsync(job);
+        }
+    }
+
+    /**
+     * Prepares an RfqmV2 Job for approval submission by validatidating the job and constructing
+     * the calldata.
+     *
+     * Note that `job.status` would be modified to `FailedEthCallFailed` if transaction simulation failed.
+     *
+     * Handles retries of retryable errors. Throws for unretriable errors. Updates job in database.
+     *
+     * @returns The generated calldata for approval submission type.
+     * @throws If the approval cannot be submitted (e.g. it is expired).
+     */
+    public async prepareApprovalAsync(
+        job: RfqmV2JobEntity,
+        tokenToApprove: string,
+        approval: Approval,
+        siganature: Signature,
+    ): Promise<string> {
+        const { orderHash } = job;
+        const calldata = await this._blockchainUtils.generateApprovalCalldataAsync(
+            tokenToApprove,
+            approval,
+            siganature,
+        );
+        // Check to see if we have already submitted an approval transaction for this job. If we have, the job has already
+        // been checked and we can skip `eth_call` validation.
+        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+            job.orderHash,
+            RfqmTransactionSubmissionType.Approval,
+        );
+        if (transactionSubmissions.length) {
+            if (!job.makerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no maker signature');
+            }
+            if (!job.takerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no taker signature');
+            }
+
+            return calldata;
+        }
+
+        // Simulate the transaction
+        try {
+            await retry(
+                async () => {
+                    return this._blockchainUtils.simulateTransactionAsync(tokenToApprove, calldata);
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            { attemptNumber, attemptsRemaining, errorMessage: error.message, stack: error.stack },
+                            'Error during eth_call approval validation. Retrying.',
+                        );
+                    },
+                },
+            );
+        } catch (error) {
+            job.status = RfqmJobStatus.FailedEthCallFailed;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
+            logger.error(
+                { orderHash, errorMessage: error.message, stack: error.stack },
+                'eth_call approval validation failed',
+            );
+            throw new Error('Eth call approval validation failed');
+        }
+
+        return calldata;
     }
 
     /**
@@ -1730,6 +1911,692 @@ export class RfqmService {
     }
 
     /**
+     * Prepares an RfqmV2 Job for trade submission by validatidating the job, obtaining the
+     * market maker signature, and constructing the calldata.
+     *
+     * Note that `job.status` would be modified to corresponding status. For example, if maker signature
+     * is not valid, `job.status` would be set to `FailedSignFailed`.
+     *
+     * `shouldCheckLastLook` determines if the preliminary job check and getting market maker sigature
+     * would be performed and is default to `true`.
+     *
+     * Handles retries of retryable errors. Throws for unretriable errors, and logs
+     * ONLY IF the log needs more information than the orderHash and workerAddress,
+     * which are logged by the `processJobAsync` routine.
+     * Updates job in database.
+     *
+     * @returns The generated calldata for trade submission type.
+     * @throws If the trade cannot be submitted (e.g. it is expired).
+     */
+    public async prepareTradeAsync(
+        job: RfqmV2JobEntity,
+        workerAddress: string,
+        shouldCheckLastLook: boolean = true,
+        now: Date = new Date(),
+    ): Promise<string> {
+        /**
+         * Ask: This is the probably the only change I made to the old trade only workflow. To change from making a copy of parameter
+         * and then returning the copied value to change parameter value directly. The rationale behind is to make the style consistent
+         * with the new generalized `submitToChainAsync` (it has to use changing parameter value paradigm in order to work). Let me know
+         * if you don't like this change.
+         */
+        const { makerUri, order, orderHash } = job;
+        const otcOrder = storedOtcOrderToOtcOrder(order);
+
+        // Check to see if we have already submitted a transaction for this job.
+        // If we have, the job is already prepared and we can skip ahead.
+        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(job.orderHash);
+        if (transactionSubmissions.length) {
+            if (!job.makerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no maker signature');
+            }
+            if (!job.takerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no taker signature');
+            }
+            const existingSubmissionCalldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
+                otcOrder,
+                job.makerSignature,
+                job.takerSignature,
+                job.isUnwrap,
+                job.affiliateAddress,
+            );
+            return existingSubmissionCalldata;
+        }
+
+        if (shouldCheckLastLook) {
+            // Perform the preliminary job check and getting market maker sigature
+            await this.checkJobPreprocessingAsync(job, now);
+            await this.checkLastLookAsync(job, workerAddress, true);
+        }
+
+        // Maker signature must already be defined here -- refine the type
+        if (!job.makerSignature) {
+            throw new Error('Maker signature does not exist');
+        }
+        // Taker signature must already be defined here -- refine the type
+        if (!job.takerSignature) {
+            throw new Error('Taker signature does not exist');
+        }
+
+        // Verify the signer was the maker
+        const signerAddress = getSignerFromHash(orderHash, job.makerSignature!).toLowerCase();
+        const makerAddress = order.order.maker.toLowerCase();
+        if (signerAddress !== makerAddress) {
+            logger.info({ signerAddress, makerAddress, orderHash, makerUri }, 'Possible use of smart contract wallet');
+            const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
+            if (!isValidSigner) {
+                job.status = RfqmJobStatus.FailedSignFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Invalid order signer address');
+            }
+        }
+
+        // Generate the calldata
+        const calldata = this._blockchainUtils.generateTakerSignedOtcOrderCallData(
+            otcOrder,
+            job.makerSignature,
+            job.takerSignature,
+            job.isUnwrap,
+            job.affiliateAddress,
+        );
+
+        // With the Market Maker signature, execute a full eth_call to validate the
+        // transaction via `estimateGasForFillTakerSignedOtcOrderAsync`
+        try {
+            await retry(
+                async () => {
+                    // Maker signature must already be defined here -- refine the type
+                    if (!job.makerSignature) {
+                        throw new Error('Maker signature does not exist');
+                    }
+                    // Taker signature must already be defined here -- refine the type
+                    if (!job.takerSignature) {
+                        throw new Error('Taker signature does not exist');
+                    }
+
+                    return this._blockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
+                        otcOrder,
+                        job.makerSignature,
+                        job.takerSignature,
+                        workerAddress,
+                        job.isUnwrap,
+                    );
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
+                            'Error during eth_call validation. Retrying.',
+                        );
+                    },
+                },
+            );
+        } catch (error) {
+            job.status = RfqmJobStatus.FailedEthCallFailed;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
+            logger.error({ orderHash, error: error.message }, 'eth_call validation failed');
+
+            // Attempt to gather extra context upon eth_call failure
+            try {
+                const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
+                    [otcOrder.maker, otcOrder.taker],
+                    [otcOrder.makerToken, otcOrder.takerToken],
+                );
+                const blockNumber = await this._blockchainUtils.getCurrentBlockAsync();
+                logger.info(
+                    {
+                        makerBalance,
+                        takerBalance,
+                        calldata,
+                        blockNumber,
+                        orderHash,
+                        order: otcOrder,
+                        bucket: otcOrder.nonceBucket,
+                        nonce: otcOrder.nonce,
+                    },
+                    'Extra context after eth_call validation failed',
+                );
+            } catch (error) {
+                logger.warn({ orderHash }, 'Failed to get extra context after eth_call validation failed');
+            }
+            throw new Error('Eth call validation failed');
+        }
+
+        return calldata;
+    }
+
+    /**
+     * Check last look by getting market maker signature. Handles retries when making request to market maker servers.
+     *
+     * When verifying the order is fillable by both the maker and the taker:
+     * - If `shouldCheckAllowance` is false, the method would only check balances but not the allowances the maker and
+     *   the taker set for 0x exchange proxy because the taker allowance will not be set when `checkLastLookAsync` is called as we
+     *   want to call this method as soon as possible to mitigate the latency brought by sequential submissions
+     *   (which would lead to higher decline to sign rate).
+     * - Otherwise, both balances and allowances would be checked.
+     */
+    public async checkLastLookAsync(
+        job: RfqmV2JobEntity,
+        workerAddress: string,
+        shouldCheckAllowance: boolean,
+    ): Promise<void> {
+        const { makerUri, order, orderHash, takerSignature } = job;
+        const otcOrder = storedOtcOrderToOtcOrder(order);
+        let { makerSignature } = job;
+
+        if (makerSignature) {
+            // Market Maker had already signed order
+            logger.info({ workerAddress, orderHash }, 'Order already signed');
+        } else {
+            // validate that order is fillable by both the maker and the taker according to balances (and allowances
+            // when `shouldCheckAllowance` is true)
+            let makerBalance: BigNumber;
+            let takerBalance: BigNumber;
+            if (shouldCheckAllowance) {
+                [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
+                    [otcOrder.maker, otcOrder.taker],
+                    [otcOrder.makerToken, otcOrder.takerToken],
+                );
+            } else {
+                [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
+                    [otcOrder.maker, otcOrder.taker],
+                    [otcOrder.makerToken, otcOrder.takerToken],
+                );
+            }
+
+            if (makerBalance.lt(otcOrder.makerAmount) || takerBalance.lt(otcOrder.takerAmount)) {
+                logger.error(
+                    {
+                        orderHash,
+                        makerBalance,
+                        takerBalance,
+                        makerAmount: otcOrder.makerAmount,
+                        takerAmount: otcOrder.takerAmount,
+                    },
+                    'Order failed pre-sign validation',
+                );
+                job.status = RfqmJobStatus.FailedPresignValidationFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Order failed pre-sign validation');
+            }
+
+            if (!takerSignature) {
+                logger.error('Order failed pre-sign validation due to empty takerSignature');
+                job.status = RfqmJobStatus.FailedPresignValidationFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Order failed pre-sign validation due to empty takerSignature');
+            }
+
+            const signRequest: SignRequest = {
+                expiry: job.expiry,
+                fee: storedFeeToFee(job.fee),
+                order: otcOrder,
+                orderHash,
+                takerSignature,
+            };
+
+            // "Last Look" in v1 is replaced by market maker order signing in v2.
+            const signAttemptTimeMs = Date.now();
+            try {
+                makerSignature = await retry(
+                    async () =>
+                        this._quoteServerClient
+                            .signV2Async(makerUri, job.integratorId ?? '', signRequest)
+                            .then((s) => s ?? null),
+                    {
+                        delay: ONE_SECOND_MS,
+                        factor: 2,
+                        maxAttempts: 3,
+                        handleError: (error, context, _options) => {
+                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                            logger.warn(
+                                { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
+                                'Error encountered while attempting to get market maker signature',
+                            );
+                        },
+                    },
+                );
+            } catch (error) {
+                // The sign process has failed after retries
+                RFQM_JOB_FAILED_MM_SIGNATURE_FAILED.labels(makerUri, this._chainId.toString()).inc();
+                logger.error(
+                    { orderHash, makerUri, error: error.message },
+                    'RFQM v2 job failed due to market maker sign failure',
+                );
+                job.status = RfqmJobStatus.FailedSignFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Job failed during market maker sign attempt');
+            }
+
+            logger.info({ makerUri, signed: !!makerSignature, orderHash }, 'Got signature response from market maker');
+
+            if (!makerSignature) {
+                // Market Maker has declined to sign the transaction
+                RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri, this._chainId.toString()).inc();
+                job.lastLookResult = false;
+                job.status = RfqmJobStatus.FailedLastLookDeclined;
+                await this._dbUtils.updateRfqmJobAsync(job);
+
+                // We'd like some data on how much the price the market maker is offering
+                // has changed. We query the market maker's price endpoint with the same
+                // trade they've just declined to sign and log the result.
+                try {
+                    const declineToSignPriceCheckTimeMs = Date.now();
+                    const otcOrderParams = QuoteServerClient.makeQueryParameters({
+                        chainId: this._chainId,
+                        txOrigin: this._registryAddress,
+                        takerAddress: otcOrder.taker,
+                        marketOperation: MarketOperation.Sell,
+                        buyTokenAddress: otcOrder.makerToken,
+                        sellTokenAddress: otcOrder.takerToken,
+                        assetFillAmount: otcOrder.takerAmount,
+                        isLastLook: true,
+                        fee: storedFeeToFee(job.fee),
+                    });
+                    // Instead of adding a dependency to `ConfigManager` to get the actual integrator
+                    // (we only have the ID at this point), just create a stand-in.
+                    // This will send the same integrator ID to the market maker; they will not be
+                    // able to tell the difference.
+                    // `logRfqMakerNetworkInteraction` does use the `label`, however, but I think the
+                    // tradeoff is reasonable.
+                    const integrator: Integrator = {
+                        apiKeys: [],
+                        integratorId: job.integratorId!,
+                        allowedChainIds: [this._chainId],
+                        label: 'decline-to-sign-price-check',
+                        plp: true,
+                        rfqm: true,
+                        rfqt: true,
+                    };
+                    const priceResponse = await this._quoteServerClient.getPriceV2Async(
+                        job.makerUri,
+                        integrator,
+                        otcOrderParams,
+                        (u: string) => `${u}/rfqm/v2/price`,
+                    );
+                    if (!priceResponse) {
+                        throw new Error('Failed to get a price response');
+                    }
+                    const { makerAmount: priceCheckMakerAmount, takerAmount: priceCheckTakerAmount } = priceResponse;
+                    const originalPrice = otcOrder.makerAmount.dividedBy(priceCheckTakerAmount);
+                    const priceAfterReject = priceCheckMakerAmount.dividedBy(priceCheckTakerAmount);
+                    const bipsFactor = 10000;
+                    const priceDifferenceBips = originalPrice
+                        .minus(priceAfterReject)
+                        .dividedBy(originalPrice)
+                        .absoluteValue()
+                        .times(bipsFactor)
+                        .toPrecision(1);
+                    // The time, in seconds, between when we initiated the sign attempt and when we
+                    // initiated the price check after the maker declined to sign.
+                    const priceCheckDelayS = (declineToSignPriceCheckTimeMs - signAttemptTimeMs) / ONE_SECOND_MS;
+                    logger.info(
+                        {
+                            orderHash,
+                            originalPrice: originalPrice.toNumber(),
+                            priceAfterReject: priceAfterReject.toNumber(),
+                            priceCheckDelayS,
+                            priceDifferenceBips,
+                        },
+                        'Decline to sign price check',
+                    );
+                    try {
+                        job.llRejectPriceDifferenceBps = parseInt(priceDifferenceBips, 10);
+                        await this._dbUtils.updateRfqmJobAsync(job);
+                    } catch (e) {
+                        logger.warn({ orderHash, errorMessage: e.message }, 'Saving LL reject price difference failed');
+                    }
+                } catch (error) {
+                    logger.warn(
+                        { errorMessage: error.message },
+                        'Encountered error during decline to sign price check',
+                    );
+                }
+                throw new Error('Market Maker declined to sign');
+            }
+
+            // Certain market makers are returning signature components which are missing
+            // leading bytes. Add them if they don't exist.
+            const paddedSignature = padSignature(makerSignature);
+            if (paddedSignature.r !== makerSignature.r || paddedSignature.s !== makerSignature.s) {
+                logger.warn(
+                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                    'Got market maker signature with missing bytes',
+                );
+                makerSignature = paddedSignature;
+            }
+
+            job.makerSignature = paddedSignature;
+            job.lastLookResult = true;
+            job.status = RfqmJobStatus.PendingLastLookAccepted;
+            await this._dbUtils.updateRfqmJobAsync(job);
+        }
+
+        // Maker signature must already be defined here -- refine the type
+        if (!makerSignature) {
+            throw new Error('Maker signature does not exist');
+        }
+
+        // Verify the signer was the maker
+        const signerAddress = getSignerFromHash(orderHash, makerSignature!).toLowerCase();
+        const makerAddress = order.order.maker.toLowerCase();
+        if (signerAddress !== makerAddress) {
+            logger.info({ signerAddress, makerAddress, orderHash, makerUri }, 'Possible use of smart contract wallet');
+            const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(makerAddress, signerAddress);
+            if (!isValidSigner) {
+                job.status = RfqmJobStatus.FailedSignFailed;
+                await this._dbUtils.updateRfqmJobAsync(job);
+                throw new Error('Invalid order signer address');
+            }
+        }
+    }
+
+    /**
+     * Submits a specific type of submission to the blockchain.
+     *
+     * First checks to see if there are previous transactions with the submission type and enters the
+     * watch loop; if not, submits an initial transaction and enters the watch loop.
+     *
+     * During the watch loop, waits for a transaction to be mined and confirmed;
+     * replaces the transaction if gas prices rise while a transactions are in the mempool.
+     *
+     * @param opts Options object that contains:
+     *        - `to`: The address to send to.
+     *        - `from`: The address submitting the transaction (usually the worker address).
+     *        - `calldata`: Calldata to submit.
+     *        - `expiry`: Exiry before the submission is considered invalid.
+     *        - `orderHash`: The hash of the order.
+     *        - `submissionType`: The type of submission.
+     *        - `onSubmissionContextStatusUpdate`: Callback to perform appropriate actions when the submission context statuses change.
+     *        - `now`: The current time.
+     * @returns FailedRevertedConfirmed or SucceededConfirmed.
+     * @throws Submission context status is FailedExpired or unhandled exceptions.
+     */
+    public async submitToChainAsync(opts: {
+        to: string;
+        from: string;
+        calldata: string;
+        expiry: BigNumber;
+        orderHash: string;
+        submissionType: RfqmTransactionSubmissionType;
+        onSubmissionContextStatusUpdate: (
+            newSubmissionContextStatus: SubmissionContextStatus,
+            oldSubmissionContextStatus?: SubmissionContextStatus,
+        ) => Promise<void>;
+    }): Promise<SubmissionContextStatus.FailedRevertedConfirmed | SubmissionContextStatus.SucceededConfirmed> {
+        const { to, from, calldata, expiry, orderHash, submissionType, onSubmissionContextStatusUpdate } = opts;
+        const previousSubmissionsWithPresubmits = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+            orderHash,
+            submissionType,
+        );
+
+        const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
+
+        const gasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+
+        // For the first submission, we use the "fast" gas estimate to approximate the base fee.
+        // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
+        // The `maxFeePerGas` is 2x the base fee (plus priority tip). Since we don't have a
+        // handy oracle for the en vogue priorty fee we start with 2 gwei and work up from there.
+        const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
+            Math.pow(10, GWEI_DECIMALS),
+        );
+
+        let gasFees: GasFees = {
+            maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+            maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
+        };
+
+        let submissionContext;
+        let nonce;
+        let gasEstimate;
+
+        if (!previousSubmissions.length) {
+            // There's an edge case here where there are previous submissions but they're all in `PRESUBMIT`.
+            // Those are filtered out if they can't be found on the blockchain so we end up here.
+            // If this occurs we need to check if the transaction is expired.
+            const nowSeconds = new BigNumber(new Date().getTime() / ONE_SECOND_MS);
+
+            if (expiry.isLessThan(nowSeconds)) {
+                await onSubmissionContextStatusUpdate(SubmissionContextStatus.FailedExpired);
+                throw new Error(`Exceed expiry ${expiry} for submission type ${submissionType}`);
+            }
+
+            logger.info({ orderHash, from }, 'Attempting to submit first transaction');
+            await onSubmissionContextStatusUpdate(SubmissionContextStatus.PendingSubmitted);
+
+            logger.info(
+                {
+                    gasFees,
+                    gasPriceEstimate,
+                    orderHash,
+                    submissionCount: 1,
+                    from,
+                    submissionType,
+                },
+                'Submitting transaction',
+            );
+
+            nonce = await this._blockchainUtils.getNonceAsync(from);
+            const gasEstimateWithoutBuffer = await this._blockchainUtils.estimateGasForAsync({
+                to,
+                from,
+                data: calldata,
+            });
+            // Add buffer to gas estimate returned by `eth_estimateGas` as the RPC method
+            // tends to under estimate gas usage
+            gasEstimate = Math.ceil((GAS_ESTIMATE_BUFFER + 1) * gasEstimateWithoutBuffer);
+            let accessListWithGas;
+
+            if (this._enableAccessList) {
+                try {
+                    accessListWithGas = await this._blockchainUtils.createAccessListForAsync({
+                        to,
+                        from,
+                        data: calldata,
+                    });
+                    RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'success').inc();
+                } catch (error) {
+                    RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'failure').inc();
+                    logger.warn({ calldata, from }, 'Failed to create access list');
+                }
+
+                if (accessListWithGas !== undefined && accessListWithGas.gasEstimate) {
+                    // Add buffer to gas estimate returned by `eth_estimateGas` as the RPC method
+                    // tends to under estimate gas usage
+                    accessListWithGas.gasEstimate = Math.ceil(
+                        (GAS_ESTIMATE_BUFFER + 1) * accessListWithGas.gasEstimate,
+                    );
+
+                    logger.info(
+                        { gasEstimate, accessListGasEstimate: accessListWithGas.gasEstimate },
+                        'Regular gas estimate vs access list gas estimate',
+                    );
+                    RFQM_GAS_ESTIMATE_NO_ACCESS_LIST.labels(this._chainId.toString()).set(gasEstimate);
+                    RFQM_GAS_ESTIMATE_ACCESS_LIST.labels(this._chainId.toString()).set(accessListWithGas.gasEstimate);
+                }
+            }
+
+            const firstSubmission = await this._submitTransactionAsync(
+                orderHash,
+                from,
+                calldata,
+                gasFees,
+                nonce,
+                gasEstimate,
+                submissionType,
+                to,
+            );
+
+            logger.info(
+                { from, orderHash, submissionType, transactionHash: firstSubmission.transactionHash },
+                'Successfully submitted transaction',
+            );
+
+            submissionContext = new SubmissionContext(this._blockchainUtils, [firstSubmission]);
+        } else {
+            logger.info({ from, orderHash, submissionType }, `Previous submissions found, recovering context`);
+            submissionContext = new SubmissionContext(this._blockchainUtils, previousSubmissions);
+            nonce = submissionContext.nonce;
+
+            // If we've already submitted a transaction and it has been mined,
+            // using `_blockchainUtils.estimateGasForExchangeProxyCallAsync` will throw
+            // given the same calldata. In the edge case where a transaction has been sent
+            // but not mined, we would ideally pull the gas estimate from the previous
+            // transaction. Unfortunately, we currently do not store it on the
+            // `RfqmV2TransactionSubmissionEntity`. As a workaround, we'll just use an
+            // overestimate..
+            gasEstimate = MAX_GAS_ESTIMATE;
+        }
+
+        // The "Watch Loop"
+        while (true) {
+            // We've already submitted the transaction once at this point, so we first need to wait before checking the status.
+            await delay(this._transactionWatcherSleepTimeMs);
+            const oldSubmissionContextStatus = submissionContext.submissionContextStatus;
+            const newSubmissionContextStatus = await this._checkSubmissionReceiptsAndUpdateDbAsync(
+                orderHash,
+                submissionContext,
+            );
+            await onSubmissionContextStatusUpdate(newSubmissionContextStatus, oldSubmissionContextStatus);
+
+            switch (newSubmissionContextStatus) {
+                case SubmissionContextStatus.PendingSubmitted:
+                    // We've put in at least one transaction but none have been mined yet.
+                    // Check to make sure we haven't passed the expiry window.
+                    const nowSeconds = new BigNumber(new Date().getTime() / ONE_SECOND_MS);
+
+                    const secondsPastExpiration = nowSeconds.minus(expiry);
+
+                    // If we're more than 120 seconds past expiration, give up.
+                    // See https://github.com/rolandkofler/blocktime for some
+                    // analysis of expected block times. Two minutes was selected
+                    // to cover most cases without locking up the worker for too long.
+                    if (secondsPastExpiration.isGreaterThan(ONE_MINUTE_S * 2)) {
+                        await onSubmissionContextStatusUpdate(
+                            SubmissionContextStatus.FailedExpired,
+                            oldSubmissionContextStatus,
+                        );
+                        throw new Error(`Exceed expiry ${expiry} for submission type ${submissionType}`);
+                    }
+                    // If we're past expiration by less than a minute, don't put in any new transactions
+                    // but keep watching in case a receipt shows up
+                    if (secondsPastExpiration.isGreaterThan(0)) {
+                        continue;
+                    }
+
+                    // "Fast" gas price estimation; used to approximate the base fee
+                    const newGasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+
+                    if (submissionContext.transactionType === 0) {
+                        throw new Error('Non-EIP-1559 transactions are not implemented');
+                    }
+
+                    // We don't wait for gas conditions to change. Rather, we increase the gas
+                    // based bid based onthe knowledge that time (and therefore blocks, theoretically)
+                    // has passed without a transaction being mined.
+
+                    const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
+                        submissionContext.maxGasFees;
+
+                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
+                        // If we've reached the max priority fee per gas we'd like to pay, just
+                        // continue watching the transactions to see if one gets mined.
+                        continue;
+                    }
+
+                    const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas
+                        .multipliedBy(MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER)
+                        .integerValue(BigNumber.ROUND_CEIL);
+
+                    // The RPC nodes still need at least a 0.1 increase in both values to accept the new transaction.
+                    // For the new max fee per gas, we'll take the maximum of a 0.1 increase from the last value
+                    // or the value from an increase in the base fee.
+                    const newMaxFeePerGas = BigNumber.max(
+                        oldMaxFeePerGas.multipliedBy(MAX_FEE_PER_GAS_MULTIPLIER).integerValue(BigNumber.ROUND_CEIL),
+                        newGasPriceEstimate.multipliedBy(2).plus(newMaxPriorityFeePerGas),
+                    );
+
+                    gasFees = {
+                        maxFeePerGas: newMaxFeePerGas,
+                        maxPriorityFeePerGas: newMaxPriorityFeePerGas,
+                    };
+
+                    logger.info(
+                        {
+                            gasFees,
+                            gasPriceEstimate,
+                            orderHash,
+                            submissionCount: submissionContext.transactions.length + 1,
+                            from,
+                            submissionType,
+                        },
+                        'Submitting transaction',
+                    );
+
+                    try {
+                        const newTransaction = await this._submitTransactionAsync(
+                            orderHash,
+                            from,
+                            calldata,
+                            gasFees,
+                            nonce,
+                            gasEstimate,
+                            submissionType,
+                            to,
+                        );
+                        logger.info(
+                            {
+                                from,
+                                orderHash,
+                                transactionHash: newTransaction.transactionHash,
+                                submissionType,
+                            },
+                            'Successfully resubmited tx with higher gas price',
+                        );
+                        submissionContext.addTransaction(newTransaction);
+                    } catch (err) {
+                        const errorMessage = err.message;
+                        const isNonceTooLow = /nonce too low/.test(errorMessage);
+                        logger.warn(
+                            { from, orderHash, submissionType, errorMessage: err.message, isNonceTooLow },
+                            'Encountered an error re-submitting a tx',
+                        );
+                        if (isNonceTooLow) {
+                            logger.info(
+                                { from, orderHash, submissionType },
+                                'Ignore nonce too low error on re-submission. A previous submission was successful',
+                            );
+                            break;
+                        }
+
+                        // Rethrow on all other types of errors
+                        throw err;
+                    }
+                    break;
+
+                case SubmissionContextStatus.FailedRevertedUnconfirmed:
+                case SubmissionContextStatus.SucceededUnconfirmed:
+                    break;
+                case SubmissionContextStatus.FailedRevertedConfirmed:
+                case SubmissionContextStatus.SucceededConfirmed:
+                    return newSubmissionContextStatus;
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(newSubmissionContextStatus);
+            }
+        }
+    }
+
+    /**
      * Internal method to retrieve quote context, based on either indicative or firm quote parameters
      */
     private _retrieveQuoteContext(
@@ -1915,6 +2782,45 @@ export class RfqmService {
     }
 
     /**
+     * Check for receipts from the tx hashes and update databases with status of all tx's.
+     */
+    private async _checkSubmissionReceiptsAndUpdateDbAsync(
+        orderHash: string,
+        submissionContext: SubmissionContext,
+    ): Promise<
+        | SubmissionContextStatus.PendingSubmitted
+        | SubmissionContextStatus.FailedRevertedConfirmed
+        | SubmissionContextStatus.FailedRevertedUnconfirmed
+        | SubmissionContextStatus.SucceededConfirmed
+        | SubmissionContextStatus.SucceededUnconfirmed
+    > {
+        // At most one tx can be mined, since they all have the same nonce.
+        const minedReceipt = await submissionContext.getReceiptAsync();
+
+        // If the tx hasn't been mined yet, there're no database updates to do.
+        if (!minedReceipt) {
+            return SubmissionContextStatus.PendingSubmitted;
+        }
+
+        // Attempt to publish the mining latency
+        try {
+            const { timestamp: minedBlockTimestampS } = await this._blockchainUtils.getBlockAsync(
+                minedReceipt.blockHash,
+            );
+            const firstSubmissionTimestampS = submissionContext.firstSubmissionTimestampS;
+            RFQM_MINING_LATENCY.labels(this._chainId.toString()).observe(
+                minedBlockTimestampS - firstSubmissionTimestampS,
+            );
+        } catch (e) {
+            logger.warn({ orderHash, errorMessage: e.message, stack: e.stack }, 'Failed to meter the mining latency');
+        }
+
+        await submissionContext.updateForReceiptAsync(minedReceipt);
+        await this._dbUtils.updateRfqmTransactionSubmissionsAsync(submissionContext.transactions);
+        return submissionContext.submissionContextStatus;
+    }
+
+    /**
      * Determine transaction properties and submit a transaction
      */
     private async _submitTransactionAsync(
@@ -1924,10 +2830,13 @@ export class RfqmService {
         gasFees: GasFees,
         nonce: number,
         gasEstimate: number,
+        submissionType: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+        to: string = this._blockchainUtils.getExchangeProxyAddress(),
     ): Promise<RfqmV2TransactionSubmissionEntity> {
         const txOptions = {
             ...gasFees,
             from: workerAddress,
+            to,
             gas: gasEstimate,
             nonce,
             value: 0,
@@ -1948,10 +2857,10 @@ export class RfqmService {
             orderHash,
             createdAt: new Date(),
             from: workerAddress,
-            to: this._blockchainUtils.getExchangeProxyAddress(),
+            to,
             nonce,
             status: RfqmTransactionSubmissionStatus.Presubmit,
-            type: RfqmTransactionSubmissionType.Trade,
+            type: submissionType,
         };
 
         const transactionSubmissionEntity = await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(
@@ -2063,6 +2972,54 @@ export class RfqmService {
             }),
         ).then((x) => x.filter(isDefined));
         return result;
+    }
+
+    /**
+     * Get the callback function to supply to `submitToChainAsync`.
+     *
+     * Note that `job.status` would be updated to appropriate state by  the callback function according to old & new
+     * submission context status and submission type. There would be job status update ONLY IF the new and old submission
+     * context statuses differ.
+     *
+     * This function also "closes over" `job` so that it's accessible in the callback function. Refer the docstring of
+     * `RfqmTransactionSubmissionContextStatus` for more details on submission context.
+     *
+     * @param job A rfqm v2 job object.
+     * @param submissionType Type of submission.
+     * @returns Function would make appropriate update to job status according to submission context statuses and submission type.
+     */
+    private _getOnSubmissionContextStatusUpdateCallback(
+        job: RfqmV2JobEntity,
+        submissionType: RfqmTransactionSubmissionType,
+    ): (
+        newSubmissionContextStatus: SubmissionContextStatus,
+        oldSubmissionContextStatus?: SubmissionContextStatus,
+    ) => Promise<void> {
+        return async (
+            newSubmissionContextStatus: SubmissionContextStatus,
+            oldSubmissionContextStatus?: SubmissionContextStatus,
+        ): Promise<void> => {
+            if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                let newJobStatus: RfqmJobStatus;
+                switch (submissionType) {
+                    case RfqmTransactionSubmissionType.Approval:
+                        newJobStatus =
+                            SubmissionContext.approvalSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        break;
+                    case RfqmTransactionSubmissionType.Trade:
+                        newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        break;
+                    default:
+                        ((_x: never) => {
+                            throw new Error('unreachable');
+                        })(submissionType);
+                }
+
+                job.status = newJobStatus;
+                await this._dbUtils.updateRfqmJobAsync(job);
+            }
+        };
     }
 
     /**
