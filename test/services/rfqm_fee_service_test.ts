@@ -463,7 +463,7 @@ describe('RfqmFeeService', () => {
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
             const expectedMargin = mm2MakerAmount
-                .minus(ammMakerAmount.times(new BigNumber(1).plus(expectedSlippage)))
+                .minus(ammMakerAmount.times(new BigNumber(1).plus(0))) // We are currently not accounting for `expectedSlippage` until Matcha accounts for it.
                 .times(makerTokenPrice)
                 .div(feeTokenPrice)
                 .plus(estimatedAmmGasFeeWei)
@@ -587,7 +587,7 @@ describe('RfqmFeeService', () => {
             // Then
             const expectedGasFeeAmount = gasPrice.times(gasEstimate);
             const expectedMargin = ammTakerAmount
-                .times(new BigNumber(1).minus(expectedSlippage))
+                .times(new BigNumber(1).minus(0)) // We are currently not accounting for `expectedSlippage` until Matcha accounts for it.
                 .minus(mm2TakerAmount)
                 .times(takerTokenPrice)
                 .div(feeTokenPrice)

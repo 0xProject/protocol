@@ -500,7 +500,7 @@ export class RfqmFeeService {
                 marginRakeRatio > 0
                     ? calculateMarginAmount(
                           bestMakerQuoteWithGasFee!,
-                          ammQuote!,
+                          { ...ammQuote!, expectedSlippage: ZERO }, // Do not account for slippage until Matcha accounts for it.
                           isSelling,
                           quoteTokenBaseUnitPriceUsd!,
                           feeTokenBaseUnitPriceUsd!,
