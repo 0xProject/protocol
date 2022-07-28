@@ -405,7 +405,10 @@ export class RfqmHandlers {
 
         // Parse approval params
         if (approval) {
-            if (approval.type === GaslessApprovalTypes.ExecuteMetaTransaction) {
+            if (
+                approval.type === GaslessApprovalTypes.ExecuteMetaTransaction ||
+                approval.type === GaslessApprovalTypes.Permit
+            ) {
                 const eip712 = stringsToEIP712Context(approval.eip712);
                 const signature = stringsToSignature(approval.signature as StringSignatureFields);
                 parsedParams.approval = {
