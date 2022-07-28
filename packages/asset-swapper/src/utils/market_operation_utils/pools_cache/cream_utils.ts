@@ -7,7 +7,7 @@ import { CacheValue, PoolsCache } from './pools_cache';
 
 export class CreamPoolsCache extends PoolsCache {
     constructor(
-        _cache: { [key: string]: CacheValue } = {},
+        _cache: Map<string, CacheValue> = new Map(),
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
     ) {
         super(_cache);

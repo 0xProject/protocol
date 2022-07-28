@@ -10,15 +10,23 @@ export interface CacheValue {
 // tslint:disable:custom-no-magic-numbers
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
-const DEFAULT_TIMEOUT_MS = 1000;
+const DEFAULT_TIMEOUT_MS = 3000;
 // tslint:enable:custom-no-magic-numbers
 
 export abstract class PoolsCache {
-    protected static _isExpired(value: CacheValue): boolean {
+    protected static _getKey(takerToken: string, makerToken: string): string {
+        return `${takerToken}-${makerToken}`;
+    }
+
+    protected static _isExpired(value: CacheValue | undefined): boolean {
+        if (value === undefined) {
+            return true;
+        }
         return Date.now() >= value.expiresAt;
     }
+
     constructor(
-        protected readonly _cache: { [key: string]: CacheValue },
+        protected readonly _cache: Map<string, CacheValue>,
         protected readonly _cacheTimeMs: number = DEFAULT_CACHE_TIME_MS,
     ) {}
 
@@ -31,47 +39,42 @@ export abstract class PoolsCache {
         return Promise.race([this._getAndSaveFreshPoolsForPairAsync(takerToken, makerToken), timeout]);
     }
 
-    public getCachedPoolAddressesForPair(
-        takerToken: string,
-        makerToken: string,
-        ignoreExpired: boolean = true,
-    ): string[] | undefined {
-        const key = JSON.stringify([takerToken, makerToken]);
-        const value = this._cache[key];
-        if (ignoreExpired) {
-            return value === undefined ? [] : value.pools.map(pool => pool.id);
-        }
-        if (!value) {
-            return undefined;
-        }
-        if (PoolsCache._isExpired(value)) {
-            return undefined;
-        }
-        return (value || []).pools.map(pool => pool.id);
+    /**
+     * Returns pool addresses (can be stale) for a pair.
+     *
+     * An empty array will be returned if cache does not exist.
+     */
+    public getPoolAddressesForPair(takerToken: string, makerToken: string): string[] {
+        const value = this._getValue(takerToken, makerToken);
+        return value === undefined ? [] : value.pools.map(pool => pool.id);
     }
 
     public isFresh(takerToken: string, makerToken: string): boolean {
-        const cached = this.getCachedPoolAddressesForPair(takerToken, makerToken, false);
-        return cached !== undefined;
+        const value = this._getValue(takerToken, makerToken);
+        return !PoolsCache._isExpired(value);
+    }
+
+    protected _getValue(takerToken: string, makerToken: string): CacheValue | undefined {
+        const key = PoolsCache._getKey(takerToken, makerToken);
+        return this._cache.get(key);
     }
 
     protected async _getAndSaveFreshPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-        const key = JSON.stringify([takerToken, makerToken]);
-        const value = this._cache[key];
-        if (value === undefined || value.expiresAt >= Date.now()) {
-            const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
-            const expiresAt = Date.now() + this._cacheTimeMs;
-            this._cachePoolsForPair(takerToken, makerToken, pools, expiresAt);
+        const key = PoolsCache._getKey(takerToken, makerToken);
+        const value = this._cache.get(key);
+        if (!PoolsCache._isExpired(value)) {
+            return value!.pools;
         }
-        return this._cache[key].pools;
+
+        const pools = await this._fetchPoolsForPairAsync(takerToken, makerToken);
+        const expiresAt = Date.now() + this._cacheTimeMs;
+        this._cachePoolsForPair(takerToken, makerToken, pools, expiresAt);
+        return pools;
     }
 
     protected _cachePoolsForPair(takerToken: string, makerToken: string, pools: Pool[], expiresAt: number): void {
-        const key = JSON.stringify([takerToken, makerToken]);
-        this._cache[key] = {
-            pools,
-            expiresAt,
-        };
+        const key = PoolsCache._getKey(takerToken, makerToken);
+        this._cache.set(key, { pools, expiresAt });
     }
 
     protected abstract _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]>;

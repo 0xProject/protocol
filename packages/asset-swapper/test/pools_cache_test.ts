@@ -28,7 +28,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
         expect(pools.length).greaterThan(0, `Failed to find any pools for ${takerToken} and ${makerToken}`);
         expect(pools[0]).not.undefined();
         expect(Object.keys(pools[0])).to.include.members(poolKeys);
-        const cachedPoolIds = cache.getCachedPoolAddressesForPair(takerToken, makerToken);
+        const cachedPoolIds = cache.getPoolAddressesForPair(takerToken, makerToken);
         expect(cachedPoolIds).to.deep.equal(pools.map(p => p.id));
     }
 

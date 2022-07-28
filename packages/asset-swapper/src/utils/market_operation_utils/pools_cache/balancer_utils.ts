@@ -23,7 +23,7 @@ interface BalancerPoolResponse {
 export class BalancerPoolsCache extends PoolsCache {
     constructor(
         private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
-        cache: { [key: string]: CacheValue } = {},
+        cache: Map<string, CacheValue> = new Map(),
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,

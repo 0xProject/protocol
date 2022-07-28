@@ -100,7 +100,7 @@ async function getMarketBuyOrdersAsync(
 
 class MockPoolsCache extends PoolsCache {
     constructor(private readonly _handler: (takerToken: string, makerToken: string) => Pool[]) {
-        super({});
+        super(new Map());
     }
     protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
         return this._handler(takerToken, makerToken);
