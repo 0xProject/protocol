@@ -36,9 +36,6 @@ import {
     FillData,
     GasSchedule,
     GetMarketOrdersOpts,
-    MarketDepth,
-    MarketDepthSide,
-    MarketSideLiquidity,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
 } from './utils/market_operation_utils/types';
@@ -226,67 +223,6 @@ export class SwapQuoter {
             }),
         );
         return batchSwapQuotes.filter(x => x !== undefined) as MarketBuySwapQuote[];
-    }
-
-    /**
-     * Returns the bids and asks liquidity for the entire market.
-     * For certain sources (like AMM's) it is recommended to provide a practical maximum takerAssetAmount.
-     * @param   makerTokenAddress The address of the maker asset
-     * @param   takerTokenAddress The address of the taker asset
-     * @param   takerAssetAmount  The amount to sell and buy for the bids and asks.
-     *
-     * @return  An object that conforms to MarketDepth that contains all of the samples and liquidity
-     *          information for the source.
-     */
-    public async getBidAskLiquidityForMakerTakerAssetPairAsync(
-        makerToken: string,
-        takerToken: string,
-        takerAssetAmount: BigNumber,
-        options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<MarketDepth> {
-        assert.isString('makerToken', makerToken);
-        assert.isString('takerToken', takerToken);
-        const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
-
-        let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
-            ? [[], []]
-            : await Promise.all([
-                  this.orderbook.getOrdersAsync(makerToken, takerToken),
-                  this.orderbook.getOrdersAsync(takerToken, makerToken),
-              ]);
-        if (!sellOrders || sellOrders.length === 0) {
-            sellOrders = [createDummyOrder(makerToken, takerToken)];
-        }
-        if (!buyOrders || buyOrders.length === 0) {
-            buyOrders = [createDummyOrder(takerToken, makerToken)];
-        }
-
-        const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
-            const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
-            const { side } = marketSideLiquidity;
-
-            return [
-                ...dexQuotes,
-                nativeOrders.map(o => {
-                    return {
-                        input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
-                        output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
-                        fillData: o,
-                        source: ERC20BridgeSource.Native,
-                    };
-                }),
-            ];
-        };
-        const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
-        ]);
-        return {
-            bids: getMarketDepthSide(bids),
-            asks: getMarketDepthSide(asks),
-            makerTokenDecimals: asks.makerTokenDecimals,
-            takerTokenDecimals: asks.takerTokenDecimals,
-        };
     }
 
     /**
