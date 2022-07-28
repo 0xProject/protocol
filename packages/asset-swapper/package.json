@@ -109,6 +109,7 @@
         "dirty-chai": "^2.0.1",
         "gitpkg": "https://github.com/0xProject/gitpkg.git",
         "mocha": "^6.2.0",
+        "msw": "^0.44.2",
         "npm-run-all": "^4.1.2",
         "nyc": "^11.0.1",
         "shx": "^0.2.2",

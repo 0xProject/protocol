@@ -35,6 +35,7 @@ export class ProtocolFeeUtils {
         return ProtocolFeeUtils._instance;
     }
 
+    /** @returns gas price (in wei) */
     public async getGasPriceEstimationOrThrowAsync(shouldHardRefresh?: boolean): Promise<BigNumber> {
         if (this._gasPriceEstimation.eq(constants.ZERO_AMOUNT)) {
             return this._getGasPriceFromGasStationOrThrowAsync();
