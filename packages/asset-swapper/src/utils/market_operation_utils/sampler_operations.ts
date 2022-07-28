@@ -56,7 +56,7 @@ import {
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache } from './pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_utils_new';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SamplerNoOperation } from './sampler_no_operation';
@@ -114,10 +114,10 @@ export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
 export const BATCH_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 
 export interface PoolsCacheMap {
-    [ERC20BridgeSource.Balancer]: BalancerPoolsCache;
+    [ERC20BridgeSource.Balancer]: PoolsCache;
     [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache | undefined;
-    [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache | undefined;
-    [ERC20BridgeSource.Cream]: CreamPoolsCache;
+    [ERC20BridgeSource.Beethovenx]: PoolsCache;
+    [ERC20BridgeSource.Cream]: PoolsCache;
 }
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
@@ -156,8 +156,8 @@ export class SamplerOperations {
             ? poolsCaches
             : {
                   [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache.createBeethovenXPoolCache(chainId),
-                  [ERC20BridgeSource.Balancer]: new BalancerPoolsCache(),
-                  [ERC20BridgeSource.Cream]: new CreamPoolsCache(),
+                  [ERC20BridgeSource.Balancer]: BalancerPoolsCache.create(chainId),
+                  [ERC20BridgeSource.Cream]: CreamPoolsCache.create(chainId),
                   [ERC20BridgeSource.BalancerV2]:
                       BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[chainId] === NULL_ADDRESS
                           ? undefined
@@ -1621,9 +1621,6 @@ export class SamplerOperations {
                     }
                     case ERC20BridgeSource.Beethovenx: {
                         const cache = this.poolsCaches[source];
-                        if (cache === undefined) {
-                            return [];
-                        }
                         const poolAddresses = cache.getPoolAddressesForPair(takerToken, makerToken);
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {
@@ -1976,9 +1973,6 @@ export class SamplerOperations {
                     }
                     case ERC20BridgeSource.Beethovenx: {
                         const cache = this.poolsCaches[source];
-                        if (cache === undefined) {
-                            return [];
-                        }
                         const poolIds = cache.getPoolAddressesForPair(takerToken, makerToken) || [];
                         const vault = BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN[this.chainId];
                         if (vault === NULL_ADDRESS) {

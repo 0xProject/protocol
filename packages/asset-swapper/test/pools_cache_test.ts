@@ -33,7 +33,7 @@ describe('Pools Caches for Balancer-based sampling', () => {
     }
 
     describe('BalancerPoolsCache', () => {
-        const cache = new BalancerPoolsCache();
+        const cache = BalancerPoolsCache.create(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [usdcAddress, daiAddress],
@@ -58,15 +58,14 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [wftmAddress, fantomWethAddress],
             ];
 
-            expect(cache).not.null();
             await Promise.all(
-                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache!, takerToken, makerToken)),
+                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );
         });
     });
 
     describe('CreamPoolsCache', () => {
-        const cache = new CreamPoolsCache();
+        const cache = CreamPoolsCache.create(ChainId.Mainnet);
         it('fetches pools', async () => {
             const pairs = [
                 [usdcAddress, creamAddress],

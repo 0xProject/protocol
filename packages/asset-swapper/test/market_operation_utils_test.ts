@@ -24,7 +24,7 @@ import {
     SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from '../src/utils/market_operation_utils/constants';
-import { PoolsCache } from '../src/utils/market_operation_utils/pools_cache';
+import { AbstractPoolsCache } from '../src/utils/market_operation_utils/pools_cache';
 import { DexOrderSampler } from '../src/utils/market_operation_utils/sampler';
 import { BATCH_SOURCE_FILTERS } from '../src/utils/market_operation_utils/sampler_operations';
 import { SourceFilters } from '../src/utils/market_operation_utils/source_filters';
@@ -98,7 +98,7 @@ async function getMarketBuyOrdersAsync(
     return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
 }
 
-class MockPoolsCache extends PoolsCache {
+class MockPoolsCache extends AbstractPoolsCache {
     constructor(private readonly _handler: (takerToken: string, makerToken: string) => Pool[]) {
         super(new Map());
     }
