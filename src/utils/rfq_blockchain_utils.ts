@@ -647,7 +647,9 @@ export class RfqBlockchainUtils {
             }
             case GaslessApprovalTypes.Permit: {
                 const nonce = await this.getPermitNonceAsync(token, takerAddress);
-                const tenMinutesAfterNowS = (Date.now() + ONE_MINUTE_MS * 10) / ONE_SECOND_MS;
+                const tenMinutesAfterNowS = new BigNumber(Date.now() + ONE_MINUTE_MS * 10)
+                    .div(ONE_SECOND_MS)
+                    .integerValue();
                 const permitApproval: PermitApproval = {
                     kind: GaslessApprovalTypes.Permit,
                     eip712: {
