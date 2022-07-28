@@ -313,6 +313,9 @@ contract FillQuoteTransformer is
         if (success) {
             results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
             results.takerTokenSoldAmount = takerTokenFillAmount;
+        } else {
+    // Instead of swallowing, throw the error
+             assembly { revert(add(resultData, 32), mload(resultData)) }
         }
     }
 

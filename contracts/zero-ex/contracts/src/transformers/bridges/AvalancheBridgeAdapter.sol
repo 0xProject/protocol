@@ -30,8 +30,8 @@ import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinPlatypus.sol";
 import "./mixins/MixinUniswapV2.sol";
-import "./mixins/MixinZeroExBridge.sol";
 import "./mixins/MixinWOOFi.sol";
+import "./mixins/MixinZeroExBridge.sol";
 
 contract AvalancheBridgeAdapter is
     AbstractBridgeAdapter(43114, "Avalanche"),

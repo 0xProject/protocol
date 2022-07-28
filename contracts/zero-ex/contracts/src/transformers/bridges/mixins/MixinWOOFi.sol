@@ -63,12 +63,12 @@ contract MixinWOOFi{
         uint _amountIn, 
         address _tokenIn, 
         address _tokenOut, 
-        address pool
+        IWooPP pool
     ) internal returns(uint256 realToAmount){
         uint256 realToAmount;
-        address quoteToken = IWooPP(pool).quoteToken();
+        address quoteToken = pool.quoteToken();
         if (_tokenIn == quoteToken) {
-            realToAmount = IWooPP(pool).sellQuote(
+            realToAmount = pool.sellQuote(
                 _tokenOut,
                 _amountIn,
                 1,
@@ -76,7 +76,7 @@ contract MixinWOOFi{
                 rebateAddress
             );
         } else if (_tokenOut == quoteToken) {
-            realToAmount = IWooPP(pool).sellBase(
+            realToAmount = pool.sellBase(
                 _tokenIn, 
                 _amountIn, 
                 1, 
@@ -84,14 +84,14 @@ contract MixinWOOFi{
                 rebateAddress
             );
         } else {
-            uint256 quoteAmount = IWooPP(pool).sellBase(
+            uint256 quoteAmount = pool.sellBase(
                 _tokenIn, 
                 _amountIn, 
                 0, 
                 address(this), 
                 rebateAddress
             );
-            realToAmount = IWooPP(pool).sellQuote(
+            realToAmount = pool.sellQuote(
                 _tokenOut, 
                 quoteAmount, 
                 1, 
@@ -110,9 +110,9 @@ contract MixinWOOFi{
         public
         returns (uint256 boughtAmount)
     {
-        (address _pool) = abi.decode(bridgeData, (address));
+        (IWooPP _pool) = abi.decode(bridgeData, (IWooPP));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        sellToken.approveIfBelow((_pool), sellAmount);
+        sellToken.approveIfBelow(address(_pool), sellAmount);
 
         //track the balance to know how much we bought
         _swap(
