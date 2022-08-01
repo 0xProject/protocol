@@ -1,5 +1,6 @@
 // tslint:disable: max-file-line-count
 import { SignedNativeOrder } from '@0x/asset-swapper/lib/src/types';
+import { ContractAddresses } from '@0x/contract-addresses';
 import { SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils/lib/src/transformer_utils';
 import { BigNumber } from '@0x/utils';
@@ -40,7 +41,7 @@ jest.mock('../../utils/config_manager', () => {
 
 // tslint:disable: no-object-literal-type-assertion
 const mockRfqtService = jest.mocked(
-    new RfqtService(0, {} as RfqMakerManager, {} as QuoteRequestor, {} as QuoteServerClient),
+    new RfqtService(0, {} as RfqMakerManager, {} as QuoteRequestor, {} as QuoteServerClient, {} as ContractAddresses),
 );
 const mockConfigManager = jest.mocked(new ConfigManager());
 // tslint:enable: no-object-literal-type-assertion

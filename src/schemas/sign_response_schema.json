@@ -11,6 +11,6 @@
             "type": "boolean"
         }
     },
-    "required": ["proceedWithFill"],
+    "required": [],
     "type": "object"
 }

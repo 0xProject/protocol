@@ -117,6 +117,20 @@ export type RfqtV2PricesApiResponse = {
     takerToken: string;
 }[];
 
+/**
+ * Response format for the response to 0x API
+ * from 0x RFQ API for the RFQt v2 `quotes` endpoint
+ */
+export type RfqtV2QuotesApiResponse = {
+    fillableMakerAmount: BigNumber;
+    fillableTakerAmount: BigNumber;
+    fillableTakerFeeAmount: BigNumber;
+    makerId: string;
+    makerUri: string;
+    order: OtcOrder;
+    signature: Signature;
+}[];
+
 export type QuoteServerPriceParams = RequireOnlyOne<
     {
         buyAmountBaseUnits?: string;

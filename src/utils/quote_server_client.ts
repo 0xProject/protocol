@@ -1,8 +1,8 @@
 import { MarketOperation } from '@0x/asset-swapper';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import { schemas as quoteServerSchemas, SignRequest } from '@0x/quote-server';
-import { Fee } from '@0x/quote-server/lib/src/types';
+import { schemas as quoteServerSchemas } from '@0x/quote-server';
+import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { OK } from 'http-status-codes';
@@ -211,19 +211,27 @@ export class QuoteServerClient {
      *
      * @param makerUri - the MM's uri
      * @param integratorId - the integrator id
-     * @param payload - the payload of the request
+     * @param payload - the payload of the request. RFQm transactions require
+     *   `takerSignature` to be present, while `takerSignature` will not be
+     *   present for RFQt transactions.
+     * @param requireProceedWithFill - whether or not to require the response
+     *  to include a `proceedWithFill` field. This field is specific to RFQm
+     *  and isn't required for an RFQt sign request.
+     * @param makerUriToUrl - function to transform the maker URI into its `sign` endpoint
      * @returns - The signature if successful, undefined otherwise
      * @throws - Will throw an error if a 4xx or 5xx is returned
      */
     public async signV2Async(
         makerUri: string,
         integratorId: string,
-        payload: SignRequest,
+        payload: Omit<SignRequest, 'takerSignature'> & Pick<Partial<SignRequest>, 'takerSignature'>,
+        makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/sign`,
+        requireProceedWithFill: boolean = true,
     ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.labels(makerUri).startTimer();
         const requestUuid = uuid.v4();
         const rawResponse = await this._axiosInstance.post(
-            `${makerUri}/rfqm/v2/sign`,
+            makerUriToUrl(makerUri),
             {
                 order: payload.order,
                 orderHash: payload.orderHash,
@@ -260,11 +268,11 @@ export class QuoteServerClient {
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
-        const proceedWithFill = rawResponse.data?.proceedWithFill;
+        const proceedWithFill = rawResponse.data?.proceedWithFill as boolean | undefined;
         const makerSignature: Signature | undefined = rawResponse.data?.makerSignature;
         const feeAmount = new BigNumber(rawResponse.data?.feeAmount);
 
-        if (!proceedWithFill) {
+        if (!proceedWithFill && requireProceedWithFill) {
             logger.info({ makerUri }, 'Sign request rejected');
             return undefined;
         }

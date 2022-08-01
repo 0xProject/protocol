@@ -1,3 +1,4 @@
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -46,7 +47,14 @@ export async function buildRfqtServicesAsync(
             await rfqMakerManager.initializeAsync();
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
             const quoteServerClient = new QuoteServerClient(axiosInstance);
-            return new RfqtService(chain.chainId, rfqMakerManager, quoteRequestor, quoteServerClient);
+            const contractAddresses = getContractAddressesForChainOrThrow(chain.chainId);
+            return new RfqtService(
+                chain.chainId,
+                rfqMakerManager,
+                quoteRequestor,
+                quoteServerClient,
+                contractAddresses,
+            );
         }),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));

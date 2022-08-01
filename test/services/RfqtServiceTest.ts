@@ -1,9 +1,14 @@
+// tslint:disable custom-no-magic-numbers max-file-line-count
 import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
+import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { OtcOrder } from '@0x/protocol-utils';
+import { Signature, SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { Integrator } from '../../src/config';
+import { ONE_SECOND_MS } from '../../src/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../src/services/RfqtService';
@@ -44,6 +49,7 @@ const mockQuoteRequestor = jest.mocked(new QuoteRequestor({} as RfqMakerAssetOff
 const mockRfqMakerManager = jest.mocked(new RfqMakerManager({} as ConfigManager, {} as RfqMakerDbUtils, 0));
 const mockQuoteServerClient = jest.mocked(new QuoteServerClient({} as AxiosInstance));
 // tslint:enable: no-object-literal-type-assertion
+const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
 
 describe('Rfqt Service', () => {
     beforeEach(() => {
@@ -55,7 +61,13 @@ describe('Rfqt Service', () => {
     describe('v1', () => {
         describe('getV1PricesAsync', () => {
             it('passes through calls to QuoteRequestor::requestRfqtIndicativeQuotesAsync', async () => {
-                const rfqtService = new RfqtService(0, mockRfqMakerManager, mockQuoteRequestor, mockQuoteServerClient);
+                const rfqtService = new RfqtService(
+                    0,
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
 
                 await rfqtService.getV1PricesAsync({
                     altRfqAssetOfferings: {
@@ -131,7 +143,13 @@ describe('Rfqt Service', () => {
         describe('getV1QuotesAsync', () => {
             it('passes through calls to QuoteRequestor::requestRfqtFirmQuotesAsync', async () => {
                 mockQuoteRequestor.requestRfqtFirmQuotesAsync.mockResolvedValue([]);
-                const rfqtService = new RfqtService(0, mockRfqMakerManager, mockQuoteRequestor, mockQuoteServerClient);
+                const rfqtService = new RfqtService(
+                    0,
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
 
                 await rfqtService.getV1QuotesAsync({
                     altRfqAssetOfferings: {
@@ -243,6 +261,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockContractAddresses,
                 );
 
                 await rfqtService.getV2PricesAsync(request);
@@ -297,6 +316,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockContractAddresses,
                 );
 
                 await rfqtService.getV2PricesAsync(request);
@@ -362,6 +382,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockContractAddresses,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(request);
@@ -379,6 +400,216 @@ describe('Rfqt Service', () => {
                     "takerToken": "0x2",
                   }
                 `);
+            });
+        });
+        describe('getV2QuotesAsync', () => {
+            const makerToken = '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE';
+            const makerAddress = '0x79b7a69d90c82E014Bf0315e164208119B510FA0';
+            const takerToken = '0x42d6622deCe394b54999Fbd73D108123806f6a18';
+            const takerAddress = '0xE06fFA8146bBdECcBaaF72B6043b29091071AEB8';
+            const fakeNow = new Date(1657069278103);
+            const expiry = new BigNumber(fakeNow.getTime() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
+
+            it('filters out quotes with no signatures', async () => {
+                const request = {
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    intentOnFilling: true,
+                    makerToken,
+                    marketOperation: MarketOperation.Buy,
+                    takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+                mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(undefined);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(request);
+
+                expect(result.length).toEqual(0);
+            });
+
+            it("doesn't blow up if a sign request fails", async () => {
+                const request = {
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    intentOnFilling: true,
+                    makerToken,
+                    marketOperation: MarketOperation.Buy,
+                    takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+                mockQuoteServerClient.signV2Async = jest.fn().mockRejectedValue(new Error('EXPLODE'));
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(request);
+
+                expect(result.length).toEqual(0);
+            });
+
+            it('gets creates orders with unique nonces', async () => {
+                const request = {
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    intentOnFilling: true,
+                    makerToken,
+                    marketOperation: MarketOperation.Buy,
+                    takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(900),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+
+                const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
+                mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(request, fakeNow);
+
+                const [{ nonce: nonce1 }, { nonce: nonce2 }] = [
+                    OtcOrder.parseExpiryAndNonce(result[0].order.expiryAndNonce),
+                    OtcOrder.parseExpiryAndNonce(result[1].order.expiryAndNonce),
+                ];
+
+                expect(nonce1.toString()).not.toEqual(nonce2.toString());
+            });
+
+            it('gets a signed quote', async () => {
+                const request = {
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator,
+                    intentOnFilling: true,
+                    makerToken,
+                    marketOperation: MarketOperation.Buy,
+                    takerAddress,
+                    takerToken,
+                    txOrigin: takerAddress,
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([
+                    {
+                        maker: makerAddress,
+                        makerUri: maker.rfqtUri,
+                        makerToken,
+                        takerToken,
+                        makerAmount: new BigNumber(999),
+                        takerAmount: new BigNumber(1000),
+                        expiry,
+                    },
+                ]);
+                const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
+                mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
+
+                const result = await rfqtService.getV2QuotesAsync(request, fakeNow);
+
+                expect(result.length).toEqual(1);
+                expect(result[0]).toMatchObject({
+                    fillableMakerAmount: new BigNumber(999),
+                    fillableTakerAmount: new BigNumber(1000),
+                    fillableTakerFeeAmount: new BigNumber(0),
+                    makerId: maker.makerId,
+                    makerUri: maker.rfqtUri,
+                    signature,
+                });
+                expect(result[0].order).toMatchInlineSnapshot(`
+                OtcOrder {
+                  "chainId": 1337,
+                  "expiry": "1657070278",
+                  "expiryAndNonce": "10401598717691489530826623925864187439861993812812831231287826374366",
+                  "maker": "0x79b7a69d90c82E014Bf0315e164208119B510FA0",
+                  "makerAmount": "999",
+                  "makerToken": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+                  "nonce": "1657069278",
+                  "nonceBucket": "0",
+                  "taker": "0x0000000000000000000000000000000000000000",
+                  "takerAmount": "1000",
+                  "takerToken": "0x42d6622deCe394b54999Fbd73D108123806f6a18",
+                  "txOrigin": "0xE06fFA8146bBdECcBaaF72B6043b29091071AEB8",
+                  "verifyingContract": "0x5315e44798395d4a952530d131249fe00f554565",
+                }
+              `);
             });
         });
     });

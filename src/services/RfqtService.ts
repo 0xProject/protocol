@@ -1,11 +1,21 @@
-import { AltRfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
+import { AltRfqMakerAssetOfferings, AssetSwapperContractAddresses } from '@0x/asset-swapper/lib/src/types';
+import { OtcOrder } from '@0x/protocol-utils/lib/src/orders';
+import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { logger } from 'ethers';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS } from '../constants';
+import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2PricesApiRequest, RfqtV2PricesApiResponse } from '../types';
+import {
+    QuoteServerPriceParams,
+    RequireOnlyOne,
+    RfqtV2PricesApiRequest,
+    RfqtV2PricesApiResponse,
+    RfqtV2QuotesApiResponse,
+} from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
@@ -97,6 +107,7 @@ export class RfqtService {
         >,
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
+        private readonly _contractAddresses: AssetSwapperContractAddresses,
     ) {}
 
     /**
@@ -257,5 +268,96 @@ export class RfqtService {
         // TODO (byeongminP): filter out invalid prices (firm quote validator)
 
         return prices;
+    }
+
+    /**
+     * Accepts data sent by 0x API and fetches quotes from market makers
+     * configured on the given pair.
+     *
+     * Preparing quotes is a two step process:
+     *  1. Requests are made to the market makers' `/price` endpoint using
+     *     logic similar to that of `getV2PricesAsync`
+     *  2. Valid prices are then sent to the market makers' `/sign`
+     *     endpoint to get a signed quote
+     */
+    public async getV2QuotesAsync(
+        parameters: RfqtV2PricesApiRequestWithIntegrator,
+        now: Date = new Date(),
+    ): Promise<RfqtV2QuotesApiResponse> {
+        // TODO (rhinodavid): put a meter on this response time
+        const prices = await this.getV2PricesAsync(parameters);
+
+        // If multiple quotes are aggregated into the final order, they must
+        // all have unique nonces. Otherwise they'll be rejected by the smart contract.
+        const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
+        const pricesAndOrders = prices.map((price, i) => ({
+            order: this._v2priceToOrder(price, parameters.takerAddress, baseNonce.plus(i)),
+            price,
+        }));
+
+        // No fee in place for now
+        const fee: Fee = { token: NULL_ADDRESS, amount: new BigNumber(0), type: 'fixed' };
+
+        const pricesAndOrdersAndSignatures = await Promise.all(
+            pricesAndOrders.map(async ({ price, order }) => {
+                let signature: Signature | undefined;
+                try {
+                    signature = await this._quoteServerClient.signV2Async(
+                        price.makerUri,
+                        parameters.integrator.integratorId,
+                        { order, orderHash: order.getHash(), expiry: price.expiry, fee },
+                        (u: string) => `${u}/rfqt/v2/sign`,
+                        /* requireProceedWithFill */ false,
+                    );
+                } catch (e) {
+                    logger.warn(
+                        { orderHash: order.getHash(), makerId: price.makerId },
+                        'Failed trying to get rfqt signature from market maker',
+                    );
+                }
+                return {
+                    price,
+                    order,
+                    signature: signature ?? null,
+                };
+            }),
+        );
+
+        // TODO (rhinodavid): check fillable amounts
+        return pricesAndOrdersAndSignatures
+            .filter((pos) => pos.signature)
+            .map(({ price, order, signature }) => ({
+                fillableMakerAmount: order.makerAmount,
+                fillableTakerAmount: order.takerAmount,
+                fillableTakerFeeAmount: new BigNumber(0),
+                makerId: price.makerId,
+                makerUri: price.makerUri,
+                order,
+                signature: signature!, // `null` signatures already filtered out
+            }));
+    }
+
+    /**
+     * Converts a price returned from the market maker's `price` endpoint
+     * into an v2 order
+     */
+    private _v2priceToOrder(
+        price: RfqtV2PricesApiResponse[0],
+        takerAddress: string,
+        nonce: BigNumber,
+        nonceBucket: BigNumber = new BigNumber(0),
+    ): OtcOrder {
+        return new OtcOrder({
+            chainId: this._chainId,
+            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(price.expiry, nonceBucket, nonce),
+            maker: price.makerAddress,
+            makerAmount: price.makerAmount,
+            makerToken: price.makerToken,
+            taker: NULL_ADDRESS,
+            takerAmount: price.takerAmount,
+            takerToken: price.takerToken,
+            txOrigin: takerAddress,
+            verifyingContract: this._contractAddresses.exchangeProxy,
+        });
     }
 }
