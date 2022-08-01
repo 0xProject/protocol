@@ -35,6 +35,7 @@ import {
     TokenAdjacencyGraph,
     UniswapV2FillData,
     UniswapV3FillData,
+    WOOFiFillData,
 } from './types';
 
 // tslint:disable: custom-no-magic-numbers no-bitwise
@@ -840,10 +841,10 @@ export const PLATYPUS_AVALANCHE_POOLS = {
 export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
-        [ChainId.Avalanche]: '0x1df3009c57a8B143c6246149F00B090Bce3b8f88',
     },
     NULL_ADDRESS,
 );
+
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     {
@@ -2550,8 +2551,19 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.WOOFi]: () => 600e3,
+    [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
+        const woofiFillData = fillData as WOOFiFillData;
+        const quoteTokenAddresses: Array<string> = ['0x55d398326f99059ff775485246999027b3197955', 
+                                                    '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e', 
+                                                    '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
+                                                    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174'];
 
+        if ((quoteTokenAddresses.includes(woofiFillData.takerToken))||(quoteTokenAddresses.includes(woofiFillData.makerToken)) )  {
+            return 500e3;
+        } else {
+            return 100e4;
+        }
+    },
     //
     // Polygon
     //

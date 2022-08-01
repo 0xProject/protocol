@@ -42,6 +42,15 @@ interface IWooPP {
         address rebateTo
     ) external returns (uint256 baseAmount);
 
+    /// @dev Query the amount for selling the base token amount.
+    /// @param baseToken the base token to sell
+    /// @param baseAmount the amount to sell
+    /// @return quoteAmount the swapped quote amount
+    function querySellBase(
+        address baseToken, 
+        uint256 baseAmount
+    ) external view returns (uint256 quoteAmount);
+
 }
 
 contract MixinWOOFi{
@@ -84,6 +93,9 @@ contract MixinWOOFi{
                 rebateAddress
             );
         } else {
+            uint256 quoteTokenAmount = pool.querySellBase(_tokenIn, _amountIn);
+            IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteTokenAmount);
+            
             uint256 quoteAmount = pool.sellBase(
                 _tokenIn, 
                 _amountIn, 
@@ -112,8 +124,9 @@ contract MixinWOOFi{
     {
         (IWooPP _pool) = abi.decode(bridgeData, (IWooPP));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        sellToken.approveIfBelow(address(_pool), sellAmount);
 
+        sellToken.approveIfBelow(address(_pool), sellAmount);
+        
         //track the balance to know how much we bought
         _swap(
             sellAmount,
