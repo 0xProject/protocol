@@ -19,7 +19,7 @@ import {
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
 } from './utils/market_operation_utils/constants';
 
-const ETH_GAS_STATION_API_URL = 'https://ethgasstation.info/api/ethgasAPI.json';
+const ZERO_EX_GAS_API_URL = 'https://gas.api.0x.org/source/median';
 const NULL_BYTES = '0x';
 const NULL_ERC20_ASSET_DATA = '0xf47261b00000000000000000000000000000000000000000000000000000000000000000';
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -48,7 +48,7 @@ const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     orderRefreshIntervalMs: 10000, // 10 seconds
     ...DEFAULT_ORDER_PRUNER_OPTS,
     samplerGasLimit: 500e6,
-    ethGasStationUrl: ETH_GAS_STATION_API_URL,
+    zeroExGasApiUrl: ZERO_EX_GAS_API_URL,
     rfqt: {
         integratorsWhitelist: [],
         makerAssetOfferings: {},
@@ -99,7 +99,7 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 export const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
 
 export const constants = {
-    ETH_GAS_STATION_API_URL,
+    ZERO_EX_GAS_API_URL,
     PROTOCOL_FEE_MULTIPLIER,
     POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS,
     NULL_BYTES,

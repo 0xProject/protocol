@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.65.0",
+        "changes": [
+            {
+                "note": "Use 0x gas api instead of eth gas station api",
+                "pr": 532
+            }
+        ]
+    },
+    {
         "version": "16.64.0",
         "changes": [
             {
