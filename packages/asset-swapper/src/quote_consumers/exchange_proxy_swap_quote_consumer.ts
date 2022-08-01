@@ -61,7 +61,6 @@ import {
     requiresTransformERC20,
 } from './quote_consumer_utils';
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 

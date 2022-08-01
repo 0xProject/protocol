@@ -14,7 +14,7 @@ import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, SamplerMetrics } from './types';
 
-// tslint:disable: prefer-for-of custom-no-magic-numbers completed-docs no-bitwise
+// tslint:disable: prefer-for-of completed-docs no-bitwise
 
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;

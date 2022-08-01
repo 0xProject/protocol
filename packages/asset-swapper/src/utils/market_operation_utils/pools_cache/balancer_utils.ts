@@ -10,9 +10,7 @@ import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED } from '../const
 import { NoOpPoolsCache } from './no_op_pools_cache';
 import { AbstractPoolsCache, CacheValue, PoolsCache } from './pools_cache';
 
-// tslint:disable:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-// tslint:enable:custom-no-magic-numbers
 // tslint:disable: member-ordering
 
 const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';

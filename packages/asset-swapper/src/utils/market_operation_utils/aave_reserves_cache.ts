@@ -40,7 +40,6 @@ interface Cache {
     [key: string]: AaveReserve[];
 }
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const RESERVES_REFRESH_INTERVAL_MS = 30 * constants.ONE_MINUTE_MS;
 
 /**

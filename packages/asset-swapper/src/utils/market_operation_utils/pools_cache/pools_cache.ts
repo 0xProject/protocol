@@ -7,11 +7,9 @@ export interface CacheValue {
     pools: Pool[];
 }
 
-// tslint:disable:custom-no-magic-numbers
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
 const DEFAULT_TIMEOUT_MS = 3000;
-// tslint:enable:custom-no-magic-numbers
 
 export interface PoolsCache {
     getFreshPoolsForPairAsync(takerToken: string, makerToken: string, timeoutMs?: number): Promise<Pool[]>;
