@@ -170,6 +170,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -197,6 +198,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Yoshi,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -312,6 +314,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -339,6 +342,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Yoshi,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -841,6 +845,9 @@ export const PLATYPUS_AVALANCHE_POOLS = {
 export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
+        [ChainId.Fantom]: '0x9503e7517d3c5bc4f9e4a1c6ae4f8b33ac2546f2',
+        [ChainId.Avalanche]: '0x1df3009c57a8b143c6246149f00b090bce3b8f88',
+        [ChainId.Polygon]: '0x7400b665c8f4f3a951a99f1ee9872efb8778723d',
     },
     NULL_ADDRESS,
 );
