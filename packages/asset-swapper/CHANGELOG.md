@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.65.0 - _August 1, 2022_
+
+    * Use 0x gas api instead of eth gas station api (#532)
+
 ## v16.64.0 - _July 27, 2022_
 
     * Refactor `TokenAdjacency` and `TokenAdjacencyBuilder` (#517)
