@@ -115,13 +115,12 @@ contract BSCBridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) { return (0, true); }
-            boughtAmount = 69;/*_tradeWOOFi(
+            boughtAmount = _tradeWOOFi(
                 sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
-            */
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeZeroExBridge(

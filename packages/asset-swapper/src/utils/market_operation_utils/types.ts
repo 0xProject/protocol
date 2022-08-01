@@ -379,6 +379,8 @@ export interface PlatypusFillData extends FillData {
 
 export interface WOOFiFillData extends FillData {
     poolAddress: string;
+    takerToken: string;
+    makerToken: string;
 }
 
 export interface VelodromeFillData extends FillData {

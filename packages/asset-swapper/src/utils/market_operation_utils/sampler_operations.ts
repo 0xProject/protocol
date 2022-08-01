@@ -1374,7 +1374,7 @@ export class SamplerOperations {
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<WOOFiFillData> {
         return new SamplerContractOperation({
-            fillData: { poolAddress },
+            fillData: { poolAddress, takerToken, makerToken },
             source: ERC20BridgeSource.WOOFi,
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromWooPP,
@@ -1389,7 +1389,7 @@ export class SamplerOperations {
         makerFillAmounts: BigNumber[],
     ): SourceQuoteOperation<WOOFiFillData> {
         return new SamplerContractOperation({
-            fillData: { poolAddress },
+            fillData: { poolAddress, takerToken, makerToken },
             source: ERC20BridgeSource.WOOFi,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
@@ -2189,7 +2189,7 @@ export class SamplerOperations {
                             makerTokenSymbol,
 =======
                     case ERC20BridgeSource.WOOFi: {
-                        return this.getWOOFiSellQuotes(
+                        return this.getWOOFiBuyQuotes(
                             WOOFI_POOL_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
