@@ -22,13 +22,13 @@ import { linearBuckets } from 'prom-client';
 import * as validateUUID from 'uuid-validate';
 
 import {
-    DEFAULT_ETH_GAS_STATION_API_URL,
     DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOCAL_REDIS_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    DEFAULT_ZERO_EX_GAS_API_URL,
     HEALTHCHECK_PATH,
     METRICS_PATH,
     NULL_ADDRESS,
@@ -467,10 +467,10 @@ export const PROMETHEUS_PORT: number = _.isEmpty(process.env.PROMETHEUS_PORT)
     ? 8080
     : assertEnvVarType('PROMETHEUS_PORT', process.env.PROMETHEUS_PORT, EnvVarType.Port);
 
-// Eth Gas Station URL
-export const ETH_GAS_STATION_API_URL: string = _.isEmpty(process.env.ETH_GAS_STATION_API_URL)
-    ? DEFAULT_ETH_GAS_STATION_API_URL
-    : assertEnvVarType('ETH_GAS_STATION_API_URL', process.env.ETH_GAS_STATION_API_URL, EnvVarType.Url);
+// ZeroEx Gas API URL
+export const ZERO_EX_GAS_API_URL: string = _.isEmpty(process.env.ZERO_EX_GAS_API_URL)
+    ? DEFAULT_ZERO_EX_GAS_API_URL
+    : assertEnvVarType('ZERO_EX_GAS_API_URL', process.env.ZERO_EX_GAS_API_URL, EnvVarType.Url);
 
 export const RFQ_PROXY_ADDRESS: string | undefined = _.isEmpty(process.env.RFQ_PROXY_ADDRESS)
     ? undefined
@@ -667,7 +667,7 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     chainId: CHAIN_ID,
     expiryBufferMs: QUOTE_ORDER_EXPIRATION_BUFFER_MS,
     rfqt: SWAP_QUOTER_RFQT_OPTS,
-    ethGasStationUrl: ETH_GAS_STATION_API_URL,
+    zeroExGasApiUrl: ZERO_EX_GAS_API_URL,
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID],

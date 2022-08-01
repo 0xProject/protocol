@@ -59,7 +59,7 @@ export const SRA_DOCS_URL = 'https://0x.org/docs/api#sra';
 export const META_TRANSACTION_DOCS_URL = 'https://0x.org/docs/api#meta_transaction';
 
 // Meta Transactions
-export const DEFAULT_ETH_GAS_STATION_API_URL = 'https://ethgasstation.api.0x.org/api/ethgasAPI.json';
+export const DEFAULT_ZERO_EX_GAS_API_URL = 'https://gas.api.0x.org/source/median';
 export const UNSTICKING_TRANSACTION_GAS_MULTIPLIER = 1.1;
 export const ETH_TRANSFER_GAS_LIMIT = 21000;
 export const TX_HASH_RESPONSE_WAIT_TIME_MS = ONE_SECOND_MS * 100;

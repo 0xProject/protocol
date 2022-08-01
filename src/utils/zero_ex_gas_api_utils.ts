@@ -1,39 +1,38 @@
 import { BigNumber } from '@0x/utils';
 
-import { ETH_GAS_STATION_API_URL } from '../config';
+import { ZERO_EX_GAS_API_URL } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 
-let previousGasInfo: GasInfoResponse;
+let previousGasInfo: GasInfoResponse | undefined;
 let lastAccessed: number;
 const CACHE_EXPIRY_SEC = 60;
 
 interface GasInfoResponse {
-    fast: number;
-    fastest: number;
+    // gas prices in wei
+    result: {
+        fast: number;
+        fastest: number;
+    };
 }
 
 const getGasInfoAsync = async () => {
     const now = Date.now() / ONE_SECOND_MS;
     if (!previousGasInfo || now - CACHE_EXPIRY_SEC > lastAccessed) {
         try {
-            const res = await fetch(ETH_GAS_STATION_API_URL);
+            const res = await fetch(ZERO_EX_GAS_API_URL);
             previousGasInfo = await res.json();
             lastAccessed = now;
         } catch (e) {
-            throw new Error('Failed to fetch gas price from EthGasStation');
+            throw new Error('Failed to fetch gas price from 0x gas api');
         }
     }
     return previousGasInfo;
 };
 
-export const ethGasStationUtils = {
+export const zeroExGasApiUtils = {
+    /** @returns gas price in wei. */
     getGasPriceOrThrowAsync: async (txConfirmationSpeed: 'fast' | 'fastest' = 'fast'): Promise<BigNumber> => {
         const gasInfo = await getGasInfoAsync();
-        // Eth Gas Station result is gwei * 10
-        const BASE_TEN = 10;
-        const gasPriceGwei = new BigNumber(gasInfo[txConfirmationSpeed] / BASE_TEN);
-        const unit = new BigNumber(BASE_TEN).pow(9);
-        const gasPriceWei = unit.times(gasPriceGwei);
-        return gasPriceWei;
+        return new BigNumber(gasInfo!.result[txConfirmationSpeed]);
     },
 };
