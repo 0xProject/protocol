@@ -1509,6 +1509,7 @@ export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 150e3,
     }),
 };
+
 export const CURVE_V2_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_AVALANCHE_POOLS.atricrypto]: {
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_v2,

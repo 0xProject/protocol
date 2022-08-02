@@ -1313,7 +1313,6 @@ export class SamplerOperations {
         });
     }
 
-<<<<<<< HEAD
     public getSynthetixSellQuotes(
         readProxy: string,
         takerTokenSymbol: string,
@@ -1338,6 +1337,7 @@ export class SamplerOperations {
                 fillData.chainId = this.chainId;
                 return samples;
             },
+
         });
     }
 
@@ -1366,7 +1366,7 @@ export class SamplerOperations {
                 return samples;
             },
         });
-=======
+    }
     public getWOOFiSellQuotes(
         poolAddress: string,
         takerToken: string,
@@ -1393,17 +1393,8 @@ export class SamplerOperations {
             source: ERC20BridgeSource.WOOFi,
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
-<<<<<<< HEAD
-            params: [pool, takerToken, makerToken, makerFillAmounts],
-<<<<<<< HEAD
-        })
->>>>>>> 9626082a6 (Add BSC support)
-=======
-=======
             params: [poolAddress, takerToken, makerToken, makerFillAmounts],
->>>>>>> df08a4b4d (bug fixes)
         });
->>>>>>> 293225bfa (yarn prettier)
     }
 
     /**
@@ -1826,7 +1817,6 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
-<<<<<<< HEAD
                     case ERC20BridgeSource.Synthetix: {
                         const readProxy = SYNTHETIX_READ_PROXY_BY_CHAIN_ID[this.chainId];
                         const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
@@ -1839,13 +1829,14 @@ export class SamplerOperations {
                             readProxy,
                             takerTokenSymbol,
                             makerTokenSymbol,
-=======
+                            takerFillAmounts,
+                        );
+                    }
                     case ERC20BridgeSource.WOOFi: {
                         return this.getWOOFiSellQuotes(
                             WOOFI_POOL_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
->>>>>>> 9626082a6 (Add BSC support)
                             takerFillAmounts,
                         );
                     }
@@ -2174,7 +2165,6 @@ export class SamplerOperations {
                             makerFillAmounts,
                         );
                     }
-<<<<<<< HEAD
                     case ERC20BridgeSource.Synthetix: {
                         const readProxy = SYNTHETIX_READ_PROXY_BY_CHAIN_ID[this.chainId];
                         const currencyKeyMap = SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID[this.chainId];
@@ -2187,13 +2177,14 @@ export class SamplerOperations {
                             readProxy,
                             takerTokenSymbol,
                             makerTokenSymbol,
-=======
+                            makerFillAmounts,
+                        );
+                    }
                     case ERC20BridgeSource.WOOFi: {
                         return this.getWOOFiBuyQuotes(
                             WOOFI_POOL_BY_CHAIN_ID[this.chainId],
                             takerToken,
                             makerToken,
->>>>>>> 9626082a6 (Add BSC support)
                             makerFillAmounts,
                         );
                     }
