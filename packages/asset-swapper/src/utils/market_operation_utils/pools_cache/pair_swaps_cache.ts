@@ -7,12 +7,10 @@ export interface CacheValue {
     balancerSwaps: BalancerSwaps;
 }
 
-// tslint:disable:custom-no-magic-numbers
 // Cache results for 30mins
 const DEFAULT_CACHE_TIME_MS = (ONE_HOUR_IN_SECONDS / 2) * ONE_SECOND_MS;
 const DEFAULT_TIMEOUT_MS = ONE_SECOND_MS;
 export const EMPTY_BALANCER_SWAPS = { swapInfoExactIn: [], swapInfoExactOut: [] };
-// tslint:enable:custom-no-magic-numbers
 
 /**
  * Caches SwapInfo for a pair of tokens.

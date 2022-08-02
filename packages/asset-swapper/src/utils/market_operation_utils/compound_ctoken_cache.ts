@@ -19,7 +19,6 @@ interface Cache {
     [key: string]: CToken;
 }
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const CTOKEN_REFRESH_INTERVAL_MS = 30 * constants.ONE_MINUTE_MS;
 
 /**

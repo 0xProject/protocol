@@ -37,7 +37,7 @@ import {
     UniswapV3FillData,
 } from './types';
 
-// tslint:disable: custom-no-magic-numbers no-bitwise
+// tslint:disable: no-bitwise
 
 export const ERC20_PROXY_ID = '0xf47261b0';
 export const WALLET_SIGNATURE = '0x04';
@@ -2472,7 +2472,6 @@ const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
  * I.e remove the overhead cost of ExchangeProxy (130k) and
  * the ethereum transaction cost (21k)
  */
-// tslint:disable:custom-no-magic-numbers
 export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.Native]: fillData => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
@@ -2697,10 +2696,7 @@ export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
 
 export const DEFAULT_FEE_ESTIMATE = { gas: 0, fee: ZERO_AMOUNT };
 
-// tslint:enable:custom-no-magic-numbers
-
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
-    // tslint:disable-next-line: custom-no-magic-numbers
     runLimit: 2 ** 15,
     excludedSources: [],
     excludedFeeSources: [],
