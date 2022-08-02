@@ -68,15 +68,8 @@ export enum ERC20BridgeSource {
     Compound = 'Compound',
     Synapse = 'Synapse',
     BancorV3 = 'BancorV3',
-<<<<<<< HEAD
-<<<<<<< HEAD
     Synthetix = 'Synthetix',
-=======
     WOOFi = 'WOOFi',
->>>>>>> 9626082a6 (Add BSC support)
-=======
-    WOOFi = 'WOOFi',
->>>>>>> afb929ccebb2dd5ebb9bd465220f3731b48c314d
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
