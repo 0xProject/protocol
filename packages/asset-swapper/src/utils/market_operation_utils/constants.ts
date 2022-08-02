@@ -2669,12 +2669,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
         const woofiFillData = fillData as WOOFiFillData;
-        const quoteTokenAddresses: Array<string> = [
-            '0x55d398326f99059ff775485246999027b3197955',
-            '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
-            '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
-            '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-        ];
+        const quoteTokenAddresses = [BSC_TOKENS.USDT, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
 
         if (
             quoteTokenAddresses.includes(woofiFillData.takerToken) ||
