@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
 import {

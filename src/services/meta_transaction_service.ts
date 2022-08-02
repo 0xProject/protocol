@@ -455,4 +455,3 @@ function calculateProtocolFeeRequiredForOrders(gasPrice: BigNumber, orders: (Sig
     ).length;
     return gasPrice.times(nativeOrderCount).times(PROTOCOL_FEE_MULTIPLIER);
 }
-// tslint:disable-next-line: max-file-line-count

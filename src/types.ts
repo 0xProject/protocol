@@ -461,5 +461,3 @@ export enum OrderEventEndState {
     // future.
     StoppedWatching = 'STOPPED_WATCHING',
 }
-
-// tslint:disable-line:max-file-line-count

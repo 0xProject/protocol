@@ -3,6 +3,7 @@
     "rules": {
         "custom-no-magic-numbers": false,
         "no-unnecessary-type-assertion": false,
+        "max-file-line-count": false,
         "arrow-parens": false
     },
     "linterOptions": {

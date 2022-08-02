@@ -552,4 +552,3 @@ export class TransactionWatcherSignerService {
         await this._kvRepository.save(statusKV!);
     }
 }
-// tslint:disable-line:max-file-line-count
