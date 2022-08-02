@@ -153,18 +153,18 @@
         "chainlinkStopLimit": "0x0000000000000000000000000000000000000000",
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
-        "exchangeProxyGovernor": "0x7cee06249e371a1ecf8107e912294432f7f70832",
-        "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
-        "exchangeProxyTransformerDeployer": "0x2bef57ffde3098eeed9fa4f9166a81d7377533dc",
-        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
-        "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
+        "exchangeProxyGovernor": "0x449dbd91818fa3f3e89cd6cee85b354741798c1f", 
+        "exchangeProxy": "0x1453ac81c9250808f8377c2def3cce6a6423c396",
+        "exchangeProxyTransformerDeployer": "0x5c1e06cf986eebd24dd3fa9123017d00ab173329",
+        "exchangeProxyFlashWallet": "0xcca52237dec529df34baf01445507321ce90e00d",
+        "exchangeProxyLiquidityProviderSandbox": "0x13519d3eb40f67e2d2ff5b964841ef2e4ce217c4",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0xad550dbef7b93a42e335062e808d66a70eca5a0a",
-            "payTakerTransformer": "0xbd3fec19e4d91a79b329b6b4a6f210c66a40a97f",
-            "affiliateFeeTransformer": "0x59e7371b613a6f3879694bf9db2fe3117c92a927",
-            "fillQuoteTransformer": "0x3edbf102250d59230ff6d3fc648f97c094f3cb27",
-            "positiveSlippageFeeTransformer": "0x48997b11bbc15c2fa2f141c9e93a0a2ab789a761"
+            "wethTransformer": "0xb0e6cf8a28db8b159cda823f01a6f3f32d621a07",
+            "payTakerTransformer": "0x239f9acbe4ae9f209d1125a1452da38d5441711a",
+            "affiliateFeeTransformer": "0xd16e6d79b65ef4d63cbc3d19d64837a5c6a55ad9",
+            "fillQuoteTransformer": "0x0def72575d51b56b4f871860bf8fc887ce4547b2",
+            "positiveSlippageFeeTransformer": "0x327c7fa483f87078e714aed708aad48d34d0e967"
         }
     },
     "42": {
