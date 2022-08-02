@@ -32,16 +32,13 @@ import {
 import { assert } from '../utils/assert';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
-    MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
-import { poolEncoder } from '../utils/market_operation_utils/orders';
 import {
     CurveFillData,
     ERC20BridgeSource,
     FinalUniswapV3FillData,
     LiquidityProviderFillData,
-    MooniswapFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
@@ -64,7 +61,6 @@ import {
     requiresTransformERC20,
 } from './quote_consumer_utils';
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
 
@@ -75,9 +71,7 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.BakerySwap,
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.ApeSwap,
-    ERC20BridgeSource.CafeSwap,
     ERC20BridgeSource.CheeseSwap,
-    ERC20BridgeSource.JulSwap,
 ];
 const FAKE_PROVIDER: any = {
     sendAsync(): void {
@@ -222,9 +216,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ERC20BridgeSource.BakerySwap,
                 ERC20BridgeSource.SushiSwap,
                 ERC20BridgeSource.ApeSwap,
-                ERC20BridgeSource.CafeSwap,
                 ERC20BridgeSource.CheeseSwap,
-                ERC20BridgeSource.JulSwap,
             ])
         ) {
             const source = slippedOrders[0].source;
@@ -286,7 +278,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             // ETH buy/sell is supported
             ![sellToken, buyToken].includes(NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet])
         ) {
-            const fillData = slippedOrders[0].fills[0].fillData as CurveFillData;
+            const fillData = slippedOrders[0].fillData as CurveFillData;
             return {
                 calldataHexString: this._exchangeProxy
                     .sellToLiquidityProvider(
@@ -307,30 +299,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
-                gasOverhead: ZERO_AMOUNT,
-            };
-        }
-
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Mooniswap])
-        ) {
-            const fillData = slippedOrders[0].fills[0].fillData as MooniswapFillData;
-            return {
-                calldataHexString: this._exchangeProxy
-                    .sellToLiquidityProvider(
-                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        MOONISWAP_LIQUIDITY_PROVIDER_BY_CHAIN_ID[this.chainId],
-                        NULL_ADDRESS,
-                        sellAmount,
-                        minBuyAmount,
-                        poolEncoder.encode([fillData.poolAddress]),
-                    )
-                    .getABIEncodedTransactionData(),
-                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this.contractAddresses.exchangeProxy,
                 gasOverhead: ZERO_AMOUNT,
             };
         }

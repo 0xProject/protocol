@@ -52,10 +52,10 @@
     },
     "config": {
         "contractsPackages": "@0x/contracts-erc20 @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
-        "nonContractPackages": "@0x/migrations @0x/contract-wrappers @0x/contract-addresses @0x/contract-artifacts @0x/contract-wrappers-test @0x/asset-swapper",
+        "nonContractPackages": "@0x/contract-wrappers @0x/contract-addresses @0x/contract-artifacts @0x/contract-wrappers-test @0x/asset-swapper",
         "ignoreTestsForPackages": "",
         "mnemonic": "concert load couple harbor equip island argue ramp clarify fence smart topic",
-        "packagesWithDocPages": "@0x/contract-wrappers @0x/migrations",
+        "packagesWithDocPages": "@0x/contract-wrappers",
         "ignoreDependencyVersions": "@types/styled-components @types/node",
         "ignoreDependencyVersionsForPackage": "contract-wrappers"
     },

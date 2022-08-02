@@ -5,12 +5,11 @@ import _ = require('lodash');
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
 
 import {
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     FillData,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
@@ -123,7 +122,7 @@ export interface PriceComparisonsReport {
 export function generateQuoteReport(
     marketOperation: MarketOperation,
     nativeOrders: NativeOrderWithFillableAmounts[],
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    liquidityDelivered: ReadonlyArray<Fill> | DexSample<MultiHopFillData>,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
 ): QuoteReport {
@@ -174,7 +173,7 @@ export function generateQuoteReport(
 export function generateExtendedQuoteReportSources(
     marketOperation: MarketOperation,
     quotes: RawQuotes,
-    liquidityDelivered: ReadonlyArray<CollapsedFill> | DexSample<MultiHopFillData>,
+    liquidityDelivered: ReadonlyArray<Fill> | DexSample<MultiHopFillData>,
     amount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,
@@ -207,7 +206,7 @@ export function generateExtendedQuoteReportSources(
         ..._.flatten(
             quotes.dexQuotes.map(dex =>
                 dex
-                    .filter(quote => isDexSampleForTotalAmount(quote, amount))
+                    .filter(quote => isDexSampleFilter(quote, amount))
                     .map(quote => dexSampleToReportSource(quote, marketOperation)),
             ),
         ),
@@ -306,8 +305,9 @@ export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOp
  * Checks if a DEX sample is the one that represents the whole amount requested by taker
  * NOTE: this is used for the QuoteReport to filter samples
  */
-function isDexSampleForTotalAmount(ds: DexSample, amount: BigNumber): boolean {
-    return ds.input.eq(amount);
+function isDexSampleFilter(ds: DexSample, amount: BigNumber): boolean {
+    // The entry is for the total amont, not a sampler entry && there was liquidity in the source
+    return ds.input.eq(amount) && ds.output.isGreaterThan(0);
 }
 
 /**
@@ -342,7 +342,7 @@ export function multiHopSampleToReportSource(
     }
 }
 
-function _isNativeOrderFromCollapsedFill(cf: CollapsedFill): cf is NativeCollapsedFill {
+function _isNativeOrderFromCollapsedFill(cf: Fill): cf is Fill<NativeFillData> {
     const { type } = cf;
     return type === FillQuoteTransformerOrderType.Limit || type === FillQuoteTransformerOrderType.Rfq;
 }

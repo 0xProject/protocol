@@ -33,12 +33,9 @@ import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import {
     ERC20BridgeSource,
-    FeeSchedule,
     FillData,
+    GasSchedule,
     GetMarketOrdersOpts,
-    MarketDepth,
-    MarketDepthSide,
-    MarketSideLiquidity,
     OptimizedMarketOrder,
     OptimizerResultWithReport,
 } from './utils/market_operation_utils/types';
@@ -112,7 +109,7 @@ export class SwapQuoter {
         };
         this._protocolFeeUtils = ProtocolFeeUtils.getInstance(
             constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-            options.ethGasStationUrl,
+            options.zeroExGasApiUrl,
         );
         // Allow the sampler bytecode to be overwritten using geths override functionality
         const samplerBytecode = _.get(artifacts.ERC20BridgeSampler, 'compilerOutput.evm.deployedBytecode.object');
@@ -229,67 +226,6 @@ export class SwapQuoter {
     }
 
     /**
-     * Returns the bids and asks liquidity for the entire market.
-     * For certain sources (like AMM's) it is recommended to provide a practical maximum takerAssetAmount.
-     * @param   makerTokenAddress The address of the maker asset
-     * @param   takerTokenAddress The address of the taker asset
-     * @param   takerAssetAmount  The amount to sell and buy for the bids and asks.
-     *
-     * @return  An object that conforms to MarketDepth that contains all of the samples and liquidity
-     *          information for the source.
-     */
-    public async getBidAskLiquidityForMakerTakerAssetPairAsync(
-        makerToken: string,
-        takerToken: string,
-        takerAssetAmount: BigNumber,
-        options: Partial<SwapQuoteRequestOpts> = {},
-    ): Promise<MarketDepth> {
-        assert.isString('makerToken', makerToken);
-        assert.isString('takerToken', takerToken);
-        const sourceFilters = new SourceFilters([], options.excludedSources, options.includedSources);
-
-        let [sellOrders, buyOrders] = !sourceFilters.isAllowed(ERC20BridgeSource.Native)
-            ? [[], []]
-            : await Promise.all([
-                  this.orderbook.getOrdersAsync(makerToken, takerToken),
-                  this.orderbook.getOrdersAsync(takerToken, makerToken),
-              ]);
-        if (!sellOrders || sellOrders.length === 0) {
-            sellOrders = [createDummyOrder(makerToken, takerToken)];
-        }
-        if (!buyOrders || buyOrders.length === 0) {
-            buyOrders = [createDummyOrder(takerToken, makerToken)];
-        }
-
-        const getMarketDepthSide = (marketSideLiquidity: MarketSideLiquidity): MarketDepthSide => {
-            const { dexQuotes, nativeOrders } = marketSideLiquidity.quotes;
-            const { side } = marketSideLiquidity;
-
-            return [
-                ...dexQuotes,
-                nativeOrders.map(o => {
-                    return {
-                        input: side === MarketOperation.Sell ? o.fillableTakerAmount : o.fillableMakerAmount,
-                        output: side === MarketOperation.Sell ? o.fillableMakerAmount : o.fillableTakerAmount,
-                        fillData: o,
-                        source: ERC20BridgeSource.Native,
-                    };
-                }),
-            ];
-        };
-        const [bids, asks] = await Promise.all([
-            this._marketOperationUtils.getMarketBuyLiquidityAsync(buyOrders, takerAssetAmount, options),
-            this._marketOperationUtils.getMarketSellLiquidityAsync(sellOrders, takerAssetAmount, options),
-        ]);
-        return {
-            bids: getMarketDepthSide(bids),
-            asks: getMarketDepthSide(asks),
-            makerTokenDecimals: asks.makerTokenDecimals,
-            takerTokenDecimals: asks.takerTokenDecimals,
-        };
-    }
-
-    /**
      * Returns the recommended gas price for a fast transaction
      */
     public async getGasPriceEstimationOrThrowAsync(): Promise<BigNumber> {
@@ -366,9 +302,11 @@ export class SwapQuoter {
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,
-            feeSchedule: _.mapValues(opts.feeSchedule, gasCost => (fillData: FillData) =>
-                gasCost === undefined ? 0 : gasPrice.times(gasCost(fillData)),
-            ),
+            feeSchedule: _.mapValues(opts.gasSchedule, gasCost => (fillData: FillData) => {
+                const gas = gasCost ? gasCost(fillData) : 0;
+                const fee = gasPrice.times(gas);
+                return { gas, fee };
+            }),
             exchangeProxyOverhead: flags => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
         // pass the QuoteRequestor on if rfqt enabled
@@ -502,7 +440,7 @@ function createSwapQuote(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): SwapQuote {
     const {
@@ -562,7 +500,7 @@ function calculateQuoteInfo(
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const bestCaseFillResult = simulateBestCaseFill({
@@ -591,25 +529,23 @@ function calculateQuoteInfo(
 function calculateTwoHopQuoteInfo(
     optimizedOrders: OptimizedMarketOrder[],
     operation: MarketOperation,
-    gasSchedule: FeeSchedule,
+    gasSchedule: GasSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
-    const [firstHopFill] = firstHopOrder.fills;
-    const [secondHopFill] = secondHopOrder.fills;
     const gas = new BigNumber(
         gasSchedule[ERC20BridgeSource.MultiHop]!({
-            firstHopSource: _.pick(firstHopFill, 'source', 'fillData'),
-            secondHopSource: _.pick(secondHopFill, 'source', 'fillData'),
+            firstHopSource: _.pick(firstHopOrder, 'source', 'fillData'),
+            secondHopSource: _.pick(secondHopOrder, 'source', 'fillData'),
         }),
     ).toNumber();
     const isSell = operation === MarketOperation.Sell;
 
     return {
         bestCaseQuoteInfo: {
-            makerAmount: isSell ? secondHopFill.output : secondHopFill.input,
-            takerAmount: isSell ? firstHopFill.input : firstHopFill.output,
-            totalTakerAmount: isSell ? firstHopFill.input : firstHopFill.output,
+            makerAmount: isSell ? secondHopOrder.fill.output : secondHopOrder.fill.input,
+            takerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
+            totalTakerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
@@ -635,7 +571,7 @@ function calculateTwoHopQuoteInfo(
             [ERC20BridgeSource.MultiHop]: {
                 proportion: new BigNumber(1),
                 intermediateToken: secondHopOrder.takerToken,
-                hops: [firstHopFill.source, secondHopFill.source],
+                hops: [firstHopOrder.source, secondHopOrder.source],
             },
         },
     };

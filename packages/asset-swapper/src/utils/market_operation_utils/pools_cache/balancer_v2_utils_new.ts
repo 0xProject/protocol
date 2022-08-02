@@ -20,7 +20,6 @@ import { BalancerSwapInfo, BalancerSwaps } from '../types';
 import { CacheValue, EMPTY_BALANCER_SWAPS, SwapInfoCache } from './pair_swaps_cache';
 import { SubgraphPoolDataService } from './sgPoolDataService';
 
-// tslint:disable-next-line:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * ONE_SECOND_MS;
 
 export interface BalancerPoolResponse {

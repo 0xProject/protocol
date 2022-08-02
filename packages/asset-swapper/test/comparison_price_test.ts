@@ -18,11 +18,11 @@ const expect = chai.expect;
 const DAI_TOKEN = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const ETH_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
 const GAS_PRICE = new BigNumber(50e9); // 50 gwei
-const NATIVE_ORDER_FEE = new BigNumber(220e3); // 220K gas
+const NATIVE_ORDER_GAS = 220e3; // 220K gas
 
 // DEX samples to fill in MarketSideLiquidity
-const kyberSample1: DexSample = {
-    source: ERC20BridgeSource.Kyber,
+const curveSample: DexSample = {
+    source: ERC20BridgeSource.Curve,
     input: new BigNumber(10000),
     output: new BigNumber(10001),
     fillData: {},
@@ -33,10 +33,13 @@ const uniswapSample1: DexSample = {
     output: new BigNumber(10004),
     fillData: {},
 };
-const dexQuotes: DexSample[] = [kyberSample1, uniswapSample1];
+const dexQuotes: DexSample[] = [curveSample, uniswapSample1];
 
 const feeSchedule = {
-    [ERC20BridgeSource.Native]: _.constant(GAS_PRICE.times(NATIVE_ORDER_FEE)),
+    [ERC20BridgeSource.Native]: _.constant({
+        gas: NATIVE_ORDER_GAS,
+        fee: GAS_PRICE.times(NATIVE_ORDER_GAS),
+    }),
 };
 
 const exchangeProxyOverhead = (sourceFlags: bigint) => {

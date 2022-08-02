@@ -1,5 +1,45 @@
 [
     {
+        "version": "11.16.0",
+        "changes": [
+            {
+                "note": "Add Synthetix support`",
+                "pr": 518
+            }
+        ],
+        "timestamp": 1658950329
+    },
+    {
+        "version": "11.15.0",
+        "changes": [
+            {
+                "note": "Add Velodrome support",
+                "pr": 494
+            }
+        ],
+        "timestamp": 1655244958
+    },
+    {
+        "version": "11.14.0",
+        "changes": [
+            {
+                "note": "Adds Support for BancorV3 on Ethereum",
+                "pr": 492
+            }
+        ],
+        "timestamp": 1654284040
+    },
+    {
+        "version": "11.13.0",
+        "changes": [
+            {
+                "note": "Added Support for GMX and Platypus on Avalanche",
+                "pr": 478
+            }
+        ],
+        "timestamp": 1652919697
+    },
+    {
         "version": "11.12.0",
         "changes": [
             {

@@ -24,11 +24,12 @@ import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
 import "./BalancerV2BatchSampler.sol";
 import "./BancorSampler.sol";
+import "./BancorV3Sampler.sol";
 import "./CompoundSampler.sol";
 import "./CurveSampler.sol";
 import "./DODOSampler.sol";
 import "./DODOV2Sampler.sol";
-import "./KyberSampler.sol";
+import "./GMXSampler.sol";
 import "./KyberDmmSampler.sol";
 import "./LidoSampler.sol";
 import "./LiquidityProviderSampler.sol";
@@ -36,12 +37,14 @@ import "./MakerPSMSampler.sol";
 import "./MStableSampler.sol";
 import "./MooniswapSampler.sol";
 import "./NativeOrderSampler.sol";
+import "./PlatypusSampler.sol";
 import "./ShellSampler.sol";
-import "./SmoothySampler.sol";
+import "./SynthetixSampler.sol";
 import "./TwoHopSampler.sol";
 import "./UniswapSampler.sol";
 import "./UniswapV2Sampler.sol";
 import "./UniswapV3Sampler.sol";
+import "./VelodromeSampler.sol";
 import "./UtilitySampler.sol";
 
 
@@ -50,11 +53,12 @@ contract ERC20BridgeSampler is
     BalancerV2Sampler,
     BalancerV2BatchSampler,
     BancorSampler,
+    BancorV3Sampler,
     CompoundSampler,
     CurveSampler,
     DODOSampler,
     DODOV2Sampler,
-    KyberSampler,
+    GMXSampler,
     KyberDmmSampler,
     LidoSampler,
     LiquidityProviderSampler,
@@ -62,12 +66,14 @@ contract ERC20BridgeSampler is
     MStableSampler,
     MooniswapSampler,
     NativeOrderSampler,
+    PlatypusSampler,
     ShellSampler,
-    SmoothySampler,
+    SynthetixSampler,
     TwoHopSampler,
     UniswapSampler,
     UniswapV2Sampler,
     UniswapV3Sampler,
+    VelodromeSampler,
     UtilitySampler
 {
 

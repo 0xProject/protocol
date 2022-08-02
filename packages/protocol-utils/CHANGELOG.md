@@ -5,6 +5,22 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.0 - _July 27, 2022_
+
+    * Add Synthetix support` (#518)
+
+## v11.15.0 - _June 14, 2022_
+
+    * Add Velodrome support (#494)
+
+## v11.14.0 - _June 3, 2022_
+
+    * Adds Support for BancorV3 on Ethereum (#492)
+
+## v11.13.0 - _May 19, 2022_
+
+    * Added Support for GMX and Platypus on Avalanche (#478)
+
 ## v11.12.0 - _April 22, 2022_
 
     * Add `BalancerV2Batch` to `BridgeProtocol` enum (#462)

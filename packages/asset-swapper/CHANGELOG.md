@@ -5,6 +5,60 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.65.0 - _August 1, 2022_
+
+    * Use 0x gas api instead of eth gas station api (#532)
+
+## v16.64.0 - _July 27, 2022_
+
+    * Refactor `TokenAdjacency` and `TokenAdjacencyBuilder` (#517)
+    * Add Synthetix support` (#518)
+    * Replace Beethoven X subgraph URL (#519)
+    * Remove Mooniswap on Ethereum mainnet (#529)
+
+## v16.63.1 - _July 12, 2022_
+
+    * Better error handling for balancer cache (#515)
+
+## v16.63.0 - _June 29, 2022_
+
+    * Remove JS router (#480)
+    * Removed Median price in favour of best gas adjusted price (#480)
+
+## v16.62.2 - _Invalid date_
+
+    * Offboard Smoothy and ComethSwap (#509)
+
+## v16.62.1 - _June 15, 2022_
+
+    * Remove nUSD from intermediate liquidity to save on sampler gas (#505)
+
+## v16.62.0 - _June 14, 2022_
+
+    * Add MDEX on BSC (#496)
+    * Add KnightSwap on BSC (#498)
+    * Add Velodrome support on Optimism (#494)
+    * Do not send empty entries on Quote Report (#501)
+    * KnightSwap/Mdex cosmetic change (#502)
+    * Offboard JetSwap, CafeSwap, JulSwap, and PolyDex (#503)
+
+## v16.61.0 - _June 3, 2022_
+
+    * Add stETH wrap/unwrap support (#476)
+    * Offboard/clean up Oasis, CoFix, and legacy Kyber (#482)
+    * Add MeshSwap on Polygon (#491)
+
+## v16.60.1 - _May 19, 2022_
+
+    * Alias Balancer sor to the old version (#481)
+
+## v16.60.0 - _May 19, 2022_
+
+    * Add BiSwap on BSC (#467)
+    * Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc (#478)
+    * Add Yoshi Exchange support in Fantom (#473)
+    * Fix KyberDMM gas underestimation (#479)
+
 ## v16.59.0 - _May 13, 2022_
 
     * Remove SnowSwap on mainnet (#468)

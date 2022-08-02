@@ -1,21 +1,23 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 // import { parsePoolData } from '@balancer-labs'; // TODO - upgrade to v2
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { gql, request } from 'graphql-request';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
-import {
-    BALANCER_MAX_POOLS_FETCHED,
-    BALANCER_TOP_POOLS_FETCHED,
-    BALANCER_V2_SUBGRAPH_URL_BY_CHAIN,
-} from '../constants';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
 import { parsePoolData } from './balancer_sor_v2';
-import { CacheValue, PoolsCache } from './pools_cache';
+import { NoOpPoolsCache } from './no_op_pools_cache';
+import { AbstractPoolsCache, CacheValue, PoolsCache } from './pools_cache';
 
-// tslint:disable-next-line:custom-no-magic-numbers
+// tslint:disable: member-ordering
+
+const BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN = new Map<ChainId, string>([
+    [ChainId.Fantom, 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx'],
+]);
+
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 interface BalancerPoolResponse {
@@ -28,7 +30,16 @@ interface BalancerPoolResponse {
     amp: string | null;
 }
 
-export class BalancerV2PoolsCache extends PoolsCache {
+export class BalancerV2PoolsCache extends AbstractPoolsCache {
+    public static createBeethovenXPoolCache(chainId: ChainId): PoolsCache {
+        const subgraphUrl = BEETHOVEN_X_SUBGRAPH_URL_BY_CHAIN.get(chainId);
+        if (subgraphUrl === undefined) {
+            return new NoOpPoolsCache();
+        }
+
+        return new BalancerV2PoolsCache(subgraphUrl);
+    }
+
     private static _parseSubgraphPoolData(pool: any, takerToken: string, makerToken: string): Pool {
         const tToken = pool.tokens.find((t: any) => t.address === takerToken);
         const mToken = pool.tokens.find((t: any) => t.address === makerToken);
@@ -49,32 +60,18 @@ export class BalancerV2PoolsCache extends PoolsCache {
         };
     }
 
-    constructor(
-        chainId: ChainId,
-        private readonly subgraphUrl: string = BALANCER_V2_SUBGRAPH_URL_BY_CHAIN[chainId]!,
+    private constructor(
+        private readonly subgraphUrl: string,
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
         private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
-        cache: { [key: string]: CacheValue } = {},
+        cache: Map<string, CacheValue> = new Map(),
     ) {
         super(cache);
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);
     }
-
-    // protected async _fetchPoolsForPairAsync(takerToken: string, makerToken: string): Promise<Pool[]> {
-    //     try {
-    //         const poolData = (await getPoolsWithTokens(takerToken, makerToken)).pools;
-    //         // Sort by maker token balance (descending)
-    //         const pools = parsePoolData(poolData, takerToken, makerToken).sort((a, b) =>
-    //             b.balanceOut.minus(a.balanceOut).toNumber(),
-    //         );
-    //         return pools.length > this.maxPoolsFetched ? pools.slice(0, this.maxPoolsFetched) : pools;
-    //     } catch (err) {
-    //         return [];
-    //     }
-    // }
 
     protected async _fetchTopPoolsAsync(): Promise<BalancerPoolResponse[]> {
         const query = gql`
@@ -114,7 +111,14 @@ export class BalancerV2PoolsCache extends PoolsCache {
             [from: string]: { [to: string]: Pool[] };
         } = {};
 
-        const pools = await this._fetchTopPoolsAsync();
+        let pools: BalancerPoolResponse[];
+        try {
+            pools = await this._fetchTopPoolsAsync();
+        } catch (err) {
+            this._warningLogger(err, 'Failed to fetch top pools for Balancer V2');
+            return;
+        }
+
         for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {

@@ -22,10 +22,18 @@ pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
 
+
+interface IWstETH {
+    function getWstETHByStETH(uint256 _stETHAmount) external view returns (uint256);
+    function getStETHByWstETH(uint256 _wstETHAmount) external view returns (uint256);
+}
+
+
 contract LidoSampler is SamplerUtils {
     struct LidoInfo {
         address stEthToken;
         address wethToken;
+        address wstEthToken;
     }
 
     /// @dev Sample sell quotes from Lido
@@ -42,20 +50,17 @@ contract LidoSampler is SamplerUtils {
         uint256[] memory takerTokenAmounts
     )
         public
-        pure
+        view
         returns (uint256[] memory)
     {
         _assertValidPair(makerToken, takerToken);
 
-        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
-            // Return 0 values if not selling WETH for stETH
-            uint256 numSamples = takerTokenAmounts.length;
-            uint256[] memory makerTokenAmounts = new uint256[](numSamples);
-            return makerTokenAmounts;
+        if (takerToken == lidoInfo.wethToken && makerToken == address(lidoInfo.stEthToken)) {
+            // Minting stETH is always 1:1 therefore we can just return the same amounts back.
+            return takerTokenAmounts;
         }
 
-        // Minting stETH is always 1:1 therefore we can just return the same amounts back
-        return takerTokenAmounts;
+        return _sampleSellsForWrapped(lidoInfo, takerToken, makerToken, takerTokenAmounts);
     }
 
     /// @dev Sample buy quotes from Lido.
@@ -72,20 +77,43 @@ contract LidoSampler is SamplerUtils {
         uint256[] memory makerTokenAmounts
     )
         public
-        pure
+        view
         returns (uint256[] memory)
     {
-        _assertValidPair(makerToken, takerToken);
-
-        if (takerToken != lidoInfo.wethToken || makerToken != address(lidoInfo.stEthToken)) {
-            // Return 0 values if not buying stETH for WETH
-            uint256 numSamples = makerTokenAmounts.length;
-            uint256[] memory takerTokenAmounts = new uint256[](numSamples);
-            return takerTokenAmounts;
+        if (takerToken == lidoInfo.wethToken && makerToken == address(lidoInfo.stEthToken)) {
+            // Minting stETH is always 1:1 therefore we can just return the same amounts back.
+            return makerTokenAmounts;
         }
 
-        // Minting stETH is always 1:1 therefore we can just return the same amounts back
-        return makerTokenAmounts;
+        // Swap out `makerToken` and `takerToken` and re-use `_sampleSellsForWrapped`.
+        return _sampleSellsForWrapped(lidoInfo, makerToken, takerToken, makerTokenAmounts);
     }
 
+    function _sampleSellsForWrapped(
+        LidoInfo memory lidoInfo,
+        address takerToken,
+        address makerToken,
+        uint256[] memory takerTokenAmounts
+    ) private view  returns (uint256[] memory) {
+        IWstETH wstETH = IWstETH(lidoInfo.wstEthToken);
+        uint256 numSamples = takerTokenAmounts.length;
+        uint256[] memory makerTokenAmounts = new uint256[](numSamples);
+
+        if (takerToken == lidoInfo.stEthToken && makerToken == lidoInfo.wstEthToken) {
+            for (uint256 i = 0; i < numSamples; i++) {
+                makerTokenAmounts[i] = wstETH.getWstETHByStETH(takerTokenAmounts[i]);
+            }
+            return makerTokenAmounts;
+        }
+
+        if (takerToken == lidoInfo.wstEthToken && makerToken == lidoInfo.stEthToken) {
+            for (uint256 i = 0; i < numSamples; i++) {
+                makerTokenAmounts[i] = wstETH.getStETHByWstETH(takerTokenAmounts[i]);
+            }
+            return makerTokenAmounts;
+        }
+
+        // Returns 0 values.
+        return makerTokenAmounts;
+    }
 }

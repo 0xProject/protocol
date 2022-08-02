@@ -9,27 +9,10 @@ import {
     DexSample,
     ExchangeProxyOverhead,
     FeeSchedule,
+    FillAdjustor,
     MarketSideLiquidity,
     MultiHopFillData,
-    TokenAdjacencyGraph,
 } from './types';
-
-/**
- * Given a token pair, returns the intermediate tokens to consider for two-hop routes.
- */
-export function getIntermediateTokens(
-    makerToken: string,
-    takerToken: string,
-    tokenAdjacencyGraph: TokenAdjacencyGraph,
-): string[] {
-    const intermediateTokens = _.union(
-        _.get(tokenAdjacencyGraph, takerToken, tokenAdjacencyGraph.default),
-        _.get(tokenAdjacencyGraph, makerToken, tokenAdjacencyGraph.default),
-    );
-    return _.uniqBy(intermediateTokens, a => a.toLowerCase()).filter(
-        token => token.toLowerCase() !== makerToken.toLowerCase() && token.toLowerCase() !== takerToken.toLowerCase(),
-    );
-}
 
 /**
  * Returns the best two-hop quote and the fee-adjusted rate of that quote.
@@ -38,6 +21,7 @@ export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
     feeSchedule?: FeeSchedule,
     exchangeProxyOverhead?: ExchangeProxyOverhead,
+    fillAdjustor?: FillAdjustor,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
     const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
     const { twoHopQuotes } = quotes;
@@ -57,7 +41,15 @@ export function getBestTwoHopQuote(
     }
     const best = filteredQuotes
         .map(quote =>
-            getTwoHopAdjustedRate(side, quote, inputAmount, outputAmountPerEth, feeSchedule, exchangeProxyOverhead),
+            getTwoHopAdjustedRate(
+                side,
+                quote,
+                inputAmount,
+                outputAmountPerEth,
+                feeSchedule,
+                exchangeProxyOverhead,
+                fillAdjustor,
+            ),
         )
         .reduce(
             (prev, curr, i) =>
@@ -70,6 +62,7 @@ export function getBestTwoHopQuote(
                     outputAmountPerEth,
                     feeSchedule,
                     exchangeProxyOverhead,
+                    fillAdjustor,
                 ),
                 quote: filteredQuotes[0],
             },

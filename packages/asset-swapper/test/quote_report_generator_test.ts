@@ -9,11 +9,10 @@ import * as TypeMoq from 'typemoq';
 
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../src/types';
 import {
-    CollapsedFill,
     DexSample,
     ERC20BridgeSource,
+    Fill,
     MultiHopFillData,
-    NativeCollapsedFill,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
@@ -34,7 +33,7 @@ import { getRandomAmount, getRandomSignature } from './utils/utils';
 chaiSetup.configure();
 const expect = chai.expect;
 
-function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): NativeCollapsedFill {
+function fillFromNativeOrder(order: NativeOrderWithFillableAmounts): Fill<NativeFillData> {
     const fillData = {
         order: order.order,
         signature: order.signature,
@@ -50,7 +49,9 @@ function collapsedFillFromNativeOrder(order: NativeOrderWithFillableAmounts): Na
             order.type === FillQuoteTransformerOrderType.Limit
                 ? (fillData as NativeLimitOrderFillData)
                 : (fillData as NativeRfqOrderFillData),
-        subFills: [],
+        adjustedOutput: order.order.makerAmount,
+        flags: BigInt(0),
+        gas: 1,
     };
 }
 
@@ -58,8 +59,8 @@ describe('generateQuoteReport', async () => {
     it('should generate report properly for sell', () => {
         const marketOperation: MarketOperation = MarketOperation.Sell;
 
-        const kyberSample2: DexSample = {
-            source: ERC20BridgeSource.Kyber,
+        const balancerSample2: DexSample = {
+            source: ERC20BridgeSource.BalancerV2,
             input: new BigNumber(10003),
             output: new BigNumber(10004),
             fillData: {},
@@ -111,21 +112,25 @@ describe('generateQuoteReport', async () => {
         ];
 
         // generate path
-        const uniswap2Fill: CollapsedFill = {
+        const uniswap2Fill: Fill = {
             ...uniswapSample2,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: uniswapSample2.output,
+            flags: BigInt(0),
+            gas: 1,
         };
-        const kyber2Fill: CollapsedFill = {
-            ...kyberSample2,
-            subFills: [],
+        const balancer2Fill: Fill = {
+            ...balancerSample2,
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: balancerSample2.output,
+            flags: BigInt(0),
+            gas: 1,
         };
-        const orderbookOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder2);
-        const rfqtOrder2Fill: CollapsedFill = collapsedFillFromNativeOrder(rfqtOrder2);
-        const pathGenerated: CollapsedFill[] = [rfqtOrder2Fill, orderbookOrder2Fill, uniswap2Fill, kyber2Fill];
+        const orderbookOrder2Fill: Fill = fillFromNativeOrder(orderbookOrder2);
+        const rfqtOrder2Fill: Fill = fillFromNativeOrder(rfqtOrder2);
+        const pathGenerated: Fill[] = [rfqtOrder2Fill, orderbookOrder2Fill, uniswap2Fill, balancer2Fill];
 
         // quote generator mock
         const quoteRequestor = TypeMoq.Mock.ofType<QuoteRequestor>();
@@ -190,10 +195,10 @@ describe('generateQuoteReport', async () => {
             takerAmount: uniswapSample2.input,
             fillData: {},
         };
-        const kyber2Source: BridgeQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Kyber,
-            makerAmount: kyberSample2.output,
-            takerAmount: kyberSample2.input,
+        const balancer2Source: BridgeQuoteReportEntry = {
+            liquiditySource: ERC20BridgeSource.BalancerV2,
+            makerAmount: balancerSample2.output,
+            takerAmount: balancerSample2.input,
             fillData: {},
         };
 
@@ -202,7 +207,7 @@ describe('generateQuoteReport', async () => {
             rfqtOrder2Source,
             orderbookOrder2Source,
             uniswap2Source,
-            kyber2Source,
+            balancer2Source,
         ];
         expectEqualQuoteReportEntries(orderReport.sourcesConsidered, expectedSourcesConsidered, `sourcesConsidered`);
         expectEqualQuoteReportEntries(orderReport.sourcesDelivered, expectedSourcesDelivered, `sourcesDelivered`);
@@ -210,8 +215,8 @@ describe('generateQuoteReport', async () => {
     });
     it('should handle properly for buy without quoteRequestor', () => {
         const marketOperation: MarketOperation = MarketOperation.Buy;
-        const kyberSample1: DexSample = {
-            source: ERC20BridgeSource.Kyber,
+        const balancerSample1: DexSample = {
+            source: ERC20BridgeSource.BalancerV2,
             input: new BigNumber(10000),
             output: new BigNumber(10001),
             fillData: {},
@@ -241,20 +246,24 @@ describe('generateQuoteReport', async () => {
         const nativeOrders = [orderbookOrder1, orderbookOrder2];
 
         // generate path
-        const orderbookOrder1Fill: CollapsedFill = collapsedFillFromNativeOrder(orderbookOrder1);
-        const uniswap1Fill: CollapsedFill = {
+        const orderbookOrder1Fill: Fill = fillFromNativeOrder(orderbookOrder1);
+        const uniswap1Fill: Fill = {
             ...uniswapSample1,
-            subFills: [],
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: uniswapSample1.output,
+            flags: BigInt(0),
+            gas: 1,
         };
-        const kyber1Fill: CollapsedFill = {
-            ...kyberSample1,
-            subFills: [],
+        const balancer1Fill: Fill = {
+            ...balancerSample1,
             sourcePathId: hexUtils.random(),
             type: FillQuoteTransformerOrderType.Bridge,
+            adjustedOutput: balancerSample1.output,
+            flags: BigInt(0),
+            gas: 1,
         };
-        const pathGenerated: CollapsedFill[] = [orderbookOrder1Fill, uniswap1Fill, kyber1Fill];
+        const pathGenerated: Fill[] = [orderbookOrder1Fill, uniswap1Fill, balancer1Fill];
 
         const orderReport = generateQuoteReport(marketOperation, nativeOrders, pathGenerated);
 
@@ -274,16 +283,16 @@ describe('generateQuoteReport', async () => {
             takerAmount: uniswapSample1.output,
             fillData: {},
         };
-        const kyber1Source: BridgeQuoteReportEntry = {
-            liquiditySource: ERC20BridgeSource.Kyber,
-            makerAmount: kyberSample1.input,
-            takerAmount: kyberSample1.output,
+        const balancer1Source: BridgeQuoteReportEntry = {
+            liquiditySource: ERC20BridgeSource.BalancerV2,
+            makerAmount: balancerSample1.input,
+            takerAmount: balancerSample1.output,
             fillData: {},
         };
 
         // No order is considered here because only Native RFQ orders are considered.
         const expectedSourcesConsidered: QuoteReportEntry[] = [];
-        const expectedSourcesDelivered: QuoteReportEntry[] = [orderbookOrder1Source, uniswap1Source, kyber1Source];
+        const expectedSourcesDelivered: QuoteReportEntry[] = [orderbookOrder1Source, uniswap1Source, balancer1Source];
         expectEqualQuoteReportEntries(orderReport.sourcesConsidered, expectedSourcesConsidered, `sourcesConsidered`);
         expectEqualQuoteReportEntries(orderReport.sourcesDelivered, expectedSourcesDelivered, `sourcesDelivered`);
     });

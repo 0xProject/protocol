@@ -1,3 +1,4 @@
+import { ChainId } from '@0x/contract-addresses';
 import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
@@ -10,6 +11,7 @@ import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts }
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
 import { IRfqClient } from '../irfq_client';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
+import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { SourceFilters } from './source_filters';
 
@@ -38,7 +40,6 @@ export enum ERC20BridgeSource {
     Native = 'Native',
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
-    Kyber = 'Kyber',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
     MultiBridge = 'MultiBridge',
@@ -56,7 +57,6 @@ export enum ERC20BridgeSource {
     DodoV2 = 'DODO_V2',
     CryptoCom = 'CryptoCom',
     KyberDmm = 'KyberDMM',
-    Smoothy = 'Smoothy',
     Component = 'Component',
     Saddle = 'Saddle',
     XSigma = 'xSigma',
@@ -67,31 +67,34 @@ export enum ERC20BridgeSource {
     AaveV2 = 'Aave_V2',
     Compound = 'Compound',
     Synapse = 'Synapse',
+    BancorV3 = 'BancorV3',
+    Synthetix = 'Synthetix',
     // BSC only
     PancakeSwap = 'PancakeSwap',
     PancakeSwapV2 = 'PancakeSwap_V2',
     BiSwap = 'BiSwap',
+    MDex = 'MDex',
+    KnightSwap = 'KnightSwap',
     BakerySwap = 'BakerySwap',
     Nerve = 'Nerve',
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
     ApeSwap = 'ApeSwap',
-    CafeSwap = 'CafeSwap',
     CheeseSwap = 'CheeseSwap',
-    JulSwap = 'JulSwap',
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
-    ComethSwap = 'ComethSwap',
     Dfyn = 'Dfyn',
     WaultSwap = 'WaultSwap',
-    Polydex = 'Polydex',
     FirebirdOneSwap = 'FirebirdOneSwap',
-    JetSwap = 'JetSwap',
     IronSwap = 'IronSwap',
+    MeshSwap = 'MeshSwap',
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
+    Platypus = 'Platypus',
+    // tslint:disable: enum-naming
+    GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
     MobiusMoney = 'MobiusMoney',
@@ -100,13 +103,11 @@ export enum ERC20BridgeSource {
     SpookySwap = 'SpookySwap',
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
+    Yoshi = 'Yoshi',
     Geist = 'Geist',
+    // Optimism
+    Velodrome = 'Velodrome',
 }
-export type SourcesWithPoolsCache =
-    | ERC20BridgeSource.Balancer
-    | ERC20BridgeSource.BalancerV2
-    | ERC20BridgeSource.Beethovenx
-    | ERC20BridgeSource.Cream;
 
 // tslint:disable: enum-naming
 /**
@@ -127,7 +128,7 @@ export enum CurveFunctionSelectors {
     exchange_underlying_v2 = '0x65b2489b',
     get_dy_v2 = '0x556d6e9f',
     get_dy_underlying_v2 = '0x85f11d1e',
-    // Smoothy
+    // Smoothy(deprecated)
     swap_uint256 = '0x5673b02d', // swap(uint256,uint256,uint256,uint256)
     get_swap_amount = '0x45cf2ef6', // getSwapAmount(uint256,uint256,uint256)
     // Nerve BSC, Saddle Mainnet, Synapse
@@ -164,6 +165,7 @@ export interface PsmInfo {
 export interface LidoInfo {
     stEthToken: string;
     wethToken: string;
+    wstEthToken: string;
 }
 
 /**
@@ -258,10 +260,9 @@ export interface BancorFillData extends FillData {
     networkAddress: string;
 }
 
-export interface KyberFillData extends FillData {
-    hint: string;
-    reserveId: string;
-    networkProxy: string;
+export interface BancorV3FillData extends FillData {
+    path: string[];
+    networkAddress: string;
 }
 
 export interface MooniswapFillData extends FillData {
@@ -328,7 +329,9 @@ export interface FinalUniswapV3FillData extends Omit<UniswapV3FillData, 'pathAmo
 
 export interface LidoFillData extends FillData {
     stEthTokenAddress: string;
+    wstEthTokenAddress: string;
     takerToken: string;
+    makerToken: string;
 }
 
 export interface AaveV2FillData extends FillData {
@@ -351,6 +354,38 @@ export interface GeistFillData extends FillData {
     takerToken: string;
 }
 
+export interface PlatypusInfo {
+    poolAddress: string;
+    tokens: string[];
+    gasSchedule: number;
+}
+
+export interface GMXFillData extends FillData {
+    router: string;
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
+}
+
+export interface PlatypusFillData extends FillData {
+    router: string;
+    pool: string[];
+    tokenAddressPath: string[];
+}
+
+export interface VelodromeFillData extends FillData {
+    router: string;
+    stable: boolean;
+}
+
+export interface SynthetixFillData extends FillData {
+    synthetix: string;
+    takerTokenSymbolBytes32: string;
+    makerTokenSymbolBytes32: string;
+    // Only needed for gas estimation.
+    chainId: ChainId;
+}
+
 /**
  * Represents a node on a fill path.
  */
@@ -370,46 +405,11 @@ export interface Fill<TFillData extends FillData = FillData> {
     input: BigNumber;
     // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
     output: BigNumber;
-    // The output fill amount, ajdusted by fees.
+    // The output fill amount, adjusted by fees.
     adjustedOutput: BigNumber;
-    // Fill that must precede this one. This enforces certain fills to be contiguous.
-    parent?: Fill;
-    // The index of the fill in the original path.
-    index: number;
+    // The expected gas cost of this fill
+    gas: number;
 }
-
-/**
- * Represents continguous fills on a path that have been merged together.
- */
-export interface CollapsedFill<TFillData extends FillData = FillData> {
-    source: ERC20BridgeSource;
-    type: FillQuoteTransformerOrderType; // should correspond with TFillData
-    fillData: TFillData;
-    // Unique ID of the original source path this fill belongs to.
-    // This is generated when the path is generated and is useful to distinguish
-    // paths that have the same `source` IDs but are distinct (e.g., Curves).
-    sourcePathId: string;
-    /**
-     * Total input amount (sum of `subFill`s)
-     */
-    input: BigNumber;
-    /**
-     * Total output amount (sum of `subFill`s)
-     */
-    output: BigNumber;
-    /**
-     * Quantities of all the fills that were collapsed.
-     */
-    subFills: Array<{
-        input: BigNumber;
-        output: BigNumber;
-    }>;
-}
-
-/**
- * A `CollapsedFill` wrapping a native order.
- */
-export interface NativeCollapsedFill extends CollapsedFill<NativeFillData> {}
 
 export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
@@ -419,24 +419,21 @@ export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData>
     takerToken: string;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
-    fills: CollapsedFill[];
+    fill: Omit<Fill, 'flags' | 'fillData' | 'sourcePathId' | 'source' | 'type'>; // Remove duplicates which have been brought into the OrderBase interface
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
     extends OptimizedMarketOrderBase<TFillData> {
     type: FillQuoteTransformerOrderType.Bridge;
-    fillData: TFillData;
     sourcePathId: string;
 }
 
 export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
     type: FillQuoteTransformerOrderType.Limit;
-    fillData: NativeLimitOrderFillData;
 }
 
 export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrderFillData> {
     type: FillQuoteTransformerOrderType.Rfq;
-    fillData: NativeRfqOrderFillData;
 }
 
 /**
@@ -453,8 +450,12 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }
 
-export type FeeEstimate = (fillData: FillData) => number | BigNumber;
+export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
+
+export type GasEstimate = (fillData: FillData) => number;
+export type GasSchedule = Partial<{ [key in ERC20BridgeSource]: GasEstimate }>;
+
 export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
 
 /**
@@ -518,7 +519,7 @@ export interface GetMarketOrdersOpts {
     /**
      * Estimated gas consumed by each liquidity source.
      */
-    gasSchedule: FeeSchedule;
+    gasSchedule: GasSchedule;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different
@@ -553,6 +554,11 @@ export interface GetMarketOrdersOpts {
      * Sampler metrics for recording data on the sampler service and operations
      */
     samplerMetrics?: SamplerMetrics;
+
+    /**
+     * Adjusts fills individual fills based on caller supplied criteria
+     */
+    fillAdjustor: FillAdjustor;
 }
 
 export interface SamplerMetrics {
@@ -598,7 +604,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 export interface OptimizerResult {
     optimizedOrders: OptimizedMarketOrder[];
     sourceFlags: bigint;
-    liquidityDelivered: CollapsedFill[] | DexSample<MultiHopFillData>;
+    liquidityDelivered: Readonly<Fill[] | DexSample<MultiHopFillData>>;
     marketSideLiquidity: MarketSideLiquidity;
     adjustedRate: BigNumber;
     takerAmountPerEth: BigNumber;
@@ -609,15 +615,6 @@ export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
-}
-
-export type MarketDepthSide = Array<Array<DexSample<FillData>>>;
-
-export interface MarketDepth {
-    bids: MarketDepthSide;
-    asks: MarketDepthSide;
-    makerTokenDecimals: number;
-    takerTokenDecimals: number;
 }
 
 export interface MarketSideLiquidity {
@@ -642,11 +639,6 @@ export interface RawQuotes {
     dexQuotes: Array<Array<DexSample<FillData>>>;
 }
 
-export interface TokenAdjacencyGraph {
-    [token: string]: string[];
-    default: string[];
-}
-
 export interface LiquidityProviderRegistry {
     [address: string]: {
         tokens: string[];
@@ -666,14 +658,13 @@ export interface GenerateOptimizedOrdersOpts {
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
     samplerMetrics?: SamplerMetrics;
+    fillAdjustor: FillAdjustor;
 }
 
 export interface ComparisonPrice {
     wholeOrder: BigNumber | undefined;
 }
 
-export interface KyberSamplerOpts {
-    networkProxy: string;
-    hintHandler: string;
-    weth: string;
+export interface FillAdjustor {
+    adjustFills: (side: MarketOperation, fills: Fill[], amount: BigNumber) => Fill[];
 }

@@ -1,14 +1,19 @@
-import { getPoolsWithTokens, parsePoolData } from '@balancer-labs/sor';
-import { Pool } from '@balancer-labs/sor/dist/types';
+import { ChainId } from '@0x/contract-addresses';
+import { getPoolsWithTokens, parsePoolData } from 'balancer-labs-sor-v1';
+import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import { gql, request } from 'graphql-request';
 
-import { BALANCER_MAX_POOLS_FETCHED, BALANCER_SUBGRAPH_URL, BALANCER_TOP_POOLS_FETCHED } from '../constants';
+import { DEFAULT_WARNING_LOGGER } from '../../../constants';
+import { LogFunction } from '../../../types';
+import { BALANCER_MAX_POOLS_FETCHED, BALANCER_TOP_POOLS_FETCHED } from '../constants';
 
-import { CacheValue, PoolsCache } from './pools_cache';
+import { NoOpPoolsCache } from './no_op_pools_cache';
+import { AbstractPoolsCache, CacheValue, PoolsCache } from './pools_cache';
 
-// tslint:disable:custom-no-magic-numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-// tslint:enable:custom-no-magic-numbers
+// tslint:disable: member-ordering
+
+const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 
 interface BalancerPoolResponse {
     id: string;
@@ -18,12 +23,21 @@ interface BalancerPoolResponse {
     totalWeight: string;
 }
 
-export class BalancerPoolsCache extends PoolsCache {
-    constructor(
+export class BalancerPoolsCache extends AbstractPoolsCache {
+    public static create(chainId: ChainId): PoolsCache {
+        if (chainId !== ChainId.Mainnet) {
+            return new NoOpPoolsCache();
+        }
+
+        return new BalancerPoolsCache();
+    }
+
+    private constructor(
         private readonly _subgraphUrl: string = BALANCER_SUBGRAPH_URL,
-        cache: { [key: string]: CacheValue } = {},
+        cache: Map<string, CacheValue> = new Map(),
         private readonly maxPoolsFetched: number = BALANCER_MAX_POOLS_FETCHED,
         private readonly _topPoolsFetched: number = BALANCER_TOP_POOLS_FETCHED,
+        private readonly _warningLogger: LogFunction = DEFAULT_WARNING_LOGGER,
     ) {
         super(cache);
         void this._loadTopPoolsAsync();
@@ -49,7 +63,14 @@ export class BalancerPoolsCache extends PoolsCache {
             [from: string]: { [to: string]: Pool[] };
         } = {};
 
-        const pools = await this._fetchTopPoolsAsync();
+        let pools: BalancerPoolResponse[];
+        try {
+            pools = await this._fetchTopPoolsAsync();
+        } catch (err) {
+            this._warningLogger(err, 'Failed to fetch top pools for Balancer V1');
+            return;
+        }
+
         for (const pool of pools) {
             const { tokensList } = pool;
             for (const from of tokensList) {

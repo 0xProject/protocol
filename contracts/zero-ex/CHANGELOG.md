@@ -5,6 +5,24 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.36.0 - _July 27, 2022_
+
+    * Add Synthetix support in Ethereum and Optimism bridge adapters (#518)
+
+## v0.35.0 - _June 14, 2022_
+
+    * Adds support for Velodrome OptimismBridgeAdapter (#494)
+
+## v0.34.0 - _June 3, 2022_
+
+    * Splits BridgeAdapter up by chain (#487)
+    * Add stETH wrap/unwrap support (#476)
+    * Adds support for BancorV3 to EthereumBridgeAdapter (#492)
+
+## v0.33.0 - _May 19, 2022_
+
+    * Add support for GMX and Platypus to bridge adapter (#478)
+
 ## v0.32.0 - _April 22, 2022_
 
     * Add support for `BalancerV2Batch` fills in FQT (#462)

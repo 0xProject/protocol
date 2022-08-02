@@ -1,12 +1,158 @@
 [
     {
+        "version": "16.65.0",
+        "changes": [
+            {
+                "note": "Use 0x gas api instead of eth gas station api",
+                "pr": 532
+            }
+        ],
+        "timestamp": 1659391840
+    },
+    {
+        "version": "16.64.0",
+        "changes": [
+            {
+                "note": "Refactor `TokenAdjacency` and `TokenAdjacencyBuilder`",
+                "pr": 517
+            },
+            {
+                "note": "Add Synthetix support`",
+                "pr": 518
+            },
+            {
+                "note": "Replace Beethoven X subgraph URL",
+                "pr": 519
+            },
+            {
+                "note": "Remove Mooniswap on Ethereum mainnet",
+                "pr": 529
+            }
+        ],
+        "timestamp": 1658950329
+    },
+    {
+        "version": "16.63.1",
+        "changes": [
+            {
+                "note": "Better error handling for balancer cache",
+                "pr": 515
+            }
+        ],
+        "timestamp": 1657661207
+    },
+    {
+        "version": "16.63.0",
+        "changes": [
+            {
+                "note": "Remove JS router",
+                "pr": 480
+            },
+            {
+                "note": "Removed Median price in favour of best gas adjusted price",
+                "pr": 480
+            }
+        ],
+        "timestamp": 1656491792
+    },
+    {
+        "version": "16.62.2",
+        "changes": [
+            {
+                "note": "Offboard Smoothy and ComethSwap",
+                "pr": 509
+            }
+        ]
+    },
+    {
+        "version": "16.62.1",
+        "changes": [
+            {
+                "note": "Remove nUSD from intermediate liquidity to save on sampler gas",
+                "pr": 505
+            }
+        ],
+        "timestamp": 1655253622
+    },
+    {
+        "version": "16.62.0",
+        "changes": [
+            {
+                "note": "Add MDEX on BSC",
+                "pr": 496
+            },
+            {
+                "note": "Add KnightSwap on BSC",
+                "pr": 498
+            },
+            {
+                "note": "Add Velodrome support on Optimism",
+                "pr": 494
+            },
+            {
+                "note": "Do not send empty entries on Quote Report",
+                "pr": 501
+            },
+            {
+                "note": "KnightSwap/Mdex cosmetic change",
+                "pr": 502
+            },
+            {
+                "note": "Offboard JetSwap, CafeSwap, JulSwap, and PolyDex",
+                "pr": 503
+            }
+        ],
+        "timestamp": 1655244958
+    },
+    {
+        "version": "16.61.0",
+        "changes": [
+            {
+                "note": "Add stETH wrap/unwrap support",
+                "pr": 476
+            },
+            {
+                "note": "Offboard/clean up Oasis, CoFix, and legacy Kyber",
+                "pr": 482
+            },
+            {
+                "note": "Add MeshSwap on Polygon",
+                "pr": 491
+            }
+        ],
+        "timestamp": 1654284040
+    },
+    {
+        "version": "16.60.1",
+        "changes": [
+            {
+                "note": "Alias Balancer sor to the old version",
+                "pr": 481
+            }
+        ],
+        "timestamp": 1652931596
+    },
+    {
         "version": "16.60.0",
         "changes": [
             {
                 "note": "Add BiSwap on BSC",
                 "pr": 467
+            },
+            {
+                "note": "Add GMX and Platypus on Avalanche and Enable KyberDMM on bsc",
+                "pr": 478
+            },
+            {
+                "note": "Add Yoshi Exchange support in Fantom",
+                "pr": 473
+            },
+            {
+                "note": "Fix KyberDMM gas underestimation",
+                "pr": 479
             }
-        ]
+        ],
+        "timestamp": 1652919697
     },
     {
         "version": "16.59.0",

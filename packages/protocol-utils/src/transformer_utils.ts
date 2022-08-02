@@ -107,6 +107,7 @@ export interface FillQuoteTransformerData {
 // tslint:disable: enum-naming
 /**
  * Identifies the DEX protocol used to fill a bridge order.
+ * Note: These need to correspond exactly with BridgeProtocols.sol!
  */
 export enum BridgeProtocol {
     Unknown,
@@ -114,16 +115,16 @@ export enum BridgeProtocol {
     UniswapV2,
     Uniswap,
     Balancer,
-    Kyber,
+    Kyber_DEPRECATED,
     Mooniswap,
     MStable,
-    Oasis,
+    Oasis_DEPRECATED,
     Shell,
     Dodo,
     DodoV2,
     CryptoCom,
     Bancor,
-    CoFiX,
+    CoFiX_DEPRECATED,
     Nerve,
     MakerPsm,
     BalancerV2,
@@ -135,6 +136,11 @@ export enum BridgeProtocol {
     AaveV2,
     Compound,
     BalancerV2Batch,
+    GMX,
+    Platypus,
+    BancorV3,
+    Velodrome,
+    Synthetix,
 }
 // tslint:enable: enum-naming
 
