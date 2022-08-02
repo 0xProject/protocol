@@ -35,7 +35,6 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
     /// @param takerTokenAmounts Taker token sell amount for each sample (sorted in ascending order).
     /// @return makerTokenAmounts Maker amounts bought at each taker token
     ///         amount.
-    
     function sampleSellsFromWooPP(
         address pool,
         address takerToken,
@@ -46,14 +45,11 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         view
         returns (uint256[] memory makerTokenAmounts)
         {
-            //assertValidPair(makerToken, takerToken);
             uint256 numSamples = takerTokenAmounts.length;
             makerTokenAmounts = new uint256[](numSamples);
             for (uint256 i = 0; i < numSamples; i++) {
-                // Use WooFI's query function for sampling
                 makerTokenAmounts[i] = query(takerTokenAmounts[i], takerToken, makerToken, pool);
-                //IWooPP(pool).querySellBase(takerToken, takerTokenAmounts[i]);
-                // Break if there are 0 amounts
+
                 if (makerTokenAmounts[i] == 0) {
                     break;
                 }

@@ -68,51 +68,6 @@ contract MixinWOOFi{
     // /// @param _tokenOut Output token
     // /// @param _to recipient of tokens
     // /// @param pool WOOFi pool where the swap will happen
-    function _swap(
-        uint _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
-        IWooPP pool
-    ) internal returns(uint256 realToAmount){
-        uint256 realToAmount;
-        address quoteToken = pool.quoteToken();
-        if (_tokenIn == quoteToken) {
-            realToAmount = pool.sellQuote(
-                _tokenOut,
-                _amountIn,
-                1,
-                address(this),
-                rebateAddress
-            );
-        } else if (_tokenOut == quoteToken) {
-            realToAmount = pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                1, 
-                address(this), 
-                rebateAddress
-            );
-        } else {
-            uint256 quoteTokenAmount = pool.querySellBase(_tokenIn, _amountIn);
-            IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteTokenAmount);
-            
-            uint256 quoteAmount = pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                0, 
-                address(this), 
-                rebateAddress
-            );
-            realToAmount = pool.sellQuote(
-                _tokenOut, 
-                quoteAmount, 
-                1, 
-                address(this), 
-                rebateAddress
-            );
-        }
-    }
-
     function _tradeWOOFi(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
@@ -127,7 +82,6 @@ contract MixinWOOFi{
 
         sellToken.approveIfBelow(address(_pool), sellAmount);
         
-        //track the balance to know how much we bought
         _swap(
             sellAmount,
             address(sellToken),
@@ -136,4 +90,50 @@ contract MixinWOOFi{
         );
         boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
+
+    function _swap(
+        uint _amountIn, 
+        address _tokenIn, 
+        address _tokenOut, 
+        IWooPP pool
+    ) internal {
+        address quoteToken = pool.quoteToken();
+        if (_tokenIn == quoteToken) {
+            pool.sellQuote(
+                _tokenOut,
+                _amountIn,
+                1,
+                address(this),
+                rebateAddress
+            );
+        } else if (_tokenOut == quoteToken) {
+            pool.sellBase(
+                _tokenIn, 
+                _amountIn, 
+                1, 
+                address(this), 
+                rebateAddress
+            );
+        } else {
+            //uint256 quoteTokenAmount = pool.querySellBase(_tokenIn, _amountIn);
+            //IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteTokenAmount);
+            
+            uint256 quoteAmount = pool.sellBase(
+                _tokenIn, 
+                _amountIn, 
+                0, 
+                address(this), 
+                rebateAddress
+            );
+            IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteAmount);
+            pool.sellQuote(
+                _tokenOut, 
+                quoteAmount, 
+                1, 
+                address(this), 
+                rebateAddress
+            );
+        }
+    }
+
 }
