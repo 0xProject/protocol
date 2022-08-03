@@ -33,7 +33,6 @@ import * as IPlatypus from '../test/generated-artifacts/IPlatypus.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
 import * as IUniswapV2Router01 from '../test/generated-artifacts/IUniswapV2Router01.json';
-import * as IWooPP from '../test/generated-artifacts/IWooPP.json';
 import * as KyberDmmSampler from '../test/generated-artifacts/KyberDmmSampler.json';
 import * as LidoSampler from '../test/generated-artifacts/LidoSampler.json';
 import * as LiquidityProviderSampler from '../test/generated-artifacts/LiquidityProviderSampler.json';
@@ -100,6 +99,5 @@ export const artifacts = {
     IShell: IShell as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,
     IUniswapV2Router01: IUniswapV2Router01 as ContractArtifact,
-    IWooPP: IWooPP as ContractArtifact,
     TestNativeOrderSampler: TestNativeOrderSampler as ContractArtifact,
 };

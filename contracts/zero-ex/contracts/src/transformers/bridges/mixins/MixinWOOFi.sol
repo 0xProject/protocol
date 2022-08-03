@@ -114,10 +114,7 @@ contract MixinWOOFi{
                 address(this), 
                 rebateAddress
             );
-        } else {
-            //uint256 quoteTokenAmount = pool.querySellBase(_tokenIn, _amountIn);
-            //IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteTokenAmount);
-            
+        } else {          
             uint256 quoteAmount = pool.sellBase(
                 _tokenIn, 
                 _amountIn, 

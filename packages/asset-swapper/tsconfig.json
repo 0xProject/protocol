@@ -34,7 +34,6 @@
         "test/generated-artifacts/IShell.json",
         "test/generated-artifacts/IUniswapExchangeQuotes.json",
         "test/generated-artifacts/IUniswapV2Router01.json",
-        "test/generated-artifacts/IWooPP.json",
         "test/generated-artifacts/KyberDmmSampler.json",
         "test/generated-artifacts/LidoSampler.json",
         "test/generated-artifacts/LiquidityProviderSampler.json",
