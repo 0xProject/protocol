@@ -404,6 +404,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 fillData.takerTokenSymbolBytes32,
                 fillData.makerTokenSymbolBytes32,
             ]);
+            break;
         case ERC20BridgeSource.WOOFi:
             const woofiFillData = (order as OptimizedMarketBridgeOrder<WOOFiFillData>).fillData;
             bridgeData = encoder.encode([woofiFillData.poolAddress]);
