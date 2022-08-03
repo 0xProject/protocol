@@ -52,6 +52,7 @@ import {
     UNISWAPV1_ROUTER_BY_CHAIN_ID,
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
+    WOOFI_POOL_BY_CHAIN_ID,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -99,6 +100,7 @@ import {
     UniswapV2FillData,
     UniswapV3FillData,
     VelodromeFillData,
+    WOOFiFillData,
 } from './types';
 
 /**
@@ -1364,6 +1366,35 @@ export class SamplerOperations {
             },
         });
     }
+    public getWOOFiSellQuotes(
+        poolAddress: string,
+        takerToken: string,
+        makerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<WOOFiFillData> {
+        return new SamplerContractOperation({
+            fillData: { poolAddress, takerToken, makerToken },
+            source: ERC20BridgeSource.WOOFi,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromWooPP,
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
+        });
+    }
+
+    public getWOOFiBuyQuotes(
+        poolAddress: string,
+        takerToken: string,
+        makerToken: string,
+        makerFillAmounts: BigNumber[],
+    ): SourceQuoteOperation<WOOFiFillData> {
+        return new SamplerContractOperation({
+            fillData: { poolAddress, takerToken, makerToken },
+            source: ERC20BridgeSource.WOOFi,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromWooPP,
+            params: [poolAddress, takerToken, makerToken, makerFillAmounts],
+        });
+    }
 
     /**
      * Returns the best price for the native token
@@ -1800,6 +1831,14 @@ export class SamplerOperations {
                             takerFillAmounts,
                         );
                     }
+                    case ERC20BridgeSource.WOOFi: {
+                        return this.getWOOFiSellQuotes(
+                            WOOFI_POOL_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
+                            takerFillAmounts,
+                        );
+                    }
                     default:
                         throw new Error(`Unsupported sell sample source: ${source}`);
                 }
@@ -2137,6 +2176,14 @@ export class SamplerOperations {
                             readProxy,
                             takerTokenSymbol,
                             makerTokenSymbol,
+                            makerFillAmounts,
+                        );
+                    }
+                    case ERC20BridgeSource.WOOFi: {
+                        return this.getWOOFiBuyQuotes(
+                            WOOFI_POOL_BY_CHAIN_ID[this.chainId],
+                            takerToken,
+                            makerToken,
                             makerFillAmounts,
                         );
                     }

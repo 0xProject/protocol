@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.66.0",
+        "changes": [
+            {
+                "note": "Add WOOFi support",
+                "pr": 513
+            }
+        ]
+    },
+    {
         "version": "16.65.0",
         "changes": [
             {

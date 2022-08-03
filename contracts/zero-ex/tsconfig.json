@@ -166,6 +166,7 @@
         "test/generated-artifacts/MixinUniswapV2.json",
         "test/generated-artifacts/MixinUniswapV3.json",
         "test/generated-artifacts/MixinVelodrome.json",
+        "test/generated-artifacts/MixinWOOFi.json",
         "test/generated-artifacts/MixinZeroExBridge.json",
         "test/generated-artifacts/MooniswapLiquidityProvider.json",
         "test/generated-artifacts/MultiplexFeature.json",

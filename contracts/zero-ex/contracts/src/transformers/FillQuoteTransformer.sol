@@ -313,7 +313,7 @@ contract FillQuoteTransformer is
         if (success) {
             results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
             results.takerTokenSoldAmount = takerTokenFillAmount;
-        }
+        } 
     }
 
     // Fill a single limit order.

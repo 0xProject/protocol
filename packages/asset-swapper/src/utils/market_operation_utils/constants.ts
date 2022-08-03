@@ -35,6 +35,7 @@ import {
     SynthetixFillData,
     UniswapV2FillData,
     UniswapV3FillData,
+    WOOFiFillData,
 } from './types';
 
 // tslint:disable: no-bitwise
@@ -154,6 +155,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BiSwap,
             ERC20BridgeSource.MDex,
             ERC20BridgeSource.KnightSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -176,6 +178,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -189,6 +192,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -202,6 +206,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Yoshi,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -302,6 +307,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.BiSwap,
             ERC20BridgeSource.MDex,
             ERC20BridgeSource.KnightSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Polygon]: new SourceFilters([
             ERC20BridgeSource.SushiSwap,
@@ -324,6 +330,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -337,6 +344,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -350,6 +358,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Yoshi,
+            ERC20BridgeSource.WOOFi,
         ]),
         [ChainId.Celo]: new SourceFilters([
             ERC20BridgeSource.UbeSwap,
@@ -542,6 +551,7 @@ export const BSC_TOKENS = {
     pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
     nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
     BSW: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1',
+    WOO: '0x4691937a7508860f876c9c0a2a617e7d9e945d4b',
 };
 
 export const POLYGON_TOKENS = {
@@ -561,6 +571,7 @@ export const POLYGON_TOKENS = {
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
     ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
+    WOO: '0x1b815d120b3ef02039ee11dc2d33de7aa4a8c603',
 };
 
 export const AVALANCHE_TOKENS = {
@@ -587,6 +598,7 @@ export const AVALANCHE_TOKENS = {
     UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
     YUSD: '0x111111111111ed1d73f860f57b2798b683f2d325',
+    WOO: '0xabc9547b534519ff73921b1fba6e672b5f58d083',
 };
 
 export const CELO_TOKENS = {
@@ -646,6 +658,7 @@ export const FANTOM_TOKENS = {
     gWBTC: '0x38aca5484b8603373acc6961ecd57a6a594510a3',
     gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
     gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
+    WOO: '0x6626c47c00f1d87902fc13eecfac3ed06d5e8d8a',
 };
 
 export const OPTIMISM_TOKENS = {
@@ -863,6 +876,16 @@ export const PLATYPUS_AVALANCHE_POOLS = {
     mim: '0x30c30d826be87cd0a4b90855c2f38f7fcfe4eaa7',
     sAVAX: '0x4658ea7e9960d6158a261104aaa160cc953bb6ba',
 };
+
+export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
+    {
+        [ChainId.BSC]: '0xbf365ce9cfcb2d5855521985e351ba3bcf77fd3f',
+        [ChainId.Fantom]: '0x9503e7517d3c5bc4f9e4a1c6ae4f8b33ac2546f2',
+        [ChainId.Avalanche]: '0x1df3009c57a8b143c6246149f00b090bce3b8f88',
+        [ChainId.Polygon]: '0x7400b665c8f4f3a951a99f1ee9872efb8778723d',
+    },
+    NULL_ADDRESS,
+);
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
     {
@@ -2645,7 +2668,19 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: fillData => (fillData as CurveFillData).pool.gasSchedule,
+    [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
+        const woofiFillData = fillData as WOOFiFillData;
+        const quoteTokenAddresses = [BSC_TOKENS.USDT, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
 
+        if (
+            quoteTokenAddresses.includes(woofiFillData.takerToken) ||
+            quoteTokenAddresses.includes(woofiFillData.makerToken)
+        ) {
+            return 500e3;
+        } else {
+            return 100e4;
+        }
+    },
     //
     // Polygon
     //
