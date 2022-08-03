@@ -2,6 +2,10 @@
 
 This package contains contracts for the ZeroEx extensible contract architecture.
 
+> **_NOTE:_**  This repo is undergoing a tooling change. If adding a contract, you will need to
+> add it to `compiler.json`. You can generate the entire list by running the following:
+> `find . -type f -name "*.sol" | grep -v foundry | grep -v "contracts/dep" | grep -v "node_modules"`
+
 ## Installation
 
 **Install**
