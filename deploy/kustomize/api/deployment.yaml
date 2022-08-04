@@ -11,7 +11,6 @@ spec:
     rollingUpdate:
       maxUnavailable: 25%
       maxSurge: 25%
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: rfqm
@@ -32,10 +31,9 @@ spec:
           name: rfqm-api
           resources:
             limits:
-              cpu: 800m
               memory: 1Gi
             requests:
-              cpu: 500m
+              cpu: "1"
               memory: 500Mi
           imagePullPolicy: Always
           readinessProbe:
