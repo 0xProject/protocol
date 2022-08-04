@@ -1,6 +1,4 @@
 // tslint:disable-next-line:ordered-imports no-var-requires
-require('./apm');
-
 import {
     artifacts,
     AssetSwapperContractAddresses,
