@@ -194,10 +194,6 @@ workflows:
             #       requires:
             #           - build
             - test-foundry:
-                  filters:
-                    branches:
-                      only:
-                        - phil/foundry
                   requires:
                     - build
             - test-contracts-rest-ganache:
