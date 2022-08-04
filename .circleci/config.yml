@@ -82,7 +82,7 @@ jobs:
         resource_class: medium+
         docker:
             - image: ghcr.io/foundry-rs/foundry:latest
-        working_directory: ~/repo
+        working_directory: ~/repo/contracts/zero-ex
         steps:
             - restore_cache:
                   keys:
