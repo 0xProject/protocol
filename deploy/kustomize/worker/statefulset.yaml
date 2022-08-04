@@ -62,12 +62,7 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        startupProbe:
-          httpGet:
-            path: /metrics
-            port: prom
-          failureThreshold: 6 # Give container 1 minute to startup
-          periodSeconds: 10
+          initialDelaySeconds: 5
         name: rfqm-worker
         ports:
         - containerPort: 80
