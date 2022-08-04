@@ -199,9 +199,9 @@ workflows:
             - test-contracts-rest-ganache:
                   requires:
                       - build
-            # - test-rest:
-            #       requires:
-            #           - build
+            - test-rest:
+                  requires:
+                      - build
             - static-tests:
                   requires:
                       - build
