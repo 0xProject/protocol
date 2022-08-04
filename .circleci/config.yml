@@ -87,7 +87,7 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: forge install
+            # - run: forge install
             - run: forge test
     test-publish:
         resource_class: large
