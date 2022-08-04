@@ -223,9 +223,7 @@ describe('RFQM Integration', () => {
             new BigNumber(1),
         ]);
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(1);
-        when(rfqBlockchainUtilsMock.estimateGasForExchangeProxyCallAsync(anything(), anything())).thenResolve(
-            GAS_ESTIMATE,
-        );
+        when(rfqBlockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(GAS_ESTIMATE);
         when(rfqBlockchainUtilsMock.signTransactionAsync(anything())).thenResolve({
             signedTransaction: FIRST_SIGNED_TRANSACTION,
             transactionHash: FIRST_TRANSACTION_HASH,

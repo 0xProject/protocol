@@ -40,7 +40,7 @@ describe('RfqBlockchainUtils', () => {
         );
     });
 
-    describe('createAccessListForExchangeProxyCallAsync', () => {
+    describe('createAccessListForAsync', () => {
         it('returns correct TxAccessListWithGas object', async () => {
             when(ethersProvider.send(anything(), anything())).thenResolve({
                 accessList: [
@@ -56,12 +56,12 @@ describe('RfqBlockchainUtils', () => {
                 gasUsed: '0x651a',
             });
 
-            return expect(await rfqBlockchainUtils.createAccessListForExchangeProxyCallAsync(CALLDATA, FROM)).to.eql({
+            return expect(await rfqBlockchainUtils.createAccessListForAsync({ data: CALLDATA, from: FROM })).to.eql({
                 accessList: {
                     [ACCESS_LIST_ADDR_1]: [STORAGE_KEY_1],
                     [ACCESS_LIST_ADDR_2]: [STORAGE_KEY_2],
                 },
-                gasEstimate: 38823,
+                gasEstimate: 25882,
             });
         });
 
@@ -69,10 +69,10 @@ describe('RfqBlockchainUtils', () => {
             when(ethersProvider.send(anything(), anything())).thenReject(new Error('RPC error'));
 
             try {
-                await rfqBlockchainUtils.createAccessListForExchangeProxyCallAsync(CALLDATA, FROM);
+                await rfqBlockchainUtils.createAccessListForAsync({ data: CALLDATA, from: FROM });
                 expect.fail();
             } catch (e) {
-                expect(e.message).to.include('createAccessListForExchangeProxyCallAsync');
+                expect(e.message).to.include('createAccessListForAsync');
             }
         });
 
@@ -80,10 +80,10 @@ describe('RfqBlockchainUtils', () => {
             when(ethersProvider.send(anything(), anything())).thenResolve(1);
 
             try {
-                await rfqBlockchainUtils.createAccessListForExchangeProxyCallAsync(CALLDATA, FROM);
+                await rfqBlockchainUtils.createAccessListForAsync({ data: CALLDATA, from: FROM });
                 expect.fail();
             } catch (e) {
-                expect(e.message).to.include('createAccessListForExchangeProxyCallAsync');
+                expect(e.message).to.include('createAccessListForAsync');
             }
         });
     });

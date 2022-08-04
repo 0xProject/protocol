@@ -35,7 +35,6 @@ import { SubproviderAdapter } from './subprovider_adapter';
 const MIN_GAS_PRICE = new BigNumber(0);
 // 10K Gwei
 const MAX_GAS_PRICE = new BigNumber(1e13);
-const GAS_ESTIMATE_BUFFER = 0.5;
 const RFQ_ORDER_FILLED_EVENT_TOPIC0 = '0x829fa99d94dc4636925b38632e625736a614c154d55006b7ab6bea979c210c32';
 const OTC_ORDER_FILLED_EVENT_TOPIC0 = '0xac75f773e3a92f1a02b12134d65e1f47f8a14eabe4eaf1e24624918e6a8b269f';
 const ZERO_EX_FILL_EVENT_ABI = [
@@ -345,7 +344,6 @@ export class RfqBlockchainUtils {
     }
 
     /**
-     * Generalized version for `estimateGasForExchangeProxyCallAsync`.
      * Estimate gas (in wei) given a transaction request using `eth_estimateGas` JSON RPC method.
      * The transaction request contains information related to the transaction (from, to, data, etc.).
      *
@@ -358,50 +356,13 @@ export class RfqBlockchainUtils {
             return gasEstimate.toNumber();
         } catch (e) {
             if (e instanceof Error) {
-                e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
+                e.message = `estimateGasForAsync: ${e.message}`;
             }
             throw e;
         }
     }
 
     /**
-     * Estimates the gas of a transaction to the 0x exchange proxy
-     * specified by the address in the `RfqBlockchainUtils` constructor.
-     * Uses the provider to call the `eth_estimateGas` JSON RPC method,
-     * then adds the buffer specified.
-     *
-     * @param callData the calldata of the transaction
-     * @param fromAddress the address the transaction will be sent from
-     * @param buffer the buffer to add. For example, 0.5 will add a 50% buffer.
-     * Defaults to `GAS_ESTIMATE_BUFFER`. Set to 0 to disable.
-     *
-     * @returns The gas estimate for the transaction in wei
-     */
-    public async estimateGasForExchangeProxyCallAsync(
-        callData: string,
-        fromAddress: string,
-        buffer: number = GAS_ESTIMATE_BUFFER,
-    ): Promise<number> {
-        const transactionRequest: providers.TransactionRequest = {
-            to: this._exchangeProxy.address,
-            data: callData,
-            from: fromAddress,
-        };
-        try {
-            const gasEstimate = await this._ethersProvider.estimateGas(transactionRequest);
-
-            // add a buffer
-            return Math.ceil((buffer + 1) * gasEstimate.toNumber());
-        } catch (e) {
-            if (e instanceof Error) {
-                e.message = `estimateGasForExchangeProxyCallAsync: ${e.message}`;
-            }
-            throw e;
-        }
-    }
-
-    /**
-     * Generalized version for `createAccessListForExchangeProxyCallAsync`.
      * Get the access list and the gas estimation given a transaction request. Uses the provider
      * to call the `eth_createAccessList` JSON RPC method.
      *
@@ -435,60 +396,7 @@ export class RfqBlockchainUtils {
             };
         } catch (e) {
             if (e instanceof Error) {
-                e.message = `createAccessListForExchangeProxyCallAsync: ${e.message}`;
-            }
-
-            throw e;
-        }
-    }
-
-    /**
-     * Get the access list and the gas estimation of a transaction to the 0x exchange proxy
-     * specified by the address in the `RfqBlockchainUtils` constructor. Uses the provider
-     * to call the `eth_createAccessList` JSON RPC method, then adds the buffer specified.
-     * Note that the implementation is similar to the one in @0x/web3-wrapper. This repo is
-     * migrating away from web3-wrapper in favor of ethers. The original implementation in
-     * web3-wrapper:
-     * https://github.com/0xProject/tools/blob/development/web3-wrapper/src/web3_wrapper.ts#L591
-     *
-     * @param callData the calldata of the transaction.
-     * @param fromAddress the address the transaction will be sent from.
-     * @param buffer the buffer to add for gas estimation. For example, 0.5 will add a 50% buffer. Defaults to `GAS_ESTIMATE_BUFFER`. Set to 0 to disable.
-     * @returns A TxAccessListWithGas object which contains access list and gas estimation for the transaction.
-     */
-    public async createAccessListForExchangeProxyCallAsync(
-        callData: string,
-        fromAddress: string,
-        buffer: number = GAS_ESTIMATE_BUFFER,
-    ): Promise<{ accessList: TxAccessList; gasEstimate: number }> {
-        const transactionRequest: providers.TransactionRequest = {
-            to: this._exchangeProxy.address,
-            data: callData,
-            from: fromAddress,
-        };
-
-        try {
-            const rawResult = await this._ethersProvider.send('eth_createAccessList', [transactionRequest]);
-            const accessList: AccessList = rawResult.accessList;
-            const gasUsed: string = rawResult.gasUsed;
-
-            return {
-                // The type for `accessList` is `AccessList` (Array<{ address: string, storageKeys: Array<string> }>).
-                // The reduce operation is used to transform the array into type `TxAccessList` ([address: string]: string[]) whose keys
-                // are addresses and values are corresponding storage keys. This is useful if we need to remove an address from the object.
-                accessList: accessList.reduce((o: TxAccessList, v: { address: string; storageKeys: string[] }) => {
-                    o[v.address] = o[v.address] || [];
-                    o[v.address].push(...(v.storageKeys || []));
-                    return o;
-                }, {}),
-                gasEstimate: new BigNumber(gasUsed)
-                    .multipliedBy(buffer + 1)
-                    .integerValue(BigNumber.ROUND_CEIL)
-                    .toNumber(),
-            };
-        } catch (e) {
-            if (e instanceof Error) {
-                e.message = `createAccessListForExchangeProxyCallAsync: ${e.message}`;
+                e.message = `createAccessListForAsync: ${e.message}`;
             }
 
             throw e;
