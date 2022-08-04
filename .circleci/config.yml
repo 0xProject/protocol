@@ -194,9 +194,9 @@ workflows:
             #       requires:
             #           - build
             - test-foundry:
-                filters:
+                  filters:
                     branches:
-                        only:
+                      only:
                         - phil/foundry
                   requires:
                     - build
