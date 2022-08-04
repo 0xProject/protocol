@@ -28,6 +28,17 @@ jobs:
                   path: ~/repo/packages/abi-gen/test-cli/output
             - store_artifacts:
                   path: ~/repo/packages/contract-wrappers/generated_docs
+    test-foundry:
+        resource_class: medium+
+        docker:
+            - image: ghcr.io/foundry-rs/foundry:latest
+        working_directory: ~/repo
+        steps:
+            - restore_cache:
+                  keys:
+                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+            - run: forge install
+            - run: forge test
     test-exchange-ganache:
         resource_class: medium+
         docker:
