@@ -25,6 +25,8 @@ spec:
         app.kubernetes.io/name: rfqm
         app.kubernetes.io/component: processor
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # We currently only support amd64
       terminationGracePeriodSeconds: 300 
       containers:
         - image: 0x-rfq-api:latest
