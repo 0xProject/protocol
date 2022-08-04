@@ -193,6 +193,9 @@ workflows:
             # - test-contracts-extra-ganache:
             #       requires:
             #           - build
+            - test-foundry:
+                requires:
+                    - build
             - test-contracts-rest-ganache:
                   requires:
                       - build
