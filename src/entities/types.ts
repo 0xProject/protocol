@@ -1,6 +1,12 @@
 import { OtcOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
+export enum RfqTables {
+    RfqmV2Quotes = 'rfqm_v2_quotes',
+    RfqmV2Jobs = 'rfqm_v2_jobs',
+    RfqmV2TransactionSubmissions = 'rfqm_v2_transaction_submissions',
+}
+
 export enum RfqmJobStatus {
     // Transaction has been enqueued and will be processed once a worker is available
     PendingEnqueued = 'pending_enqueued',
