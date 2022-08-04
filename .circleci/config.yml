@@ -194,14 +194,14 @@ workflows:
             #       requires:
             #           - build
             - test-foundry:
-                requires:
+                  requires:
                     - build
             - test-contracts-rest-ganache:
                   requires:
                       - build
-            - test-rest:
-                  requires:
-                      - build
+            # - test-rest:
+            #       requires:
+            #           - build
             - static-tests:
                   requires:
                       - build
