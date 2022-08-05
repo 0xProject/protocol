@@ -29,7 +29,6 @@ import {
     PriceComparisonsReport,
     QuoteReport,
 } from './../quote_report_generator';
-
 import { getComparisonPrices } from './comparison_price';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
