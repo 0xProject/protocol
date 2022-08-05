@@ -8,12 +8,15 @@ import { RfqBlockedAddressUtils } from './rfq_blocked_address_utils';
  */
 export class RfqDynamicBlacklist implements Set<string> {
     public size: number;
-    public [Symbol.toStringTag]: string;
     private readonly _rfqBlockedAddressUtils: RfqBlockedAddressUtils;
 
     constructor(connection: Connection, initialBlockedSet: Set<string>, ttlMs: number) {
         this._rfqBlockedAddressUtils = new RfqBlockedAddressUtils(connection, initialBlockedSet, ttlMs);
         this.size = 0;
+    }
+
+    public get [Symbol.toStringTag](): string {
+        return 'RfqDynamicBlacklist';
     }
 
     public has(value: string): boolean {

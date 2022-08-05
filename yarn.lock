@@ -121,11 +121,6 @@
   version "6.11.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.11.0.tgz#31f743c06aeefc8e61327017f9186ffb11cc23f1"
 
-"@0x/contract-addresses@^6.16.0":
-  version "6.16.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.16.0.tgz#dc8dc4c5319f7eee40e10ccb462a254b6eb03b14"
-  integrity sha512-Gsc/9EttCUtemiJR5/U1JPezxVUtlQ3pq6rPkc7YJL0isK0AwYIrQm82b6Z8wyg9bPMs9dkONc806nnUehY5pQ==
-
 "@0x/contract-addresses@^6.17.0":
   version "6.17.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.17.0.tgz#c2d119e5667b7dbf16998ef427a1af32650561a2"
@@ -176,14 +171,14 @@
     "@0x/base-contract" "^6.5.0"
     ethers "~4.0.4"
 
-"@0x/contracts-test-utils@^5.4.23":
-  version "5.4.23"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-test-utils/-/contracts-test-utils-5.4.23.tgz#515e120646cbba6644fa7c67b3259736b6c88601"
-  integrity sha512-cmLalK8MV3OEzbLq9Jyfc0a13//rR6bVQXtbYCNwb/ygqsP6HOCPQ24T6PLS6JyGb/nPCl2TRrrZ9TDgNb2uOA==
+"@0x/contracts-test-utils@^5.4.24":
+  version "5.4.24"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-test-utils/-/contracts-test-utils-5.4.24.tgz#853acd3571f9efbf8b0b07dffa7e8b917d630b79"
+  integrity sha512-nGWCsxB7Q4XiKonR7Jwt4OSXBztTkMNWMwc+9bl73wOp1RBxMQ/BhLh5pqmcrjLaJNyxi23wyYFJjOg2fNIMhw==
   dependencies:
     "@0x/assert" "^3.0.34"
     "@0x/base-contract" "^6.5.0"
-    "@0x/contract-addresses" "^6.16.0"
+    "@0x/contract-addresses" "^6.17.0"
     "@0x/dev-utils" "^4.2.14"
     "@0x/json-schemas" "^6.4.4"
     "@0x/order-utils" "^10.4.28"
@@ -8824,9 +8819,14 @@ typescript@^3.8.3:
   version "3.9.10"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
 
-typescript@^4.2.4, typescript@^4.4.0:
+typescript@^4.2.4:
   version "4.5.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.4.tgz#a17d3a0263bf5c8723b9c52f43c5084edf13c2e8"
+
+typescript@^4.6.3:
+  version "4.7.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
+  integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
 
 typewise-core@^1.2, typewise-core@^1.2.0:
   version "1.2.0"
