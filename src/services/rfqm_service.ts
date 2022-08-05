@@ -2424,8 +2424,8 @@ export class RfqmService {
                 }
                 if (
                     !_.isEqual(
-                        _.keys(message),
-                        types.MetaTransaction.map((dataField: EIP712DataField) => dataField.name),
+                        _.keys(message).sort(),
+                        types.MetaTransaction.map((dataField: EIP712DataField) => dataField.name).sort(),
                     )
                 ) {
                     logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');
@@ -2475,8 +2475,8 @@ export class RfqmService {
                 }
                 if (
                     !_.isEqual(
-                        _.keys(message),
-                        types.Permit.map((dataField: EIP712DataField) => dataField.name),
+                        _.keys(message).sort(),
+                        types.Permit.map((dataField: EIP712DataField) => dataField.name).sort(),
                     )
                 ) {
                     logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');

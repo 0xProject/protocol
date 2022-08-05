@@ -519,9 +519,9 @@ describe('RfqmService HTTP Logic', () => {
                 primaryType: 'MetaTransaction',
                 domain: {},
                 message: {
-                    nonce: expiry,
                     from: takerAddress,
                     functionSignature: '',
+                    nonce: expiry,
                 },
             };
             const dbUtilsMock = mock(RfqmDbUtils);
@@ -600,11 +600,11 @@ describe('RfqmService HTTP Logic', () => {
                 primaryType: 'Permit',
                 domain: {},
                 message: {
+                    deadline: '12345',
                     owner: takerAddress,
                     spender: '0x0000000000000000000000000000000000000000',
                     value: '0xffffffffffffffffffffffffffffffffffffffff',
                     nonce: expiry,
-                    deadline: '12345',
                 },
             };
             const dbUtilsMock = mock(RfqmDbUtils);
