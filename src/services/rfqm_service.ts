@@ -882,7 +882,10 @@ export class RfqmService {
                 );
                 await retry(
                     async () => {
-                        return this._blockchainUtils.simulateTransactionAsync(takerToken, approvalCalldata);
+                        // Use `estimateGasForAsync` to simulate the transaction. In ethers.js, provider.call and
+                        // provider.send('eth_call', ...) might not throw exception and the behavior might be dependent
+                        // on providers. Revisit this later
+                        return this._blockchainUtils.estimateGasForAsync({ to: takerToken, data: approvalCalldata });
                     },
                     {
                         delay: ONE_SECOND_MS,
@@ -1288,7 +1291,10 @@ export class RfqmService {
         try {
             await retry(
                 async () => {
-                    return this._blockchainUtils.simulateTransactionAsync(tokenToApprove, calldata);
+                    // Use `estimateGasForAsync` to simulate the transaction. In ethers.js, provider.call and
+                    // provider.send('eth_call', ...) might not throw exception and the behavior might be dependent
+                    // on providers. Revisit this later
+                    return this._blockchainUtils.estimateGasForAsync({ to: tokenToApprove, data: calldata });
                 },
                 {
                     delay: ONE_SECOND_MS,

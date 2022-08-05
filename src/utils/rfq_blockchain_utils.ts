@@ -217,6 +217,9 @@ export class RfqBlockchainUtils {
 
     /**
      * Simulate the transaction with calldata.
+     *
+     * NOTE: In ethers.js, provider.call and provider.send('eth_call', ...) might not throw exception.
+     *       The behavior might be dependent on providers. Revisit this later.
      */
     public async simulateTransactionAsync(to: string, calldata: string): Promise<void> {
         try {

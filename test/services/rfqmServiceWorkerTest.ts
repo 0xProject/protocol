@@ -1378,7 +1378,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
-            when(mockBlockchainUtils.simulateTransactionAsync(anything(), anything())).thenThrow(new Error('error'));
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenThrow(new Error('error'));
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -1460,7 +1460,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
-            when(mockBlockchainUtils.simulateTransactionAsync(anything(), anything())).thenResolve();
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(10);
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),

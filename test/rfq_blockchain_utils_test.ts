@@ -10,7 +10,7 @@ import { ethSignHashWithProviderAsync, OtcOrder, RfqOrder, Signature } from '@0x
 import { BigNumber } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { expect } from 'chai';
-import { providers, Wallet } from 'ethers';
+import { Contract, providers, Wallet } from 'ethers';
 
 import { ONE_MINUTE_MS, ZERO } from '../src/constants';
 import { BalanceChecker } from '../src/utils/balance_checker';
@@ -517,6 +517,62 @@ describe('RFQ Blockchain Utils', () => {
             };
             const calldata = await rfqBlockchainUtils.generateApprovalCalldataAsync(token, approval, signature);
             expect(calldata).to.eq(MOCK_PERMIT_CALLDATA);
+        });
+    });
+
+    describe('estimateGasForAsync', () => {
+        it('throws exception on invalid calldata', async () => {
+            const erc20AbiDecimals = `[{
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "uint8"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            }]`;
+            const erc20 = new Contract(takerToken.address, erc20AbiDecimals);
+            const { data: calldata } = await erc20.populateTransaction.decimals();
+            if (!calldata) {
+                throw new Error('calldata for decimals should not be undefined or empty');
+            }
+            const invalidCalldata = `${calldata.substring(0, calldata.length - 1)}0`;
+
+            try {
+                await rfqBlockchainUtils.estimateGasForAsync({ to: takerToken.address, data: invalidCalldata });
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('estimateGasForAsync');
+            }
+        });
+
+        it('successfully estimates gas', async () => {
+            const erc20AbiDecimals = `[{
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "uint8"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            }]`;
+            const erc20 = new Contract(takerToken.address, erc20AbiDecimals);
+            const { data: calldata } = await erc20.populateTransaction.decimals();
+            if (!calldata) {
+                throw new Error('calldata for decimals should not be undefined or empty');
+            }
+
+            await rfqBlockchainUtils.estimateGasForAsync({ to: takerToken.address, data: calldata });
         });
     });
 });

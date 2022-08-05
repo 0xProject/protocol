@@ -426,7 +426,7 @@ describe('RfqmService HTTP Logic', () => {
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xinvalidcalldata',
             );
-            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenReject();
+            when(blockchainUtilsMock.estimateGasForAsync(anything())).thenReject();
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
@@ -438,7 +438,7 @@ describe('RfqmService HTTP Logic', () => {
             } catch (e) {
                 expect(e.message).to.contain('Eth call approval validation failed');
                 verify(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).once();
-                verify(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thrice();
+                verify(blockchainUtilsMock.estimateGasForAsync(anything())).thrice();
             }
         });
         it('should proceed with trade submission if approval is empty', async () => {
@@ -549,7 +549,7 @@ describe('RfqmService HTTP Logic', () => {
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
-            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
+            when(blockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(10);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
@@ -632,7 +632,7 @@ describe('RfqmService HTTP Logic', () => {
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
-            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
+            when(blockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(10);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
