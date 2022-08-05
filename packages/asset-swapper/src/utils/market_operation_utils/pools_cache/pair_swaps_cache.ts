@@ -1,6 +1,5 @@
-import { BalancerSwaps } from '../types';
-
 import { ONE_HOUR_IN_SECONDS, ONE_SECOND_MS } from '../constants';
+import { BalancerSwaps } from '../types';
 
 export interface CacheValue {
     expiresAt: number;
