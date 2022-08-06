@@ -3,6 +3,8 @@
  */
 import { pino } from '@0x/api-utils';
 import * as Sentry from '@sentry/node';
+// Workaround for Sentry tracing to work: https://github.com/getsentry/sentry-javascript/issues/4731
+import '@sentry/tracing';
 import { SQS } from 'aws-sdk';
 import Axios from 'axios';
 import { Counter } from 'prom-client';
