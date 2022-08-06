@@ -1,10 +1,10 @@
 [
     {
-        "version": "6.18.0",
+        "version": "6.19.0",
         "changes": [
             {
-                "note": "Goerli and Mumbai updated verified contracts"
-                "pr": 
+                "note": "Goerli and Mumbai updated verified contracts addresses",
+                "pr": 537
             }
         ]
     },
