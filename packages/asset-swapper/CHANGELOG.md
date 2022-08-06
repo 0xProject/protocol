@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.66.0 - _August 6, 2022_
+
+    * Add WOOFi support (#513)
+
 ## v16.65.0 - _August 1, 2022_
 
     * Use 0x gas api instead of eth gas station api (#532)

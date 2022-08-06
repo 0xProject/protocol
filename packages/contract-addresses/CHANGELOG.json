@@ -6,7 +6,8 @@
                 "note": "Goerli and Mumbai updated verified contracts addresses",
                 "pr": 537
             }
-        ]
+        ],
+        "timestamp": 1659750766
     },
     {
         "version": "6.17.0",
