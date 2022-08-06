@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.19.0",
+        "changes": [
+            {
+                "note": "Goerli and Mumbai updated verified contracts addresses",
+                "pr": 537
+            }
+        ]
+    },
+    {
         "version": "6.17.0",
         "changes": [
             {
