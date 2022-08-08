@@ -29,6 +29,7 @@ import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinMooniswap.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract BSCBridgeAdapter is
@@ -40,6 +41,7 @@ contract BSCBridgeAdapter is
     MixinMooniswap,
     MixinNerve,
     MixinUniswapV2,
+    MixinWOOFi,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -107,6 +109,14 @@ contract BSCBridgeAdapter is
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeKyberDmm(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.WOOFI) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeWOOFi(
+                sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData

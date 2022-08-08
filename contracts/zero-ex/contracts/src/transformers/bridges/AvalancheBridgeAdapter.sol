@@ -30,6 +30,7 @@ import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinPlatypus.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinWOOFi.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract AvalancheBridgeAdapter is
@@ -42,6 +43,7 @@ contract AvalancheBridgeAdapter is
     MixinNerve,
     MixinPlatypus,
     MixinUniswapV2,
+    MixinWOOFi,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
@@ -116,6 +118,14 @@ contract AvalancheBridgeAdapter is
         } else if (protocolId == BridgeProtocols.PLATYPUS) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradePlatypus(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.WOOFI) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeWOOFi(
+                sellToken,
                 buyToken,
                 sellAmount,
                 order.bridgeData

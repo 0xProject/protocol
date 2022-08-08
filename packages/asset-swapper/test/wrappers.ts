@@ -49,3 +49,4 @@ export * from '../test/generated-wrappers/uniswap_v2_sampler';
 export * from '../test/generated-wrappers/uniswap_v3_sampler';
 export * from '../test/generated-wrappers/utility_sampler';
 export * from '../test/generated-wrappers/velodrome_sampler';
+export * from '../test/generated-wrappers/woo_p_p_sampler';

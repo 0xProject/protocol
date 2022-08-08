@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.19.0 - _August 6, 2022_
+
+    * Goerli and Mumbai updated verified contracts addresses (#537)
+
 ## v6.17.0 - _July 27, 2022_
 
     * Goerli and Mumbai

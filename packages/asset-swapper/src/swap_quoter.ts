@@ -1,9 +1,9 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { FastABI } from '@0x/fast-abi';
 import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
-import { FastABI } from 'fast-abi';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';

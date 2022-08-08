@@ -1,6 +1,7 @@
 {
     "extends": ["@0x/tslint-config"],
     "rules": {
+        "array-type": false,
         "custom-no-magic-numbers": false,
         "max-file-line-count": false,
         "binary-expression-operand-order": false

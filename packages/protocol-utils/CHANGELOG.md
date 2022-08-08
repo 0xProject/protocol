@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.1 - _August 6, 2022_
+
+    * Dependencies updated
+
 ## v11.16.0 - _July 27, 2022_
 
     * Add Synthetix support` (#518)

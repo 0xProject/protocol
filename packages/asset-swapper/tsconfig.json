@@ -51,6 +51,7 @@
         "test/generated-artifacts/UniswapV2Sampler.json",
         "test/generated-artifacts/UniswapV3Sampler.json",
         "test/generated-artifacts/UtilitySampler.json",
-        "test/generated-artifacts/VelodromeSampler.json"
+        "test/generated-artifacts/VelodromeSampler.json",
+        "test/generated-artifacts/WooPPSampler.json"
     ]
 }

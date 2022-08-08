@@ -43,6 +43,7 @@ import {
     UniswapV3FillData,
     UniswapV3PathAmount,
     VelodromeFillData,
+    WOOFiFillData,
 } from './types';
 
 // tslint:disable completed-docs
@@ -213,6 +214,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Velodrome, 'Velodrome');
         case ERC20BridgeSource.Synthetix:
             return encodeBridgeSourceId(BridgeProtocol.Synthetix, 'Synthetix');
+        case ERC20BridgeSource.WOOFi:
+            return encodeBridgeSourceId(BridgeProtocol.WOOFi, 'WOOFi');
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -402,6 +405,10 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 fillData.makerTokenSymbolBytes32,
             ]);
             break;
+        case ERC20BridgeSource.WOOFi:
+            const woofiFillData = (order as OptimizedMarketBridgeOrder<WOOFiFillData>).fillData;
+            bridgeData = encoder.encode([woofiFillData.poolAddress]);
+            break;
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }
@@ -529,6 +536,7 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Geist]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
     [ERC20BridgeSource.Synthetix]: AbiEncoder.create('(address,bytes32,bytes32)'),
+    [ERC20BridgeSource.WOOFi]: AbiEncoder.create('(address)'),
 };
 
 function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, BigNumber] {
