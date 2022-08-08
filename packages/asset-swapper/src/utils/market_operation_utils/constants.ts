@@ -415,23 +415,6 @@ export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: bigint } & {
     })),
 );
 
-const MIRROR_WRAPPED_TOKENS = {
-    mAAPL: '0xd36932143f6ebdedd872d5fb0651f4b72fd15a84',
-    mSLV: '0x9d1555d8cb3c846bb4f7d5b1b1080872c3166676',
-    mIAU: '0x1d350417d9787e000cc1b95d70e9536dcd91f373',
-    mAMZN: '0x0cae9e4d663793c2a2a0b211c1cf4bbca2b9caa7',
-    mGOOGL: '0x4b70ccd1cf9905be1faed025eadbd3ab124efe9a',
-    mTSLA: '0x21ca39943e91d704678f5d00b6616650f066fd63',
-    mQQQ: '0x13b02c8de71680e71f0820c996e4be43c2f57d15',
-    mTWTR: '0xedb0414627e6f1e3f082de65cd4f9c693d78cca9',
-    mMSFT: '0x41bbedd7286daab5910a1f15d12cbda839852bd7',
-    mNFLX: '0xc8d674114bac90148d11d3c1d33c61835a0f9dcd',
-    mBABA: '0x676ce85f66adb8d7b8323aeefe17087a3b8cb363',
-    mUSO: '0x31c63146a635eb7465e5853020b39713ac356991',
-    mVIXY: '0xf72fcd9dcf0190923fadd44811e240ef4533fc86',
-    mLUNA: '0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9',
-};
-
 // Mainnet tokens
 // Not an exhaustive list, just enough so we don't repeat ourselves
 export const MAINNET_TOKENS = {
@@ -495,10 +478,7 @@ export const MAINNET_TOKENS = {
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
     alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
     HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
-    // Mirror Protocol
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
-    MIR: '0x09a3ecafa817268f77be1283176b946c4ff2e608',
-    ...MIRROR_WRAPPED_TOKENS,
     // StableSwap "open pools" (crv.finance)
     STABLEx: '0xcd91538b91b4ba7797d39a2f66e63810b50a33d0',
     alUSD: '0xbc6da0fe9ad5f3b0d58160288917aa56653660e9',
@@ -735,8 +715,6 @@ export const CURVE_POOLS = {
     eurt: '0xfd5db7463a3ab53fd211b4af195c5bccc1a03890',
     ethcrv: '0x8301ae4fc9c624d1d396cbdaa1ed877821d7c511',
     ethcvx: '0xb576491f1e6e5e62f1d8f26062ee822b40b0e0d4',
-    mimust: '0x55a8a39bc9694714e2874c1ce77aa1e599461e18',
-    usttri_wormhole: '0xceaf7747579696a2f0bb206a14210e3c9e6fb269',
     fei_tri: '0x06cb22615ba53e60d67bf6c341a0fd5e718e1655',
     rai_tri: '0x618788357d0ebd8a37e763adab3bc575d54c2c7d',
     DOLA_tri: '0xaa5a67c256e27a5d80712c51971408db3370927d',
@@ -972,8 +950,6 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
     {
         [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet])
             .tap(builder => {
-                // Mirror Protocol
-                builder.add(MAINNET_TOKENS.MIR, MAINNET_TOKENS.UST);
                 // Convex and Curve
                 builder.addBidirectional(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV);
                 // Convex and FXS
@@ -1381,16 +1357,6 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_uint256,
         exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying_uint256,
     },
-    [CURVE_POOLS.mimust]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.MIM, MAINNET_TOKENS.UST],
-        pool: CURVE_POOLS.mimust,
-        gasSchedule: 105e3,
-    }),
-    [CURVE_POOLS.usttri_wormhole]: createCurveMetaTriPool({
-        tokens: [MAINNET_TOKENS.UST_WORMHOLE],
-        pool: CURVE_POOLS.usttri_wormhole,
-        gasSchedule: 340e3,
-    }),
     [CURVE_POOLS.fei_tri]: createCurveMetaTriPool({
         tokens: [MAINNET_TOKENS.FEI],
         pool: CURVE_POOLS.fei_tri,
