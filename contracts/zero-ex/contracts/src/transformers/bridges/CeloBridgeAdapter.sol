@@ -25,12 +25,14 @@ import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract CeloBridgeAdapter is
     AbstractBridgeAdapter(42220, "Celo"),
     MixinNerve,
     MixinUniswapV2,
+    MixinUniswapV3,
     MixinZeroExBridge
 {
     constructor(address _weth)
@@ -56,7 +58,16 @@ contract CeloBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.NERVE) {
+        } 
+        else if (protocolId == BridgeProtocols.UNISWAPV3) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeUniswapV3(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } 
+        else if (protocolId == BridgeProtocols.NERVE) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeNerve(
                 sellToken,
