@@ -85,7 +85,7 @@
         "balancer-labs-sor-v1": "npm:@balancer-labs/sor@0.3.2",
         "cream-sor": "^0.3.3",
         "ethereum-types": "^3.7.0",
-        "fast-abi": "^0.0.4",
+        "fast-abi": "^0.0.5",
         "graphql": "^15.4.0",
         "graphql-request": "^3.4.0",
         "heartbeats": "^5.0.1",
