@@ -1,0 +1,8 @@
+[default]
+src = 'contracts/src'
+out = 'foundry-artifacts'
+test = 'contracts/test/foundry'
+libs = ["contracts/deps/", "../utils/contracts/src/"]
+remappings = ['@0x/contracts-utils/=../utils/', '@0x/contracts-erc20/=../erc20/', 'src/=./contracts/src']
+cache_path = 'foundry-cache'
+optimizer_runs = 1000000

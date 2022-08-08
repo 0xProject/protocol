@@ -10,6 +10,7 @@ jobs:
         working_directory: ~/repo
         steps:
             - checkout
+            - run: git submodule update --init --recursive
             - run: echo 'export PATH=$HOME/CIRCLE_PROJECT_REPONAME/node_modules/.bin:$PATH' >> $BASH_ENV
             - run:
                   name: install-yarn
@@ -77,6 +78,17 @@ jobs:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run: yarn wsrun -p @0x/contracts-multisig -p @0x/contracts-utils -p @0x/contracts-exchange-libs -p  @0x/contracts-erc20 -p @0x/contracts-erc721 -p @0x/contracts-erc1155 -p @0x/contracts-asset-proxy -p @0x/contracts-broker -p @0x/contracts-zero-ex -m --serial -c test:circleci
+    test-foundry:
+        resource_class: medium+
+        docker:
+            - image: ghcr.io/foundry-rs/foundry:latest
+        working_directory: ~/repo/contracts/zero-ex
+        steps:
+            - restore_cache:
+                  keys:
+                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+            # - run: forge install
+            - run: forge test
     test-publish:
         resource_class: large
         environment:
@@ -181,6 +193,9 @@ workflows:
             # - test-contracts-extra-ganache:
             #       requires:
             #           - build
+            - test-foundry:
+                  requires:
+                    - build
             - test-contracts-rest-ganache:
                   requires:
                       - build
