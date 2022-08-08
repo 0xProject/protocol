@@ -6403,9 +6403,10 @@ fake-merkle-patricia-tree@^1.0.1:
   dependencies:
     checkpoint-store "^1.1.0"
 
-fast-abi@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/fast-abi/-/fast-abi-0.0.4.tgz#c6a547d0fe75862a9eea6fe5aa7ab135e6ab62a0"
+fast-abi@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/fast-abi/-/fast-abi-0.0.5.tgz#8cb5431074495983117199e24ff4d469bfda7947"
+  integrity sha512-PUI0k4RUR1NiTAIHYx06ZXbjRFXJqaT++E03skDEm/BkCYF/o0XXeoxlSj9V0zeobuD3WAuu/2CtLN6EkOkW5A==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.4"
     cargo-cp-artifact "^0.1.6"
