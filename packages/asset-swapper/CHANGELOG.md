@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.66.1 - _August 8, 2022_
+
+    * Upgrade dependency (#538)
+
 ## v16.66.0 - _August 6, 2022_
 
     * Add WOOFi support (#513)

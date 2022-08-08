@@ -6,7 +6,8 @@
                 "note": "Upgrade dependency",
                 "pr": 538
             }
-        ]
+        ],
+        "timestamp": 1659926840
     },
     {
         "version": "16.66.0",
