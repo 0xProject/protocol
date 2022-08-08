@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.19.1",
+        "changes": [
+            {
+                "note": "Fix lowercase addresses",
+                "pr": 
+            }
+        ]
+    },
+    {
         "version": "6.19.0",
         "changes": [
             {
