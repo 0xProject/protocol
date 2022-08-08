@@ -524,20 +524,19 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Mooniswap,
             ]);
             return allERC20BridgeSources.filter((s) => !supportedRopstenSources.has(s));
+        case ChainId.Ganache:
+            return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
         case ChainId.BSC:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Polygon:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Avalanche:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Celo:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Fantom:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         case ChainId.Optimism:
+        case ChainId.Goerli:
+        case ChainId.PolygonMumbai:
             return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
         default:
-            return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
+            throw new Error(`Excluded sources not specified for ${CHAIN_ID}`);
     }
 })();
 
