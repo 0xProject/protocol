@@ -1,5 +1,14 @@
 [
     {
+        "version": "16.66.2",
+        "changes": [
+            {
+                "note": "Upgrade dependency",
+                "pr": 
+            }
+        ]
+    },
+    {
         "version": "16.66.1",
         "changes": [
             {
