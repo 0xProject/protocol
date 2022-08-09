@@ -8,7 +8,6 @@ import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AaveV2FillData,
     AggregationError,
-    BalancerFillData,
     BalancerV2BatchSwapFillData,
     BalancerV2FillData,
     BancorFillData,
