@@ -89,3 +89,7 @@ TODOs.org
 TODO.txt
 
 scripts
+
+# Solidity artifiacts and wrappers
+**/generated-artifacts
+**/generated-wrappers

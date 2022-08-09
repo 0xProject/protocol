@@ -7,6 +7,12 @@
         "arrow-parens": false
     },
     "linterOptions": {
-        "exclude": ["./migrations/*"]
+        "exclude": [
+            "./migrations/*",
+            "./generated-wrappers/**/*",
+            "./generated-artifacts/**/*",
+            "./test/generated-wrappers/**/*",
+            "./test/generated-artifacts/**/*"
+        ]
     }
 }
