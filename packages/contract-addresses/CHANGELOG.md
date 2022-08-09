@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.19.1 - _August 9, 2022_
+
+    * Fix lowercase addresses (#543)
+
 ## v6.19.0 - _August 6, 2022_
 
     * Goerli and Mumbai updated verified contracts addresses (#537)

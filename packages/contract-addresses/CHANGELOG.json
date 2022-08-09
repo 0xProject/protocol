@@ -6,7 +6,8 @@
                 "note": "Fix lowercase addresses",
                 "pr": 543
             }
-        ]
+        ],
+        "timestamp": 1660073235
     },
     {
         "version": "6.19.0",
