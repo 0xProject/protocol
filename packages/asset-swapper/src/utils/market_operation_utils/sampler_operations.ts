@@ -58,7 +58,7 @@ import {
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
 import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
-import { BalancerPoolsCache, BalancerV2PoolsCache, CreamPoolsCache, PoolsCache } from './pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, PoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_swap_info_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
 import { SamplerNoOperation } from './sampler_no_operation';
@@ -120,7 +120,6 @@ export interface PoolsCacheMap {
     [ERC20BridgeSource.Balancer]: PoolsCache;
     [ERC20BridgeSource.BalancerV2]: BalancerV2SwapInfoCache | undefined;
     [ERC20BridgeSource.Beethovenx]: PoolsCache;
-    [ERC20BridgeSource.Cream]: PoolsCache;
 }
 
 // tslint:disable:no-inferred-empty-object-type no-unbound-method
@@ -160,7 +159,6 @@ export class SamplerOperations {
             : {
                   [ERC20BridgeSource.Beethovenx]: BalancerV2PoolsCache.createBeethovenXPoolCache(chainId),
                   [ERC20BridgeSource.Balancer]: BalancerPoolsCache.create(chainId),
-                  [ERC20BridgeSource.Cream]: CreamPoolsCache.create(chainId),
                   [ERC20BridgeSource.BalancerV2]:
                       BALANCER_V2_VAULT_ADDRESS_BY_CHAIN[chainId] === NULL_ADDRESS
                           ? undefined
@@ -1668,18 +1666,6 @@ export class SamplerOperations {
                             ),
                         );
                     }
-                    case ERC20BridgeSource.Cream:
-                        return this.poolsCaches[ERC20BridgeSource.Cream]
-                            .getPoolAddressesForPair(takerToken, makerToken)
-                            .map(creamPool =>
-                                this.getBalancerSellQuotes(
-                                    creamPool,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
-                                    ERC20BridgeSource.Cream,
-                                ),
-                            );
                     case ERC20BridgeSource.Dodo:
                         if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                             return [];
@@ -2031,18 +2017,6 @@ export class SamplerOperations {
                             ),
                         );
                     }
-                    case ERC20BridgeSource.Cream:
-                        return this.poolsCaches[ERC20BridgeSource.Cream]
-                            .getPoolAddressesForPair(takerToken, makerToken)
-                            .map(poolAddress =>
-                                this.getBalancerBuyQuotes(
-                                    poolAddress,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
-                                    ERC20BridgeSource.Cream,
-                                ),
-                            );
                     case ERC20BridgeSource.Dodo:
                         if (!isValidAddress(DODOV1_CONFIG_BY_CHAIN_ID[this.chainId].registry)) {
                             return [];

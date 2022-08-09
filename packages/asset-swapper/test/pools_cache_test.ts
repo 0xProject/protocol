@@ -2,12 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import * as chai from 'chai';
 import 'mocha';
 
-import {
-    BalancerPoolsCache,
-    BalancerV2PoolsCache,
-    CreamPoolsCache,
-    PoolsCache,
-} from '../src/utils/market_operation_utils/pools_cache';
+import { BalancerPoolsCache, BalancerV2PoolsCache, PoolsCache } from '../src/utils/market_operation_utils/pools_cache';
 
 import { chaiSetup } from './utils/chai_setup';
 
@@ -17,7 +12,6 @@ const expect = chai.expect;
 const usdcAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const daiAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const wethAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-const creamAddress = '0x2ba592f78db6436527729929aaf6c908497cb200';
 
 const timeoutMs = 5000;
 const poolKeys: string[] = ['id', 'balanceIn', 'balanceOut', 'weightIn', 'weightOut', 'swapFee'];
@@ -58,19 +52,6 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [wftmAddress, fantomWethAddress],
             ];
 
-            await Promise.all(
-                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
-            );
-        });
-    });
-
-    describe('CreamPoolsCache', () => {
-        const cache = CreamPoolsCache.create(ChainId.Mainnet);
-        it('fetches pools', async () => {
-            const pairs = [
-                [usdcAddress, creamAddress],
-                [creamAddress, wethAddress],
-            ];
             await Promise.all(
                 pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );

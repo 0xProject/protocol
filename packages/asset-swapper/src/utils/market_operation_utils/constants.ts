@@ -95,7 +95,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
-            ERC20BridgeSource.Cream,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Lido,
@@ -247,7 +246,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
-            ERC20BridgeSource.Cream,
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
@@ -2520,7 +2518,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
         return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;
     },
-    [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
