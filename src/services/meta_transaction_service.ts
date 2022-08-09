@@ -254,7 +254,6 @@ export class MetaTransactionService {
             gasPrice: gasPrice.toString(),
             value: protocolFee.toString(),
             to: callTarget,
-            chainId: CHAIN_ID,
             // NOTE we arent returning nonce and from fields back to the user
             nonce: '',
             from: '',
