@@ -30,11 +30,9 @@ import {
     BANCORV3_NETWORK_INFO_BY_CHAIN_ID,
     BANCOR_REGISTRY_BY_CHAIN_ID,
     BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN,
-    BSC_TOKENS,
     COMPOUND_API_URL_BY_CHAIN_ID,
     DODOV1_CONFIG_BY_CHAIN_ID,
     DODOV2_FACTORIES_BY_CHAIN_ID,
-    FANTOM_TOKENS,
     GMX_READER_BY_CHAIN_ID,
     GMX_ROUTER_BY_CHAIN_ID,
     GMX_VAULT_BY_CHAIN_ID,
@@ -48,7 +46,6 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
-    POLYGON_TOKENS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID,
     SYNTHETIX_READ_PROXY_BY_CHAIN_ID,
@@ -56,6 +53,7 @@ import {
     UNISWAPV3_CONFIG_BY_CHAIN_ID,
     VELODROME_ROUTER_BY_CHAIN_ID,
     WOOFI_POOL_BY_CHAIN_ID,
+    WOOFI_SUPPORTED_TOKENS,
     ZERO_AMOUNT,
 } from './constants';
 import { getGeistInfoForPair } from './geist_utils';
@@ -1835,11 +1833,7 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.WOOFi: {
-                        const woofiTokens = [BSC_TOKENS.USDT, BSC_TOKENS.WBNB, BSC_TOKENS.WOO, BSC_TOKENS.WETH, BSC_TOKENS.BTCB,
-                            AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.WBTC, AVALANCHE_TOKENS.WETH, AVALANCHE_TOKENS.WOO,
-                            FANTOM_TOKENS.USDC, FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.WBTC, FANTOM_TOKENS.WOO,
-                            POLYGON_TOKENS.USDC, POLYGON_TOKENS.WMATIC, POLYGON_TOKENS.WBTC, POLYGON_TOKENS. WETH, POLYGON_TOKENS.WOO];
-                        if (!(woofiTokens.includes(takerToken) && woofiTokens.includes(makerToken))) {
+                        if (!(WOOFI_SUPPORTED_TOKENS.has(takerToken) && WOOFI_SUPPORTED_TOKENS.has(makerToken))) {
                             return [];
                         }
                         return this.getWOOFiSellQuotes(
@@ -2190,14 +2184,9 @@ export class SamplerOperations {
                         );
                     }
                     case ERC20BridgeSource.WOOFi: {
-                        const woofiTokens = [BSC_TOKENS.USDT, BSC_TOKENS.WBNB, BSC_TOKENS.WOO, BSC_TOKENS.WETH, BSC_TOKENS.BTCB,
-                            AVALANCHE_TOKENS.nUSDC, AVALANCHE_TOKENS.WAVAX, AVALANCHE_TOKENS.WBTC, AVALANCHE_TOKENS.WETH, AVALANCHE_TOKENS.WOO,
-                            FANTOM_TOKENS.USDC, FANTOM_TOKENS.WFTM, FANTOM_TOKENS.WETH, FANTOM_TOKENS.WBTC, FANTOM_TOKENS.WOO,
-                            POLYGON_TOKENS.USDC, POLYGON_TOKENS.WMATIC, POLYGON_TOKENS.WBTC, POLYGON_TOKENS. WETH, POLYGON_TOKENS.WOO];
-                        if (!(woofiTokens.includes(takerToken) && woofiTokens.includes(makerToken))) {
+                        if (!(WOOFI_SUPPORTED_TOKENS.has(takerToken) && WOOFI_SUPPORTED_TOKENS.has(makerToken))) {
                             return [];
                         }
-
                         return this.getWOOFiBuyQuotes(
                             WOOFI_POOL_BY_CHAIN_ID[this.chainId],
                             takerToken,
