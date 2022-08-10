@@ -2,9 +2,23 @@ import * as chai from 'chai';
 import 'mocha';
 
 import { ChainId, getContractAddressesForChainOrThrow } from '../src';
-import { findTransformerNonce } from '@0x/protocol-utils';
+import { bufferToHex, rlphash } from 'ethereumjs-util';
 
 const expect = chai.expect;
+
+function toDeployedAddress(deployerAddress: string, nonce: number): string {
+    return bufferToHex(rlphash([deployerAddress, nonce]).slice(12));
+}
+
+function isValidDeployedAddress(deployerAddress: string, deployedAddress: string): boolean {
+    for (let i = 0; i < 256; i++) {
+        const address = toDeployedAddress(deployerAddress, i);
+        if (address.toLowerCase() === deployedAddress.toLowerCase()) {
+            return true;
+        }
+    }
+    return false;
+}
 
 describe('addresses.json sanity test', () => {
     const allChainIds = Object.values(ChainId).filter(chainId => !isNaN(Number(chainId))) as ChainId[];
@@ -46,11 +60,9 @@ describe('addresses.json sanity test', () => {
                     contractAddresses.transformers.positiveSlippageFeeTransformer,
                 ].filter(address => address !== '0x0000000000000000000000000000000000000000');
                 transformerAddresses.forEach(transformerAddress => {
-                    const nonce = findTransformerNonce(
-                        transformerAddress,
-                        contractAddresses.exchangeProxyTransformerDeployer,
-                    );
-                    expect(nonce).to.gt(0);
+                    expect(
+                        isValidDeployedAddress(contractAddresses.exchangeProxyTransformerDeployer, transformerAddress),
+                    ).to.true;
                 });
             });
         });
