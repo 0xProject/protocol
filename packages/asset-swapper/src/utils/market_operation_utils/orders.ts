@@ -8,7 +8,6 @@ import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AaveV2FillData,
     AggregationError,
-    BalancerFillData,
     BalancerV2BatchSwapFillData,
     BalancerV2FillData,
     BancorFillData,
@@ -101,8 +100,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.Bancor, 'Bancor');
         case ERC20BridgeSource.Curve:
             return encodeBridgeSourceId(BridgeProtocol.Curve, 'Curve');
-        case ERC20BridgeSource.Cream:
-            return encodeBridgeSourceId(BridgeProtocol.Balancer, 'Cream');
         case ERC20BridgeSource.CryptoCom:
             return encodeBridgeSourceId(BridgeProtocol.CryptoCom, 'CryptoCom');
         case ERC20BridgeSource.Dodo:
@@ -258,10 +255,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             ]);
             break;
         case ERC20BridgeSource.Balancer:
-        case ERC20BridgeSource.Cream:
-            const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
-            bridgeData = encoder.encode([balancerFillData.poolAddress]);
-            break;
         case ERC20BridgeSource.BalancerV2:
             {
                 const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2BatchSwapFillData>).fillData;
@@ -505,7 +498,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Mooniswap]: poolEncoder,
     [ERC20BridgeSource.MStable]: poolEncoder,
     [ERC20BridgeSource.Balancer]: poolEncoder,
-    [ERC20BridgeSource.Cream]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,

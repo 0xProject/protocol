@@ -44,7 +44,6 @@ export enum ERC20BridgeSource {
     MultiBridge = 'MultiBridge',
     Balancer = 'Balancer',
     BalancerV2 = 'Balancer_V2',
-    Cream = 'CREAM',
     Bancor = 'Bancor',
     MakerPsm = 'MakerPsm',
     MStable = 'mStable',

@@ -84,7 +84,6 @@
         "axios": "^0.21.1",
         "axios-mock-adapter": "^1.19.0",
         "balancer-labs-sor-v1": "npm:@balancer-labs/sor@0.3.2",
-        "cream-sor": "^0.3.3",
         "ethereum-types": "^3.7.0",
         "graphql": "^15.4.0",
         "graphql-request": "^3.4.0",
