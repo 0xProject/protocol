@@ -156,6 +156,7 @@ export interface Integrator {
     /* IDs for chains the integrator is allowed to access RFQ liquidity on */
     allowedChainIds: number[];
     whitelistIntegratorUrls?: string[];
+    whitelistMakerIds?: string[];
     label: string;
     plp: boolean;
     rfqm: boolean;

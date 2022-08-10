@@ -2077,7 +2077,11 @@ export class RfqmService {
             isLastLook: true,
             fee,
         });
-        const otcOrderMakerUris = this._rfqMakerManager.getRfqmV2MakerUrisForPair(makerToken, takerToken);
+        const otcOrderMakerUris = this._rfqMakerManager.getRfqmV2MakerUrisForPair(
+            makerToken,
+            takerToken,
+            integrator.whitelistMakerIds || null,
+        );
 
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(
             otcOrderMakerUris,

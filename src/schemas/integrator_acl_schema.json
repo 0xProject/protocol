@@ -22,6 +22,12 @@
             },
             "type": "array"
         },
+        "whitelistMakerIds": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
         "label": {
             "type": "string"
         },

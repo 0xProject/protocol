@@ -142,8 +142,17 @@ export class RfqMakerManager extends EventEmitter {
     /**
      * Get a list of RFQm Maker Uris that support this pair on OtcOrder
      */
-    public getRfqmV2MakerUrisForPair(makerToken: string, takerToken: string): string[] {
-        const makers = makersForPair(this._rfqmMakers, toPairString(makerToken, takerToken)) || [];
+    public getRfqmV2MakerUrisForPair(
+        makerToken: string,
+        takerToken: string,
+        whitelistMakerIds: string[] | null = null,
+    ): string[] {
+        let makers = makersForPair(this._rfqmMakers, toPairString(makerToken, takerToken)) || [];
+
+        if (whitelistMakerIds !== null) {
+            makers = makers.filter((maker) => whitelistMakerIds.includes(maker.makerId));
+        }
+
         return makers.map((m) => m.rfqmUri).filter((uri: string | null): uri is string => uri !== null);
     }
 

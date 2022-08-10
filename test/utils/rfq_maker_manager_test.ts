@@ -98,6 +98,27 @@ describe('RfqMakerManager', () => {
             expect(makerUris2).toEqual(['https://maker1.asdf', 'https://maker2.asdf']);
         });
 
+        it('should return whitelisted makers only', async () => {
+            // Given
+            rfqMaker[0].pairs = [[tokenA, tokenB]];
+            rfqMaker[1].pairs = [[tokenA, tokenB]];
+            const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
+
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
+            await rfqMakerManager.initializeAsync();
+
+            const whitelistedMakerIds = [rfqMaker[0].makerId];
+
+            // When
+            const makerUris1 = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenA, tokenB);
+            const makerUris2 = rfqMakerManager.getRfqmV2MakerUrisForPair(tokenA, tokenB, whitelistedMakerIds);
+
+            // Then
+            expect(makerUris1).toEqual(['https://maker1.asdf', 'https://maker2.asdf']);
+            expect(makerUris2).toEqual(['https://maker1.asdf']);
+        });
+
         it('should ignore casing when considering pairs', async () => {
             // Given
             // These pairs are selected such that when sorted as is: [0xF, 0xd]

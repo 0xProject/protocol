@@ -280,7 +280,7 @@ describe('RFQM Integration', () => {
 
         // Create the mock RfqMakerManager
         const rfqMakerManagerMock = mock(RfqMakerManager);
-        when(rfqMakerManagerMock.getRfqmV2MakerUrisForPair(anyString(), anyString())).thenReturn([
+        when(rfqMakerManagerMock.getRfqmV2MakerUrisForPair(anyString(), anyString(), anything())).thenReturn([
             MARKET_MAKER_2,
             MARKET_MAKER_3,
         ]);
