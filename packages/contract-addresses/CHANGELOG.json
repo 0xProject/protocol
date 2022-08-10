@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.20.0",
+        "changes": [
+            {
+                "note": "Remove contract addresses that are no longer needed",
+                "pr": 548
+            }
+        ]
+    },
+    {
         "timestamp": 1660093941,
         "version": "6.19.2",
         "changes": [

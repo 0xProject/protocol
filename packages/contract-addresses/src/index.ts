@@ -1,33 +1,14 @@
 import addresses from '../addresses.json';
 
 export interface ContractAddresses {
-    erc20Proxy: string;
-    erc721Proxy: string;
     zrxToken: string;
     etherToken: string;
-    exchangeV2: string;
-    exchange: string;
-    assetProxyOwner: string;
     zeroExGovernor: string;
-    forwarder: string;
-    coordinatorRegistry: string;
-    coordinator: string;
-    multiAssetProxy: string;
-    staticCallProxy: string;
-    erc1155Proxy: string;
-    devUtils: string;
     zrxVault: string;
     staking: string;
     stakingProxy: string;
     erc20BridgeProxy: string;
     erc20BridgeSampler: string;
-    chaiBridge: string;
-    dydxBridge: string;
-    godsUnchainedValidator: string;
-    broker: string;
-    chainlinkStopLimit: string;
-    maximumGasPrice: string;
-    dexForwarderBridge: string;
     exchangeProxyGovernor: string;
     exchangeProxy: string;
     exchangeProxyTransformerDeployer: string;

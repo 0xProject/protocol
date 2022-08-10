@@ -201,7 +201,6 @@ describe('MarketOperationUtils tests', () => {
     }
 
     const ORDER_DOMAIN = {
-        exchangeAddress: contractAddresses.exchange,
         chainId: CHAIN_ID,
     };
 

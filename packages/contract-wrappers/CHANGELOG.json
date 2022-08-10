@@ -1,5 +1,13 @@
 [
     {
+        "version": "13.21.0",
+        "changes": [
+            {
+                "note": "Remove deprecated contracts"
+            }
+        ]
+    },
+    {
         "timestamp": 1660093941,
         "version": "13.20.8",
         "changes": [
