@@ -9,7 +9,6 @@ export const ZERO = new BigNumber(0);
 export const ONE = new BigNumber(1);
 export const MAX_TOKEN_SUPPLY_POSSIBLE = new BigNumber(2).pow(256);
 export const DEFAULT_LOCAL_POSTGRES_URI = 'postgres://api:api@localhost/api';
-export const DEFAULT_LOCAL_REDIS_URI = 'redis://localhost';
 export const DEFAULT_LOGGER_INCLUDE_TIMESTAMP = true;
 export const ONE_SECOND_MS = 1000;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
