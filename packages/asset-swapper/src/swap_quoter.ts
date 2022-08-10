@@ -154,7 +154,6 @@ export class SwapQuoter {
             this._contractAddresses,
             {
                 chainId,
-                exchangeAddress: this._contractAddresses.exchange,
             },
         );
 
