@@ -128,6 +128,7 @@ jobs:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run: yarn wsrun -p @0x/contracts-test-utils -m --serial -c test:circleci
+            - run: yarn wsrun -p @0x/contract-addresses -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/contract-artifacts -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/contract-wrappers-test -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/order-utils -m --serial -c test:circleci
@@ -195,7 +196,7 @@ workflows:
             #           - build
             - test-foundry:
                   requires:
-                    - build
+                      - build
             - test-contracts-rest-ganache:
                   requires:
                       - build

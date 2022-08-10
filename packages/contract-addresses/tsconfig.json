@@ -6,6 +6,6 @@
         "resolveJsonModule": true,
         "esModuleInterop": true
     },
-    "include": ["./src/**/*"],
+    "include": ["./src/**/*", "./test/**/*"],
     "files": ["./addresses.json"]
 }
