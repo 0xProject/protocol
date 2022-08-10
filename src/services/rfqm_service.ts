@@ -1878,6 +1878,10 @@ export class RfqmService {
                 orderHash,
                 submissionContext,
             );
+            logger.info(
+                { oldSubmissionContextStatus, newSubmissionContextStatus },
+                'Old and new submission context statuses',
+            );
             await onSubmissionContextStatusUpdate(newSubmissionContextStatus, oldSubmissionContextStatus);
 
             switch (newSubmissionContextStatus) {
@@ -1922,6 +1926,7 @@ export class RfqmService {
                     if (oldMaxFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
                         // If we've reached the max priority fee per gas we'd like to pay, just
                         // continue watching the transactions to see if one gets mined.
+                        logger.info({ oldMaxFeePerGas }, 'Exceeds max priority fee per gas');
                         continue;
                     }
 
