@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.19.2 - _August 10, 2022_
+
+    * Dependencies updated
+
 ## v6.19.1 - _August 9, 2022_
 
     * Fix lowercase addresses (#543)

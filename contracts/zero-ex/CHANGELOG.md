@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.36.3 - _August 10, 2022_
+
+    * Dependencies updated
+
 ## v0.36.2 - _August 8, 2022_
 
     * Add Foundry support (#534)
