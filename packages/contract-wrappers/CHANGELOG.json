@@ -1,5 +1,13 @@
 [
     {
+        "version": "13.21.1",
+        "changes": [
+            {
+                "note": "Revert: Remove deprecated contracts"
+            }
+        ]
+    },
+    {
         "version": "13.21.0",
         "changes": [
             {

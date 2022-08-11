@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.20.1",
+        "changes": [
+            {
+                "note": "Revert: Remove contract addresses that are no longer needed"
+            }
+        ]
+    },
+    {
         "version": "6.20.0",
         "changes": [
             {

@@ -20,6 +20,7 @@ import { SourceFilters } from './source_filters';
  */
 export interface OrderDomain {
     chainId: number;
+    exchangeAddress: string;
 }
 
 /**
