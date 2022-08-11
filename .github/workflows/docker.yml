@@ -1,6 +1,7 @@
 name: Docker
 
 on:
+  pull_request:
   push:
     branches:
       - master
@@ -31,12 +32,3 @@ jobs:
         with:
          push: true
          tags: ${{ secrets.DOCKER_REGISTRY_URL }}:${{ github.sha }}
-      - name: Publish release notification
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DOCKER_IMAGES_WEBHOOK_URL }}
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: |
-            {
-              "version": "{{ github.sha }}"
-            }
