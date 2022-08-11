@@ -1,124 +1,107 @@
 name: Deploy
+
 on:
-    issue_comment:
-        types: [created, edited]
     workflow_dispatch:
+      inputs:
+        version:
+          type: string
+          required: true
+        environment:
+          type: choice
+          options:
+            - prod-all
+            - prod-arbitrum
+            - prod-avalanche
+            - prod-bsc
+            - prod-celo
+            - prod-ethereum
+            - prod-fantom
+            - prod-optimism
+            - prod-polygon
+            - staging-all
+            - staging-bsc
+            - staging-polygon
+          default: production-all
+
 jobs:
     deploy:
-        if: github.event_name == 'workflow_dispatch' || contains(github.event.comment.body, 'deploy')
+        if: github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-latest
         steps:
-            # Grab the PR branch name; workflow sets github.ref to master by default
-            # Short version of branch name is set to ${{ env.trimmed_branch_name }}
-            - id: comment-branch
-              if: github.event.issue.pull_request
-              uses: xt0rted/pull-request-comment-branch@v1
+            - name: Create configuration
+              uses: rishabhgupta/split-by@v1
+              id: conf
               with:
-                  repo_token: ${{ github.token }}
-            - name: trim and save branch name
-              env:
-                  BRANCH: ${{ steps.comment-branch.outputs.head_ref }}
-              run: echo "$BRANCH" | sed 's/refs\/heads\///g' | xargs echo "trimmed_branch_name=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            - name: save branch sha
-              env:
-                  BRANCH_SHA: ${{ steps.comment-branch.outputs.head_sha }}
-              run: echo "$BRANCH_SHA" | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            # Different deploy scenarios
-            # Ethereum: folder_chain=''
-            - name: deploy from master to production (Ethereum)
-              if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master'
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV; echo "trimmed_branch_name=master" >> $GITHUB_ENV; echo ${{ github.sha }} | xargs echo "branch_sha=$1" | sed 's/[[:space:]]//g' >> $GITHUB_ENV
-            - name: deploy from branch to staging (Ethereum)
-              if: github.event.issue.pull_request && github.event.comment.body == 'deploy staging'
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
-            - name: deploy from branch to production (Ethereum)
-              if: github.event.issue.pull_request && github.event.comment.body == 'deploy production'
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=ethereum" >> $GITHUB_ENV;
-            - name: deploy ALL to production
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production all' || github.event.comment.body == 'deploy all production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=all" >> $GITHUB_ENV;
-            - name: deploy ALL tos staging
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging all' || github.event.comment.body == 'deploy all staging')
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=all" >> $GITHUB_ENV;
-            # BSC: folder_chain=bsc
-            - name: deploy from branch to staging (BSC)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging bsc' || github.event.comment.body == 'deploy bsc staging')
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
-            - name: deploy from branch to production (BSC)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production bsc' || github.event.comment.body == 'deploy bsc production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=bsc" >> $GITHUB_ENV;
-            # Polygon: folder_chain=polygon
-            - name: deploy from branch to staging (Polygon)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy staging polygon' || github.event.comment.body == 'deploy polygon staging')
-              run: echo "folder_env=staging" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
-            - name: deploy from branch to production (Polygon)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production polygon' || github.event.comment.body == 'deploy polygon production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=polygon" >> $GITHUB_ENV;
-            # Avalanche: folder_chain=avalanche
-            - name: deploy from branch to production (Avalanche)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production avalanche' || github.event.comment.body == 'deploy avalanche production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=avalanche" >> $GITHUB_ENV;
-            # Fantom: folder_chain=fantom
-            - name: deploy from branch to production (Fantom)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production fantom' || github.event.comment.body == 'deploy fantom production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=fantom" >> $GITHUB_ENV;
-            # Celo : folder_chain=celo
-            - name: deploy from branch to production (Celo)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production celo' || github.event.comment.body == 'deploy celo production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=celo" >> $GITHUB_ENV;
-            # Optimism : folder_chain=optimism
-            - name: deploy from branch to production (Optimism)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production optimism' || github.event.comment.body == 'deploy optimism production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=optimism" >> $GITHUB_ENV;
-            # Arbitrum : folder_chain=arbitrum
-            - name: deploy from branch to production (Arbitrum)
-              if: github.event.issue.pull_request && (github.event.comment.body == 'deploy production arbitrum' || github.event.comment.body == 'deploy arbitrum production')
-              run: echo "folder_env=prod" >> $GITHUB_ENV; echo "chain=arbitrum" >> $GITHUB_ENV;
+                string: ${{ inputs.environment }}
+                split-by: "-"
+
+            - name: Create environment variables (ethereum)
+              run: |
+                echo "folder_env=${{ steps.conf.outputs._0 }}" >> $GITHUB_ENV
+                echo "chain=${{ steps.conf.outputs._1 }}" >> $GITHUB_ENV
+
+            #
             # Make the changes to 0x-main-infra
+            #
+
             - name: Checkout 0x-main-infra
               uses: actions/checkout@v3
               with:
                   token: ${{ secrets.PAT }}
                   repository: 0xProject/0x-main-infra
+
             - name: Update API configs (Ethereum)
               if: env.chain == 'ethereum' || env.chain == 'all'
               run: |
-                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
-                sed -i -e 's/newTag:.*/newTag: ${{ env.branch_sha }}/g' clusters/main-cluster/kubernetes/goerli-api/kustomization.yaml
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
+
+            - name: Update API configs (Ethereum Gorli)
+              if: env.chain == 'ethereum' || (env.chain == 'all' && env.folder_env == 'production')
+              run: |
+                sed -i -e 's/newTag:.*/newTag: ${{ inputs.version }}/g' clusters/main-cluster/kubernetes/goerli-api/kustomization.yaml
+
             - name: Update API configs (BSC)
               if: env.chain == 'bsc' || env.chain == 'all'
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
+              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
+
             - name: Update API configs (Polygon)
               if: env.chain == 'polygon' || env.chain == 'all'
               run: |
-                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
-                sed -i -e 's/newTag:.*/newTag: ${{ env.branch_sha }}/g' clusters/main-cluster/kubernetes/mumbai-api/kustomization.yaml
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
+
+            - name: Update API configs (Polygon Mumbai)
+              if: env.chain == 'polygon' || (env.chain == 'all' && env.folder_env == 'production')
+              run: |
+                sed -i -e 's/newTag:.*/newTag: ${{ inputs.version }}/g' clusters/main-cluster/kubernetes/mumbai-api/kustomization.yaml
+
             - name: Update API configs (Avalanche) || env.chain == 'all'
               if: env.chain == 'avalanche' || (env.chain == 'all' && env.folder_env != 'staging')
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/avalanche/*.yml
+              run: |
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/avalanche/*.yml
+
             - name: Update API configs (Fantom)
               if: env.chain == 'fantom' || (env.chain == 'all' && env.folder_env != 'staging')
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/fantom/*.yml
+              run: |
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/fantom/*.yml
+
             - name: Update API configs (Celo)
               if: env.chain == 'celo' || (env.chain == 'all' && env.folder_env != 'staging')
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/celo/*.yml
+              run: |
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/celo/*.yml
+
             - name: Update API configs (Optimism)
               if: env.chain == 'optimism' || (env.chain == 'all' && env.folder_env != 'staging')
-              run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ env.branch_sha }}"/g' env/0x-api/${{ env.folder_env }}/apis/optimism/*.yml
+              run: |
+                sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.version }}"/g' env/0x-api/${{ env.folder_env }}/apis/optimism/*.yml
+
             - name: Create Pull Request
-              uses: peter-evans/create-pull-request@v3.5.0
+              uses: peter-evans/create-pull-request@v4
               with:
                   token: ${{ secrets.PAT }}
                   author: ${{ github.event.sender.login }} <${{ github.event.sender.login }}@users.noreply.github.com>
-                  commit-message: '0x-api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ env.trimmed_branch_name }}'
-                  title: '[0xApi][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ env.trimmed_branch_name }}'
-                  branch: '0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ env.trimmed_branch_name }}'
+                  commit-message: '0x-api/${{ env.chain }}/${{ env.folder_env }}: Deploy ${{ github.sha }}'
+                  title: '[0xApi][${{ env.chain }}][${{ env.folder_env }}] Deploy ${{ github.sha }}'
+                  branch: '0xApi/${{ env.chain }}/${{ env.folder_env }}/${{ github.sha }}'
                   body: |
                       ## Automated deploy action
                       Triggered by @${{ github.event.sender.login }}
-                      PR: [${{ github.event.issue.title }}](${{ github.event.issue.html_url }})
-                      SHA: https://github.com/${{ github.repository }}/tree/${{ env.branch_sha }}
-                      Comparison: https://github.com/${{ github.repository }}/compare/master...refs/heads/${{ env.trimmed_branch_name }}
-            - name: Check outputs
-              run: |
-                  echo "Pull Request Number - ${{ env.PULL_REQUEST_NUMBER }}"
