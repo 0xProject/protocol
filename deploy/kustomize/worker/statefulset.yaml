@@ -32,7 +32,7 @@ spec:
         - "/bin/sh"
         - "-c"
         args:
-        - RFQM_WORKER_INDEX=${HOSTNAME##*-} yarn start:service:rfqm_worker
+        - RFQM_WORKER_GROUP_INDEX=${HOSTNAME##*-} yarn start:service:rfqm_worker
         env:
         - name: NODE_ENV
           value: production
@@ -53,6 +53,11 @@ spec:
           value: us-east-1
         - name: RFQ_PROXY_ADDRESS
         - name: RFQ_PROXY_PORT
+        - name: RFQM_WORKER_GROUP_SIZE  # Changing this number after the worker is already deployed requires
+                                        # some careful manual steps. Otherwise, it will create conflicting
+                                        # workers. If you're trying to update the value of this envVar after
+                                        # the worker has already been deployed, please let the team knows so
+                                        # we can plan it out properly.
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -61,8 +66,8 @@ spec:
             scheme: HTTP
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 1
-          initialDelaySeconds: 5
+          timeoutSeconds: 3
+          initialDelaySeconds: 10
         name: rfqm-worker
         ports:
         - containerPort: 80

@@ -18,7 +18,7 @@ import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { Integrator, RFQM_MAINTENANCE_MODE, RFQM_WORKER_INDEX } from '../config';
+import { Integrator, RFQM_MAINTENANCE_MODE } from '../config';
 import {
     ETH_DECIMALS,
     EXECUTE_META_TRANSACTION_EIP_712_TYPES,
@@ -668,7 +668,7 @@ export class RfqmService {
         };
     }
 
-    public async workerBeforeLogicAsync(workerAddress: string): Promise<boolean> {
+    public async workerBeforeLogicAsync(workerIndex: number, workerAddress: string): Promise<boolean> {
         let gasPrice;
         try {
             gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
@@ -708,13 +708,13 @@ export class RfqmService {
 
         // Publish a heartbeat if the worker is ready to go
         try {
-            if (RFQM_WORKER_INDEX === undefined) {
+            if (workerIndex === undefined) {
                 throw new Error('Worker index is undefined');
             }
             // NOTE: when merging with `feature/multichain`, update this line with
             // `const chainId = this._chain.chainId.
             const chainId = this._chainId;
-            await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, RFQM_WORKER_INDEX, balance, chainId);
+            await this._dbUtils.upsertRfqmWorkerHeartbeatToDbAsync(workerAddress, workerIndex, balance, chainId);
             this._lastHeartbeatTime = new Date();
         } catch (error) {
             logger.error(

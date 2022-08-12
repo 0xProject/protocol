@@ -391,9 +391,13 @@ export const META_TX_WORKER_MNEMONIC: string | undefined = _.isEmpty(process.env
     ? undefined
     : assertEnvVarType('META_TX_WORKER_MNEMONIC', process.env.META_TX_WORKER_MNEMONIC, EnvVarType.NonEmptyString);
 
-export const RFQM_WORKER_INDEX: number | undefined = _.isEmpty(process.env.RFQM_WORKER_INDEX)
+export const RFQM_WORKER_GROUP_INDEX: number | undefined = _.isEmpty(process.env.RFQM_WORKER_GROUP_INDEX)
     ? undefined
-    : assertEnvVarType('RFQM_WORKER_INDEX', process.env.RFQM_WORKER_INDEX, EnvVarType.Integer);
+    : assertEnvVarType('RFQM_WORKER_GROUP_INDEX', process.env.RFQM_WORKER_GROUP_INDEX, EnvVarType.Integer);
+
+export const RFQM_WORKER_GROUP_SIZE: number | undefined = _.isEmpty(process.env.RFQM_WORKER_GROUP_SIZE)
+    ? undefined
+    : assertEnvVarType('RFQM_WORKER_GROUP_SIZE', process.env.RFQM_WORKER_GROUP_SIZE, EnvVarType.Integer);
 
 // If set to TRUE, system health will change to MAINTENANCE and integrators will be told to not
 // send RFQM orders.

@@ -14,7 +14,8 @@ export type MessageHandler = (message: SQS.Types.Message) => Promise<any>;
 
 export class SqsRetryableError extends Error {}
 export class SqsConsumer {
-    private readonly _id: string;
+    private readonly _workerIndex: number;
+    private readonly _workerAddress: string;
     private readonly _sqsClient: SqsClient;
     private readonly _beforeHandle?: () => Promise<boolean>;
     private readonly _handleMessage: MessageHandler;
@@ -22,18 +23,28 @@ export class SqsConsumer {
     private _isConsuming: boolean;
 
     constructor(params: {
-        id: string;
+        workerIndex: number;
+        workerAddress: string;
         sqsClient: SqsClient;
         beforeHandle?: () => Promise<boolean>;
         handleMessage: MessageHandler;
         afterHandle?: (message: SQS.Types.Message, error?: Error) => Promise<any>;
     }) {
-        this._id = params.id;
+        this._workerIndex = params.workerIndex;
+        this._workerAddress = params.workerAddress;
         this._sqsClient = params.sqsClient;
         this._beforeHandle = params.beforeHandle;
         this._handleMessage = params.handleMessage;
         this._afterHandle = params.afterHandle;
         this._isConsuming = false;
+    }
+
+    public get workerIndex(): number {
+        return this._workerIndex;
+    }
+
+    public get workerAddress(): string {
+        return this._workerAddress;
     }
 
     public stop(): void {
@@ -68,7 +79,10 @@ export class SqsConsumer {
             if (SENTRY_DSN) {
                 Sentry.captureException(e);
             }
-            logger.error({ id: this._id, errorMessage: e.message }, `Encountered error when consuming from the queue`);
+            logger.error(
+                { id: this._workerAddress, workerIndex: this._workerIndex, errorMessage: e.message },
+                `Encountered error when consuming from the queue`,
+            );
         } finally {
             if (SENTRY_DSN) {
                 transaction?.finish();
@@ -83,13 +97,16 @@ export class SqsConsumer {
             try {
                 beforeCheck = await this._beforeHandle();
             } catch (e) {
-                logger.error({ id: this._id, errorMessage: e.message }, 'Error encountered in the preHandle check');
+                logger.error(
+                    { id: this._workerAddress, workerIndex: this._workerIndex, errorMessage: e.message },
+                    'Error encountered in the preHandle check',
+                );
                 throw e;
             }
 
             if (!beforeCheck) {
                 const errorMessage = 'Before validation failed';
-                logger.warn({ id: this._id }, errorMessage);
+                logger.warn({ id: this._workerAddress, workerIndex: this._workerIndex }, errorMessage);
                 await delay(ONE_SECOND_MS);
                 return;
             }
@@ -110,12 +127,12 @@ export class SqsConsumer {
         } catch (err) {
             error = err;
             logger.error(
-                { errorMessage: err.message, message, id: this._id },
+                { errorMessage: err.message, message, id: this._workerAddress, workerIndex: this._workerIndex },
                 'Encountered error while handling message',
             );
 
             if (err instanceof SqsRetryableError) {
-                logger.info({ message, id: this._id }, 'Retrying message');
+                logger.info({ message, id: this._workerAddress, workerIndex: this._workerIndex }, 'Retrying message');
                 // Retry message
                 await this._sqsClient.changeMessageVisibilityAsync(message.ReceiptHandle!, 0);
                 await delay(ONE_SECOND_MS);

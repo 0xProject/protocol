@@ -23,7 +23,6 @@ import {
     KAFKA_BROKERS,
     META_TX_WORKER_MNEMONIC,
     REDIS_URI,
-    RFQM_WORKER_INDEX,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
@@ -186,10 +185,11 @@ function getGasStationAttendant(
 export async function buildRfqmServiceAsync(
     asWorker: boolean,
     rfqmDbUtils: RfqmDbUtils,
-    rfqMakerDbUtils: RfqMakerDbUtils,
+    rfqMakerManager: RfqMakerManager,
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager,
     chain: ChainConfiguration,
+    workerIndex: number,
 ): Promise<RfqmService> {
     let provider: SupportedProvider;
 
@@ -202,26 +202,21 @@ export async function buildRfqmServiceAsync(
         if (META_TX_WORKER_MNEMONIC === undefined) {
             throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);
         }
-        if (RFQM_WORKER_INDEX === undefined) {
-            throw new Error(`RFQM_WORKER_INDEX must be defined to run RFQM service as a worker`);
-        }
         const workerPrivateKey = RfqBlockchainUtils.getPrivateKeyFromIndexAndPhrase(
             META_TX_WORKER_MNEMONIC,
-            RFQM_WORKER_INDEX,
+            workerIndex,
         );
 
         // TODO (rhinodavid): Remove once migration to ethers.js is complete
         const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
         provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);
 
-        ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${RFQM_WORKER_INDEX!}`);
+        ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${workerIndex!}`);
         ethersWallet = ethersWallet.connect(ethersProvider);
     } else {
         provider = rpcProvider;
     }
 
-    const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
-    await rfqMakerManager.initializeAsync();
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
 
@@ -301,11 +296,22 @@ export async function buildRfqmServicesAsync(
     chainConfigurations: ChainConfigurations,
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager = new ConfigManager(),
+    workerIndex: number = 0,
 ): Promise<RfqmServices> {
     const services = await Promise.all(
-        chainConfigurations.map(async (chain) =>
-            buildRfqmServiceAsync(asWorker, rfqmDbUtils, rfqMakerDbUtils, tokenPriceOracle, configManager, chain),
-        ),
+        chainConfigurations.map(async (chain) => {
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
+            await rfqMakerManager.initializeAsync();
+            return buildRfqmServiceAsync(
+                asWorker,
+                rfqmDbUtils,
+                rfqMakerManager,
+                tokenPriceOracle,
+                configManager,
+                chain,
+                workerIndex,
+            );
+        }),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));
 }

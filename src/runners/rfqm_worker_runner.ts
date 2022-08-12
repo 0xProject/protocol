@@ -16,7 +16,8 @@ import {
     DEFINED_FI_API_KEY,
     DEFINED_FI_ENDPOINT,
     META_TX_WORKER_MNEMONIC,
-    RFQM_WORKER_INDEX,
+    RFQM_WORKER_GROUP_INDEX,
+    RFQM_WORKER_GROUP_SIZE,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
@@ -30,6 +31,7 @@ import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
+import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { startMetricsServer } from '../utils/runner_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
@@ -46,8 +48,8 @@ process.on(
     // see https://github.com/pinojs/pino/blob/master/docs/help.md#exit-logging
     pino.final(logger, (error, finalLogger) => {
         finalLogger.error(
-            { errorMessage: error.message, workerIndex: RFQM_WORKER_INDEX },
-            'RFQM worker exiting due to uncaught exception',
+            { errorMessage: error.message, workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
+            'RFQM worker group exiting due to uncaught exception',
         );
         process.exit(1);
     }),
@@ -60,8 +62,8 @@ process.on('unhandledRejection', (reason, promise) => {
         errorMessage = reason.message;
     }
     finalLogger.error(
-        { errorMessage, promise, workerIndex: RFQM_WORKER_INDEX },
-        'RFQM worker exiting due to unhandled rejection',
+        { errorMessage, promise, workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
+        'RFQM worker group exiting due to unhandled rejection',
     );
     process.exit(1);
 });
@@ -71,40 +73,22 @@ if (require.main === module) {
         // Start the Metrics Server
         startMetricsServer();
 
-        if (META_TX_WORKER_MNEMONIC === undefined) {
-            throw new Error(`META_TX_WORKER_MNEMONIC must be defined to use RFQM worker runner`);
-        }
-        if (RFQM_WORKER_INDEX === undefined) {
-            throw new Error(`RFQM_WORKER_INDEX must be defined to use RFQM worker runner`);
-        }
-
-        const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
-            META_TX_WORKER_MNEMONIC,
-            RFQM_WORKER_INDEX,
-        );
-
         // Build dependencies
+        const configManager = new ConfigManager();
         const connection = await getDbDataSourceAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
+        const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
+        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
 
         const chain = CHAIN_CONFIGURATIONS.find((c) => c.chainId === CHAIN_ID);
-
         if (!chain) {
             throw new Error(`Tried to start worker for chain ${CHAIN_ID}
             but no chain configuration was present`);
         }
 
-        const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
-        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
-        const rfqmService = await buildRfqmServiceAsync(
-            true,
-            rfqmDbUtils,
-            rfqMakerDbUtils,
-            tokenPriceOracle,
-            new ConfigManager(),
-            chain,
-        );
+        const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
+        await rfqMakerManager.initializeAsync();
 
         if (SENTRY_DSN) {
             Sentry.init({
@@ -118,28 +102,60 @@ if (require.main === module) {
             });
         }
 
-        // Run the worker
-        const worker = createRfqmWorker(rfqmService, workerAddress, chain);
-        logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Starting RFQM worker');
-        const consumeLoop: Promise<void> = worker.consumeAsync();
+        if (META_TX_WORKER_MNEMONIC === undefined) {
+            throw new Error(`META_TX_WORKER_MNEMONIC must be defined to use RFQM worker runner`);
+        }
+        if (RFQM_WORKER_GROUP_INDEX === undefined) {
+            throw new Error(`RFQM_WORKER_GROUP_INDEX must be defined to use RFQM worker runner`);
+        }
+        if (RFQM_WORKER_GROUP_SIZE === undefined) {
+            throw new Error(`RFQM_WORKER_GROUP_SIZE must be defined to use RFQM worker runner`);
+        }
+        const workers: SqsConsumer[] = [];
+        for (let i = 0; i < RFQM_WORKER_GROUP_SIZE; i += 1) {
+            const workerIndex: number = RFQM_WORKER_GROUP_INDEX! * RFQM_WORKER_GROUP_SIZE! + i;
+            const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
+                META_TX_WORKER_MNEMONIC!,
+                workerIndex,
+            );
+            const rfqmService = await buildRfqmServiceAsync(
+                true,
+                rfqmDbUtils,
+                rfqMakerManager,
+                tokenPriceOracle,
+                configManager,
+                chain,
+                workerIndex,
+            );
+            workers.push(createRfqmWorker(rfqmService, workerIndex, workerAddress, chain));
+        }
 
+        const consumeLoops: Promise<void>[] = workers.map(async (worker) => {
+            // run the worker
+            logger.info(
+                { workerAddress: worker.workerAddress, workerIndex: worker.workerIndex },
+                'Starting RFQM worker',
+            );
+            return worker.consumeAsync();
+        });
         // Add SIGTERM signal handler
         process.on('SIGTERM', async () => {
             logger.info(
-                { workerAddress, workerIndex: RFQM_WORKER_INDEX },
+                { workerGroupIndex: RFQM_WORKER_GROUP_INDEX },
                 'SIGTERM signal received. Stop consuming more queue messages.',
             );
 
             // Avoid pulling more messages from the queue
-            worker.stop();
-
+            workers.forEach((worker) => {
+                worker.stop();
+            });
             // Wait to finish processing current queue message
-            await consumeLoop;
-            logger.info({ workerAddress, workerIndex: RFQM_WORKER_INDEX }, 'Worker has stopped consuming.');
+            await Promise.all(consumeLoops);
+            logger.info({ workerGroupIndex: RFQM_WORKER_GROUP_INDEX }, 'Worker group has stopped consuming.');
         });
 
-        // Wait for pulling loop
-        await consumeLoop;
+        // Wait for pulling loops
+        await Promise.all(consumeLoops);
     })(); // tslint:disable-line no-floating-promises
 }
 
@@ -148,15 +164,17 @@ if (require.main === module) {
  */
 export function createRfqmWorker(
     rfqmService: RfqmService,
+    workerIndex: number,
     workerAddress: string,
     chain: ChainConfiguration,
 ): SqsConsumer {
     // Build the Sqs consumer
     const sqsClient = new SqsClient(new SQS({ apiVersion: '2012-11-05' }), chain.sqsUrl);
     const consumer = new SqsConsumer({
-        id: workerAddress,
+        workerIndex,
+        workerAddress,
         sqsClient,
-        beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerAddress),
+        beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerIndex, workerAddress),
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.labels(workerAddress).inc();
             const { orderHash } = JSON.parse(message.Body!);

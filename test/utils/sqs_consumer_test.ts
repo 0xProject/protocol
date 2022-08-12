@@ -21,7 +21,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientMock,
                     handleMessage,
                     beforeHandle,
@@ -44,7 +45,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientMock,
                     handleMessage,
                     beforeHandle,
@@ -70,7 +72,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage,
                 });
@@ -96,7 +99,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     beforeHandle,
                     handleMessage,
@@ -123,7 +127,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage,
                 });
@@ -149,7 +154,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage,
                 });
@@ -175,7 +181,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage,
                 });
@@ -202,7 +209,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage,
                 });
@@ -232,7 +240,8 @@ describe('SqsConsumer', () => {
                 };
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage: async () => {},
                     afterHandle,
@@ -257,7 +266,8 @@ describe('SqsConsumer', () => {
                 let isAfterCalledWithError = false;
 
                 const consumer = new SqsConsumer({
-                    id: 'id',
+                    workerIndex: 0,
+                    workerAddress: 'id',
                     sqsClient: sqsClientInstance,
                     handleMessage: async () => {
                         throw new Error();
