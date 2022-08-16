@@ -1378,19 +1378,6 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromWooPP,
             params: [poolAddress, takerToken, makerToken, makerFillAmounts],
-            /*
-            callback: (callResults: string, fillData: WOOFiFillData): BigNumber[] => {
-                const [samples] = this._samplerContract.getABIDecodedReturnData<[BigNumber[]]>(
-                    'sampleBuysFromWooPP',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                fillData.takerToken = takerToken;
-                fillData.makerToken = makerToken;
-                fillData.chainId = this.chainId;
-                return samples;
-            },
-            */
         });
     }
 
@@ -1407,19 +1394,6 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromWooPP,
             params: [poolAddress, takerToken, makerToken, makerFillAmounts],
-            /*
-            callback: (callResults: string, fillData: WOOFiFillData): BigNumber[] => {
-                const [samples] = this._samplerContract.getABIDecodedReturnData<[BigNumber[]]>(
-                    'sampleSellsFromWooPP',
-                    callResults,
-                );
-                fillData.poolAddress = poolAddress;
-                fillData.takerToken = takerToken;
-                fillData.makerToken = makerToken;
-                fillData.chainId = this.chainId;
-                return samples;
-            },
-            */
         });
     }
 
