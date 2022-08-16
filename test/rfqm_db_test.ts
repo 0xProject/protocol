@@ -1,5 +1,5 @@
 import { BigNumber } from '@0x/asset-swapper';
-import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransaction, MetaTransactionFields, OtcOrder, Signature } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
@@ -17,6 +17,7 @@ import {
     storedOtcOrderToOtcOrder,
 } from '../src/utils/rfqm_db_utils';
 
+import { MOCK_FEE, MOCK_META_TRANSACTION } from './constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
 import { initDbDataSourceAsync } from './test_utils/initDbDataSourceAsync';
 
@@ -83,6 +84,13 @@ const gasUsed = null;
 const blockMined = null;
 const nonce = 0;
 
+function creatMockMetaTransaction(opts: Partial<MetaTransactionFields> = {}): MetaTransaction {
+    return new MetaTransaction({
+        ...MOCK_META_TRANSACTION,
+        ...opts,
+    });
+}
+
 // tslint:disable-next-line: custom-no-magic-numbers
 jest.setTimeout(ONE_MINUTE_MS * 3);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
@@ -108,6 +116,7 @@ describe('RFQM Database', () => {
         await dataSource.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
         await dataSource.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
         await dataSource.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE meta_transaction_jobs CASCADE;');
     });
     describe('v2 tables', () => {
         it('should be able to write to and read from the rfqm_v2_quote table', async () => {
@@ -253,6 +262,132 @@ describe('RFQM Database', () => {
             const transactionSubmission = transactionSubmissions[0];
             expect(transactionSubmission.transactionHash).to.equal(transactionHash);
             expect(transactionSubmission.status).to.equal(RfqmTransactionSubmissionStatus.Submitted);
+        });
+    });
+
+    describe('meta transaction tables', () => {
+        it('should be able to write to, update, and read from the `meta_transaction_jobs` table', async () => {
+            const metaTransaction = creatMockMetaTransaction();
+            const metaTransactionHash = metaTransaction.getHash();
+            // Write
+            const savedJob = await dbUtils.writeMetaTransactionJobAsync({
+                approval,
+                chainId: 1,
+                expiry: new BigNumber(2),
+                fee: MOCK_FEE,
+                integratorId: 'integrator',
+                metaTransaction,
+                metaTransactionHash,
+                takerAddress: '0xaddress',
+                takerSignature,
+            });
+            expect(savedJob.id).to.not.equal(null);
+
+            // Read
+            const job = await dbUtils.findMetaTransactionJobByMetaTransactionHashAsync(metaTransactionHash);
+            if (!job) {
+                throw new Error('job should exist');
+            }
+            expect(job.metaTransaction).to.eql(metaTransaction);
+            expect(job.fee).to.eql(MOCK_FEE);
+            expect(job.status).to.eql(RfqmJobStatus.PendingEnqueued);
+            expect(job.approval).to.eql(approval);
+            expect(job.workerAddress).to.eql(null);
+
+            // Update
+            job.chainId = 1;
+            await dbUtils.updateRfqmJobAsync(job);
+
+            // Read
+            const updatedJob = await dbUtils.findMetaTransactionJobByIdAsync(job.id);
+            if (!updatedJob) {
+                throw new Error('job should exist');
+            }
+            expect(updatedJob.metaTransaction).to.eql(metaTransaction);
+            expect(updatedJob.fee).to.eql(MOCK_FEE);
+            expect(updatedJob.status).to.eql(RfqmJobStatus.PendingEnqueued);
+            expect(updatedJob.approval).to.eql(approval);
+            expect(updatedJob.workerAddress).to.eql(null);
+            expect(updatedJob.chainId).to.eql(1);
+        });
+
+        it('should be able to find by status across the `meta_transaction_jobs` table', async () => {
+            const metaTransaction = creatMockMetaTransaction();
+            const metaTransactionHash = metaTransaction.getHash();
+            // Write
+            const savedJob = await dbUtils.writeMetaTransactionJobAsync({
+                approval,
+                chainId: 1,
+                expiry: new BigNumber(2),
+                fee: MOCK_FEE,
+                integratorId: 'integrator',
+                metaTransaction,
+                metaTransactionHash,
+                takerAddress: '0xaddress',
+                takerSignature,
+                status: RfqmJobStatus.FailedExpired,
+            });
+            expect(savedJob.id).to.not.equal(null);
+
+            // Read
+            const jobs = await dbUtils.findMetaTransactionJobsWithStatusesAsync([RfqmJobStatus.FailedExpired]);
+            expect(jobs.length).to.equal(1);
+            expect(jobs[0].metaTransaction).to.eql(metaTransaction);
+            expect(jobs[0].fee).to.eql(MOCK_FEE);
+            expect(jobs[0].status).to.eql(RfqmJobStatus.FailedExpired);
+            expect(jobs[0].approval).to.eql(approval);
+            expect(jobs[0].workerAddress).to.eql(null);
+        });
+
+        it('should be able to find unsolved meta transaction jobs in the `meta_transaction_jobs` table', async () => {
+            const mockMetaTransaction1 = creatMockMetaTransaction();
+            const savedJob = await dbUtils.writeMetaTransactionJobAsync({
+                approval,
+                chainId: 1,
+                expiry: new BigNumber(2),
+                fee: MOCK_FEE,
+                id: '1',
+                integratorId: 'integrator',
+                metaTransaction: mockMetaTransaction1,
+                metaTransactionHash: mockMetaTransaction1.getHash(),
+                takerAddress: '0xaddress',
+                takerSignature,
+                status: RfqmJobStatus.PendingEnqueued,
+            });
+            expect(savedJob.id).to.not.equal(null);
+
+            const mockMetaTransaction2 = creatMockMetaTransaction({ signer: '0xabcdef2' });
+            await dbUtils.writeMetaTransactionJobAsync({
+                approval,
+                chainId: 2,
+                expiry: new BigNumber(2),
+                fee: MOCK_FEE,
+                integratorId: 'integrator',
+                metaTransaction: mockMetaTransaction2,
+                metaTransactionHash: mockMetaTransaction2.getHash(),
+                takerAddress: '0xaddress',
+                takerSignature,
+                status: RfqmJobStatus.PendingProcessing,
+                workerAddress: '0xworkerAddress',
+            });
+
+            const mockMetaTransaction3 = creatMockMetaTransaction({ signer: '0xabcdef3' });
+            await dbUtils.writeMetaTransactionJobAsync({
+                approval,
+                chainId: 3,
+                expiry: new BigNumber(2),
+                fee: MOCK_FEE,
+                integratorId: 'integrator',
+                metaTransaction: mockMetaTransaction3,
+                metaTransactionHash: mockMetaTransaction3.getHash(),
+                takerAddress: '0xaddress',
+                takerSignature,
+                status: RfqmJobStatus.FailedExpired,
+            });
+
+            const jobs = await dbUtils.findUnresolvedMetaTransactionJobsAsync('0xworkerAddress', 2);
+            expect(jobs.length).to.equal(1);
+            expect(jobs[0].status).to.eql(RfqmJobStatus.PendingProcessing);
         });
     });
 });

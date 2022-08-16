@@ -4,7 +4,13 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { FindOptionsWhere, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
-import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import {
+    MetaTransactionJobEntity,
+    RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
+    RfqmV2TransactionSubmissionEntity,
+} from '../entities';
+import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
@@ -141,10 +147,22 @@ export class RfqmDbUtils {
     }
 
     /**
-     * Updates an existing RFQM job
+     * Updates an existing RFQM job.
      */
-    public async updateRfqmJobAsync(job: RfqmV2JobEntity): Promise<void> {
-        await this._connection.getRepository(RfqmV2JobEntity).save(job);
+    public async updateRfqmJobAsync<T extends RfqmV2JobEntity | MetaTransactionJobEntity>(job: T): Promise<void> {
+        const kind = job.kind;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                await this._connection.getRepository(RfqmV2JobEntity).save(job);
+                return;
+            case 'meta_transaction_job':
+                await this._connection.getRepository(MetaTransactionJobEntity).save(job);
+                return;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
     }
 
     public async upsertRfqmWorkerHeartbeatToDbAsync(
@@ -210,7 +228,7 @@ export class RfqmDbUtils {
     }
 
     /**
-     * Queries the `rfqm_v2_jobs` table for all jobs with the specified statuses
+     * [RFQm v2] Queries the `rfqm_v2_jobs` table for all jobs with the specified statuses
      */
     public async findV2JobsWithStatusesAsync(statuses: RfqmJobStatus[]): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
@@ -308,6 +326,67 @@ export class RfqmDbUtils {
      */
     public async findV2UnresolvedJobsAsync(workerAddress: string, chainId: number): Promise<RfqmV2JobEntity[]> {
         return this._connection.getRepository(RfqmV2JobEntity).find({
+            where: {
+                chainId,
+                status: In(UnresolvedRfqmJobStatuses),
+                workerAddress,
+            },
+        });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_jobs` table with the given id.
+     */
+    public async findMetaTransactionJobByIdAsync(id: string): Promise<MetaTransactionJobEntity | null> {
+        return this._connection.getRepository(MetaTransactionJobEntity).findOne({
+            where: { id },
+        });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_jobs` table with the given meta transaction hash.
+     */
+    public async findMetaTransactionJobByMetaTransactionHashAsync(
+        metaTransactionHash: string,
+    ): Promise<MetaTransactionJobEntity | null> {
+        return this._connection.getRepository(MetaTransactionJobEntity).findOne({
+            where: { metaTransactionHash },
+        });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_jobs` table for all jobs with the specified statuss.
+     */
+    public async findMetaTransactionJobsWithStatusesAsync(
+        statuses: RfqmJobStatus[],
+    ): Promise<MetaTransactionJobEntity[]> {
+        return this._connection.getRepository(MetaTransactionJobEntity).find({
+            where: {
+                status: In(statuses),
+            },
+        });
+    }
+
+    /**
+     * [meta transaction] Writes to the `meta_transaction_jobs` tabe.
+     */
+    public async writeMetaTransactionJobAsync(
+        metaTransactionJobOpts: MetaTransactionJobConstructorOpts,
+    ): Promise<MetaTransactionJobEntity> {
+        return this._connection
+            .getRepository(MetaTransactionJobEntity)
+            .save(new MetaTransactionJobEntity(metaTransactionJobOpts));
+    }
+
+    /**
+     * [meta transaction] find unresolved jobs from the `meta_transaction_jobs` table for
+     * a given worker address and chain ID.
+     */
+    public async findUnresolvedMetaTransactionJobsAsync(
+        workerAddress: string,
+        chainId: number,
+    ): Promise<MetaTransactionJobEntity[]> {
+        return this._connection.getRepository(MetaTransactionJobEntity).find({
             where: {
                 chainId,
                 status: In(UnresolvedRfqmJobStatuses),
