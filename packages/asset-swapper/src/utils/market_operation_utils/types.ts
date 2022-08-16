@@ -377,6 +377,8 @@ export interface WOOFiFillData extends FillData {
     poolAddress: string;
     takerToken: string;
     makerToken: string;
+    // Only needed for gas estimation
+    chainId: ChainId;
 }
 
 export interface VelodromeFillData extends FillData {

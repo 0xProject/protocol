@@ -2657,14 +2657,34 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
         const woofiFillData = fillData as WOOFiFillData;
         const quoteTokenAddresses = [BSC_TOKENS.USDT, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
-
-        if (
+        const includesQuoteToken =
             quoteTokenAddresses.includes(woofiFillData.takerToken) ||
-            quoteTokenAddresses.includes(woofiFillData.makerToken)
-        ) {
-            return 500e3;
+            quoteTokenAddresses.includes(woofiFillData.makerToken);
+        if (woofiFillData.chainId === ChainId.BSC) {
+            if (includesQuoteToken) {
+                return 550e3;
+            } else {
+                return 100e4;
+            }
+        } else if (woofiFillData.chainId === ChainId.Avalanche) {
+            if (includesQuoteToken) {
+                return 300e3;
+            } else {
+                return 550e3;
+            }
+        } else if (woofiFillData.chainId === ChainId.Polygon) {
+            if (includesQuoteToken) {
+                return 500e3;
+            } else {
+                return 700e3;
+            }
         } else {
-            return 100e4;
+            //Fantom
+            if (includesQuoteToken) {
+                return 400e3;
+            } else {
+                return 600e3;
+            }
         }
     },
     //
