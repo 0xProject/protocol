@@ -1,6 +1,7 @@
 export { BlockedAddressEntity } from './BlockedAddressEntity';
 export { KeyValueEntity } from './KeyValueEntity';
 export { MakerBalanceChainCacheEntity } from './MakerBalanceChainCacheEntity';
+export { MetaTransactionJobEntity } from './MetaTransactionJobEntity';
 export { OrderWatcherSignedOrderEntity } from './OrderWatcherSignedOrderEntity';
 export { PersistentSignedOrderEntity } from './PersistentSignedOrderEntity';
 export { PersistentSignedOrderV4Entity } from './PersistentSignedOrderV4Entity';
