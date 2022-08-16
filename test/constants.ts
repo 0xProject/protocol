@@ -1,7 +1,8 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
-import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
+import { ETH_TOKEN_ADDRESS, MetaTransaction } from '@0x/protocol-utils';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
@@ -122,3 +123,46 @@ export const MOCK_PERMIT_APPROVAL: PermitApproval = {
 
 export const MOCK_PERMIT_CALLDATA =
     '0xd505accf0000000000000000000000009016cc2122b52ff5d9937c0c1422b78d7e81ceea000000000000000000000000def1c0ded9bec7f1a1670819833240f027b25eff000000000000000000000000ffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000075bcd15000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+export const MOCK_META_TRANSACTION = new MetaTransaction({
+    signer: '0xabcdef',
+    sender: '0xabcdef',
+    minGasPrice: new BigNumber(0),
+    maxGasPrice: new BigNumber(1),
+    expirationTimeSeconds: new BigNumber(2),
+    salt: new BigNumber(3),
+    callData: '0x1234567890',
+    value: new BigNumber(4),
+    feeToken: '0xdef',
+    feeAmount: new BigNumber(5),
+    chainId: 1,
+    verifyingContract: '0xdef1',
+});
+
+export const MOCK_STORED_META_TRANSACTION = {
+    signer: '0xabcdef',
+    sender: '0xabcdef',
+    minGasPrice: '0',
+    maxGasPrice: '1',
+    expirationTimeSeconds: '2',
+    salt: '3',
+    callData: '0x1234567890',
+    value: '4',
+    feeToken: '0xdef',
+    feeAmount: '5',
+    chainId: '1',
+    verifyingContract: '0xdef1',
+};
+
+export const MOCK_FEE: Fee = {
+    type: 'fixed',
+    token: '0xtoken',
+    amount: new BigNumber(0),
+};
+
+export const MOCK_STORED_FEE = {
+    type: 'fixed',
+    token: '0xtoken',
+    amount: '0',
+    details: undefined,
+};
