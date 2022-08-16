@@ -1,10 +1,8 @@
 // tslint:disable:custom-no-magic-numbers
-// tslint:disable:max-file-line-count
 
-import { BigNumber } from '@0x/asset-swapper';
 import { OtcOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
-// import { expect } from 'chai';
+import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../../src/constants';
 import {

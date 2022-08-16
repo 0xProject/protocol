@@ -2,7 +2,7 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { MarketOperation } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
 import { SignRequest } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';

@@ -1,5 +1,5 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { OtcOrderFields, Signature } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 
 import { EIP712Context, EIP712DataField, EIP712Domain } from '../types';
 

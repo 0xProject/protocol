@@ -1,4 +1,4 @@
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
+import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';

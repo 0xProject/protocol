@@ -1,6 +1,6 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { MetaTransaction, MetaTransactionFields, OtcOrder, Signature } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
+import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
 

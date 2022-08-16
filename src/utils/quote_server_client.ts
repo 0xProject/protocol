@@ -1,4 +1,4 @@
-import { MarketOperation } from '@0x/asset-swapper';
+import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
 import { schemas as quoteServerSchemas } from '@0x/quote-server';

@@ -1,7 +1,7 @@
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
+import { ONE_SECOND_MS } from '../constants';
 import { RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, SubmissionContextStatus } from '../entities/types';
 import { BLOCK_FINALITY_THRESHOLD } from '../services/rfqm_service';

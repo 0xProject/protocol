@@ -1,7 +1,8 @@
 // tslint:disable:custom-no-magic-numbers max-file-line-count
 import { HttpServiceConfig } from '@0x/api-utils';
 import { assert } from '@0x/assert';
-import { LiquidityProviderRegistry, RfqMakerAssetOfferings } from '@0x/asset-swapper';
+import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
+import { LiquidityProviderRegistry } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/types';
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';

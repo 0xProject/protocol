@@ -4,7 +4,6 @@
 
 import { pino } from '@0x/api-utils';
 import { QuoteRequestor, SignatureType } from '@0x/asset-swapper';
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
@@ -15,7 +14,7 @@ import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
 
-import { ETH_DECIMALS, GWEI_DECIMALS } from '../../src/constants';
+import { ETH_DECIMALS, GWEI_DECIMALS, ONE_SECOND_MS } from '../../src/constants';
 import {
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,

@@ -1,9 +1,9 @@
-import { ONE_SECOND_MS } from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
+import { ONE_SECOND_MS } from '../../src/constants';
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import {
     RfqmTransactionSubmissionStatus,

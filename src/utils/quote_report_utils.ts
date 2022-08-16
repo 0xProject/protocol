@@ -1,10 +1,10 @@
 import {
-    BigNumber,
     ERC20BridgeSource,
     ExtendedQuoteReport,
     ExtendedQuoteReportIndexedEntryOutbound,
     jsonifyFillData,
 } from '@0x/asset-swapper';
+import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
 import { StoredFee } from '../entities/types';

@@ -1,4 +1,4 @@
-import { BigNumber } from '@0x/asset-swapper';
+import { BigNumber } from '@0x/utils';
 import { BlockParamLiteral } from 'ethereum-types';
 import { providers } from 'ethers';
 

@@ -1,5 +1,5 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { Signature } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 import { Approval } from '../types';

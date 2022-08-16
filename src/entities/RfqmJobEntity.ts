@@ -1,4 +1,5 @@
-import { BigNumber, RfqOrderFields } from '@0x/asset-swapper';
+import { RfqOrderFields } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 import { BigNumberTransformer } from './transformers';
