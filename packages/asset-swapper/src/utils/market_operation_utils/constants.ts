@@ -1469,7 +1469,7 @@ export const CURVE_POLYGON_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 350e3,
     }),
     [CURVE_POLYGON_POOLS.deUSDC]: createCurveExchangeUnderlyingPool({
-        tokens: [POLYGON_TOKENS.deUSDC, POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT],
+        tokens: [POLYGON_TOKENS.deUSDC, POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT],
         pool: CURVE_POLYGON_POOLS.deUSDC,
         gasSchedule: 150e3,
     }),
@@ -1505,8 +1505,8 @@ export const CURVE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         gasSchedule: 150e3,
     }),
     [CURVE_AVALANCHE_POOLS.deUSDC]: createCurveExchangePool({
-        tokens: [AVALANCHE_TOKENS.deUSDC, AVALANCHE_TOKENS.DAI, AVALANCHE_TOKENS.USDC, AVALANCHE_TOKENS.USDT],
-        pool: CURVE_AVALANCHE_POOLS.USDC,
+        tokens: [AVALANCHE_TOKENS.deUSDC, AVALANCHE_TOKENS.aDAI, AVALANCHE_TOKENS.aUSDC, AVALANCHE_TOKENS.aUSDT],
+        pool: CURVE_AVALANCHE_POOLS.deUSDC,
         gasSchedule: 300e3,
     }),
 };
