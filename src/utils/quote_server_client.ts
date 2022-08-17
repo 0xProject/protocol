@@ -10,11 +10,13 @@ import * as _ from 'lodash';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 
-import { Integrator, RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
+import { Integrator } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { IndicativeQuote, QuoteServerPriceParams } from '../types';
+
+const PRICE_ENDPOINT_TIMEOUT_MS = 1000;
 
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',
@@ -144,7 +146,7 @@ export class QuoteServerClient {
         makerUriToUrl: (u: string) => string,
     ): Promise<IndicativeQuote | undefined> {
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
-            timeout: RFQT_REQUEST_MAX_RESPONSE_MS,
+            timeout: PRICE_ENDPOINT_TIMEOUT_MS,
             headers: {
                 '0x-request-uuid': uuid.v4(),
                 '0x-integrator-id': integrator.integratorId,
