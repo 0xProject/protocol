@@ -21,6 +21,7 @@ import {
     ORDER_WATCHER_KAFKA_TOPIC,
     RFQT_TX_ORIGIN_BLACKLIST,
     RFQ_API_URL,
+    SENTRY_ENABLED,
     SLIPPAGE_MODEL_S3_API_VERSION,
     WEBSOCKET_ORDER_UPDATES_PATH,
 } from './config';
@@ -53,6 +54,7 @@ export interface AppDependencies {
     metaTransactionService?: MetaTransactionService;
     provider: SupportedProvider;
     websocketOpts: Partial<WebsocketSRAOpts>;
+    hasSentry?: boolean;
 }
 
 async function deploySamplerContractAsync(
@@ -198,6 +200,13 @@ export async function getDefaultAppDependenciesAsync(
     }
 
     const websocketOpts = { path: WEBSOCKET_ORDER_UPDATES_PATH, kafkaTopic: ORDER_WATCHER_KAFKA_TOPIC };
+    const hasSentry: boolean = SENTRY_ENABLED;
+
+    if (hasSentry) {
+        logger.info('sentry enabled');
+    } else {
+        logger.info('sentry disabled');
+    }
 
     return {
         contractAddresses,
@@ -208,6 +217,7 @@ export async function getDefaultAppDependenciesAsync(
         metaTransactionService,
         provider,
         websocketOpts,
+        hasSentry,
     };
 }
 

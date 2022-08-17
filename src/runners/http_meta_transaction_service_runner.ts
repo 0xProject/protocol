@@ -5,12 +5,13 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceConfig } from '../config';
+import { defaultHttpServiceConfig, SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_SAMPLE_RATE } from '../config';
 import { META_TRANSACTION_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { errorHandler } from '../middleware/error_handling';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
+import { SentryInit, SentryOptions } from '../sentry';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
@@ -50,14 +51,30 @@ async function runHttpServiceAsync(
 ): Promise<Server> {
     const app = _app || express();
     const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
+
     app.get('/', rootHandler);
+
     if (dependencies.metaTransactionService) {
         app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
     } else {
         logger.error(`Could not run meta transaction service, exiting`);
         process.exit(1);
     }
+
+    if (dependencies.hasSentry) {
+        const options: SentryOptions = {
+            app,
+            dsn: SENTRY_DSN,
+            environment: SENTRY_ENVIRONMENT,
+            paths: [META_TRANSACTION_PATH],
+            sampleRate: SENTRY_SAMPLE_RATE,
+        };
+
+        SentryInit(options);
+    }
+
     app.use(errorHandler);
     server.listen(config.httpPort);
+
     return server;
 }

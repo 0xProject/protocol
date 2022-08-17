@@ -8,7 +8,7 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceConfig } from '../config';
+import { defaultHttpServiceConfig, SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_SAMPLE_RATE } from '../config';
 import { DEFAULT_CACHE_AGE_SECONDS, ORDERBOOK_PATH, SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -16,6 +16,7 @@ import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
 import { createOrderBookRouter } from '../routers/orderbook_router';
 import { createSRARouter } from '../routers/sra_router';
+import { SentryInit, SentryOptions } from '../sentry';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
@@ -71,6 +72,18 @@ async function runHttpServiceAsync(
     } else {
         logger.error('Could not establish kafka connection, exiting');
         process.exit(1);
+    }
+
+    if (dependencies.hasSentry) {
+        const options: SentryOptions = {
+            app,
+            dsn: SENTRY_DSN,
+            environment: SENTRY_ENVIRONMENT,
+            paths: [SRA_PATH, ORDERBOOK_PATH],
+            sampleRate: SENTRY_SAMPLE_RATE,
+        };
+
+        SentryInit(options);
     }
 
     server.listen(config.httpPort);

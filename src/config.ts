@@ -48,6 +48,7 @@ enum EnvVarType {
     AddressList,
     StringList,
     Integer,
+    Float,
     Port,
     KeepAliveTimeout,
     ChainId,
@@ -415,6 +416,23 @@ export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPI
     ? undefined
     : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
 
+// tslint:disable-next-line:boolean-naming
+export const SENTRY_ENABLED: boolean = _.isEmpty(process.env.SENTRY_ENABLED)
+    ? false
+    : assertEnvVarType('SENTRY_ENABLED', process.env.SENTRY_ENABLED, EnvVarType.Boolean);
+
+export const SENTRY_ENVIRONMENT: string = _.isEmpty(process.env.SENTRY_ENVIRONMENT)
+    ? 'development'
+    : assertEnvVarType('SENTRY_ENVIRONMENT', process.env.SENTRY_ENVIRONMENT, EnvVarType.NonEmptyString);
+
+export const SENTRY_DSN: string = _.isEmpty(process.env.SENTRY_DSN)
+    ? undefined
+    : assertEnvVarType('SENTRY_DSN', process.env.SENTRY_DSN, EnvVarType.Url);
+
+export const SENTRY_SAMPLE_RATE: number = _.isEmpty(process.env.SENTRY_SAMPLE_RATE)
+    ? 0.1
+    : assertEnvVarType('SENTRY_SAMPLE_RATE', process.env.SENTRY_SAMPLE_RATE, EnvVarType.Float);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision
@@ -715,6 +733,12 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             returnValue = parseInt(value, 10);
             if (isNaN(returnValue)) {
                 throw new Error(`${name} must be a valid integer, found ${value}.`);
+            }
+            return returnValue;
+        case EnvVarType.Float:
+            returnValue = parseFloat(value);
+            if (isNaN(returnValue)) {
+                throw new Error(`${name} must be a valid float, found ${value}`);
             }
             return returnValue;
         case EnvVarType.ETHAddressHex:

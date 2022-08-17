@@ -5,7 +5,7 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceConfig } from '../config';
+import { defaultHttpServiceConfig, SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_SAMPLE_RATE } from '../config';
 import { META_TRANSACTION_PATH, ORDERBOOK_PATH, SRA_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -15,6 +15,7 @@ import { createMetaTransactionRouter } from '../routers/meta_transaction_router'
 import { createOrderBookRouter } from '../routers/orderbook_router';
 import { createSRARouter } from '../routers/sra_router';
 import { createSwapRouter } from '../routers/swap_router';
+import { SentryInit, SentryOptions } from '../sentry';
 import { WebsocketService } from '../services/websocket_service';
 import { HttpServiceConfig } from '../types';
 import { providerUtils } from '../utils/provider_utils';
@@ -102,6 +103,18 @@ export async function runHttpServiceAsync(
         wsService.startAsync().catch((error) => logger.error(error.stack));
     } else {
         logger.warn('Could not establish kafka connection, websocket service will not start');
+    }
+
+    if (dependencies.hasSentry) {
+        const options: SentryOptions = {
+            app,
+            dsn: SENTRY_DSN,
+            environment: SENTRY_ENVIRONMENT,
+            paths: [SRA_PATH, ORDERBOOK_PATH, META_TRANSACTION_PATH, SWAP_PATH],
+            sampleRate: SENTRY_SAMPLE_RATE,
+        };
+
+        SentryInit(options);
     }
 
     server.listen(config.httpPort);
