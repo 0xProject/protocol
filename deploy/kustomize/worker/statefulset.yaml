@@ -8,7 +8,6 @@ metadata:
 spec:
   podManagementPolicy: Parallel
   serviceName: rfqm-worker
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: rfqm
