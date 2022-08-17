@@ -1,6 +1,8 @@
 import { intervalUtils } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { TX_BASE_GAS } from '../constants';
+
 export interface JsonRpcResponse {
     error: any;
     id: number;
@@ -99,7 +101,7 @@ export const utils = {
     },
     calculateCallDataGas: (bytes: string) => {
         const buf = Buffer.from(bytes.replace(/0x/g, ''), 'hex');
-        let gas = 21000;
+        let gas = TX_BASE_GAS.toNumber();
         for (const b of buf) {
             // 4 gas per 0 byte, 16 gas per non-zero
             // tslint:disable-next-line

@@ -23,8 +23,7 @@
         "dev:service:http": "nodemon -r dotenv/config src/runners/http_service_runner.ts | pino-pretty",
         "dev:service:sra_http": "nodemon -r dotenv/config src/runners/http_sra_service_runner.ts | pino-pretty",
         "dev:service:swap_http": "nodemon -r dotenv/config src/runners/http_swap_service_runner.ts | pino-pretty",
-        "dev:service:order_watcher": "nodemon -r dotenv/config src/runners/order_watcher_service_runner.ts | pino-pretty",
-        "dev:service:transaction_watcher": "nodemon -r dotenv/config src/runners/transaction_watcher_signer_service_runner.ts | pino-pretty",
+        "dev:service:meta_transaction_http": "nodemon -r dotenv/config src/runners/http_meta_transaction_service_runner.ts | pino-pretty",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
         "generate_contract_wrappers": "abi-gen --debug --abis  ${npm_package_config_abis} --output test/generated-wrappers --backend ethers",
@@ -36,7 +35,7 @@
         "start:service:http": "node -r dotenv/config lib/src/runners/http_service_runner.js",
         "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",
         "start:service:swap_http": "node -r dotenv/config lib/src/runners/http_swap_service_runner.js",
-        "start:service:transaction_watcher": "node -r dotenv/config lib/src/runners/transaction_watcher_signer_service_runner.js",
+        "start:service:meta_transaction_http": "node -r dotenv/config lib/src/runners/http_meta_transaction_service_runner.js",
         "start:service:rfq_maker_balance_cache": "node -r dotenv/config lib/src/runners/rfq_maker_balance_cache_runner.js",
         "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))",
         "lint": "tslint --project . --format stylish && yarn prettier:ci"

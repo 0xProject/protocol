@@ -8,7 +8,7 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceWithRateLimiterConfig } from '../config';
+import { defaultHttpServiceConfig } from '../config';
 import { DEFAULT_CACHE_AGE_SECONDS, ORDERBOOK_PATH, SRA_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -36,12 +36,12 @@ process.on('unhandledRejection', (err) => {
 if (require.main === module) {
     (async () => {
         const provider = providerUtils.createWeb3Provider(
-            defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
-            defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
-            defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+            defaultHttpServiceConfig.ethereumRpcUrl,
+            defaultHttpServiceConfig.rpcRequestTimeout,
+            defaultHttpServiceConfig.shouldCompressRequest,
         );
-        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
-        await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
+        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceConfig);
+        await runHttpServiceAsync(dependencies, defaultHttpServiceConfig);
     })().catch((error) => logger.error(error.stack));
 }
 

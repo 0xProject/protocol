@@ -71,9 +71,9 @@ if (require.main === module) {
         logger.info('running RFQ balance cache runner');
 
         const provider = providerUtils.createWeb3Provider(
-            defaultConfig.defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
-            defaultConfig.defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
-            defaultConfig.defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+            defaultConfig.defaultHttpServiceConfig.ethereumRpcUrl,
+            defaultConfig.defaultHttpServiceConfig.rpcRequestTimeout,
+            defaultConfig.defaultHttpServiceConfig.shouldCompressRequest,
         );
         const web3Wrapper = new Web3Wrapper(provider);
 

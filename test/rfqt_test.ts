@@ -25,7 +25,7 @@ import * as request from 'supertest';
 
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
 import {
-    defaultHttpServiceWithRateLimiterConfig,
+    defaultHttpServiceConfig,
     PROTOCOL_FEE_MULTIPLIER,
     RFQT_PROTOCOL_FEE_GAS_PRICE_MAX_PADDING_MULTIPLIER,
 } from '../src/config';
@@ -83,12 +83,12 @@ describe.skip(SUITE_NAME, () => {
 
         // start the 0x-api app
         dependencies = await getDefaultAppDependenciesAsync(provider, {
-            ...defaultHttpServiceWithRateLimiterConfig,
+            ...defaultHttpServiceConfig,
             ethereumRpcUrl: ETHEREUM_RPC_URL,
         });
         ({ app, server } = await getAppAsync(
             { ...dependencies },
-            { ...defaultHttpServiceWithRateLimiterConfig, ethereumRpcUrl: ETHEREUM_RPC_URL },
+            { ...defaultHttpServiceConfig, ethereumRpcUrl: ETHEREUM_RPC_URL },
         ));
     });
 

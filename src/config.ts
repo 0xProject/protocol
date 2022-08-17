@@ -21,7 +21,6 @@ import { linearBuckets } from 'prom-client';
 import * as validateUUID from 'uuid-validate';
 
 import {
-    DEFAULT_EXPECTED_MINED_SEC,
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
@@ -34,11 +33,11 @@ import {
     ONE_MINUTE_MS,
     ORDERBOOK_PATH,
     QUOTE_ORDER_EXPIRATION_BUFFER_MS,
+    TEN_MINUTES_MS,
     TX_BASE_GAS,
 } from './constants';
 import { schemas } from './schemas';
-import { HttpServiceConfig, MetaTransactionRateLimitConfig } from './types';
-import { parseUtils } from './utils/parse_utils';
+import { HttpServiceConfig } from './types';
 import { schemaUtils } from './utils/schema_utils';
 
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
@@ -372,28 +371,7 @@ export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
     {},
 );
 
-export const META_TX_WORKER_REGISTRY: string | undefined = _.isEmpty(process.env.META_TX_WORKER_REGISTRY)
-    ? undefined
-    : assertEnvVarType('META_TX_WORKER_REGISTRY', process.env.META_TX_WORKER_REGISTRY, EnvVarType.ETHAddressHex);
-
-export const META_TX_WORKER_MNEMONIC: string | undefined = _.isEmpty(process.env.META_TX_WORKER_MNEMONIC)
-    ? undefined
-    : assertEnvVarType('META_TX_WORKER_MNEMONIC', process.env.META_TX_WORKER_MNEMONIC, EnvVarType.NonEmptyString);
-
-export const RFQM_WORKER_INDEX: number | undefined = _.isEmpty(process.env.RFQM_WORKER_INDEX)
-    ? undefined
-    : assertEnvVarType('RFQM_WORKER_INDEX', process.env.RFQM_WORKER_INDEX, EnvVarType.Integer);
-
-export const RFQM_META_TX_SQS_URL: string | undefined = _.isEmpty(process.env.RFQM_META_TX_SQS_URL)
-    ? undefined
-    : assertEnvVarType('RFQM_META_TX_SQS_URL', process.env.RFQM_META_TX_SQS_URL, EnvVarType.Url);
-
-// If set to TRUE, system health will change to MAINTENANCE and integrators will be told to not
-// send RFQM orders.
-// tslint:disable-next-line boolean-naming
-export const RFQM_MAINTENANCE_MODE: boolean = _.isEmpty(process.env.RFQM_MAINTENANCE_MODE)
-    ? false
-    : assertEnvVarType('RFQM_MAINTENANCE_MODE', process.env.RFQM_MAINTENANCE_MODE, EnvVarType.Boolean);
+export const META_TX_EXPIRATION_BUFFER_MS = TEN_MINUTES_MS;
 
 // tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS: number = _.isEmpty(process.env.RFQT_REQUEST_MAX_RESPONSE_MS)
@@ -409,49 +387,6 @@ export const SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS: string[] =
               process.env.SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS,
               EnvVarType.APIKeys,
           );
-
-// Whitelisted 0x API keys that can use the meta-txn /submit endpoint
-export const META_TXN_SUBMIT_WHITELISTED_API_KEYS: string[] =
-    process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS === undefined
-        ? []
-        : assertEnvVarType(
-              'META_TXN_SUBMIT_WHITELISTED_API_KEYS',
-              process.env.META_TXN_SUBMIT_WHITELISTED_API_KEYS,
-              EnvVarType.APIKeys,
-          );
-
-// The meta-txn relay sender private keys managed by the TransactionWatcher
-export const META_TXN_RELAY_PRIVATE_KEYS: string[] = _.isEmpty(process.env.META_TXN_RELAY_PRIVATE_KEYS)
-    ? []
-    : assertEnvVarType('META_TXN_RELAY_PRIVATE_KEYS', process.env.META_TXN_RELAY_PRIVATE_KEYS, EnvVarType.StringList);
-
-// The expected time for a meta-txn to be included in a block.
-export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.META_TXN_RELAY_EXPECTED_MINED_SEC)
-    ? DEFAULT_EXPECTED_MINED_SEC
-    : assertEnvVarType(
-          'META_TXN_RELAY_EXPECTED_MINED_SEC',
-          process.env.META_TXN_RELAY_EXPECTED_MINED_SEC,
-          EnvVarType.Integer,
-      );
-// Should TransactionWatcherSignerService sign transactions
-// tslint:disable-next-line:boolean-naming
-export const META_TXN_SIGNING_ENABLED: boolean = _.isEmpty(process.env.META_TXN_SIGNING_ENABLED)
-    ? true
-    : assertEnvVarType('META_TXN_SIGNING_ENABLED', process.env.META_TXN_SIGNING_ENABLED, EnvVarType.Boolean);
-// The maximum gas price (in gwei) the service will allow
-export const META_TXN_MAX_GAS_PRICE_GWEI: BigNumber = _.isEmpty(process.env.META_TXN_MAX_GAS_PRICE_GWEI)
-    ? new BigNumber(50)
-    : assertEnvVarType('META_TXN_MAX_GAS_PRICE_GWEI', process.env.META_TXN_MAX_GAS_PRICE_GWEI, EnvVarType.UnitAmount);
-
-export const META_TXN_RATE_LIMITER_CONFIG: MetaTransactionRateLimitConfig | undefined = _.isEmpty(
-    process.env.META_TXN_RATE_LIMIT_TYPE,
-)
-    ? undefined
-    : assertEnvVarType(
-          'META_TXN_RATE_LIMITER_CONFIG',
-          process.env.META_TXN_RATE_LIMITER_CONFIG,
-          EnvVarType.RateLimitConfig,
-      );
 
 // Whether or not prometheus metrics should be enabled.
 // tslint:disable-next-line:boolean-naming
@@ -685,11 +620,6 @@ export const defaultHttpServiceConfig: HttpServiceConfig = {
     shouldCompressRequest: ENABLE_RPC_REQUEST_COMPRESSION,
 };
 
-export const defaultHttpServiceWithRateLimiterConfig: HttpServiceConfig = {
-    ...defaultHttpServiceConfig,
-    metaTxnRateLimiters: META_TXN_RATE_LIMITER_CONFIG,
-};
-
 export const getIntegratorByIdOrThrow = (
     (integratorsMap: Map<string, Integrator>) =>
     (integratorId: string): Integrator => {
@@ -823,9 +753,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be supplied`);
             }
             return value;
-        case EnvVarType.RateLimitConfig:
-            assert.isString(name, value);
-            return parseUtils.parseJsonStringForMetaTransactionRateLimitConfigOrThrow(value);
         case EnvVarType.APIKeys:
             assert.isString(name, value);
             const apiKeys = (value as string).split(',').filter((key) => !!key.trim());

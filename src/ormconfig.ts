@@ -15,13 +15,11 @@ import {
     RfqmTransactionSubmissionEntity,
     RfqmWorkerHeartbeatEntity,
     SignedOrderV4Entity,
-    TransactionEntity,
 } from './entities';
 
 const entities = [
     BlockedAddressEntity,
     PersistentSignedOrderEntity,
-    TransactionEntity,
     KeyValueEntity,
     MakerBalanceChainCacheEntity,
     SignedOrderV4Entity,

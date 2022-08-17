@@ -5,7 +5,7 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceWithRateLimiterConfig } from '../config';
+import { defaultHttpServiceConfig } from '../config';
 import { META_TRANSACTION_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -34,12 +34,12 @@ process.on('unhandledRejection', (err) => {
 if (require.main === module) {
     (async () => {
         const provider = providerUtils.createWeb3Provider(
-            defaultHttpServiceWithRateLimiterConfig.ethereumRpcUrl,
-            defaultHttpServiceWithRateLimiterConfig.rpcRequestTimeout,
-            defaultHttpServiceWithRateLimiterConfig.shouldCompressRequest,
+            defaultHttpServiceConfig.ethereumRpcUrl,
+            defaultHttpServiceConfig.rpcRequestTimeout,
+            defaultHttpServiceConfig.shouldCompressRequest,
         );
-        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceWithRateLimiterConfig);
-        await runHttpServiceAsync(dependencies, defaultHttpServiceWithRateLimiterConfig);
+        const dependencies = await getDefaultAppDependenciesAsync(provider, defaultHttpServiceConfig);
+        await runHttpServiceAsync(dependencies, defaultHttpServiceConfig);
     })().catch((error) => logger.error(error));
 }
 
@@ -52,10 +52,7 @@ async function runHttpServiceAsync(
     const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
     app.get('/', rootHandler);
     if (dependencies.metaTransactionService) {
-        app.use(
-            META_TRANSACTION_PATH,
-            createMetaTransactionRouter(dependencies.metaTransactionService, dependencies.rateLimiter),
-        );
+        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
     } else {
         logger.error(`Could not run meta transaction service, exiting`);
         process.exit(1);
