@@ -30,8 +30,24 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+      # In this step, this action saves a list of existing images,
+      # the cache is created without them in the post run.
+      # It also restores the cache if it exists.
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true
       - name: Build and push image
         uses: docker/build-push-action@v3
         with:
          push: true
          tags: ${{ env.DOCKER_REGISTRY_URL }}:${{ github.sha }}
+      - name: Comment PR the Docker Image for the PR
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+            A Docker image has been built for this PR, please use this image if you want to deploy changes on this PR somewhere:
+            ```
+            ${{ env.DOCKER_REGISTRY_URL }}:${{ github.sha }}
+            ```
+          GITHUB_TOKEN: ${{ secrets.PAT }}
