@@ -5,7 +5,13 @@ import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
-import { defaultHttpServiceConfig, SENTRY_DSN, SENTRY_ENVIRONMENT, SENTRY_SAMPLE_RATE } from '../config';
+import {
+    defaultHttpServiceConfig,
+    SENTRY_DSN,
+    SENTRY_ENVIRONMENT,
+    SENTRY_SAMPLE_RATE,
+    SENTRY_TRACES_SAMPLE_RATE,
+} from '../config';
 import { META_TRANSACTION_PATH, ORDERBOOK_PATH, SRA_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
@@ -112,6 +118,7 @@ export async function runHttpServiceAsync(
             environment: SENTRY_ENVIRONMENT,
             paths: [SRA_PATH, ORDERBOOK_PATH, META_TRANSACTION_PATH, SWAP_PATH],
             sampleRate: SENTRY_SAMPLE_RATE,
+            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
         };
 
         SentryInit(options);

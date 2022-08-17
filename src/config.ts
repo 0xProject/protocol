@@ -433,6 +433,10 @@ export const SENTRY_SAMPLE_RATE: number = _.isEmpty(process.env.SENTRY_SAMPLE_RA
     ? 0.1
     : assertEnvVarType('SENTRY_SAMPLE_RATE', process.env.SENTRY_SAMPLE_RATE, EnvVarType.Float);
 
+export const SENTRY_TRACES_SAMPLE_RATE: number = _.isEmpty(process.env.SENTRY_TRACES_SAMPLE_RATE)
+    ? 0.1
+    : assertEnvVarType('SENTRY_TRACES_SAMPLE_RATE', process.env.SENTRY_TRACES_SAMPLE_RATE, EnvVarType.Float);
+
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
 // Default ERC20 token precision

@@ -11,6 +11,7 @@ export interface SentryOptions {
     paths: string[];
     environment: string;
     sampleRate: number;
+    tracesSampleRate: number;
     dsn: string;
 }
 
@@ -22,6 +23,7 @@ export function SentryInit(options: SentryOptions): void {
         dsn: options.dsn,
         environment: options.environment,
         sampleRate: options.sampleRate,
+        tracesSampleRate: options.tracesSampleRate,
         integrations: [
             new Sentry.Integrations.Http({
                 tracing: true,
