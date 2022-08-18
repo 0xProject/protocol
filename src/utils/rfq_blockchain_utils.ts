@@ -23,8 +23,7 @@ import {
 } from '../constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
-import { GaslessApprovalTypes } from '../services/types';
-import { Approval, ExecuteMetaTransactionApproval, PermitApproval } from '../types';
+import { Approval, ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../types';
 
 import { BalanceChecker } from './balance_checker';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';

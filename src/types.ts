@@ -3,7 +3,6 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from './constants';
-import { GaslessApprovalTypes } from './services/types';
 
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
@@ -36,6 +35,12 @@ export interface FirmOtcQuote {
  * for gasless approvals. There are multiple flavors of these approval objects, which can be distinguished
  * by their `kind`
  */
+export enum GaslessApprovalTypes {
+    ExecuteMetaTransaction = 'executeMetaTransaction::approve',
+    Permit = 'permit',
+    DaiPermit = 'daiPermit',
+}
+
 export type Approval = ExecuteMetaTransactionApproval | PermitApproval;
 export interface ExecuteMetaTransactionApproval {
     kind: GaslessApprovalTypes.ExecuteMetaTransaction;

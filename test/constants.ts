@@ -9,8 +9,7 @@ import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../src/constants';
-import { GaslessApprovalTypes } from '../src/services/types';
-import { ExecuteMetaTransactionApproval, PermitApproval } from '../src/types';
+import { ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../src/types';
 
 export const CHAIN_ID = 1337;
 // tslint:disable-next-line:custom-no-magic-numbers

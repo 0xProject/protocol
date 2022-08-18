@@ -20,11 +20,11 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
-    GaslessApprovalTypes,
     OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
+import { GaslessApprovalTypes } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {

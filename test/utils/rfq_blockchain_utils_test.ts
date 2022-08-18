@@ -7,7 +7,7 @@ import { anything, instance, mock, spy, when } from 'ts-mockito';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES } from '../../src/constants';
 import { EIP_712_REGISTRY } from '../../src/eip712registry';
-import { GaslessApprovalTypes } from '../../src/services/types';
+import { GaslessApprovalTypes } from '../../src/types';
 import { BalanceChecker } from '../../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 

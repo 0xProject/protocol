@@ -41,7 +41,14 @@ import {
 } from '../entities/types';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
-import { Approval, EIP712Context, EIP712DataField, FirmOtcQuote, IndicativeQuote } from '../types';
+import {
+    Approval,
+    EIP712Context,
+    EIP712DataField,
+    FirmOtcQuote,
+    GaslessApprovalTypes,
+    IndicativeQuote,
+} from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
@@ -65,7 +72,6 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchIndicativeQuoteResponse,
-    GaslessApprovalTypes,
     OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
     OtcOrderSubmitRfqmSignedQuoteResponse,

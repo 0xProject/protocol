@@ -26,12 +26,11 @@ import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import {
     ApprovalResponse,
-    GaslessApprovalTypes,
     OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../../src/services/types';
-import { EIP712Context, IndicativeQuote } from '../../src/types';
+import { EIP712Context, GaslessApprovalTypes, IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';

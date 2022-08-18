@@ -3,17 +3,11 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { EIP712Context } from '../types';
+import { EIP712Context, GaslessApprovalTypes } from '../types';
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
     OtcOrder = 'otc',
-}
-
-export enum GaslessApprovalTypes {
-    ExecuteMetaTransaction = 'executeMetaTransaction::approve',
-    Permit = 'permit',
-    DaiPermit = 'daiPermit',
 }
 
 export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
