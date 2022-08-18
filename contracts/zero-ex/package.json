@@ -15,6 +15,7 @@
         "build:ts": "tsc -b",
         "pre_build": "run-s compile contracts:gen generate_contract_wrappers contracts:copy",
         "test": "yarn run_mocha",
+        "forge": "forge test -vvv",
         "rebuild_and_test": "run-s build test",
         "test:coverage": "SOLIDITY_COVERAGE=true run-s build run_mocha coverage:report:text coverage:report:lcov",
         "test:profiler": "SOLIDITY_PROFILER=true run-s build run_mocha profiler:report:html",
@@ -39,7 +40,8 @@
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
         "publish:private": "yarn build && gitpkg publish",
         "rollback": "node ./lib/scripts/rollback.js",
-        "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'"
+        "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'",
+        "foundry:SU": "git submodule update --init --recursive"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,PositiveSlippageFeeTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,AffiliateFeeTransformer,MetaTransactionsFeature,LogMetadataTransformer,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector,CurveLiquidityProvider,BatchFillNativeOrdersFeature,IBatchFillNativeOrdersFeature,MultiplexFeature,IMultiplexFeature,OtcOrdersFeature,IOtcOrdersFeature,AvalancheBridgeAdapter,BSCBridgeAdapter,CeloBridgeAdapter,EthereumBridgeAdapter,FantomBridgeAdapter,OptimismBridgeAdapter,PolygonBridgeAdapter",
