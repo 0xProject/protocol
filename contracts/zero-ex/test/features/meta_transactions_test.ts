@@ -30,7 +30,7 @@ blockchainTests.resets('MetaTransactions feature', env => {
     let maker: string;
     let sender: string;
     let notSigner: string;
-    let signers: string[] = [];
+    const signers: string[] = [];
     let zeroEx: IZeroExContract;
     let feature: MetaTransactionsFeatureContract;
     let feeToken: TestMintableERC20TokenContract;
