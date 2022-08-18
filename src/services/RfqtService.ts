@@ -4,10 +4,10 @@ import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { logger } from 'ethers';
 
 import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
+import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import {
     QuoteServerPriceParams,
