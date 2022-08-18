@@ -9,10 +9,10 @@ import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../../src/co
 import {
     calculateDefaultFeeAmount,
     calculateMarginAmount,
-    FeeWithDetails,
     reviseQuoteWithFees,
     RfqmFeeService,
 } from '../../src/services/rfqm_fee_service';
+import { FeeWithDetails } from '../../src/services/types';
 import { IndicativeQuote, TokenMetadata } from '../../src/types';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';

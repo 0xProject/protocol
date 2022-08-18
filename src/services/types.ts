@@ -1,4 +1,5 @@
 import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
@@ -159,3 +160,75 @@ interface FirmQuoteContext extends QuoteContextBase {
 }
 
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;
+
+/**
+ * Base interface for FeeBreakdown type.
+ */
+interface FeeBreakdownBase {
+    /**
+     * `kind` is used to mark the type of FeeBreakdown.
+     */
+    kind: 'gasOnly' | 'default' | 'margin';
+    /**
+     * Version number of fee model which determines the fee amount to charge MMs.
+     *   * Version 0 includes estimated gas cost only.
+     *   * Version 1 charge an additional bps as 0x fee, based on trade size, on top of gas.
+     *   * Version 2 charge 0x fee based on detected margin of RFQm with AMMs.
+     * While Verion 0 will use `gasOnly` FeeBreakdown, and Version 1 will use `default`, Version 2
+     * will use all three of them: `gasOnly` for margin detection, `margin` if margin detection
+     * succeeded, and `default` if margin detection failed.
+     */
+    feeModelVersion: number;
+    gasFeeAmount: BigNumber;
+    gasPrice: BigNumber;
+}
+
+/**
+ * Interface for `margin` FeeBreakdown type. In this case the Fee is
+ * calculated using margin based method
+ */
+export interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
+    kind: 'margin';
+    margin: BigNumber;
+    marginRakeRatio: number;
+    zeroExFeeAmount: BigNumber;
+    /**
+     * All token prices are from TokenPriceOracle. `null` value means the oracle
+     * failed to provide price, or we don't need to query it. For example, the token
+     * is not involved in fee calculation, or bps for given pair is 0.
+     */
+    feeTokenBaseUnitPriceUsd: BigNumber | null;
+    takerTokenBaseUnitPriceUsd: BigNumber | null;
+    makerTokenBaseUnitPriceUsd: BigNumber | null;
+}
+
+/**
+ * Interface for `default` FeeBreakdown type. In this case the Fee is
+ * calculated using default method, based on trade size and bps of underlying
+ * pairs.
+ */
+export interface DefaultFeeBreakdown extends FeeBreakdownBase {
+    kind: 'default';
+    tradeSizeBps: number;
+    zeroExFeeAmount: BigNumber;
+    feeTokenBaseUnitPriceUsd: BigNumber | null;
+    takerTokenBaseUnitPriceUsd: BigNumber | null;
+    makerTokenBaseUnitPriceUsd: BigNumber | null;
+}
+
+/**
+ * Interface for `gasOnly` FeeBreakdown type. Only gas related information
+ * is included.
+ */
+export interface GasOnlyFeeBreakdown extends FeeBreakdownBase {
+    kind: 'gasOnly';
+}
+
+/**
+ * Extends Fee data schema to include a detailed breakdown session, which could
+ * be one of `gasOnly`, `default` or `margin` type, depending on the approach used
+ * to calculate the Fee.
+ */
+export interface FeeWithDetails extends Fee {
+    details: GasOnlyFeeBreakdown | DefaultFeeBreakdown | MarginBasedFeeBreakDown;
+}

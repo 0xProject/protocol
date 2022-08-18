@@ -23,7 +23,7 @@ import {
     StoredOtcOrder,
     UnresolvedRfqmJobStatuses,
 } from '../entities/types';
-import { FeeWithDetails } from '../services/rfqm_fee_service';
+import { FeeWithDetails } from '../services/types';
 
 /**
  * Map a StoredOtcOrder to an OtcOrder

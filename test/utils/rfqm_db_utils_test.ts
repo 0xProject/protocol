@@ -10,7 +10,7 @@ import {
     FeeWithDetails,
     GasOnlyFeeBreakdown,
     MarginBasedFeeBreakDown,
-} from '../../src/services/rfqm_fee_service';
+} from '../../src/services/types';
 import { feeToStoredFee, otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';
 
 describe('RFQM DB utils', () => {
