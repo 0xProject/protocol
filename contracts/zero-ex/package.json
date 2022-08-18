@@ -31,7 +31,7 @@
         "coverage:report:html": "istanbul report html && open coverage/index.html",
         "profiler:report:html": "istanbul report html && open coverage/index.html",
         "coverage:report:lcov": "istanbul report lcov",
-        "test:circleci": "foundryup && yarn foundry:SU && yarn test && yarn forge",
+        "test:circleci": "yarn install:foundry && foundryup && yarn foundry:SU && yarn test && yarn forge",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
@@ -39,7 +39,8 @@
         "publish:private": "yarn build && gitpkg publish",
         "rollback": "node ./lib/scripts/rollback.js",
         "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'",
-        "foundry:SU": "git submodule update --init --recursive"
+        "foundry:SU": "git submodule update --init --recursive",
+        "install:foundry": "curl -L https://foundry.paradigm.xyz | bash"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,PositiveSlippageFeeTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,AffiliateFeeTransformer,MetaTransactionsFeature,LogMetadataTransformer,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector,CurveLiquidityProvider,BatchFillNativeOrdersFeature,IBatchFillNativeOrdersFeature,MultiplexFeature,IMultiplexFeature,OtcOrdersFeature,IOtcOrdersFeature,AvalancheBridgeAdapter,BSCBridgeAdapter,CeloBridgeAdapter,EthereumBridgeAdapter,FantomBridgeAdapter,OptimismBridgeAdapter,PolygonBridgeAdapter",
