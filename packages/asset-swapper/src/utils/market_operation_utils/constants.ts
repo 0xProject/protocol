@@ -2226,8 +2226,8 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Celo]: {
-            quoter: '0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8',
-            router: '0x5615CDAb10dc425a742d643d949a7F474C01abc4',
+            quoter: '0x82825d0554fa07f7fc52ab63c961f330fdefa8e8',
+            router: '0x5615cdab10dc425a742d643d949a7f474c01abc4',
         },
     },
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
