@@ -173,11 +173,17 @@ jobs:
                       - cache-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - restore_cache:
                   keys:
+<<<<<<< HEAD
                       - lib-{{ .Environment.CIRCLE_SHA1 }}-<< pipeline.parameters.cache_version >>
             - run: git submodule update --init --recursive
             - run:
                   command: forge test
                   working_directory: ~/project/contracts/zero-ex
+=======
+                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+            # - run: forge install
+            - run: forge test -vvv
+>>>>>>> 783a83def (add verbosity for failing tests in CI)
     test-publish:
         resource_class: large
         environment:
