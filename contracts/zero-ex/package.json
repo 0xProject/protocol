@@ -31,7 +31,7 @@
         "coverage:report:html": "istanbul report html && open coverage/index.html",
         "profiler:report:html": "istanbul report html && open coverage/index.html",
         "coverage:report:lcov": "istanbul report lcov",
-        "test:ci": "yarn test",
+        "test:circleci": "foundryup && yarn foundry:SU && yarn test && yarn forge",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
