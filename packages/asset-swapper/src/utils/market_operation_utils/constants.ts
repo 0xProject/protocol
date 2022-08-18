@@ -2242,8 +2242,8 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.ArbitrumRinkeby]: {
-            quoter: '0xb27308f9f90d607463bb33ea1bebb41c27ce5ab6',
-            router: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45',
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
     },
     { quoter: NULL_ADDRESS, router: NULL_ADDRESS },
