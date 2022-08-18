@@ -3,7 +3,7 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { ValueTransformer } from 'typeorm';
 
-import { feeToStoredFee, storedFeeToFee } from '../utils/rfqm_db_utils';
+import { FeeWithDetails } from '../services/types';
 
 import { StoredFee } from './types';
 
@@ -84,6 +84,71 @@ export const FeeTransformer: ValueTransformer = {
      * Used to unmarshal `Fee` when reading from the database.
      */
     from: (storedValue: StoredFee): Fee => {
-        return storedFeeToFee(storedValue);
+        return {
+            token: storedValue.token,
+            amount: new BigNumber(storedValue.amount),
+            type: storedValue.type,
+        };
     },
+};
+
+const tokenPriceUsdToString = (tokenPriceUsd: BigNumber | null): string | undefined => {
+    if (tokenPriceUsd === null) {
+        return undefined;
+    }
+    return tokenPriceUsd.toString();
+};
+
+const isInstanceOfFeeWithDetails = (fee: Fee): fee is FeeWithDetails => {
+    return 'details' in fee;
+};
+
+const feeToStoredFee = (fee: Fee): StoredFee => {
+    let details;
+    if (isInstanceOfFeeWithDetails(fee)) {
+        switch (fee.details.kind) {
+            case 'default':
+                details = {
+                    kind: fee.details.kind,
+                    feeModelVersion: fee.details.feeModelVersion,
+                    gasFeeAmount: fee.details.gasFeeAmount.toString(),
+                    gasPrice: fee.details.gasPrice.toString(),
+                    tradeSizeBps: fee.details.tradeSizeBps,
+                    zeroExFeeAmount: fee.details.zeroExFeeAmount.toString(),
+                    feeTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.feeTokenBaseUnitPriceUsd!),
+                    takerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.takerTokenBaseUnitPriceUsd),
+                    makerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.makerTokenBaseUnitPriceUsd),
+                };
+                break;
+            case 'margin':
+                details = {
+                    kind: fee.details.kind,
+                    feeModelVersion: fee.details.feeModelVersion,
+                    gasFeeAmount: fee.details.gasFeeAmount.toString(),
+                    gasPrice: fee.details.gasPrice.toString(),
+                    margin: fee.details.margin.toString(),
+                    marginRakeRatio: fee.details.marginRakeRatio,
+                    zeroExFeeAmount: fee.details.zeroExFeeAmount.toString(),
+                    feeTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.feeTokenBaseUnitPriceUsd!),
+                    takerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.takerTokenBaseUnitPriceUsd),
+                    makerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.makerTokenBaseUnitPriceUsd),
+                };
+                break;
+            case 'gasOnly':
+            default:
+                details = {
+                    kind: fee.details.kind,
+                    feeModelVersion: fee.details.feeModelVersion,
+                    gasFeeAmount: fee.details.gasFeeAmount.toString(),
+                    gasPrice: fee.details.gasPrice.toString(),
+                };
+        }
+    }
+
+    return {
+        token: fee.token,
+        amount: fee.amount.toString(),
+        type: fee.type,
+        details,
+    };
 };
