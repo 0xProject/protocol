@@ -56,12 +56,12 @@
     },
     "dependencies": {
         "@0x/assert": "^3.0.34",
-        "@0x/base-contract": "^6.5.0",
+        "@0x/base-contract": "^7.0.0",
         "@0x/contract-addresses": "^6.19.2",
         "@0x/json-schemas": "^6.4.4",
         "@0x/types": "^3.3.6",
-        "@0x/utils": "^6.5.3",
-        "@0x/web3-wrapper": "^7.6.5",
+        "@0x/utils": "^7.0.0",
+        "@0x/web3-wrapper": "^8.0.0",
         "ethereum-types": "^3.7.0",
         "ethers": "~4.0.4"
     },
