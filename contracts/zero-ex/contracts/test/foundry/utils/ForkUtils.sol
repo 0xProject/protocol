@@ -18,13 +18,19 @@
 */
 
 pragma solidity ^0.6;
+pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
 
-contract ContractTest is Test {
-    function setUp() public {}
 
-    function testExample() public {
-        assertTrue(true);
+contract ForkUtils is Test {
+    /// Only run this function if the block number
+    // is greater than some constant for Ethereum Mainnet
+    modifier onlyForked {
+        if (block.number >= 14206900) {
+            _;
+        } else {
+            emit log_string("Requires fork mode, skipping");
+        }
     }
 }
