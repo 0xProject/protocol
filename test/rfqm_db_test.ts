@@ -3,8 +3,10 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
+import * as uuid from 'uuid';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/constants';
+import { MetaTransactionSubmissionEntityConstructorOpts } from '../src/entities/MetaTransactionSubmissionEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../src/entities/types';
 import { ExecuteMetaTransactionApproval, GaslessApprovalTypes } from '../src/types';
@@ -115,6 +117,7 @@ describe('RFQM Database', () => {
         await dataSource.query('TRUNCATE TABLE rfqm_v2_quotes CASCADE;');
         await dataSource.query('TRUNCATE TABLE rfqm_v2_jobs CASCADE;');
         await dataSource.query('TRUNCATE TABLE rfqm_v2_transaction_submissions CASCADE;');
+        await dataSource.query('TRUNCATE TABLE meta_transaction_submissions CASCADE;');
         await dataSource.query('TRUNCATE TABLE meta_transaction_jobs CASCADE;');
     });
     describe('v2 tables', () => {
@@ -387,6 +390,62 @@ describe('RFQM Database', () => {
             const jobs = await dbUtils.findUnresolvedMetaTransactionJobsAsync('0xworkerAddress', 2);
             expect(jobs.length).to.equal(1);
             expect(jobs[0].status).to.eql(RfqmJobStatus.PendingProcessing);
+        });
+
+        it('should be able to write, update, and read the `meta_transaction_submissions` table', async () => {
+            const metaTransactionJobId = uuid.v4();
+            // Write
+            const metaTransactionSubmissionEntityOpts: MetaTransactionSubmissionEntityConstructorOpts = {
+                from,
+                metaTransactionJobId,
+                nonce,
+                to,
+                transactionHash,
+                type: RfqmTransactionSubmissionType.Trade,
+                status: RfqmTransactionSubmissionStatus.SucceededUnconfirmed,
+            };
+            const savedSubmission = await dbUtils.writeMetaTransactionSubmissionAsync(
+                metaTransactionSubmissionEntityOpts,
+            );
+            expect(savedSubmission.id).not.equal(null);
+
+            // First Read
+            let transactionSubmissions = await dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                transactionHash,
+            );
+            expect(transactionSubmissions.length).to.equal(1);
+
+            let transactionSubmission = transactionSubmissions[0];
+            expect(transactionSubmission.transactionHash).to.equal(transactionHash);
+            expect(transactionSubmission.status).to.equal(RfqmTransactionSubmissionStatus.SucceededUnconfirmed);
+
+            // Update
+            await dbUtils.updateRfqmTransactionSubmissionsAsync([
+                {
+                    ...transactionSubmission,
+                    status: RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                },
+            ]);
+
+            // Second Read
+            const updatedTransactionSubmissionOrNull = await dbUtils.findMetaTransactionSubmissionByIdAsync(
+                transactionSubmission.id,
+            );
+            if (!updatedTransactionSubmissionOrNull) {
+                expect.fail('result should not be null');
+            }
+            expect(updatedTransactionSubmissionOrNull!.transactionHash).to.equal(transactionHash);
+            expect(updatedTransactionSubmissionOrNull!.status).to.equal(
+                RfqmTransactionSubmissionStatus.SucceededConfirmed,
+            );
+
+            // Third read
+            transactionSubmissions = await dbUtils.findMetaTransactionSubmissionsByJobIdAsync(metaTransactionJobId);
+            expect(transactionSubmissions.length).to.equal(1);
+
+            transactionSubmission = transactionSubmissions[0];
+            expect(transactionSubmission.transactionHash).to.equal(transactionHash);
+            expect(transactionSubmission.status).to.equal(RfqmTransactionSubmissionStatus.SucceededConfirmed);
         });
     });
 });

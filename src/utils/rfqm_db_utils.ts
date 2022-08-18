@@ -6,11 +6,13 @@ import { Connection } from 'typeorm/connection/Connection';
 
 import {
     MetaTransactionJobEntity,
+    MetaTransactionSubmissionEntity,
     RfqmV2JobEntity,
     RfqmV2QuoteEntity,
     RfqmV2TransactionSubmissionEntity,
 } from '../entities';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
+import { MetaTransactionSubmissionEntityConstructorOpts } from '../entities/MetaTransactionSubmissionEntity';
 import { RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import { RfqmV2QuoteConstructorOpts } from '../entities/RfqmV2QuoteEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../entities/RfqmV2TransactionSubmissionEntity';
@@ -197,16 +199,32 @@ export class RfqmDbUtils {
     }
 
     /**
-     * Updates transactions in the `rfqm_transaction_submission` or
-     * the `rfqm_v2_transaction_submission` tables as appropriate
+     * Updates transactions in the `rfqm_v2_transaction_submission` or the `meta_transaction_submission` tables as appropriate.
      */
-    public async updateRfqmTransactionSubmissionsAsync(
-        entities: RfqmV2TransactionSubmissionEntity[],
-    ): Promise<RfqmV2TransactionSubmissionEntity[]> {
+    public async updateRfqmTransactionSubmissionsAsync<
+        T extends RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
+    >(entities: T): Promise<void> {
         if (entities.length === 0) {
-            return [];
+            return;
         }
-        return this._connection.getRepository(RfqmV2TransactionSubmissionEntity).save(entities);
+
+        const kind = entities[0].kind;
+        switch (kind) {
+            case 'rfqm_v2_transaction_submission':
+                await this._connection
+                    .getRepository(RfqmV2TransactionSubmissionEntity)
+                    .save(entities as Partial<RfqmV2TransactionSubmissionEntity>[]);
+                return;
+            case 'meta_transaction_submission':
+                await this._connection
+                    .getRepository(MetaTransactionSubmissionEntity)
+                    .save(entities as Partial<MetaTransactionSubmissionEntity>[]);
+                return;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
     }
 
     /**
@@ -393,5 +411,49 @@ export class RfqmDbUtils {
                 workerAddress,
             },
         });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_submissions` table with the given submission id.
+     */
+    public async findMetaTransactionSubmissionByIdAsync(id: string): Promise<MetaTransactionSubmissionEntity | null> {
+        return this._connection.getRepository(MetaTransactionSubmissionEntity).findOne({
+            where: { id },
+        });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_submissions` table with the given transaction hash and type.
+     */
+    public async findMetaTransactionSubmissionsByTransactionHashAsync(
+        transactionHash: string,
+        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+    ): Promise<MetaTransactionSubmissionEntity[]> {
+        return this._connection.getRepository(MetaTransactionSubmissionEntity).find({
+            where: { transactionHash, type },
+        });
+    }
+
+    /**
+     * [meta transaction] Queries the `meta_transaction_submissions` table with the given meta transaction job id and type.
+     */
+    public async findMetaTransactionSubmissionsByJobIdAsync(
+        metaTransactionJobId: string,
+        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+    ): Promise<MetaTransactionSubmissionEntity[]> {
+        return this._connection.getRepository(MetaTransactionSubmissionEntity).find({
+            where: { metaTransactionJobId, type },
+        });
+    }
+
+    /**
+     * [meta transaction] writes to the `meta_transaction_submissions` table.
+     */
+    public async writeMetaTransactionSubmissionAsync(
+        constructorOpts: MetaTransactionSubmissionEntityConstructorOpts,
+    ): Promise<MetaTransactionSubmissionEntity> {
+        return this._connection
+            .getRepository(MetaTransactionSubmissionEntity)
+            .save(new MetaTransactionSubmissionEntity(constructorOpts));
     }
 }

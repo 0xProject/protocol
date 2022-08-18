@@ -12,6 +12,8 @@ export type RfqmV2TransactionSubmissionEntityConstructorOpts = Pick<
 
 @Entity({ name: 'rfqm_v2_transaction_submissions' })
 export class RfqmV2TransactionSubmissionEntity {
+    public kind: 'rfqm_v2_transaction_submission';
+
     @PrimaryColumn({ name: 'transaction_hash', type: 'varchar' })
     public transactionHash: string;
 
@@ -66,6 +68,8 @@ export class RfqmV2TransactionSubmissionEntity {
         // tslint:disable-next-line no-object-literal-type-assertion
         opts: RfqmV2TransactionSubmissionEntityConstructorOpts = {} as RfqmV2TransactionSubmissionEntityConstructorOpts,
     ) {
+        this.kind = 'rfqm_v2_transaction_submission';
+
         // allow createdAt overrides for testing
         if (opts.createdAt) {
             this.createdAt = opts.createdAt;
