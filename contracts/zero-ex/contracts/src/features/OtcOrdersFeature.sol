@@ -100,6 +100,7 @@ contract OtcOrdersFeature is
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         LibNativeOrder.OtcOrderInfo memory orderInfo = getOtcOrderInfo(order);
+        revert("otcOrder");
         _validateOtcOrder(
             order, 
             orderInfo,
