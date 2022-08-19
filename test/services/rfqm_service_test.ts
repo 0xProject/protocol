@@ -24,6 +24,7 @@ import {
 } from '../../src/entities/types';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
+import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import {
     ApprovalResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
@@ -66,6 +67,7 @@ const buildRfqmServiceForUnitTest = (
         producer?: Producer;
         quoteServerClient?: QuoteServerClient;
         cacheClient?: CacheClient;
+        rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService;
         rfqMakerManager?: RfqMakerManager;
         initialMaxPriorityFeePerGasGwei?: number;
     } = {},
@@ -132,6 +134,7 @@ const buildRfqmServiceForUnitTest = (
     when(sqsMock.queueSize()).thenResolve(0);
     const quoteServerClientMock = mock(QuoteServerClient);
     const cacheClientMock = mock(CacheClient);
+    const rfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
     return new RfqmService(
@@ -146,6 +149,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
+        overrides.rfqMakerBalanceCacheService || rfqMakerBalanceCacheService,
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
     );
@@ -284,15 +288,17 @@ describe('RfqmService HTTP Logic', () => {
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
             when(metatransactionMock.expirationTimeSeconds).thenReturn(NEVER_EXPIRES);
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
+            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
 
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 feeModelVersion: 0,
             });
 
@@ -472,15 +478,17 @@ describe('RfqmService HTTP Logic', () => {
                 isUnwrap: false,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
+            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
                 trade: {
@@ -541,19 +549,21 @@ describe('RfqmService HTTP Logic', () => {
                 isUnwrap: false,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
-            when(blockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(10);
+            when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
                 trade: {
@@ -569,7 +579,7 @@ describe('RfqmService HTTP Logic', () => {
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).never();
+            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
             verify(dbUtilsMock.writeV2JobAsync(anything())).once();
         });
         it('should save job with permit params to DB', async () => {
@@ -624,7 +634,7 @@ describe('RfqmService HTTP Logic', () => {
                 isUnwrap: false,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getTokenBalancesAsync(anything(), anything())).thenResolve([
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
                 new BigNumber(10000),
             ]);
@@ -632,11 +642,13 @@ describe('RfqmService HTTP Logic', () => {
                 '0xvalidcalldata',
             );
             when(blockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(10);
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
                 trade: {
@@ -652,7 +664,7 @@ describe('RfqmService HTTP Logic', () => {
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).never();
+            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
             verify(dbUtilsMock.writeV2JobAsync(anything())).once();
         });
     });

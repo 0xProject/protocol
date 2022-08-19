@@ -59,6 +59,9 @@ export const SINGLE_MESSAGE = 1;
 // Prometheus shared metrics
 export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, 25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]
 
+// Redis Client
+export const MAKER_TOKEN_BALANCE_EXPIRY_SECONDS = 30;
+
 // Default list of background jobs that the processor would execute
 export const DEFAULT_BACKGROUND_JOB_TYPES = 'no_op';
 

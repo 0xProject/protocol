@@ -3,6 +3,8 @@ import { ChainId } from '@0x/contract-addresses';
 import { findTokenAddressOrThrow } from '@0x/token-metadata';
 import { addressUtils } from '@0x/utils';
 
+import { ERC20Owner } from '../types';
+
 /**
  * Checks top level attributes of an object for values matching an ETH address
  * and normalizes the address by turning it to lowercase
@@ -38,5 +40,26 @@ export function findTokenAddressOrThrowApiError(address: string, field: string, 
                 reason: e.message,
             },
         ]);
+    }
+}
+
+/**
+ * Splits an array of ERC20Owner objects into string arrays of owner and token addresses.
+ * This serves as an intermediate step before passing the objects to the Balance Checker contract.
+ */
+export function splitAddresses(erc20Owners: ERC20Owner | ERC20Owner[]): { owners: string[]; tokens: string[] } {
+    const splitAddrs: { owners: string[]; tokens: string[] } = { owners: [], tokens: [] };
+    if (Array.isArray(erc20Owners)) {
+        return erc20Owners.reduce(({ owners, tokens }, erc20Owner) => {
+            return {
+                owners: owners.concat(erc20Owner.owner),
+                tokens: tokens.concat(erc20Owner.token),
+            };
+        }, splitAddrs);
+    } else {
+        return {
+            owners: [erc20Owners.owner],
+            tokens: [erc20Owners.token],
+        };
     }
 }

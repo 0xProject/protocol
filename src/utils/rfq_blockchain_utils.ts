@@ -23,8 +23,9 @@ import {
 } from '../constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
-import { Approval, ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../types';
+import { Approval, ERC20Owner, ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../types';
 
+import { splitAddresses } from './address_utils';
 import { BalanceChecker } from './balance_checker';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
@@ -130,16 +131,18 @@ export class RfqBlockchainUtils {
      * Fetches min value between balance for a list of addresses against the specified tokens. The index of
      * an address in `addresses` must correspond with the index of a token in `tokens`.
      */
-    public async getMinOfBalancesAndAllowancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
-        return this._balanceChecker.getMinOfBalancesAndAllowancesAsync(addresses, tokens, this._exchangeProxyAddress);
+    public async getMinOfBalancesAndAllowancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
+        const { owners, tokens } = splitAddresses(erc20Owners);
+        return this._balanceChecker.getMinOfBalancesAndAllowancesAsync(owners, tokens, this._exchangeProxyAddress);
     }
 
     /**
      * Fetches the balances for a list of addresses against the specified tokens. The index of
      * an address in `addresses` must correspond with the index of a token in `tokens`.
      */
-    public async getTokenBalancesAsync(addresses: string[], tokens: string[]): Promise<BigNumber[]> {
-        return this._balanceChecker.getTokenBalancesAsync(addresses, tokens);
+    public async getTokenBalancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
+        const { owners, tokens } = splitAddresses(erc20Owners);
+        return this._balanceChecker.getTokenBalancesAsync(owners, tokens);
     }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker

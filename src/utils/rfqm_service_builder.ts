@@ -35,6 +35,7 @@ import {
 import { logger } from '../logger';
 import { RfqmFeeService } from '../services/rfqm_fee_service';
 import { RfqmService } from '../services/rfqm_service';
+import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
 
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
@@ -264,6 +265,8 @@ export async function buildRfqmServiceAsync(
         zeroExApiClient,
     );
 
+    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
+
     return new RfqmService(
         chain.chainId,
         rfqmFeeService,
@@ -276,12 +279,38 @@ export async function buildRfqmServiceAsync(
         quoteServerClient,
         chain.rfqmWorkerTransactionWatcherSleepTimeMs || DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
+        rfqMakerBalanceCacheService,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
         kafkaProducer,
         chain.quoteReportTopic,
         chain.enableAccessList,
     );
+}
+
+/**
+ * Builds an instance of maker balance cache service.
+ * Intended to be used by maker balance cache background jobs.
+ */
+export async function buildRfqMakerBalanceCacheServiceAsync(
+    chain: ChainConfiguration,
+): Promise<RfqMakerBalanceCacheService> {
+    const provider = providerUtils.createWeb3Provider(chain.rpcUrl);
+    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
+    const balanceChecker = new BalanceChecker(provider);
+    const rfqBlockchainUtils = new RfqBlockchainUtils(
+        provider,
+        contractAddresses.exchangeProxy,
+        balanceChecker,
+        ethersProvider,
+    );
+
+    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
+    await redisClient.connect();
+    const cacheClient = new CacheClient(redisClient);
+
+    return new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
 }
 
 /**

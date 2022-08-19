@@ -67,6 +67,7 @@ import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { SubmissionContext } from '../utils/SubmissionContext';
 
 import { RfqmFeeService } from './rfqm_fee_service';
+import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import {
     ApprovalResponse,
     FetchFirmQuoteParams,
@@ -347,16 +348,24 @@ export class RfqmService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _transactionWatcherSleepTimeMs: number,
         private readonly _cacheClient: CacheClient,
+        private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
         private readonly _enableAccessList?: boolean,
     ) {
+        // no-op read for maker balance cache service
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
         this._nativeWrappedTokenSymbol = nativeWrappedTokenSymbol(this._chainId);
         this._nativeWrappedTokenAddress = getTokenAddressFromSymbol(this._nativeWrappedTokenSymbol, this._chainId);
+    }
+
+    // getter method for maker balance cache service
+    // TODO: remove once maker balance cache service application logic is merged
+    public noOpMBCService(): RfqMakerBalanceCacheService {
+        return this._rfqMakerBalanceCacheService;
     }
 
     /**
@@ -1005,19 +1014,16 @@ export class RfqmService {
 
         // Validate that order is fillable by both the maker and the taker according to balances and/or allowances.
         // If rfqmApprovalOpts is not passed, allowances are not checked at this stage since gasless approval has not been done yet.
-        let makerBalance: BigNumber;
-        let takerBalance: BigNumber;
-        if (rfqmApprovalOpts) {
-            [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
-                [makerAddress, takerAddress],
-                [makerToken, takerToken],
-            );
-        } else {
-            [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
-                [makerAddress, takerAddress],
-                [makerToken, takerToken],
-            );
-        }
+        const [makerBalance, takerBalance] = rfqmApprovalOpts
+            ? await this._blockchainUtils.getTokenBalancesAsync([
+                  { owner: makerAddress, token: makerToken },
+                  { owner: takerAddress, token: takerToken },
+              ])
+            : await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync([
+                  { owner: makerAddress, token: makerToken },
+                  { owner: takerAddress, token: takerToken },
+              ]);
+
         if (makerBalance.lt(order.makerAmount) || takerBalance.lt(order.takerAmount)) {
             RFQM_SUBMIT_BALANCE_CHECK_FAILED.labels(makerAddress, this._chainId.toString()).inc();
             logger.warn(
@@ -1464,10 +1470,10 @@ export class RfqmService {
 
             // Attempt to gather extra context upon eth_call failure
             try {
-                const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
-                    [otcOrder.maker, otcOrder.taker],
-                    [otcOrder.makerToken, otcOrder.takerToken],
-                );
+                const [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync([
+                    { owner: otcOrder.maker, token: otcOrder.makerToken },
+                    { owner: otcOrder.taker, token: otcOrder.takerToken },
+                ]);
                 const blockNumber = await this._blockchainUtils.getCurrentBlockAsync();
                 logger.info(
                     {
@@ -1516,19 +1522,27 @@ export class RfqmService {
         } else {
             // validate that order is fillable by both the maker and the taker according to balances (and allowances
             // when `shouldCheckAllowance` is true)
-            let makerBalance: BigNumber;
-            let takerBalance: BigNumber;
-            if (shouldCheckAllowance) {
-                [makerBalance, takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
-                    [otcOrder.maker, otcOrder.taker],
-                    [otcOrder.makerToken, otcOrder.takerToken],
-                );
-            } else {
-                [makerBalance, takerBalance] = await this._blockchainUtils.getTokenBalancesAsync(
-                    [otcOrder.maker, otcOrder.taker],
-                    [otcOrder.makerToken, otcOrder.takerToken],
-                );
-            }
+            const [makerBalance, takerBalance] = shouldCheckAllowance
+                ? await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync([
+                      {
+                          owner: otcOrder.maker,
+                          token: otcOrder.makerToken,
+                      },
+                      {
+                          owner: otcOrder.taker,
+                          token: otcOrder.takerToken,
+                      },
+                  ])
+                : await this._blockchainUtils.getTokenBalancesAsync([
+                      {
+                          owner: otcOrder.maker,
+                          token: otcOrder.makerToken,
+                      },
+                      {
+                          owner: otcOrder.taker,
+                          token: otcOrder.takerToken,
+                      },
+                  ]);
 
             if (makerBalance.lt(otcOrder.makerAmount) || takerBalance.lt(otcOrder.takerAmount)) {
                 logger.error(

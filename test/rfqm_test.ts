@@ -28,6 +28,7 @@ import {
 } from '../src/runners/http_rfqm_service_runner';
 import { RfqmFeeService } from '../src/services/rfqm_fee_service';
 import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
+import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
@@ -219,7 +220,7 @@ describe('RFQM Integration', () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
-        when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything(), anything())).thenResolve([
+        when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
             new BigNumber(1),
             new BigNumber(1),
         ]);
@@ -279,6 +280,10 @@ describe('RFQM Integration', () => {
         await redisClient.connect();
         cacheClient = new CacheClient(redisClient);
 
+        // Create the maker balance cache service
+        const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+        const rfqMakerBalanceCacheService = instance(rfqMakerBalanceCacheServiceMock);
+
         // Create the mock RfqMakerManager
         const rfqMakerManagerMock = mock(RfqMakerManager);
         when(rfqMakerManagerMock.getRfqmV2MakerUrisForPair(anyString(), anyString(), anything())).thenReturn([
@@ -303,6 +308,7 @@ describe('RFQM Integration', () => {
             quoteServerClient,
             TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
+            rfqMakerBalanceCacheService,
             rfqMakerManager,
             /* initialMaxPriorityFeePerGasGwei */ 2,
         );
@@ -325,6 +331,7 @@ describe('RFQM Integration', () => {
             quoteServerClient,
             TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
+            rfqMakerBalanceCacheService,
             rfqMakerManagerChainId3,
             /* initialMaxPriorityFeePerGasGwei */ 2,
         );

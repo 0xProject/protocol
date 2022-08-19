@@ -200,43 +200,27 @@ describe('RFQ Blockchain Utils', () => {
 
     describe('getMinOfBalancesAndAllowancesAsync', () => {
         it('should fetch min of token balances and allowances', async () => {
-            const addresses = [maker, maker, taker, taker];
-            const tokens = [makerToken.address, takerToken.address, makerToken.address, takerToken.address];
-            const res = await rfqBlockchainUtils.getMinOfBalancesAndAllowancesAsync(addresses, tokens);
+            const addresses = [
+                { owner: maker, token: makerToken.address },
+                { owner: maker, token: takerToken.address },
+                { owner: taker, token: makerToken.address },
+                { owner: taker, token: takerToken.address },
+            ];
+            const res = await rfqBlockchainUtils.getMinOfBalancesAndAllowancesAsync(addresses);
             expect(res).to.deep.eq([makerBalance, ZERO, ZERO, takerBalance]);
-        });
-
-        it('should fail if length of addresses and tokens are different', async () => {
-            const addresses: string[] = [];
-            const tokens = [makerToken.address];
-
-            try {
-                await rfqBlockchainUtils.getMinOfBalancesAndAllowancesAsync(addresses, tokens);
-                expect.fail();
-            } catch (e) {
-                expect(e.message).to.contain('expected length of addresses and tokens must be the same');
-            }
         });
     });
 
     describe('getTokenBalancesAsync', () => {
         it('should fetch token balances', async () => {
-            const addresses = [maker, maker, taker, taker];
-            const tokens = [makerToken.address, takerToken.address, makerToken.address, takerToken.address];
-            const res = await rfqBlockchainUtils.getTokenBalancesAsync(addresses, tokens);
+            const addresses = [
+                { owner: maker, token: makerToken.address },
+                { owner: maker, token: takerToken.address },
+                { owner: taker, token: makerToken.address },
+                { owner: taker, token: takerToken.address },
+            ];
+            const res = await rfqBlockchainUtils.getTokenBalancesAsync(addresses);
             expect(res).to.deep.eq([makerBalance, ZERO, ZERO, takerBalance]);
-        });
-
-        it('should fail if length of addresses and tokens are different', async () => {
-            const addresses: string[] = [];
-            const tokens = [makerToken.address];
-
-            try {
-                await rfqBlockchainUtils.getTokenBalancesAsync(addresses, tokens);
-                expect.fail();
-            } catch (e) {
-                expect(e.message).to.contain('expected length of addresses and tokens must be the same');
-            }
         });
     });
 

@@ -31,6 +31,14 @@ export interface FirmOtcQuote {
 }
 
 /**
+ * ERC20Owner is an address-token pair used to perform balance checks.
+ */
+export interface ERC20Owner {
+    owner: string;
+    token: string;
+}
+
+/**
  * Approval is an object that encapsulates the EIP-712 context that will eventually be signed by takers
  * for gasless approvals. There are multiple flavors of these approval objects, which can be distinguished
  * by their `kind`
