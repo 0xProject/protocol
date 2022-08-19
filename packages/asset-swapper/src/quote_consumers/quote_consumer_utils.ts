@@ -8,6 +8,7 @@ import {
 import {
     ERC20BridgeSource,
     NativeLimitOrderFillData,
+    NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
@@ -107,19 +108,27 @@ function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrder
     return x.type === FillQuoteTransformerOrderType.Rfq;
 }
 
+function isOptimizedOtcOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeOtcOrderFillData> {
+    return x.type === FillQuoteTransformerOrderType.Otc;
+}
+
 /**
  * Converts the given `OptimizedMarketOrder`s into bridge, limit, and RFQ orders for
  * FillQuoteTransformer.
  */
 export function getFQTTransformerDataFromOptimizedOrders(
     orders: OptimizedMarketOrder[],
-): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
-    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
-        bridgeOrders: [],
-        limitOrders: [],
-        rfqOrders: [],
-        fillSequence: [],
-    };
+): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'> {
+        const fqtData: Pick<
+            FillQuoteTransformerData,
+            'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'
+        > = {
+            bridgeOrders: [],
+            limitOrders: [],
+            rfqOrders: [],
+            otcOrders: [],
+            fillSequence: [],
+        };
 
     for (const order of orders) {
         if (isOptimizedBridgeOrder(order)) {
@@ -137,6 +146,12 @@ export function getFQTTransformerDataFromOptimizedOrders(
             });
         } else if (isOptimizedRfqOrder(order)) {
             fqtData.rfqOrders.push({
+                order: order.fillData.order,
+                signature: order.fillData.signature,
+                maxTakerTokenFillAmount: order.takerAmount,
+            });
+        } else if (isOptimizedOtcOrder(order)) {
+            fqtData.otcOrders.push({
                 order: order.fillData.order,
                 signature: order.fillData.signature,
                 maxTakerTokenFillAmount: order.takerAmount,

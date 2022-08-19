@@ -353,7 +353,7 @@ function _isNativeOrderFromCollapsedFill(cf: Fill): cf is Fill<NativeFillData> {
  */
 export function nativeOrderToReportEntry(
     type: FillQuoteTransformerOrderType,
-    fillData: NativeLimitOrderFillData | NativeRfqOrderFillData,
+    fillData: NativeFillData,
     fillableAmount: BigNumber,
     comparisonPrice?: BigNumber | undefined,
     quoteRequestor?: QuoteRequestor,

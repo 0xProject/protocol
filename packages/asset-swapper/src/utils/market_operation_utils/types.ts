@@ -2,6 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
+    FillQuoteTransformerOtcOrderInfo,
     FillQuoteTransformerRfqOrderInfo,
 } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
@@ -194,7 +195,8 @@ export interface FillData {}
 // `FillData` for native fills. Represents a single native order
 export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
 export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
-export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
+export type NativeOtcOrderFillData = FillQuoteTransformerOtcOrderInfo;
+export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData | NativeOtcOrderFillData;
 
 // Represents an individual DEX sample from the sampler contract
 export interface DexSample<TFillData extends FillData = FillData> {
@@ -450,7 +452,8 @@ export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrd
 export type OptimizedMarketOrder =
     | OptimizedMarketBridgeOrder<FillData>
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
+    | OptimizedMarketOrderBase<NativeOtcOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     rfqClient?: IRfqClient;
