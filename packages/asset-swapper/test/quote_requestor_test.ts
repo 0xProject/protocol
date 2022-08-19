@@ -48,7 +48,7 @@ function makeThreeMinuteExpiry(): BigNumber {
     return new BigNumber(Math.round(expiry.valueOf() / constants.ONE_SECOND_MS));
 }
 
-describe.skip('QuoteRequestor', async () => {
+describe('QuoteRequestor', async () => {
     const [makerToken, takerToken, otherToken1] = tokenUtils.getDummyERC20TokenAddresses();
     const validSignature = { v: 28, r: '0x', s: '0x', signatureType: SignatureType.EthSign };
 
