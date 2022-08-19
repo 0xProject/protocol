@@ -24,6 +24,7 @@ import {
     Signature,
 } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, ZeroExRevertErrors } from '@0x/utils';
+import { assert } from 'chai';
 import { TransactionReceiptWithDecodedLogs as TxReceipt } from 'ethereum-types';
 import { ethers } from 'ethers';
 import * as _ from 'lodash';
@@ -704,7 +705,11 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
         it.only('can fully buy to a single OTC order', async () => {
             const ethersMakerWallet = ethers.Wallet.createRandom();
-            const _otcOrder = createOtcOrder({maker: ethersMakerWallet.address})
+            const _otcOrder = createOtcOrder({maker: ethersMakerWallet.address});
+            await makerToken.mint(ethersMakerWallet.address, MAX_UINT256).awaitTransactionSuccessAsync();
+            await takerToken.mint(taker, MAX_UINT256).awaitTransactionSuccessAsync();
+            let balMaker = await makerToken.balanceOf(ethersMakerWallet.address).callAsync();
+            let balTaker = await takerToken.balanceOf(taker).callAsync();
             const otcOrders = [_otcOrder];
             const totalTakerTokens = BigNumber.sum(...otcOrders.map(o => o.takerAmount));
             const _otcOrderSignature = await ethersMakerWallet.signMessage(ethers.utils.arrayify(_otcOrder.getHash()));

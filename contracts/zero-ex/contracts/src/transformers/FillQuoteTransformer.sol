@@ -436,7 +436,6 @@ contract FillQuoteTransformer is
             ),
             orderInfo.maxTakerTokenFillAmount
         );
-        
         try
             zeroEx.fillOtcOrder
                 (
