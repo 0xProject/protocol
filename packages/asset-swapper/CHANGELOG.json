@@ -9,6 +9,10 @@
             {
                 "note": "Change WooFi gas estimates",
                 "pr": 551
+            },
+            {
+                "note": "Add new Saddle addresses and chains",
+                "pr": 554
             }
         ]
     },
