@@ -680,6 +680,15 @@ export const OPTIMISM_TOKENS = {
     sUSD: '0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9',
 };
 
+export const ARBITRUM_TOKENS = {
+    USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
+    USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    nETH: '0x3ea9b0ab55f34Fb188824Ee288CeaEfC63cf908e',
+    wETH: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    nUSD: '0x2913E812Cf0dcCA30FB28E6Cac3d2DCFF4497688',
+    MIM: '0xFEa7a6a0B346362BF88A9e4A88416B77a57D6c2A',
+};
+
 export const GEIST_FANTOM_POOLS = {
     lendingPool: '0x9fad24f572045c7869117160a571b2e50b10d068',
 };
@@ -827,7 +836,7 @@ export const SYNAPSE_AVALANCHE_POOLS = {
 
 export const SYNAPSE_ARBITRUM_POOLS = {
     nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
-    nETHLP: '0xd70a52248e546a3b260849386410c7170c7bd1e9',
+    nETHLP: '0x1c3fe783a7c06bfAbd124F2708F5Cc51fA42E102',
 };
 
 export const BELT_POOLS = {
@@ -981,6 +990,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             OPTIMISM_TOKENS.nETH,
             OPTIMISM_TOKENS.sWETH,
         ],
+        [ChainId.Arbitrum]: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT],
     },
     [],
 );
@@ -1755,6 +1765,27 @@ export const SYNAPSE_AVALANCHE_INFOS: { [name: string]: CurveInfo } = {
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_AVALANCHE_POOLS.nETHLP,
         tokens: [AVALANCHE_TOKENS.nETH, AVALANCHE_TOKENS.aWETH],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+};
+
+export const SYNAPSE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
+    [SYNAPSE_ARBITRUM_POOLS.nUSDLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nUSDLP,
+        tokens: [ARBITRUM_TOKENS.nUSD, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.MIM],
+        metaTokens: undefined,
+        gasSchedule: 140e3,
+    },
+    [SYNAPSE_ARBITRUM_POOLS.nETHLP]: {
+        exchangeFunctionSelector: CurveFunctionSelectors.swap,
+        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+        poolAddress: SYNAPSE_ARBITRUM_POOLS.nETHLP,
+        tokens: [ARBITRUM_TOKENS.nETH, ARBITRUM_TOKENS.wETH],
         metaTokens: undefined,
         gasSchedule: 140e3,
     },

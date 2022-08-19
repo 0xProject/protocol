@@ -44,6 +44,7 @@ import {
     SPIRITSWAP_ROUTER_BY_CHAIN_ID,
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
+    SYNAPSE_ARBITRUM_INFOS,
     SYNAPSE_AVALANCHE_INFOS,
     SYNAPSE_BSC_INFOS,
     SYNAPSE_FANTOM_INFOS,
@@ -260,6 +261,15 @@ export function getSynapseInfosForPair(chainId: ChainId, takerToken: string, mak
             );
         case ChainId.Avalanche:
             return Object.values(SYNAPSE_AVALANCHE_INFOS).filter(c =>
+                [makerToken, takerToken].every(
+                    t =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter(v => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Arbitrum:
+            return Object.values(SYNAPSE_ARBITRUM_INFOS).filter(c =>
                 [makerToken, takerToken].every(
                     t =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
