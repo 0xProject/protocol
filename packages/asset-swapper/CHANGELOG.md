@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v16.66.4 - _August 22, 2022_
+
+    * Offboard Cream (#546)
+    * Change WooFi gas estimates (#551)
+
 ## v16.66.3 - _August 10, 2022_
 
     * Dependencies updated

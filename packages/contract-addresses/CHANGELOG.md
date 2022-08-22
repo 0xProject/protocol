@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.20.1 - _August 22, 2022_
+
+    * Revert: Remove contract addresses that are no longer needed
+
+## v6.20.0 - _Invalid date_
+
+    * Remove contract addresses that are no longer needed (#548)
+
 ## v6.19.2 - _August 10, 2022_
 
     * Dependencies updated

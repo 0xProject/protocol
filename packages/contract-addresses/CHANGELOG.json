@@ -5,7 +5,8 @@
             {
                 "note": "Revert: Remove contract addresses that are no longer needed"
             }
-        ]
+        ],
+        "timestamp": 1661145612
     },
     {
         "version": "6.20.0",

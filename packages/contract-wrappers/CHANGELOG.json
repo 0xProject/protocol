@@ -5,7 +5,8 @@
             {
                 "note": "Revert: Remove deprecated contracts"
             }
-        ]
+        ],
+        "timestamp": 1661145612
     },
     {
         "version": "13.21.0",
