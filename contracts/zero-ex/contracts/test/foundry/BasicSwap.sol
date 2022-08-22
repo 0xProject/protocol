@@ -34,27 +34,18 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
-/*
-    This test must be run in forked mode
-    e.g forge test -vvvv -m 'testBasicSwap' -f ETH_RPC_URL
-    It is also helpful to have an Etherscan API key exported
-    export ETHERSCAN_API_KEY=
-    as Foundry will fetch source code and names
-*/
-
 contract BasicSwapTest is 
     Test,
     ForkUtils,
     TestUtils
 {  
-    DeployZeroEx deployer;
+    DeployZeroEx.ZeroExDeployed zeroExDeployed;
+
     function setUp()
         public
     {
-        deployer = new DeployZeroEx();
-        deployer.deployZeroEx();
+        zeroExDeployed = new DeployZeroEx().deployZeroEx();
         vm.deal(address(this), 1e19);
-        vm.deal(address(deployer.IZERO_EX().getTransformWallet()), 1e19);
     }
 
     function testTransformERC20()
@@ -64,25 +55,24 @@ contract BasicSwapTest is
         emit log_string("   --Building Up Transformations--");
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
 
-        emit log_named_address("    Finding TransformerDeployer nonce @", address(deployer.transformerDeployer()));
+        emit log_named_address("    Finding TransformerDeployer nonce @", address(zeroExDeployed.transformerDeployer));
         emit log_named_uint(
             "       Deployer nonce",
             _findTransformerNonce(
-            address(deployer.wethTransformer()),
-            address(deployer.transformerDeployer())
+            address(zeroExDeployed.transformers.wethTransformer),
+            address(zeroExDeployed.transformerDeployer)
         ));
-        transformations[0].deploymentNonce = _findTransformerNonce(address(deployer.wethTransformer()),address(deployer.transformerDeployer()));
+        transformations[0].deploymentNonce = _findTransformerNonce(address(zeroExDeployed.transformers.wethTransformer),address(zeroExDeployed.transformerDeployer));
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
-        IZeroEx zrx = deployer.IZERO_EX();
 
         emit log_string("   ---Calling TransformERC20()---");
         uint256 balanceETHBefore = address(this).balance;
-        uint256 balanceWETHBefore = deployer.weth().balanceOf(address(this));
-        zrx.transformERC20{value: 1e18}(
+        uint256 balanceWETHBefore = zeroExDeployed.weth.balanceOf(address(this));
+        zeroExDeployed.zeroEx.transformERC20{value: 1e18}(
             // input token
             IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
             // output token
-            IERC20TokenV06(address(deployer.weth())),
+            IERC20TokenV06(address(zeroExDeployed.weth)),
             // input token amount
             1e18,
             // min output token amount
@@ -90,12 +80,12 @@ contract BasicSwapTest is
             // list of transform
             transformations
         );
-        assert(deployer.weth().balanceOf(address(this)) == 1e18);
+        assert(zeroExDeployed.weth.balanceOf(address(this)) == 1e18);
         emit log_string("       Successful Transformation Complete");
         emit log_named_uint("           ETH BALANCE BEFORE:", balanceETHBefore);
         emit log_named_uint("           ETH BALANCE AFTER:", address(this).balance);
         emit log_named_uint("           WETH BALANCE BEFORE:", balanceWETHBefore);
-        emit log_named_uint("           WETH BALANCE AFTER:", deployer.weth().balanceOf(address(this)));
+        emit log_named_uint("           WETH BALANCE AFTER:", zeroExDeployed.weth.balanceOf(address(this)));
     }
 
 
