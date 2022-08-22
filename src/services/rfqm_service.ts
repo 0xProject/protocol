@@ -84,7 +84,6 @@ import {
     TransactionDetails,
 } from './types';
 
-export const BLOCK_FINALITY_THRESHOLD = 3;
 const MIN_GAS_PRICE_INCREASE = 0.1;
 
 interface GasFees {

@@ -4,9 +4,10 @@ import { providers } from 'ethers';
 import { ONE_SECOND_MS } from '../constants';
 import { RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, SubmissionContextStatus } from '../entities/types';
-import { BLOCK_FINALITY_THRESHOLD } from '../services/rfqm_service';
 
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
+
+export const BLOCK_FINALITY_THRESHOLD = 3;
 
 type TransactionReceipt = providers.TransactionReceipt;
 

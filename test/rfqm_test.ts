@@ -27,7 +27,7 @@ import {
     runHttpRfqmServiceAsync,
 } from '../src/runners/http_rfqm_service_runner';
 import { RfqmFeeService } from '../src/services/rfqm_fee_service';
-import { BLOCK_FINALITY_THRESHOLD, RfqmService } from '../src/services/rfqm_service';
+import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import { RfqmTypes } from '../src/services/types';
 import { CacheClient } from '../src/utils/cache_client';
@@ -37,6 +37,7 @@ import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_util
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../src/utils/rfq_maker_manager';
+import { BLOCK_FINALITY_THRESHOLD } from '../src/utils/SubmissionContext';
 
 import {
     CONTRACT_ADDRESSES,
