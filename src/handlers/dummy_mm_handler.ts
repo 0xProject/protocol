@@ -217,7 +217,12 @@ export class DummyMMHandlers {
         );
         this._tokenSetByChainId.set(
             POLYGON_CHAIN_ID,
-            new Set([USDC_POLYGON.toLowerCase(), USDT_POLYGON.toLowerCase()]),
+            new Set([
+                USDC_POLYGON.toLowerCase(),
+                USDT_POLYGON.toLowerCase(),
+                WMATIC_POLYGON.toLowerCase(),
+                DAI_POLYGON.toLowerCase(),
+            ]),
         );
         this._tokenSetByChainId.set(
             MUMBAI_CHAIN_ID,
