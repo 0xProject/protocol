@@ -68,7 +68,7 @@ export const testHelpers = {
                 const { endpoint, mmApiKey, requestData, responseData, responseCode } = mockedResponse;
                 const requestHeaders = {
                     Accept: 'application/json, text/plain, */*',
-                    'Content-Type': 'application/json;charset=utf-8',
+                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${mmApiKey}`,
                 };
                 mockedAxios

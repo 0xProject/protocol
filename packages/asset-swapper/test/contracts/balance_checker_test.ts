@@ -43,7 +43,7 @@ blockchainTests.resets('BalanceChecker contract', env => {
 
             const testResults = await contract.balances([owner, owner2], [makerToken.address, ETH_ADDRESS]).callAsync();
 
-            expect(testResults).to.eql([new BigNumber(100), new BigNumber(100000000000000000000)]);
+            expect(testResults).to.eql([new BigNumber(100), new BigNumber(1000000000000000000000)]);
         });
         it('it throws an error if the input arrays of different lengths', async () => {
             const accounts = await web3Wrapper.getAvailableAddressesAsync();
