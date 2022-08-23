@@ -1,5 +1,5 @@
 ```
- :warning: **@0x/asset-swapper** has been deprecated! The `asset-swapper` code has been moved to [0x-api](https://github.com/0xProject/0x-api). Please do not open a PR with `asset-swapper` changes.
+ :warning: **@0x/asset-swapper has been deprecated!** The `asset-swapper` code has been moved to [0x-api](https://github.com/0xProject/0x-api). Please do not open a PR with `asset-swapper` changes.
 ```
 
 ## @0x/asset-swapper
