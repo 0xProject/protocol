@@ -1,10 +1,10 @@
-import { ContractAddresses, QuoteReport, ZERO_AMOUNT } from '@0x/asset-swapper';
 import { generatePseudoRandomSalt, getExchangeProxyMetaTransactionHash } from '@0x/order-utils';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { ContractAddresses, QuoteReport, ZERO_AMOUNT } from '../asset-swapper';
 import { CHAIN_ID, META_TX_EXPIRATION_BUFFER_MS } from '../config';
 import { NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import {

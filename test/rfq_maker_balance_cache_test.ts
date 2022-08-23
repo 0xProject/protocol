@@ -1,5 +1,3 @@
-import { BalanceCheckerContract } from '@0x/asset-swapper';
-import { artifacts } from '@0x/asset-swapper/lib/src/artifacts';
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
 import { Web3ProviderEngine } from '@0x/dev-utils';
@@ -8,6 +6,8 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
+import { artifacts } from '../src/artifacts';
+import { BalanceCheckerContract } from '../src/asset-swapper';
 import { RFQ_ALLOWANCE_TARGET } from '../src/constants';
 import { MakerBalanceChainCacheEntity } from '../src/entities';
 import { cacheRfqBalancesAsync } from '../src/runners/rfq_maker_balance_cache_runner';

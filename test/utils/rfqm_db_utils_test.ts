@@ -1,9 +1,9 @@
 // tslint:disable:max-file-line-count
 
-import { BigNumber } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { RfqOrder } from '@0x/protocol-utils';
 
+import { BigNumber } from '../../src/asset-swapper';
 import { storedOrderToRfqmOrder, v4RfqOrderToStoredOrder } from '../../src/utils/rfqm_db_utils';
 
 describe('RFQM DB utils', () => {

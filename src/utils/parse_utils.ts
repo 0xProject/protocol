@@ -1,6 +1,6 @@
-import { AffiliateFeeType, ERC20BridgeSource } from '@0x/asset-swapper';
 import express from 'express';
 
+import { AffiliateFeeType, ERC20BridgeSource } from '../asset-swapper';
 import { NULL_ADDRESS } from '../constants';
 import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { AffiliateFee, FeeParamTypes } from '../types';

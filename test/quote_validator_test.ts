@@ -1,10 +1,10 @@
-import { RfqOrderFields } from '@0x/asset-swapper';
 import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { Web3Wrapper } from '@0x/dev-utils';
 import { BigNumber, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
 import 'mocha';
 import { Connection, Repository } from 'typeorm';
 
+import { RfqOrderFields } from '../src/asset-swapper';
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../src/constants';
 import { MakerBalanceChainCacheEntity } from '../src/entities/MakerBalanceChainCacheEntity';
 import { PostgresRfqtFirmQuoteValidator } from '../src/services/postgres_rfqt_firm_quote_validator';

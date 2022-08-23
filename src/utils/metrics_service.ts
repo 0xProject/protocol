@@ -1,7 +1,8 @@
-import { Integrator } from '@0x/asset-swapper';
-import { MetricsProxy } from '@0x/asset-swapper/lib/src/utils/quote_requestor';
 import { BigNumber } from '@0x/utils';
 import { Counter, Histogram, Summary } from 'prom-client';
+
+import { Integrator } from '../asset-swapper';
+import { MetricsProxy } from '../asset-swapper/utils/quote_requestor';
 
 const ORDER_EXPIRED_TOO_SOON = new Counter({
     name: 'rfq_order_expired_too_soon',

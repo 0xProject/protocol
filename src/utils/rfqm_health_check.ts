@@ -1,8 +1,8 @@
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
+import { RfqMakerAssetOfferings } from '../asset-swapper';
 import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { RfqmWorkerHeartbeatEntity } from '../entities';
 

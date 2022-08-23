@@ -1,4 +1,7 @@
 import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
+import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
+import { BigNumber } from '@0x/utils';
+
 import {
     AffiliateFeeType,
     ChainId,
@@ -9,10 +12,7 @@ import {
     QuoteReport,
     RfqRequestOpts,
     Signature,
-} from '@0x/asset-swapper';
-import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
-import { BigNumber } from '@0x/utils';
-
+} from './asset-swapper';
 import { Integrator } from './config';
 
 export enum OrderWatcherLifeCycleEvents {

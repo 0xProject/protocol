@@ -1,5 +1,6 @@
-import { MarketOperation, RfqOrderFields, SwapQuote } from '@0x/asset-swapper';
 import { BigNumber, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
+
+import { MarketOperation, RfqOrderFields, SwapQuote } from '../../src/asset-swapper';
 
 export const rfqtIndicativeQuoteResponse = {
     makerAmount: '100000000000000000',

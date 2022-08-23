@@ -1,7 +1,7 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BlockParamLiteral } from 'ethereum-types';
 
+import { BigNumber } from '../asset-swapper';
 import { RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { logger } from '../logger';
 

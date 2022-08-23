@@ -1,6 +1,7 @@
-import { SamplerMetrics } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Gauge, Summary } from 'prom-client';
+
+import { SamplerMetrics } from '../asset-swapper';
 
 const SAMPLER_GAS_USED_SUMMARY = new Summary({
     name: 'sampler_gas_used_summary',

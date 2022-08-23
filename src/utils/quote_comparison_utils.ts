@@ -1,5 +1,4 @@
-import { BigNumber, SignedNativeOrder, V4RFQIndicativeQuote } from '@0x/asset-swapper';
-
+import { BigNumber, SignedNativeOrder, V4RFQIndicativeQuote } from '../asset-swapper';
 import { ONE_SECOND_MS } from '../constants';
 
 /**

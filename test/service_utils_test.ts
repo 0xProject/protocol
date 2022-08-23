@@ -1,9 +1,9 @@
-import { AffiliateFeeType, ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 // tslint:disable-next-line:no-implicit-dependencies
 import 'mocha';
 
+import { AffiliateFeeType, ERC20BridgeSource } from '../src/asset-swapper';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS, ZERO } from '../src/constants';
 import { serviceUtils } from '../src/utils/service_utils';
 

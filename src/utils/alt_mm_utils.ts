@@ -1,4 +1,4 @@
-import { AltOffering, AltRfqMakerAssetOfferings } from '@0x/asset-swapper';
+import { AltOffering, AltRfqMakerAssetOfferings } from '../asset-swapper';
 
 interface AltRfqAsset {
     address: string;

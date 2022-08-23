@@ -1,3 +1,13 @@
+import { WETH9Contract } from '@0x/contract-wrappers';
+import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
+import { getTokenMetadataIfExists, TokenMetadatasForChains } from '@0x/token-metadata';
+import { MarketOperation, PaginatedCollection } from '@0x/types';
+import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
+import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
+import axios from 'axios';
+import { SupportedProvider } from 'ethereum-types';
+import * as _ from 'lodash';
+
 import {
     AffiliateFeeAmount,
     AffiliateFeeType,
@@ -20,17 +30,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
     ZERO_AMOUNT,
-} from '@0x/asset-swapper';
-import { WETH9Contract } from '@0x/contract-wrappers';
-import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
-import { getTokenMetadataIfExists, TokenMetadatasForChains } from '@0x/token-metadata';
-import { MarketOperation, PaginatedCollection } from '@0x/types';
-import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
-import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
-import axios from 'axios';
-import { SupportedProvider } from 'ethereum-types';
-import * as _ from 'lodash';
-
+} from '../asset-swapper';
 import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_ENDPOINT,

@@ -1,15 +1,15 @@
+import { RfqOrder } from '@0x/protocol-utils';
+import { BigNumber } from '@0x/utils';
+import { AxiosInstance } from 'axios';
+import { OK } from 'http-status-codes';
+
 import {
     IRfqClient,
     RfqClientV1PriceRequest,
     RfqClientV1PriceResponse,
     RfqClientV1QuoteRequest,
     RfqClientV1QuoteResponse,
-} from '@0x/asset-swapper';
-import { RfqOrder } from '@0x/protocol-utils';
-import { BigNumber } from '@0x/utils';
-import { AxiosInstance } from 'axios';
-import { OK } from 'http-status-codes';
-
+} from '../asset-swapper';
 import { RFQT_REQUEST_MAX_RESPONSE_MS } from '../config';
 import { logger } from '../logger';
 

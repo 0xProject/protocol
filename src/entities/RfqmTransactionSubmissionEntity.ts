@@ -1,5 +1,6 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+
+import { BigNumber } from '../asset-swapper';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
 

@@ -1,13 +1,13 @@
+import { AbiEncoder, BigNumber } from '@0x/utils';
+import * as _ from 'lodash';
+
 import {
     AffiliateFeeType,
     ERC20BridgeSource,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SwapQuote,
     SwapQuoteOrdersBreakdown,
-} from '@0x/asset-swapper';
-import { AbiEncoder, BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
-
+} from '../asset-swapper';
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
 import {
     AFFILIATE_FEE_TRANSFORMER_GAS,

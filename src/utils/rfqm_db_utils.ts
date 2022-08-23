@@ -1,9 +1,9 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { RfqOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
+import { BigNumber } from '../asset-swapper';
 import { RfqmJobEntity, RfqmQuoteEntity, RfqmTransactionSubmissionEntity } from '../entities';
 import {
     RfqmJobConstructorOpts,

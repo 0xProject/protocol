@@ -1,5 +1,4 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
-import { SwapQuoterError } from '@0x/asset-swapper';
 import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -8,6 +7,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 import * as isValidUUID from 'uuid-validate';
 
+import { SwapQuoterError } from '../asset-swapper';
 import { CHAIN_ID } from '../config';
 import { API_KEY_HEADER, DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import {

@@ -1,4 +1,11 @@
 import { assert } from '@0x/assert';
+import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
+import { BigNumber } from '@0x/utils';
+import * as fs from 'fs';
+import * as _ from 'lodash';
+import { linearBuckets } from 'prom-client';
+import * as validateUUID from 'uuid-validate';
+
 import {
     BlockParamLiteral,
     ChainId,
@@ -12,14 +19,7 @@ import {
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
-} from '@0x/asset-swapper';
-import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
-import { BigNumber } from '@0x/utils';
-import * as fs from 'fs';
-import * as _ from 'lodash';
-import { linearBuckets } from 'prom-client';
-import * as validateUUID from 'uuid-validate';
-
+} from './asset-swapper';
 import {
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     DEFAULT_LOCAL_POSTGRES_URI,

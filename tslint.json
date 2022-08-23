@@ -4,7 +4,8 @@
         "custom-no-magic-numbers": false,
         "no-unnecessary-type-assertion": false,
         "max-file-line-count": false,
-        "arrow-parens": false
+        "arrow-parens": false,
+        "binary-expression-operand-order": false
     },
     "linterOptions": {
         "exclude": [

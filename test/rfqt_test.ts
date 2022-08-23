@@ -1,14 +1,4 @@
 // tslint:disable:max-file-line-count
-import {
-    ContractAddresses,
-    ERC20BridgeSource,
-    MockedRfqQuoteResponse,
-    RfqOrder,
-    RfqOrderFields,
-    rfqtMocker,
-    RfqtQuoteEndpoint,
-    Signature,
-} from '@0x/asset-swapper';
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
@@ -24,6 +14,16 @@ import 'mocha';
 import * as request from 'supertest';
 
 import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import {
+    ContractAddresses,
+    ERC20BridgeSource,
+    MockedRfqQuoteResponse,
+    RfqOrder,
+    RfqOrderFields,
+    rfqtMocker,
+    RfqtQuoteEndpoint,
+    Signature,
+} from '../src/asset-swapper';
 import {
     defaultHttpServiceConfig,
     PROTOCOL_FEE_MULTIPLIER,

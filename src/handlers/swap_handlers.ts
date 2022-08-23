@@ -1,9 +1,4 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
-import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '@0x/asset-swapper';
-import {
-    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
-    SELL_SOURCE_FILTER_BY_CHAIN_ID,
-} from '@0x/asset-swapper/lib/src/utils/market_operation_utils/constants';
 import {
     getTokenMetadataIfExists,
     isNativeSymbolOrAddress,
@@ -18,6 +13,11 @@ import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
 
+import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
+import {
+    NATIVE_FEE_TOKEN_BY_CHAIN_ID,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
+} from '../asset-swapper/utils/market_operation_utils/constants';
 import {
     CHAIN_ID,
     getIntegratorByIdOrThrow,

@@ -1,10 +1,11 @@
-import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/asset-swapper';
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ETH_TOKEN_ADDRESS } from '@0x/protocol-utils';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { LogEntry, LogWithDecodedArgs } from 'ethereum-types';
+
+import { ContractAddresses, getContractAddressesForChainOrThrow } from '../src/asset-swapper';
 
 export const ETHEREUM_RPC_URL = 'http://localhost:8545';
 export const CHAIN_ID = 1337;

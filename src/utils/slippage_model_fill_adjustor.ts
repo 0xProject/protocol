@@ -1,5 +1,6 @@
-import { adjustOutput, BigNumber, Fill, FillAdjustor, FillData } from '@0x/asset-swapper';
 import { MarketOperation } from '@0x/types';
+
+import { adjustOutput, BigNumber, Fill, FillAdjustor, FillData } from '../asset-swapper';
 
 import { SlippageModelManager } from './slippage_model_manager';
 

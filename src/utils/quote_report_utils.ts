@@ -1,4 +1,7 @@
 import type { PinoLogger } from '@0x/api-utils';
+import { Producer } from 'kafkajs';
+import _ = require('lodash');
+
 import {
     BigNumber,
     ExtendedQuoteReport,
@@ -7,10 +10,7 @@ import {
     QuoteReport,
     QuoteReportEntry,
     SignedNativeOrder,
-} from '@0x/asset-swapper';
-import { Producer } from 'kafkajs';
-import _ = require('lodash');
-
+} from '../asset-swapper';
 import { KAFKA_TOPIC_QUOTE_REPORT } from '../config';
 import { NUMBER_SOURCES_PER_LOG_LINE } from '../constants';
 import { logger } from '../logger';

@@ -1,4 +1,4 @@
-import { ChainId } from '@0x/asset-swapper';
+import { ChainId } from '../src/asset-swapper';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 import { RFQM_MAKER_ASSET_OFFERINGS, RFQT_MAKER_ASSET_OFFERINGS, RFQ_MAKER_CONFIGS } from '../src/config';

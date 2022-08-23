@@ -1,8 +1,8 @@
-import { ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { NULL_ADDRESS } from '@0x/utils';
 import 'mocha';
 
+import { ERC20BridgeSource } from '../src/asset-swapper';
 import { parseUtils } from '../src/utils/parse_utils';
 
 const SUITE_NAME = 'parseUtils';

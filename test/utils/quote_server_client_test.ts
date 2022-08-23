@@ -1,7 +1,6 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { RfqOrder } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { SubmitRequest } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
@@ -9,6 +8,7 @@ import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as HttpStatus from 'http-status-codes';
 
+import { RfqOrder } from '../../src/asset-swapper';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { CONTRACT_ADDRESSES } from '../constants';
 

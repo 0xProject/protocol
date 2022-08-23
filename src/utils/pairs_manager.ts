@@ -1,7 +1,7 @@
-import { RfqMakerAssetOfferings } from '@0x/asset-swapper';
 import * as EventEmitter from 'events';
 import { Counter, Summary } from 'prom-client';
 
+import { RfqMakerAssetOfferings } from '../asset-swapper';
 import { MakerIdsToConfigs, RfqMakerConfig, RFQ_PAIR_REFRESH_INTERVAL_MS, RFQ_WORKFLOW } from '../config';
 import { RfqMakerPairs } from '../entities';
 import { logger } from '../logger';

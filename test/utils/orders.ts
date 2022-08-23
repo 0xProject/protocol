@@ -1,13 +1,13 @@
+import { getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { LimitOrder } from '@0x/protocol-utils';
+import { BigNumber, hexUtils } from '@0x/utils';
+
 import {
     getContractAddressesForChainOrThrow,
     LimitOrderFields,
     SignatureType,
     SupportedProvider,
-} from '@0x/asset-swapper';
-import { getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
-import { LimitOrder } from '@0x/protocol-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
-
+} from '../../src/asset-swapper';
 import { ZERO } from '../../src/constants';
 import { SignedLimitOrder } from '../../src/types';
 import { CHAIN_ID, NULL_ADDRESS, WETH_TOKEN_ADDRESS, ZRX_TOKEN_ADDRESS } from '../constants';

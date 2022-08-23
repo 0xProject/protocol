@@ -1,5 +1,6 @@
-import { BigNumber } from '@0x/asset-swapper';
 import { MetaTransactionFields, Signature } from '@0x/protocol-utils';
+
+import { BigNumber } from '../asset-swapper';
 
 export interface StringMetaTransactionFields {
     signer: string;

@@ -1,13 +1,4 @@
 // tslint:disable-next-line:ordered-imports no-var-requires
-import {
-    artifacts,
-    AssetSwapperContractAddresses,
-    ChainId,
-    ContractAddresses,
-    ERC20BridgeSamplerContract,
-    getContractAddressesForChainOrThrow,
-    SupportedProvider,
-} from '@0x/asset-swapper';
 import { Web3Wrapper } from '@0x/dev-utils';
 import { S3 } from 'aws-sdk';
 import axios from 'axios';
@@ -16,6 +7,15 @@ import { Server } from 'http';
 import { Kafka } from 'kafkajs';
 import { Connection } from 'typeorm';
 
+import {
+    artifacts,
+    AssetSwapperContractAddresses,
+    ChainId,
+    ContractAddresses,
+    ERC20BridgeSamplerContract,
+    getContractAddressesForChainOrThrow,
+    SupportedProvider,
+} from './asset-swapper';
 import {
     CHAIN_ID,
     ORDER_WATCHER_KAFKA_TOPIC,

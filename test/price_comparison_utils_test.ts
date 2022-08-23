@@ -1,12 +1,12 @@
 // tslint:disable:no-empty
 // tslint:disable:max-file-line-count
 
-import { ChainId, ERC20BridgeSource } from '@0x/asset-swapper';
 import { expect } from '@0x/contracts-test-utils';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+import { ChainId, ERC20BridgeSource } from '../src/asset-swapper';
 import { ZERO } from '../src/constants';
 import { priceComparisonUtils } from '../src/utils/price_comparison_utils';
 
