@@ -7,6 +7,8 @@ import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { BAD_REQUEST } from 'http-status-codes';
 import { Summary } from 'prom-client';
 
+import { FetchIndicativeQuoteResponse } from '../services/types';
+
 // Types
 //
 // NOTE: These types are copied here from 0x API. Once we have
@@ -74,7 +76,7 @@ export async function getQuoteAsync(
         takerAddress: string;
     },
     requestDurationSummary?: Summary<''>,
-): Promise<MetaTransaction | null> {
+): Promise<{ metaTransaction: MetaTransaction; quote: FetchIndicativeQuoteResponse } | null> {
     const startTimestamp = Date.now();
 
     let response: AxiosResponse<GetMetaTransactionQuoteResponse>;
@@ -119,12 +121,17 @@ export async function getQuoteAsync(
     // tslint:disable-next-line: no-unused-expression
     requestDurationSummary && requestDurationSummary.observe(Date.now() - startTimestamp);
 
+    const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;
+
     // A fun thing here is that the return from the API, @0x/types:ExchangeProxyMetaTransaction
     // does not match @0x/protocol-utils:MetaTransaction. So, we pull the domain information out
     // and put it at the top level of the constructor parameters
-    return new MetaTransaction({
-        ...response.data.mtx,
-        chainId: response.data.mtx.domain.chainId,
-        verifyingContract: response.data.mtx.domain.verifyingContract,
-    });
+    return {
+        metaTransaction: new MetaTransaction({
+            ...response.data.mtx,
+            chainId: response.data.mtx.domain.chainId,
+            verifyingContract: response.data.mtx.domain.verifyingContract,
+        }),
+        quote: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
+    };
 }

@@ -82,8 +82,16 @@ describe('MetaTransactionClient', () => {
                 takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
             });
 
-            expect(response).toBeInstanceOf(MetaTransaction);
-            expect(response?.getHash()).toEqual(exampleSuccessfulResponse.mtxHash);
+            expect(response?.metaTransaction).toBeInstanceOf(MetaTransaction);
+            expect(response?.metaTransaction.getHash()).toEqual(exampleSuccessfulResponse.mtxHash);
+            expect(response?.quote).toEqual({
+                buyAmount: exampleSuccessfulResponse.buyAmount,
+                buyTokenAddress: exampleSuccessfulResponse.buyTokenAddress,
+                gas: exampleSuccessfulResponse.gas,
+                price: exampleSuccessfulResponse.price,
+                sellAmount: exampleSuccessfulResponse.sellAmount,
+                sellTokenAddress: exampleSuccessfulResponse.sellTokenAddress,
+            });
         });
 
         it('should return `null` when no liquidity is available', async () => {
