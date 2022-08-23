@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // solhint-disable
-pragma solidity >=0.6.0;
+pragma solidity ^0.6.0;
 
 
 contract WETH9V06 {
