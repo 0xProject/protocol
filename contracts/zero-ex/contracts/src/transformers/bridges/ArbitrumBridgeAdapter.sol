@@ -30,7 +30,7 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract OptimismBridgeAdapter is
-    AbstractBridgeAdapter(10, "Optimism"),
+    AbstractBridgeAdapter(42161, "Arbitrum"),
     MixinBalancerV2,
     MixinCurve,
     MixinDodoV2,
@@ -88,7 +88,7 @@ contract OptimismBridgeAdapter is
             );
         } else if (protocolId == BridgeProtocols.GMX) {
             if (dryRun) { return (0, true); }
-            boughtAmount = _tradeNerve(
+            boughtAmount = _tradeGMX(
                 sellToken,
                 sellAmount,
                 order.bridgeData
