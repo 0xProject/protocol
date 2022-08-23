@@ -24,6 +24,7 @@ type ExtendedQuoteReportWithIntermediateQuote = Omit<ExtendedQuoteReport, 'sourc
 type ExtendedQuoteReportWithFee = ExtendedQuoteReportWithIntermediateQuote & {
     fee: StoredFee;
     ammQuoteUniqueId?: string;
+    isLiquidityAvailable?: boolean;
 };
 
 interface ExtendedQuoteReportForRFQMLogOptions {
@@ -38,6 +39,7 @@ interface ExtendedQuoteReportForRFQMLogOptions {
     bestQuote: IndicativeQuote | FirmOtcQuote | null;
     fee: StoredFee;
     ammQuoteUniqueId?: string;
+    isLiquidityAvailable?: boolean;
 }
 
 export const quoteReportUtils = {
@@ -131,6 +133,7 @@ export const quoteReportUtils = {
                 sourcesDelivered,
                 fee: logOpts.fee,
                 ammQuoteUniqueId: logOpts.ammQuoteUniqueId,
+                isLiquidityAvailable: logOpts.isLiquidityAvailable,
             };
             kafkaProducer.send({
                 topic: quoteReportTopic,

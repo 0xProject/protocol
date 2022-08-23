@@ -442,6 +442,8 @@ export class RfqmService {
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
         );
 
+        const isLiquidityAvailable = bestQuote !== null;
+
         // Quote Report
         if (this._kafkaProducer) {
             await quoteReportUtils.publishRFQMQuoteReportAsync(
@@ -457,6 +459,7 @@ export class RfqmService {
                     bestQuote,
                     fee: feeToStoredFee(feeWithDetails),
                     ammQuoteUniqueId,
+                    isLiquidityAvailable,
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
@@ -464,7 +467,7 @@ export class RfqmService {
         }
 
         // No quotes found
-        if (bestQuote === null) {
+        if (!isLiquidityAvailable) {
             return null;
         }
 
@@ -539,6 +542,8 @@ export class RfqmService {
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
         );
 
+        const isLiquidityAvailable = bestQuote !== null;
+
         const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
 
         // Quote Report
@@ -556,6 +561,7 @@ export class RfqmService {
                     bestQuote,
                     fee: storedFeeWithDetails,
                     ammQuoteUniqueId,
+                    isLiquidityAvailable,
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
@@ -563,7 +569,7 @@ export class RfqmService {
         }
 
         // No quote found
-        if (bestQuote === null) {
+        if (!isLiquidityAvailable) {
             return null;
         }
 
