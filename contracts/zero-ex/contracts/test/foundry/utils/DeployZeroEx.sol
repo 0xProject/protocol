@@ -36,7 +36,7 @@ import "src/features/MetaTransactionsFeature.sol";
 import "src/features/nft_orders/ERC1155OrdersFeature.sol";
 import "src/features/nft_orders/ERC721OrdersFeature.sol";
 import "src/features/UniswapFeature.sol";
-import "src/features/multiplex/MultiPlexFeature.sol";
+import "src/features/multiplex/MultiplexFeature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/external/FeeCollectorController.sol";
 import "src/transformers/WethTransformer.sol";
