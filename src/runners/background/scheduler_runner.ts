@@ -3,9 +3,12 @@
  * according to defined schedules.
  */
 import { pino } from '@0x/api-utils';
+import { ChainId } from '@0x/contract-addresses';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 
+import backgroundJobMBCEvict from '../../background-jobs/maker_balance_cache_evict';
+import backgroundJobMBCUpdate from '../../background-jobs/maker_balance_cache_update';
 import backgroundJobNoOp from '../../background-jobs/no_op';
 import { REDIS_BACKGROUND_JOB_URI } from '../../config';
 import { logger } from '../../logger';
@@ -61,12 +64,50 @@ if (require.main === module) {
         connections.push(connection);
         // Prepare queues
         const noOpBackgroundJobQueue = new Queue(backgroundJobNoOp.queueName, { connection });
+        const mbcEvictBackgroundJobQueue = new Queue(backgroundJobMBCEvict.queueName, { connection });
+        const mbcUpdateBackgroundJobQueue = new Queue(backgroundJobMBCUpdate.queueName, { connection });
 
         const schedule: ScheduledBackgroundJob[] = [
             {
                 schedule: backgroundJobNoOp.schedule,
                 func: async () => {
                     await backgroundJobNoOp.createAsync(noOpBackgroundJobQueue, { timestamp: Date.now() });
+                },
+            },
+            {
+                schedule: backgroundJobMBCEvict.schedule,
+                func: async () => {
+                    await backgroundJobMBCEvict.createAsync(mbcEvictBackgroundJobQueue, {
+                        chainId: ChainId.Mainnet,
+                        timestamp: Date.now(),
+                    });
+                },
+            },
+            {
+                schedule: backgroundJobMBCEvict.schedule,
+                func: async () => {
+                    await backgroundJobMBCEvict.createAsync(mbcEvictBackgroundJobQueue, {
+                        chainId: ChainId.Polygon,
+                        timestamp: Date.now(),
+                    });
+                },
+            },
+            {
+                schedule: backgroundJobMBCUpdate.schedule,
+                func: async () => {
+                    await backgroundJobMBCUpdate.createAsync(mbcUpdateBackgroundJobQueue, {
+                        chainId: ChainId.Mainnet,
+                        timestamp: Date.now(),
+                    });
+                },
+            },
+            {
+                schedule: backgroundJobMBCUpdate.schedule,
+                func: async () => {
+                    await backgroundJobMBCUpdate.createAsync(mbcUpdateBackgroundJobQueue, {
+                        chainId: ChainId.Polygon,
+                        timestamp: Date.now(),
+                    });
                 },
             },
         ];

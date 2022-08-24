@@ -103,10 +103,12 @@ export class RfqMakerBalanceCacheService {
         const timerStopFunction = RFQ_BALANCE_CACHE_WRITE_LATENCY.startTimer();
         try {
             const erc20Owners = await this._cacheClient.getERC20OwnersAsync(chainId);
-            RFQ_BALANCE_CACHE_NUM_ADDRESSES.set(erc20Owners.length);
-            const balances = await this._blockchainUtils.getTokenBalancesAsync(erc20Owners);
+            if (erc20Owners.length > 0) {
+                RFQ_BALANCE_CACHE_NUM_ADDRESSES.set(erc20Owners.length);
+                const balances = await this._blockchainUtils.getTokenBalancesAsync(erc20Owners);
 
-            await this._cacheClient.setERC20OwnerBalancesAsync(chainId, erc20Owners, balances);
+                await this._cacheClient.setERC20OwnerBalancesAsync(chainId, erc20Owners, balances);
+            }
         } catch (error) {
             throw new Error('Failed to update entries for maker balance cache');
         } finally {
