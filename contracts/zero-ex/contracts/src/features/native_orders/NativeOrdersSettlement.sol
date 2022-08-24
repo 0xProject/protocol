@@ -572,11 +572,11 @@ abstract contract NativeOrdersSettlement is
         }
 
         // Update filled state for the order.
+        // OK to overwrite the whole word because we shouldn't get to this
+        // function if the order is cancelled.
         LibNativeOrdersStorage
             .getStorage()
             .orderHashToTakerTokenFilledAmount[settleInfo.orderHash] =
-            // OK to overwrite the whole word because we shouldn't get to this
-            // function if the order is cancelled.
                 settleInfo.takerTokenFilledAmount.safeAdd128(takerTokenFilledAmount);
 
         if (settleInfo.payer == address(this)) {
