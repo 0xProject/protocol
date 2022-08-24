@@ -130,6 +130,11 @@ jobs:
         working_directory: ~/repo
         steps:
             - checkout
+            - run: |
+                git diff --name-only development >> changed.txt
+                if ! grep -q packages/ changed.txt; then
+                  circleci-agent step halt
+                fi
             - restore_cache:
                   keys:
                       - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
