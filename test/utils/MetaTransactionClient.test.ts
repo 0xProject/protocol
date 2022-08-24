@@ -84,7 +84,7 @@ describe('MetaTransactionClient', () => {
 
             expect(response?.metaTransaction).toBeInstanceOf(MetaTransaction);
             expect(response?.metaTransaction.getHash()).toEqual(exampleSuccessfulResponse.mtxHash);
-            expect(response?.quote).toEqual({
+            expect(response?.price).toEqual({
                 buyAmount: exampleSuccessfulResponse.buyAmount,
                 buyTokenAddress: exampleSuccessfulResponse.buyTokenAddress,
                 gas: exampleSuccessfulResponse.gas,

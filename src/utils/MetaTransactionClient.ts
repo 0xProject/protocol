@@ -76,7 +76,7 @@ export async function getQuoteAsync(
         takerAddress: string;
     },
     requestDurationSummary?: Summary<''>,
-): Promise<{ metaTransaction: MetaTransaction; quote: FetchIndicativeQuoteResponse } | null> {
+): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
     const startTimestamp = Date.now();
 
     let response: AxiosResponse<GetMetaTransactionQuoteResponse>;
@@ -132,6 +132,6 @@ export async function getQuoteAsync(
             chainId: response.data.mtx.domain.chainId,
             verifyingContract: response.data.mtx.domain.verifyingContract,
         }),
-        quote: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
+        price: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
     };
 }

@@ -1,4 +1,4 @@
-import { OtcOrder, Signature } from '@0x/protocol-utils';
+import { MetaTransaction, OtcOrder, Signature } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
@@ -54,6 +54,20 @@ export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
     type: RfqmTypes.OtcOrder;
     order: OtcOrder;
     orderHash: string;
+    approval?: ApprovalResponse;
+}
+
+/**
+ * Response from the Gasless Swap Service `/quote` endpoint.
+ *
+ * `approval` will be populated if `checkApproval` is `true`
+ * in the parameters, the token supports gasless approval,
+ * and no allowance already exists.
+ */
+export interface MetaTransactionQuoteResponse extends BaseRfqmQuoteResponse {
+    type: RfqmTypes.MetaTransaction;
+    metaTransaction: MetaTransaction;
+    metaTransactionHash: string;
     approval?: ApprovalResponse;
 }
 
