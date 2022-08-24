@@ -21,8 +21,52 @@ const PRICE_ENDPOINT_TIMEOUT_MS = 1000;
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',
     help: 'Latency for sign request to Market Makers',
-    labelNames: ['makerUri'],
+    labelNames: ['makerUri', 'statusCode'],
 });
+
+const RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS = new Summary({
+    name: 'rfq_market_maker_price_request_duration_seconds',
+    help: 'Provides stats around market maker network interactions',
+    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999], // tslint:disable-line: custom-no-magic-numbers
+    labelNames: ['type', 'integratorLabel', 'makerUri', 'chainId', 'statusCode', 'market'],
+    maxAgeSeconds: 60,
+    ageBuckets: 5,
+});
+
+const KNOWN_TOKENS: { [key: string]: string } = {
+    // Mainnet
+    '0x6b175474e89094c44da98b954eedeac495271d0f': 'DAI',
+    '0xdac17f958d2ee523a2206206994597c13d831ec7': 'USDT',
+    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'USDC',
+    '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'WETH',
+    // Polygon
+    '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063': 'DAI',
+    '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': 'USDT',
+    '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': 'USDC',
+    '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619': 'WETH',
+    '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270': 'WMATIC',
+};
+
+/**
+ * [Read this in Daniel's voice] Returns a human-readable label for Prometheus counters.
+ * Only popular most relevant pairs should be displayed in Prometheus (since it overload the service)
+ * and any other market that does not contain popular pairs will simply return "Other".
+ *
+ * @param tokenSold the token being sold
+ * @param tokenPurchased the token being purchased
+ * @returns a market like "WETH-DAI", or "Other" is a pair is unknown
+ */
+function getMarketLabel(tokenSold: string, tokenPurchased: string): string {
+    const items = [tokenSold.toLowerCase(), tokenPurchased.toLowerCase()];
+    items.sort();
+
+    const tokenA: string | undefined = KNOWN_TOKENS[items[0]];
+    const tokenB: string | undefined = KNOWN_TOKENS[items[1]];
+    if (!tokenA || !tokenB) {
+        return 'Other';
+    }
+    return `${tokenA}-${tokenB}`;
+}
 
 const schemaValidator = new SchemaValidator();
 schemaValidator.addSchema(quoteServerSchemas.feeSchema);
@@ -145,8 +189,10 @@ export class QuoteServerClient {
         parameters: QuoteServerPriceParams,
         makerUriToUrl: (u: string) => string,
     ): Promise<IndicativeQuote | undefined> {
+        const timerStopFn = RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS.startTimer();
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: PRICE_ENDPOINT_TIMEOUT_MS,
+            validateStatus: () => true, // Don't throw errors on 4xx or 5xx
             headers: {
                 '0x-request-uuid': uuid.v4(),
                 '0x-integrator-id': integrator.integratorId,
@@ -155,7 +201,17 @@ export class QuoteServerClient {
             params: parameters,
         });
 
-        if (response.status !== OK) {
+        timerStopFn({
+            type: makerUriToUrl(''), // HACK - used to distinguish between RFQm and RFQt
+            integratorLabel: integrator.label,
+            makerUri,
+            chainId: parameters.chainId,
+            statusCode: response.status,
+            market: getMarketLabel(parameters.sellTokenAddress, parameters.buyTokenAddress),
+        });
+
+        // Empty response from MM (not 200, no data, or empty object)
+        if (response.status !== OK || !response.data || Object.keys(response.data).length === 0) {
             return;
         }
 
@@ -230,7 +286,7 @@ export class QuoteServerClient {
         makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/sign`,
         requireProceedWithFill: boolean = true,
     ): Promise<Signature | undefined> {
-        const timerStopFn = MARKET_MAKER_SIGN_LATENCY.labels(makerUri).startTimer();
+        const timerStopFn = MARKET_MAKER_SIGN_LATENCY.startTimer();
         const requestUuid = uuid.v4();
         const rawResponse = await this._axiosInstance.post(
             makerUriToUrl(makerUri),
@@ -250,6 +306,7 @@ export class QuoteServerClient {
                     '0x-request-uuid': requestUuid,
                     'Content-Type': 'application/json',
                 },
+                validateStatus: () => true, // Don't throw errors on 4xx or 5xx
             },
         );
         logger.info(
@@ -260,13 +317,20 @@ export class QuoteServerClient {
             },
             'Sign response received from MM',
         );
+        timerStopFn({
+            makerUri,
+            statusCode: rawResponse.status,
+        });
 
         // TODO (rhinodavid): Filter out non-successful statuses from validation step
 
         const validationResult = schemaValidator.validate(rawResponse.data, schemas.signResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
-            logger.error({ response: rawResponse.data, makerUri }, 'Malformed sign response');
+            logger.error(
+                { response: rawResponse.data, makerUri, status: rawResponse.status },
+                'Malformed sign response',
+            );
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
@@ -292,7 +356,6 @@ export class QuoteServerClient {
             return undefined;
         }
 
-        timerStopFn();
         return makerSignature;
     }
 }

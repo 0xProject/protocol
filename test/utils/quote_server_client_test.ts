@@ -9,7 +9,6 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { expect } from 'chai';
 import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
@@ -88,7 +87,7 @@ describe('QuoteServerClient', () => {
             const params = QuoteServerClient.makeQueryParameters(input);
 
             // Then
-            expect(params).to.deep.eq({
+            expect(params).toEqual({
                 buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 protocolVersion: '4',
                 sellAmountBaseUnits: '100000',
@@ -123,7 +122,7 @@ describe('QuoteServerClient', () => {
             });
 
             // Then
-            expect(params).to.deep.eq({
+            expect(params).toEqual({
                 buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 feeAmount: '100',
                 feeToken: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
@@ -162,7 +161,7 @@ describe('QuoteServerClient', () => {
             });
 
             // Then
-            expect(params).to.deep.eq({
+            expect(params).toEqual({
                 chainId: '10',
                 buyTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
                 feeAmount: '100',
@@ -223,7 +222,76 @@ describe('QuoteServerClient', () => {
                     ...response,
                     makerUri,
                 };
-                expect(indicativeQuote).to.deep.eq(expectedResponse);
+                expect(indicativeQuote).toEqual(expectedResponse);
+            });
+
+            it('should return undefined for empty responses (not quoting)', async () => {
+                // Given
+                const client = new QuoteServerClient(axiosInstance);
+                const request: QuoteServerPriceParams = {
+                    chainId: CHAIN_ID.toString(),
+                    sellTokenAddress: takerToken,
+                    buyTokenAddress: makerToken,
+                    takerAddress,
+                    sellAmountBaseUnits: takerAmount.toString(),
+                    protocolVersion: '4',
+                    txOrigin: takerAddress,
+                    isLastLook: 'true',
+                    feeAmount: '100',
+                    feeType: 'fixed',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    nonce: '1634322835',
+                    nonceBucket: '1',
+                };
+
+                const response = {}; // empty response
+
+                // When
+                axiosMock.onGet(`${makerUri}/rfqm/v2/price`).replyOnce(HttpStatus.OK, response);
+                const result = await client.getPriceV2Async(
+                    makerUri,
+                    integrator,
+                    request,
+                    (uri) => `${uri}/rfqm/v2/price`,
+                );
+
+                // Then
+                expect(result).toBe(undefined);
+            });
+
+            it('should return undefined when returning a 400 from axios', async () => {
+                // Given
+                const client = new QuoteServerClient(axiosInstance);
+                const request: QuoteServerPriceParams = {
+                    chainId: CHAIN_ID.toString(),
+                    sellTokenAddress: takerToken,
+                    buyTokenAddress: makerToken,
+                    takerAddress,
+                    sellAmountBaseUnits: takerAmount.toString(),
+                    protocolVersion: '4',
+                    txOrigin: takerAddress,
+                    isLastLook: 'true',
+                    feeAmount: '100',
+                    feeType: 'fixed',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    nonce: '1634322835',
+                    nonceBucket: '1',
+                };
+
+                const response = {}; // empty response
+
+                axiosMock.onGet(`${makerUri}/rfqm/v2/price`).replyOnce(HttpStatus.BAD_REQUEST, response);
+
+                // When
+                const result = await client.getPriceV2Async(
+                    makerUri,
+                    integrator,
+                    request,
+                    (uri) => `${uri}/rfqm/v2/price`,
+                );
+
+                // Then
+                expect(result).toBe(undefined);
             });
 
             it('should throw an error for a malformed response', async () => {
@@ -251,14 +319,10 @@ describe('QuoteServerClient', () => {
 
                 axiosMock.onGet(`${makerUri}/rfqm/v2/price`).replyOnce(HttpStatus.OK, response);
 
-                try {
-                    // When
+                // When
+                await expect(async () => {
                     await client.getPriceV2Async(makerUri, integrator, request, (uri) => `${uri}/rfqm/v2/price`);
-                    expect.fail('Should not succeed');
-                } catch (err) {
-                    // Then
-                    expect(err).to.not.equal(undefined);
-                }
+                }).rejects.toThrow();
             });
         });
 
@@ -306,9 +370,9 @@ describe('QuoteServerClient', () => {
                 );
 
                 // Then
-                expect(indicativeQuotes!.length).to.equal(1);
-                expect(indicativeQuotes[0].makerAmount.toNumber()).to.equal(response.makerAmount.toNumber());
-                expect(indicativeQuotes[0].maker).to.equal(makerAddress);
+                expect(indicativeQuotes!.length).toEqual(1);
+                expect(indicativeQuotes[0].makerAmount.toNumber()).toEqual(response.makerAmount.toNumber());
+                expect(indicativeQuotes[0].maker).toEqual(makerAddress);
             });
         });
 
@@ -351,7 +415,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.deep.eq(makerSignature);
+                expect(signature).toEqual(makerSignature);
             });
 
             it('should return a signature for valid response even if the fee is higher than requested', async () => {
@@ -392,7 +456,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.deep.eq(makerSignature);
+                expect(signature).toEqual(makerSignature);
             });
 
             it('should throw an error for a malformed response', async () => {
@@ -418,14 +482,9 @@ describe('QuoteServerClient', () => {
                     .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(request)))
                     .replyOnce(HttpStatus.OK, response);
 
-                try {
-                    // When
+                await expect(async () => {
                     await client.signV2Async(makerUri, 'dummy-integrator-id', request);
-                    expect.fail('Should not succeed');
-                } catch (err) {
-                    // Then
-                    expect(err).to.be.an.instanceof(Error);
-                }
+                }).rejects.toThrow();
             });
 
             it('should return undefined for an incorrect fee acknowledgement', async () => {
@@ -466,7 +525,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.equal(undefined);
+                expect(signature).toBe(undefined);
             });
 
             it('should return undefined for explicitly rejected responses', async () => {
@@ -505,7 +564,7 @@ describe('QuoteServerClient', () => {
                 const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
 
                 // Then
-                expect(signature).to.equal(undefined);
+                expect(signature).toBe(undefined);
             });
         });
     });

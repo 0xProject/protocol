@@ -41,43 +41,43 @@ import { schemaUtils } from '../utils/schema_utils';
 const RFQM_INDICATIVE_QUOTE_REQUEST = new Counter({
     name: 'rfqm_handler_indicative_quote_requested',
     help: 'Request made to fetch rfqm indicative quote',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_INDICATIVE_QUOTE_NOT_FOUND = new Counter({
     name: 'rfqm_handler_indicative_quote_not_found',
     help: 'Request to fetch rfqm indicative quote returned no quote',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_INDICATIVE_QUOTE_ERROR = new Counter({
     name: 'rfqm_handler_indicative_quote_error',
     help: 'Request to fetch rfqm indicative quote resulted in error',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_FIRM_QUOTE_REQUEST = new Counter({
     name: 'rfqm_handler_firm_quote_requested',
     help: 'Request made to fetch rfqm firm quote',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_FIRM_QUOTE_NOT_FOUND = new Counter({
     name: 'rfqm_handler_firm_quote_not_found',
     help: 'Request to fetch rfqm firm quote returned no quote',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_FIRM_QUOTE_ERROR = new Counter({
     name: 'rfqm_handler_firm_quote_error',
     help: 'Request to fetch rfqm firm quote resulted in error',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 const RFQM_SIGNED_QUOTE_SUBMITTED = new Counter({
     name: 'rfqm_handler_signed_quote_submitted',
     help: 'Request received to submit a signed rfqm quote',
-    labelNames: ['apiKey', 'integratorId'],
+    labelNames: ['integratorLabel', 'chainId'],
 });
 
 // If the cache is more milliseconds old than the value specified here, it will be refreshed.
@@ -90,11 +90,13 @@ export class RfqmHandlers {
     constructor(private readonly _rfqmServices: RfqmServices, private readonly _configManager: ConfigManager) {}
 
     public async getIndicativeQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const integratorId = this._configManager.getIntegratorIdForApiKey(req.header('0x-api-key') || '') ?? 'N/A';
-        RFQM_INDICATIVE_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
-
         // Parse request
         const { chainId, params } = await this._parseFetchIndicativeQuoteParamsAsync(req);
+        // NOTE: not all requests are emitted if they fail parsing
+        RFQM_INDICATIVE_QUOTE_REQUEST.inc({
+            integratorLabel: params.integrator.label,
+            chainId,
+        });
 
         // Try to get indicative quote
         let indicativeQuote;
@@ -102,13 +104,19 @@ export class RfqmHandlers {
             indicativeQuote = await this._getServiceForChain(chainId).fetchIndicativeQuoteAsync(params);
         } catch (err) {
             req.log.error(err, 'Encountered an error while fetching an rfqm indicative quote');
-            RFQM_INDICATIVE_QUOTE_ERROR.labels(integratorId, integratorId).inc();
+            RFQM_INDICATIVE_QUOTE_ERROR.inc({
+                integratorLabel: params.integrator.label,
+                chainId,
+            });
             throw new InternalServerError('Unexpected error encountered');
         }
 
         // Log no quote returned
         if (indicativeQuote === null) {
-            RFQM_INDICATIVE_QUOTE_NOT_FOUND.labels(integratorId, integratorId).inc();
+            RFQM_INDICATIVE_QUOTE_NOT_FOUND.inc({
+                integratorLabel: params.integrator.label,
+                chainId,
+            });
         }
 
         // Result
@@ -119,11 +127,13 @@ export class RfqmHandlers {
     }
 
     public async getFirmQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
-        const integratorId = this._configManager.getIntegratorIdForApiKey(req.header('0x-api-key') || '') ?? 'N/A';
-        RFQM_FIRM_QUOTE_REQUEST.labels(integratorId, integratorId).inc();
-
         // Parse request
         const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
+        // NOTE: not all requests are emitted if they fail parsing
+        RFQM_FIRM_QUOTE_REQUEST.inc({
+            integratorLabel: params.integrator.label,
+            chainId,
+        });
 
         // Try to get firm quote
         let firmQuote;
@@ -131,13 +141,19 @@ export class RfqmHandlers {
             firmQuote = await this._getServiceForChain(chainId).fetchFirmQuoteAsync(params);
         } catch (err) {
             req.log.error(err, 'Encountered an error while fetching an rfqm firm quote');
-            RFQM_FIRM_QUOTE_ERROR.labels(integratorId, integratorId).inc();
+            RFQM_FIRM_QUOTE_ERROR.inc({
+                integratorLabel: params.integrator.label,
+                chainId,
+            });
             throw new InternalServerError('Unexpected error encountered');
         }
 
         // Log no quote returned
         if (firmQuote === null) {
-            RFQM_FIRM_QUOTE_NOT_FOUND.labels(integratorId, integratorId).inc();
+            RFQM_FIRM_QUOTE_NOT_FOUND.inc({
+                integratorLabel: params.integrator.label,
+                chainId,
+            });
         }
 
         // Result
@@ -182,7 +198,10 @@ export class RfqmHandlers {
 
     public async submitSignedQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const { chainId, integrator, params } = this._parseSubmitSignedQuoteParams(req);
-        RFQM_SIGNED_QUOTE_SUBMITTED.labels(integrator.integratorId, integrator.integratorId).inc();
+        RFQM_SIGNED_QUOTE_SUBMITTED.inc({
+            integratorLabel: integrator.label,
+            chainId,
+        });
         try {
             const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
             res.status(HttpStatus.CREATED).send(response);
@@ -198,7 +217,10 @@ export class RfqmHandlers {
 
     public async submitSignedQuoteWithApprovalAsync(req: express.Request, res: express.Response): Promise<void> {
         const { chainId, integrator, params } = this._parseSubmitSignedQuoteWithApprovalParams(req);
-        RFQM_SIGNED_QUOTE_SUBMITTED.labels(integrator.integratorId, integrator.integratorId).inc();
+        RFQM_SIGNED_QUOTE_SUBMITTED.inc({
+            integratorLabel: integrator.label,
+            chainId,
+        });
         try {
             const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderWithApprovalAsync(params);
             res.status(HttpStatus.CREATED).send(response);
