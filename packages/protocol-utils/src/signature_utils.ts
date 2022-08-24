@@ -1,19 +1,8 @@
 import { SupportedProvider } from '@0x/subproviders';
-import { EIP712TypedData } from '@0x/types';
+import { EIP712TypedData, SignatureType } from '@0x/types';
 import { hexUtils, providerUtils, signTypedDataUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as ethjs from 'ethereumjs-util';
-
-/**
- * Valid signature types on the Exchange Proxy.
- */
-export enum SignatureType {
-    Illegal = 0,
-    Invalid = 1,
-    EIP712 = 2,
-    EthSign = 3,
-    PreSigned = 4,
-}
 
 /**
  * Represents a raw EC signature.

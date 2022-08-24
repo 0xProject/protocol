@@ -1,5 +1,9 @@
 [
     {
+        "version": "11.17.0",
+        "changes": [{ "note": "Remove `SignatureType` definition in favor of the definition in @0x/types" }]
+    },
+    {
         "timestamp": 1661145612,
         "version": "11.16.4",
         "changes": [

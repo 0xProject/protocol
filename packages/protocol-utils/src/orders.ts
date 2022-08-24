@@ -1,6 +1,6 @@
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { SupportedProvider } from '@0x/subproviders';
-import { EIP712TypedData } from '@0x/types';
+import { EIP712TypedData, SignatureType } from '@0x/types';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 
 import { ZERO } from './constants';
@@ -16,7 +16,6 @@ import {
     ethSignHashWithKey,
     ethSignHashWithProviderAsync,
     Signature,
-    SignatureType,
 } from './signature_utils';
 
 const COMMON_ORDER_DEFAULT_VALUES = {
