@@ -18,15 +18,14 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "./LibStorage.sol";
 import "../external/IFlashWallet.sol";
 
-
 /// @dev Storage helpers for the `FixinReentrancyGuard` mixin.
 library LibReentrancyGuardStorage {
-
     /// @dev Storage bucket for this feature.
     struct Storage {
         // Reentrancy flags set whenever a non-reentrant function is entered
@@ -36,12 +35,12 @@ library LibReentrancyGuardStorage {
 
     /// @dev Get the storage bucket for this contract.
     function getStorage() internal pure returns (Storage storage stor) {
-        uint256 storageSlot = LibStorage.getStorageSlot(
-            LibStorage.StorageId.ReentrancyGuard
-        );
+        uint256 storageSlot = LibStorage.getStorageSlot(LibStorage.StorageId.ReentrancyGuard);
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries
-        assembly { stor_slot := storageSlot }
+        assembly {
+            stor_slot := storageSlot
+        }
     }
 }

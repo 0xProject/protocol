@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -27,11 +28,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that wraps or unwraps WETH.
-contract WethTransformer is
-    Transformer
-{
+contract WethTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;
@@ -52,26 +50,18 @@ contract WethTransformer is
 
     /// @dev Construct the transformer and store the WETH address in an immutable.
     /// @param weth_ The weth token.
-    constructor(IEtherTokenV06 weth_)
-        public
-        Transformer()
-    {
+    constructor(IEtherTokenV06 weth_) public Transformer() {
         weth = weth_;
     }
 
     /// @dev Wraps and unwraps WETH.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         if (!data.token.isTokenETH() && data.token != weth) {
             LibTransformERC20RichErrors.InvalidTransformDataError(
-                LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
-                context.data
+                LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS, context.data
             ).rrevert();
         }
 

@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.12;
 
-
 interface IUniswapV3Pool {
-
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
     /// @param recipient The address to receive the output of the swap

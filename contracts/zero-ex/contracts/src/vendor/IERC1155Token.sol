@@ -18,11 +18,10 @@
 */
 
 pragma solidity ^0.6;
+
 pragma experimental ABIEncoderV2;
 
-
 interface IERC1155Token {
-
     /// @dev Either TransferSingle or TransferBatch MUST emit when tokens are transferred,
     ///      including zero value transfers as well as minting or burning.
     /// Operator will always be msg.sender.
@@ -32,13 +31,7 @@ interface IERC1155Token {
     /// be used by clients and exchanges to be added to the "circulating supply" for a given token ID.
     /// To define a token ID with no initial balance, the contract SHOULD emit the TransferSingle event
     /// from `0x0` to `0x0`, with the token creator as `_operator`.
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 value
-    );
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
 
     /// @dev Either TransferSingle or TransferBatch MUST emit when tokens are transferred,
     ///      including zero value transfers as well as minting or burning.
@@ -50,27 +43,16 @@ interface IERC1155Token {
     /// To define multiple token IDs with no initial balance, this SHOULD emit the TransferBatch event
     /// from `0x0` to `0x0`, with the token creator as `_operator`.
     event TransferBatch(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256[] ids,
-        uint256[] values
+        address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values
     );
 
     /// @dev MUST emit when an approval is updated.
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     /// @dev MUST emit when the URI is updated for a token ID.
     /// URIs are defined in RFC 3986.
     /// The URI MUST point a JSON file that conforms to the "ERC-1155 Metadata JSON Schema".
-    event URI(
-        string value,
-        uint256 indexed id
-    );
+    event URI(string value, uint256 indexed id);
 
     /// @notice Transfers value amount of an _id from the _from address to the _to address specified.
     /// @dev MUST emit TransferSingle event on success.
@@ -86,14 +68,7 @@ interface IERC1155Token {
     /// @param id      ID of the token type
     /// @param value   Transfer amount
     /// @param data    Additional data with no specified format, sent in call to `_to`
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    )
-        external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes calldata data) external;
 
     /// @notice Send multiple types of Tokens from a 3rd party in one transfer (with safety call).
     /// @dev MUST emit TransferBatch event on success.
@@ -141,10 +116,7 @@ interface IERC1155Token {
     /// @param owners      The addresses of the token holders
     /// @param ids         ID of the Tokens
     /// @return balances_  The _owner's balance of the Token types requested
-    function balanceOfBatch(
-        address[] calldata owners,
-        uint256[] calldata ids
-    )
+    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids)
         external
         view
         returns (uint256[] memory balances_);

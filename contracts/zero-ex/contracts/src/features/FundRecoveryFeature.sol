@@ -13,6 +13,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -22,11 +23,7 @@ import "./interfaces/IFeature.sol";
 import "./interfaces/IFundRecoveryFeature.sol";
 import "../transformers/LibERC20Transformer.sol";
 
-contract FundRecoveryFeature is
-    IFeature,
-    IFundRecoveryFeature,
-    FixinCommon
-{
+contract FundRecoveryFeature is IFeature, IFundRecoveryFeature, FixinCommon {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "FundRecoveryFeature";
     /// @dev Version of this feature.
@@ -35,10 +32,7 @@ contract FundRecoveryFeature is
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.transferTrappedTokensTo.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -47,20 +41,14 @@ contract FundRecoveryFeature is
     /// @param erc20 ERC20 Token Address. (You can also pass in `0xeeeee...` to indicate ETH)
     /// @param amountOut Amount of tokens to withdraw.
     /// @param recipientWallet Recipient wallet address.
-    function transferTrappedTokensTo(
-        IERC20TokenV06 erc20,
-        uint256 amountOut,
-        address payable recipientWallet
-    )
+    function transferTrappedTokensTo(IERC20TokenV06 erc20, uint256 amountOut, address payable recipientWallet)
         external
         override
         onlyOwner
     {
-        if(amountOut == uint256(-1)) {
+        if (amountOut == uint256(-1)) {
             amountOut = LibERC20Transformer.getTokenBalanceOf(erc20, address(this));
         }
         LibERC20Transformer.transformerTransfer(erc20, recipientWallet, amountOut);
     }
-
-    
 }

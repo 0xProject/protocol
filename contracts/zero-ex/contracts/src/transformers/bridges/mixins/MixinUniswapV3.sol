@@ -19,6 +19,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
@@ -26,7 +27,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
 interface IUniswapV3Router {
-
     struct ExactInputParams {
         bytes path;
         address recipient;
@@ -35,36 +35,29 @@ interface IUniswapV3Router {
         uint256 amountOutMinimum;
     }
 
-    function exactInput(ExactInputParams memory params)
-        external
-        payable
-        returns (uint256 amountOut);
+    function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
 }
 
 contract MixinUniswapV3 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeUniswapV3(
-        IERC20TokenV06 sellToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeUniswapV3(IERC20TokenV06 sellToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
-        (IUniswapV3Router router, bytes memory path) =
-            abi.decode(bridgeData, (IUniswapV3Router, bytes));
+        (IUniswapV3Router router, bytes memory path) = abi.decode(bridgeData, (IUniswapV3Router, bytes));
 
         // Grant the Uniswap router an allowance to sell the sell token.
         sellToken.approveIfBelow(address(router), sellAmount);
 
-        boughtAmount = router.exactInput(IUniswapV3Router.ExactInputParams({
-            path: path,
-            recipient: address(this),
-            deadline: block.timestamp,
-            amountIn: sellAmount,
-            amountOutMinimum: 1
-        }));
+        boughtAmount = router.exactInput(
+            IUniswapV3Router.ExactInputParams({
+                path: path,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: sellAmount,
+                amountOutMinimum: 1
+            })
+        );
     }
 }

@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
@@ -25,29 +26,23 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../errors/LibCommonRichErrors.sol";
 import "../storage/LibReentrancyGuardStorage.sol";
 
-
 /// @dev Common feature utilities.
 abstract contract FixinReentrancyGuard {
-
     using LibRichErrorsV06 for bytes;
     using LibBytesV06 for bytes;
 
     // Combinable reentrancy flags.
     /// @dev Reentrancy guard flag for meta-transaction functions.
-    uint256 constant internal REENTRANCY_MTX = 0x1;
+    uint256 internal constant REENTRANCY_MTX = 0x1;
 
     /// @dev Cannot reenter a function with the same reentrancy guard flags.
     modifier nonReentrant(uint256 reentrancyFlags) virtual {
-        LibReentrancyGuardStorage.Storage storage stor =
-            LibReentrancyGuardStorage.getStorage();
+        LibReentrancyGuardStorage.Storage storage stor = LibReentrancyGuardStorage.getStorage();
         {
             uint256 currentFlags = stor.reentrancyFlags;
             // Revert if any bits in `reentrancyFlags` has already been set.
             if ((currentFlags & reentrancyFlags) != 0) {
-                LibCommonRichErrors.IllegalReentrancyError(
-                    msg.data.readBytes4(0),
-                    reentrancyFlags
-                ).rrevert();
+                LibCommonRichErrors.IllegalReentrancyError(msg.data.readBytes4(0), reentrancyFlags).rrevert();
             }
             // Update reentrancy flags.
             stor.reentrancyFlags = currentFlags | reentrancyFlags;

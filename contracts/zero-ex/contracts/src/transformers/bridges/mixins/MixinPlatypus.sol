@@ -18,15 +18,14 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-
 interface IPlatypusRouter {
-
     function swapTokensForTokens(
         address[] calldata tokenPath,
         address[] calldata poolPath,
@@ -34,19 +33,16 @@ interface IPlatypusRouter {
         uint256 minimumToAmount,
         address to,
         uint256 deadline
-    ) external returns (uint256 amountOut, uint256 haircut);
+    )
+        external
+        returns (uint256 amountOut, uint256 haircut);
 }
 
 contract MixinPlatypus {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
-    function _tradePlatypus(
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradePlatypus(IERC20TokenV06 buyToken, uint256 sellAmount, bytes memory bridgeData)
         public
         returns (uint256 boughtAmount)
     {
@@ -60,17 +56,16 @@ contract MixinPlatypus {
             (_router, _pool, _path) = abi.decode(bridgeData, (address, address[], address[]));
 
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
         //connect to the ptp router
         router = IPlatypusRouter(_router);
 
         require(path.length >= 2, "MixinPlatypus/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinPlatypus/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path[path.length - 1] == buyToken, "MixinPlatypus/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
         // Grant the Platypus router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 
@@ -82,13 +77,12 @@ contract MixinPlatypus {
             _path,
             // pool to swap on
             _pool,
-             // Sell all tokens we hold.
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             0,
             // Recipient is `this`.
             address(this),
-
             block.timestamp + 1
         );
         //calculate the buy amount from the tokens we recieved

@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "./features/BootstrapFeature.sol";
@@ -34,26 +35,21 @@ contract ZeroExOptimized {
         // Temporarily create and register the bootstrap feature.
         // It will deregister itself after `bootstrap()` has been called.
         BootstrapFeature bootstrap = new BootstrapFeature(bootstrapper);
-        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] =
-            address(bootstrap);
+        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] = address(bootstrap);
     }
-
 
     // solhint-disable state-visibility
 
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
         // This is used in assembly below as impls_slot.
-        mapping(bytes4 => address) storage impls =
-            LibProxyStorage.getStorage().impls;
+        mapping(bytes4 => address) storage impls = LibProxyStorage.getStorage().impls;
 
         assembly {
             let cdlen := calldatasize()
 
             // equivalent of receive() external payable {}
-            if iszero(cdlen) {
-                return(0, 0)
-            }
+            if iszero(cdlen) { return(0, 0) }
 
             // Store at 0x40, to leave 0x00-0x3F for slot calculation below.
             calldatacopy(0x40, 0, cdlen)
@@ -75,17 +71,10 @@ contract ZeroExOptimized {
                 revert(0, 0x24)
             }
 
-            let success := delegatecall(
-                gas(),
-                delegate,
-                0x40, cdlen,
-                0, 0
-            )
+            let success := delegatecall(gas(), delegate, 0x40, cdlen, 0, 0)
             let rdlen := returndatasize()
             returndatacopy(0, 0, rdlen)
-            if success {
-                return(0, rdlen)
-            }
+            if success { return(0, rdlen) }
             revert(0, rdlen)
         }
     }

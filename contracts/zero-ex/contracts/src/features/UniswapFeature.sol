@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -27,13 +28,8 @@ import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IUniswapFeature.sol";
 
-
 /// @dev VIP uniswap fill functions.
-contract UniswapFeature is
-    IFeature,
-    IUniswapFeature,
-    FixinCommon
-{
+contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapFeature";
     /// @dev Version of this feature.
@@ -42,36 +38,46 @@ contract UniswapFeature is
     IEtherTokenV06 private immutable WETH;
 
     // 0xFF + address of the UniswapV2Factory contract.
-    uint256 constant private FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
+    uint256 private constant FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
     // 0xFF + address of the (Sushiswap) UniswapV2Factory contract.
-    uint256 constant private FF_SUSHISWAP_FACTORY = 0xFFC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac0000000000000000000000;
+    uint256 private constant FF_SUSHISWAP_FACTORY = 0xFFC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac0000000000000000000000;
     // Init code hash of the UniswapV2Pair contract.
-    uint256 constant private UNISWAP_PAIR_INIT_CODE_HASH = 0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
+    uint256 private constant UNISWAP_PAIR_INIT_CODE_HASH =
+        0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
     // Init code hash of the (Sushiswap) UniswapV2Pair contract.
-    uint256 constant private SUSHISWAP_PAIR_INIT_CODE_HASH = 0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
+    uint256 private constant SUSHISWAP_PAIR_INIT_CODE_HASH =
+        0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // ETH pseudo-token address.
-    uint256 constant private ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+    uint256 private constant ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
     // Maximum token quantity that can be swapped against the UniswapV2Pair contract.
-    uint256 constant private MAX_SWAP_AMOUNT = 2**112;
+    uint256 private constant MAX_SWAP_AMOUNT = 2 ** 112;
 
     // bytes4(keccak256("executeCall(address,bytes)"))
-    uint256 constant private ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32 = 0xbca8c7b500000000000000000000000000000000000000000000000000000000;
+    uint256 private constant ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32 =
+        0xbca8c7b500000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("getReserves()"))
-    uint256 constant private UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32 = 0x0902f1ac00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32 =
+        0x0902f1ac00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("swap(uint256,uint256,address,bytes)"))
-    uint256 constant private UNISWAP_PAIR_SWAP_CALL_SELECTOR_32 = 0x022c0d9f00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant UNISWAP_PAIR_SWAP_CALL_SELECTOR_32 =
+        0x022c0d9f00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("transferFrom(address,address,uint256)"))
-    uint256 constant private TRANSFER_FROM_CALL_SELECTOR_32 = 0x23b872dd00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant TRANSFER_FROM_CALL_SELECTOR_32 =
+        0x23b872dd00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("allowance(address,address)"))
-    uint256 constant private ALLOWANCE_CALL_SELECTOR_32 = 0xdd62ed3e00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant ALLOWANCE_CALL_SELECTOR_32 =
+        0xdd62ed3e00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("withdraw(uint256)"))
-    uint256 constant private WETH_WITHDRAW_CALL_SELECTOR_32 = 0x2e1a7d4d00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant WETH_WITHDRAW_CALL_SELECTOR_32 =
+        0x2e1a7d4d00000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("deposit()"))
-    uint256 constant private WETH_DEPOSIT_CALL_SELECTOR_32 = 0xd0e30db000000000000000000000000000000000000000000000000000000000;
+    uint256 private constant WETH_DEPOSIT_CALL_SELECTOR_32 =
+        0xd0e30db000000000000000000000000000000000000000000000000000000000;
     // bytes4(keccak256("transfer(address,uint256)"))
-    uint256 constant private ERC20_TRANSFER_CALL_SELECTOR_32 = 0xa9059cbb00000000000000000000000000000000000000000000000000000000;
+    uint256 private constant ERC20_TRANSFER_CALL_SELECTOR_32 =
+        0xa9059cbb00000000000000000000000000000000000000000000000000000000;
 
     /// @dev Construct this contract.
     /// @param weth The WETH contract.
@@ -82,10 +88,7 @@ contract UniswapFeature is
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.sellToUniswap.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -96,12 +99,7 @@ contract UniswapFeature is
     /// @param minBuyAmount Minimum amount of `tokens[-1]` to buy.
     /// @param isSushi Use sushiswap if true.
     /// @return buyAmount Amount of `tokens[-1]` bought.
-    function sellToUniswap(
-        IERC20TokenV06[] calldata tokens,
-        uint256 sellAmount,
-        uint256 minBuyAmount,
-        bool isSushi
-    )
+    function sellToUniswap(IERC20TokenV06[] calldata tokens, uint256 sellAmount, uint256 minBuyAmount, bool isSushi)
         external
         payable
         override
@@ -132,7 +130,7 @@ contract UniswapFeature is
             let buyToken
             let nextPair := 0
 
-            for {let i := 0} lt(i, numPairs) {i := add(i, 1)} {
+            for { let i := 0 } lt(i, numPairs) { i := add(i, 1) } {
                 // sellToken = tokens[i]
                 let sellToken := loadTokenAddress(i)
                 // buyToken = tokens[i+1]
@@ -151,35 +149,28 @@ contract UniswapFeature is
                 if iszero(i) {
                     // This is the first token in the path.
                     switch eq(sellToken, ETH_TOKEN_ADDRESS_32)
-                        case 0 { // Not selling ETH. Selling an ERC20 instead.
-                            // Make sure ETH was not attached to the call.
-                            if gt(callvalue(), 0) {
-                                revert(0, 0)
-                            }
-                            // For the first pair we need to transfer sellTokens into the
-                            // pair contract.
-                            moveTakerTokensTo(sellToken, pair, sellAmount)
-                        }
-                        default {
-                            // If selling ETH, we need to wrap it to WETH and transfer to the
-                            // pair contract.
-                            if iszero(eq(callvalue(), sellAmount)) {
-                                revert(0, 0)
-                            }
-                            sellToken := mload(0xA40)// Re-assign to WETH
-                            // Call `WETH.deposit{value: sellAmount}()`
-                            mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
-                            if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
-                                bubbleRevert()
-                            }
-                            // Call `WETH.transfer(pair, sellAmount)`
-                            mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
-                            mstore(0xB04, pair)
-                            mstore(0xB24, sellAmount)
-                            if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) {
-                                bubbleRevert()
-                            }
-                        }
+                    case 0 {
+                        // Not selling ETH. Selling an ERC20 instead.
+                        // Make sure ETH was not attached to the call.
+                        if gt(callvalue(), 0) { revert(0, 0) }
+                        // For the first pair we need to transfer sellTokens into the
+                        // pair contract.
+                        moveTakerTokensTo(sellToken, pair, sellAmount)
+                    }
+                    default {
+                        // If selling ETH, we need to wrap it to WETH and transfer to the
+                        // pair contract.
+                        if iszero(eq(callvalue(), sellAmount)) { revert(0, 0) }
+                        sellToken := mload(0xA40) // Re-assign to WETH
+                        // Call `WETH.deposit{value: sellAmount}()`
+                        mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
+                        if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) { bubbleRevert() }
+                        // Call `WETH.transfer(pair, sellAmount)`
+                        mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
+                        mstore(0xB04, pair)
+                        mstore(0xB24, sellAmount)
+                        if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) { bubbleRevert() }
+                    }
                     // No need to check results, if deposit/transfers failed the UniswapV2Pair will
                     // reject our trade (or it may succeed if somehow the reserve was out of sync)
                     // this is fine for the taker.
@@ -187,13 +178,9 @@ contract UniswapFeature is
 
                 // Call pair.getReserves(), store the results at `0xC00`
                 mstore(0xB00, UNISWAP_PAIR_RESERVES_CALL_SELECTOR_32)
-                if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) {
-                    bubbleRevert()
-                }
+                if iszero(staticcall(gas(), pair, 0xB00, 0x4, 0xC00, 0x40)) { bubbleRevert() }
                 // Revert if the pair contract does not return at least two words.
-                if lt(returndatasize(), 0x40) {
-                    revert(0,0)
-                }
+                if lt(returndatasize(), 0x40) { revert(0, 0) }
 
                 // Sell amount for this hop is the previous buy amount.
                 let pairSellAmount := buyAmount
@@ -202,70 +189,56 @@ contract UniswapFeature is
                     let sellReserve
                     let buyReserve
                     switch iszero(pairOrder)
-                        case 0 {
-                            // Transpose if pair order is different.
-                            sellReserve := mload(0xC00)
-                            buyReserve := mload(0xC20)
-                        }
-                        default {
-                            sellReserve := mload(0xC20)
-                            buyReserve := mload(0xC00)
-                        }
-                    // Ensure that the sellAmount is < 2¹¹².
-                    if gt(pairSellAmount, MAX_SWAP_AMOUNT) {
-                        revert(0, 0)
+                    case 0 {
+                        // Transpose if pair order is different.
+                        sellReserve := mload(0xC00)
+                        buyReserve := mload(0xC20)
                     }
+                    default {
+                        sellReserve := mload(0xC20)
+                        buyReserve := mload(0xC00)
+                    }
+                    // Ensure that the sellAmount is < 2¹¹².
+                    if gt(pairSellAmount, MAX_SWAP_AMOUNT) { revert(0, 0) }
                     // Pairs are in the range (0, 2¹¹²) so this shouldn't overflow.
                     // buyAmount = (pairSellAmount * 997 * buyReserve) /
                     //     (pairSellAmount * 997 + sellReserve * 1000);
                     let sellAmountWithFee := mul(pairSellAmount, 997)
-                    buyAmount := div(
-                        mul(sellAmountWithFee, buyReserve),
-                        add(sellAmountWithFee, mul(sellReserve, 1000))
-                    )
+                    buyAmount := div(mul(sellAmountWithFee, buyReserve), add(sellAmountWithFee, mul(sellReserve, 1000)))
                 }
 
                 let receiver
                 // Is this the last pair contract?
                 switch eq(add(i, 1), numPairs)
-                    case 0 {
-                        // Not the last pair contract, so forward bought tokens to
-                        // the next pair contract.
-                        nextPair := computePairAddress(
-                            buyToken,
-                            loadTokenAddress(add(i, 2))
-                        )
-                        receiver := nextPair
-                    }
-                    default {
-                        // The last pair contract.
-                        // Forward directly to taker UNLESS they want ETH back.
-                        switch eq(buyToken, ETH_TOKEN_ADDRESS_32)
-                            case 0 {
-                                receiver := caller()
-                            }
-                            default {
-                                receiver := address()
-                            }
-                    }
+                case 0 {
+                    // Not the last pair contract, so forward bought tokens to
+                    // the next pair contract.
+                    nextPair := computePairAddress(buyToken, loadTokenAddress(add(i, 2)))
+                    receiver := nextPair
+                }
+                default {
+                    // The last pair contract.
+                    // Forward directly to taker UNLESS they want ETH back.
+                    switch eq(buyToken, ETH_TOKEN_ADDRESS_32)
+                    case 0 { receiver := caller() }
+                    default { receiver := address() }
+                }
 
                 // Call pair.swap()
                 mstore(0xB00, UNISWAP_PAIR_SWAP_CALL_SELECTOR_32)
                 switch pairOrder
-                    case 0 {
-                        mstore(0xB04, buyAmount)
-                        mstore(0xB24, 0)
-                    }
-                    default {
-                        mstore(0xB04, 0)
-                        mstore(0xB24, buyAmount)
-                    }
+                case 0 {
+                    mstore(0xB04, buyAmount)
+                    mstore(0xB24, 0)
+                }
+                default {
+                    mstore(0xB04, 0)
+                    mstore(0xB24, buyAmount)
+                }
                 mstore(0xB44, receiver)
                 mstore(0xB64, 0x80)
                 mstore(0xB84, 0)
-                if iszero(call(gas(), pair, 0, 0xB00, 0xA4, 0, 0)) {
-                    bubbleRevert()
-                }
+                if iszero(call(gas(), pair, 0, 0xB00, 0xA4, 0, 0)) { bubbleRevert() }
             } // End for-loop.
 
             // If buying ETH, unwrap the WETH first
@@ -273,13 +246,9 @@ contract UniswapFeature is
                 // Call `WETH.withdraw(buyAmount)`
                 mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
                 mstore(0xB04, buyAmount)
-                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
-                    bubbleRevert()
-                }
+                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) { bubbleRevert() }
                 // Transfer ETH to the caller.
-                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
-                    bubbleRevert()
-                }
+                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) { bubbleRevert() }
             }
 
             // Functions ///////////////////////////////////////////////////////
@@ -293,9 +262,7 @@ contract UniswapFeature is
             function normalizeToken(token) -> normalized {
                 normalized := token
                 // Translate ETH pseudo-tokens to WETH.
-                if eq(token, ETH_TOKEN_ADDRESS_32) {
-                    normalized := mload(0xA40)
-                }
+                if eq(token, ETH_TOKEN_ADDRESS_32) { normalized := mload(0xA40) }
             }
 
             // Compute the address of the UniswapV2Pair contract given two
@@ -322,27 +289,28 @@ contract UniswapFeature is
                 // them as two 20-byte values in a 40-byte chunk of memory
                 // starting at 0xB0C.
                 switch lt(tokenA, tokenB)
-                    case 0 {
-                        mstore(0xB14, tokenA)
-                        mstore(0xB00, tokenB)
-                    }
-                    default {
-                        mstore(0xB14, tokenB)
-                        mstore(0xB00, tokenA)
-                    }
+                case 0 {
+                    mstore(0xB14, tokenA)
+                    mstore(0xB00, tokenB)
+                }
+                default {
+                    mstore(0xB14, tokenB)
+                    mstore(0xB00, tokenA)
+                }
                 let salt := keccak256(0xB0C, 0x28)
                 // Compute the pair address by hashing all the components together.
-                switch mload(0xA20) // isSushi
-                    case 0 {
-                        mstore(0xB00, FF_UNISWAP_FACTORY)
-                        mstore(0xB15, salt)
-                        mstore(0xB35, UNISWAP_PAIR_INIT_CODE_HASH)
-                    }
-                    default {
-                        mstore(0xB00, FF_SUSHISWAP_FACTORY)
-                        mstore(0xB15, salt)
-                        mstore(0xB35, SUSHISWAP_PAIR_INIT_CODE_HASH)
-                    }
+                switch mload(0xA20)
+                // isSushi
+                case 0 {
+                    mstore(0xB00, FF_UNISWAP_FACTORY)
+                    mstore(0xB15, salt)
+                    mstore(0xB35, UNISWAP_PAIR_INIT_CODE_HASH)
+                }
+                default {
+                    mstore(0xB00, FF_SUSHISWAP_FACTORY)
+                    mstore(0xB15, salt)
+                    mstore(0xB35, SUSHISWAP_PAIR_INIT_CODE_HASH)
+                }
                 pair := and(ADDRESS_MASK, keccak256(0xB00, 0x55))
             }
 
@@ -360,18 +328,19 @@ contract UniswapFeature is
                 mstore(0xB24, to)
                 mstore(0xB44, amount)
 
-                let success := call(
-                    gas(),
-                    token,
-                    0,
-                    0xB00,
-                    0x64,
-                    0xC00,
-                    // Copy only the first 32 bytes of return data. We
-                    // only care about reading a boolean in the success
-                    // case. We will use returndatacopy() in the failure case.
-                    0x20
-                )
+                let success :=
+                    call(
+                        gas(),
+                        token,
+                        0,
+                        0xB00,
+                        0x64,
+                        0xC00,
+                        // Copy only the first 32 bytes of return data. We
+                        // only care about reading a boolean in the success
+                        // case. We will use returndatacopy() in the failure case.
+                        0x20
+                    )
 
                 let rdsize := returndatasize()
 
@@ -380,16 +349,17 @@ contract UniswapFeature is
                 // extra data. We accept 0-length return data as
                 // success, or at least 32 bytes that starts with
                 // a 32-byte boolean true.
-                success := and(
-                    success,                         // call itself succeeded
-                    or(
-                        iszero(rdsize),              // no return data, or
-                        and(
-                            iszero(lt(rdsize, 32)),  // at least 32 bytes
-                            eq(mload(0xC00), 1)      // starts with uint256(1)
+                success :=
+                    and(
+                        success, // call itself succeeded
+                        or(
+                            iszero(rdsize), // no return data, or
+                            and(
+                                iszero(lt(rdsize, 32)), // at least 32 bytes
+                                eq(mload(0xC00), 1) // starts with uint256(1)
+                            )
                         )
                     )
-                )
 
                 if iszero(success) {
                     // Revert with the data returned from the transferFrom call.

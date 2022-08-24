@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "../migrations/LibMigrate.sol";
@@ -25,12 +26,8 @@ import "./interfaces/IFeature.sol";
 import "./interfaces/INativeOrdersFeature.sol";
 import "./native_orders/NativeOrdersSettlement.sol";
 
-
 /// @dev Feature for interacting with limit and RFQ orders.
-contract NativeOrdersFeature is
-    IFeature,
-    NativeOrdersSettlement
-{
+contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "LimitOrders";
     /// @dev Version of this feature.
@@ -44,13 +41,7 @@ contract NativeOrdersFeature is
         uint32 protocolFeeMultiplier
     )
         public
-        NativeOrdersSettlement(
-            zeroExAddress,
-            weth,
-            staking,
-            feeCollectorController,
-            protocolFeeMultiplier
-        )
+        NativeOrdersSettlement(zeroExAddress, weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
         // solhint-disable no-empty-blocks
     }
@@ -58,10 +49,7 @@ contract NativeOrdersFeature is
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.transferProtocolFeesForPools.selector);
         _registerFeatureFunction(this.fillLimitOrder.selector);
         _registerFeatureFunction(this.fillRfqOrder.selector);

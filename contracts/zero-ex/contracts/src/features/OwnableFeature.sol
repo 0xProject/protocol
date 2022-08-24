@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -30,14 +31,8 @@ import "./interfaces/IFeature.sol";
 import "./interfaces/IOwnableFeature.sol";
 import "./SimpleFunctionRegistryFeature.sol";
 
-
 /// @dev Owner management features.
-contract OwnableFeature is
-    IFeature,
-    IOwnableFeature,
-    FixinCommon
-{
-
+contract OwnableFeature is IFeature, IOwnableFeature, FixinCommon {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "Ownable";
     /// @dev Version of this feature.
@@ -64,11 +59,7 @@ contract OwnableFeature is
     /// @dev Change the owner of this contract.
     ///      Only directly callable by the owner.
     /// @param newOwner New owner address.
-    function transferOwnership(address newOwner)
-        external
-        override
-        onlyOwner
-    {
+    function transferOwnership(address newOwner) external override onlyOwner {
         LibOwnableStorage.Storage storage proxyStor = LibOwnableStorage.getStorage();
 
         if (newOwner == address(0)) {
@@ -87,11 +78,7 @@ contract OwnableFeature is
     /// @param target The migrator contract address.
     /// @param data The call data.
     /// @param newOwner The address of the new owner.
-    function migrate(address target, bytes calldata data, address newOwner)
-        external
-        override
-        onlyOwner
-    {
+    function migrate(address target, bytes calldata data, address newOwner) external override onlyOwner {
         if (newOwner == address(0)) {
             LibOwnableRichErrors.TransferOwnerToZeroError().rrevert();
         }
@@ -111,7 +98,7 @@ contract OwnableFeature is
 
     /// @dev Get the owner of this contract.
     /// @return owner_ The owner of this contract.
-    function owner() external override view returns (address owner_) {
+    function owner() external view override returns (address owner_) {
         return LibOwnableStorage.getStorage().owner;
     }
 }

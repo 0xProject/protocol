@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
@@ -43,21 +44,14 @@ interface IPSM {
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units
-    function sellGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function sellGem(address usr, uint256 gemAmt) external;
     // @dev Buy USDC for DAI
     // @param usr The address of the account trading DAI for USDC
     // @param gemAmt The amount of USDC to buy in USDC base units
-    function buyGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function buyGem(address usr, uint256 gemAmt) external;
 }
 
 contract MixinMakerPSM {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -68,11 +62,11 @@ contract MixinMakerPSM {
 
     // Maker units
     // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-    uint256 constant private WAD = 10 ** 18;
+    uint256 private constant WAD = 10 ** 18;
     // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-    uint256 constant private RAY = 10 ** 27;
+    uint256 private constant RAY = 10 ** 27;
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-    uint256 constant private RAD = 10 ** 45;
+    uint256 private constant RAD = 10 ** 45;
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
 
     function _tradeMakerPsm(
@@ -91,21 +85,15 @@ contract MixinMakerPSM {
         IPSM psm = IPSM(data.psmAddress);
 
         if (address(sellToken) == data.gemTokenAddres) {
-            sellToken.approveIfBelow(
-                psm.gemJoin(),
-                sellAmount
-            );
+            sellToken.approveIfBelow(psm.gemJoin(), sellAmount);
 
             psm.sellGem(address(this), sellAmount);
         } else if (address(buyToken) == data.gemTokenAddres) {
             uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% fee [tout is in wad];
             uint256 buyTokenBaseUnit = uint256(10) ** uint256(buyToken.decimals());
-            uint256 gemAmount =  sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
+            uint256 gemAmount = sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
 
-            sellToken.approveIfBelow(
-                data.psmAddress,
-                sellAmount
-            );
+            sellToken.approveIfBelow(data.psmAddress, sellAmount);
             psm.buyGem(address(this), gemAmount);
         }
 

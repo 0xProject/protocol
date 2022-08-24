@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -29,14 +30,8 @@ import "../fixins/FixinTokenSpender.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IUniswapV3Feature.sol";
 
-
 /// @dev VIP uniswap fill functions.
-contract UniswapV3Feature is
-    IFeature,
-    IUniswapV3Feature,
-    FixinCommon,
-    FixinTokenSpender
-{
+contract UniswapV3Feature is IFeature, IUniswapV3Feature, FixinCommon, FixinTokenSpender {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "UniswapV3Feature";
     /// @dev Version of this feature.
@@ -68,11 +63,7 @@ contract UniswapV3Feature is
     /// @param weth The WETH contract.
     /// @param uniFactory The UniswapV3 factory contract.
     /// @param poolInitCodeHash The UniswapV3 pool init code hash.
-    constructor(
-        IEtherTokenV06 weth,
-        address uniFactory,
-        bytes32 poolInitCodeHash
-    ) public {
+    constructor(IEtherTokenV06 weth, address uniFactory, bytes32 poolInitCodeHash) public {
         WETH = weth;
         UNI_FF_FACTORY_ADDRESS = bytes32((uint256(0xff) << 248) | (uint256(uniFactory) << 88));
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
@@ -81,10 +72,7 @@ contract UniswapV3Feature is
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
@@ -98,18 +86,14 @@ contract UniswapV3Feature is
     /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @param minBuyAmount Minimum amount of the last token in the path to buy.
     /// @return buyAmount Amount of the last token in the path bought.
-    function sellEthForTokenToUniswapV3(
-        bytes memory encodedPath,
-        uint256 minBuyAmount,
-        address recipient
-    )
+    function sellEthForTokenToUniswapV3(bytes memory encodedPath, uint256 minBuyAmount, address recipient)
         public
         payable
         override
         returns (uint256 buyAmount)
     {
         // Wrap ETH.
-        WETH.deposit{ value: msg.value }();
+        WETH.deposit{value: msg.value}();
         return _swap(
             encodedPath,
             msg.value,
@@ -144,8 +128,7 @@ contract UniswapV3Feature is
         );
         WETH.withdraw(buyAmount);
         // Transfer ETH to recipient.
-        (bool success, bytes memory revertData) =
-            _normalizeRecipient(recipient).call{ value: buyAmount }("");
+        (bool success, bytes memory revertData) = _normalizeRecipient(recipient).call{value: buyAmount}("");
         if (!success) {
             revertData.rrevert();
         }
@@ -167,13 +150,7 @@ contract UniswapV3Feature is
         override
         returns (uint256 buyAmount)
     {
-        buyAmount = _swap(
-            encodedPath,
-            sellAmount,
-            minBuyAmount,
-            msg.sender,
-            _normalizeRecipient(recipient)
-        );
+        buyAmount = _swap(encodedPath, sellAmount, minBuyAmount, msg.sender, _normalizeRecipient(recipient));
     }
 
     /// @dev Sell a token for another token directly against uniswap v3.
@@ -194,13 +171,7 @@ contract UniswapV3Feature is
         onlySelf
         returns (uint256 buyAmount)
     {
-        buyAmount = _swap(
-            encodedPath,
-            sellAmount,
-            minBuyAmount,
-            address(this),
-            _normalizeRecipient(recipient)
-        );
+        buyAmount = _swap(encodedPath, sellAmount, minBuyAmount, address(this), _normalizeRecipient(recipient));
     }
 
     /// @dev The UniswapV3 pool swap callback which pays the funds requested
@@ -210,14 +181,7 @@ contract UniswapV3Feature is
     /// @param amount1Delta Token1 amount owed.
     /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
     ///        struct of: inputToken, outputToken, fee, payer
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata data
-    )
-        external
-        override
-    {
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
         IERC20TokenV06 token0;
         IERC20TokenV06 token1;
         address payer;
@@ -232,13 +196,10 @@ contract UniswapV3Feature is
                 fee := calldataload(add(p, 64))
                 payer := calldataload(add(p, 96))
             }
-            (token0, token1) = token0 < token1
-                ? (token0, token1)
-                : (token1, token0);
+            (token0, token1) = token0 < token1 ? (token0, token1) : (token1, token0);
             // Only a valid pool contract can call this function.
             require(
-                msg.sender == address(_toPool(token0, fee, token1)),
-                "UniswapV3Feature/INVALID_SWAP_CALLBACK_CALLER"
+                msg.sender == address(_toPool(token0, fee, token1)), "UniswapV3Feature/INVALID_SWAP_CALLBACK_CALLER"
             );
         }
         // Pay the amount owed to the pool.
@@ -252,13 +213,7 @@ contract UniswapV3Feature is
     }
 
     // Executes successive swaps along an encoded uniswap path.
-    function _swap(
-        bytes memory encodedPath,
-        uint256 sellAmount,
-        uint256 minBuyAmount,
-        address payer,
-        address recipient
-    )
+    function _swap(bytes memory encodedPath, uint256 sellAmount, uint256 minBuyAmount, address payer, address recipient)
         private
         returns (uint256 buyAmount)
     {
@@ -272,29 +227,18 @@ contract UniswapV3Feature is
                 bool zeroForOne;
                 IUniswapV3Pool pool;
                 {
-                    (
-                        IERC20TokenV06 inputToken,
-                        uint24 fee,
-                        IERC20TokenV06 outputToken
-                    ) = _decodeFirstPoolInfoFromPath(encodedPath);
+                    (IERC20TokenV06 inputToken, uint24 fee, IERC20TokenV06 outputToken) =
+                        _decodeFirstPoolInfoFromPath(encodedPath);
                     pool = _toPool(inputToken, fee, outputToken);
                     zeroForOne = inputToken < outputToken;
-                    _updateSwapCallbackData(
-                        swapCallbackData,
-                        inputToken,
-                        outputToken,
-                        fee,
-                        payer
-                    );
+                    _updateSwapCallbackData(swapCallbackData, inputToken, outputToken, fee, payer);
                 }
                 (int256 amount0, int256 amount1) = pool.swap(
                     // Intermediate tokens go to this contract.
                     isPathMultiHop ? address(this) : recipient,
                     zeroForOne,
                     int256(sellAmount),
-                    zeroForOne
-                        ? MIN_PRICE_SQRT_RATIO + 1
-                        : MAX_PRICE_SQRT_RATIO - 1,
+                    zeroForOne ? MIN_PRICE_SQRT_RATIO + 1 : MAX_PRICE_SQRT_RATIO - 1,
                     swapCallbackData
                 );
                 {
@@ -318,14 +262,7 @@ contract UniswapV3Feature is
 
     // Pay tokens from `payer` to `to`, using `transferFrom()` if
     // `payer` != this contract.
-    function _pay(
-        IERC20TokenV06 token,
-        address payer,
-        address to,
-        uint256 amount
-    )
-        private
-    {
+    function _pay(IERC20TokenV06 token, address payer, address to, uint256 amount) private {
         if (payer != address(this)) {
             _transferERC20TokensFrom(token, payer, to, amount);
         } else {
@@ -354,11 +291,7 @@ contract UniswapV3Feature is
     }
 
     // Compute the pool address given two tokens and a fee.
-    function _toPool(
-        IERC20TokenV06 inputToken,
-        uint24 fee,
-        IERC20TokenV06 outputToken
-    )
+    function _toPool(IERC20TokenV06 inputToken, uint24 fee, IERC20TokenV06 outputToken)
         private
         view
         returns (IUniswapV3Pool pool)
@@ -371,19 +304,18 @@ contract UniswapV3Feature is
         // )))
         bytes32 ffFactoryAddress = UNI_FF_FACTORY_ADDRESS;
         bytes32 poolInitCodeHash = UNI_POOL_INIT_CODE_HASH;
-        (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken < outputToken
-            ? (inputToken, outputToken)
-            : (outputToken, inputToken);
+        (IERC20TokenV06 token0, IERC20TokenV06 token1) =
+            inputToken < outputToken ? (inputToken, outputToken) : (outputToken, inputToken);
         assembly {
             let s := mload(0x40)
             let p := s
             mstore(p, ffFactoryAddress)
             p := add(p, 21)
             // Compute the inner hash in-place
-                mstore(p, token0)
-                mstore(add(p, 32), token1)
-                mstore(add(p, 64), and(UINT24_MASK, fee))
-                mstore(p, keccak256(p, 96))
+            mstore(p, token0)
+            mstore(add(p, 32), token1)
+            mstore(add(p, 64), and(UINT24_MASK, fee))
+            mstore(p, keccak256(p, 96))
             p := add(p, 32)
             mstore(p, poolInitCodeHash)
             pool := and(ADDRESS_MASK, keccak256(s, 85))
@@ -391,24 +323,15 @@ contract UniswapV3Feature is
     }
 
     // Return whether or not an encoded uniswap path contains more than one hop.
-    function _isPathMultiHop(bytes memory encodedPath)
-        private
-        pure
-        returns (bool isMultiHop)
-    {
+    function _isPathMultiHop(bytes memory encodedPath) private pure returns (bool isMultiHop) {
         return encodedPath.length > SINGLE_HOP_PATH_SIZE;
     }
-
 
     // Return the first input token, output token, and fee of an encoded uniswap path.
     function _decodeFirstPoolInfoFromPath(bytes memory encodedPath)
         private
         pure
-        returns (
-            IERC20TokenV06 inputToken,
-            uint24 fee,
-            IERC20TokenV06 outputToken
-        )
+        returns (IERC20TokenV06 inputToken, uint24 fee, IERC20TokenV06 outputToken)
     {
         require(encodedPath.length >= SINGLE_HOP_PATH_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
         assembly {
@@ -437,11 +360,7 @@ contract UniswapV3Feature is
     }
 
     // Convert null address values to msg.sender.
-    function _normalizeRecipient(address recipient)
-        private
-        view
-        returns (address payable normalizedRecipient)
-    {
+    function _normalizeRecipient(address recipient) private view returns (address payable normalizedRecipient) {
         return recipient == address(0) ? msg.sender : payable(recipient);
     }
 }

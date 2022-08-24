@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "../ZeroEx.sol";
@@ -26,10 +27,8 @@ import "../features/SimpleFunctionRegistryFeature.sol";
 import "../features/OwnableFeature.sol";
 import "./LibBootstrap.sol";
 
-
 /// @dev A contract for deploying and configuring a minimal ZeroEx contract.
 contract InitialMigration {
-
     /// @dev Features to bootstrap into the the proxy contract.
     struct BootstrapFeatures {
         SimpleFunctionRegistryFeature registry;
@@ -58,11 +57,7 @@ contract InitialMigration {
     ///        been constructed with this contract as the bootstrapper.
     /// @param features Features to bootstrap into the proxy.
     /// @return _zeroEx The configured ZeroEx contract. Same as the `zeroEx` parameter.
-    function initializeZeroEx(
-        address payable owner,
-        ZeroEx zeroEx,
-        BootstrapFeatures memory features
-    )
+    function initializeZeroEx(address payable owner, ZeroEx zeroEx, BootstrapFeatures memory features)
         public
         virtual
         returns (ZeroEx _zeroEx)
@@ -72,8 +67,7 @@ contract InitialMigration {
 
         // Bootstrap the initial feature set.
         IBootstrapFeature(address(zeroEx)).bootstrap(
-            address(this),
-            abi.encodeWithSelector(this.bootstrap.selector, owner, features)
+            address(this), abi.encodeWithSelector(this.bootstrap.selector, owner, features)
         );
 
         // Self-destruct. This contract should not hold any funds but we send
@@ -88,34 +82,23 @@ contract InitialMigration {
     /// @param owner The new owner of the ZeroEx contract.
     /// @param features Features to bootstrap into the proxy.
     /// @return success Magic bytes if successful.
-    function bootstrap(address owner, BootstrapFeatures memory features)
-        public
-        virtual
-        returns (bytes4 success)
-    {
+    function bootstrap(address owner, BootstrapFeatures memory features) public virtual returns (bytes4 success) {
         // Deploy and migrate the initial features.
         // Order matters here.
 
         // Initialize Registry.
         LibBootstrap.delegatecallBootstrapFunction(
-            address(features.registry),
-            abi.encodeWithSelector(
-                SimpleFunctionRegistryFeature.bootstrap.selector
-            )
+            address(features.registry), abi.encodeWithSelector(SimpleFunctionRegistryFeature.bootstrap.selector)
         );
 
         // Initialize OwnableFeature.
         LibBootstrap.delegatecallBootstrapFunction(
-            address(features.ownable),
-            abi.encodeWithSelector(
-                OwnableFeature.bootstrap.selector
-            )
+            address(features.ownable), abi.encodeWithSelector(OwnableFeature.bootstrap.selector)
         );
 
         // De-register `SimpleFunctionRegistryFeature._extendSelf`.
         SimpleFunctionRegistryFeature(address(this)).rollback(
-            SimpleFunctionRegistryFeature._extendSelf.selector,
-            address(0)
+            SimpleFunctionRegistryFeature._extendSelf.selector, address(0)
         );
 
         // Transfer ownership to the real owner.

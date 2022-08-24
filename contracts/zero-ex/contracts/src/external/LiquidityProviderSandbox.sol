@@ -13,6 +13,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -22,30 +23,22 @@ import "../vendor/ILiquidityProvider.sol";
 import "../vendor/v3/IERC20Bridge.sol";
 import "./ILiquidityProviderSandbox.sol";
 
-
 /// @dev A permissionless contract through which the ZeroEx contract can
 ///      safely trigger a trade on an external `ILiquidityProvider` contract.
-contract LiquidityProviderSandbox is
-    ILiquidityProviderSandbox
-{
+contract LiquidityProviderSandbox is ILiquidityProviderSandbox {
     using LibRichErrorsV06 for bytes;
 
     /// @dev Store the owner as an immutable.
     address public immutable owner;
 
-    constructor(address owner_)
-        public
-    {
+    constructor(address owner_) public {
         owner = owner_;
     }
 
     /// @dev Allows only the (immutable) owner to call a function.
     modifier onlyOwner() virtual {
         if (msg.sender != owner) {
-            LibOwnableRichErrorsV06.OnlyOwnerError(
-                msg.sender,
-                owner
-            ).rrevert();
+            LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner).rrevert();
         }
         _;
     }
@@ -67,16 +60,10 @@ contract LiquidityProviderSandbox is
         bytes calldata auxiliaryData
     )
         external
-        onlyOwner
         override
+        onlyOwner
     {
-        provider.sellTokenForToken(
-            inputToken,
-            outputToken,
-            recipient,
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellTokenForToken(inputToken, outputToken, recipient, minBuyAmount, auxiliaryData);
     }
 
     /// @dev Calls `sellEthForToken` on the given `provider` contract to
@@ -94,15 +81,10 @@ contract LiquidityProviderSandbox is
         bytes calldata auxiliaryData
     )
         external
-        onlyOwner
         override
+        onlyOwner
     {
-        provider.sellEthForToken(
-            outputToken,
-            recipient,
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellEthForToken(outputToken, recipient, minBuyAmount, auxiliaryData);
     }
 
     /// @dev Calls `sellTokenForEth` on the given `provider` contract to
@@ -120,14 +102,9 @@ contract LiquidityProviderSandbox is
         bytes calldata auxiliaryData
     )
         external
-        onlyOwner
         override
+        onlyOwner
     {
-        provider.sellTokenForEth(
-            inputToken,
-            payable(recipient),
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellTokenForEth(inputToken, payable(recipient), minBuyAmount, auxiliaryData);
     }
 }

@@ -19,81 +19,50 @@
 
 pragma solidity ^0.6.5;
 
-
 library LibMetaTransactionsRichErrors {
-
     // solhint-disable func-name-mixedcase
 
-    function InvalidMetaTransactionsArrayLengthsError(
-        uint256 mtxCount,
-        uint256 signatureCount
-    )
+    function InvalidMetaTransactionsArrayLengthsError(uint256 mtxCount, uint256 signatureCount)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("InvalidMetaTransactionsArrayLengthsError(uint256,uint256)")),
-            mtxCount,
-            signatureCount
+            bytes4(keccak256("InvalidMetaTransactionsArrayLengthsError(uint256,uint256)")), mtxCount, signatureCount
         );
     }
 
-    function MetaTransactionUnsupportedFunctionError(
-        bytes32 mtxHash,
-        bytes4 selector
-    )
+    function MetaTransactionUnsupportedFunctionError(bytes32 mtxHash, bytes4 selector)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionUnsupportedFunctionError(bytes32,bytes4)")),
-            mtxHash,
-            selector
+            bytes4(keccak256("MetaTransactionUnsupportedFunctionError(bytes32,bytes4)")), mtxHash, selector
         );
     }
 
-    function MetaTransactionWrongSenderError(
-        bytes32 mtxHash,
-        address sender,
-        address expectedSender
-    )
+    function MetaTransactionWrongSenderError(bytes32 mtxHash, address sender, address expectedSender)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionWrongSenderError(bytes32,address,address)")),
-            mtxHash,
-            sender,
-            expectedSender
+            bytes4(keccak256("MetaTransactionWrongSenderError(bytes32,address,address)")), mtxHash, sender, expectedSender
         );
     }
 
-    function MetaTransactionExpiredError(
-        bytes32 mtxHash,
-        uint256 time,
-        uint256 expirationTime
-    )
+    function MetaTransactionExpiredError(bytes32 mtxHash, uint256 time, uint256 expirationTime)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionExpiredError(bytes32,uint256,uint256)")),
-            mtxHash,
-            time,
-            expirationTime
+            bytes4(keccak256("MetaTransactionExpiredError(bytes32,uint256,uint256)")), mtxHash, time, expirationTime
         );
     }
 
-    function MetaTransactionGasPriceError(
-        bytes32 mtxHash,
-        uint256 gasPrice,
-        uint256 minGasPrice,
-        uint256 maxGasPrice
-    )
+    function MetaTransactionGasPriceError(bytes32 mtxHash, uint256 gasPrice, uint256 minGasPrice, uint256 maxGasPrice)
         internal
         pure
         returns (bytes memory)
@@ -107,11 +76,7 @@ library LibMetaTransactionsRichErrors {
         );
     }
 
-    function MetaTransactionInsufficientEthError(
-        bytes32 mtxHash,
-        uint256 ethBalance,
-        uint256 ethRequired
-    )
+    function MetaTransactionInsufficientEthError(bytes32 mtxHash, uint256 ethBalance, uint256 ethRequired)
         internal
         pure
         returns (bytes memory)
@@ -124,52 +89,33 @@ library LibMetaTransactionsRichErrors {
         );
     }
 
-    function MetaTransactionInvalidSignatureError(
-        bytes32 mtxHash,
-        bytes memory signature,
-        bytes memory errData
-    )
+    function MetaTransactionInvalidSignatureError(bytes32 mtxHash, bytes memory signature, bytes memory errData)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionInvalidSignatureError(bytes32,bytes,bytes)")),
-            mtxHash,
-            signature,
-            errData
+            bytes4(keccak256("MetaTransactionInvalidSignatureError(bytes32,bytes,bytes)")), mtxHash, signature, errData
         );
     }
 
-    function MetaTransactionAlreadyExecutedError(
-        bytes32 mtxHash,
-        uint256 executedBlockNumber
-    )
+    function MetaTransactionAlreadyExecutedError(bytes32 mtxHash, uint256 executedBlockNumber)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionAlreadyExecutedError(bytes32,uint256)")),
-            mtxHash,
-            executedBlockNumber
+            bytes4(keccak256("MetaTransactionAlreadyExecutedError(bytes32,uint256)")), mtxHash, executedBlockNumber
         );
     }
 
-    function MetaTransactionCallFailedError(
-        bytes32 mtxHash,
-        bytes memory callData,
-        bytes memory returnData
-    )
+    function MetaTransactionCallFailedError(bytes32 mtxHash, bytes memory callData, bytes memory returnData)
         internal
         pure
         returns (bytes memory)
     {
         return abi.encodeWithSelector(
-            bytes4(keccak256("MetaTransactionCallFailedError(bytes32,bytes,bytes)")),
-            mtxHash,
-            callData,
-            returnData
+            bytes4(keccak256("MetaTransactionCallFailedError(bytes32,bytes,bytes)")), mtxHash, callData, returnData
         );
     }
 }

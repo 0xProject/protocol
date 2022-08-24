@@ -14,6 +14,7 @@
 */
 
 pragma solidity ^0.6;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
@@ -26,35 +27,22 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 interface IWooPP {
     function quoteToken() external view returns (address);
 
-    function sellBase(
-        address baseToken,
-        uint256 baseAmount,
-        uint256 minQuoteAmount,
-        address to,
-        address rebateTo
-    ) external returns (uint256 quoteAmount);
+    function sellBase(address baseToken, uint256 baseAmount, uint256 minQuoteAmount, address to, address rebateTo)
+        external
+        returns (uint256 quoteAmount);
 
-    function sellQuote(
-        address baseToken,
-        uint256 quoteAmount,
-        uint256 minBaseAmount,
-        address to,
-        address rebateTo
-    ) external returns (uint256 baseAmount);
+    function sellQuote(address baseToken, uint256 quoteAmount, uint256 minBaseAmount, address to, address rebateTo)
+        external
+        returns (uint256 baseAmount);
 
     /// @dev Query the amount for selling the base token amount.
     /// @param baseToken the base token to sell
     /// @param baseAmount the amount to sell
     /// @return quoteAmount the swapped quote amount
-    function querySellBase(
-        address baseToken, 
-        uint256 baseAmount
-    ) external view returns (uint256 quoteAmount);
-
+    function querySellBase(address baseToken, uint256 baseAmount) external view returns (uint256 quoteAmount);
 }
 
-contract MixinWOOFi{
-
+contract MixinWOOFi {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
     using LibSafeMathV06 for uint256;
@@ -68,12 +56,7 @@ contract MixinWOOFi{
     // /// @param _tokenOut Output token
     // /// @param _to recipient of tokens
     // /// @param pool WOOFi pool where the swap will happen
-    function _tradeWOOFi(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeWOOFi(IERC20TokenV06 sellToken, IERC20TokenV06 buyToken, uint256 sellAmount, bytes memory bridgeData)
         public
         returns (uint256 boughtAmount)
     {
@@ -81,56 +64,21 @@ contract MixinWOOFi{
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         sellToken.approveIfBelow(address(_pool), sellAmount);
-        
-        _swap(
-            sellAmount,
-            address(sellToken),
-            address(buyToken),
-            _pool
-        );
+
+        _swap(sellAmount, address(sellToken), address(buyToken), _pool);
         boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 
-    function _swap(
-        uint _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
-        IWooPP pool
-    ) internal {
+    function _swap(uint256 _amountIn, address _tokenIn, address _tokenOut, IWooPP pool) internal {
         address quoteToken = pool.quoteToken();
         if (_tokenIn == quoteToken) {
-            pool.sellQuote(
-                _tokenOut,
-                _amountIn,
-                1,
-                address(this),
-                rebateAddress
-            );
+            pool.sellQuote(_tokenOut, _amountIn, 1, address(this), rebateAddress);
         } else if (_tokenOut == quoteToken) {
-            pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                1, 
-                address(this), 
-                rebateAddress
-            );
-        } else {          
-            uint256 quoteAmount = pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                0, 
-                address(this), 
-                rebateAddress
-            );
+            pool.sellBase(_tokenIn, _amountIn, 1, address(this), rebateAddress);
+        } else {
+            uint256 quoteAmount = pool.sellBase(_tokenIn, _amountIn, 0, address(this), rebateAddress);
             IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteAmount);
-            pool.sellQuote(
-                _tokenOut, 
-                quoteAmount, 
-                1, 
-                address(this), 
-                rebateAddress
-            );
+            pool.sellQuote(_tokenOut, quoteAmount, 1, address(this), rebateAddress);
         }
     }
-
 }

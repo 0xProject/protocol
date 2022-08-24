@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -26,7 +27,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract MixinCurveV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -52,8 +52,8 @@ contract MixinCurveV2 {
         sellToken.approveIfBelow(data.curveAddress, sellAmount);
 
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        (bool success, bytes memory resultData) =
-            data.curveAddress.call(abi.encodeWithSelector(
+        (bool success, bytes memory resultData) = data.curveAddress.call(
+            abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,
                 data.toCoinIdx,
@@ -61,7 +61,8 @@ contract MixinCurveV2 {
                 sellAmount,
                 // min dy
                 1
-            ));
+            )
+        );
         if (!success) {
             resultData.rrevert();
         }

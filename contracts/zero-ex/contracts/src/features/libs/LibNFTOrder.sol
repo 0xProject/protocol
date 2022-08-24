@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -25,10 +26,8 @@ import "../../vendor/IERC1155Token.sol";
 import "../../vendor/IERC721Token.sol";
 import "../../vendor/IPropertyValidator.sol";
 
-
 /// @dev A library for common NFT order operations.
 library LibNFTOrder {
-
     enum OrderStatus {
         INVALID,
         FILLABLE,
@@ -176,8 +175,7 @@ library LibNFTOrder {
     //       "bytes feeData",
     //     ")"
     // ))
-    uint256 private constant _FEE_TYPEHASH =
-        0xe68c29f1b4e8cce0bbcac76eb1334bdc1dc1f293a517c90e9e532340e1e94115;
+    uint256 private constant _FEE_TYPEHASH = 0xe68c29f1b4e8cce0bbcac76eb1334bdc1dc1f293a517c90e9e532340e1e94115;
 
     // keccak256(abi.encodePacked(
     //     "Property(",
@@ -185,12 +183,10 @@ library LibNFTOrder {
     //       "bytes propertyData",
     //     ")"
     // ))
-    uint256 private constant _PROPERTY_TYPEHASH =
-        0x6292cf854241cb36887e639065eca63b3af9f7f70270cebeda4c29b6d3bc65e8;
+    uint256 private constant _PROPERTY_TYPEHASH = 0x6292cf854241cb36887e639065eca63b3af9f7f70270cebeda4c29b6d3bc65e8;
 
     // keccak256("");
-    bytes32 private constant _EMPTY_ARRAY_KECCAK256 =
-        0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+    bytes32 private constant _EMPTY_ARRAY_KECCAK256 = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
 
     // keccak256(abi.encodePacked(keccak256(abi.encode(
     //     _PROPERTY_TYPEHASH,
@@ -204,11 +200,7 @@ library LibNFTOrder {
 
     // ERC721Order and NFTOrder fields are aligned, so
     // we can safely cast an ERC721Order to an NFTOrder.
-    function asNFTOrder(ERC721Order memory erc721Order)
-        internal
-        pure
-        returns (NFTOrder memory nftOrder)
-    {
+    function asNFTOrder(ERC721Order memory erc721Order) internal pure returns (NFTOrder memory nftOrder) {
         assembly {
             nftOrder := erc721Order
         }
@@ -218,11 +210,7 @@ library LibNFTOrder {
     // the exception of the last field `erc1155TokenAmount`
     // in ERC1155Order, so we can safely cast an ERC1155Order
     // to an NFTOrder.
-    function asNFTOrder(ERC1155Order memory erc1155Order)
-        internal
-        pure
-        returns (NFTOrder memory nftOrder)
-    {
+    function asNFTOrder(ERC1155Order memory erc1155Order) internal pure returns (NFTOrder memory nftOrder) {
         assembly {
             nftOrder := erc1155Order
         }
@@ -230,11 +218,7 @@ library LibNFTOrder {
 
     // ERC721Order and NFTOrder fields are aligned, so
     // we can safely cast an MFTOrder to an ERC721Order.
-    function asERC721Order(NFTOrder memory nftOrder)
-        internal
-        pure
-        returns (ERC721Order memory erc721Order)
-    {
+    function asERC721Order(NFTOrder memory nftOrder) internal pure returns (ERC721Order memory erc721Order) {
         assembly {
             erc721Order := nftOrder
         }
@@ -243,13 +227,7 @@ library LibNFTOrder {
     // NOTE: This is only safe if `nftOrder` was previously
     // cast from an `ERC1155Order` and the original
     // `erc1155TokenAmount` memory word has not been corrupted!
-    function asERC1155Order(
-        NFTOrder memory nftOrder
-    )
-        internal
-        pure
-        returns (ERC1155Order memory erc1155Order)
-    {
+    function asERC1155Order(NFTOrder memory nftOrder) internal pure returns (ERC1155Order memory erc1155Order) {
         assembly {
             erc1155Order := nftOrder
         }
@@ -258,11 +236,7 @@ library LibNFTOrder {
     /// @dev Get the struct hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return structHash The struct hash of the order.
-    function getERC721OrderStructHash(ERC721Order memory order)
-        internal
-        pure
-        returns (bytes32 structHash)
-    {
+    function getERC721OrderStructHash(ERC721Order memory order) internal pure returns (bytes32 structHash) {
         bytes32 propertiesHash = _propertiesHash(order.erc721TokenProperties);
         bytes32 feesHash = _feesHash(order.fees);
 
@@ -307,11 +281,7 @@ library LibNFTOrder {
     /// @dev Get the struct hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return structHash The struct hash of the order.
-    function getERC1155OrderStructHash(ERC1155Order memory order)
-        internal
-        pure
-        returns (bytes32 structHash)
-    {
+    function getERC1155OrderStructHash(ERC1155Order memory order) internal pure returns (bytes32 structHash) {
         bytes32 propertiesHash = _propertiesHash(order.erc1155TokenProperties);
         bytes32 feesHash = _feesHash(order.fees);
 
@@ -356,11 +326,7 @@ library LibNFTOrder {
 
     // Hashes the `properties` array as part of computing the
     // EIP-712 hash of an `ERC721Order` or `ERC1155Order`.
-    function _propertiesHash(Property[] memory properties)
-        private
-        pure
-        returns (bytes32 propertiesHash)
-    {
+    function _propertiesHash(Property[] memory properties) private pure returns (bytes32 propertiesHash) {
         uint256 numProperties = properties.length;
         // We give `properties.length == 0` and `properties.length == 1`
         // special treatment because we expect these to be the most common.
@@ -368,10 +334,7 @@ library LibNFTOrder {
             propertiesHash = _EMPTY_ARRAY_KECCAK256;
         } else if (numProperties == 1) {
             Property memory property = properties[0];
-            if (
-                address(property.propertyValidator) == address(0) &&
-                property.propertyData.length == 0
-            ) {
+            if (address(property.propertyValidator) == address(0) && property.propertyData.length == 0) {
                 propertiesHash = _NULL_PROPERTY_STRUCT_HASH;
             } else {
                 // propertiesHash = keccak256(abi.encodePacked(keccak256(abi.encode(
@@ -395,11 +358,9 @@ library LibNFTOrder {
         } else {
             bytes32[] memory propertyStructHashArray = new bytes32[](numProperties);
             for (uint256 i = 0; i < numProperties; i++) {
-                propertyStructHashArray[i] = keccak256(abi.encode(
-                    _PROPERTY_TYPEHASH,
-                    properties[i].propertyValidator,
-                    keccak256(properties[i].propertyData)
-                ));
+                propertyStructHashArray[i] = keccak256(
+                    abi.encode(_PROPERTY_TYPEHASH, properties[i].propertyValidator, keccak256(properties[i].propertyData))
+                );
             }
             assembly {
                 propertiesHash := keccak256(add(propertyStructHashArray, 32), mul(numProperties, 32))
@@ -409,11 +370,7 @@ library LibNFTOrder {
 
     // Hashes the `fees` array as part of computing the
     // EIP-712 hash of an `ERC721Order` or `ERC1155Order`.
-    function _feesHash(Fee[] memory fees)
-        private
-        pure
-        returns (bytes32 feesHash)
-    {
+    function _feesHash(Fee[] memory fees) private pure returns (bytes32 feesHash) {
         uint256 numFees = fees.length;
         // We give `fees.length == 0` and `fees.length == 1`
         // special treatment because we expect these to be the most common.
@@ -444,12 +401,8 @@ library LibNFTOrder {
         } else {
             bytes32[] memory feeStructHashArray = new bytes32[](numFees);
             for (uint256 i = 0; i < numFees; i++) {
-                feeStructHashArray[i] = keccak256(abi.encode(
-                    _FEE_TYPEHASH,
-                    fees[i].recipient,
-                    fees[i].amount,
-                    keccak256(fees[i].feeData)
-                ));
+                feeStructHashArray[i] =
+                    keccak256(abi.encode(_FEE_TYPEHASH, fees[i].recipient, fees[i].amount, keccak256(fees[i].feeData)));
             }
             assembly {
                 feesHash := keccak256(add(feeStructHashArray, 32), mul(numFees, 32))

@@ -18,24 +18,19 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 /// @dev VIP uniswap v3 fill functions.
 interface IUniswapV3Feature {
-
     /// @dev Sell attached ETH directly against uniswap v3.
     /// @param encodedPath Uniswap-encoded path, where the first token is WETH.
     /// @param minBuyAmount Minimum amount of the last token in the path to buy.
     /// @param recipient The recipient of the bought tokens. Can be zero for sender.
     /// @return buyAmount Amount of the last token in the path bought.
-    function sellEthForTokenToUniswapV3(
-        bytes memory encodedPath,
-        uint256 minBuyAmount,
-        address recipient
-    )
+    function sellEthForTokenToUniswapV3(bytes memory encodedPath, uint256 minBuyAmount, address recipient)
         external
         payable
         returns (uint256 buyAmount);
@@ -93,10 +88,5 @@ interface IUniswapV3Feature {
     /// @param amount1Delta Token1 amount owed.
     /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
     ///        struct of: inputToken, outputToken, fee, payer
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata data
-    )
-        external;
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external;
 }

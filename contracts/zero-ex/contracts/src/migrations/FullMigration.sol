@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "../ZeroEx.sol";
@@ -28,10 +29,8 @@ import "../features/NativeOrdersFeature.sol";
 import "../features/OtcOrdersFeature.sol";
 import "./InitialMigration.sol";
 
-
 /// @dev A contract for deploying and configuring the full ZeroEx contract.
 contract FullMigration {
-
     // solhint-disable no-empty-blocks,indent
 
     /// @dev Features to add the the proxy contract.
@@ -57,9 +56,7 @@ contract FullMigration {
     /// @dev Instantiate this contract and set the allowed caller of `initializeZeroEx()`
     ///      to `initializeCaller`.
     /// @param initializeCaller_ The allowed caller of `initializeZeroEx()`.
-    constructor(address payable initializeCaller_)
-        public
-    {
+    constructor(address payable initializeCaller_) public {
         initializeCaller = initializeCaller_;
         // Create an initial migration contract with this contract set to the
         // allowed `initializeCaller`.
@@ -68,11 +65,7 @@ contract FullMigration {
 
     /// @dev Retrieve the bootstrapper address to use when constructing `ZeroEx`.
     /// @return bootstrapper The bootstrapper address.
-    function getBootstrapper()
-        external
-        view
-        returns (address bootstrapper)
-    {
+    function getBootstrapper() external view returns (address bootstrapper) {
         return address(_initialMigration);
     }
 
@@ -99,10 +92,7 @@ contract FullMigration {
         _initialMigration.initializeZeroEx(
             address(uint160(address(this))),
             zeroEx,
-            InitialMigration.BootstrapFeatures({
-                registry: features.registry,
-                ownable: features.ownable
-            })
+            InitialMigration.BootstrapFeatures({registry: features.registry, ownable: features.ownable})
         );
 
         // Add features.
@@ -119,10 +109,7 @@ contract FullMigration {
 
     /// @dev Destroy this contract. Only callable from ourselves (from `initializeZeroEx()`).
     /// @param ethRecipient Receiver of any ETH in this contract.
-    function die(address payable ethRecipient)
-        external
-        virtual
-    {
+    function die(address payable ethRecipient) external virtual {
         require(msg.sender == address(this), "FullMigration/INVALID_SENDER");
         // This contract should not hold any funds but we send
         // them to the ethRecipient just in case.
@@ -133,23 +120,14 @@ contract FullMigration {
     /// @param zeroEx The bootstrapped ZeroEx contract.
     /// @param features Features to add to the proxy.
     /// @param migrateOpts Parameters needed to initialize features.
-    function _addFeatures(
-        ZeroEx zeroEx,
-        Features memory features,
-        MigrateOpts memory migrateOpts
-    )
-        private
-    {
+    function _addFeatures(ZeroEx zeroEx, Features memory features, MigrateOpts memory migrateOpts) private {
         IOwnableFeature ownable = IOwnableFeature(address(zeroEx));
         // TransformERC20Feature
         {
             // Register the feature.
             ownable.migrate(
                 address(features.transformERC20),
-                abi.encodeWithSelector(
-                    TransformERC20Feature.migrate.selector,
-                    migrateOpts.transformerDeployer
-                ),
+                abi.encodeWithSelector(TransformERC20Feature.migrate.selector, migrateOpts.transformerDeployer),
                 address(this)
             );
         }
@@ -158,9 +136,7 @@ contract FullMigration {
             // Register the feature.
             ownable.migrate(
                 address(features.metaTransactions),
-                abi.encodeWithSelector(
-                    MetaTransactionsFeature.migrate.selector
-                ),
+                abi.encodeWithSelector(MetaTransactionsFeature.migrate.selector),
                 address(this)
             );
         }
@@ -169,9 +145,7 @@ contract FullMigration {
             // Register the feature.
             ownable.migrate(
                 address(features.nativeOrders),
-                abi.encodeWithSelector(
-                    NativeOrdersFeature.migrate.selector
-                ),
+                abi.encodeWithSelector(NativeOrdersFeature.migrate.selector),
                 address(this)
             );
         }
@@ -179,11 +153,7 @@ contract FullMigration {
         {
             // Register the feature.
             ownable.migrate(
-                address(features.otcOrders),
-                abi.encodeWithSelector(
-                    OtcOrdersFeature.migrate.selector
-                ),
-                address(this)
+                address(features.otcOrders), abi.encodeWithSelector(OtcOrdersFeature.migrate.selector), address(this)
             );
         }
     }

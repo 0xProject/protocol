@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -25,17 +26,12 @@ import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
 import "./INativeOrdersEvents.sol";
 
-
 /// @dev Feature for interacting with limit orders.
-interface INativeOrdersFeature is
-    INativeOrdersEvents
-{
-
+interface INativeOrdersFeature is INativeOrdersEvents {
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
-    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
-        external;
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds) external;
 
     /// @dev Fill a limit order. The taker and sender will be the caller.
     /// @param order The limit order. ETH protocol fees can be
@@ -145,33 +141,28 @@ interface INativeOrdersFeature is
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
-    function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order)
-        external;
+    function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order) external;
 
     /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
-    function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
-        external;
+    function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order) external;
 
     /// @dev Mark what tx.origin addresses are allowed to fill an order that
     ///      specifies the message sender as its txOrigin.
     /// @param origins An array of origin addresses to update.
     /// @param allowed True to register, false to unregister.
-    function registerAllowedRfqOrigins(address[] memory origins, bool allowed)
-        external;
+    function registerAllowedRfqOrigins(address[] memory origins, bool allowed) external;
 
     /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
-    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders)
-        external;
+    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders) external;
 
     /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
-    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders)
-        external;
+    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders) external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
@@ -180,11 +171,7 @@ interface INativeOrdersFeature is
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    )
+    function cancelPairLimitOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt)
         external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
@@ -240,12 +227,7 @@ interface INativeOrdersFeature is
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    )
-        external;
+    function cancelPairRfqOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be a signer registered to the maker.
@@ -312,26 +294,17 @@ interface INativeOrdersFeature is
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
-    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the canonical hash of an RFQ order.
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
-    function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the protocol fee multiplier. This should be multiplied by the
     ///      gas price to arrive at the required protocol fee to fill a native order.
     /// @return multiplier The protocol fee multiplier.
-    function getProtocolFeeMultiplier()
-        external
-        view
-        returns (uint32 multiplier);
+    function getProtocolFeeMultiplier() external view returns (uint32 multiplier);
 
     /// @dev Get order info, fillable amount, and signature validity for a limit order.
     ///      Fillable amount is determined using balances and allowances of the maker.
@@ -361,10 +334,7 @@ interface INativeOrdersFeature is
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getRfqOrderRelevantState(
-        LibNativeOrder.RfqOrder calldata order,
-        LibSignature.Signature calldata signature
-    )
+    function getRfqOrderRelevantState(LibNativeOrder.RfqOrder calldata order, LibSignature.Signature calldata signature)
         external
         view
         returns (
@@ -419,20 +389,10 @@ interface INativeOrdersFeature is
     ///      This allows one to sign on behalf of a contract that calls this function
     /// @param signer The address from which you plan to generate signatures
     /// @param allowed True to register, false to unregister.
-    function registerAllowedOrderSigner(
-        address signer,
-        bool allowed
-    )
-        external;
+    function registerAllowedOrderSigner(address signer, bool allowed) external;
 
     /// @dev checks if a given address is registered to sign on behalf of a maker address
     /// @param maker The maker address encoded in an order (can be a contract)
     /// @param signer The address that is providing a signature
-    function isValidOrderSigner(
-        address maker,
-        address signer
-    )
-        external
-        view
-        returns (bool isAllowed);
+    function isValidOrderSigner(address maker, address signer) external view returns (bool isAllowed);
 }

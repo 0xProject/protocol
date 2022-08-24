@@ -18,15 +18,17 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface IBalancerV2Vault {
-
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
     /**
      * @dev Performs a swap with a single Pool.
      *
@@ -41,12 +43,11 @@ interface IBalancerV2Vault {
      * Emits a `Swap` event.
      * For full documentation see https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
      */
-    function swap(
-        SingleSwap calldata request,
-        FundManagement calldata funds,
-        uint256 limit,
-        uint256 deadline
-    ) external payable returns (uint256);
+
+    function swap(SingleSwap calldata request, FundManagement calldata funds, uint256 limit, uint256 deadline)
+        external
+        payable
+        returns (uint256);
 
     struct SingleSwap {
         bytes32 poolId;
@@ -66,7 +67,6 @@ interface IBalancerV2Vault {
 }
 
 contract MixinBalancerV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     struct BalancerV2BridgeData {

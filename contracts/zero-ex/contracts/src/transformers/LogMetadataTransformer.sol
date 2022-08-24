@@ -18,16 +18,14 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that just emits an event with an arbitrary byte payload.
-contract LogMetadataTransformer is
-    Transformer
-{
+contract LogMetadataTransformer is Transformer {
     event TransformerMetadata(address sender, address taker, bytes data);
 
     /// @dev Maximum uint256 value.
@@ -36,11 +34,7 @@ contract LogMetadataTransformer is
     /// @dev Emits an event.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         emit TransformerMetadata(context.sender, context.recipient, context.data);
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }

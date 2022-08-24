@@ -21,9 +21,7 @@ pragma solidity ^0.6.5;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface ILiquidityProvider {
-
     /// @dev An optional event an LP can emit for each fill against a source.
     /// @param inputToken The input token.
     /// @param outputToken The output token.
@@ -107,11 +105,7 @@ interface ILiquidityProvider {
     ///        the wETH address if buying ETH.
     /// @param sellAmount Amount of `inputToken` to sell.
     /// @return outputTokenAmount Amount of `outputToken` that would be obtained.
-    function getSellQuote(
-        IERC20TokenV06 inputToken,
-        IERC20TokenV06 outputToken,
-        uint256 sellAmount
-    )
+    function getSellQuote(IERC20TokenV06 inputToken, IERC20TokenV06 outputToken, uint256 sellAmount)
         external
         view
         returns (uint256 outputTokenAmount);

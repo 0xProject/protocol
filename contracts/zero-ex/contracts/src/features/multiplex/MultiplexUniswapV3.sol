@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -26,10 +27,7 @@ import "../../fixins/FixinTokenSpender.sol";
 import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/IUniswapV3Feature.sol";
 
-
-abstract contract MultiplexUniswapV3 is
-    FixinTokenSpender
-{
+abstract contract MultiplexUniswapV3 is FixinTokenSpender {
     using LibSafeMathV06 for uint256;
 
     function _batchSellUniswapV3(
@@ -48,11 +46,7 @@ abstract contract MultiplexUniswapV3 is
             // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector,
-                    wrappedCallData,
-                    sellAmount,
-                    0,
-                    params.recipient
+                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector, wrappedCallData, sellAmount, 0, params.recipient
                 )
             );
         } else {
@@ -61,11 +55,7 @@ abstract contract MultiplexUniswapV3 is
             // from `msg.sender`.
             (success, resultData) = address(this).delegatecall(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
-                    wrappedCallData,
-                    sellAmount,
-                    0,
-                    params.recipient
+                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector, wrappedCallData, sellAmount, 0, params.recipient
                 )
             );
         }
@@ -78,10 +68,7 @@ abstract contract MultiplexUniswapV3 is
         }
     }
 
-    function _multiHopSellUniswapV3(
-        IMultiplexFeature.MultiHopSellState memory state,
-        bytes memory wrappedCallData
-    )
+    function _multiHopSellUniswapV3(IMultiplexFeature.MultiHopSellState memory state, bytes memory wrappedCallData)
         internal
     {
         bool success;
@@ -105,11 +92,7 @@ abstract contract MultiplexUniswapV3 is
             // from `msg.sender`.
             (success, resultData) = address(this).delegatecall(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector,
-                    wrappedCallData,
-                    state.outputTokenAmount,
-                    0,
-                    state.to
+                    IUniswapV3Feature.sellTokenForTokenToUniswapV3.selector, wrappedCallData, state.outputTokenAmount, 0, state.to
                 )
             );
         }

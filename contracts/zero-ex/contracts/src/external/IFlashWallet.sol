@@ -18,24 +18,19 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/interfaces/IOwnableV06.sol";
 
-
 /// @dev A contract that can execute arbitrary calls from its owner.
 interface IFlashWallet {
-
     /// @dev Execute an arbitrary call. Only an authority can call this.
     /// @param target The call target.
     /// @param callData The call data.
     /// @param value Ether to attach to the call.
     /// @return resultData The data returned by the call.
-    function executeCall(
-        address payable target,
-        bytes calldata callData,
-        uint256 value
-    )
+    function executeCall(address payable target, bytes calldata callData, uint256 value)
         external
         payable
         returns (bytes memory resultData);
@@ -45,10 +40,7 @@ interface IFlashWallet {
     /// @param target The call target.
     /// @param callData The call data.
     /// @return resultData The data returned by the call.
-    function executeDelegateCall(
-        address payable target,
-        bytes calldata callData
-    )
+    function executeDelegateCall(address payable target, bytes calldata callData)
         external
         payable
         returns (bytes memory resultData);

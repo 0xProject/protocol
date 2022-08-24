@@ -18,15 +18,17 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface IBalancerV2BatchSwapVault {
-
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
 
     struct BatchSwapStep {
         bytes32 poolId;
@@ -50,11 +52,12 @@ interface IBalancerV2BatchSwapVault {
         FundManagement calldata funds,
         int256[] calldata limits,
         uint256 deadline
-    ) external returns (int256[] memory amounts);
+    )
+        external
+        returns (int256[] memory amounts);
 }
 
 contract MixinBalancerV2Batch {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     struct BalancerV2BatchBridgeData {
@@ -63,10 +66,7 @@ contract MixinBalancerV2Batch {
         IERC20TokenV06[] assets;
     }
 
-    function _tradeBalancerV2Batch(
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeBalancerV2Batch(uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
@@ -77,7 +77,9 @@ contract MixinBalancerV2Batch {
             address[] memory assets_
         ) = abi.decode(bridgeData, (IBalancerV2BatchSwapVault, IBalancerV2BatchSwapVault.BatchSwapStep[], address[]));
         IERC20TokenV06[] memory assets;
-        assembly { assets := assets_ }
+        assembly {
+            assets := assets_
+        }
 
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
         assets[0].approveIfBelow(address(vault), sellAmount);
@@ -101,7 +103,7 @@ contract MixinBalancerV2Batch {
             limits,
             block.timestamp + 1
         );
-        require(amounts[amounts.length - 1] <= 0, 'Unexpected BalancerV2Batch output');
+        require(amounts[amounts.length - 1] <= 0, "Unexpected BalancerV2Batch output");
         return uint256(amounts[amounts.length - 1] * -1);
     }
 }

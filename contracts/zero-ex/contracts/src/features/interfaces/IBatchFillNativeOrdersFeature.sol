@@ -18,15 +18,14 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "../libs/LibNativeOrder.sol";
 import "../libs/LibSignature.sol";
 
-
 /// @dev Feature for batch/market filling limit and RFQ orders.
 interface IBatchFillNativeOrdersFeature {
-
     /// @dev Fills multiple limit orders.
     /// @param orders Array of limit orders.
     /// @param signatures Array of signatures corresponding to each order.
@@ -43,10 +42,7 @@ interface IBatchFillNativeOrdersFeature {
     )
         external
         payable
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+        returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 
     /// @dev Fills multiple RFQ orders.
     /// @param orders Array of RFQ orders.
@@ -63,8 +59,5 @@ interface IBatchFillNativeOrdersFeature {
         bool revertIfIncomplete
     )
         external
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+        returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 }

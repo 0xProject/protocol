@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: Apache-2.0
 /*
 
@@ -19,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
@@ -27,15 +27,8 @@ import "./mixins/MixinNerve.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
-contract CeloBridgeAdapter is
-    AbstractBridgeAdapter(42220, "Celo"),
-    MixinNerve,
-    MixinUniswapV2,
-    MixinZeroExBridge
-{
-    constructor(address _weth)
-        public
-    {}
+contract CeloBridgeAdapter is AbstractBridgeAdapter(42220, "Celo"), MixinNerve, MixinUniswapV2, MixinZeroExBridge {
+    constructor(address _weth) public {}
 
     function _trade(
         BridgeOrder memory order,
@@ -50,35 +43,22 @@ contract CeloBridgeAdapter is
     {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.UNISWAPV2) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeUniswapV2(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeNerve(
-                sellToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
-            if (dryRun) { return (0, true); }            
-            boughtAmount = _tradeZeroExBridge(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
-        emit BridgeFill(
-            order.source,
-            sellToken,
-            buyToken,
-            sellAmount,
-            boughtAmount
-        );
+        emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
 }

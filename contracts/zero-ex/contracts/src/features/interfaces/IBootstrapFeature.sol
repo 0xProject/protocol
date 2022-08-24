@@ -18,12 +18,11 @@
 */
 
 pragma solidity ^0.6.5;
-pragma experimental ABIEncoderV2;
 
+pragma experimental ABIEncoderV2;
 
 /// @dev Detachable `bootstrap()` feature.
 interface IBootstrapFeature {
-
     /// @dev Bootstrap the initial feature set of this contract by delegatecalling
     ///      into `target`. Before exiting the `bootstrap()` function will
     ///      deregister itself from the proxy to prevent being called again.

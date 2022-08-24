@@ -18,12 +18,11 @@
 */
 
 pragma solidity ^0.6.5;
-pragma experimental ABIEncoderV2;
 
+pragma experimental ABIEncoderV2;
 
 /// @dev Basic interface for a feature contract.
 interface IFeature {
-
     // solhint-disable func-name-mixedcase
 
     /// @dev The name of this feature set.

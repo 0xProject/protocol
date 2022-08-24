@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "./features/interfaces/IOwnableFeature.sol";
@@ -37,7 +38,6 @@ import "./features/interfaces/IFundRecoveryFeature.sol";
 import "./features/interfaces/IERC721OrdersFeature.sol";
 import "./features/interfaces/IERC1155OrdersFeature.sol";
 import "./features/interfaces/IERC165Feature.sol";
-
 
 /// @dev Interface for a fully featured Exchange Proxy.
 interface IZeroEx is

@@ -18,14 +18,13 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 /// @dev A transformation callback used in `TransformERC20.transformERC20()`.
 interface IERC20Transformer {
-
     /// @dev Context information to pass into `transform()` by `TransformERC20.transformERC20()`.
     struct TransformContext {
         // The caller of `TransformERC20.transformERC20()`.
@@ -41,7 +40,5 @@ interface IERC20Transformer {
     ///      delegatecalled in the context of the FlashWallet instance being used.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        returns (bytes4 success);
+    function transform(TransformContext calldata context) external returns (bytes4 success);
 }

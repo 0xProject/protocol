@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -29,13 +30,8 @@ import "../migrations/LibBootstrap.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ISimpleFunctionRegistryFeature.sol";
 
-
 /// @dev Basic registry management features.
-contract SimpleFunctionRegistryFeature is
-    IFeature,
-    ISimpleFunctionRegistryFeature,
-    FixinCommon
-{
+contract SimpleFunctionRegistryFeature is IFeature, ISimpleFunctionRegistryFeature, FixinCommon {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "SimpleFunctionRegistry";
     /// @dev Version of this feature.
@@ -45,10 +41,7 @@ contract SimpleFunctionRegistryFeature is
 
     /// @dev Initializes this feature, registering its own functions.
     /// @return success Magic bytes if successful.
-    function bootstrap()
-        external
-        returns (bytes4 success)
-    {
+    function bootstrap() external returns (bytes4 success) {
         // Register the registration functions (inception vibes).
         _extend(this.extend.selector, _implementation);
         _extend(this._extendSelf.selector, _implementation);
@@ -64,15 +57,9 @@ contract SimpleFunctionRegistryFeature is
     ///      Only directly callable by an authority.
     /// @param selector The function selector.
     /// @param targetImpl The address of an older implementation of the function.
-    function rollback(bytes4 selector, address targetImpl)
-        external
-        override
-        onlyOwner
-    {
-        (
-            LibSimpleFunctionRegistryStorage.Storage storage stor,
-            LibProxyStorage.Storage storage proxyStor
-        ) = _getStorages();
+    function rollback(bytes4 selector, address targetImpl) external override onlyOwner {
+        (LibSimpleFunctionRegistryStorage.Storage storage stor, LibProxyStorage.Storage storage proxyStor) =
+            _getStorages();
 
         address currentImpl = proxyStor.impls[selector];
         if (currentImpl == targetImpl) {
@@ -90,10 +77,7 @@ contract SimpleFunctionRegistryFeature is
             }
         }
         if (i == 0) {
-            LibSimpleFunctionRegistryRichErrors.NotInRollbackHistoryError(
-                selector,
-                targetImpl
-            ).rrevert();
+            LibSimpleFunctionRegistryRichErrors.NotInRollbackHistoryError(selector, targetImpl).rrevert();
         }
         proxyStor.impls[selector] = targetImpl;
         emit ProxyFunctionUpdated(selector, currentImpl, targetImpl);
@@ -103,11 +87,7 @@ contract SimpleFunctionRegistryFeature is
     ///      Only directly callable by an authority.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function extend(bytes4 selector, address impl)
-        external
-        override
-        onlyOwner
-    {
+    function extend(bytes4 selector, address impl) external override onlyOwner {
         _extend(selector, impl);
     }
 
@@ -118,10 +98,7 @@ contract SimpleFunctionRegistryFeature is
     ///      complete.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function _extendSelf(bytes4 selector, address impl)
-        external
-        onlySelf
-    {
+    function _extendSelf(bytes4 selector, address impl) external onlySelf {
         _extend(selector, impl);
     }
 
@@ -129,12 +106,7 @@ contract SimpleFunctionRegistryFeature is
     /// @param selector The function selector.
     /// @return rollbackLength The number of items in the rollback history for
     ///         the function.
-    function getRollbackLength(bytes4 selector)
-        external
-        override
-        view
-        returns (uint256 rollbackLength)
-    {
+    function getRollbackLength(bytes4 selector) external view override returns (uint256 rollbackLength) {
         return LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector].length;
     }
 
@@ -143,25 +115,16 @@ contract SimpleFunctionRegistryFeature is
     /// @param idx The index in the rollback history.
     /// @return impl An implementation address for the function at
     ///         index `idx`.
-    function getRollbackEntryAtIndex(bytes4 selector, uint256 idx)
-        external
-        override
-        view
-        returns (address impl)
-    {
+    function getRollbackEntryAtIndex(bytes4 selector, uint256 idx) external view override returns (address impl) {
         return LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector][idx];
     }
 
     /// @dev Register or replace a function.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function _extend(bytes4 selector, address impl)
-        private
-    {
-        (
-            LibSimpleFunctionRegistryStorage.Storage storage stor,
-            LibProxyStorage.Storage storage proxyStor
-        ) = _getStorages();
+    function _extend(bytes4 selector, address impl) private {
+        (LibSimpleFunctionRegistryStorage.Storage storage stor, LibProxyStorage.Storage storage proxyStor) =
+            _getStorages();
 
         address oldImpl = proxyStor.impls[selector];
         address[] storage history = stor.implHistory[selector];
@@ -176,14 +139,8 @@ contract SimpleFunctionRegistryFeature is
     function _getStorages()
         private
         pure
-        returns (
-            LibSimpleFunctionRegistryStorage.Storage storage stor,
-            LibProxyStorage.Storage storage proxyStor
-        )
+        returns (LibSimpleFunctionRegistryStorage.Storage storage stor, LibProxyStorage.Storage storage proxyStor)
     {
-        return (
-            LibSimpleFunctionRegistryStorage.getStorage(),
-            LibProxyStorage.getStorage()
-        );
+        return (LibSimpleFunctionRegistryStorage.getStorage(), LibProxyStorage.getStorage());
     }
 }

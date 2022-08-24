@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -34,17 +35,12 @@ import "../../vendor/ITakerCallback.sol";
 import "../libs/LibSignature.sol";
 import "../libs/LibNFTOrder.sol";
 
-
 /// @dev Abstract base contract inherited by ERC721OrdersFeature and NFTOrders
-abstract contract NFTOrders is
-    FixinCommon,
-    FixinEIP712,
-    FixinTokenSpender
-{
+abstract contract NFTOrders is FixinCommon, FixinEIP712, FixinTokenSpender {
     using LibSafeMathV06 for uint256;
 
     /// @dev Native token pseudo-address.
-    address constant internal NATIVE_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address internal constant NATIVE_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev The WETH token contract.
     IEtherTokenV06 internal immutable WETH;
 
@@ -53,10 +49,7 @@ abstract contract NFTOrders is
     /// @dev The magic return value indicating the success of a `zeroExTakerCallback`.
     bytes4 private constant TAKER_CALLBACK_MAGIC_BYTES = ITakerCallback.zeroExTakerCallback.selector;
 
-    constructor(address zeroExAddress, IEtherTokenV06 weth)
-        public
-        FixinEIP712(zeroExAddress)
-    {
+    constructor(address zeroExAddress, IEtherTokenV06 weth) public FixinEIP712(zeroExAddress) {
         WETH = weth;
     }
 
@@ -86,19 +79,10 @@ abstract contract NFTOrders is
     {
         LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(buyOrder);
         // Check that the order can be filled.
-        _validateBuyOrder(
-            buyOrder,
-            signature,
-            orderInfo,
-            params.taker,
-            params.tokenId
-        );
+        _validateBuyOrder(buyOrder, signature, orderInfo, params.taker, params.tokenId);
 
         if (params.sellAmount > orderInfo.remainingAmount) {
-            LibNFTOrdersRichErrors.ExceedsRemainingOrderAmount(
-                orderInfo.remainingAmount,
-                params.sellAmount
-            ).rrevert();
+            LibNFTOrdersRichErrors.ExceedsRemainingOrderAmount(orderInfo.remainingAmount, params.sellAmount).rrevert();
         }
 
         _updateOrderState(buyOrder, orderInfo.orderHash, params.sellAmount);
@@ -107,58 +91,36 @@ abstract contract NFTOrders is
             erc20FillAmount = buyOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
-            erc20FillAmount = LibMathV06.getPartialAmountFloor(
-                params.sellAmount,
-                orderInfo.orderAmount,
-                buyOrder.erc20TokenAmount
-            );
+            erc20FillAmount =
+                LibMathV06.getPartialAmountFloor(params.sellAmount, orderInfo.orderAmount, buyOrder.erc20TokenAmount);
         }
 
         if (params.unwrapNativeToken) {
             // The ERC20 token must be WETH for it to be unwrapped.
             if (buyOrder.erc20Token != WETH) {
-                LibNFTOrdersRichErrors.ERC20TokenMismatchError(
-                    address(buyOrder.erc20Token),
-                    address(WETH)
-                ).rrevert();
+                LibNFTOrdersRichErrors.ERC20TokenMismatchError(address(buyOrder.erc20Token), address(WETH)).rrevert();
             }
             // Transfer the WETH from the maker to the Exchange Proxy
             // so we can unwrap it before sending it to the seller.
             // TODO: Probably safe to just use WETH.transferFrom for some
             //       small gas savings
-            _transferERC20TokensFrom(
-                WETH,
-                buyOrder.maker,
-                address(this),
-                erc20FillAmount
-            );
+            _transferERC20TokensFrom(WETH, buyOrder.maker, address(this), erc20FillAmount);
             // Unwrap WETH into ETH.
             WETH.withdraw(erc20FillAmount);
             // Send ETH to the seller.
             _transferEth(payable(params.taker), erc20FillAmount);
         } else {
             // Transfer the ERC20 token from the buyer to the seller.
-            _transferERC20TokensFrom(
-                buyOrder.erc20Token,
-                buyOrder.maker,
-                params.taker,
-                erc20FillAmount
-            );
+            _transferERC20TokensFrom(buyOrder.erc20Token, buyOrder.maker, params.taker, erc20FillAmount);
         }
 
         if (params.takerCallbackData.length > 0) {
-            require(
-                params.taker != address(this),
-                "NFTOrders::_sellNFT/CANNOT_CALLBACK_SELF"
-            );
+            require(params.taker != address(this), "NFTOrders::_sellNFT/CANNOT_CALLBACK_SELF");
             // Invoke the callback
-            bytes4 callbackResult = ITakerCallback(params.taker)
-                .zeroExTakerCallback(orderInfo.orderHash, params.takerCallbackData);
+            bytes4 callbackResult =
+                ITakerCallback(params.taker).zeroExTakerCallback(orderInfo.orderHash, params.takerCallbackData);
             // Check for the magic success bytes
-            require(
-                callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
-                "NFTOrders::_sellNFT/CALLBACK_FAILED"
-            );
+            require(callbackResult == TAKER_CALLBACK_MAGIC_BYTES, "NFTOrders::_sellNFT/CALLBACK_FAILED");
         }
 
         // Transfer the NFT asset to the buyer.
@@ -166,22 +128,10 @@ abstract contract NFTOrders is
         // `onNFTReceived` callback the Exchange Proxy
         // holds the asset. Otherwise, transfer it from
         // the seller.
-        _transferNFTAssetFrom(
-            buyOrder.nft,
-            params.currentNftOwner,
-            buyOrder.maker,
-            params.tokenId,
-            params.sellAmount
-        );
+        _transferNFTAssetFrom(buyOrder.nft, params.currentNftOwner, buyOrder.maker, params.tokenId, params.sellAmount);
 
         // The buyer pays the order fees.
-        _payFees(
-            buyOrder,
-            buyOrder.maker,
-            params.sellAmount,
-            orderInfo.orderAmount,
-            false
-        );
+        _payFees(buyOrder, buyOrder.maker, params.sellAmount, orderInfo.orderAmount, false);
     }
 
     // Core settlement logic for buying an NFT asset.
@@ -195,18 +145,10 @@ abstract contract NFTOrders is
     {
         LibNFTOrder.OrderInfo memory orderInfo = _getOrderInfo(sellOrder);
         // Check that the order can be filled.
-        _validateSellOrder(
-            sellOrder,
-            signature,
-            orderInfo,
-            msg.sender
-        );
+        _validateSellOrder(sellOrder, signature, orderInfo, msg.sender);
 
         if (params.buyAmount > orderInfo.remainingAmount) {
-            LibNFTOrdersRichErrors.ExceedsRemainingOrderAmount(
-                orderInfo.remainingAmount,
-                params.buyAmount
-            ).rrevert();
+            LibNFTOrdersRichErrors.ExceedsRemainingOrderAmount(orderInfo.remainingAmount, params.buyAmount).rrevert();
         }
 
         _updateOrderState(sellOrder, orderInfo.orderHash, params.buyAmount);
@@ -215,55 +157,32 @@ abstract contract NFTOrders is
             erc20FillAmount = sellOrder.erc20TokenAmount;
         } else {
             // Rounding favors the order maker.
-            erc20FillAmount = LibMathV06.getPartialAmountCeil(
-                params.buyAmount,
-                orderInfo.orderAmount,
-                sellOrder.erc20TokenAmount
-            );
+            erc20FillAmount =
+                LibMathV06.getPartialAmountCeil(params.buyAmount, orderInfo.orderAmount, sellOrder.erc20TokenAmount);
         }
 
         // Transfer the NFT asset to the buyer (`msg.sender`).
-        _transferNFTAssetFrom(
-            sellOrder.nft,
-            sellOrder.maker,
-            msg.sender,
-            sellOrder.nftId,
-            params.buyAmount
-        );
+        _transferNFTAssetFrom(sellOrder.nft, sellOrder.maker, msg.sender, sellOrder.nftId, params.buyAmount);
 
         uint256 ethAvailable = params.ethAvailable;
         if (params.takerCallbackData.length > 0) {
-            require(
-                msg.sender != address(this),
-                "NFTOrders::_buyNFT/CANNOT_CALLBACK_SELF"
-            );
+            require(msg.sender != address(this), "NFTOrders::_buyNFT/CANNOT_CALLBACK_SELF");
             uint256 ethBalanceBeforeCallback = address(this).balance;
             // Invoke the callback
-            bytes4 callbackResult = ITakerCallback(msg.sender)
-                .zeroExTakerCallback(orderInfo.orderHash, params.takerCallbackData);
+            bytes4 callbackResult =
+                ITakerCallback(msg.sender).zeroExTakerCallback(orderInfo.orderHash, params.takerCallbackData);
             // Update `ethAvailable` with amount acquired during
             // the callback
-            ethAvailable = ethAvailable.safeAdd(
-                address(this).balance.safeSub(ethBalanceBeforeCallback)
-            );
+            ethAvailable = ethAvailable.safeAdd(address(this).balance.safeSub(ethBalanceBeforeCallback));
             // Check for the magic success bytes
-            require(
-                callbackResult == TAKER_CALLBACK_MAGIC_BYTES,
-                "NFTOrders::_buyNFT/CALLBACK_FAILED"
-            );
+            require(callbackResult == TAKER_CALLBACK_MAGIC_BYTES, "NFTOrders::_buyNFT/CALLBACK_FAILED");
         }
 
         if (address(sellOrder.erc20Token) == NATIVE_TOKEN_ADDRESS) {
             // Transfer ETH to the seller.
             _transferEth(payable(sellOrder.maker), erc20FillAmount);
             // Fees are paid from the EP's current balance of ETH.
-            _payEthFees(
-                sellOrder,
-                params.buyAmount,
-                orderInfo.orderAmount,
-                erc20FillAmount,
-                ethAvailable
-            );
+            _payEthFees(sellOrder, params.buyAmount, orderInfo.orderAmount, erc20FillAmount, ethAvailable);
         } else if (sellOrder.erc20Token == WETH) {
             // If there is enough ETH available, fill the WETH order
             // (including fees) using that ETH.
@@ -274,52 +193,20 @@ abstract contract NFTOrders is
                 // TODO: Probably safe to just use WETH.transfer for some
                 //       small gas savings
                 // Transfer WETH to the seller.
-                _transferERC20Tokens(
-                    WETH,
-                    sellOrder.maker,
-                    erc20FillAmount
-                );
+                _transferERC20Tokens(WETH, sellOrder.maker, erc20FillAmount);
                 // Fees are paid from the EP's current balance of ETH.
-                _payEthFees(
-                    sellOrder,
-                    params.buyAmount,
-                    orderInfo.orderAmount,
-                    erc20FillAmount,
-                    ethAvailable
-                );
+                _payEthFees(sellOrder, params.buyAmount, orderInfo.orderAmount, erc20FillAmount, ethAvailable);
             } else {
                 // Transfer WETH from the buyer to the seller.
-                _transferERC20TokensFrom(
-                    sellOrder.erc20Token,
-                    msg.sender,
-                    sellOrder.maker,
-                    erc20FillAmount
-                );
+                _transferERC20TokensFrom(sellOrder.erc20Token, msg.sender, sellOrder.maker, erc20FillAmount);
                 // The buyer pays fees using WETH.
-                _payFees(
-                    sellOrder,
-                    msg.sender,
-                    params.buyAmount,
-                    orderInfo.orderAmount,
-                    false
-                );
+                _payFees(sellOrder, msg.sender, params.buyAmount, orderInfo.orderAmount, false);
             }
         } else {
             // Transfer ERC20 token from the buyer to the seller.
-            _transferERC20TokensFrom(
-                sellOrder.erc20Token,
-                msg.sender,
-                sellOrder.maker,
-                erc20FillAmount
-            );
+            _transferERC20TokensFrom(sellOrder.erc20Token, msg.sender, sellOrder.maker, erc20FillAmount);
             // The buyer pays fees.
-            _payFees(
-                sellOrder,
-                msg.sender,
-                params.buyAmount,
-                orderInfo.orderAmount,
-                false
-            );
+            _payFees(sellOrder, msg.sender, params.buyAmount, orderInfo.orderAmount, false);
         }
     }
 
@@ -344,11 +231,8 @@ abstract contract NFTOrders is
         // Check that the order is valid and has not expired, been cancelled,
         // or been filled.
         if (orderInfo.status != LibNFTOrder.OrderStatus.FILLABLE) {
-            LibNFTOrdersRichErrors.OrderNotFillableError(
-                sellOrder.maker,
-                sellOrder.nonce,
-                uint8(orderInfo.status)
-            ).rrevert();
+            LibNFTOrdersRichErrors.OrderNotFillableError(sellOrder.maker, sellOrder.nonce, uint8(orderInfo.status))
+                .rrevert();
         }
 
         // Check the signature.
@@ -367,13 +251,11 @@ abstract contract NFTOrders is
     {
         // Order must be buying the NFT asset.
         require(
-            buyOrder.direction == LibNFTOrder.TradeDirection.BUY_NFT,
-            "NFTOrders::_validateBuyOrder/WRONG_TRADE_DIRECTION"
+            buyOrder.direction == LibNFTOrder.TradeDirection.BUY_NFT, "NFTOrders::_validateBuyOrder/WRONG_TRADE_DIRECTION"
         );
         // The ERC20 token cannot be ETH.
         require(
-            address(buyOrder.erc20Token) != NATIVE_TOKEN_ADDRESS,
-            "NFTOrders::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED"
+            address(buyOrder.erc20Token) != NATIVE_TOKEN_ADDRESS, "NFTOrders::_validateBuyOrder/NATIVE_TOKEN_NOT_ALLOWED"
         );
         // Taker must match the order taker, if one is specified.
         if (buyOrder.taker != address(0) && buyOrder.taker != taker) {
@@ -382,11 +264,8 @@ abstract contract NFTOrders is
         // Check that the order is valid and has not expired, been cancelled,
         // or been filled.
         if (orderInfo.status != LibNFTOrder.OrderStatus.FILLABLE) {
-            LibNFTOrdersRichErrors.OrderNotFillableError(
-                buyOrder.maker,
-                buyOrder.nonce,
-                uint8(orderInfo.status)
-            ).rrevert();
+            LibNFTOrdersRichErrors.OrderNotFillableError(buyOrder.maker, buyOrder.nonce, uint8(orderInfo.status))
+                .rrevert();
         }
         // Check that the asset with the given token ID satisfies the properties
         // specified by the order.
@@ -405,20 +284,11 @@ abstract contract NFTOrders is
         private
     {
         // Pay fees using ETH.
-        uint256 ethFees = _payFees(
-            order,
-            address(this),
-            fillAmount,
-            orderAmount,
-            true
-        );
+        uint256 ethFees = _payFees(order, address(this), fillAmount, orderAmount, true);
         // Update amount of ETH spent.
         ethSpent = ethSpent.safeAdd(ethFees);
         if (ethSpent > ethAvailable) {
-            LibNFTOrdersRichErrors.OverspentEthError(
-                ethSpent,
-                ethAvailable
-            ).rrevert();
+            LibNFTOrdersRichErrors.OverspentEthError(ethSpent, ethAvailable).rrevert();
         }
     }
 
@@ -435,30 +305,20 @@ abstract contract NFTOrders is
         // Make assertions about ETH case
         if (useNativeToken) {
             assert(payer == address(this));
-            assert(
-                order.erc20Token == WETH ||
-                address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
-            );
+            assert(order.erc20Token == WETH || address(order.erc20Token) == NATIVE_TOKEN_ADDRESS);
         }
 
         for (uint256 i = 0; i < order.fees.length; i++) {
             LibNFTOrder.Fee memory fee = order.fees[i];
 
-            require(
-                fee.recipient != address(this),
-                "NFTOrders::_payFees/RECIPIENT_CANNOT_BE_EXCHANGE_PROXY"
-            );
+            require(fee.recipient != address(this), "NFTOrders::_payFees/RECIPIENT_CANNOT_BE_EXCHANGE_PROXY");
 
             uint256 feeFillAmount;
             if (fillAmount == orderAmount) {
                 feeFillAmount = fee.amount;
             } else {
                 // Round against the fee recipient
-                feeFillAmount = LibMathV06.getPartialAmountFloor(
-                    fillAmount,
-                    orderAmount,
-                    fee.amount
-                );
+                feeFillAmount = LibMathV06.getPartialAmountFloor(fillAmount, orderAmount, fee.amount);
             }
             if (feeFillAmount == 0) {
                 continue;
@@ -469,12 +329,7 @@ abstract contract NFTOrders is
                 _transferEth(payable(fee.recipient), feeFillAmount);
             } else {
                 // Transfer ERC20 token from payer to recipient.
-                _transferERC20TokensFrom(
-                    order.erc20Token,
-                    payer,
-                    fee.recipient,
-                    feeFillAmount
-                );
+                _transferERC20TokensFrom(order.erc20Token, payer, fee.recipient, feeFillAmount);
             }
             // Note that the fee callback is _not_ called if zero
             // `feeData` is provided. If `feeData` is provided, we assume
@@ -483,15 +338,10 @@ abstract contract NFTOrders is
             if (fee.feeData.length > 0) {
                 // Invoke the callback
                 bytes4 callbackResult = IFeeRecipient(fee.recipient).receiveZeroExFeeCallback(
-                    useNativeToken ? NATIVE_TOKEN_ADDRESS : address(order.erc20Token),
-                    feeFillAmount,
-                    fee.feeData
+                    useNativeToken ? NATIVE_TOKEN_ADDRESS : address(order.erc20Token), feeFillAmount, fee.feeData
                 );
                 // Check for the magic success bytes
-                require(
-                    callbackResult == FEE_CALLBACK_MAGIC_BYTES,
-                    "NFTOrders::_payFees/CALLBACK_FAILED"
-                );
+                require(callbackResult == FEE_CALLBACK_MAGIC_BYTES, "NFTOrders::_payFees/CALLBACK_FAILED");
             }
             // Sum the fees paid
             totalFeesPaid = totalFeesPaid.safeAdd(feeFillAmount);
@@ -507,13 +357,7 @@ abstract contract NFTOrders is
     ///      an NFT asset.
     /// @param order The NFT order.
     /// @param tokenId The ID of the NFT asset.
-    function _validateOrderProperties(
-        LibNFTOrder.NFTOrder memory order,
-        uint256 tokenId
-    )
-        internal
-        view
-    {
+    function _validateOrderProperties(LibNFTOrder.NFTOrder memory order, uint256 tokenId) internal view {
         // Order must be buying an NFT asset to have properties.
         require(
             order.direction == LibNFTOrder.TradeDirection.BUY_NFT,
@@ -524,10 +368,7 @@ abstract contract NFTOrders is
         // `tokenId` matches the one specified in the order.
         if (order.nftProperties.length == 0) {
             if (tokenId != order.nftId) {
-                LibNFTOrdersRichErrors.TokenIdMismatchError(
-                    tokenId,
-                    order.nftId
-                ).rrevert();
+                LibNFTOrdersRichErrors.TokenIdMismatchError(tokenId, order.nftId).rrevert();
             }
         } else {
             // Validate each property
@@ -541,17 +382,10 @@ abstract contract NFTOrders is
 
                 // Call the property validator and throw a descriptive error
                 // if the call reverts.
-                try property.propertyValidator.validateProperty(
-                    order.nft,
-                    tokenId,
-                    property.propertyData
-                ) {} catch (bytes memory errorData) {
+                try property.propertyValidator.validateProperty(order.nft, tokenId, property.propertyData) {}
+                catch (bytes memory errorData) {
                     LibNFTOrdersRichErrors.PropertyValidationFailedError(
-                        address(property.propertyValidator),
-                        order.nft,
-                        tokenId,
-                        property.propertyData,
-                        errorData
+                        address(property.propertyValidator), order.nft, tokenId, property.propertyData, errorData
                     ).rrevert();
                 }
             }
@@ -564,14 +398,10 @@ abstract contract NFTOrders is
     /// @param orderHash The hash of the order that was signed.
     /// @param signature The signature to check.
     /// @param maker The maker of the order.
-    function _validateOrderSignature(
-        bytes32 orderHash,
-        LibSignature.Signature memory signature,
-        address maker
-    )
+    function _validateOrderSignature(bytes32 orderHash, LibSignature.Signature memory signature, address maker)
         internal
-        virtual
-        view;
+        view
+        virtual;
 
     /// @dev Transfers an NFT asset.
     /// @param token The address of the NFT contract.
@@ -580,13 +410,7 @@ abstract contract NFTOrders is
     /// @param tokenId The ID of the asset to transfer.
     /// @param amount The amount of the asset to transfer. Always
     ///        1 for ERC721 assets.
-    function _transferNFTAssetFrom(
-        address token,
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 amount
-    )
+    function _transferNFTAssetFrom(address token, address from, address to, uint256 tokenId, uint256 amount)
         internal
         virtual;
 
@@ -596,11 +420,7 @@ abstract contract NFTOrders is
     /// @param orderHash The hash of `order`.
     /// @param fillAmount The amount (denominated in the NFT asset)
     ///        that the order has been filled by.
-    function _updateOrderState(
-        LibNFTOrder.NFTOrder memory order,
-        bytes32 orderHash,
-        uint128 fillAmount
-    )
+    function _updateOrderState(LibNFTOrder.NFTOrder memory order, bytes32 orderHash, uint128 fillAmount)
         internal
         virtual;
 
@@ -609,7 +429,7 @@ abstract contract NFTOrders is
     /// @return orderInfo Info about the order.
     function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
         internal
-        virtual
         view
+        virtual
         returns (LibNFTOrder.OrderInfo memory orderInfo);
 }

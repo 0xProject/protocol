@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -27,7 +28,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract MixinCurve {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -35,12 +35,9 @@ contract MixinCurve {
     /// @dev Mainnet address of the WETH contract.
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
-
 
     struct CurveBridgeData {
         address curveAddress;
@@ -49,12 +46,7 @@ contract MixinCurve {
         int128 toCoinIdx;
     }
 
-    function _tradeCurve(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeCurve(IERC20TokenV06 sellToken, IERC20TokenV06 buyToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
@@ -69,8 +61,8 @@ contract MixinCurve {
         }
 
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        (bool success, bytes memory resultData) =
-            data.curveAddress.call{value: payableAmount}(abi.encodeWithSelector(
+        (bool success, bytes memory resultData) = data.curveAddress.call{value: payableAmount}(
+            abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,
                 data.toCoinIdx,
@@ -78,14 +70,15 @@ contract MixinCurve {
                 sellAmount,
                 // min dy
                 1
-            ));
+            )
+        );
         if (!success) {
             resultData.rrevert();
         }
 
         if (buyToken == WETH) {
             boughtAmount = address(this).balance;
-            WETH.deposit{ value: boughtAmount }();
+            WETH.deposit{value: boughtAmount}();
         }
 
         return buyToken.balanceOf(address(this)).safeSub(beforeBalance);

@@ -19,44 +19,31 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
-
 interface IDODOV2 {
-    function sellBase(address recipient)
-        external
-        returns (uint256);
+    function sellBase(address recipient) external returns (uint256);
 
-    function sellQuote(address recipient)
-        external
-        returns (uint256);
+    function sellQuote(address recipient) external returns (uint256);
 }
 
-
 contract MixinDodoV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeDodoV2(
-        IERC20TokenV06 sellToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeDodoV2(IERC20TokenV06 sellToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
-        (IDODOV2 pool, bool isSellBase) =
-            abi.decode(bridgeData, (IDODOV2, bool));
+        (IDODOV2 pool, bool isSellBase) = abi.decode(bridgeData, (IDODOV2, bool));
 
         // Transfer the tokens into the pool
         sellToken.compatTransfer(address(pool), sellAmount);
 
-        boughtAmount = isSellBase ?
-            pool.sellBase(address(this))
-            : pool.sellQuote(address(this));
+        boughtAmount = isSellBase ? pool.sellBase(address(this)) : pool.sellQuote(address(this));
     }
 }

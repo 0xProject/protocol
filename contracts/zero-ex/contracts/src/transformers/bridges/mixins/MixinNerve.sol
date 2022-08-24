@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -26,11 +27,9 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract MixinNerve {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
-
 
     struct NerveBridgeData {
         address pool;
@@ -39,11 +38,7 @@ contract MixinNerve {
         int128 toCoinIdx;
     }
 
-    function _tradeNerve(
-        IERC20TokenV06 sellToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeNerve(IERC20TokenV06 sellToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
@@ -52,8 +47,8 @@ contract MixinNerve {
         // Decode the bridge data to get the Curve metadata.
         NerveBridgeData memory data = abi.decode(bridgeData, (NerveBridgeData));
         sellToken.approveIfBelow(data.pool, sellAmount);
-        (bool success, bytes memory resultData) =
-            data.pool.call(abi.encodeWithSelector(
+        (bool success, bytes memory resultData) = data.pool.call(
+            abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,
                 data.toCoinIdx,
@@ -63,7 +58,8 @@ contract MixinNerve {
                 1,
                 // deadline
                 block.timestamp
-            ));
+            )
+        );
         if (!success) {
             resultData.rrevert();
         }

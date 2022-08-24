@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
@@ -25,10 +26,8 @@ import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC721Token.sol";
 
-
 /// @dev Feature for interacting with ERC721 orders.
 interface IERC721OrdersFeature {
-
     /// @dev Emitted whenever an `ERC721Order` is filled.
     /// @param direction Whether the order is selling or
     ///        buying the ERC721 token.
@@ -57,10 +56,7 @@ interface IERC721OrdersFeature {
     /// @dev Emitted whenever an `ERC721Order` is cancelled.
     /// @param maker The maker of the order.
     /// @param nonce The nonce of the order that was cancelled.
-    event ERC721OrderCancelled(
-        address maker,
-        uint256 nonce
-    );
+    event ERC721OrderCancelled(address maker, uint256 nonce);
 
     /// @dev Emitted when an `ERC721Order` is pre-signed.
     ///      Contains all the fields of the order.
@@ -123,16 +119,14 @@ interface IERC721OrdersFeature {
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonce The order nonce.
-    function cancelERC721Order(uint256 orderNonce)
-        external;
+    function cancelERC721Order(uint256 orderNonce) external;
 
     /// @dev Cancel multiple ERC721 orders by their nonces. The caller
     ///      should be the maker of the orders. Silently succeeds if
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonces The order nonces.
-    function batchCancelERC721Orders(uint256[] calldata orderNonces)
-        external;
+    function batchCancelERC721Orders(uint256[] calldata orderNonces) external;
 
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
@@ -211,12 +205,7 @@ interface IERC721OrdersFeature {
     ///        the order using the received asset.
     /// @return success The selector of this function (0x150b7a02),
     ///         indicating that the callback succeeded.
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    )
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
         external
         returns (bytes4 success);
 
@@ -224,8 +213,7 @@ interface IERC721OrdersFeature {
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
     /// @param order An ERC721 order.
-    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order)
-        external;
+    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order) external;
 
     /// @dev Checks whether the given signature is valid for the
     ///      the given ERC721 order. Reverts if not.
@@ -247,10 +235,7 @@ interface IERC721OrdersFeature {
     ///      an ERC721 asset.
     /// @param order The ERC721 order.
     /// @param erc721TokenId The ID of the ERC721 asset.
-    function validateERC721OrderProperties(
-        LibNFTOrder.ERC721Order calldata order,
-        uint256 erc721TokenId
-    )
+    function validateERC721OrderProperties(LibNFTOrder.ERC721Order calldata order, uint256 erc721TokenId)
         external
         view;
 
@@ -265,10 +250,7 @@ interface IERC721OrdersFeature {
     /// @dev Get the EIP-712 hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return orderHash The order hash.
-    function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the order status bit vector for the given
     ///      maker address and nonce range.

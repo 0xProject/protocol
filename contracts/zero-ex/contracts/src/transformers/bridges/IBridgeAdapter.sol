@@ -18,13 +18,12 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface IBridgeAdapter {
-
     struct BridgeOrder {
         // Upper 16 bytes: uint128 protocol ID (right-aligned)
         // Lower 16 bytes: ASCII source name (left-aligned)
@@ -50,16 +49,9 @@ interface IBridgeAdapter {
         uint256 outputTokenAmount
     );
 
-    function isSupportedSource(bytes32 source)
-        external
-        returns (bool isSupported);
+    function isSupportedSource(bytes32 source) external returns (bool isSupported);
 
-    function trade(
-        BridgeOrder calldata order,
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount
-    )
+    function trade(BridgeOrder calldata order, IERC20TokenV06 sellToken, IERC20TokenV06 buyToken, uint256 sellAmount)
         external
         returns (uint256 boughtAmount);
 }

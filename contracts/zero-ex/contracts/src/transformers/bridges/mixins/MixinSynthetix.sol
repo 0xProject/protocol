@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 interface ISynthetix {
@@ -28,7 +29,9 @@ interface ISynthetix {
         bytes32 destinationCurrencyKey,
         bytes32 trackingCode,
         uint256 minAmount
-    ) external returns (uint256 amountReceived);
+    )
+        external
+        returns (uint256 amountReceived);
 
     // Optimism
     function exchangeWithTracking(
@@ -37,34 +40,20 @@ interface ISynthetix {
         bytes32 destinationCurrencyKey,
         address rewardAddress,
         bytes32 trackingCode
-    ) external returns (uint256 amountReceived);
+    )
+        external
+        returns (uint256 amountReceived);
 }
 
 contract MixinSynthetix {
-    address private constant rewardAddress =
-        0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
-    bytes32 constant trackingCode =
-        0x3058000000000000000000000000000000000000000000000000000000000000;
+    address private constant rewardAddress = 0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
+    bytes32 constant trackingCode = 0x3058000000000000000000000000000000000000000000000000000000000000;
 
-    function _tradeSynthetix(uint256 sellAmount, bytes memory bridgeData)
-        public
-        returns (uint256 boughtAmount)
-    {
-        (
-            ISynthetix synthetix,
-            bytes32 sourceCurrencyKey,
-            bytes32 destinationCurrencyKey
-        ) = abi.decode(
-                bridgeData,
-                (ISynthetix, bytes32, bytes32)
-            );
+    function _tradeSynthetix(uint256 sellAmount, bytes memory bridgeData) public returns (uint256 boughtAmount) {
+        (ISynthetix synthetix, bytes32 sourceCurrencyKey, bytes32 destinationCurrencyKey) =
+            abi.decode(bridgeData, (ISynthetix, bytes32, bytes32));
 
-        boughtAmount = exchange(
-            synthetix,
-            sourceCurrencyKey,
-            destinationCurrencyKey,
-            sellAmount
-        );
+        boughtAmount = exchange(synthetix, sourceCurrencyKey, destinationCurrencyKey, sellAmount);
     }
 
     function exchange(
@@ -72,27 +61,21 @@ contract MixinSynthetix {
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey,
         uint256 sellAmount
-    ) internal returns (uint256 boughtAmount) {
+    )
+        internal
+        returns (uint256 boughtAmount)
+    {
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
 
         if (chainId == 1) {
-            boughtAmount = synthetix.exchangeAtomically(
-                sourceCurrencyKey,
-                sellAmount,
-                destinationCurrencyKey,
-                trackingCode,
-                0
-            );
+            boughtAmount =
+                synthetix.exchangeAtomically(sourceCurrencyKey, sellAmount, destinationCurrencyKey, trackingCode, 0);
         } else {
             boughtAmount = synthetix.exchangeWithTracking(
-                sourceCurrencyKey,
-                sellAmount,
-                destinationCurrencyKey,
-                rewardAddress,
-                trackingCode
+                sourceCurrencyKey, sellAmount, destinationCurrencyKey, rewardAddress, trackingCode
             );
         }
     }

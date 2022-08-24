@@ -19,57 +19,31 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
-
 interface IDODO {
-    function sellBaseToken(
-        uint256 amount,
-        uint256 minReceiveQuote,
-        bytes calldata data
-    )
-        external
-        returns (uint256);
+    function sellBaseToken(uint256 amount, uint256 minReceiveQuote, bytes calldata data) external returns (uint256);
 
-    function buyBaseToken(
-        uint256 amount,
-        uint256 maxPayQuote,
-        bytes calldata data
-    )
-        external
-        returns (uint256);
+    function buyBaseToken(uint256 amount, uint256 maxPayQuote, bytes calldata data) external returns (uint256);
 }
-
 
 interface IDODOHelper {
-    function querySellQuoteToken(
-        IDODO dodo,
-        uint256 amount
-    )
-        external
-        view
-        returns (uint256);
+    function querySellQuoteToken(IDODO dodo, uint256 amount) external view returns (uint256);
 }
 
-
 contract MixinDodo {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeDodo(
-        IERC20TokenV06 sellToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeDodo(IERC20TokenV06 sellToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
-        (IDODOHelper helper, IDODO pool, bool isSellBase) =
-            abi.decode(bridgeData, (IDODOHelper, IDODO, bool));
+        (IDODOHelper helper, IDODO pool, bool isSellBase) = abi.decode(bridgeData, (IDODOHelper, IDODO, bool));
 
         // Grant the Dodo pool contract an allowance to sell the first token.
         sellToken.approveIfBelow(address(pool), sellAmount);
@@ -85,10 +59,7 @@ contract MixinDodo {
             );
         } else {
             // Need to re-calculate the sell quote amount into buyBase
-            boughtAmount = helper.querySellQuoteToken(
-                pool,
-                sellAmount
-            );
+            boughtAmount = helper.querySellQuoteToken(pool, sellAmount);
             pool.buyBaseToken(
                 // amount to buy
                 boughtAmount,

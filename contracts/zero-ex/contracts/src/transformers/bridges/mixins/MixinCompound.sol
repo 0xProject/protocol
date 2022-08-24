@@ -18,13 +18,13 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
-
 
 /// @dev Minimal CToken interface
 interface ICToken {
@@ -38,9 +38,10 @@ interface ICToken {
     function redeem(uint256 redeemTokensInCtokens) external returns (uint256);
 }
 /// @dev Minimal CEther interface
+
 interface ICEther {
     /// @dev deposits the amount of Ether sent as value and return mints cEther for the sender
-    function mint() payable external;
+    function mint() external payable;
     /// @dev redeems specified amount of cETH and returns the underlying ether to the sender
     /// @dev redeemTokensInCEther amount of cETH to redeem for underlying ether
     /// @return status code of whether the redemption was successful or not
@@ -53,13 +54,11 @@ contract MixinCompound {
 
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
-    uint256 constant private COMPOUND_SUCCESS_CODE = 0;
+    uint256 private constant COMPOUND_SUCCESS_CODE = 0;
 
     function _tradeCompound(
         IERC20TokenV06 sellToken,
@@ -82,10 +81,7 @@ contract MixinCompound {
                 // NOTE: cETH mint will revert on failure instead of returning a status code
                 cETH.mint{value: sellAmount}();
             } else {
-                sellToken.approveIfBelow(
-                    cTokenAddress,
-                    sellAmount
-                );
+                sellToken.approveIfBelow(cTokenAddress, sellAmount);
                 // Token -> cToken
                 ICToken cToken = ICToken(cTokenAddress);
                 require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");

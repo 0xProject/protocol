@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -26,10 +27,8 @@ import "../errors/LibOwnableRichErrors.sol";
 import "../features/interfaces/IOwnableFeature.sol";
 import "../features/interfaces/ISimpleFunctionRegistryFeature.sol";
 
-
 /// @dev Common feature utilities.
 abstract contract FixinCommon {
-
     using LibRichErrorsV06 for bytes;
 
     /// @dev The implementation address of this feature.
@@ -48,10 +47,7 @@ abstract contract FixinCommon {
         {
             address owner = IOwnableFeature(address(this)).owner();
             if (msg.sender != owner) {
-                LibOwnableRichErrors.OnlyOwnerError(
-                    msg.sender,
-                    owner
-                ).rrevert();
+                LibOwnableRichErrors.OnlyOwnerError(msg.sender, owner).rrevert();
             }
         }
         _;
@@ -66,9 +62,7 @@ abstract contract FixinCommon {
     ///      Can and should only be called within a `migrate()`.
     /// @param selector The selector of the function whose implementation
     ///        is at `_implementation`.
-    function _registerFeatureFunction(bytes4 selector)
-        internal
-    {
+    function _registerFeatureFunction(bytes4 selector) internal {
         ISimpleFunctionRegistryFeature(address(this)).extend(selector, _implementation);
     }
 

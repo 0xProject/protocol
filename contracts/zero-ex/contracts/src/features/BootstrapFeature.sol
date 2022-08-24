@@ -18,6 +18,7 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
@@ -25,21 +26,18 @@ import "../migrations/LibBootstrap.sol";
 import "../storage/LibProxyStorage.sol";
 import "./interfaces/IBootstrapFeature.sol";
 
-
 /// @dev Detachable `bootstrap()` feature.
-contract BootstrapFeature is
-    IBootstrapFeature
-{
+contract BootstrapFeature is IBootstrapFeature {
     // solhint-disable state-visibility,indent
     /// @dev The ZeroEx contract.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _deployer;
+    address private immutable _deployer;
     /// @dev The implementation address of this contract.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _implementation;
+    address private immutable _implementation;
     /// @dev The deployer.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _bootstrapCaller;
+    address private immutable _bootstrapCaller;
     // solhint-enable state-visibility,indent
 
     using LibRichErrorsV06 for bytes;
@@ -62,10 +60,7 @@ contract BootstrapFeature is
     function bootstrap(address target, bytes calldata callData) external override {
         // Only the bootstrap caller can call this function.
         if (msg.sender != _bootstrapCaller) {
-            LibProxyRichErrors.InvalidBootstrapCallerError(
-                msg.sender,
-                _bootstrapCaller
-            ).rrevert();
+            LibProxyRichErrors.InvalidBootstrapCallerError(msg.sender, _bootstrapCaller).rrevert();
         }
         // Deregister.
         LibProxyStorage.getStorage().impls[this.bootstrap.selector] = address(0);

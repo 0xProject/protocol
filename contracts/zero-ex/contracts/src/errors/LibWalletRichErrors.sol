@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.5;
 
-
 library LibWalletRichErrors {
-
     // solhint-disable func-name-mixedcase
 
     function WalletExecuteCallFailedError(

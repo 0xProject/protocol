@@ -19,13 +19,13 @@
 */
 
 pragma solidity ^0.6.5;
+
 pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../IBridgeAdapter.sol";
-
 
 interface IBancorNetwork {
     function convertByPath(
@@ -41,25 +41,16 @@ interface IBancorNetwork {
         returns (uint256);
 }
 
-
 contract MixinBancor {
-
     /// @dev Bancor ETH pseudo-address.
-    IERC20TokenV06 constant public BANCOR_ETH_ADDRESS =
-        IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    IERC20TokenV06 public constant BANCOR_ETH_ADDRESS = IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
-    function _tradeBancor(
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    )
+    function _tradeBancor(IERC20TokenV06 buyToken, uint256 sellAmount, bytes memory bridgeData)
         internal
         returns (uint256 boughtAmount)
     {
@@ -68,18 +59,16 @@ contract MixinBancor {
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (
-                bancorNetworkAddress,
-                _path
-            ) = abi.decode(bridgeData, (IBancorNetwork, address[]));
+            (bancorNetworkAddress, _path) = abi.decode(bridgeData, (IBancorNetwork, address[]));
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
         require(path.length >= 2, "MixinBancor/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path[path.length - 1] == buyToken ||
-            (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == WETH),
+            path[path.length - 1] == buyToken || (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == WETH),
             "MixinBancor/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
 
@@ -92,11 +81,7 @@ contract MixinBancor {
             payableAmount = sellAmount;
         } else {
             // Grant an allowance to the Bancor Network.
-            LibERC20TokenV06.approveIfBelow(
-                path[0],
-                address(bancorNetworkAddress),
-                sellAmount
-            );
+            LibERC20TokenV06.approveIfBelow(path[0], address(bancorNetworkAddress), sellAmount);
         }
 
         // Convert the tokens
