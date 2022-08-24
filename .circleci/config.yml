@@ -132,7 +132,6 @@ jobs:
             - run: yarn wsrun -p @0x/contract-artifacts -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/contract-wrappers-test -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/order-utils -m --serial -c test:circleci
-            - run: yarn wsrun -p @0x/asset-swapper -m --serial -c test:circleci
             - save_cache:
                   key: coverage-contract-wrappers-test-{{ .Environment.CIRCLE_SHA1 }}
                   paths:
