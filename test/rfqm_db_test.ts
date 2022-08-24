@@ -85,6 +85,12 @@ const gasUsed = null;
 const blockMined = null;
 const nonce = 0;
 
+// meta-transaction
+const inputToken = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const outputToken = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+const inputTokenAmount = new BigNumber(100);
+const minOutputTokenAmount = new BigNumber(99);
+
 function creatMockMetaTransaction(opts: Partial<MetaTransactionFields> = {}): MetaTransaction {
     return new MetaTransaction({
         ...MOCK_META_TRANSACTION,
@@ -277,9 +283,13 @@ describe('RFQM Database', () => {
                 chainId: 1,
                 expiry: new BigNumber(2),
                 fee: MOCK_FEE,
+                inputToken,
+                inputTokenAmount,
                 integratorId: 'integrator',
                 metaTransaction,
                 metaTransactionHash,
+                minOutputTokenAmount,
+                outputToken,
                 takerAddress: '0xaddress',
                 takerSignature,
             });
@@ -322,9 +332,13 @@ describe('RFQM Database', () => {
                 chainId: 1,
                 expiry: new BigNumber(2),
                 fee: MOCK_FEE,
+                inputToken,
+                inputTokenAmount,
                 integratorId: 'integrator',
                 metaTransaction,
                 metaTransactionHash,
+                minOutputTokenAmount,
+                outputToken,
                 takerAddress: '0xaddress',
                 takerSignature,
                 status: RfqmJobStatus.FailedExpired,
@@ -350,8 +364,12 @@ describe('RFQM Database', () => {
                 fee: MOCK_FEE,
                 id: '1',
                 integratorId: 'integrator',
+                inputToken,
+                inputTokenAmount,
                 metaTransaction: mockMetaTransaction1,
                 metaTransactionHash: mockMetaTransaction1.getHash(),
+                minOutputTokenAmount,
+                outputToken,
                 takerAddress: '0xaddress',
                 takerSignature,
                 status: RfqmJobStatus.PendingEnqueued,
@@ -364,9 +382,13 @@ describe('RFQM Database', () => {
                 chainId: 2,
                 expiry: new BigNumber(2),
                 fee: MOCK_FEE,
+                inputToken,
+                inputTokenAmount,
                 integratorId: 'integrator',
                 metaTransaction: mockMetaTransaction2,
                 metaTransactionHash: mockMetaTransaction2.getHash(),
+                minOutputTokenAmount,
+                outputToken,
                 takerAddress: '0xaddress',
                 takerSignature,
                 status: RfqmJobStatus.PendingProcessing,
@@ -379,9 +401,13 @@ describe('RFQM Database', () => {
                 chainId: 3,
                 expiry: new BigNumber(2),
                 fee: MOCK_FEE,
+                inputToken,
+                inputTokenAmount,
                 integratorId: 'integrator',
                 metaTransaction: mockMetaTransaction3,
                 metaTransactionHash: mockMetaTransaction3.getHash(),
+                minOutputTokenAmount,
+                outputToken,
                 takerAddress: '0xaddress',
                 takerSignature,
                 status: RfqmJobStatus.FailedExpired,

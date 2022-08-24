@@ -13,9 +13,13 @@ export type MetaTransactionJobConstructorOpts = Pick<
     | 'chainId'
     | 'expiry'
     | 'fee'
+    | 'inputToken'
+    | 'inputTokenAmount'
     | 'integratorId'
     | 'metaTransaction'
     | 'metaTransactionHash'
+    | 'minOutputTokenAmount'
+    | 'outputToken'
     | 'takerAddress'
     | 'takerSignature'
 > &
@@ -86,6 +90,21 @@ export class MetaTransactionJobEntity {
     @Column({ name: 'approval_signature', type: 'jsonb', nullable: true })
     public approvalSignature: Signature | null;
 
+    @Column({ name: 'input_token', type: 'varchar' })
+    public inputToken: string;
+
+    @Column({ name: 'output_token', type: 'varchar' })
+    public outputToken: string;
+
+    @Column({ name: 'input_token_amount', type: 'numeric', transformer: BigNumberTransformer })
+    public inputTokenAmount: BigNumber;
+
+    @Column({ name: 'min_output_token_amount', type: 'numeric', transformer: BigNumberTransformer })
+    public minOutputTokenAmount: BigNumber;
+
+    @Column({ name: 'settled_output_token_amount', type: 'numeric', transformer: BigNumberTransformer, nullable: true })
+    public settledOutputTokenAmount: BigNumber | null;
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
@@ -104,9 +123,14 @@ export class MetaTransactionJobEntity {
         this.chainId = opts.chainId;
         this.expiry = opts.expiry;
         this.fee = opts.fee;
+        this.inputToken = opts.inputToken;
+        this.inputTokenAmount = opts.inputTokenAmount;
         this.integratorId = opts.integratorId;
         this.metaTransaction = opts.metaTransaction;
         this.metaTransactionHash = opts.metaTransactionHash;
+        this.minOutputTokenAmount = opts.minOutputTokenAmount;
+        this.outputToken = opts.outputToken;
+        this.settledOutputTokenAmount = opts.settledOutputTokenAmount ?? null;
         this.status = opts.status ?? RfqmJobStatus.PendingEnqueued;
         this.takerAddress = opts.takerAddress;
         this.takerSignature = opts.takerSignature;
