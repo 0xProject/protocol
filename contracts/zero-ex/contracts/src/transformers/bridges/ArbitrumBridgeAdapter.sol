@@ -29,7 +29,7 @@ import "./mixins/MixinGMX.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
-contract OptimismBridgeAdapter is
+contract ArbitrumBridgeAdapter is
     AbstractBridgeAdapter(42161, "Arbitrum"),
     MixinBalancerV2,
     MixinCurve,
