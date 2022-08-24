@@ -40,10 +40,7 @@ import {
 
 // tslint:disable: no-bitwise
 
-export const ERC20_PROXY_ID = '0xf47261b0';
-export const WALLET_SIGNATURE = '0x04';
 export const ONE_ETHER = new BigNumber(1e18);
-export const NEGATIVE_INF = new BigNumber('-Infinity');
 export const POSITIVE_INF = new BigNumber('Infinity');
 export const ZERO_AMOUNT = new BigNumber(0);
 export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
@@ -2149,13 +2146,6 @@ export const COMPONENT_POOLS_BY_CHAIN_ID = valueByChainId(
     },
 );
 
-export const GEIST_INFO_ADDRESS_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.Fantom]: '0xd8321aa83fb0a4ecd6348d4577431310a6e0814d',
-    },
-    NULL_ADDRESS,
-);
-
 export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
@@ -2729,8 +2719,6 @@ export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_G
     return acc;
     // tslint:disable-next-line:no-object-literal-type-assertion
 }, {} as Required<FeeSchedule>);
-
-export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(20000);
 
 export const DEFAULT_FEE_ESTIMATE = { gas: 0, fee: ZERO_AMOUNT };
 

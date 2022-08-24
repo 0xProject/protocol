@@ -34,7 +34,6 @@ import {
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
-    OrderDomain,
     PlatypusFillData,
     ShellFillData,
     SynthetixFillData,
@@ -51,7 +50,6 @@ export interface CreateOrderFromPathOpts {
     side: MarketOperation;
     inputToken: string;
     outputToken: string;
-    orderDomain: OrderDomain;
     contractAddresses: AssetSwapperContractAddresses;
     bridgeSlippage: number;
 }

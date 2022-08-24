@@ -153,10 +153,6 @@ export class SwapQuoter {
                     : async () => undefined,
             ),
             this._contractAddresses,
-            {
-                chainId,
-                exchangeAddress: this._contractAddresses.exchange,
-            },
         );
 
         this._quoteRequestorHttpClient = Axios.create({

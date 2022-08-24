@@ -56,7 +56,6 @@ import {
     MarketSideLiquidity,
     OptimizerResult,
     OptimizerResultWithReport,
-    OrderDomain,
 } from './types';
 
 // tslint:disable:boolean-naming
@@ -122,7 +121,6 @@ export class MarketOperationUtils {
     constructor(
         private readonly _sampler: DexOrderSampler,
         private readonly contractAddresses: AssetSwapperContractAddresses,
-        private readonly _orderDomain: OrderDomain,
     ) {
         this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
@@ -480,7 +478,6 @@ export class MarketOperationUtils {
             side,
             inputToken,
             outputToken,
-            orderDomain: this._orderDomain,
             contractAddresses: this.contractAddresses,
             bridgeSlippage: opts.bridgeSlippage || 0,
         };

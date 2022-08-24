@@ -206,11 +206,6 @@ describe('MarketOperationUtils tests', () => {
         });
     }
 
-    const ORDER_DOMAIN = {
-        exchangeAddress: contractAddresses.exchange,
-        chainId: CHAIN_ID,
-    };
-
     function createSamplesFromRates(
         source: ERC20BridgeSource,
         inputs: Numberish[],
@@ -423,7 +418,7 @@ describe('MarketOperationUtils tests', () => {
         let marketOperationUtils: MarketOperationUtils;
 
         before(async () => {
-            marketOperationUtils = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
+            marketOperationUtils = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses);
         });
 
         describe('getMarketSellOrdersAsync()', () => {
@@ -594,7 +589,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
 
@@ -675,7 +669,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -752,7 +745,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -797,7 +789,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -857,7 +848,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -911,7 +901,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -962,7 +951,6 @@ describe('MarketOperationUtils tests', () => {
                     false,
                     MOCK_SAMPLER,
                     contractAddresses,
-                    ORDER_DOMAIN,
                 );
                 mockedMarketOpUtils.callBase = true;
                 mockedMarketOpUtils
@@ -1185,7 +1173,7 @@ describe('MarketOperationUtils tests', () => {
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                 });
 
-                const sampler = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
+                const sampler = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses);
                 const ordersAndReport = await sampler.getOptimizerResultAsync(
                     [
                         {
@@ -1239,7 +1227,7 @@ describe('MarketOperationUtils tests', () => {
                     getSellQuotes: createGetMultipleSellQuotesOperationFromRates(rates),
                     getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_MAKER_RATE),
                 });
-                const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
+                const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses);
                 const gasPrice = 100e9; // 100 gwei
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
@@ -1608,7 +1596,7 @@ describe('MarketOperationUtils tests', () => {
                     getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
                     getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_TAKER_RATE),
                 });
-                const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses, ORDER_DOMAIN);
+                const optimizer = new MarketOperationUtils(MOCK_SAMPLER, contractAddresses);
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.LiquidityProvider
                         ? constants.ZERO_AMOUNT

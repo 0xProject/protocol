@@ -22,13 +22,6 @@ import { SubgraphPoolDataService } from './sgPoolDataService';
 
 const ONE_DAY_MS = 24 * 60 * 60 * ONE_SECOND_MS;
 
-export interface BalancerPoolResponse {
-    poolType: string;
-    id: string;
-    tokens: { address: string }[];
-    tokensList: string[];
-}
-
 export class BalancerV2SwapInfoCache extends SwapInfoCache {
     private static readonly _MAX_POOLS_PER_PATH = 4;
     private static readonly _MAX_CANDIDATE_PATHS_PER_PAIR = 2;
