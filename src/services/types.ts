@@ -89,7 +89,7 @@ export interface OtcOrderSubmitRfqmSignedQuoteResponse {
     orderHash: string;
 }
 
-interface SubmitApprovalParams {
+export interface SubmitApprovalParams {
     type: GaslessApprovalTypes;
     eip712: EIP712Context;
     signature: Signature;

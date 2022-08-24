@@ -79,6 +79,7 @@ import {
     QuoteContext,
     RfqmTypes,
     StatusResponse,
+    SubmitApprovalParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
     SubmitRfqmSignedQuoteWithApprovalResponse,
     TransactionDetails,
@@ -875,68 +876,80 @@ export class RfqmService {
         let submitRfqmSignedQuoteWithApprovalRes: SubmitRfqmSignedQuoteWithApprovalResponse;
         const { approval, trade } = params;
 
-        if (approval) {
-            let signature: Signature = approval.signature;
-            const orderHash = trade.order.getHash();
-
-            // validate and convert EIP712 context to corresponding Approval object
-            const parsedApproval = this._convertEIP712ContextToApproval(approval.type, approval.eip712, orderHash);
-
-            // pad approval signature if there are missing bytes
-            const paddedSignature = padSignature(signature);
-            if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
-                logger.warn(
-                    { orderHash, r: paddedSignature.r, s: paddedSignature.s },
-                    'Got approval signature with missing bytes',
-                );
-                signature = paddedSignature;
-            }
-
-            // perform an eth_call on the approval object and signature
-            try {
-                const takerToken = trade.order.takerToken.toLowerCase();
-                const approvalCalldata = await this._blockchainUtils.generateApprovalCalldataAsync(
-                    takerToken,
-                    parsedApproval,
-                    approval.signature,
-                );
-                await retry(
-                    async () => {
-                        // Use `estimateGasForAsync` to simulate the transaction. In ethers.js, provider.call and
-                        // provider.send('eth_call', ...) might not throw exception and the behavior might be dependent
-                        // on providers. Revisit this later
-                        return this._blockchainUtils.estimateGasForAsync({ to: takerToken, data: approvalCalldata });
-                    },
-                    {
-                        delay: ONE_SECOND_MS,
-                        factor: 1,
-                        maxAttempts: 3,
-                        handleError: (error, context, _options) => {
-                            const { attemptNum: attemptNumber, attemptsRemaining } = context;
-                            logger.warn(
-                                { attemptNumber, attemptsRemaining, errorMessage: error.message, stack: error.stack },
-                                'Error during eth_call approval validation. Retrying.',
-                            );
-                        },
-                    },
-                );
-            } catch (error) {
-                logger.error({ errorMessage: error.message }, 'Eth call approval validation failed');
-                throw new Error('Eth call approval validation failed');
-            }
-
-            const rfqmApprovalOpts: RfqmV2JobApprovalOpts = {
-                approval: parsedApproval,
-                approvalSignature: approval.signature,
-            };
-
-            submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade, rfqmApprovalOpts);
-        } else {
-            // proceed with submitTakerSignedOtcOrderAsync if approval is not provided
-            submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade);
-        }
+        const rfqmApprovalOpts = approval
+            ? await this.createApprovalAsync(approval, trade.order.getHash(), trade.order.takerToken)
+            : undefined;
+        submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade, rfqmApprovalOpts);
 
         return submitRfqmSignedQuoteWithApprovalRes;
+    }
+
+    /**
+     * Processes a signed approval sent to the submission endpoint in order to
+     * create the approval data needed by the job.
+     */
+    public async createApprovalAsync(
+        approval: SubmitApprovalParams,
+        tradeHash: string,
+        takerToken: string,
+    ): Promise<RfqmV2JobApprovalOpts> {
+        let { signature } = approval;
+
+        // validate and convert EIP712 context to corresponding Approval object
+        const parsedApproval = this._convertEIP712ContextToApproval(approval.type, approval.eip712, tradeHash);
+
+        // pad approval signature if there are missing bytes
+        const paddedSignature = padSignature(signature);
+        if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
+            logger.warn(
+                { tradeHash, r: paddedSignature.r, s: paddedSignature.s },
+                'Got approval signature with missing bytes',
+            );
+            signature = paddedSignature;
+        }
+
+        // perform an eth_call on the approval object and signature
+        try {
+            const approvalCalldata = await this._blockchainUtils.generateApprovalCalldataAsync(
+                takerToken,
+                parsedApproval,
+                signature,
+            );
+            await retry(
+                async () => {
+                    // Use `estimateGasForAsync` to simulate the transaction. In ethers.js, provider.call and
+                    // provider.send('eth_call', ...) might not throw exception and the behavior might be dependent
+                    // on providers. Revisit this later
+                    return this._blockchainUtils.estimateGasForAsync({ to: takerToken, data: approvalCalldata });
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            {
+                                attemptNumber,
+                                attemptsRemaining,
+                                errorMessage: error.message,
+                                stack: error.stack,
+                                tradeHash,
+                            },
+                            'Error during eth_call approval validation. Retrying.',
+                        );
+                    },
+                },
+            );
+        } catch (error) {
+            logger.error({ errorMessage: error.message }, 'Eth call approval validation failed');
+            throw new Error('Eth call approval validation failed');
+        }
+
+        return {
+            approval: parsedApproval,
+            approvalSignature: signature,
+        };
     }
 
     /**
@@ -2423,21 +2436,22 @@ export class RfqmService {
      * Validates and converts EIP-712 context to an Approval object.
      * @param kind Type of gasless approval
      * @param eip712 EIP-712 context parsed from the handler
-     * @param orderHash The order hash, only used for logging in case of validation error
+     * @param tradeHash The order hash or metatransaction hash,
+     *  only used for logging in case of validation error
      * @returns The Approval object
      */
     // tslint:disable-next-line: prefer-function-over-method
     private _convertEIP712ContextToApproval(
         kind: GaslessApprovalTypes,
         eip712: EIP712Context,
-        orderHash: string,
+        tradeHash: string,
     ): Approval {
         const { types, primaryType, domain, message } = eip712;
         switch (kind) {
             case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const parsedTypes = types as typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
                 if (!parsedTypes) {
-                    logger.warn({ kind, types, orderHash }, 'Invalid types field provided for Approval');
+                    logger.warn({ kind, types, tradeHash }, 'Invalid types field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'types',
@@ -2447,7 +2461,7 @@ export class RfqmService {
                     ]);
                 }
                 if (primaryType !== 'MetaTransaction') {
-                    logger.warn({ kind, primaryType, orderHash }, 'Invalid primaryType field provided for Approval');
+                    logger.warn({ kind, primaryType, tradeHash }, 'Invalid primaryType field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'primaryType',
@@ -2462,7 +2476,7 @@ export class RfqmService {
                         types.MetaTransaction.map((dataField: EIP712DataField) => dataField.name).sort(),
                     )
                 ) {
-                    logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');
+                    logger.warn({ kind, tradeHash }, 'Invalid message field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'message',
@@ -2488,7 +2502,7 @@ export class RfqmService {
             case GaslessApprovalTypes.Permit: {
                 const parsedTypes = types as typeof PERMIT_EIP_712_TYPES;
                 if (!parsedTypes) {
-                    logger.warn({ kind, types, orderHash }, 'Invalid types field provided for Approval');
+                    logger.warn({ kind, types, tradeHash }, 'Invalid types field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'types',
@@ -2498,7 +2512,7 @@ export class RfqmService {
                     ]);
                 }
                 if (primaryType !== 'Permit') {
-                    logger.warn({ kind, primaryType, orderHash }, 'Invalid primaryType field provided for Approval');
+                    logger.warn({ kind, primaryType, tradeHash }, 'Invalid primaryType field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'primaryType',
@@ -2513,7 +2527,7 @@ export class RfqmService {
                         types.Permit.map((dataField: EIP712DataField) => dataField.name).sort(),
                     )
                 ) {
-                    logger.warn({ kind, orderHash }, 'Invalid message field provided for Approval');
+                    logger.warn({ kind, tradeHash }, 'Invalid message field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'message',
@@ -2539,7 +2553,7 @@ export class RfqmService {
                 };
             }
             default:
-                logger.warn({ kind, orderHash }, 'Invalid kind provided for Approval');
+                logger.warn({ kind, tradeHash }, 'Invalid kind provided for Approval');
                 throw new ValidationError([
                     {
                         field: 'kind',
