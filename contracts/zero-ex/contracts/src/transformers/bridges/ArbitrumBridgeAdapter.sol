@@ -75,7 +75,6 @@ contract ArbitrumBridgeAdapter is
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeDodoV2(
                 sellToken,
-                buyToken,
                 sellAmount,
                 order.bridgeData
             );
