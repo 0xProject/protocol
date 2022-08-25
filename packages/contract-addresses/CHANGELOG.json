@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.22.0",
+        "changes": [
+            {
+                "note": "Arbitrum Rinkeby support",
+                "pr": 552
+            }
+        ]
+    },
+    {
         "version": "6.21.0",
         "changes": [
             {

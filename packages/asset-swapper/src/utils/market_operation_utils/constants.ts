@@ -71,8 +71,8 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Fantom]: defaultValue,
         [ChainId.Celo]: defaultValue,
         [ChainId.Optimism]: defaultValue,
+        [ChainId.ArbitrumRinkeby]: defaultValue,
         [ChainId.Arbitrum]: defaultValue,
-
         ...(rest || {}),
     };
 }
@@ -223,6 +223,10 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
+        ]),
+        [ChainId.ArbitrumRinkeby]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.UniswapV3,
         ]),
     },
     new SourceFilters([]),
@@ -375,6 +379,10 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
         ]),
+        [ChainId.ArbitrumRinkeby]: new SourceFilters([
+            ERC20BridgeSource.Native,
+            ERC20BridgeSource.UniswapV3,
+        ]),
     },
     new SourceFilters([]),
 );
@@ -399,6 +407,7 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
         [ChainId.Fantom]: [ERC20BridgeSource.SpiritSwap, ERC20BridgeSource.SpookySwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Celo]: [ERC20BridgeSource.UbeSwap, ERC20BridgeSource.SushiSwap],
         [ChainId.Optimism]: [ERC20BridgeSource.UniswapV3],
+        [ChainId.ArbitrumRinkeby]: [ERC20BridgeSource.UniswapV3],
     },
     [],
 );
@@ -916,6 +925,11 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             '0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844', // DAI
             '0x07865c6E87B9F70255377e024ace6630C1Eaa37F', // USDC
         ],
+        [ChainId.ArbitrumRinkeby]: [
+            getContractAddressesForChainOrThrow(ChainId.ArbitrumRinkeby).etherToken,
+            '0x237b3B5238D2022aA80cAd1f67dAE53f353F74bF', // USDT
+            '0xF61Cffd6071a8DB7cD5E8DF1D3A5450D9903cF1c', // USDC
+        ],
         [ChainId.PolygonMumbai]: [
             getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
             '0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747', // USDC
@@ -1047,6 +1061,7 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ropsten]: getContractAddressesForChainOrThrow(ChainId.Ropsten).etherToken,
         [ChainId.Goerli]: getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
         [ChainId.PolygonMumbai]: getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
+        [ChainId.ArbitrumRinkeby]: getContractAddressesForChainOrThrow(ChainId.ArbitrumRinkeby).etherToken,
         [ChainId.Rinkeby]: getContractAddressesForChainOrThrow(ChainId.Rinkeby).etherToken,
         [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
@@ -2222,6 +2237,10 @@ export const UNISWAPV3_CONFIG_BY_CHAIN_ID = valueByChainId(
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
         [ChainId.Optimism]: {
+            quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
+            router: '0xe592427a0aece92de3edee1f18e0157c05861564',
+        },
+        [ChainId.ArbitrumRinkeby]: {
             quoter: '0x61ffe014ba17989e743c5f6cb21bf9697530b21e',
             router: '0xe592427a0aece92de3edee1f18e0157c05861564',
         },
