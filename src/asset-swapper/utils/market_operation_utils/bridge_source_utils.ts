@@ -10,6 +10,7 @@ import {
     CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
+    CURVE_ARBITRUM_INFOS,
     CURVE_AVALANCHE_INFOS,
     CURVE_FANTOM_INFOS,
     CURVE_MAINNET_INFOS,
@@ -44,6 +45,7 @@ import {
     SPIRITSWAP_ROUTER_BY_CHAIN_ID,
     SPOOKYSWAP_ROUTER_BY_CHAIN_ID,
     SUSHISWAP_ROUTER_BY_CHAIN_ID,
+    SYNAPSE_ARBITRUM_INFOS,
     SYNAPSE_AVALANCHE_INFOS,
     SYNAPSE_BSC_INFOS,
     SYNAPSE_FANTOM_INFOS,
@@ -142,6 +144,15 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
             );
         case ChainId.Optimism:
             return Object.values(CURVE_OPTIMISM_INFOS).filter((c) =>
+                [makerToken, takerToken].every(
+                    (t) =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Arbitrum:
+            return Object.values(CURVE_ARBITRUM_INFOS).filter((c) =>
                 [makerToken, takerToken].every(
                     (t) =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||
@@ -260,6 +271,15 @@ export function getSynapseInfosForPair(chainId: ChainId, takerToken: string, mak
             );
         case ChainId.Avalanche:
             return Object.values(SYNAPSE_AVALANCHE_INFOS).filter((c) =>
+                [makerToken, takerToken].every(
+                    (t) =>
+                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                        (c.tokens.includes(t) &&
+                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
+                ),
+            );
+        case ChainId.Arbitrum:
+            return Object.values(SYNAPSE_ARBITRUM_INFOS).filter((c) =>
                 [makerToken, takerToken].every(
                     (t) =>
                         (c.tokens.includes(t) && c.metaTokens === undefined) ||

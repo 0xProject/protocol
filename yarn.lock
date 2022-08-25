@@ -108,15 +108,15 @@
   version "6.11.0"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.11.0.tgz#31f743c06aeefc8e61327017f9186ffb11cc23f1"
 
-"@0x/contract-addresses@^6.17.0":
-  version "6.17.0"
-  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.17.0.tgz#c2d119e5667b7dbf16998ef427a1af32650561a2"
-  integrity sha512-sIudU6OvlqkRVV1Fzxk0GEkSTAPssgf7UkVolsPJEqOaDw3NLGOc+bzMH2mr651054sTGMPme8G5eVO26OSPug==
-
 "@0x/contract-addresses@^6.20.1":
   version "6.20.1"
   resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.20.1.tgz#1f1cb86d7fde775e04ca679f1af92a462f15ab57"
   integrity sha512-74YSA7UrM8kaC4GysaL+GPPwVsJRSOW8bGorZvglDrtx6Rid9Xv681pAqhKaPxXh/C5HTgYa1mpLgdnhS8zkxw==
+
+"@0x/contract-addresses@^6.22.0":
+  version "6.22.0"
+  resolved "https://registry.yarnpkg.com/@0x/contract-addresses/-/contract-addresses-6.22.0.tgz#435fe031f1c225c515a56fa65947517a4b606053"
+  integrity sha512-A/MlnKFj67t2W10EF8pyMkmKMfqKG5MKGnU5R6ahHJN11y7i9HLDewPHfpG+6oaDip6Kn8ihWx3VN5C9gCDHHw==
 
 "@0x/contract-wrappers@^13.17.4", "@0x/contract-wrappers@^13.18.5":
   version "13.18.5"
@@ -542,12 +542,12 @@
   optionalDependencies:
     "@ledgerhq/hw-transport-node-hid" "^5.51.1"
 
-"@0x/token-metadata@^0.1.17":
-  version "0.1.17"
-  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.1.17.tgz#a4afc4bcbe7ae972c78b7a67a0c2c83d21a58758"
-  integrity sha512-b0Z7r0ueoHwtR9CMGuS3lCMNW8S2TZSMMUH+RX+U+SEW8I7ME0M+JWlDynJJbExubn51l3FzTJtTJ0gmaWEqVA==
+"@0x/token-metadata@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@0x/token-metadata/-/token-metadata-0.2.1.tgz#f1921644bac84701cba104516b7c2a4c2125d878"
+  integrity sha512-KDFzXIgNLBFFgwdn4lgI7t5zIArcsVU160Bt1g5/a+on93eR0EkAF6OMSPwxRKa/4iEDUkjdgVDTemG4rb5deQ==
   dependencies:
-    "@0x/contract-addresses" "^6.17.0"
+    "@0x/contract-addresses" "^6.22.0"
     typescript "^4.2.4"
 
 "@0x/tslint-config@^4.1.4":
