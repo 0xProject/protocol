@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.21.0 - _August 25, 2022_
+
+    * Arbitrum addresses: need to be updated when deployed
+
 ## v6.20.1 - _August 22, 2022_
 
     * Revert: Remove contract addresses that are no longer needed

@@ -5,7 +5,8 @@
             {
                 "note": "Arbitrum addresses: need to be updated when deployed"
             }
-        ]
+        ],
+        "timestamp": 1661459661
     },
     {
         "version": "6.20.1",
