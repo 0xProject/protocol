@@ -6,7 +6,8 @@
                 "note": "Arbitrum Rinkeby support",
                 "pr": 552
             }
-        ]
+        ],
+        "timestamp": 1661462289
     },
     {
         "version": "6.21.0",

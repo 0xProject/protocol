@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.22.0 - _August 25, 2022_
+
+    * Arbitrum Rinkeby support (#552)
+
 ## v6.21.0 - _August 25, 2022_
 
     * Arbitrum addresses: need to be updated when deployed
