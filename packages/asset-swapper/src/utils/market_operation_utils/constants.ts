@@ -71,6 +71,8 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Fantom]: defaultValue,
         [ChainId.Celo]: defaultValue,
         [ChainId.Optimism]: defaultValue,
+        [ChainId.Arbitrum]: defaultValue,
+
         ...(rest || {}),
     };
 }

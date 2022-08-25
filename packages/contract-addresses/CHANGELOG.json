@@ -1,5 +1,13 @@
 [
     {
+        "version": "6.21.0",
+        "changes": [
+            {
+                "note": "Arbitrum addresses: need to be updated when deployed"
+            }
+        ]
+    },
+    {
         "version": "6.20.1",
         "changes": [
             {
