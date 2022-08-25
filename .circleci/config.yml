@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  cache_version:
+    type: string
+    default: v3
+
 jobs:
     build:
         resource_class: xlarge
@@ -12,6 +17,9 @@ jobs:
             - checkout
             - run: git submodule update --init --recursive
             - run: echo 'export PATH=$HOME/CIRCLE_PROJECT_REPONAME/node_modules/.bin:$PATH' >> $BASH_ENV
+            - restore_cache:
+                  keys:
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run:
                   name: install-yarn
                   command: npm install --force --global yarn@1.22.0
@@ -19,74 +27,102 @@ jobs:
                   name: yarn
                   command: yarn --frozen-lockfile --ignore-engines install || yarn --frozen-lockfile --ignore-engines install
             - setup_remote_docker
-            - run: yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci || yarn build:ci
+            - run: yarn build:ci
             - save_cache:
-                  key: repo-{{ .Environment.CIRCLE_SHA1 }}
+                  key: repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
                   paths:
                       - ~/repo
+                      - ~/.cache/yarn
             - store_artifacts:
                   path: ~/repo/packages/abi-gen/test-cli/output
             - store_artifacts:
                   path: ~/repo/packages/contract-wrappers/generated_docs
     test-exchange-ganache:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run: yarn wsrun -p @0x/contracts-exchange -m --serial -c test:circleci
     test-integrations-ganache:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run: yarn wsrun -p @0x/contracts-integrations -m --serial -c test:circleci
     test-contracts-staking-ganache:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run: yarn wsrun -p @0x/contracts-staking -m --serial -c test:circleci
     test-contracts-extra-ganache:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}
             - run: yarn wsrun -p @0x/contracts-exchange-forwarder -p @0x/contracts-coordinator -m --serial -c test:circleci
     test-contracts-rest-ganache:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
+            - run: |
+                git diff --name-only development >> changed.txt
+                if ! grep -q \.sol changed.txt; then
+                  circleci-agent step halt
+                fi
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: yarn wsrun -p @0x/contracts-multisig -p @0x/contracts-utils -p @0x/contracts-exchange-libs -p  @0x/contracts-erc20 -p @0x/contracts-erc721 -p @0x/contracts-erc1155 -p @0x/contracts-asset-proxy -p @0x/contracts-broker -p @0x/contracts-zero-ex -m --serial -c test:circleci
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
+            - run: |
+                yarn wsrun \
+                  -p @0x/contracts-multisig \
+                  -p @0x/contracts-utils \
+                  -p @0x/contracts-exchange-libs \
+                  -p @0x/contracts-erc20 \
+                  -p @0x/contracts-erc721 \
+                  -p @0x/contracts-erc1155 \
+                  -p @0x/contracts-asset-proxy \
+                  -p @0x/contracts-broker \
+                  -p @0x/contracts-zero-ex \
+                  -m --serial -c test:circleci
     test-foundry:
-        resource_class: medium+
+        resource_class: xlarge
         docker:
             - image: ghcr.io/foundry-rs/foundry:latest
         working_directory: ~/repo/contracts/zero-ex
         steps:
+            - checkout
+            - run: |
+                git diff --name-only development >> changed.txt
+                if ! grep -q \.sol changed.txt; then
+                  circleci-agent step halt
+                fi
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             # - run: forge install
             - run: forge test
     test-publish:
@@ -98,9 +134,15 @@ jobs:
             - image: 0xorg/verdaccio
         working_directory: ~/repo
         steps:
+            - checkout
+            - run: |
+                git diff --name-only development >> changed.txt
+                if ! grep -q packages/ changed.txt; then
+                  circleci-agent step halt
+                fi
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run:
                   command: yarn test:publish:circleci
                   no_output_timeout: 1800
@@ -111,9 +153,10 @@ jobs:
             - image: node:16
         working_directory: ~/repo
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run:
                   command: yarn test:generate_docs:circleci
                   no_output_timeout: 1200
@@ -124,39 +167,48 @@ jobs:
         environment:
             RUST_ROUTER: 'true'
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - run: yarn wsrun -p @0x/contracts-test-utils -m --serial -c test:circleci
+            - run: yarn wsrun -p @0x/contract-addresses -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/contract-artifacts -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/contract-wrappers-test -m --serial -c test:circleci
             - run: yarn wsrun -p @0x/order-utils -m --serial -c test:circleci
-            - run: yarn wsrun -p @0x/asset-swapper -m --serial -c test:circleci
             - save_cache:
-                  key: coverage-contract-wrappers-test-{{ .Environment.CIRCLE_SHA1 }}
+                  key: coverage-contract-wrappers-test-{{ checksum "yarn.lock" }}
                   paths:
                       - ~/repo/packages/contract-wrappers-test/coverage/lcov.info
             - save_cache:
-                  key: coverage-order-utils-{{ .Environment.CIRCLE_SHA1 }}
+                  key: coverage-order-utils-{{ checksum "yarn.lock" }}
                   paths:
                       - ~/repo/packages/order-utils/coverage/lcov.info
             - save_cache:
-                  key: coverage-web3-wrapper-{{ .Environment.CIRCLE_SHA1 }}
+                  key: coverage-web3-wrapper-{{ checksum "yarn.lock" }}
                   paths:
                       - ~/repo/packages/web3-wrapper/coverage/lcov.info
     static-tests:
         resource_class: large
-        working_directory: ~/repo
         docker:
             - image: node:16
         steps:
+            - checkout
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: yarn lerna run lint
-            - run: yarn prettier:ci
-            - run: yarn deps_versions:ci
-            - run: yarn diff_md_docs:ci
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
+            - run:
+                command: yarn lerna run lint
+                working_directory: ~/repo
+            - run:
+                command: yarn prettier:ci
+                working_directory: ~/repo
+            - run:
+                command: yarn deps_versions:ci
+                working_directory: ~/repo
+            - run:
+                command: yarn diff_md_docs:ci
+                working_directory: ~/repo
     submit-coverage:
         docker:
             - image: node:16
@@ -164,16 +216,16 @@ jobs:
         steps:
             - restore_cache:
                   keys:
-                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+                      - repo-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
             - restore_cache:
                   keys:
-                      - coverage-contract-wrappers-test-{{ .Environment.CIRCLE_SHA1 }}
+                      - coverage-contract-wrappers-test-{{ checksum "yarn.lock" }}
             - restore_cache:
                   keys:
-                      - coverage-order-utils-{{ .Environment.CIRCLE_SHA1 }}
+                      - coverage-order-utils-{{ checksum "yarn.lock" }}
             - restore_cache:
                   keys:
-                      - coverage-contracts-{{ .Environment.CIRCLE_SHA1 }}
+                      - coverage-contracts-{{ checksum "yarn.lock" }}
             - run: yarn report_coverage
 workflows:
     version: 2
@@ -195,7 +247,7 @@ workflows:
             #           - build
             - test-foundry:
                   requires:
-                    - build
+                      - build
             - test-contracts-rest-ganache:
                   requires:
                       - build

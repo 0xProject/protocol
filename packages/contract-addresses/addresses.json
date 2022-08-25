@@ -573,18 +573,61 @@
         "chainlinkStopLimit": "0x0000000000000000000000000000000000000000",
         "maximumGasPrice": "0x0000000000000000000000000000000000000000",
         "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
-        "exchangeProxyGovernor": "0xf5e66206eb523988eae22dd7d4e06e36999fef94",//v
-        "exchangeProxy": "0x2c1994270ae589deae7b4bb6c2446c57d40b99d4", //v
-        "exchangeProxyTransformerDeployer": "0x42b43abe1358a7b2c00f8eb5b2668f821ee8edbf",//v
-        "exchangeProxyFlashWallet": "0xc1831049d451b69a9dccc391f8285eb83c94c940",//v
+        "exchangeProxyGovernor": "0xf5e66206eb523988eae22dd7d4e06e36999fef94",
+        "exchangeProxy": "0x2c1994270ae589deae7b4bb6c2446c57d40b99d4",
+        "exchangeProxyTransformerDeployer": "0x42b43abe1358a7b2c00f8eb5b2668f821ee8edbf",
+        "exchangeProxyFlashWallet": "0xc1831049d451b69a9dccc391f8285eb83c94c940",
         "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
         "zrxTreasury": "0x0000000000000000000000000000000000000000",
         "transformers": {
-            "wethTransformer": "0x7c0ef1020f9ee63bcf8248006174b9cbaa29af5a",//v
-            "payTakerTransformer": "0xb5c5ebd57ccf14480e30ce85f891f894cedbc694",//v
-            "affiliateFeeTransformer": "0xfa3d8ca1c877185af1ce2ec558e586e12cdbc50c",//v
-            "fillQuoteTransformer": "0xd6ddb08beb4c48e35352ee4df5ebc028e72f3c81",//v
-            "positiveSlippageFeeTransformer": "0x8830f7c5925b129efcc7831397f30c1c02953bac"//v
+            "wethTransformer": "0x7c0ef1020f9ee63bcf8248006174b9cbaa29af5a",
+            "payTakerTransformer": "0xb5c5ebd57ccf14480e30ce85f891f894cedbc694",
+            "affiliateFeeTransformer": "0xfa3d8ca1c877185af1ce2ec558e586e12cdbc50c",
+            "fillQuoteTransformer": "0xd6ddb08beb4c48e35352ee4df5ebc028e72f3c81",
+            "positiveSlippageFeeTransformer": "0x8830f7c5925b129efcc7831397f30c1c02953bac"
+        }
+    },
+    "42161": {
+        "erc20Proxy": "0x0000000000000000000000000000000000000000",
+        "erc721Proxy": "0x0000000000000000000000000000000000000000",
+        "zrxToken": "0x0000000000000000000000000000000000000000",
+        "etherToken": "0x4200000000000000000000000000000000000006",
+        "exchangeV2": "0x0000000000000000000000000000000000000000",
+        "exchange": "0x0000000000000000000000000000000000000000",
+        "assetProxyOwner": "0x0000000000000000000000000000000000000000",
+        "zeroExGovernor": "0x0000000000000000000000000000000000000000",
+        "forwarder": "0x0000000000000000000000000000000000000000",
+        "coordinatorRegistry": "0x0000000000000000000000000000000000000000",
+        "coordinator": "0x0000000000000000000000000000000000000000",
+        "multiAssetProxy": "0x0000000000000000000000000000000000000000",
+        "staticCallProxy": "0x0000000000000000000000000000000000000000",
+        "erc1155Proxy": "0x0000000000000000000000000000000000000000",
+        "devUtils": "0x0000000000000000000000000000000000000000",
+        "zrxVault": "0x0000000000000000000000000000000000000000",
+        "staking": "0x0000000000000000000000000000000000000000",
+        "stakingProxy": "0x0000000000000000000000000000000000000000",
+        "erc20BridgeProxy": "0x0000000000000000000000000000000000000000",
+        "erc20BridgeSampler": "0x0000000000000000000000000000000000000000",
+        "chaiBridge": "0x0000000000000000000000000000000000000000",
+        "dydxBridge": "0x0000000000000000000000000000000000000000",
+        "godsUnchainedValidator": "0x0000000000000000000000000000000000000000",
+        "broker": "0x0000000000000000000000000000000000000000",
+        "chainlinkStopLimit": "0x0000000000000000000000000000000000000000",
+        "maximumGasPrice": "0x0000000000000000000000000000000000000000",
+        "dexForwarderBridge": "0x0000000000000000000000000000000000000000",
+        "exchangeProxyGovernor": "0x1fe80d5ad9464dba2d60b88e449305f184823f8a",
+        "exchangeProxy": "0xdef1c0ded9bec7f1a1670819833240f027b25eff",
+        "exchangeProxyTransformerDeployer": "0x29f80c1f685e19ae1807063eda432f431ac623d0",
+        "exchangeProxyFlashWallet": "0xdb6f1920a889355780af7570773609bd8cb1f498",
+        "exchangeProxyLiquidityProviderSandbox": "0x0000000000000000000000000000000000000000",
+        "zrxTreasury": "0x0000000000000000000000000000000000000000",
+        "transformers": {
+            "wethTransformer": "0x10e968968f49dd66a5efeebbb2edcb9c49c4fc49",
+            "payTakerTransformer": "0xae3e8cf7bf340d7084f312dfae2aa8b01c885b02",
+            "affiliateFeeTransformer": "0x05a24978471869327904ea13da3c4322128e2aaa",
+            "fillQuoteTransformer": "0x24760a755a4ffe4e44f661336fd0dc646fd6f723",
+            "positiveSlippageFeeTransformer": "0xd56b9c014b45ed95e2a048a0c28121db30265f13"
         }
     }
+    
 }

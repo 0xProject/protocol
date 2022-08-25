@@ -938,7 +938,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             );
         });
 
-        it('fails if no protocol fee attached', async () => {
+        // TODO: dekz Ganache gasPrice opcode is returning 0, cannot influence it up to test this case
+        it.skip('fails if no protocol fee attached', async () => {
             const order = getTestLimitOrder();
             await testUtils.prepareBalancesForOrdersAsync([order]);
             const tx = zeroEx

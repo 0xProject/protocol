@@ -38,7 +38,7 @@ async function _getGanacheOrGethErrorAsync(ganacheError: string, gethError: stri
 }
 
 async function _getInsufficientFundsErrorMessageAsync(): Promise<string> {
-    return _getGanacheOrGethErrorAsync("sender doesn't have enough funds", 'insufficient funds');
+    return _getGanacheOrGethErrorAsync('insufficient funds for gas * price + value', 'insufficient funds');
 }
 
 async function _getTransactionFailedErrorMessageAsync(): Promise<string> {

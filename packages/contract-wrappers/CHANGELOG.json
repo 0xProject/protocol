@@ -1,5 +1,31 @@
 [
     {
+        "timestamp": 1661459661,
+        "version": "13.21.2",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "13.21.1",
+        "changes": [
+            {
+                "note": "Revert: Remove deprecated contracts"
+            }
+        ],
+        "timestamp": 1661145612
+    },
+    {
+        "version": "13.21.0",
+        "changes": [
+            {
+                "note": "Remove deprecated contracts"
+            }
+        ]
+    },
+    {
         "timestamp": 1660093941,
         "version": "13.20.8",
         "changes": [

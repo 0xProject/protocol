@@ -1,6 +1,6 @@
 {
     "name": "@0x/protocol-utils",
-    "version": "11.16.3",
+    "version": "11.16.5",
     "engines": {
         "node": ">=6.12"
     },
@@ -41,7 +41,7 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/protocol-utils",
     "devDependencies": {
-        "@0x/dev-utils": "^4.2.14",
+        "@0x/dev-utils": "^5.0.0",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
         "@0x/types": "^3.3.6",
@@ -51,7 +51,7 @@
         "@types/mocha": "^5.2.7",
         "@types/node": "12.12.54",
         "@types/web3-provider-engine": "^14.0.0",
-        "ethereum-types": "^3.7.0",
+        "ethereum-types": "^3.7.1",
         "mocha": "^6.2.0",
         "npm-run-all": "^4.1.2",
         "shx": "^0.2.2",
@@ -62,13 +62,13 @@
         "web3-provider-engine": "14.0.6"
     },
     "dependencies": {
-        "@0x/assert": "^3.0.34",
-        "@0x/contract-addresses": "^6.19.2",
-        "@0x/contract-wrappers": "^13.20.8",
+        "@0x/assert": "^3.0.35",
+        "@0x/contract-addresses": "^6.21.0",
+        "@0x/contract-wrappers": "^13.21.2",
         "@0x/json-schemas": "^6.4.4",
-        "@0x/subproviders": "^6.6.5",
-        "@0x/utils": "^6.5.3",
-        "@0x/web3-wrapper": "^7.6.5",
+        "@0x/subproviders": "^7.0.0",
+        "@0x/utils": "^7.0.0",
+        "@0x/web3-wrapper": "^8.0.0",
         "chai": "^4.0.1",
         "ethereumjs-util": "^7.0.10",
         "ethers": "~4.0.4",

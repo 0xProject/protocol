@@ -1,3 +1,5 @@
+> :warning: **@0x/asset-swapper has been deprecated!** The `asset-swapper` code has been moved to [0x-api](https://github.com/0xProject/0x-api). Please do not open a PR with `asset-swapper` changes.
+
 ## @0x/asset-swapper
 
 Convenience package for swapping assets represented on the Ethereum blockchain using 0x. The package helps to perform all the off-chain computations to execute a marketBuy or marketSell function execution with 0x exchange contracts, or 0x extension contracts. Given some liquidity (0x signed orders), it helps estimate the cost of buying or selling a certain asset (giving a range) and then provide varying consumable outputs to execute the buy or sell.

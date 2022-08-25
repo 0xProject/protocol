@@ -1,5 +1,32 @@
 [
     {
+        "version": "6.21.0",
+        "changes": [
+            {
+                "note": "Arbitrum addresses: need to be updated when deployed"
+            }
+        ],
+        "timestamp": 1661459661
+    },
+    {
+        "version": "6.20.1",
+        "changes": [
+            {
+                "note": "Revert: Remove contract addresses that are no longer needed"
+            }
+        ],
+        "timestamp": 1661145612
+    },
+    {
+        "version": "6.20.0",
+        "changes": [
+            {
+                "note": "Remove contract addresses that are no longer needed",
+                "pr": 548
+            }
+        ]
+    },
+    {
         "timestamp": 1660093941,
         "version": "6.19.2",
         "changes": [

@@ -34,7 +34,6 @@ These packages are all under development. See [/contracts/README.md](/contracts/
 
 | Package                                                  | Version                                                                                                                 | Description                                                                                    |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`@0x/asset-swapper`](/packages/asset-swapper)           | [![npm](https://img.shields.io/npm/v/@0x/asset-swapper.svg)](https://www.npmjs.com/package/@0x/asset-swapper)           | Package used to find and create aggregated swaps                                               |
 | [`@0x/protocol-utils`](/packages/protocol-utils)         | [![npm](https://img.shields.io/npm/v/@0x/protocol-utils.svg)](https://www.npmjs.com/package/@0x/protocol-utils)         | A set of utilities for generating, parsing, signing and validating 0x orders                   |
 | [`@0x/contract-addresses`](/packages/contract-addresses) | [![npm](https://img.shields.io/npm/v/@0x/contract-addresses.svg)](https://www.npmjs.com/package/@0x/contract-addresses) | A tiny utility library for getting known deployed contract addresses for a particular network. |
 | [`@0x/contract-wrappers`](/packages/contract-wrappers)   | [![npm](https://img.shields.io/npm/v/@0x/contract-wrappers.svg)](https://www.npmjs.com/package/@0x/contract-wrappers)   | JS/TS wrappers for interacting with the 0x smart contracts                                     |
@@ -82,7 +81,7 @@ yarn build
 To build a specific package:
 
 ```bash
-PKG=@0x/asset-swapper yarn build
+PKG=@0x/protocol-utils yarn build
 ```
 
 To build all contracts packages:
@@ -105,7 +104,7 @@ To watch a specific package and all it's dependent packages:
 PKG=[NPM_PACKAGE_NAME] yarn watch
 
 e.g
-PKG=@0x/asset-swapper yarn watch
+PKG=@0x/protocol-utils yarn watch
 ```
 
 ### Clean
@@ -119,7 +118,7 @@ yarn clean
 Clean a specific package
 
 ```bash
-PKG=@0x/asset-swapper yarn clean
+PKG=@0x/protocol-utils yarn clean
 ```
 
 ### Rebuild
@@ -133,7 +132,7 @@ yarn rebuild
 To re-build (clean & build) a specific package & it's deps:
 
 ```bash
-PKG=@0x/asset-swapper yarn rebuild
+PKG=@0x/protocol-utils yarn rebuild
 ```
 
 ### Lint
@@ -147,7 +146,7 @@ yarn lint
 Lint a specific package:
 
 ```bash
-PKG=@0x/asset-swapper yarn lint
+PKG=@0x/protocol-utils yarn lint
 ```
 
 ### Run Tests
@@ -161,7 +160,7 @@ yarn test
 Run a specific package's test:
 
 ```bash
-PKG=@0x/asset-swapper yarn test
+PKG=@0x/protocol-utils yarn test
 ```
 
 Run all contracts packages tests:

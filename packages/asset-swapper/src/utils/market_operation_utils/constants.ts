@@ -72,6 +72,7 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Celo]: defaultValue,
         [ChainId.Optimism]: defaultValue,
         [ChainId.ArbitrumRinkeby]: defaultValue,
+        [ChainId.Arbitrum]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -96,7 +97,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
-            ERC20BridgeSource.Cream,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Lido,
@@ -252,7 +252,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
-            ERC20BridgeSource.Cream,
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
@@ -2540,7 +2539,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.BalancerV2]: (fillData?: FillData) => {
         return 100e3 + ((fillData as BalancerV2BatchSwapFillData).swapSteps.length - 1) * 50e3;
     },
-    [ERC20BridgeSource.Cream]: () => 120e3,
     [ERC20BridgeSource.MStable]: () => 200e3,
     [ERC20BridgeSource.MakerPsm]: (fillData?: FillData) => {
         const psmFillData = fillData as MakerPsmFillData;
@@ -2680,14 +2678,34 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
         const woofiFillData = fillData as WOOFiFillData;
         const quoteTokenAddresses = [BSC_TOKENS.USDT, AVALANCHE_TOKENS.nUSDC, FANTOM_TOKENS.USDC, POLYGON_TOKENS.USDC];
-
-        if (
+        const hasQuoteToken =
             quoteTokenAddresses.includes(woofiFillData.takerToken) ||
-            quoteTokenAddresses.includes(woofiFillData.makerToken)
-        ) {
-            return 500e3;
+            quoteTokenAddresses.includes(woofiFillData.makerToken);
+        if (woofiFillData.chainId === ChainId.BSC) {
+            if (hasQuoteToken) {
+                return 550e3;
+            } else {
+                return 100e4;
+            }
+        } else if (woofiFillData.chainId === ChainId.Avalanche) {
+            if (hasQuoteToken) {
+                return 300e3;
+            } else {
+                return 550e3;
+            }
+        } else if (woofiFillData.chainId === ChainId.Polygon) {
+            if (hasQuoteToken) {
+                return 500e3;
+            } else {
+                return 700e3;
+            }
         } else {
-            return 100e4;
+            // Fantom
+            if (hasQuoteToken) {
+                return 400e3;
+            } else {
+                return 600e3;
+            }
         }
     },
     //

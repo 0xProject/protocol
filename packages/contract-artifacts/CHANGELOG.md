@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v3.18.1 - _August 22, 2022_
+
+    * Dependencies updated
+
 ## v3.18.0 - _March 31, 2022_
 
     * Regenerate all artifacts (#449)

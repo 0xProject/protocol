@@ -1,5 +1,19 @@
 [
     {
+        "version": "16.66.4",
+        "changes": [
+            {
+                "note": "Offboard Cream",
+                "pr": 546
+            },
+            {
+                "note": "Change WooFi gas estimates",
+                "pr": 551
+            }
+        ],
+        "timestamp": 1661145612
+    },
+    {
         "timestamp": 1660093941,
         "version": "16.66.3",
         "changes": [

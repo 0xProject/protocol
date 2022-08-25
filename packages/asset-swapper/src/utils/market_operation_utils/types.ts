@@ -45,7 +45,6 @@ export enum ERC20BridgeSource {
     MultiBridge = 'MultiBridge',
     Balancer = 'Balancer',
     BalancerV2 = 'Balancer_V2',
-    Cream = 'CREAM',
     Bancor = 'Bancor',
     MakerPsm = 'MakerPsm',
     MStable = 'mStable',
@@ -378,6 +377,8 @@ export interface WOOFiFillData extends FillData {
     poolAddress: string;
     takerToken: string;
     makerToken: string;
+    // Only needed for gas estimation
+    chainId: ChainId;
 }
 
 export interface VelodromeFillData extends FillData {

@@ -107,7 +107,7 @@ class MockPoolsCache extends AbstractPoolsCache {
     }
 }
 
-// Return some pool so that sampling functions are called for Balancer, BalancerV2, and Cream
+// Return some pool so that sampling functions are called for Balancer and BalancerV2
 // tslint:disable:custom-no-magic-numbers
 const mockPoolsCache = new MockPoolsCache((_takerToken: string, _makerToken: string) => {
     return [
@@ -362,7 +362,6 @@ describe('MarketOperationUtils tests', () => {
         [ERC20BridgeSource.MultiHop]: {},
         [ERC20BridgeSource.Shell]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Component]: { poolAddress: randomAddress() },
-        [ERC20BridgeSource.Cream]: { poolAddress: randomAddress() },
         [ERC20BridgeSource.Dodo]: {},
         [ERC20BridgeSource.DodoV2]: {},
         [ERC20BridgeSource.CryptoCom]: { tokenAddressPath: [] },
@@ -402,7 +401,6 @@ describe('MarketOperationUtils tests', () => {
         poolsCaches: {
             [ERC20BridgeSource.BalancerV2]: mockPoolsCache,
             [ERC20BridgeSource.Balancer]: mockPoolsCache,
-            [ERC20BridgeSource.Cream]: mockPoolsCache,
         },
         liquidityProviderRegistry: {},
         chainId: CHAIN_ID,

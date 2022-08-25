@@ -1,6 +1,6 @@
 {
     "name": "@0x/contract-addresses",
-    "version": "6.19.2",
+    "version": "6.21.0",
     "engines": {
         "node": ">=6.12"
     },
@@ -12,6 +12,8 @@
     "scripts": {
         "build": "yarn tsc -b",
         "build:ci": "yarn build",
+        "test": "mocha --require source-map-support/register  'lib/test/**/*_test.js' --timeout 10000 --bail --exit",
+        "test:circleci": "yarn test",
         "clean": "shx rm -rf lib",
         "publish:private": "yarn build && gitpkg publish"
     },
@@ -28,7 +30,11 @@
     },
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-addresses",
     "devDependencies": {
+        "@types/mocha": "^5.2.7",
+        "chai": "^4.0.1",
+        "ethereumjs-util": "^7.1.5",
         "gitpkg": "https://github.com/0xProject/gitpkg.git",
+        "mocha": "^6.2.0",
         "shx": "^0.2.2",
         "typescript": "4.6.3"
     },

@@ -5,6 +5,18 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.21.2 - _August 25, 2022_
+
+    * Dependencies updated
+
+## v13.21.1 - _August 22, 2022_
+
+    * Revert: Remove deprecated contracts
+
+## v13.21.0 - _Invalid date_
+
+    * Remove deprecated contracts
+
 ## v13.20.8 - _August 10, 2022_
 
     * Dependencies updated
