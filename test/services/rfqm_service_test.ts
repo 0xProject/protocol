@@ -360,6 +360,7 @@ describe('RfqmService HTTP Logic', () => {
                         signatureType: SignatureType.EthSign,
                     },
                 },
+                kind: RfqmTypes.OtcOrder,
             };
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             const service = buildRfqmServiceForUnitTest({
@@ -426,6 +427,7 @@ describe('RfqmService HTTP Logic', () => {
                         signatureType: SignatureType.EthSign,
                     },
                 },
+                kind: RfqmTypes.OtcOrder,
             };
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
@@ -491,6 +493,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+                kind: RfqmTypes.OtcOrder,
                 trade: {
                     type: RfqmTypes.OtcOrder,
                     order: otcOrder,
@@ -576,6 +579,7 @@ describe('RfqmService HTTP Logic', () => {
                     eip712: eip712Context,
                     signature: eip712SignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
+                kind: RfqmTypes.OtcOrder,
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');
@@ -661,6 +665,7 @@ describe('RfqmService HTTP Logic', () => {
                     eip712: eip712Context,
                     signature: eip712SignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
+                kind: RfqmTypes.OtcOrder,
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');

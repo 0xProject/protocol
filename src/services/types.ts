@@ -84,6 +84,19 @@ export interface OtcOrderSubmitRfqmSignedQuoteParams {
     signature: Signature;
 }
 
+/**
+ * Payload for the Gasless Swap `/submit` endpoint in the
+ * metatransaction flow
+ */
+export interface SubmitMetaTransactionSignedQuoteParams {
+    approval?: SubmitApprovalParams;
+    // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` during type check.
+    // Note that this information is in `trade`, but TypeScript does not narrow types based
+    // on nested values.
+    kind: RfqmTypes.MetaTransaction;
+    trade: { metaTransaction: MetaTransaction; signature: Signature; type: RfqmTypes.MetaTransaction };
+}
+
 export interface OtcOrderSubmitRfqmSignedQuoteResponse {
     type: RfqmTypes.OtcOrder;
     orderHash: string;
@@ -97,12 +110,21 @@ export interface SubmitApprovalParams {
 
 export interface SubmitRfqmSignedQuoteWithApprovalParams {
     approval?: SubmitApprovalParams;
+    // Used to distinguish between `SubmitMetaTransactionSignedQuoteParams` during type check.
+    // Note that this information is in `trade`, but TypeScript does not narrow types based
+    // on nested values.
+    kind: RfqmTypes.OtcOrder;
     trade: OtcOrderSubmitRfqmSignedQuoteParams;
 }
 
 export interface SubmitRfqmSignedQuoteWithApprovalResponse {
     type: RfqmTypes.OtcOrder;
     orderHash: string;
+}
+
+export interface SubmitMetaTransactionSignedQuoteResponse {
+    type: RfqmTypes.MetaTransaction;
+    metaTransactionHash: string;
 }
 
 export interface TransactionDetails {
