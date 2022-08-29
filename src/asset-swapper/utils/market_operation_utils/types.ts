@@ -546,40 +546,9 @@ export interface GetMarketOrdersOpts {
     gasPrice: BigNumber;
 
     /**
-     * Sampler metrics for recording data on the sampler service and operations
-     */
-    samplerMetrics?: SamplerMetrics;
-
-    /**
      * Adjusts fills individual fills based on caller supplied criteria
      */
     fillAdjustor: FillAdjustor;
-}
-
-export interface SamplerMetrics {
-    /**
-     * Logs the gas information performed during a sampler call.
-     *
-     * @param data.gasBefore The gas remaining measured before any operations have been performed
-     * @param data.gasAfter The gas remaining measured after all operations have been performed
-     */
-    logGasDetails(data: { gasBefore: BigNumber; gasAfter: BigNumber }): void;
-
-    /**
-     * Logs the block number
-     *
-     * @param blockNumber block number of the sampler call
-     */
-    logBlockNumber(blockNumber: BigNumber): void;
-
-    /**
-     * Logs the routing timings
-     *
-     * @param data.router The router type (neon-router or js)
-     * @param data.type The type of timing being recorded (e.g total timing, all sources timing or vip timing)
-     * @param data.timingMs The timing in milliseconds
-     */
-    logRouterDetails(data: { router: 'neon-router' | 'js'; type: 'all' | 'vip' | 'total'; timingMs: number }): void;
 }
 
 /**
@@ -652,7 +621,6 @@ export interface GenerateOptimizedOrdersOpts {
     shouldBatchBridgeOrders?: boolean;
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
-    samplerMetrics?: SamplerMetrics;
     fillAdjustor: FillAdjustor;
 }
 

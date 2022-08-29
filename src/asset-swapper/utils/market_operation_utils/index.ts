@@ -2,6 +2,7 @@ import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
 
+import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
 import {
     AltRfqMakerAssetOfferings,
@@ -206,8 +207,8 @@ export class MarketOperationUtils {
         ] = await Promise.all([samplerPromise]);
 
         // Log the gas metrics
-        _opts.samplerMetrics?.logGasDetails({ gasBefore, gasAfter });
-        _opts.samplerMetrics?.logBlockNumber(blockNumber);
+        SAMPLER_METRICS.logGasDetails({ gasBefore, gasAfter });
+        SAMPLER_METRICS.logBlockNumber(blockNumber);
 
         // Filter out any invalid two hop quotes where we couldn't find a route
         const twoHopQuotes = rawTwoHopQuotes.filter(
@@ -519,7 +520,6 @@ export class MarketOperationUtils {
             this._sampler.chainId,
             opts.neonRouterNumSamples,
             opts.fillAdjustor,
-            opts.samplerMetrics,
         );
 
         const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
@@ -581,7 +581,6 @@ export class MarketOperationUtils {
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
             neonRouterNumSamples: _opts.neonRouterNumSamples,
-            samplerMetrics: _opts.samplerMetrics,
             fillAdjustor: _opts.fillAdjustor,
         };
 

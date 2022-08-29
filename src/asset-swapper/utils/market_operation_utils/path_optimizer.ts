@@ -6,13 +6,14 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import * as _ from 'lodash';
 import { performance } from 'perf_hooks';
 
+import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
 import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, SamplerMetrics } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData } from './types';
 
 // tslint:disable: prefer-for-of completed-docs no-bitwise
 
@@ -398,17 +399,14 @@ export function findOptimalPathFromSamples(
     chainId: ChainId,
     neonRouterNumSamples: number,
     fillAdjustor: FillAdjustor,
-    samplerMetrics?: SamplerMetrics,
 ): Path | undefined {
     const beforeTimeMs = performance.now();
     const sendMetrics = () => {
-        // tslint:disable-next-line: no-unused-expression
-        samplerMetrics &&
-            samplerMetrics.logRouterDetails({
-                router: 'neon-router',
-                type: 'total',
-                timingMs: performance.now() - beforeTimeMs,
-            });
+        SAMPLER_METRICS.logRouterDetails({
+            router: 'neon-router',
+            type: 'total',
+            timingMs: performance.now() - beforeTimeMs,
+        });
     };
     const vipSourcesSet = new Set(VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID[chainId]);
     const paths = findRoutesAndCreateOptimalPath(
