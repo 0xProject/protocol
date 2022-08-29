@@ -25,6 +25,7 @@
         "test/generated-artifacts/UnlimitedAllowanceERC20Token.json",
         "test/generated-artifacts/UntransferrableDummyERC20Token.json",
         "test/generated-artifacts/WETH9.json",
+        "test/generated-artifacts/WETH9V06.json",
         "test/generated-artifacts/ZRXToken.json"
     ],
     "exclude": ["./deploy/solc/solc_bin"]

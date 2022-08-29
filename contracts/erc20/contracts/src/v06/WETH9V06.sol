@@ -14,10 +14,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // solhint-disable
-pragma solidity ^0.6;
+pragma solidity ^0.6.0;
 
 
-contract WETH9 {
+contract WETH9V06 {
     string public name     = "Wrapped Ether";
     string public symbol   = "WETH";
     uint8  public decimals = 18;
@@ -30,7 +30,7 @@ contract WETH9 {
     mapping (address => uint)                       public  balanceOf;
     mapping (address => mapping (address => uint))  public  allowance;
 
-    fallback() external payable {
+    receive() external payable {
         deposit();
     }
     function deposit() public payable {
