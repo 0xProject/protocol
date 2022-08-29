@@ -1,5 +1,6 @@
 export { BlockedAddressEntity } from './BlockedAddressEntity';
 export { KeyValueEntity } from './KeyValueEntity';
+export { LastLookRejectionCooldownEntity } from './LastLookRejectionCooldownsEntity';
 export { MakerBalanceChainCacheEntity } from './MakerBalanceChainCacheEntity';
 export { MetaTransactionJobEntity } from './MetaTransactionJobEntity';
 export { MetaTransactionSubmissionEntity } from './MetaTransactionSubmissionEntity';

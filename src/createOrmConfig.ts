@@ -23,6 +23,7 @@ import {
     SignedOrderV4Entity,
     TransactionEntity,
 } from './entities';
+import { LastLookRejectionCooldownEntity } from './entities/LastLookRejectionCooldownsEntity';
 
 const entities = [
     BlockedAddressEntity,
@@ -30,6 +31,7 @@ const entities = [
     PersistentSignedOrderEntity,
     TransactionEntity,
     KeyValueEntity,
+    LastLookRejectionCooldownEntity,
     MakerBalanceChainCacheEntity,
     MetaTransactionJobEntity,
     MetaTransactionSubmissionEntity,
