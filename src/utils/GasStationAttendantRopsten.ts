@@ -2,6 +2,7 @@ import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../constants';
+import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 import { SubmissionContext } from './SubmissionContext';
@@ -66,7 +67,9 @@ export class GasStationAttendantRopsten implements GasStationAttendant {
      * Double tip and increase maxFeePerGas by 10% to make nodes happy
      */
     public async getNextBidAsync(
-        submissionContext: SubmissionContext | null,
+        submissionContext: SubmissionContext<
+            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
+        > | null,
     ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
         const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
         const initialTip = new BigNumber(1.5).shiftedBy(GWEI_DECIMALS);

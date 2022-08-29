@@ -2,6 +2,7 @@ import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../constants';
+import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
 import { SubmissionContext } from './SubmissionContext';
@@ -108,7 +109,9 @@ export class GasStationAttendantPolygon implements GasStationAttendant {
      * on the previous gas price, whichever is higher.
      */
     public async getNextBidAsync(
-        submissionContext: SubmissionContext | null,
+        submissionContext: SubmissionContext<
+            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
+        > | null,
     ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
         const gasPriceEstimateWei = await this._protocolFeeUtils.getGasPriceEstimationOrThrowAsync();
         const maxPriorityFeePerGas = gasPriceEstimateWei;

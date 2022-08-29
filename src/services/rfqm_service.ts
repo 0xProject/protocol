@@ -2220,7 +2220,7 @@ export class RfqmService {
      */
     private async _checkSubmissionReceiptsAndUpdateDbAsync(
         orderHash: string,
-        submissionContext: SubmissionContext,
+        submissionContext: SubmissionContext<RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]>,
     ): Promise<
         | SubmissionContextStatus.PendingSubmitted
         | SubmissionContextStatus.FailedRevertedConfirmed

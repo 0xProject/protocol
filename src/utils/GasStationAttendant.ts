@@ -1,5 +1,7 @@
 import { BigNumber } from '@0x/utils';
 
+import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+
 import { SubmissionContext } from './SubmissionContext';
 
 export type Wei = BigNumber;
@@ -51,7 +53,9 @@ export interface GasStationAttendant {
      * Returns `null` if there should not be another resubmission.
      */
     getNextBidAsync: (
-        submissionContext: SubmissionContext | null,
+        submissionContext: SubmissionContext<
+            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
+        > | null,
     ) => Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | { maxGasPrice: BigNumber } | null>;
 
     /**

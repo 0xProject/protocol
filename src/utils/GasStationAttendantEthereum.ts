@@ -1,6 +1,7 @@
 import { BigNumber } from '@0x/utils';
 
 import { GWEI_DECIMALS } from '../constants';
+import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasOracle } from './GasOracle';
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';
@@ -75,7 +76,9 @@ export class GasStationAttendantEthereum implements GasStationAttendant {
      * 2 x the base fee to get the initial maxFeePerGas.
      */
     public async getNextBidAsync(
-        submissionContext: SubmissionContext | null,
+        submissionContext: SubmissionContext<
+            RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]
+        > | null,
     ): Promise<{ maxFeePerGas: BigNumber; maxPriorityFeePerGas: BigNumber } | null> {
         const baseFee = await this._gasOracle.getBaseFeePerGasWeiAsync();
         if (!submissionContext) {
