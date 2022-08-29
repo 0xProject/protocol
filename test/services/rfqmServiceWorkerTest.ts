@@ -16,11 +16,17 @@ import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 
 
 import { ETH_DECIMALS, GWEI_DECIMALS, ONE_SECOND_MS } from '../../src/constants';
 import {
+    MetaTransactionJobEntity,
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,
     RfqmV2JobEntity,
     RfqmV2TransactionSubmissionEntity,
 } from '../../src/entities';
+import { MetaTransactionJobConstructorOpts } from '../../src/entities/MetaTransactionJobEntity';
+import {
+    MetaTransactionSubmissionEntity,
+    MetaTransactionSubmissionEntityConstructorOpts,
+} from '../../src/entities/MetaTransactionSubmissionEntity';
 import {
     RfqmJobStatus,
     RfqmOrderTypes,
@@ -39,7 +45,11 @@ import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { padSignature } from '../../src/utils/signature_utils';
 import { SubmissionContext } from '../../src/utils/SubmissionContext';
-import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL, MOCK_EXECUTE_META_TRANSACTION_CALLDATA } from '../constants';
+import {
+    MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+    MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
+    MOCK_META_TRANSACTION,
+} from '../constants';
 
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
@@ -124,6 +134,24 @@ const buildRfqmServiceForUnitTest = (
         overrides.quoteReportTopic,
         overrides.enableAccessList,
     );
+};
+
+const createMeaTrsanctionJobEntity = (
+    opts: MetaTransactionJobConstructorOpts,
+    id: string,
+): MetaTransactionJobEntity => {
+    const job = new MetaTransactionJobEntity(opts);
+    job.id = id;
+    return job;
+};
+
+const createMetaTransactionSubmissionEntity = (
+    opts: MetaTransactionSubmissionEntityConstructorOpts,
+    id: string,
+): MetaTransactionSubmissionEntity => {
+    const submission = new MetaTransactionSubmissionEntity(opts);
+    submission.id = id;
+    return submission;
 };
 
 const fakeClockMs = 1637722898000;
@@ -3028,1215 +3056,1709 @@ describe('RfqmService Worker Logic', () => {
     });
 
     describe('submitToChainAsync', () => {
-        it('submits a transaction successfully when there is no previous transaction', async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS + 600),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS + 600),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+        describe('kind is `rfqm_v2_job`', () => {
+            it('submits a transaction successfully when there is no previous transaction', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
-
-            const mockTransactionRequest: providers.TransactionRequest = {};
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                to: '0xto',
-                from: '0xfrom',
-                contractAddress: '0xexchangeproxyaddress',
-                transactionIndex: 0,
-                gasUsed: EthersBigNumber.from(10000),
-                logsBloom: '',
-                blockHash: '0xblockhash',
-                transactionHash: '0xsignedtransactionhash',
-                logs: [],
-                blockNumber: 1,
-                confirmations: 3,
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                byzantium: true,
-                type: 2,
-                status: 1,
-            };
-            const mockNonce = 0;
-
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([]);
-            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
-            });
-            const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
-            when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(async (transactionArg) => {
-                writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
-                return _.cloneDeep(mockTransaction);
-            });
-            when(mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash')).thenResolve(
-                _.cloneDeep(mockTransaction),
-            );
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(
-                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
-            ).thenReturn(mockTransactionRequest);
-            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
-                signedTransaction: 'signedTransaction',
-                transactionHash: '0xsignedtransactionhash',
-            });
-            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
-            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-            });
-
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
-            await rfqmService.submitToChainAsync({
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                calldata: '0xcalldata',
-                expiry: job.expiry,
-                orderHash: job.orderHash,
-                submissionType: RfqmTransactionSubmissionType.Trade,
-                onSubmissionContextStatusUpdate: callback,
-            });
-            verify(mockBlockchainUtils.estimateGasForAsync(anything()));
-            // eth_createAccessList should not be called when not enabled
-            verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
-            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
-            expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Presubmit,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Submitted,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            );
-        });
-
-        it("ignores an existing PRESUBMIT transaction which isn't found in the mempool or on chain", async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS + 600),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
                     order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS + 600),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS + 600),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
 
-            const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
-                createdAt: new Date(1233),
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                status: RfqmTransactionSubmissionStatus.Presubmit,
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xto',
+                    from: '0xfrom',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
 
-            const mockTransactionRequest: providers.TransactionRequest = {};
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                contractAddress: '0xexchangeproxyaddress',
-                transactionIndex: 0,
-                gasUsed: EthersBigNumber.from(10000),
-                logsBloom: '',
-                blockHash: '0xblockhash',
-                transactionHash: '0xsignedtransactionhash',
-                logs: [],
-                blockNumber: 1,
-                confirmations: 3,
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                byzantium: true,
-                type: 2,
-                status: 1,
-            };
-            const mockNonce = 0;
-
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([mockPresubmitTransaction]);
-            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
-            });
-            const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
-            when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(async (transactionArg) => {
-                writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
-                return _.cloneDeep(mockTransaction);
-            });
-            when(mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash')).thenResolve(
-                _.cloneDeep(mockTransaction),
-            );
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            // This mock response indicates that the presubmit transaction can't be found
-            // on chain or in the mempool
-            when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(null);
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(
-                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
-            ).thenReturn(mockTransactionRequest);
-            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
-                signedTransaction: 'signedTransaction',
-                transactionHash: '0xsignedtransactionhash',
-            });
-            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
-            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-            });
-
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
-            await rfqmService.submitToChainAsync({
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                calldata: '0xcalldata',
-                expiry: job.expiry,
-                orderHash: job.orderHash,
-                submissionType: RfqmTransactionSubmissionType.Trade,
-                onSubmissionContextStatusUpdate: callback,
-            });
-
-            // eth_createAccessList should not be called when not enabled
-            verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
-            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
-            // Expectations are the same as if the presubmit transaction never existed
-            expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Presubmit,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Submitted,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            );
-        });
-
-        it("marks a PRESUBMIT job as expired when existing transactions aren't found in \
-        the mempool or on chain and the expiration time has passed", async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS - 60),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS - 60),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([]);
+                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(
+                    async (transactionArg) => {
+                        writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
+                        return _.cloneDeep(mockTransaction);
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
+                );
+                when(
+                    mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve(_.cloneDeep(mockTransaction));
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
 
-            const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
-                createdAt: new Date(1233),
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                status: RfqmTransactionSubmissionStatus.Presubmit,
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-
-            const mockTransactionRequest: providers.TransactionRequest = {};
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                contractAddress: '0xexchangeproxyaddress',
-                transactionIndex: 0,
-                gasUsed: EthersBigNumber.from(10000),
-                logsBloom: '',
-                blockHash: '0xblockhash',
-                transactionHash: '0xsignedtransactionhash',
-                logs: [],
-                blockNumber: 1,
-                confirmations: 3,
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                byzantium: true,
-                type: 2,
-                status: 1,
-            };
-            const mockNonce = 0;
-
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([mockPresubmitTransaction]);
-            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
-            });
-            const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
-            when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(async (transactionArg) => {
-                writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
-                return _.cloneDeep(mockTransaction);
-            });
-            when(mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash')).thenResolve(
-                _.cloneDeep(mockTransaction),
-            );
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            // This mock response indicates that the presubmit transaction can't be found
-            // on chain or in the mempool
-            when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(null);
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(
-                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
-            ).thenReturn(mockTransactionRequest);
-            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
-                signedTransaction: 'signedTransaction',
-                transactionHash: '0xsignedtransactionhash',
-            });
-            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
-            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-            });
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
-
-            try {
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
                 await rfqmService.submitToChainAsync({
+                    kind: job.kind,
                     to: '0xexchangeproxyaddress',
                     from: '0xworkeraddress',
                     calldata: '0xcalldata',
                     expiry: job.expiry,
-                    orderHash: job.orderHash,
+                    identifier: job.orderHash,
                     submissionType: RfqmTransactionSubmissionType.Trade,
                     onSubmissionContextStatusUpdate: callback,
                 });
-                expect.fail();
-            } catch (e) {
-                expect(e.message).to.contain('Exceed expiry');
+                verify(mockBlockchainUtils.estimateGasForAsync(anything()));
                 // eth_createAccessList should not be called when not enabled
                 verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
-                expect(job.status).to.equal(RfqmJobStatus.FailedExpired);
-            }
-        });
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+                expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Presubmit,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+            });
 
-        it('recovers a PRESUBMIT transaction which actually submitted', async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS + 600),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS + 600),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+            it("ignores an existing PRESUBMIT transaction which isn't found in the mempool or on chain", async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
-
-            const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
-                createdAt: new Date(1233),
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                status: RfqmTransactionSubmissionStatus.Presubmit,
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                blockHash: '0xblockhash',
-                blockNumber: 1,
-                byzantium: true,
-                confirmations: 3,
-                contractAddress: '0xexchangeproxyaddress',
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                from: '0xworkeraddress',
-                gasUsed: EthersBigNumber.from(10000),
-                logs: [],
-                logsBloom: '',
-                status: 1,
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xpresubmittransactionhash',
-                transactionIndex: 0,
-                type: 2,
-            };
-            const mockTransactionResponse: providers.TransactionResponse = {
-                chainId: 1,
-                confirmations: 0,
-                data: '',
-                from: '0xworkeraddress',
-                gasLimit: EthersBigNumber.from(1000000),
-                hash: '0xpresubmittransactionhash',
-                nonce: 0,
-                type: 2,
-                value: EthersBigNumber.from(0),
-                wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
-            };
-            const mockMinedBlock: providers.Block = {
-                _difficulty: EthersBigNumber.from(2),
-                difficulty: 2,
-                extraData: '',
-                gasLimit: EthersBigNumber.from(1000),
-                gasUsed: EthersBigNumber.from(1000),
-                hash: '0xblockhash',
-                miner: '0xminer',
-                nonce: '0x000',
-                number: 21,
-                parentHash: '0xparentblockhash',
-                timestamp: 12345,
-                transactions: ['0xpresubmittransactionhash'],
-            };
-            const mockNonce = 0;
-
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([mockPresubmitTransaction]);
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            // This mock response indicates that the transaction is present in the mempool
-            when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(
-                mockTransactionResponse,
-            );
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(
-                new Error('estimateGasForAsync called during recovery'),
-            );
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-            });
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
-
-            await rfqmService.submitToChainAsync({
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                calldata: '0xcalldata',
-                expiry: job.expiry,
-                orderHash: job.orderHash,
-                submissionType: RfqmTransactionSubmissionType.Trade,
-                onSubmissionContextStatusUpdate: callback,
-            });
-
-            // eth_createAccessList should not be called when not enabled
-            verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
-            // Logic should first check to see if the transaction was actually sent.
-            // If it was (and it is being mock so in this test) then the logic first
-            // updates the status of the transaction to "Submitted"
-            expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Submitted,
-            );
-            // The logic then enters the watch loop. On the first check, a transaction
-            // receipt exists for this transaction and it will be marked "confirmed"
-            expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            );
-            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
-        });
-
-        it('finalizes a job to FAILED_EXPIRED once the expiration window has passed', async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const ninetySecondsAgo = nowS - 100;
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(ninetySecondsAgo),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
                     order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(ninetySecondsAgo.toString()),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS + 600),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingSubmitted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
 
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                createdAt: new Date(1233),
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                status: RfqmTransactionSubmissionStatus.Submitted,
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xpresubmittransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
+                const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(1233),
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([mockTransaction]);
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([]);
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-            });
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
 
-            try {
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([mockPresubmitTransaction]);
+                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(
+                    async (transactionArg) => {
+                        writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
+                        return _.cloneDeep(mockTransaction);
+                    },
+                );
+                when(
+                    mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve(_.cloneDeep(mockTransaction));
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                // This mock response indicates that the presubmit transaction can't be found
+                // on chain or in the mempool
+                when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(null);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
                 await rfqmService.submitToChainAsync({
+                    kind: job.kind,
                     to: '0xexchangeproxyaddress',
                     from: '0xworkeraddress',
                     calldata: '0xcalldata',
                     expiry: job.expiry,
-                    orderHash: job.orderHash,
+                    identifier: job.orderHash,
                     submissionType: RfqmTransactionSubmissionType.Trade,
                     onSubmissionContextStatusUpdate: callback,
                 });
-            } catch (e) {
-                expect(e.message).to.contain('Exceed expiry');
+
                 // eth_createAccessList should not be called when not enabled
                 verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
-                expect(job.status).to.equal(RfqmJobStatus.FailedExpired);
-            }
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+                // Expectations are the same as if the presubmit transaction never existed
+                expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Presubmit,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+            });
+
+            it("marks a PRESUBMIT job as expired when existing transactions aren't found in \
+            the mempool or on chain and the expiration time has passed", async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS - 60),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS - 60),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
+
+                const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(1233),
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([mockPresubmitTransaction]);
+                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(
+                    async (transactionArg) => {
+                        writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
+                        return _.cloneDeep(mockTransaction);
+                    },
+                );
+                when(
+                    mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve(_.cloneDeep(mockTransaction));
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                // This mock response indicates that the presubmit transaction can't be found
+                // on chain or in the mempool
+                when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(null);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                try {
+                    await rfqmService.submitToChainAsync({
+                        kind: job.kind,
+                        to: '0xexchangeproxyaddress',
+                        from: '0xworkeraddress',
+                        calldata: '0xcalldata',
+                        expiry: job.expiry,
+                        identifier: job.orderHash,
+                        submissionType: RfqmTransactionSubmissionType.Trade,
+                        onSubmissionContextStatusUpdate: callback,
+                    });
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Exceed expiry');
+                    // eth_createAccessList should not be called when not enabled
+                    verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
+                    expect(job.status).to.equal(RfqmJobStatus.FailedExpired);
+                }
+            });
+
+            it('recovers a PRESUBMIT transaction which actually submitted', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS + 600),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
+
+                const mockPresubmitTransaction = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(1233),
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    blockHash: '0xblockhash',
+                    blockNumber: 1,
+                    byzantium: true,
+                    confirmations: 3,
+                    contractAddress: '0xexchangeproxyaddress',
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    from: '0xworkeraddress',
+                    gasUsed: EthersBigNumber.from(10000),
+                    logs: [],
+                    logsBloom: '',
+                    status: 1,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    transactionIndex: 0,
+                    type: 2,
+                };
+                const mockTransactionResponse: providers.TransactionResponse = {
+                    chainId: 1,
+                    confirmations: 0,
+                    data: '',
+                    from: '0xworkeraddress',
+                    gasLimit: EthersBigNumber.from(1000000),
+                    hash: '0xpresubmittransactionhash',
+                    nonce: 0,
+                    type: 2,
+                    value: EthersBigNumber.from(0),
+                    wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
+                };
+                const mockMinedBlock: providers.Block = {
+                    _difficulty: EthersBigNumber.from(2),
+                    difficulty: 2,
+                    extraData: '',
+                    gasLimit: EthersBigNumber.from(1000),
+                    gasUsed: EthersBigNumber.from(1000),
+                    hash: '0xblockhash',
+                    miner: '0xminer',
+                    nonce: '0x000',
+                    number: 21,
+                    parentHash: '0xparentblockhash',
+                    timestamp: 12345,
+                    transactions: ['0xpresubmittransactionhash'],
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([mockPresubmitTransaction]);
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmV2TransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                // This mock response indicates that the transaction is present in the mempool
+                when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(
+                    mockTransactionResponse,
+                );
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(
+                    new Error('estimateGasForAsync called during recovery'),
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                await rfqmService.submitToChainAsync({
+                    kind: job.kind,
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    calldata: '0xcalldata',
+                    expiry: job.expiry,
+                    identifier: job.orderHash,
+                    submissionType: RfqmTransactionSubmissionType.Trade,
+                    onSubmissionContextStatusUpdate: callback,
+                });
+
+                // eth_createAccessList should not be called when not enabled
+                verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
+                // Logic should first check to see if the transaction was actually sent.
+                // If it was (and it is being mock so in this test) then the logic first
+                // updates the status of the transaction to "Submitted"
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                // The logic then enters the watch loop. On the first check, a transaction
+                // receipt exists for this transaction and it will be marked "confirmed"
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+            });
+
+            it('finalizes a job to FAILED_EXPIRED once the expiration window has passed', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const ninetySecondsAgo = nowS - 100;
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(ninetySecondsAgo),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(ninetySecondsAgo.toString()),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingSubmitted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
+
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    createdAt: new Date(1233),
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    status: RfqmTransactionSubmissionStatus.Submitted,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([mockTransaction]);
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([]);
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                try {
+                    await rfqmService.submitToChainAsync({
+                        kind: job.kind,
+                        to: '0xexchangeproxyaddress',
+                        from: '0xworkeraddress',
+                        calldata: '0xcalldata',
+                        expiry: job.expiry,
+                        identifier: job.orderHash,
+                        submissionType: RfqmTransactionSubmissionType.Trade,
+                        onSubmissionContextStatusUpdate: callback,
+                    });
+                } catch (e) {
+                    expect(e.message).to.contain('Exceed expiry');
+                    // eth_createAccessList should not be called when not enabled
+                    verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
+                    expect(job.status).to.equal(RfqmJobStatus.FailedExpired);
+                }
+            });
+
+            it('should call createAccessListForAsync and should not affect the overall method when RPC returns properly', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS + 600),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
+
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([]);
+                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(
+                    async (transactionArg) => {
+                        writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
+                        return _.cloneDeep(mockTransaction);
+                    },
+                );
+                when(
+                    mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve(_.cloneDeep(mockTransaction));
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                when(mockBlockchainUtils.createAccessListForAsync(anything())).thenResolve({
+                    accessList: {
+                        '0x1234': ['0x0'],
+                        '0x12345': ['0x1'],
+                    },
+                    gasEstimate: 1000,
+                });
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                    enableAccessList: true,
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                await rfqmService.submitToChainAsync({
+                    kind: job.kind,
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    calldata: '0xcalldata',
+                    expiry: job.expiry,
+                    identifier: job.orderHash,
+                    submissionType: RfqmTransactionSubmissionType.Trade,
+                    onSubmissionContextStatusUpdate: callback,
+                });
+                verify(mockBlockchainUtils.estimateGasForAsync(anything()));
+                verify(mockBlockchainUtils.createAccessListForAsync(anything())).once();
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+                expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Presubmit,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+            });
+
+            it('should call createAccessListForAsync and should not affect the overall method when RPC errors out', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const job = new RfqmV2JobEntity({
+                    affiliateAddress: '',
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: '0',
+                        token: '',
+                        type: 'fixed',
+                    },
+                    integratorId: '',
+                    lastLookResult: true,
+                    makerUri: 'http://foo.bar',
+                    order: {
+                        order: {
+                            chainId: '1',
+                            expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                                new BigNumber(nowS + 600),
+                                new BigNumber(1),
+                                new BigNumber(1),
+                            ).toString(),
+                            maker: '0xmaker',
+                            makerAmount: '1000000',
+                            makerToken: '0xmakertoken',
+                            taker: '0xtaker',
+                            takerAmount: '10000000',
+                            takerToken: '0xtakertoken',
+                            txOrigin: '',
+                            verifyingContract: '',
+                        },
+                        type: RfqmOrderTypes.Otc,
+                    },
+                    orderHash: '0xorderhash',
+                    status: RfqmJobStatus.PendingLastLookAccepted,
+                    updatedAt: new Date(),
+                    workerAddress: '',
+                });
+
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = new RfqmV2TransactionSubmissionEntity({
+                    from: '0xworkeraddress',
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    orderHash: '0xorderhash',
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                });
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xto',
+                    from: '0xfrom',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                        '0xorderhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([]);
+                const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(
+                    async (transactionArg) => {
+                        writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
+                        return _.cloneDeep(mockTransaction);
+                    },
+                );
+                when(
+                    mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve(_.cloneDeep(mockTransaction));
+                const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
+                    event: '',
+                    logIndex: null,
+                    transactionIndex: null,
+                    transactionHash: '',
+                    blockHash: '',
+                    address: '',
+                    data: '',
+                    blockNumber: 0,
+                    topics: [],
+                    args: {
+                        maker: '',
+                        makerToken: '',
+                        makerTokenFilledAmount: new BigNumber(1234),
+                        orderHash: '',
+                        pool: '',
+                        taker: '',
+                        takerToken: '',
+                        takerTokenFilledAmount: new BigNumber(5),
+                    },
+                });
+                when(mockBlockchainUtils.createAccessListForAsync(anything())).thenReject(new Error('error'));
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                    enableAccessList: true,
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                await rfqmService.submitToChainAsync({
+                    kind: job.kind,
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    calldata: '0xcalldata',
+                    expiry: job.expiry,
+                    identifier: job.orderHash,
+                    submissionType: RfqmTransactionSubmissionType.Trade,
+                    onSubmissionContextStatusUpdate: callback,
+                });
+                verify(mockBlockchainUtils.estimateGasForAsync(anything()));
+                verify(mockBlockchainUtils.createAccessListForAsync(anything())).once();
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+                expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Presubmit,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+            });
         });
 
-        it('should call createAccessListForAsync and should not affect the overall method when RPC returns properly', async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS + 600),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS + 600),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+        // Not all tests from test block 'kind is `rfqm_v2_job`' is included here as most of the tests are similiar.
+        // The tests below specifically test if corresponding methods are called for job kind `meta_transaction_job`.
+        describe('kind is `meta_transaction_job`', () => {
+            it('submits a transaction successfully when there is no previous transaction', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const jobId = 'jobId';
+                const transactionSubmissionId = 'submissionId';
+                const job = createMeaTrsanctionJobEntity(
+                    {
+                        chainId: 1,
+                        createdAt: new Date(),
+                        expiry: new BigNumber(nowS + 600),
+                        fee: {
+                            amount: new BigNumber(0),
+                            token: '',
+                            type: 'fixed',
+                        },
+                        inputToken: '0xinputToken',
+                        inputTokenAmount: new BigNumber(10),
+                        integratorId: '0xintegrator',
+                        metaTransaction: MOCK_META_TRANSACTION,
+                        metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                        minOutputTokenAmount: new BigNumber(10),
+                        outputToken: '0xoutputToken',
+                        takerAddress: '0xtakerAddress',
+                        takerSignature: {
+                            signatureType: SignatureType.EthSign,
+                            v: 1,
+                            r: '',
+                            s: '',
+                        },
+                        status: RfqmJobStatus.PendingLastLookAccepted,
+                        workerAddress: '0xworkeraddress',
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
-            });
+                    jobId,
+                );
 
-            const mockTransactionRequest: providers.TransactionRequest = {};
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                contractAddress: '0xexchangeproxyaddress',
-                transactionIndex: 0,
-                gasUsed: EthersBigNumber.from(10000),
-                logsBloom: '',
-                blockHash: '0xblockhash',
-                transactionHash: '0xsignedtransactionhash',
-                logs: [],
-                blockNumber: 1,
-                confirmations: 3,
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                byzantium: true,
-                type: 2,
-                status: 1,
-            };
-            const mockNonce = 0;
-
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([]);
-            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
-            });
-            const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
-            when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(async (transactionArg) => {
-                writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
-                return _.cloneDeep(mockTransaction);
-            });
-            when(mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash')).thenResolve(
-                _.cloneDeep(mockTransaction),
-            );
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(
-                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
-            ).thenReturn(mockTransactionRequest);
-            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
-                signedTransaction: 'signedTransaction',
-                transactionHash: '0xsignedtransactionhash',
-            });
-            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
-            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            when(mockBlockchainUtils.createAccessListForAsync(anything())).thenResolve({
-                accessList: {
-                    '0x1234': ['0x0'],
-                    '0x12345': ['0x1'],
-                },
-                gasEstimate: 1000,
-            });
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-                enableAccessList: true,
-            });
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
-                }
-            };
-
-            await rfqmService.submitToChainAsync({
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                calldata: '0xcalldata',
-                expiry: job.expiry,
-                orderHash: job.orderHash,
-                submissionType: RfqmTransactionSubmissionType.Trade,
-                onSubmissionContextStatusUpdate: callback,
-            });
-            verify(mockBlockchainUtils.estimateGasForAsync(anything()));
-            verify(mockBlockchainUtils.createAccessListForAsync(anything())).once();
-            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
-            expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Presubmit,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Submitted,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            );
-        });
-
-        it('should call createAccessListForAsync and should not affect the overall method when RPC errors out', async () => {
-            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
-            const job = new RfqmV2JobEntity({
-                affiliateAddress: '',
-                chainId: 1,
-                createdAt: new Date(),
-                expiry: new BigNumber(nowS + 600),
-                fee: {
-                    amount: '0',
-                    token: '',
-                    type: 'fixed',
-                },
-                integratorId: '',
-                lastLookResult: true,
-                makerUri: 'http://foo.bar',
-                order: {
-                    order: {
-                        chainId: '1',
-                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
-                            new BigNumber(nowS + 600),
-                            new BigNumber(1),
-                            new BigNumber(1),
-                        ).toString(),
-                        maker: '0xmaker',
-                        makerAmount: '1000000',
-                        makerToken: '0xmakertoken',
-                        taker: '0xtaker',
-                        takerAmount: '10000000',
-                        takerToken: '0xtakertoken',
-                        txOrigin: '',
-                        verifyingContract: '',
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = createMetaTransactionSubmissionEntity(
+                    {
+                        from: '0xworkeraddress',
+                        metaTransactionJobId: jobId,
+                        maxFeePerGas: new BigNumber(100000),
+                        maxPriorityFeePerGas: new BigNumber(100),
+                        nonce: 0,
+                        to: '0xexchangeproxyaddress',
+                        transactionHash: '0xsignedtransactionhash',
+                        type: RfqmTransactionSubmissionType.Trade,
                     },
-                    type: RfqmOrderTypes.Otc,
-                },
-                orderHash: '0xorderhash',
-                status: RfqmJobStatus.PendingLastLookAccepted,
-                updatedAt: new Date(),
-                workerAddress: '',
+                    transactionSubmissionId,
+                );
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xto',
+                    from: '0xfrom',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId, RfqmTransactionSubmissionType.Trade),
+                ).thenResolve([]);
+                const updateRfqmJobCalledArgs: MetaTransactionJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeMetaTransactionSubmissionAsyncCalledArgs: MetaTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeMetaTransactionSubmissionAsync(anything())).thenCall(async (transactionArg) => {
+                    writeMetaTransactionSubmissionAsyncCalledArgs.push(_.cloneDeep(transactionArg));
+                    return _.cloneDeep(mockTransaction);
+                });
+                when(
+                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve([_.cloneDeep(mockTransaction)]);
+                const updateRfqmTransactionSubmissionsCalledArgs: MetaTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+                await rfqmService.submitToChainAsync({
+                    kind: job.kind,
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    calldata: '0xcalldata',
+                    expiry: job.expiry,
+                    identifier: job.id,
+                    submissionType: RfqmTransactionSubmissionType.Trade,
+                    onSubmissionContextStatusUpdate: callback,
+                });
+                verify(mockBlockchainUtils.estimateGasForAsync(anything()));
+                // eth_createAccessList should not be called when not enabled
+                verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+                expect(writeMetaTransactionSubmissionAsyncCalledArgs[0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Presubmit,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
             });
 
-            const mockTransactionRequest: providers.TransactionRequest = {};
-            const mockTransaction = new RfqmV2TransactionSubmissionEntity({
-                from: '0xworkeraddress',
-                maxFeePerGas: new BigNumber(100000),
-                maxPriorityFeePerGas: new BigNumber(100),
-                nonce: 0,
-                orderHash: '0xorderhash',
-                to: '0xexchangeproxyaddress',
-                transactionHash: '0xsignedtransactionhash',
-                type: RfqmTransactionSubmissionType.Trade,
-            });
-            const mockTransactionReceipt: providers.TransactionReceipt = {
-                to: '0xto',
-                from: '0xfrom',
-                contractAddress: '0xexchangeproxyaddress',
-                transactionIndex: 0,
-                gasUsed: EthersBigNumber.from(10000),
-                logsBloom: '',
-                blockHash: '0xblockhash',
-                transactionHash: '0xsignedtransactionhash',
-                logs: [],
-                blockNumber: 1,
-                confirmations: 3,
-                cumulativeGasUsed: EthersBigNumber.from(1000),
-                effectiveGasPrice: EthersBigNumber.from(1000),
-                byzantium: true,
-                type: 2,
-                status: 1,
-            };
-            const mockNonce = 0;
+            it('recovers a PRESUBMIT transaction which actually submitted', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const jobId = 'jobId';
+                const transactionSubmissionId = 'submissionId';
+                const job = createMeaTrsanctionJobEntity(
+                    {
+                        chainId: 1,
+                        createdAt: new Date(),
+                        expiry: new BigNumber(nowS + 600),
+                        fee: {
+                            amount: new BigNumber(0),
+                            token: '',
+                            type: 'fixed',
+                        },
+                        inputToken: '0xinputToken',
+                        inputTokenAmount: new BigNumber(10),
+                        integratorId: '0xintegrator',
+                        metaTransaction: MOCK_META_TRANSACTION,
+                        metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                        minOutputTokenAmount: new BigNumber(10),
+                        outputToken: '0xoutputToken',
+                        takerAddress: '0xtakerAddress',
+                        takerSignature: {
+                            signatureType: SignatureType.EthSign,
+                            v: 1,
+                            r: '',
+                            s: '',
+                        },
+                        status: RfqmJobStatus.PendingLastLookAccepted,
+                        workerAddress: '0xworkeraddress',
+                    },
+                    jobId,
+                );
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
-                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
-            );
-            const mockDbUtils = mock(RfqmDbUtils);
-            when(
-                mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                    '0xorderhash',
-                    RfqmTransactionSubmissionType.Trade,
-                ),
-            ).thenResolve([]);
-            const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
-            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
-                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                const mockPresubmitTransaction = createMetaTransactionSubmissionEntity(
+                    {
+                        from: '0xworkeraddress',
+                        metaTransactionJobId: jobId,
+                        maxFeePerGas: new BigNumber(100000),
+                        maxPriorityFeePerGas: new BigNumber(100),
+                        nonce: 0,
+                        status: RfqmTransactionSubmissionStatus.Presubmit,
+                        to: '0xexchangeproxyaddress',
+                        transactionHash: '0xpresubmittransactionhash',
+                        type: RfqmTransactionSubmissionType.Trade,
+                    },
+                    transactionSubmissionId,
+                );
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    blockHash: '0xblockhash',
+                    blockNumber: 1,
+                    byzantium: true,
+                    confirmations: 3,
+                    contractAddress: '0xexchangeproxyaddress',
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    from: '0xworkeraddress',
+                    gasUsed: EthersBigNumber.from(10000),
+                    logs: [],
+                    logsBloom: '',
+                    status: 1,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xpresubmittransactionhash',
+                    transactionIndex: 0,
+                    type: 2,
+                };
+                const mockTransactionResponse: providers.TransactionResponse = {
+                    chainId: 1,
+                    confirmations: 0,
+                    data: '',
+                    from: '0xworkeraddress',
+                    gasLimit: EthersBigNumber.from(1000000),
+                    hash: '0xpresubmittransactionhash',
+                    nonce: 0,
+                    type: 2,
+                    value: EthersBigNumber.from(0),
+                    wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
+                };
+                const mockMinedBlock: providers.Block = {
+                    _difficulty: EthersBigNumber.from(2),
+                    difficulty: 2,
+                    extraData: '',
+                    gasLimit: EthersBigNumber.from(1000),
+                    gasUsed: EthersBigNumber.from(1000),
+                    hash: '0xblockhash',
+                    miner: '0xminer',
+                    nonce: '0x000',
+                    number: 21,
+                    parentHash: '0xparentblockhash',
+                    timestamp: 12345,
+                    transactions: ['0xpresubmittransactionhash'],
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId, RfqmTransactionSubmissionType.Trade),
+                ).thenResolve([mockPresubmitTransaction]);
+                const updateRfqmTransactionSubmissionsCalledArgs: MetaTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                // This mock response indicates that the transaction is present in the mempool
+                when(mockBlockchainUtils.getTransactionAsync('0xpresubmittransactionhash')).thenResolve(
+                    mockTransactionResponse,
+                );
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(
+                    new Error('estimateGasForAsync called during recovery'),
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                await rfqmService.submitToChainAsync({
+                    kind: job.kind,
+                    to: '0xexchangeproxyaddress',
+                    from: '0xworkeraddress',
+                    calldata: '0xcalldata',
+                    expiry: job.expiry,
+                    identifier: job.id,
+                    submissionType: RfqmTransactionSubmissionType.Trade,
+                    onSubmissionContextStatusUpdate: callback,
+                });
+
+                // eth_createAccessList should not be called when not enabled
+                verify(mockBlockchainUtils.createAccessListForAsync(anything())).never();
+                // Logic should first check to see if the transaction was actually sent.
+                // If it was (and it is being mock so in this test) then the logic first
+                // updates the status of the transaction to "Submitted"
+                expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.Submitted,
+                );
+                // The logic then enters the watch loop. On the first check, a transaction
+                // receipt exists for this transaction and it will be marked "confirmed"
+                expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
+                    RfqmTransactionSubmissionStatus.SucceededConfirmed,
+                );
+                expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
             });
-            const writeV2RfqmTransactionSubmissionToDbCalledArgs: RfqmTransactionSubmissionEntity[] = [];
-            when(mockDbUtils.writeV2RfqmTransactionSubmissionToDbAsync(anything())).thenCall(async (transactionArg) => {
-                writeV2RfqmTransactionSubmissionToDbCalledArgs.push(_.cloneDeep(transactionArg));
-                return _.cloneDeep(mockTransaction);
-            });
-            when(mockDbUtils.findV2TransactionSubmissionByTransactionHashAsync('0xsignedtransactionhash')).thenResolve(
-                _.cloneDeep(mockTransaction),
-            );
-            const updateRfqmTransactionSubmissionsCalledArgs: RfqmTransactionSubmissionEntity[][] = [];
-            when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
-                updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
-            });
-            const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
-            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
-            when(
-                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
-            ).thenReturn(mockTransactionRequest);
-            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
-                signedTransaction: 'signedTransaction',
-                transactionHash: '0xsignedtransactionhash',
-            });
-            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
-            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
-            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
-                mockTransactionReceipt,
-            ]);
-            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-            when(mockBlockchainUtils.getDecodedRfqOrderFillEventLogFromLogs(anything())).thenReturn({
-                event: '',
-                logIndex: null,
-                transactionIndex: null,
-                transactionHash: '',
-                blockHash: '',
-                address: '',
-                data: '',
-                blockNumber: 0,
-                topics: [],
-                args: {
-                    maker: '',
-                    makerToken: '',
-                    makerTokenFilledAmount: new BigNumber(1234),
-                    orderHash: '',
-                    pool: '',
-                    taker: '',
-                    takerToken: '',
-                    takerTokenFilledAmount: new BigNumber(5),
-                },
-            });
-            when(mockBlockchainUtils.createAccessListForAsync(anything())).thenReject(new Error('error'));
-            const rfqmService = buildRfqmServiceForUnitTest({
-                dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
-                rfqBlockchainUtils: instance(mockBlockchainUtils),
-                enableAccessList: true,
-            });
-            const callback = async (
-                newSubmissionContextStatus: SubmissionContextStatus,
-                oldSubmissionContextStatus?: SubmissionContextStatus,
-            ): Promise<void> => {
-                if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
-                    const newJobStatus =
-                        SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
-                    job.status = newJobStatus;
-                    await mockDbUtils.updateRfqmJobAsync(job);
+
+            it('throws exception if there are more than 1 transaction submissions with the same transaction hash', async () => {
+                const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+                const jobId = 'jobId';
+                const transactionSubmissionId = 'submissionId';
+                const job = createMeaTrsanctionJobEntity(
+                    {
+                        chainId: 1,
+                        createdAt: new Date(),
+                        expiry: new BigNumber(nowS + 600),
+                        fee: {
+                            amount: new BigNumber(0),
+                            token: '',
+                            type: 'fixed',
+                        },
+                        inputToken: '0xinputToken',
+                        inputTokenAmount: new BigNumber(10),
+                        integratorId: '0xintegrator',
+                        metaTransaction: MOCK_META_TRANSACTION,
+                        metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                        minOutputTokenAmount: new BigNumber(10),
+                        outputToken: '0xoutputToken',
+                        takerAddress: '0xtakerAddress',
+                        takerSignature: {
+                            signatureType: SignatureType.EthSign,
+                            v: 1,
+                            r: '',
+                            s: '',
+                        },
+                        status: RfqmJobStatus.PendingLastLookAccepted,
+                        workerAddress: '0xworkeraddress',
+                    },
+                    jobId,
+                );
+
+                const mockTransactionRequest: providers.TransactionRequest = {};
+                const mockTransaction = createMetaTransactionSubmissionEntity(
+                    {
+                        from: '0xworkeraddress',
+                        metaTransactionJobId: jobId,
+                        maxFeePerGas: new BigNumber(100000),
+                        maxPriorityFeePerGas: new BigNumber(100),
+                        nonce: 0,
+                        to: '0xexchangeproxyaddress',
+                        transactionHash: '0xsignedtransactionhash',
+                        type: RfqmTransactionSubmissionType.Trade,
+                    },
+                    transactionSubmissionId,
+                );
+                const mockTransactionReceipt: providers.TransactionReceipt = {
+                    to: '0xto',
+                    from: '0xfrom',
+                    contractAddress: '0xexchangeproxyaddress',
+                    transactionIndex: 0,
+                    gasUsed: EthersBigNumber.from(10000),
+                    logsBloom: '',
+                    blockHash: '0xblockhash',
+                    transactionHash: '0xsignedtransactionhash',
+                    logs: [],
+                    blockNumber: 1,
+                    confirmations: 3,
+                    cumulativeGasUsed: EthersBigNumber.from(1000),
+                    effectiveGasPrice: EthersBigNumber.from(1000),
+                    byzantium: true,
+                    type: 2,
+                    status: 1,
+                };
+                const mockNonce = 0;
+
+                const rfqmFeeServiceMock = mock(RfqmFeeService);
+                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                    new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+                );
+                const mockDbUtils = mock(RfqmDbUtils);
+                when(
+                    mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId, RfqmTransactionSubmissionType.Trade),
+                ).thenResolve([]);
+                const updateRfqmJobCalledArgs: MetaTransactionJobEntity[] = [];
+                when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                    updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+                });
+                const writeMetaTransactionSubmissionAsyncCalledArgs: MetaTransactionSubmissionEntity[] = [];
+                when(mockDbUtils.writeMetaTransactionSubmissionAsync(anything())).thenCall(async (transactionArg) => {
+                    writeMetaTransactionSubmissionAsyncCalledArgs.push(_.cloneDeep(transactionArg));
+                    return _.cloneDeep(mockTransaction);
+                });
+                when(
+                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+                ).thenResolve([_.cloneDeep(mockTransaction), _.cloneDeep(mockTransaction)]);
+                const updateRfqmTransactionSubmissionsCalledArgs: MetaTransactionSubmissionEntity[][] = [];
+                when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
+                    updateRfqmTransactionSubmissionsCalledArgs.push(_.cloneDeep(tranactionArg));
+                });
+                const mockBlockchainUtils = mock(RfqBlockchainUtils);
+                when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+                when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
+                when(
+                    mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+                ).thenReturn(mockTransactionRequest);
+                when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                    signedTransaction: 'signedTransaction',
+                    transactionHash: '0xsignedtransactionhash',
+                });
+                when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+                when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve(
+                    '0xsignedtransactionhash',
+                );
+                when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                    mockTransactionReceipt,
+                ]);
+                when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+                const rfqmService = buildRfqmServiceForUnitTest({
+                    dbUtils: instance(mockDbUtils),
+                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    rfqBlockchainUtils: instance(mockBlockchainUtils),
+                });
+
+                const callback = async (
+                    newSubmissionContextStatus: SubmissionContextStatus,
+                    oldSubmissionContextStatus?: SubmissionContextStatus,
+                ): Promise<void> => {
+                    if (newSubmissionContextStatus !== oldSubmissionContextStatus) {
+                        const newJobStatus =
+                            SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
+                        job.status = newJobStatus;
+                        await mockDbUtils.updateRfqmJobAsync(job);
+                    }
+                };
+
+                try {
+                    await rfqmService.submitToChainAsync({
+                        kind: job.kind,
+                        to: '0xexchangeproxyaddress',
+                        from: '0xworkeraddress',
+                        calldata: '0xcalldata',
+                        expiry: job.expiry,
+                        identifier: job.id,
+                        submissionType: RfqmTransactionSubmissionType.Trade,
+                        onSubmissionContextStatusUpdate: callback,
+                    });
+                    expect.fail();
+                } catch (e) {
+                    expect(e.message).to.contain('Transaction hash have been submitted not exactly once');
                 }
-            };
-
-            await rfqmService.submitToChainAsync({
-                to: '0xexchangeproxyaddress',
-                from: '0xworkeraddress',
-                calldata: '0xcalldata',
-                expiry: job.expiry,
-                orderHash: job.orderHash,
-                submissionType: RfqmTransactionSubmissionType.Trade,
-                onSubmissionContextStatusUpdate: callback,
             });
-            verify(mockBlockchainUtils.estimateGasForAsync(anything()));
-            verify(mockBlockchainUtils.createAccessListForAsync(anything())).once();
-            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
-            expect(writeV2RfqmTransactionSubmissionToDbCalledArgs[0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Presubmit,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[0][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.Submitted,
-            );
-            expect(updateRfqmTransactionSubmissionsCalledArgs[1][0].status).to.equal(
-                RfqmTransactionSubmissionStatus.SucceededConfirmed,
-            );
         });
     });
 });

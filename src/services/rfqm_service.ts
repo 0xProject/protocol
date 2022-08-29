@@ -31,7 +31,12 @@ import {
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
-import { MetaTransactionSubmissionEntity, RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import {
+    MetaTransactionJobEntity,
+    MetaTransactionSubmissionEntity,
+    RfqmV2JobEntity,
+    RfqmV2TransactionSubmissionEntity,
+} from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
     RfqmJobStatus,
@@ -1215,11 +1220,12 @@ export class RfqmService {
         const tokenToApprove = job.order.order.takerToken;
         const approvalCalldata = await this.prepareApprovalAsync(job, tokenToApprove, approval, approvalSignature);
         const approvalStatus = await this.submitToChainAsync({
+            kind: job.kind,
             to: tokenToApprove,
             from: workerAddress,
             calldata: approvalCalldata,
             expiry: job.expiry,
-            orderHash: job.orderHash,
+            identifier: job.orderHash,
             submissionType: RfqmTransactionSubmissionType.Approval,
             onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                 job,
@@ -1231,11 +1237,12 @@ export class RfqmService {
         if (approvalStatus === SubmissionContextStatus.SucceededConfirmed) {
             const tradeCalldata = await this.prepareTradeAsync(job, workerAddress, false);
             await this.submitToChainAsync({
+                kind: job.kind,
                 to: this._blockchainUtils.getExchangeProxyAddress(),
                 from: workerAddress,
                 calldata: tradeCalldata,
                 expiry: job.expiry,
-                orderHash: job.orderHash,
+                identifier: job.orderHash,
                 submissionType: RfqmTransactionSubmissionType.Trade,
                 onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                     job,
@@ -1252,11 +1259,12 @@ export class RfqmService {
     public async processTradeAsync(job: RfqmV2JobEntity, workerAddress: string): Promise<void> {
         const calldata = await this.prepareTradeAsync(job, workerAddress);
         await this.submitToChainAsync({
+            kind: job.kind,
             to: this._blockchainUtils.getExchangeProxyAddress(),
             from: workerAddress,
             calldata,
             expiry: job.expiry,
-            orderHash: job.orderHash,
+            identifier: job.orderHash,
             submissionType: RfqmTransactionSubmissionType.Trade,
             onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                 job,
@@ -1787,7 +1795,7 @@ export class RfqmService {
      *        - `from`: The address submitting the transaction (usually the worker address).
      *        - `calldata`: Calldata to submit.
      *        - `expiry`: Exiry before the submission is considered invalid.
-     *        - `orderHash`: The hash of the order.
+     *        - `identifier`: The job identifier. For rfqm_v2_job, it should be order hash; for meta transaction, it should be job id.
      *        - `submissionType`: The type of submission.
      *        - `onSubmissionContextStatusUpdate`: Callback to perform appropriate actions when the submission context statuses change.
      *        - `now`: The current time.
@@ -1795,22 +1803,39 @@ export class RfqmService {
      * @throws Submission context status is FailedExpired or unhandled exceptions.
      */
     public async submitToChainAsync(opts: {
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'];
         to: string;
         from: string;
         calldata: string;
         expiry: BigNumber;
-        orderHash: string;
+        identifier: string;
         submissionType: RfqmTransactionSubmissionType;
         onSubmissionContextStatusUpdate: (
             newSubmissionContextStatus: SubmissionContextStatus,
             oldSubmissionContextStatus?: SubmissionContextStatus,
         ) => Promise<void>;
     }): Promise<SubmissionContextStatus.FailedRevertedConfirmed | SubmissionContextStatus.SucceededConfirmed> {
-        const { to, from, calldata, expiry, orderHash, submissionType, onSubmissionContextStatusUpdate } = opts;
-        const previousSubmissionsWithPresubmits = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-            orderHash,
-            submissionType,
-        );
+        const { kind, to, from, calldata, expiry, identifier, submissionType, onSubmissionContextStatusUpdate } = opts;
+
+        let previousSubmissionsWithPresubmits;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                previousSubmissionsWithPresubmits = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                    identifier,
+                    submissionType,
+                );
+                break;
+            case 'meta_transaction_job':
+                previousSubmissionsWithPresubmits = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                    identifier,
+                    submissionType,
+                );
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
 
         const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
@@ -1841,17 +1866,18 @@ export class RfqmService {
 
             if (expiry.isLessThan(nowSeconds)) {
                 await onSubmissionContextStatusUpdate(SubmissionContextStatus.FailedExpired);
-                throw new Error(`Exceed expiry ${expiry} for submission type ${submissionType}`);
+                throw new Error(`Exceed expiry ${expiry} for kind ${kind} and submission type ${submissionType}`);
             }
 
-            logger.info({ orderHash, from }, 'Attempting to submit first transaction');
+            logger.info({ kind, identifier, from }, 'Attempting to submit first transaction');
             await onSubmissionContextStatusUpdate(SubmissionContextStatus.PendingSubmitted);
 
             logger.info(
                 {
+                    kind,
                     gasFees,
                     gasPriceEstimate,
-                    orderHash,
+                    identifier,
                     submissionCount: 1,
                     from,
                     submissionType,
@@ -1880,7 +1906,7 @@ export class RfqmService {
                     RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'success').inc();
                 } catch (error) {
                     RFQM_CREATE_ACCESS_LIST_REQUEST.labels(this._chainId.toString(), 'failure').inc();
-                    logger.warn({ calldata, from }, 'Failed to create access list');
+                    logger.warn({ kind, calldata, from }, 'Failed to create access list');
                 }
 
                 if (accessListWithGas !== undefined && accessListWithGas.gasEstimate) {
@@ -1900,7 +1926,8 @@ export class RfqmService {
             }
 
             const firstSubmission = await this._submitTransactionAsync(
-                orderHash,
+                kind,
+                identifier,
                 from,
                 calldata,
                 gasFees,
@@ -1911,13 +1938,15 @@ export class RfqmService {
             );
 
             logger.info(
-                { from, orderHash, submissionType, transactionHash: firstSubmission.transactionHash },
+                { kind, from, identifier, submissionType, transactionHash: firstSubmission.transactionHash },
                 'Successfully submitted transaction',
             );
 
-            submissionContext = new SubmissionContext(this._blockchainUtils, [firstSubmission]);
+            submissionContext = new SubmissionContext(this._blockchainUtils, [firstSubmission] as
+                | RfqmV2TransactionSubmissionEntity[]
+                | MetaTransactionSubmissionEntity[]);
         } else {
-            logger.info({ from, orderHash, submissionType }, `Previous submissions found, recovering context`);
+            logger.info({ kind, from, identifier, submissionType }, `Previous submissions found, recovering context`);
             submissionContext = new SubmissionContext(this._blockchainUtils, previousSubmissions);
             nonce = submissionContext.nonce;
 
@@ -1937,11 +1966,11 @@ export class RfqmService {
             await delay(this._transactionWatcherSleepTimeMs);
             const oldSubmissionContextStatus = submissionContext.submissionContextStatus;
             const newSubmissionContextStatus = await this._checkSubmissionReceiptsAndUpdateDbAsync(
-                orderHash,
+                identifier,
                 submissionContext,
             );
             logger.info(
-                { oldSubmissionContextStatus, newSubmissionContextStatus },
+                { kind, submissionType, oldSubmissionContextStatus, newSubmissionContextStatus },
                 'Old and new submission context statuses',
             );
             await onSubmissionContextStatusUpdate(newSubmissionContextStatus, oldSubmissionContextStatus);
@@ -1963,7 +1992,9 @@ export class RfqmService {
                             SubmissionContextStatus.FailedExpired,
                             oldSubmissionContextStatus,
                         );
-                        throw new Error(`Exceed expiry ${expiry} for submission type ${submissionType}`);
+                        throw new Error(
+                            `Exceed expiry ${expiry} for kind ${kind} and submission type ${submissionType}`,
+                        );
                     }
                     // If we're past expiration by less than a minute, don't put in any new transactions
                     // but keep watching in case a receipt shows up
@@ -1988,7 +2019,7 @@ export class RfqmService {
                     if (oldMaxFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
                         // If we've reached the max priority fee per gas we'd like to pay, just
                         // continue watching the transactions to see if one gets mined.
-                        logger.info({ oldMaxFeePerGas }, 'Exceeds max priority fee per gas');
+                        logger.info({ kind, submissionType, oldMaxFeePerGas }, 'Exceeds max priority fee per gas');
                         continue;
                     }
 
@@ -2011,9 +2042,10 @@ export class RfqmService {
 
                     logger.info(
                         {
+                            kind,
                             gasFees,
                             gasPriceEstimate,
-                            orderHash,
+                            identifier,
                             submissionCount: submissionContext.transactions.length + 1,
                             from,
                             submissionType,
@@ -2023,7 +2055,8 @@ export class RfqmService {
 
                     try {
                         const newTransaction = await this._submitTransactionAsync(
-                            orderHash,
+                            kind,
+                            identifier,
                             from,
                             calldata,
                             gasFees,
@@ -2034,8 +2067,9 @@ export class RfqmService {
                         );
                         logger.info(
                             {
+                                kind,
                                 from,
-                                orderHash,
+                                identifier,
                                 transactionHash: newTransaction.transactionHash,
                                 submissionType,
                             },
@@ -2046,12 +2080,12 @@ export class RfqmService {
                         const errorMessage = err.message;
                         const isNonceTooLow = /nonce too low/.test(errorMessage);
                         logger.warn(
-                            { from, orderHash, submissionType, errorMessage: err.message, isNonceTooLow },
+                            { from, kind, identifier, submissionType, errorMessage: err.message, isNonceTooLow },
                             'Encountered an error re-submitting a tx',
                         );
                         if (isNonceTooLow) {
                             logger.info(
-                                { from, orderHash, submissionType },
+                                { from, kind, identifier, submissionType },
                                 'Ignore nonce too low error on re-submission. A previous submission was successful',
                             );
                             break;
@@ -2219,7 +2253,7 @@ export class RfqmService {
      * Check for receipts from the tx hashes and update databases with status of all tx's.
      */
     private async _checkSubmissionReceiptsAndUpdateDbAsync(
-        orderHash: string,
+        identifier: string,
         submissionContext: SubmissionContext<RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[]>,
     ): Promise<
         | SubmissionContextStatus.PendingSubmitted
@@ -2246,7 +2280,10 @@ export class RfqmService {
                 minedBlockTimestampS - firstSubmissionTimestampS,
             );
         } catch (e) {
-            logger.warn({ orderHash, errorMessage: e.message, stack: e.stack }, 'Failed to meter the mining latency');
+            logger.warn(
+                { orderHash: identifier, errorMessage: e.message, stack: e.stack },
+                'Failed to meter the mining latency',
+            );
         }
 
         await submissionContext.updateForReceiptAsync(minedReceipt);
@@ -2258,7 +2295,8 @@ export class RfqmService {
      * Determine transaction properties and submit a transaction
      */
     private async _submitTransactionAsync(
-        orderHash: string,
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'],
+        identifier: string,
         workerAddress: string,
         callData: string,
         gasFees: GasFees,
@@ -2266,7 +2304,7 @@ export class RfqmService {
         gasEstimate: number,
         submissionType: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
         to: string = this._blockchainUtils.getExchangeProxyAddress(),
-    ): Promise<RfqmV2TransactionSubmissionEntity> {
+    ): Promise<RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity> {
         const txOptions = {
             ...gasFees,
             from: workerAddress,
@@ -2285,46 +2323,103 @@ export class RfqmService {
             transactionRequest,
         );
 
-        const partialEntity = {
-            ...gasFees,
-            transactionHash,
-            orderHash,
-            createdAt: new Date(),
-            from: workerAddress,
-            to,
-            nonce,
-            status: RfqmTransactionSubmissionStatus.Presubmit,
-            type: submissionType,
-        };
-
-        const transactionSubmissionEntity = await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(
-            partialEntity,
-        );
+        let partialEntity;
+        let transactionSubmissionEntity;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                partialEntity = {
+                    ...gasFees,
+                    transactionHash,
+                    orderHash: identifier,
+                    createdAt: new Date(),
+                    from: workerAddress,
+                    to,
+                    nonce,
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    type: submissionType,
+                };
+                transactionSubmissionEntity = await this._dbUtils.writeV2RfqmTransactionSubmissionToDbAsync(
+                    partialEntity,
+                );
+                break;
+            case 'meta_transaction_job':
+                partialEntity = {
+                    ...gasFees,
+                    transactionHash,
+                    metaTransactionJobId: identifier,
+                    createdAt: new Date(),
+                    from: workerAddress,
+                    to,
+                    nonce,
+                    status: RfqmTransactionSubmissionStatus.Presubmit,
+                    type: submissionType,
+                };
+                transactionSubmissionEntity = await this._dbUtils.writeMetaTransactionSubmissionAsync(partialEntity);
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
 
         const transactionHashFromSubmit = await this._blockchainUtils.submitSignedTransactionAsync(signedTransaction);
 
+        if (transactionHash !== transactionHashFromSubmit) {
+            // This should never ever happen
+            logger.error(
+                { kind, submissionType, identifier, transactionHashFromSubmit, transactionHash },
+                'Mismatch between transaction hash calculated before submit and after submit',
+            );
+            throw new Error('Mismatch between transaction hash calculated before submit and after submit');
+        }
+
         logger.info(
-            { orderHash, workerAddress, transactionHash: transactionHashFromSubmit },
+            { kind, submissionType, identifier, workerAddress, transactionHash },
             'Transaction calldata submitted to exchange proxy',
         );
 
         const updatedTransactionSubmission = [
             {
                 ...transactionSubmissionEntity,
-                transactionHash: transactionHashFromSubmit,
                 status: RfqmTransactionSubmissionStatus.Submitted,
             },
-        ];
+        ] as RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[];
 
         await this._dbUtils.updateRfqmTransactionSubmissionsAsync(updatedTransactionSubmission);
 
-        const updatedEntity = await this._dbUtils.findV2TransactionSubmissionByTransactionHashAsync(
-            transactionHashFromSubmit,
-        );
+        let updatedEntity;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                updatedEntity = await this._dbUtils.findV2TransactionSubmissionByTransactionHashAsync(
+                    transactionHashFromSubmit,
+                );
+                break;
+            case 'meta_transaction_job':
+                const updatedSubmissionEntities =
+                    await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(transactionHashFromSubmit);
+                if (updatedSubmissionEntities.length !== 1) {
+                    // A transaction hash should never be submitted twice in our system. However, RFQ-562 mentioned cases like this could
+                    // happen in our system. Add more log and throw the error to surface it.
+                    logger.error(
+                        { kind, submissionType, transactionHash },
+                        'Transaction hash have been submitted not exactly once',
+                    );
+                    throw new Error('Transaction hash have been submitted not exactly once');
+                }
+
+                updatedEntity = updatedSubmissionEntities[0];
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
 
         if (!updatedEntity) {
             // This should never happen -- we just saved it
-            throw new Error(`Could not find updated entity with transaction hash ${transactionHashFromSubmit}`);
+            throw new Error(
+                `Could not find updated entity with transaction hash ${transactionHashFromSubmit} of kind ${kind} and submission type ${submissionType}`,
+            );
         }
 
         return updatedEntity;
@@ -2381,9 +2476,9 @@ export class RfqmService {
      * dies again and the submission actually went through but was not found at the time of
      * this check we can potentially recover it later.
      */
-    private async _recoverPresubmitTransactionsAsync(
-        transactionSubmissions: RfqmV2TransactionSubmissionEntity[],
-    ): Promise<RfqmV2TransactionSubmissionEntity[]> {
+    private async _recoverPresubmitTransactionsAsync<
+        T extends RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
+    >(transactionSubmissions: T): Promise<T> {
         // Any is so nasty -- https://dev.to/shadow1349/typescript-tip-of-the-week-generics-170g
         const result: any = await Promise.all(
             transactionSubmissions.map(async (transactionSubmission) => {
@@ -2398,7 +2493,7 @@ export class RfqmService {
                 if (transactionResponse) {
                     // If it does exist, update the status. If not, remove it.
                     transactionSubmission.status = RfqmTransactionSubmissionStatus.Submitted;
-                    await this._dbUtils.updateRfqmTransactionSubmissionsAsync([transactionSubmission]);
+                    await this._dbUtils.updateRfqmTransactionSubmissionsAsync([transactionSubmission] as T);
                     return transactionSubmission;
                 } else {
                     return null;
