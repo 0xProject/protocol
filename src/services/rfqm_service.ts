@@ -21,13 +21,11 @@ import { Producer } from 'sqs-producer';
 import { Integrator, RFQM_MAINTENANCE_MODE } from '../config';
 import {
     ETH_DECIMALS,
-    EXECUTE_META_TRANSACTION_EIP_712_TYPES,
     GAS_ESTIMATE_BUFFER,
     GWEI_DECIMALS,
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
-    PERMIT_EIP_712_TYPES,
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
@@ -48,11 +46,14 @@ import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCod
 import { logger } from '../logger';
 import {
     Approval,
-    EIP712Context,
-    EIP712DataField,
+    Eip712DataField,
+    ExecuteMetaTransactionApproval,
+    ExecuteMetaTransactionEip712Context,
     FirmOtcQuote,
     GaslessApprovalTypes,
     IndicativeQuote,
+    PermitApproval,
+    PermitEip712Context,
 } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -928,9 +929,9 @@ export class RfqmService {
      * Validates and enqueues the Taker Signed Otc Order with approval for submission.
      * Can also be used to submit order without approval if approval params are not supplied.
      */
-    public async submitTakerSignedOtcOrderWithApprovalAsync(
-        params: SubmitRfqmSignedQuoteWithApprovalParams,
-    ): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
+    public async submitTakerSignedOtcOrderWithApprovalAsync<
+        T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
+    >(params: SubmitRfqmSignedQuoteWithApprovalParams<T>): Promise<SubmitRfqmSignedQuoteWithApprovalResponse> {
         let submitRfqmSignedQuoteWithApprovalRes: SubmitRfqmSignedQuoteWithApprovalResponse;
         const { approval, trade } = params;
 
@@ -946,15 +947,15 @@ export class RfqmService {
      * Processes a signed approval sent to the submission endpoint in order to
      * create the approval data needed by the job.
      */
-    public async createApprovalAsync(
-        approval: SubmitApprovalParams,
+    public async createApprovalAsync<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context>(
+        approval: SubmitApprovalParams<T>,
         tradeHash: string,
         takerToken: string,
     ): Promise<RfqmV2JobApprovalOpts> {
         let { signature } = approval;
 
         // validate and convert EIP712 context to corresponding Approval object
-        const parsedApproval = this._convertEIP712ContextToApproval(approval.type, approval.eip712, tradeHash);
+        const parsedApproval = this._convertEIP712ContextToApproval(approval.eip712, tradeHash);
 
         // pad approval signature if there are missing bytes
         const paddedSignature = padSignature(signature);
@@ -2809,54 +2810,32 @@ export class RfqmService {
      * @returns The Approval object
      */
     // tslint:disable-next-line: prefer-function-over-method
-    private _convertEIP712ContextToApproval(
-        kind: GaslessApprovalTypes,
-        eip712: EIP712Context,
+    private _convertEIP712ContextToApproval<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context>(
+        eip712: T,
         tradeHash: string,
-    ): Approval {
+    ): T extends ExecuteMetaTransactionEip712Context ? ExecuteMetaTransactionApproval : PermitApproval {
         const { types, primaryType, domain, message } = eip712;
-        switch (kind) {
-            case GaslessApprovalTypes.ExecuteMetaTransaction: {
-                const parsedTypes = types as typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
-                if (!parsedTypes) {
-                    logger.warn({ kind, types, tradeHash }, 'Invalid types field provided for Approval');
-                    throw new ValidationError([
-                        {
-                            field: 'types',
-                            code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid types field provided for Approval of kind ${kind}`,
-                        },
-                    ]);
-                }
-                if (primaryType !== 'MetaTransaction') {
-                    logger.warn({ kind, primaryType, tradeHash }, 'Invalid primaryType field provided for Approval');
-                    throw new ValidationError([
-                        {
-                            field: 'primaryType',
-                            code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid primaryType field provided for Approval of kind ${kind}`,
-                        },
-                    ]);
-                }
+        switch (primaryType) {
+            case 'MetaTransaction': {
                 if (
                     !_.isEqual(
                         _.keys(message).sort(),
-                        types.MetaTransaction.map((dataField: EIP712DataField) => dataField.name).sort(),
+                        types.MetaTransaction.map((dataField: Eip712DataField) => dataField.name).sort(),
                     )
                 ) {
-                    logger.warn({ kind, tradeHash }, 'Invalid message field provided for Approval');
+                    logger.warn({ primaryType, tradeHash }, 'Invalid message field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'message',
                             code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid message field provided for Approval of kind ${kind}`,
+                            reason: `Invalid message field provided for Approval of primaryType ${primaryType}`,
                         },
                     ]);
                 }
-                return {
-                    kind,
+                const executeMetaTransactionApproval: ExecuteMetaTransactionApproval = {
+                    kind: GaslessApprovalTypes.ExecuteMetaTransaction,
                     eip712: {
-                        types: parsedTypes,
+                        types,
                         primaryType,
                         domain,
                         message: {
@@ -2866,48 +2845,30 @@ export class RfqmService {
                         },
                     },
                 };
+                return executeMetaTransactionApproval as T extends ExecuteMetaTransactionEip712Context
+                    ? ExecuteMetaTransactionApproval
+                    : PermitApproval;
             }
-            case GaslessApprovalTypes.Permit: {
-                const parsedTypes = types as typeof PERMIT_EIP_712_TYPES;
-                if (!parsedTypes) {
-                    logger.warn({ kind, types, tradeHash }, 'Invalid types field provided for Approval');
-                    throw new ValidationError([
-                        {
-                            field: 'types',
-                            code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid types field provided for Approval of kind ${kind}`,
-                        },
-                    ]);
-                }
-                if (primaryType !== 'Permit') {
-                    logger.warn({ kind, primaryType, tradeHash }, 'Invalid primaryType field provided for Approval');
-                    throw new ValidationError([
-                        {
-                            field: 'primaryType',
-                            code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid primaryType field provided for Approval of kind ${kind}`,
-                        },
-                    ]);
-                }
+            case 'Permit': {
                 if (
                     !_.isEqual(
                         _.keys(message).sort(),
-                        types.Permit.map((dataField: EIP712DataField) => dataField.name).sort(),
+                        types.Permit.map((dataField: Eip712DataField) => dataField.name).sort(),
                     )
                 ) {
-                    logger.warn({ kind, tradeHash }, 'Invalid message field provided for Approval');
+                    logger.warn({ primaryType, tradeHash }, 'Invalid message field provided for Approval');
                     throw new ValidationError([
                         {
                             field: 'message',
                             code: ValidationErrorCodes.FieldInvalid,
-                            reason: `Invalid message field provided for Approval of kind ${kind}`,
+                            reason: `Invalid message field provided for Approval of primaryType ${primaryType}`,
                         },
                     ]);
                 }
-                return {
-                    kind,
+                const permitApproval: PermitApproval = {
+                    kind: GaslessApprovalTypes.Permit,
                     eip712: {
-                        types: parsedTypes,
+                        types,
                         primaryType,
                         domain,
                         message: {
@@ -2919,16 +2880,15 @@ export class RfqmService {
                         },
                     },
                 };
+
+                return permitApproval as T extends ExecuteMetaTransactionEip712Context
+                    ? ExecuteMetaTransactionApproval
+                    : PermitApproval;
             }
             default:
-                logger.warn({ kind, tradeHash }, 'Invalid kind provided for Approval');
-                throw new ValidationError([
-                    {
-                        field: 'kind',
-                        code: ValidationErrorCodes.FieldInvalid,
-                        reason: `Cannot convert EIP-712 context to Approval of kind ${kind}`,
-                    },
-                ]);
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(primaryType);
         }
     }
 }

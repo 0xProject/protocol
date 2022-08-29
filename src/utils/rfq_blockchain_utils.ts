@@ -27,6 +27,7 @@ import { Approval, ERC20Owner, ExecuteMetaTransactionApproval, GaslessApprovalTy
 
 import { splitAddresses } from './address_utils';
 import { BalanceChecker } from './balance_checker';
+import { extractEIP712DomainType } from './Eip712Utils';
 import { isWorkerReadyAndAbleAsync } from './rfqm_worker_balance_utils';
 import { serviceUtils } from './service_utils';
 import { SubproviderAdapter } from './subprovider_adapter';
@@ -575,12 +576,14 @@ export class RfqBlockchainUtils {
      * @param chainId Id of the chain.
      * @param token The address of the token.
      * @param takerAddress The address of the taker.
+     * @param nowMs optional - the current timestamp in milliseconds
      * @returns The corresponding gasless approval oject or null if the token does not support gasless approval (does not exist in our EIP-712 token registry).
      */
     public async getGaslessApprovalAsync(
         chainId: number,
         token: string,
         takerAddress: string,
+        nowMs: number = Date.now(),
     ): Promise<Approval | null> {
         // If the token does not exist in the token registry, return null
         if (!EIP_712_REGISTRY.hasOwnProperty(chainId) || !EIP_712_REGISTRY[chainId].hasOwnProperty(token)) {
@@ -588,6 +591,7 @@ export class RfqBlockchainUtils {
         }
 
         const tokenEIP712 = EIP_712_REGISTRY[chainId][token];
+        const eip712DomainType = extractEIP712DomainType(tokenEIP712.domain);
         switch (tokenEIP712.kind) {
             case GaslessApprovalTypes.ExecuteMetaTransaction: {
                 const nonce = await this.getMetaTransactionNonceAsync(token, takerAddress);
@@ -601,7 +605,10 @@ export class RfqBlockchainUtils {
                 const executeMetaTransactionApproval: ExecuteMetaTransactionApproval = {
                     kind: GaslessApprovalTypes.ExecuteMetaTransaction,
                     eip712: {
-                        types: EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+                        types: {
+                            ...eip712DomainType,
+                            ...EXECUTE_META_TRANSACTION_EIP_712_TYPES,
+                        },
                         primaryType: 'MetaTransaction',
                         domain: tokenEIP712.domain,
                         message: {
@@ -616,13 +623,14 @@ export class RfqBlockchainUtils {
             }
             case GaslessApprovalTypes.Permit: {
                 const nonce = await this.getPermitNonceAsync(token, takerAddress);
-                const tenMinutesAfterNowS = new BigNumber(Date.now() + ONE_MINUTE_MS * 10)
-                    .div(ONE_SECOND_MS)
-                    .integerValue();
+                const tenMinutesAfterNowS = new BigNumber(nowMs + ONE_MINUTE_MS * 10).div(ONE_SECOND_MS).integerValue();
                 const permitApproval: PermitApproval = {
                     kind: GaslessApprovalTypes.Permit,
                     eip712: {
-                        types: PERMIT_EIP_712_TYPES,
+                        types: {
+                            ...eip712DomainType,
+                            ...PERMIT_EIP_712_TYPES,
+                        },
                         primaryType: 'Permit',
                         domain: tokenEIP712.domain,
                         message: {

@@ -2,8 +2,6 @@ import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from './constants';
-
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
         [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
@@ -52,42 +50,47 @@ export enum GaslessApprovalTypes {
 export type Approval = ExecuteMetaTransactionApproval | PermitApproval;
 export interface ExecuteMetaTransactionApproval {
     kind: GaslessApprovalTypes.ExecuteMetaTransaction;
-    eip712: {
-        types: typeof EXECUTE_META_TRANSACTION_EIP_712_TYPES;
-        primaryType: 'MetaTransaction';
-        domain: EIP712Domain;
-        message: {
-            nonce: number;
-            from: string;
-            functionSignature: string;
-        };
-    };
+    eip712: ExecuteMetaTransactionEip712Context;
 }
 
 export interface PermitApproval {
     kind: GaslessApprovalTypes.Permit;
-    eip712: {
-        types: typeof PERMIT_EIP_712_TYPES;
-        primaryType: 'Permit';
-        domain: EIP712Domain;
-        message: {
-            owner: string;
-            spender: string;
-            value: string;
-            nonce: number;
-            deadline: string;
-        };
+    eip712: PermitEip712Context;
+}
+export interface ExecuteMetaTransactionEip712Context {
+    types: ExecuteMetaTransactionEip712Types;
+    primaryType: 'MetaTransaction';
+    domain: Eip712Domain;
+    message: {
+        nonce: number;
+        from: string;
+        functionSignature: string;
     };
 }
 
-export interface EIP712Context {
-    types: Record<string, EIP712DataField[]>;
-    primaryType: string;
-    domain: EIP712Domain;
-    message: Record<string, any>;
+export interface PermitEip712Context {
+    types: PermitEip712Types;
+    primaryType: 'Permit';
+    domain: Eip712Domain;
+    message: {
+        owner: string;
+        spender: string;
+        value: string;
+        nonce: number;
+        deadline: string;
+    };
 }
 
-export interface EIP712Domain {
+export interface ExecuteMetaTransactionEip712Types {
+    EIP712Domain: Eip712DataField[];
+    MetaTransaction: Eip712DataField[];
+}
+export interface PermitEip712Types {
+    EIP712Domain: Eip712DataField[];
+    Permit: Eip712DataField[];
+}
+
+export interface Eip712Domain {
     name?: string;
     version?: string;
     chainId?: number;
@@ -95,7 +98,7 @@ export interface EIP712Domain {
     salt?: string;
 }
 
-export interface EIP712DataField {
+export interface Eip712DataField {
     name: string;
     type: string;
 }

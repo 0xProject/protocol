@@ -31,7 +31,12 @@ import {
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../../src/services/types';
-import { EIP712Context, GaslessApprovalTypes, IndicativeQuote } from '../../src/types';
+import {
+    ExecuteMetaTransactionEip712Context,
+    GaslessApprovalTypes,
+    IndicativeQuote,
+    PermitEip712Context,
+} from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
@@ -313,70 +318,6 @@ describe('RfqmService HTTP Logic', () => {
     });
 
     describe('submitTakerSignedOtcOrderWithApprovalAsync', () => {
-        it('should fail if eip-712 context is malformed', async () => {
-            // const takerPrivateKey = '0xe13ae9fa0166b501a2ab50e7b6fbb65819add7376da9b4fbb3bf3ae48cd9dcd3';
-            // const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
-            const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
-            const otcOrder = new OtcOrder({
-                txOrigin: '0x0000000000000000000000000000000000000000',
-                taker: '0x1111111111111111111111111111111111111111',
-                maker: '0x2222222222222222222222222222222222222222',
-                makerToken: '0x3333333333333333333333333333333333333333',
-                takerToken: '0x4444444444444444444444444444444444444444',
-                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(expiry, ZERO, expiry),
-                chainId: 1,
-                verifyingContract: '0x0000000000000000000000000000000000000000',
-            });
-            const malformedEip712Context: EIP712Context = {
-                types: {
-                    MetaTransaction: [
-                        { name: 'nonce', type: 'uint256' },
-                        { name: 'from', type: 'address' },
-                        { name: 'functionSignature', type: 'bytes' },
-                    ],
-                },
-                primaryType: 'MetaTransaction',
-                domain: {},
-                message: {},
-            };
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
-                approval: {
-                    type: GaslessApprovalTypes.ExecuteMetaTransaction,
-                    eip712: malformedEip712Context,
-                    signature: {
-                        r: '',
-                        s: '',
-                        v: 28,
-                        signatureType: SignatureType.EIP712,
-                    },
-                },
-                trade: {
-                    type: RfqmTypes.OtcOrder,
-                    order: otcOrder,
-                    signature: {
-                        r: '',
-                        s: '',
-                        v: 28,
-                        signatureType: SignatureType.EthSign,
-                    },
-                },
-                kind: RfqmTypes.OtcOrder,
-            };
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            const service = buildRfqmServiceForUnitTest({
-                chainId: 1,
-                feeModelVersion: 0,
-                rfqBlockchainUtils: instance(blockchainUtilsMock),
-            });
-            try {
-                await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
-                expect.fail('should fail approval object conversion');
-            } catch (e) {
-                expect(e.validationErrors).to.not.deep.eq([]);
-                expect(e.validationErrors[0].reason).to.contain('Invalid message field provided');
-                verify(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).never();
-            }
-        });
         it('should fail if approval params generate an invalid calldata', async () => {
             const takerAddress = '0x4e2145eDC29f27E126154B9c716Df70c429C291B';
             const expiry = new BigNumber(Date.now() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
@@ -390,8 +331,14 @@ describe('RfqmService HTTP Logic', () => {
                 chainId: 1,
                 verifyingContract: '0x0000000000000000000000000000000000000000',
             });
-            const eip712Context: EIP712Context = {
+            const eip712Context: ExecuteMetaTransactionEip712Context = {
                 types: {
+                    EIP712Domain: [
+                        { name: 'name', type: 'string' },
+                        { name: 'version', type: 'string' },
+                        { name: 'verifyingContract', type: 'address' },
+                        { name: 'salt', type: 'bytes32' },
+                    ],
                     MetaTransaction: [
                         { name: 'nonce', type: 'uint256' },
                         { name: 'from', type: 'address' },
@@ -401,12 +348,12 @@ describe('RfqmService HTTP Logic', () => {
                 primaryType: 'MetaTransaction',
                 domain: {},
                 message: {
-                    nonce: expiry,
+                    nonce: expiry.toNumber(),
                     from: takerAddress,
                     functionSignature: '',
                 },
             };
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context> = {
                 approval: {
                     type: GaslessApprovalTypes.ExecuteMetaTransaction,
                     eip712: eip712Context,
@@ -492,7 +439,9 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<
+                ExecuteMetaTransactionEip712Context | PermitEip712Context
+            > = {
                 kind: RfqmTypes.OtcOrder,
                 trade: {
                     type: RfqmTypes.OtcOrder,
@@ -518,8 +467,14 @@ describe('RfqmService HTTP Logic', () => {
                 chainId: 1,
                 verifyingContract: '0x0000000000000000000000000000000000000000',
             });
-            const eip712Context: EIP712Context = {
+            const eip712Context: ExecuteMetaTransactionEip712Context = {
                 types: {
+                    EIP712Domain: [
+                        { name: 'name', type: 'string' },
+                        { name: 'version', type: 'string' },
+                        { name: 'verifyingContract', type: 'address' },
+                        { name: 'salt', type: 'bytes32' },
+                    ],
                     MetaTransaction: [
                         { name: 'nonce', type: 'uint256' },
                         { name: 'from', type: 'address' },
@@ -531,7 +486,7 @@ describe('RfqmService HTTP Logic', () => {
                 message: {
                     from: takerAddress,
                     functionSignature: '',
-                    nonce: expiry,
+                    nonce: expiry.toNumber(),
                 },
             };
             const dbUtilsMock = mock(RfqmDbUtils);
@@ -568,7 +523,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context> = {
                 trade: {
                     type: RfqmTypes.OtcOrder,
                     order: otcOrder,
@@ -600,8 +555,14 @@ describe('RfqmService HTTP Logic', () => {
                 chainId: 1,
                 verifyingContract: '0x0000000000000000000000000000000000000000',
             });
-            const eip712Context: EIP712Context = {
+            const eip712Context: PermitEip712Context = {
                 types: {
+                    EIP712Domain: [
+                        { name: 'name', type: 'string' },
+                        { name: 'version', type: 'string' },
+                        { name: 'verifyingContract', type: 'address' },
+                        { name: 'salt', type: 'bytes32' },
+                    ],
                     Permit: [
                         { name: 'owner', type: 'address' },
                         { name: 'spender', type: 'address' },
@@ -617,7 +578,7 @@ describe('RfqmService HTTP Logic', () => {
                     owner: takerAddress,
                     spender: '0x0000000000000000000000000000000000000000',
                     value: '0xffffffffffffffffffffffffffffffffffffffff',
-                    nonce: expiry,
+                    nonce: expiry.toNumber(),
                 },
             };
             const dbUtilsMock = mock(RfqmDbUtils);
@@ -654,7 +615,7 @@ describe('RfqmService HTTP Logic', () => {
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
             });
-            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams = {
+            const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<PermitEip712Context> = {
                 trade: {
                     type: RfqmTypes.OtcOrder,
                     order: otcOrder,

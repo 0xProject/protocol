@@ -8,7 +8,7 @@ import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { expect } from 'chai';
 import { TransactionReceiptStatus } from 'ethereum-types';
-import { BigNumber as EthersBigNumber } from 'ethers';
+import { BigNumber as EthersBigNumber, ethers } from 'ethers';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
 import * as redis from 'redis';
@@ -30,6 +30,7 @@ import { RfqmFeeService } from '../src/services/rfqm_fee_service';
 import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import { RfqmTypes } from '../src/services/types';
+import { GaslessApprovalTypes, PermitEip712Types } from '../src/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
@@ -44,6 +45,7 @@ import {
     getProvider,
     MATCHA_AFFILIATE_ADDRESS,
     MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+    MOCK_PERMIT_APPROVAL,
     TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG,
     TEST_RFQ_ORDER_FILLED_EVENT_LOG,
 } from './constants';
@@ -221,6 +223,10 @@ describe('RFQM Integration', () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
+        when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
+            new BigNumber(1),
+            new BigNumber(1),
+        ]);
         when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
             new BigNumber(1),
             new BigNumber(1),
@@ -1204,9 +1210,114 @@ describe('RFQM Integration', () => {
         });
     });
 
-    // TODO: submit with approval tests (MKR-531)
-    // tslint:disable-next-line: no-empty
-    describe.skip('rfqm/v1/submit-with-approval', () => {});
+    describe('rfqm/v1/submit-with-approval', () => {
+        const mockStoredFee: StoredFee = {
+            token: '0x123',
+            amount: '1000',
+            type: 'fixed',
+        };
+
+        // OtcOrder Taker
+        const otcOrderTakerAddress = '0xdA9AC423442169588DE6b4305f4E820D708d0cE5';
+        const otcOrderTakerPrivateKey = '0x653fa328df81be180b58e42737bc4cef037a19a3b9673b15d20ee2eebb2e509d';
+
+        // OtcOrder
+        const mockStoredOtcOrder: StoredOtcOrder = {
+            type: RfqmOrderTypes.Otc,
+            order: {
+                txOrigin: '0x123',
+                maker: '0x123',
+                taker: otcOrderTakerAddress,
+                makerToken: '0x123',
+                takerToken: '0x123',
+                makerAmount: '1',
+                takerAmount: '1',
+                expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                    new BigNumber(SAFE_EXPIRY),
+                    ZERO,
+                    new BigNumber(SAFE_EXPIRY),
+                ).toString(),
+                chainId: '1337',
+                verifyingContract: '0x123',
+            },
+        };
+
+        // Approval
+        const approval = {
+            type: MOCK_PERMIT_APPROVAL.kind,
+            eip712: MOCK_PERMIT_APPROVAL.eip712,
+        };
+        const otcOrder = storedOtcOrderToOtcOrder(mockStoredOtcOrder);
+        it('[v2] should return status 201 created and queue up a job with a successful request', async () => {
+            // OtcOrder
+            const order = otcOrder;
+            const orderHash = order.getHash();
+
+            // Taker Signature
+            const takerSignature = ethSignHashWithKey(orderHash, otcOrderTakerPrivateKey);
+
+            // Approval signature
+            const signer = new ethers.Wallet(otcOrderTakerPrivateKey);
+            const typesCopy: Partial<PermitEip712Types> = { ...approval.eip712.types };
+            delete typesCopy.EIP712Domain;
+            const rawApprovalSignature = await signer._signTypedData(
+                approval.eip712.domain,
+                typesCopy as any,
+                approval.eip712.message,
+            );
+            const { v, r, s } = ethers.utils.splitSignature(rawApprovalSignature);
+            const approvalSignature = {
+                v,
+                r,
+                s,
+                signatureType: 3,
+            };
+
+            const mockQuote = new RfqmV2QuoteEntity({
+                orderHash,
+                makerUri: MARKET_MAKER_1,
+                fee: mockStoredFee,
+                order: mockStoredOtcOrder,
+                chainId: 1337,
+                affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+            });
+
+            // write a corresponding quote entity to validate against
+            await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
+
+            const appResponse = await request(app)
+                .post(`${RFQM_PATH}/submit-with-approval`)
+                .send({
+                    trade: { type: RfqmTypes.OtcOrder, order, signature: takerSignature },
+                    approval: {
+                        type: GaslessApprovalTypes.Permit,
+                        eip712: approval.eip712,
+                        signature: approvalSignature,
+                    },
+                })
+                .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
+                .expect(HttpStatus.CREATED)
+                .expect('Content-Type', /json/);
+
+            expect(appResponse.body.orderHash).to.equal(orderHash);
+
+            const dbJobEntity = await dataSource.getRepository(RfqmV2JobEntity).findOne({
+                where: {
+                    orderHash,
+                },
+            });
+
+            expect(dbJobEntity).to.not.equal(null);
+            expect(dbJobEntity?.orderHash).to.equal(mockQuote.orderHash);
+            expect(dbJobEntity?.makerUri).to.equal(MARKET_MAKER_1);
+            expect(dbJobEntity?.affiliateAddress).to.equal(MATCHA_AFFILIATE_ADDRESS);
+            expect(dbJobEntity?.takerSignature).to.deep.eq(takerSignature);
+            expect(dbJobEntity?.approval?.eip712).to.deep.eq(approval.eip712);
+            expect(dbJobEntity?.approval?.kind).to.deep.eq(approval.type);
+            expect(dbJobEntity?.approvalSignature).to.deep.eq(approvalSignature);
+        });
+    });
 
     describe('rfqm/v1/status/:orderHash', () => {
         it('should return a 404 NOT FOUND if the order hash is not found', () => {

@@ -10,6 +10,7 @@ import { ONE_MINUTE_S, ONE_SECOND_MS } from '../constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
+import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -179,19 +180,23 @@ export class GaslessSwapService {
      * https://github.com/microsoft/TypeScript/issues/33912
      */
     public async processSubmitAsync<
-        T extends SubmitRfqmSignedQuoteWithApprovalParams | SubmitMetaTransactionSignedQuoteParams,
+        T extends
+            | SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
+            | SubmitMetaTransactionSignedQuoteParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>,
     >(
         params: T,
         integratorId: string,
     ): Promise<
-        T extends SubmitRfqmSignedQuoteWithApprovalParams
+        T extends SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context | PermitEip712Context>
             ? SubmitRfqmSignedQuoteWithApprovalResponse
             : SubmitMetaTransactionSignedQuoteResponse
     > {
         // OtcOrder
         if (params.kind === RfqmTypes.OtcOrder) {
             const otcOrderResult = await this._rfqmService.submitTakerSignedOtcOrderWithApprovalAsync(params);
-            return otcOrderResult as T extends SubmitRfqmSignedQuoteWithApprovalParams
+            return otcOrderResult as T extends SubmitRfqmSignedQuoteWithApprovalParams<
+                ExecuteMetaTransactionEip712Context | PermitEip712Context
+            >
                 ? SubmitRfqmSignedQuoteWithApprovalResponse
                 : SubmitMetaTransactionSignedQuoteResponse;
         }
@@ -308,7 +313,9 @@ export class GaslessSwapService {
             type: RfqmTypes.MetaTransaction,
         };
 
-        return result as T extends SubmitRfqmSignedQuoteWithApprovalParams
+        return result as T extends SubmitRfqmSignedQuoteWithApprovalParams<
+            ExecuteMetaTransactionEip712Context | PermitEip712Context
+        >
             ? SubmitRfqmSignedQuoteWithApprovalResponse
             : SubmitMetaTransactionSignedQuoteResponse;
     }

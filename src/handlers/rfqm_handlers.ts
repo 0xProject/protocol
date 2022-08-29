@@ -24,7 +24,7 @@ import {
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { GaslessApprovalTypes } from '../types';
+import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -413,17 +413,21 @@ export class RfqmHandlers {
         }
     }
 
-    private _parseSubmitSignedQuoteWithApprovalParams(req: express.Request): {
+    private _parseSubmitSignedQuoteWithApprovalParams<
+        T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
+    >(
+        req: express.Request,
+    ): {
         chainId: number;
         integrator: Integrator;
-        params: SubmitRfqmSignedQuoteWithApprovalParams;
+        params: SubmitRfqmSignedQuoteWithApprovalParams<T>;
     } {
         const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
 
         const { approval, trade } = req.body;
 
-        const parsedParams: Partial<SubmitRfqmSignedQuoteWithApprovalParams> = {};
+        const parsedParams: Partial<SubmitRfqmSignedQuoteWithApprovalParams<T>> = {};
 
         // Parse approval params
         if (approval) {
@@ -435,7 +439,7 @@ export class RfqmHandlers {
                 const signature = stringsToSignature(approval.signature as StringSignatureFields);
                 parsedParams.approval = {
                     type: approval.type,
-                    eip712,
+                    eip712: eip712 as any,
                     signature,
                 };
             } else {
@@ -450,10 +454,12 @@ export class RfqmHandlers {
         }
 
         // Parse trade params
-        if (trade.type === RfqmTypes.OtcOrder) {
+        const tradeType = trade.type;
+        let otcOrderSubmitRfqmSignedQuoteParams: OtcOrderSubmitRfqmSignedQuoteParams;
+        if (tradeType === RfqmTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(trade.order as RawOtcOrderFields));
             const signature = stringsToSignature(trade.signature as StringSignatureFields);
-            parsedParams.trade = {
+            otcOrderSubmitRfqmSignedQuoteParams = {
                 type: trade.type,
                 order,
                 signature,
@@ -468,7 +474,15 @@ export class RfqmHandlers {
             ]);
         }
 
-        return { chainId, integrator, params: parsedParams as SubmitRfqmSignedQuoteWithApprovalParams };
+        return {
+            chainId,
+            integrator,
+            params: {
+                ...parsedParams,
+                kind: RfqmTypes.OtcOrder, // Must be of type OtcOrder for this flow
+                trade: otcOrderSubmitRfqmSignedQuoteParams,
+            },
+        };
     }
 }
 

@@ -1,7 +1,7 @@
 import { OtcOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import { EIP712Context, EIP712DataField, EIP712Domain } from '../types';
+import { Eip712DataField, Eip712Domain, ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
 
 export interface StringSignatureFields {
     signatureType: string;
@@ -13,9 +13,9 @@ export interface StringSignatureFields {
 export type RawOtcOrderFields = Record<keyof Omit<OtcOrderFields, 'chainId'>, string> & { chainId: any };
 
 export interface RawEIP712ContextFields {
-    types: Record<string, Record<keyof EIP712DataField, string>[]>;
+    types: Record<string, Record<keyof Eip712DataField, string>[]>;
     primaryType: string;
-    domain: Record<keyof EIP712Domain, string>;
+    domain: Record<keyof Eip712Domain, string>;
     message: Record<string, any>;
 }
 
@@ -49,17 +49,31 @@ export function stringsToOtcOrderFields(strings: RawOtcOrderFields): OtcOrderFie
     };
 }
 
+// Internal function for handling the domain
+function _stringsToEIP712Domain(strings: RawEIP712ContextFields['domain']): Eip712Domain {
+    const res: Eip712Domain = {
+        ...strings,
+        chainId: Number(strings.chainId),
+    };
+
+    // remove chainId if its NaN
+    if (Number.isNaN(res.chainId)) {
+        delete res.chainId;
+    }
+
+    return res;
+}
+
 /**
  * convert a JSON EIP712Context into an EIP712Context
  */
-export function stringsToEIP712Context(strings: RawEIP712ContextFields): EIP712Context {
+export function stringsToEIP712Context(
+    strings: RawEIP712ContextFields,
+): ExecuteMetaTransactionEip712Context | PermitEip712Context {
     return {
-        types: strings.types,
-        primaryType: strings.primaryType,
-        domain: {
-            ...strings.domain,
-            chainId: Number(strings.domain.chainId),
-        },
-        message: strings.message,
+        types: strings.types as any,
+        primaryType: strings.primaryType as any,
+        domain: _stringsToEIP712Domain(strings.domain),
+        message: strings.message as any,
     };
 }

@@ -3,7 +3,7 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { EIP712Context, GaslessApprovalTypes } from '../types';
+import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../types';
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
@@ -75,7 +75,7 @@ export interface ApprovalResponse {
     isRequired: boolean;
     isGaslessAvailable?: boolean;
     type?: GaslessApprovalTypes;
-    eip712?: EIP712Context;
+    eip712?: ExecuteMetaTransactionEip712Context | PermitEip712Context;
 }
 
 export interface OtcOrderSubmitRfqmSignedQuoteParams {
@@ -88,8 +88,10 @@ export interface OtcOrderSubmitRfqmSignedQuoteParams {
  * Payload for the Gasless Swap `/submit` endpoint in the
  * metatransaction flow
  */
-export interface SubmitMetaTransactionSignedQuoteParams {
-    approval?: SubmitApprovalParams;
+export interface SubmitMetaTransactionSignedQuoteParams<
+    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
+> {
+    approval?: SubmitApprovalParams<T>;
     // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` during type check.
     // Note that this information is in `trade`, but TypeScript does not narrow types based
     // on nested values.
@@ -102,14 +104,18 @@ export interface OtcOrderSubmitRfqmSignedQuoteResponse {
     orderHash: string;
 }
 
-export interface SubmitApprovalParams {
-    type: GaslessApprovalTypes;
-    eip712: EIP712Context;
+export interface SubmitApprovalParams<T extends ExecuteMetaTransactionEip712Context | PermitEip712Context> {
+    type: T extends ExecuteMetaTransactionEip712Context
+        ? GaslessApprovalTypes.ExecuteMetaTransaction
+        : GaslessApprovalTypes.Permit;
+    eip712: T;
     signature: Signature;
 }
 
-export interface SubmitRfqmSignedQuoteWithApprovalParams {
-    approval?: SubmitApprovalParams;
+export interface SubmitRfqmSignedQuoteWithApprovalParams<
+    T extends ExecuteMetaTransactionEip712Context | PermitEip712Context,
+> {
+    approval?: SubmitApprovalParams<T>;
     // Used to distinguish between `SubmitMetaTransactionSignedQuoteParams` during type check.
     // Note that this information is in `trade`, but TypeScript does not narrow types based
     // on nested values.
