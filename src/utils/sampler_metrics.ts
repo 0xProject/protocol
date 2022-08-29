@@ -4,6 +4,7 @@ import { Gauge, Summary } from 'prom-client';
 const SAMPLER_GAS_USED_SUMMARY = new Summary({
     name: 'sampler_gas_used_summary',
     help: 'Provides information about the gas used during a sampler call',
+    labelNames: ['side'],
 });
 
 const SAMPLER_GAS_LIMIT_SUMMARY = new Summary({
@@ -26,14 +27,15 @@ export const SAMPLER_METRICS = {
     /**
      * Logs the gas information performed during a sampler call.
      *
+     * @param data.side The market side
      * @param data.gasBefore The gas remaining measured before any operations have been performed
      * @param data.gasAfter The gas remaining measured after all operations have been performed
      */
-    logGasDetails: (data: { gasBefore: BigNumber; gasAfter: BigNumber }): void => {
-        const { gasBefore, gasAfter } = data;
+    logGasDetails: (data: { side: 'buy' | 'sell'; gasBefore: BigNumber; gasAfter: BigNumber }): void => {
+        const { side, gasBefore, gasAfter } = data;
         const gasUsed = gasBefore.minus(gasAfter);
 
-        SAMPLER_GAS_USED_SUMMARY.observe(gasUsed.toNumber());
+        SAMPLER_GAS_USED_SUMMARY.observe({ side }, gasUsed.toNumber());
         SAMPLER_GAS_LIMIT_SUMMARY.observe(gasBefore.toNumber());
     },
 
