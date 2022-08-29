@@ -21,6 +21,7 @@ import * as TestLibERC20TokenTarget from '../test/generated-artifacts/TestLibERC
 import * as UnlimitedAllowanceERC20Token from '../test/generated-artifacts/UnlimitedAllowanceERC20Token.json';
 import * as UntransferrableDummyERC20Token from '../test/generated-artifacts/UntransferrableDummyERC20Token.json';
 import * as WETH9 from '../test/generated-artifacts/WETH9.json';
+import * as WETH9V06 from '../test/generated-artifacts/WETH9V06.json';
 import * as ZRXToken from '../test/generated-artifacts/ZRXToken.json';
 export const artifacts = {
     ERC20Token: ERC20Token as ContractArtifact,
@@ -34,6 +35,7 @@ export const artifacts = {
     IERC20TokenV06: IERC20TokenV06 as ContractArtifact,
     IEtherTokenV06: IEtherTokenV06 as ContractArtifact,
     LibERC20TokenV06: LibERC20TokenV06 as ContractArtifact,
+    WETH9V06: WETH9V06 as ContractArtifact,
     DummyERC20Token: DummyERC20Token as ContractArtifact,
     DummyMultipleReturnERC20Token: DummyMultipleReturnERC20Token as ContractArtifact,
     DummyNoReturnERC20Token: DummyNoReturnERC20Token as ContractArtifact,
