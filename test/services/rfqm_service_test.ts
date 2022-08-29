@@ -1513,12 +1513,12 @@ describe('RfqmService HTTP Logic', () => {
             });
             it('should return failed for jobs that have sat in queue past expiry', async () => {
                 const expired = new BigNumber(Date.now() - 10000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
-                const oldJob = { ...BASE_JOB, expiry: expired };
+                const oldJob = new RfqmV2JobEntity({ ...BASE_JOB, expiry: expired });
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(oldJob);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1539,7 +1539,7 @@ describe('RfqmService HTTP Logic', () => {
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(newJob);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1549,12 +1549,12 @@ describe('RfqmService HTTP Logic', () => {
             });
 
             it('should return pending for jobs in processing', async () => {
-                const job = { ...BASE_JOB, status: RfqmJobStatus.PendingProcessing };
+                const job = new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.PendingProcessing });
                 const dbUtilsMock = mock(RfqmDbUtils);
                 when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1568,10 +1568,10 @@ describe('RfqmService HTTP Logic', () => {
                 const transaction1Time = now + 10;
                 const transaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     status: RfqmJobStatus.PendingSubmitted,
-                };
+                });
 
                 const submission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(transaction1Time),
@@ -1602,7 +1602,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1629,10 +1629,10 @@ describe('RfqmService HTTP Logic', () => {
                 const transaction1Time = now + 10;
                 const transaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const submission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(transaction1Time),
@@ -1665,7 +1665,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1684,10 +1684,10 @@ describe('RfqmService HTTP Logic', () => {
                 const transaction1Time = now + 10;
                 const transaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     status: RfqmJobStatus.SucceededConfirmed,
-                };
+                });
 
                 const submission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(transaction1Time),
@@ -1720,7 +1720,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([submission1, submission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const jobStatus = await service.getOrderStatusAsync('0x00');
+                const jobStatus = await service.getStatusAsync('0x00');
 
                 if (jobStatus === null) {
                     expect.fail('Status should exist');
@@ -1739,10 +1739,10 @@ describe('RfqmService HTTP Logic', () => {
                 const transaction1Time = now + 10;
                 const transaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const submission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(transaction1Time),
@@ -1776,7 +1776,7 @@ describe('RfqmService HTTP Logic', () => {
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 try {
-                    await service.getOrderStatusAsync('0x00');
+                    await service.getStatusAsync('0x00');
                     expect.fail();
                 } catch (e) {
                     expect(e.message).to.contain('Expected exactly one successful transaction submission');
@@ -1788,10 +1788,10 @@ describe('RfqmService HTTP Logic', () => {
                 const transaction1Time = now + 10;
                 const transaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const submission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(transaction1Time),
@@ -1825,7 +1825,7 @@ describe('RfqmService HTTP Logic', () => {
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 try {
-                    await service.getOrderStatusAsync('0x00');
+                    await service.getStatusAsync('0x00');
                     expect.fail();
                 } catch (e) {
                     expect(e.message).to.contain('Expected exactly one successful transaction submission');
@@ -1839,11 +1839,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.PendingSubmitted,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -1898,7 +1898,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const orderStatus = await service.getOrderStatusAsync('0x00');
+                const orderStatus = await service.getStatusAsync('0x00');
 
                 if (orderStatus === null) {
                     expect.fail('Status should exist');
@@ -1936,11 +1936,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.FailedExpired,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -1995,7 +1995,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const orderStatus = await service.getOrderStatusAsync('0x00');
+                const orderStatus = await service.getStatusAsync('0x00');
 
                 if (orderStatus === null) {
                     expect.fail('Status should exist');
@@ -2033,11 +2033,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -2096,7 +2096,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const orderStatus = await service.getOrderStatusAsync('0x00');
+                const orderStatus = await service.getStatusAsync('0x00');
 
                 if (orderStatus === null) {
                     expect.fail('Status should exist');
@@ -2130,11 +2130,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.SucceededConfirmed,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -2193,7 +2193,7 @@ describe('RfqmService HTTP Logic', () => {
                 ).thenResolve([tradeSubmission1, tradeSubmission2]);
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
-                const orderStatus = await service.getOrderStatusAsync('0x00');
+                const orderStatus = await service.getStatusAsync('0x00');
 
                 if (orderStatus === null) {
                     expect.fail('Status should exist');
@@ -2227,11 +2227,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -2291,7 +2291,7 @@ describe('RfqmService HTTP Logic', () => {
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 try {
-                    await service.getOrderStatusAsync('0x00');
+                    await service.getStatusAsync('0x00');
                     expect.fail();
                 } catch (e) {
                     expect(e.message).to.contain('Expected exactly one successful transaction submission');
@@ -2305,11 +2305,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -2369,7 +2369,7 @@ describe('RfqmService HTTP Logic', () => {
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 try {
-                    await service.getOrderStatusAsync('0x00');
+                    await service.getStatusAsync('0x00');
                     expect.fail();
                 } catch (e) {
                     expect(e.message).to.contain('Expected exactly one successful transaction submission');
@@ -2383,11 +2383,11 @@ describe('RfqmService HTTP Logic', () => {
                 const tradeTransaction1Time = now + 10;
                 const tradeTransaction2Time = now + 20;
 
-                const job = {
+                const job = new RfqmV2JobEntity({
                     ...BASE_JOB,
                     approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
                     status: RfqmJobStatus.SucceededUnconfirmed,
-                };
+                });
 
                 const approvalSubmission1 = new RfqmV2TransactionSubmissionEntity({
                     createdAt: new Date(approvalTransaction1Time),
@@ -2447,7 +2447,7 @@ describe('RfqmService HTTP Logic', () => {
                 const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
                 try {
-                    await service.getOrderStatusAsync('0x00');
+                    await service.getStatusAsync('0x00');
                     expect.fail();
                 } catch (e) {
                     expect(e.message).to.contain('does not have a hash');

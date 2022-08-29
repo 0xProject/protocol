@@ -23,6 +23,7 @@ import {
     MetaTransactionQuoteResponse,
     OtcOrderRfqmQuoteResponse,
     RfqmTypes,
+    StatusResponse,
     SubmitMetaTransactionSignedQuoteParams,
     SubmitMetaTransactionSignedQuoteResponse,
     SubmitRfqmSignedQuoteWithApprovalParams,
@@ -310,6 +311,10 @@ export class GaslessSwapService {
         return result as T extends SubmitRfqmSignedQuoteWithApprovalParams
             ? SubmitRfqmSignedQuoteWithApprovalResponse
             : SubmitMetaTransactionSignedQuoteResponse;
+    }
+
+    public async getStatusAsync(hash: string): Promise<StatusResponse | null> {
+        return this._rfqmService.getStatusAsync(hash);
     }
 
     private async _enqueueJobAsync(id: string, type: RfqmTypes): Promise<void> {

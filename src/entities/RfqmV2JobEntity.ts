@@ -93,6 +93,15 @@ export class RfqmV2JobEntity {
     @Column({ name: 'approval_signature', type: 'jsonb', nullable: true })
     public approvalSignature: Signature | null;
 
+    /**
+     * Used to get the 'canonical' hash of the job. This is useful
+     * because it can also be called on a metatransaction job and
+     * that will return the metatransaction hash.
+     */
+    public getHash(): string {
+        return this.orderHash;
+    }
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.

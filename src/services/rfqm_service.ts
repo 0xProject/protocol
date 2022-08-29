@@ -31,7 +31,7 @@ import {
     RFQM_MINIMUM_EXPIRY_DURATION_MS,
     RFQM_NUM_BUCKETS,
 } from '../constants';
-import { RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
+import { MetaTransactionSubmissionEntity, RfqmV2JobEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
     RfqmJobStatus,
@@ -292,7 +292,10 @@ export class RfqmService {
      * @returns Corresponding `TransactionDetails` or null if transaction hash is not available.
      */
     private static _transformTransactionSubmission(
-        transactionSubmission: RfqmV2TransactionSubmissionEntity,
+        transactionSubmission: Pick<
+            RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity,
+            'createdAt' | 'transactionHash'
+        >,
     ): TransactionDetails | null {
         const { transactionHash: hash, createdAt } = transactionSubmission;
         return hash ? { hash, timestamp: createdAt.getTime() } : null;
@@ -302,7 +305,7 @@ export class RfqmService {
      * Get details of the successful transaction submission (there will only be one).
      *
      * @param opts Options object that contains:
-     *             - `orderHash`: The hash of the order.
+     *             - `hash`: The hash of the order or metatransaction.
      *             - `type`: The type of the transaction submissions.
      *             - `transactionSubmssions`: List of transaction submissions to filter.
      * @returns The details (hash and timestamp) of the successful transaction submission.
@@ -310,11 +313,14 @@ export class RfqmService {
      *         - The successful transaction submission does not have transaction hash
      */
     private static _getSuccessfulTransactionSubmissionDetails(opts: {
-        orderHash: string;
+        hash: string;
         type: RfqmTransactionSubmissionType;
-        transactionSubmssions: RfqmV2TransactionSubmissionEntity[];
+        transactionSubmssions: Pick<
+            RfqmV2TransactionSubmissionEntity | MetaTransactionSubmissionEntity,
+            'createdAt' | 'status' | 'transactionHash'
+        >[];
     }): TransactionDetails {
-        const { orderHash, type, transactionSubmssions } = opts;
+        const { hash, type, transactionSubmssions } = opts;
         const successfulTransactionSubmissions = transactionSubmssions.filter(
             (s) =>
                 s.status === RfqmTransactionSubmissionStatus.SucceededUnconfirmed ||
@@ -322,7 +328,7 @@ export class RfqmService {
         );
         if (successfulTransactionSubmissions.length !== 1) {
             throw new Error(
-                `Expected exactly one successful transaction submission of type ${type} for order ${orderHash}; found ${successfulTransactionSubmissions.length}`,
+                `Expected exactly one successful transaction submission of type ${type} for hash ${hash}; found ${successfulTransactionSubmissions.length}`,
             );
         }
         const successfulTransactionSubmission = successfulTransactionSubmissions[0];
@@ -330,7 +336,7 @@ export class RfqmService {
             successfulTransactionSubmission,
         );
         if (!successfulTransactionSubmissionDetails) {
-            throw new Error(`Successful transaction of type ${type} does not have a hash for order ${orderHash}`);
+            throw new Error(`Successful transaction of type ${type} does not have a hash ${hash}`);
         }
 
         return successfulTransactionSubmissionDetails;
@@ -748,14 +754,19 @@ export class RfqmService {
         return true;
     }
 
-    public async getOrderStatusAsync(orderHash: string): Promise<StatusResponse | null> {
-        const transformSubmissions = (submissions: RfqmV2TransactionSubmissionEntity[]) => {
+    public async getStatusAsync(tradeHash: string): Promise<StatusResponse | null> {
+        const transformSubmissions = (
+            submissions: RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
+        ) => {
             // `_transformTransactionSubmission` is a static method so no-unbound-method does not apply here
             // tslint:disable-next-line:no-unbound-method
             return submissions.map(RfqmService._transformTransactionSubmission).flatMap((s) => (s ? s : []));
         };
 
-        const job = await this._dbUtils.findV2JobByOrderHashAsync(orderHash);
+        const job = await Promise.all([
+            this._dbUtils.findV2JobByOrderHashAsync(tradeHash),
+            this._dbUtils.findMetaTransactionJobByMetaTransactionHashAsync(tradeHash),
+        ]).then((jobs) => jobs.find((x) => x));
 
         if (!job) {
             return null;
@@ -771,17 +782,30 @@ export class RfqmService {
             };
         }
 
-        const tradeTransactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-            orderHash,
-            RfqmTransactionSubmissionType.Trade,
-        );
+        const tradeTransactionSubmissions =
+            job.kind === 'rfqm_v2_job'
+                ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                      job.orderHash,
+                      RfqmTransactionSubmissionType.Trade,
+                  )
+                : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                      job.id,
+                      RfqmTransactionSubmissionType.Trade,
+                  );
         const shouldIncludeApproval = !!job.approval;
-        let approvalTransactionSubmissions: RfqmV2TransactionSubmissionEntity[] = [];
+        let approvalTransactionSubmissions: RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[] =
+            [];
         if (shouldIncludeApproval) {
-            approvalTransactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-                orderHash,
-                RfqmTransactionSubmissionType.Approval,
-            );
+            approvalTransactionSubmissions =
+                job.kind === 'rfqm_v2_job'
+                    ? await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                          job.orderHash,
+                          RfqmTransactionSubmissionType.Approval,
+                      )
+                    : await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                          job.id,
+                          RfqmTransactionSubmissionType.Approval,
+                      );
         }
 
         switch (status) {
@@ -823,7 +847,7 @@ export class RfqmService {
                     status: status === RfqmJobStatus.SucceededUnconfirmed ? 'succeeded' : 'confirmed',
                     transactions: [
                         RfqmService._getSuccessfulTransactionSubmissionDetails({
-                            orderHash,
+                            hash: job.getHash(),
                             type: RfqmTransactionSubmissionType.Trade,
                             transactionSubmssions: tradeTransactionSubmissions,
                         }),
@@ -831,7 +855,7 @@ export class RfqmService {
                     ...(shouldIncludeApproval && {
                         approvalTransactions: [
                             RfqmService._getSuccessfulTransactionSubmissionDetails({
-                                orderHash,
+                                hash: job.getHash(),
                                 type: RfqmTransactionSubmissionType.Approval,
                                 transactionSubmssions: approvalTransactionSubmissions,
                             }),

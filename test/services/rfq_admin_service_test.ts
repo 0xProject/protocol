@@ -37,7 +37,7 @@ describe('RFQ Admin Service Logic', () => {
             order: otcOrderToStoredOtcOrder(otcOrder),
         });
         it('should clean up stuck jobs', async () => {
-            const job = { ...BASE_JOB, status: RfqmJobStatus.PendingProcessing };
+            const job = new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.PendingProcessing });
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
             when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
@@ -47,15 +47,17 @@ describe('RFQ Admin Service Logic', () => {
 
             expect(res.modifiedJobs[0]).to.equal(BASE_JOB.orderHash);
             verify(
-                dbUtilsMock.updateRfqmJobAsync(deepEqual({ ...BASE_JOB, status: RfqmJobStatus.FailedExpired })),
+                dbUtilsMock.updateRfqmJobAsync(
+                    deepEqual(new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.FailedExpired })),
+                ),
             ).called();
         });
         it('should not modify unexpired jobs', async () => {
-            const job = {
+            const job = new RfqmV2JobEntity({
                 ...BASE_JOB,
                 status: RfqmJobStatus.PendingProcessing,
                 expiry: new BigNumber(Date.now() + 60_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0),
-            };
+            });
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
             when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);
@@ -67,7 +69,7 @@ describe('RFQ Admin Service Logic', () => {
             verify(dbUtilsMock.updateRfqmJobAsync(anything())).never();
         });
         it('should not modify resolved jobs', async () => {
-            const job = { ...BASE_JOB, status: RfqmJobStatus.FailedExpired };
+            const job = new RfqmV2JobEntity({ ...BASE_JOB, status: RfqmJobStatus.FailedExpired });
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
             when(dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(anything())).thenResolve([]);

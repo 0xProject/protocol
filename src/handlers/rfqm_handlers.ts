@@ -191,7 +191,7 @@ export class RfqmHandlers {
         const chainId = extractChainId(req);
         const { orderHash } = req.params;
 
-        const status = await this._getServiceForChain(chainId).getOrderStatusAsync(orderHash);
+        const status = await this._getServiceForChain(chainId).getStatusAsync(orderHash);
 
         status ? res.status(HttpStatus.OK).send(status) : res.status(HttpStatus.NOT_FOUND).send();
     }

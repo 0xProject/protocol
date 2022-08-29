@@ -105,6 +105,15 @@ export class MetaTransactionJobEntity {
     @Column({ name: 'settled_output_token_amount', type: 'numeric', transformer: BigNumberTransformer, nullable: true })
     public settledOutputTokenAmount: BigNumber | null;
 
+    /**
+     * Used to get the 'canonical' hash of the job. This is useful
+     * because it can also be called on an rfqm job and
+     * that will return the order hash.
+     */
+    public getHash(): string {
+        return this.metaTransactionHash;
+    }
+
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
