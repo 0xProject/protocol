@@ -707,7 +707,7 @@ describe('RfqmService Worker Logic', () => {
     });
 
     describe('processTradeAsync', () => {
-        it('should process the trade successfully', async () => {
+        it('should process a rfqm v2 job trade successfully', async () => {
             const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
@@ -879,9 +879,145 @@ describe('RfqmService Worker Logic', () => {
             );
             expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
         });
+
+        it('should process a meta-transaction job trade successfully', async () => {
+            const nowS = Math.round(new Date().getTime() / ONE_SECOND_MS);
+            const jobId = 'jobId';
+            const transactionSubmissionId = 'submissionId';
+
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(nowS + 600),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+
+            const mockTransactionRequest: providers.TransactionRequest = {};
+            const mockTransaction = createMetaTransactionSubmissionEntity(
+                {
+                    from: '0xworkeraddress',
+                    metaTransactionJobId: jobId,
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                },
+                transactionSubmissionId,
+            );
+            const mockTransactionReceipt: providers.TransactionReceipt = {
+                blockHash: '0xblockhash',
+                blockNumber: 1,
+                byzantium: true,
+                confirmations: 3,
+                contractAddress: '0xexchangeproxyaddress',
+                cumulativeGasUsed: EthersBigNumber.from(1000),
+                effectiveGasPrice: EthersBigNumber.from(1000),
+                from: '0xworkeraddress',
+                gasUsed: EthersBigNumber.from(10000),
+                logs: [],
+                logsBloom: '',
+                status: 1,
+                to: '0xexchangeproxyaddress',
+                transactionHash: '0xsignedtransactionhash',
+                transactionIndex: 0,
+                type: 2,
+            };
+            const mockMinedBlock: providers.Block = {
+                _difficulty: EthersBigNumber.from(2),
+                difficulty: 2,
+                extraData: '',
+                gasLimit: EthersBigNumber.from(1000),
+                gasUsed: EthersBigNumber.from(1000),
+                hash: '0xblockhash',
+                miner: '0xminer',
+                nonce: '0x000',
+                number: 21,
+                parentHash: '0xparentblockhash',
+                timestamp: 12345,
+                transactions: ['0xpresubmittransactionhash'],
+            };
+            const mockNonce = 0;
+
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
+            const updateRfqmJobCalledArgs: MetaTransactionJobEntity[] = [];
+            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+            });
+            when(
+                mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId, RfqmTransactionSubmissionType.Trade),
+            ).thenResolve([]);
+            when(
+                mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+            ).thenResolve([_.cloneDeep(mockTransaction)]);
+
+            const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
+            when(mockBlockchainUtils.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
+                '0xcalldata',
+            );
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
+            when(mockBlockchainUtils.getNonceAsync('0xworkeraddress')).thenResolve(mockNonce);
+            when(
+                mockBlockchainUtils.transformTxDataToTransactionRequest(anything(), anything(), anything()),
+            ).thenReturn(mockTransactionRequest);
+            when(mockBlockchainUtils.submitSignedTransactionAsync(anything())).thenResolve('0xsignedtransactionhash');
+            when(mockBlockchainUtils.signTransactionAsync(anything())).thenResolve({
+                signedTransaction: 'signedTransaction',
+                transactionHash: '0xsignedtransactionhash',
+            });
+            when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xsignedtransactionhash']))).thenResolve([
+                mockTransactionReceipt,
+            ]);
+            when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
+            when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
+
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqBlockchainUtils: instance(mockBlockchainUtils),
+            });
+
+            await rfqmService.processTradeAsync(job, '0xworkeraddress');
+            expect(updateRfqmJobCalledArgs[0].status).to.equal(RfqmJobStatus.PendingProcessing);
+            expect(updateRfqmJobCalledArgs[1].status).to.equal(RfqmJobStatus.PendingSubmitted);
+            expect(updateRfqmJobCalledArgs[updateRfqmJobCalledArgs.length - 1].status).to.equal(
+                RfqmJobStatus.SucceededConfirmed,
+            );
+            expect(job.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+        });
     });
 
-    describe('validateJob', () => {
+    describe('validate job methods', () => {
         it('should return null for valid, unexpired v2 jobs', () => {
             const fakeInFiveMinutesS = fakeClockMs / ONE_SECOND_MS + 360;
 
@@ -929,7 +1065,7 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
 
-            const result = RfqmService.validateJob(job, new Date(fakeClockMs));
+            const result = RfqmService.validateRfqmV2Job(job, new Date(fakeClockMs));
             expect(result).to.equal(null);
         });
 
@@ -975,8 +1111,80 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
 
-            const result = RfqmService.validateJob(job, new Date(fakeClockMs));
+            const result = RfqmService.validateRfqmV2Job(job, new Date(fakeClockMs));
             expect(result).to.equal(RfqmJobStatus.FailedValidationNoTakerSignature);
+        });
+
+        it('should return null for a valid, unexpired meta-transaction job', () => {
+            const fakeInFiveMinutesS = fakeClockMs / ONE_SECOND_MS + 360;
+
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeInFiveMinutesS),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                'jobId',
+            );
+
+            const result = RfqmService.validateMetaTransactionJob(job, new Date(fakeClockMs));
+            expect(result).to.equal(null);
+        });
+
+        it('should return a failed expired status for a meta-transaction job that expires', () => {
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeClockMs / ONE_SECOND_MS),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                'jobId',
+            );
+
+            const result = RfqmService.validateMetaTransactionJob(job, new Date(fakeClockMs + 1000000));
+            expect(result).to.equal(RfqmJobStatus.FailedExpired);
         });
     });
 
@@ -1002,7 +1210,7 @@ describe('RfqmService Worker Logic', () => {
     });
 
     describe('checkJobPreprocessingAsync', () => {
-        it('should update job staus and throw error if job validation failed', async () => {
+        it('should update job staus and throw error if job validation failed for a rfqm v2 job', async () => {
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
                 chainId: 1,
@@ -1062,7 +1270,7 @@ describe('RfqmService Worker Logic', () => {
             }
         });
 
-        it('should throw error if there is no taker signature', async () => {
+        it('should throw error if there is no taker signature for a rfqm v2 job', async () => {
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
                 chainId: 1,
@@ -1117,7 +1325,7 @@ describe('RfqmService Worker Logic', () => {
             }
         });
 
-        it('should update job staus to `PendingProcessing` if job status is `PendingEnqueued`', async () => {
+        it('should update job staus to `PendingProcessing` if job status is `PendingEnqueued` for a rfqm v2 job', async () => {
             const job = new RfqmV2JobEntity({
                 affiliateAddress: '',
                 chainId: 1,
@@ -1162,6 +1370,91 @@ describe('RfqmService Worker Logic', () => {
                 updatedAt: new Date(),
                 workerAddress: '',
             });
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+            });
+
+            await rfqmService.checkJobPreprocessingAsync(job, new Date(fakeClockMs));
+            expect(job.status).to.deep.equal(RfqmJobStatus.PendingProcessing);
+        });
+
+        it('should update job staus and throw error if job validation failed for a meta-transaction job', async () => {
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeOneMinuteAgoS),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                'jobId',
+            );
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+            });
+
+            try {
+                await rfqmService.checkJobPreprocessingAsync(job, new Date(fakeClockMs));
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('Job failed validation');
+                expect(job.status).to.deep.equal(RfqmJobStatus.FailedExpired);
+            }
+        });
+
+        it('should update job staus to `PendingProcessing` if job status is `PendingEnqueued` for a meta-transaction job', async () => {
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                'jobId',
+            );
 
             const mockDbUtils = mock(RfqmDbUtils);
             const rfqmService = buildRfqmServiceForUnitTest({
@@ -1519,7 +1812,7 @@ describe('RfqmService Worker Logic', () => {
         });
     });
 
-    describe('prepareTradeAsync', () => {
+    describe('preparerfqmV2TradeAsync', () => {
         it('updates the job and throws upon validation failure when `shouldCheckLastLook` is true', async () => {
             const expiredJob = new RfqmV2JobEntity({
                 affiliateAddress: '',
@@ -1571,7 +1864,7 @@ describe('RfqmService Worker Logic', () => {
             const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
 
             try {
-                await rfqmService.prepareTradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Job failed validation');
@@ -1646,7 +1939,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             try {
-                await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Order failed pre-sign validation');
@@ -1735,7 +2028,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             try {
-                await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Market Maker declined to sign');
@@ -1815,7 +2108,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             try {
-                await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Job failed during market maker sign attempt');
@@ -1897,7 +2190,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             try {
-                await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Invalid order signer address');
@@ -1980,7 +2273,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             try {
-                await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
                 expect.fail();
             } catch (e) {
                 expect(e.message).to.contain('Eth call validation failed');
@@ -2077,7 +2370,7 @@ describe('RfqmService Worker Logic', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+            await rfqmService.preparerfqmV2TradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
             expect(job).to.deep.equal({
                 ..._job,
                 lastLookResult: true,
@@ -2174,7 +2467,12 @@ describe('RfqmService Worker Logic', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            const calldata = await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
+                job,
+                '0xworkeraddress',
+                true,
+                new Date(fakeClockMs),
+            );
             expect(job).to.deep.equal({
                 ..._job,
                 lastLookResult: true,
@@ -2276,7 +2574,7 @@ describe('RfqmService Worker Logic', () => {
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
 
-            await rfqmService.prepareTradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
+            await rfqmService.preparerfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
             expect(expiredJob.status).to.equal(RfqmJobStatus.PendingSubmitted);
         });
 
@@ -2367,7 +2665,12 @@ describe('RfqmService Worker Logic', () => {
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
             });
 
-            const calldata = await rfqmService.prepareTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
+                job,
+                '0xworkeraddress',
+                true,
+                new Date(fakeClockMs),
+            );
             expect(job).to.deep.equal({
                 ..._job,
                 lastLookResult: true,
@@ -2468,11 +2771,266 @@ describe('RfqmService Worker Logic', () => {
             });
             const spiedRfqmService = spy(rfqmService);
 
-            const calldata = await rfqmService.prepareTradeAsync(job, '0xworkeraddress', false, new Date(fakeClockMs));
+            const calldata = await rfqmService.preparerfqmV2TradeAsync(
+                job,
+                '0xworkeraddress',
+                false,
+                new Date(fakeClockMs),
+            );
             expect(job).to.deep.equal(_job);
             expect(calldata).to.equal('0xvalidcalldata');
             verify(spiedRfqmService.checkJobPreprocessingAsync(anything(), anything())).never();
             verify(spiedRfqmService.checkLastLookAsync(anything(), anything(), anything())).never();
+        });
+    });
+
+    describe('prepareMetaTransactionTradeAsync', () => {
+        it('updates the job and throws upon validation failure if `shouldValidateJob` is true', async () => {
+            const jobId = 'jobId';
+            const expiredJob = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeOneMinuteAgoS),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+
+            const _job = _.cloneDeep(expiredJob);
+            const mockDbUtils = mock(RfqmDbUtils);
+            when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
+            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
+
+            try {
+                await rfqmService.prepareMetaTransactionTradeAsync(
+                    expiredJob,
+                    '0xworkeraddress',
+                    true,
+                    new Date(fakeClockMs),
+                );
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('Job failed validation');
+                expect(expiredJob).to.deep.equal({ ..._job, status: RfqmJobStatus.FailedExpired });
+            }
+        });
+
+        it('handles an eth_call failure', async () => {
+            const jobId = 'jobId';
+
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+            const _job = _.cloneDeep(job);
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
+            const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(new Error('fake eth call failure'));
+
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqBlockchainUtils: instance(mockBlockchainUtils),
+            });
+
+            try {
+                await rfqmService.prepareMetaTransactionTradeAsync(job, '0xworkeraddress', true, new Date(fakeClockMs));
+                expect.fail();
+            } catch (e) {
+                expect(e.message).to.contain('Eth call validation failed');
+                expect(job).to.deep.equal({
+                    ..._job,
+                    status: RfqmJobStatus.FailedEthCallFailed,
+                });
+            }
+        });
+
+        it('skips the eth_call for jobs with existing submissions', async () => {
+            const jobId = 'jobId';
+
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingProcessing,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+            const transaction = createMetaTransactionSubmissionEntity(
+                {
+                    from: '0xworkeraddress',
+                    metaTransactionJobId: jobId,
+                    maxFeePerGas: new BigNumber(100000),
+                    maxPriorityFeePerGas: new BigNumber(100),
+                    nonce: 0,
+                    to: '0xexchangeproxyaddress',
+                    transactionHash: '0xsignedtransactionhash',
+                    type: RfqmTransactionSubmissionType.Trade,
+                },
+                'submissionId',
+            );
+            const _job = _.cloneDeep(job);
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([transaction]);
+            const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
+                '0xvalidcalldata',
+            );
+
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqBlockchainUtils: instance(mockBlockchainUtils),
+            });
+
+            const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
+                job,
+                '0xworkeraddress',
+                true,
+                new Date(fakeClockMs),
+            );
+            expect(job).to.deep.equal(_job);
+            expect(calldata).to.equal('0xvalidcalldata');
+            verify(mockBlockchainUtils.estimateGasForAsync(anything())).never();
+        });
+
+        it('successfully prepares a job if `shouldValidateJob` is true', async () => {
+            const jobId = 'jobId';
+
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+            const _job = _.cloneDeep(job);
+
+            const mockDbUtils = mock(RfqmDbUtils);
+            const updateRfqmJobCalledArgs: MetaTransactionJobEntity[] = [];
+            when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
+            when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
+                updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
+            });
+            const mockBlockchainUtils = mock(RfqBlockchainUtils);
+            when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(0);
+            when(mockBlockchainUtils.generateMetaTransactionCallData(anything(), anything(), anything())).thenReturn(
+                '0xvalidcalldata',
+            );
+
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqBlockchainUtils: instance(mockBlockchainUtils),
+            });
+
+            const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
+                job,
+                '0xworkeraddress',
+                true,
+                new Date(fakeClockMs),
+            );
+            expect(job).to.deep.equal({
+                ..._job,
+                status: RfqmJobStatus.PendingProcessing,
+            });
+            expect(calldata).to.equal('0xvalidcalldata');
+            expect(updateRfqmJobCalledArgs[0]).to.deep.equal({
+                ..._job,
+                status: RfqmJobStatus.PendingProcessing,
+            });
         });
     });
 

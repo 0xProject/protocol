@@ -239,8 +239,8 @@ export class RfqmService {
         return gasPriceEstimate.gte(gasFees.maxFeePerGas.multipliedBy(MIN_GAS_PRICE_INCREASE + 1));
     }
 
-    // Returns a failure status for invalid jobs and null if the job is valid.
-    public static validateJob(job: RfqmV2JobEntity, now: Date = new Date()): RfqmJobStatus | null {
+    // Returns a failure status for an invalid rfqm v2 job or null if job is valid.
+    public static validateRfqmV2Job(job: RfqmV2JobEntity, now: Date = new Date()): RfqmJobStatus | null {
         const { makerUri, order, fee } = job;
 
         if (makerUri === undefined) {
@@ -265,6 +265,35 @@ export class RfqmService {
             return RfqmJobStatus.FailedExpired;
         }
         if (!job.takerSignature) {
+            return RfqmJobStatus.FailedValidationNoTakerSignature;
+        }
+
+        return null;
+    }
+
+    // Returns a failure status for an invalid meta-transaction job or null if job is valid.
+    public static validateMetaTransactionJob(
+        job: MetaTransactionJobEntity,
+        now: Date = new Date(),
+    ): RfqmJobStatus | null {
+        const { expiry, fee, metaTransaction, takerSignature } = job;
+
+        if (metaTransaction === null) {
+            return RfqmJobStatus.FailedValidationNoOrder;
+        }
+
+        if (fee === null) {
+            return RfqmJobStatus.FailedValidationNoFee;
+        }
+
+        // Orders can expire if any of the following happen:
+        // 1) workers are backed up
+        // 2) an order broke during submission and the order is stuck in the queue for a long time.
+        const expiryTimeMs = expiry.times(ONE_SECOND_MS);
+        if (expiryTimeMs.isNaN() || expiryTimeMs.lte(now.getTime())) {
+            return RfqmJobStatus.FailedExpired;
+        }
+        if (!takerSignature) {
             return RfqmJobStatus.FailedValidationNoTakerSignature;
         }
 
@@ -1235,7 +1264,7 @@ export class RfqmService {
 
         // Prepare and submit trade only if approval transaction is successful
         if (approvalStatus === SubmissionContextStatus.SucceededConfirmed) {
-            const tradeCalldata = await this.prepareTradeAsync(job, workerAddress, false);
+            const tradeCalldata = await this.preparerfqmV2TradeAsync(job, workerAddress, false);
             await this.submitToChainAsync({
                 kind: job.kind,
                 to: this._blockchainUtils.getExchangeProxyAddress(),
@@ -1256,15 +1285,36 @@ export class RfqmService {
      * Process trade (swap with the 0x exchange proxy) submissions. The method would prepare trade calldata
      * and submit the trade to the blockchain. Note that job status would be updated to the corresponding state.
      */
-    public async processTradeAsync(job: RfqmV2JobEntity, workerAddress: string): Promise<void> {
-        const calldata = await this.prepareTradeAsync(job, workerAddress);
+    public async processTradeAsync(
+        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        workerAddress: string,
+    ): Promise<void> {
+        const { kind } = job;
+
+        let calldata;
+        let identifier;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                identifier = job.orderHash;
+                calldata = await this.preparerfqmV2TradeAsync(job, workerAddress);
+                break;
+            case 'meta_transaction_job':
+                identifier = job.id;
+                calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress);
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
         await this.submitToChainAsync({
             kind: job.kind,
             to: this._blockchainUtils.getExchangeProxyAddress(),
             from: workerAddress,
             calldata,
             expiry: job.expiry,
-            identifier: job.orderHash,
+            identifier,
             submissionType: RfqmTransactionSubmissionType.Trade,
             onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                 job,
@@ -1277,13 +1327,33 @@ export class RfqmService {
      * Perform preliminary checks on a job before processing.
      *
      * The method would:
-     * 1. Call `RfqmService.validateJob` and check result. If there is an error, update the job status and throw exception
+     * 1. Call `RfqmService.validateRfqmV2Job` / `RfqmService.validateMetaTransactionJob` and check result. If there is an error, update the job status and throw exception
      * 2. Make sure job.takerSignature is present or throw exception
      * 3. Update job status to `PendingProcessing` if current status is `PendingEnqueued`
      */
-    public async checkJobPreprocessingAsync(job: RfqmV2JobEntity, now: Date = new Date()): Promise<void> {
-        const { orderHash, takerSignature } = job;
-        const errorStatus = RfqmService.validateJob(job, now);
+    public async checkJobPreprocessingAsync(
+        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        now: Date = new Date(),
+    ): Promise<void> {
+        const { kind, takerSignature } = job;
+        let identifier;
+        let errorStatus;
+
+        switch (kind) {
+            case 'rfqm_v2_job':
+                identifier = job.orderHash;
+                errorStatus = RfqmService.validateRfqmV2Job(job, now);
+                break;
+            case 'meta_transaction_job':
+                identifier = job.id;
+                errorStatus = RfqmService.validateMetaTransactionJob(job, now);
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
         if (errorStatus !== null) {
             job.status = errorStatus;
             await this._dbUtils.updateRfqmJobAsync(job);
@@ -1291,7 +1361,7 @@ export class RfqmService {
             if (errorStatus === RfqmJobStatus.FailedExpired) {
                 RFQM_SIGNED_QUOTE_EXPIRY_TOO_SOON.labels(this._chainId.toString()).inc();
             }
-            logger.error({ orderHash, errorStatus }, 'Job failed validation');
+            logger.error({ kind, identifier, errorStatus }, 'Job failed validation');
             throw new Error('Job failed validation');
         }
 
@@ -1403,7 +1473,7 @@ export class RfqmService {
      * @returns The generated calldata for trade submission type.
      * @throws If the trade cannot be submitted (e.g. it is expired).
      */
-    public async prepareTradeAsync(
+    public async preparerfqmV2TradeAsync(
         job: RfqmV2JobEntity,
         workerAddress: string,
         shouldCheckLastLook: boolean = true,
@@ -1507,7 +1577,7 @@ export class RfqmService {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
                             { orderHash, makerUri, attemptNumber, attemptsRemaining, error: error.message },
-                            'Error during eth_call validation. Retrying.',
+                            'Error during eth_call validation when preparing otc order trade. Retrying',
                         );
                     },
                 },
@@ -1516,7 +1586,10 @@ export class RfqmService {
             job.status = RfqmJobStatus.FailedEthCallFailed;
             await this._dbUtils.updateRfqmJobAsync(job);
 
-            logger.error({ orderHash, error: error.message }, 'eth_call validation failed');
+            logger.error(
+                { orderHash, error: error.message },
+                'eth_call validation failed when preparing otc order trade',
+            );
 
             // Attempt to gather extra context upon eth_call failure
             try {
@@ -1536,12 +1609,133 @@ export class RfqmService {
                         bucket: otcOrder.nonceBucket,
                         nonce: otcOrder.nonce,
                     },
-                    'Extra context after eth_call validation failed',
+                    'Extra context after eth_call validation failed when preparing otc order trade',
                 );
             } catch (error) {
-                logger.warn({ orderHash }, 'Failed to get extra context after eth_call validation failed');
+                logger.warn(
+                    { orderHash },
+                    'Failed to get extra context after eth_call validation failed when preparing otc order trade',
+                );
             }
-            throw new Error('Eth call validation failed');
+            throw new Error('Eth call validation failed when preparing otc order trade');
+        }
+
+        return calldata;
+    }
+
+    /**
+     * Prepares a meta-transaction job for trade submission by validatidating the job and constructing the calldata.
+     *
+     * Note that `job.status` would be modified to corresponding status. For example, if the meta-transaction expires,
+     * `job.status` would be set to `FailedFailedExpired`.
+     *
+     * Handles retries of retryable errors. Throws for unretriable errors, and logs
+     * ONLY IF the log needs more information than the orderHash and workerAddress,
+     * which are logged by the `processJobAsync` routine.
+     * Updates job in database.
+     *
+     * @returns The generated calldata for trade submission type.
+     * @throws If the trade cannot be submitted (e.g. it is expired).
+     */
+    public async prepareMetaTransactionTradeAsync(
+        job: MetaTransactionJobEntity,
+        workerAddress: string,
+        shouldValidateJob: boolean = true,
+        now: Date = new Date(),
+    ): Promise<string> {
+        // ASK: What's the difference bewtween `metaTransaction.signer` vs `metaTransaction.sender`?
+        //      Which one is the taker address?
+        const { affiliateAddress, id: jobId, inputToken, metaTransaction, takerAddress, takerSignature } = job;
+
+        // Check to see if we have already submitted a transaction for this job.
+        // If we have, the job is already prepared and we can skip ahead.
+        const transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId);
+        if (transactionSubmissions.length) {
+            if (!takerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no taker signature');
+            }
+            const existingSubmissionCalldata = this._blockchainUtils.generateMetaTransactionCallData(
+                metaTransaction,
+                takerSignature,
+                affiliateAddress,
+            );
+            return existingSubmissionCalldata;
+        }
+
+        if (shouldValidateJob) {
+            // Perform the preliminary job check
+            await this.checkJobPreprocessingAsync(job, now);
+        }
+
+        // Taker signature must already be defined here -- refine the type
+        if (!takerSignature) {
+            throw new Error('Taker signature does not exist');
+        }
+
+        // Generate the calldata
+        const calldata = this._blockchainUtils.generateMetaTransactionCallData(
+            metaTransaction,
+            takerSignature,
+            affiliateAddress,
+        );
+
+        // execute a full eth_call to validate the
+        // transaction via `estimateGasForAsync`
+        try {
+            await retry(
+                async () => {
+                    return this._blockchainUtils.estimateGasForAsync({
+                        from: workerAddress,
+                        to: this._blockchainUtils.getExchangeProxyAddress(),
+                        data: calldata,
+                    });
+                },
+                {
+                    delay: ONE_SECOND_MS,
+                    factor: 1,
+                    maxAttempts: 3,
+                    handleError: (error, context, _options) => {
+                        const { attemptNum: attemptNumber, attemptsRemaining } = context;
+                        logger.warn(
+                            { jobId, attemptNumber, attemptsRemaining, error: error.message },
+                            'Error during eth_call validation when preparing meta-transaction trade. Retrying',
+                        );
+                    },
+                },
+            );
+        } catch (error) {
+            job.status = RfqmJobStatus.FailedEthCallFailed;
+            await this._dbUtils.updateRfqmJobAsync(job);
+
+            logger.error(
+                { jobId, error: error.message },
+                'eth_call validation failed when preparing meta-transaction trade',
+            );
+
+            // Attempt to gather extra context upon eth_call failure
+            try {
+                const [takerBalance] = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync([
+                    { owner: takerAddress, token: inputToken },
+                ]);
+                const blockNumber = await this._blockchainUtils.getCurrentBlockAsync();
+                logger.info(
+                    {
+                        calldata,
+                        blockNumber,
+                        jobId,
+                        metaTransaction,
+                        takerBalance,
+                    },
+                    'Extra context after eth_call validation failed when preparing meta-transaction trade',
+                );
+            } catch (error) {
+                logger.warn(
+                    { jobId },
+                    'Failed to get extra context after eth_call validation failed when preparing meta-transaction trade ',
+                );
+            }
+            throw new Error('Eth call validation failed when preparing meta-transaction trade');
         }
 
         return calldata;
@@ -1795,6 +1989,7 @@ export class RfqmService {
      *        - `from`: The address submitting the transaction (usually the worker address).
      *        - `calldata`: Calldata to submit.
      *        - `expiry`: Exiry before the submission is considered invalid.
+     *        - `identifier`: The job identifier. For rfqm_v2_job, it should be order hash; for meta-transaction, it should be job id.
      *        - `identifier`: The job identifier. For rfqm_v2_job, it should be order hash; for meta transaction, it should be job id.
      *        - `submissionType`: The type of submission.
      *        - `onSubmissionContextStatusUpdate`: Callback to perform appropriate actions when the submission context statuses change.
@@ -2513,12 +2708,12 @@ export class RfqmService {
      * This function also "closes over" `job` so that it's accessible in the callback function. Refer the docstring of
      * `RfqmTransactionSubmissionContextStatus` for more details on submission context.
      *
-     * @param job A rfqm v2 job object.
+     * @param job A rfqm v2 job or a meta transactino job object.
      * @param submissionType Type of submission.
      * @returns Function would make appropriate update to job status according to submission context statuses and submission type.
      */
     private _getOnSubmissionContextStatusUpdateCallback(
-        job: RfqmV2JobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity,
         submissionType: RfqmTransactionSubmissionType,
     ): (
         newSubmissionContextStatus: SubmissionContextStatus,
