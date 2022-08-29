@@ -17,7 +17,7 @@ export interface RfqClientV1PriceRequest {
     txOrigin: string;
 }
 
-export interface RfqClientV1QuoteRequest extends RfqClientV1PriceRequest {}
+export type RfqClientV1QuoteRequest = RfqClientV1PriceRequest;
 
 export interface RfqClientV1Price {
     expiry: BigNumber;

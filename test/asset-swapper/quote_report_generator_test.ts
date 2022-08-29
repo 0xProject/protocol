@@ -350,7 +350,7 @@ describe('generateQuoteReport', async () => {
 function expectEqualQuoteReportEntries(
     actual: QuoteReportEntry[],
     expected: QuoteReportEntry[],
-    variableName: string = 'quote report entries',
+    variableName = 'quote report entries',
 ): void {
     expect(actual.length).to.eql(expected.length);
     actual.forEach((actualEntry, idx) => {

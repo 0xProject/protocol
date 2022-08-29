@@ -244,8 +244,8 @@ export const SLIPPAGE_MODEL_S3_BUCKET_NAME: string | undefined = _.isEmpty(proce
           process.env.SLIPPAGE_MODEL_S3_BUCKET_NAME,
           EnvVarType.NonEmptyString,
       );
-export const SLIPPAGE_MODEL_S3_FILE_NAME: string = `SlippageModel-${CHAIN_ID}.json`;
-export const SLIPPAGE_MODEL_S3_API_VERSION: string = '2006-03-01';
+export const SLIPPAGE_MODEL_S3_FILE_NAME = `SlippageModel-${CHAIN_ID}.json`;
+export const SLIPPAGE_MODEL_S3_API_VERSION = '2006-03-01';
 export const SLIPPAGE_MODEL_S3_FILE_VALID_INTERVAL_MS: number = ONE_HOUR_MS * 2;
 export const SLIPPAGE_MODEL_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
 

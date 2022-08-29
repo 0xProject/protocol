@@ -133,7 +133,7 @@ async function waitForDependencyStartupAsync(logStream: ChildProcessWithoutNullS
     });
 }
 
-async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<void> {
+async function confirmPostgresConnectivityAsync(maxTries = 5): Promise<void> {
     try {
         await Promise.all([
             // delay before retrying

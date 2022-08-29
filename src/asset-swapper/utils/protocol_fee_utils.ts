@@ -18,7 +18,7 @@ export class ProtocolFeeUtils {
     private readonly _zeroExGasApiUrl: string;
     private readonly _gasPriceHeart: any;
     private _gasPriceEstimation: BigNumber = constants.ZERO_AMOUNT;
-    private _errorCount: number = 0;
+    private _errorCount = 0;
 
     public static getInstance(
         gasPricePollingIntervalInMs: number,

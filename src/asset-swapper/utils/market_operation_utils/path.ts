@@ -32,7 +32,7 @@ export const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
 
 export class Path {
     public orders?: OptimizedMarketOrder[];
-    public sourceFlags: bigint = BigInt(0);
+    public sourceFlags = BigInt(0);
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
 

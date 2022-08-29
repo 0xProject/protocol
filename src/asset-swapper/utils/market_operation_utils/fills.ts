@@ -39,7 +39,7 @@ export function nativeOrderToFill(
     outputAmountPerEth: BigNumber,
     inputAmountPerEth: BigNumber,
     fees: FeeSchedule,
-    filterNegativeAdjustedRateOrders: boolean = true,
+    filterNegativeAdjustedRateOrders = true,
 ): Fill | undefined {
     const sourcePathId = hexUtils.random();
     // Create a single path from all orders.

@@ -43,7 +43,7 @@ export const utils = {
         const itemsClone = items.slice(0);
         const chunkedItems: T[][] = [];
         let currChunk: T[] = [];
-        let currentChunkTotalLength: number = 0;
+        let currentChunkTotalLength = 0;
         while (itemsClone.length !== 0) {
             const item = itemsClone[0];
             const currLength = Buffer.from(JSON.stringify(item)).byteLength;

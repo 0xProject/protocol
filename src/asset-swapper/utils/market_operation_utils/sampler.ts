@@ -12,7 +12,7 @@ import { BatchedOperation, LiquidityProviderRegistry } from './types';
 /**
  * Generate sample amounts up to `maxFillAmount`.
  */
-export function getSampleAmounts(maxFillAmount: BigNumber, numSamples: number, expBase: number = 1): BigNumber[] {
+export function getSampleAmounts(maxFillAmount: BigNumber, numSamples: number, expBase = 1): BigNumber[] {
     const distribution = [...Array<BigNumber>(numSamples)].map((_v, i) => new BigNumber(expBase).pow(i));
     const distributionSum = BigNumber.sum(...distribution);
     const stepSizes = distribution.map((d) => d.div(distributionSum));

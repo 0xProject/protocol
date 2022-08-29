@@ -66,7 +66,7 @@ describe(SUITE_NAME, () => {
     let accounts: string[];
     let takerAddress: string;
     let makerAdddress: string;
-    const invalidTakerAddress: string = '0x0000000000000000000000000000000000000001';
+    const invalidTakerAddress = '0x0000000000000000000000000000000000000001';
 
     let blockchainLifecycle: BlockchainLifecycle;
     let provider: Web3ProviderEngine;

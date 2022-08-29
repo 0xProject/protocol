@@ -174,7 +174,7 @@ export class SwapQuoter {
     ): Promise<MarketBuySwapQuote[]> {
         makerTokenBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
         let gasPrice: BigNumber;
-        if (!!options.gasPrice) {
+        if (options.gasPrice) {
             gasPrice = options.gasPrice;
             assert.isBigNumber('gasPrice', gasPrice);
         } else {
@@ -269,7 +269,7 @@ export class SwapQuoter {
         assert.isBigNumber('assetFillAmount', assetFillAmount);
         const opts = _.merge({}, constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, options);
         let gasPrice: BigNumber;
-        if (!!opts.gasPrice) {
+        if (opts.gasPrice) {
             gasPrice = opts.gasPrice;
             assert.isBigNumber('gasPrice', gasPrice);
         } else {
