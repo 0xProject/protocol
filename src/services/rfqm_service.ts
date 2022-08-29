@@ -1236,17 +1236,39 @@ export class RfqmService {
      * 6. Prepare trade (since the method has already got the market maker signature, it's not performed here)
      * 7. Submit trade
      */
-    public async processApprovalAndTradeAsync(job: RfqmV2JobEntity, workerAddress: string): Promise<void> {
-        const { approval, approvalSignature } = job;
+    public async processApprovalAndTradeAsync(
+        job: RfqmV2JobEntity | MetaTransactionJobEntity,
+        workerAddress: string,
+    ): Promise<void> {
+        const { approval, approvalSignature, kind } = job;
         if (!approval || !approvalSignature) {
             throw new Error('Non-approval job should not be processed by `processApprovalAndTradeAsync`');
         }
 
-        // Perform preliminary check and last look
+        // Perform preliminary check
         await this.checkJobPreprocessingAsync(job);
-        await this.checkLastLookAsync(job, workerAddress, false);
+        if (kind === 'rfqm_v2_job') {
+            // Perform last look for rfqm v2 job
+            await this.checkLastLookAsync(job, workerAddress, false);
+        }
 
-        const tokenToApprove = job.order.order.takerToken;
+        let tokenToApprove;
+        let identifier;
+        switch (kind) {
+            case 'rfqm_v2_job':
+                tokenToApprove = job.order.order.takerToken;
+                identifier = job.orderHash;
+                break;
+            case 'meta_transaction_job':
+                tokenToApprove = job.inputToken;
+                identifier = job.id;
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
         const approvalCalldata = await this.prepareApprovalAsync(job, tokenToApprove, approval, approvalSignature);
         const approvalStatus = await this.submitToChainAsync({
             kind: job.kind,
@@ -1254,7 +1276,7 @@ export class RfqmService {
             from: workerAddress,
             calldata: approvalCalldata,
             expiry: job.expiry,
-            identifier: job.orderHash,
+            identifier,
             submissionType: RfqmTransactionSubmissionType.Approval,
             onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                 job,
@@ -1264,14 +1286,27 @@ export class RfqmService {
 
         // Prepare and submit trade only if approval transaction is successful
         if (approvalStatus === SubmissionContextStatus.SucceededConfirmed) {
-            const tradeCalldata = await this.preparerfqmV2TradeAsync(job, workerAddress, false);
+            let tradeCalldata;
+            switch (kind) {
+                case 'rfqm_v2_job':
+                    tradeCalldata = await this.preparerfqmV2TradeAsync(job, workerAddress, false);
+                    break;
+                case 'meta_transaction_job':
+                    tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
+                    break;
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(kind);
+            }
+
             await this.submitToChainAsync({
                 kind: job.kind,
                 to: this._blockchainUtils.getExchangeProxyAddress(),
                 from: workerAddress,
                 calldata: tradeCalldata,
                 expiry: job.expiry,
-                identifier: job.orderHash,
+                identifier,
                 submissionType: RfqmTransactionSubmissionType.Trade,
                 onSubmissionContextStatusUpdate: this._getOnSubmissionContextStatusUpdateCallback(
                     job,
@@ -1378,7 +1413,7 @@ export class RfqmService {
     }
 
     /**
-     * Prepares an RfqmV2 Job for approval submission by validatidating the job and constructing
+     * Prepares a rfqm v2 / meta-transaction job for approval submission by validatidating the job and constructing
      * the calldata.
      *
      * Note that `job.status` would be modified to `FailedEthCallFailed` if transaction simulation failed.
@@ -1389,31 +1424,51 @@ export class RfqmService {
      * @throws If the approval cannot be submitted (e.g. it is expired).
      */
     public async prepareApprovalAsync(
-        job: RfqmV2JobEntity,
+        job: RfqmV2JobEntity | MetaTransactionJobEntity,
         tokenToApprove: string,
         approval: Approval,
         siganature: Signature,
     ): Promise<string> {
-        const { orderHash } = job;
+        const { kind } = job;
         const calldata = await this._blockchainUtils.generateApprovalCalldataAsync(
             tokenToApprove,
             approval,
             siganature,
         );
+
+        let identifier;
+        let transactionSubmissions;
         // Check to see if we have already submitted an approval transaction for this job. If we have, the job has already
         // been checked and we can skip `eth_call` validation.
-        const transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
-            job.orderHash,
-            RfqmTransactionSubmissionType.Approval,
-        );
+        switch (kind) {
+            case 'rfqm_v2_job':
+                identifier = job.orderHash;
+                transactionSubmissions = await this._dbUtils.findV2TransactionSubmissionsByOrderHashAsync(
+                    identifier,
+                    RfqmTransactionSubmissionType.Approval,
+                );
+                break;
+            case 'meta_transaction_job':
+                identifier = job.id;
+                transactionSubmissions = await this._dbUtils.findMetaTransactionSubmissionsByJobIdAsync(
+                    identifier,
+                    RfqmTransactionSubmissionType.Approval,
+                );
+                break;
+            default:
+                ((_x: never) => {
+                    throw new Error('unreachable');
+                })(kind);
+        }
+
         if (transactionSubmissions.length) {
-            if (!job.makerSignature) {
-                // This shouldn't happen
-                throw new Error('Encountered a job with submissions but no maker signature');
-            }
             if (!job.takerSignature) {
                 // This shouldn't happen
                 throw new Error('Encountered a job with submissions but no taker signature');
+            }
+            if (job.kind === 'rfqm_v2_job' && !job.makerSignature) {
+                // This shouldn't happen
+                throw new Error('Encountered a job with submissions but no maker signature');
             }
 
             return calldata;
@@ -1435,7 +1490,7 @@ export class RfqmService {
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
-                            { attemptNumber, attemptsRemaining, errorMessage: error.message, stack: error.stack },
+                            { kind, attemptNumber, attemptsRemaining, errorMessage: error.message, stack: error.stack },
                             'Error during eth_call approval validation. Retrying.',
                         );
                     },
@@ -1446,7 +1501,7 @@ export class RfqmService {
             await this._dbUtils.updateRfqmJobAsync(job);
 
             logger.error(
-                { orderHash, errorMessage: error.message, stack: error.stack },
+                { kind, identifier, errorMessage: error.message, stack: error.stack },
                 'eth_call approval validation failed',
             );
             throw new Error('Eth call approval validation failed');
@@ -1990,7 +2045,6 @@ export class RfqmService {
      *        - `calldata`: Calldata to submit.
      *        - `expiry`: Exiry before the submission is considered invalid.
      *        - `identifier`: The job identifier. For rfqm_v2_job, it should be order hash; for meta-transaction, it should be job id.
-     *        - `identifier`: The job identifier. For rfqm_v2_job, it should be order hash; for meta transaction, it should be job id.
      *        - `submissionType`: The type of submission.
      *        - `onSubmissionContextStatusUpdate`: Callback to perform appropriate actions when the submission context statuses change.
      *        - `now`: The current time.
