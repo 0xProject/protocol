@@ -6,12 +6,16 @@ import { MAKER_TOKEN_BALANCE_EXPIRY_SECONDS } from '../constants';
 import { ERC20Owner } from '../types';
 
 import { splitAddresses } from './address_utils';
+import { toPairString } from './pair_utils';
 
 const OTC_ORDER_NONCE_BUCKET_COUNTER_KEY = (chainId: number) => `otcorder.nonce.bucket.counter.chain.${chainId}`;
 // The value stored at this key is a set. The members of this set are each an ERC20_OWNER_BALANCE_KEY.
 const ERC20_OWNERS_KEY = (chainId: number) => `erc20.owners.chain.${chainId}`;
 const ERC20_OWNER_BALANCE_KEY = (chainId: number, ownerAddress: string, tokenAddress: string) =>
     `erc20.owner.balance.chain.${chainId}.${ownerAddress}.${tokenAddress}`;
+// Use `chainId` and pair keys as Redis keys for sorted set entries, used for cooling down makers after bad last look rejection.
+const LLR_COOLDOWN_SET_KEY = (chainId: number, tokenA: string, tokenB: string) =>
+    `coolingdown.makers.chain.${chainId}.pair.${toPairString(tokenA, tokenB)}`;
 
 export class CacheClient {
     constructor(private readonly _redisClient: RedisClientType) {}
@@ -105,6 +109,53 @@ export class CacheClient {
                 this._redisClient.set(cacheKey, balances[i].toString(), { EX: MAKER_TOKEN_BALANCE_EXPIRY_SECONDS }),
             ),
         );
+    }
+
+    /**
+     * Add maker to cooldown sorted set of given pair. Maker Ids in the sorted set are sorted by
+     * cooldown period endTime, so as to allow quickly filter out these with expired cooldown period.
+     *
+     * @param makerId ID of maker to be added or updated
+     * @param endTime time stamp to end the cooldown period, in millisecond
+     * @param chainId chainId of the pair
+     * @param tokenA address of one trading token
+     * @param tokenB address of the other trading token
+     * @returns whether the sorted set get updated
+     */
+    public async addMakerToCooldownAsync(
+        makerId: string,
+        endTime: number,
+        chainId: number,
+        tokenA: string,
+        tokenB: string,
+    ): Promise<boolean> {
+        const changedMemberCount = await this._redisClient.ZADD(
+            LLR_COOLDOWN_SET_KEY(chainId, tokenA, tokenB),
+            { score: endTime, value: makerId },
+            {
+                GT: true, // Only update if setting a higher score
+                CH: true, // return number of set members get changed (added and updated)
+            },
+        );
+        return changedMemberCount > 0;
+    }
+
+    /**
+     * Get a list of makers that are cooling down for given pair.
+     *
+     * @param chainId chainId of the pair
+     * @param tokenA address of one trading token
+     * @param tokenB address of the other trading token
+     * @returns array of maker IDs
+     */
+    public async getMakersInCooldownForPairAsync(chainId: number, tokenA: string, tokenB: string): Promise<string[]> {
+        // Sorted set members use cooldown expiration time as scores, so selecting members with scores larger than `Date.now()`
+        // will give a complete list of makers in cooldown.
+        const minScore = Date.now();
+        const maxScore = '+inf';
+        return this._redisClient.ZRANGE(LLR_COOLDOWN_SET_KEY(chainId, tokenA, tokenB), minScore, maxScore, {
+            BY: 'SCORE',
+        });
     }
 
     /**

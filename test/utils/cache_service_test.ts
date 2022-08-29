@@ -180,4 +180,85 @@ describe('CacheClient', () => {
             expect(numEvicted).to.eq(0);
         });
     });
+
+    describe('coolDownMakerForPair', () => {
+        const makerId1 = 'makerId1';
+        const takerToken = 'takerToken';
+        const makerToken = 'makerToken';
+
+        it('should add new makers to the cooling down set for a pair', async () => {
+            const isUpdated = await cacheClient.addMakerToCooldownAsync(
+                makerId1,
+                Date.now(),
+                chainId,
+                takerToken,
+                makerToken,
+            );
+            expect(isUpdated).to.eq(true);
+        });
+
+        it('should update endTime to a time later than existing endTime', async () => {
+            const now = Date.now();
+            const oneMinuteLater = now + ONE_MINUTE_MS;
+            await cacheClient.addMakerToCooldownAsync(makerId1, now, chainId, takerToken, makerToken);
+            const isUpdated = await cacheClient.addMakerToCooldownAsync(
+                makerId1,
+                oneMinuteLater,
+                chainId,
+                makerToken,
+                takerToken,
+            );
+            expect(isUpdated).to.eq(true);
+        });
+
+        it('should not update endTime to a time earlier than existing endTime', async () => {
+            const now = Date.now();
+            const oneMinuteEarlier = now - ONE_MINUTE_MS;
+            await cacheClient.addMakerToCooldownAsync(makerId1, now, chainId, takerToken, makerToken);
+            const isUpdated = await cacheClient.addMakerToCooldownAsync(
+                makerId1,
+                oneMinuteEarlier,
+                chainId,
+                takerToken,
+                makerToken,
+            );
+            expect(isUpdated).to.eq(false);
+        });
+    });
+
+    describe('getCoolingDownMakersForPair', () => {
+        const makerId1 = 'makerId1';
+        const makerId2 = 'makerId2';
+        const takerToken = 'takerToken';
+        const otherTakerToken = 'otherTakerToken';
+        const makerToken = 'makerToken';
+
+        it('should get all makers that are cooling down', async () => {
+            const now = Date.now();
+            const oneMinuteLater = now + ONE_MINUTE_MS;
+            await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
+            await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            expect(result).to.deep.eq([makerId1, makerId2]);
+        });
+
+        it('should not include makers whose cooling down periods already ended', async () => {
+            const now = Date.now();
+            const oneMinuteEarlier = now - ONE_MINUTE_MS;
+            const oneMinuteLater = now + ONE_MINUTE_MS;
+            await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteEarlier, chainId, takerToken, makerToken);
+            await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            expect(result).to.deep.eq([makerId2]);
+        });
+
+        it('should only include makers that are cooling down for this pair', async () => {
+            const now = Date.now();
+            const oneMinuteLater = now + ONE_MINUTE_MS;
+            await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
+            await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, otherTakerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            expect(result).to.deep.eq([makerId1]);
+        });
+    });
 });
