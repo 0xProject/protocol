@@ -13,6 +13,7 @@ import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
+import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { getSignerFromHash } from '../utils/signature_utils';
 
@@ -322,6 +323,20 @@ export class GaslessSwapService {
 
     public async getStatusAsync(hash: string): Promise<StatusResponse | null> {
         return this._rfqmService.getStatusAsync(hash);
+    }
+
+    /**
+     * Passthrough to RFQm Service's `runHealthCheckAsync` method
+     */
+    public async runHealthCheckAsync(): Promise<HealthCheckResult> {
+        return this._rfqmService.runHealthCheckAsync();
+    }
+
+    /**
+     * Passthrough to RFQm Service's `getTokenDecimalsAsync` method
+     */
+    public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
+        return this._rfqmService.getTokenDecimalsAsync(tokenAddress);
     }
 
     private async _enqueueJobAsync(id: string, type: RfqmTypes): Promise<void> {

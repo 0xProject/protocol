@@ -1,4 +1,4 @@
-import { OtcOrderFields, Signature } from '@0x/protocol-utils';
+import { MetaTransactionFields, OtcOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { Eip712DataField, Eip712Domain, ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
@@ -11,7 +11,7 @@ export interface StringSignatureFields {
 }
 
 export type RawOtcOrderFields = Record<keyof Omit<OtcOrderFields, 'chainId'>, string> & { chainId: any };
-
+export type RawMetaTransactionFields = Record<keyof Omit<MetaTransactionFields, 'chainId'>, string> & { chainId: any };
 export interface RawEIP712ContextFields {
     types: Record<string, Record<keyof Eip712DataField, string>[]>;
     primaryType: string;
@@ -28,6 +28,27 @@ export function stringsToSignature(strings: StringSignatureFields): Signature {
         v: Number(strings.v),
         r: strings.r,
         s: strings.s,
+    };
+}
+
+/**
+ * Converts the request payload for a gasless swap metatransaction into
+ * the appropriate types
+ */
+export function stringsToMetaTransactionFields(strings: RawMetaTransactionFields): MetaTransactionFields {
+    return {
+        callData: strings.callData,
+        chainId: Number(strings.chainId),
+        expirationTimeSeconds: new BigNumber(strings.expirationTimeSeconds),
+        feeAmount: new BigNumber(strings.feeAmount),
+        feeToken: strings.feeToken,
+        maxGasPrice: new BigNumber(strings.maxGasPrice),
+        minGasPrice: new BigNumber(strings.minGasPrice),
+        salt: new BigNumber(strings.salt),
+        sender: strings.sender,
+        signer: strings.signer,
+        value: new BigNumber(strings.value),
+        verifyingContract: strings.verifyingContract,
     };
 }
 
