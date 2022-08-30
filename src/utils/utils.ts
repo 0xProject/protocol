@@ -65,12 +65,10 @@ export const utils = {
         return chunkedItems;
     },
     delayAsync: async (ms: number): Promise<void> => {
-        // tslint:disable-next-line:no-inferred-empty-object-type
         return new Promise<void>((resolve) => setTimeout(resolve, ms));
     },
     runWithTimeout: async <T>(fn: () => Promise<T>, timeoutMs: number): Promise<any> => {
         let _timeoutHandle: NodeJS.Timeout;
-        // tslint:disable-next-line:no-inferred-empty-object-type
         const timeoutPromise = new Promise((_resolve, reject) => {
             _timeoutHandle = setTimeout(() => reject(new Error('timeout')), timeoutMs);
         });
@@ -104,7 +102,6 @@ export const utils = {
         let gas = TX_BASE_GAS.toNumber();
         for (const b of buf) {
             // 4 gas per 0 byte, 16 gas per non-zero
-            // tslint:disable-next-line
             gas += b === 0 ? 4 : 16;
         }
         return gas;

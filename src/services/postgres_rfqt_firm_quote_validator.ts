@@ -69,7 +69,6 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         this._workerId = _.uniqueId('rfqw_');
     }
 
-    // tslint:disable-next-line: prefer-function-over-method
     public async getRfqtTakerFillableAmountsAsync(quotes: RfqOrderFields[]): Promise<BigNumber[]> {
         // TODO: Handle error on query
 

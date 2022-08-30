@@ -264,10 +264,8 @@ export class SwapService {
             rfqt,
             affiliateAddress,
             affiliateFee,
-            // tslint:disable:boolean-naming
             includePriceComparisons,
             skipValidation,
-            // tslint:enable:boolean-naming
             shouldSellEntireBalance,
             enableSlippageProtection,
         } = params;
@@ -302,7 +300,6 @@ export class SwapService {
         const shouldGenerateQuoteReport = rfqt && rfqt.intentOnFilling;
 
         let swapQuoteRequestOpts: Partial<SwapQuoteRequestOpts>;
-        // tslint:disable-next-line:prefer-conditional-expression
         if (
             isMetaTransaction ||
             shouldSellEntireBalance ||

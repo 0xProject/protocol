@@ -18,8 +18,6 @@ import {
     simulateWorstCaseFill,
 } from '../../src/asset-swapper/utils/quote_simulation';
 
-// tslint:disable: custom-no-magic-numbers
-
 describe('quote_simulation tests', async () => {
     const { NULL_ADDRESS } = constants;
     const ZERO = new BigNumber(0);
@@ -630,7 +628,6 @@ describe('quote_simulation tests', async () => {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
 
-        // tslint:disable:next-line no-unnecessary-type-assertion
         const nativeFillData = order.fillData!;
         const slippedFillData = {
             order: {
@@ -918,4 +915,4 @@ describe('quote_simulation tests', async () => {
             expect(worstPrice).to.be.bignumber.lt(bestPrice);
         });
     });
-}); // tslint:disable: max-file-line-count
+});

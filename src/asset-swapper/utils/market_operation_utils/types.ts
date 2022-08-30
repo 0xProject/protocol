@@ -85,7 +85,6 @@ export enum ERC20BridgeSource {
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
     Platypus = 'Platypus',
-    // tslint:disable: enum-naming
     GMX = 'GMX',
     // Celo only
     UbeSwap = 'UbeSwap',
@@ -101,7 +100,6 @@ export enum ERC20BridgeSource {
     Velodrome = 'Velodrome',
 }
 
-// tslint:disable: enum-naming
 /**
  * Curve contract function selectors.
  */
@@ -127,7 +125,6 @@ export enum CurveFunctionSelectors {
     swap = '0x91695586', // swap(uint8,uint8,uint256,uint256,uint256)
     calculateSwap = '0xa95b089f', // calculateSwap(uint8,uint8,uint256)
 }
-// tslint:enable: enum-naming
 
 /**
  * Configuration info on a Curve pool.

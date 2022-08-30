@@ -167,7 +167,6 @@ export class RfqmJobEntity {
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
-    // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmJobConstructorOpts = {} as RfqmJobConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {

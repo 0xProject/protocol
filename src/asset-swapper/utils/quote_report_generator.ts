@@ -155,7 +155,6 @@ export function generateQuoteReport(
         });
     } else {
         sourcesDelivered = [
-            // tslint:disable-next-line: no-unnecessary-type-assertion
             multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
         ];
     }
@@ -242,7 +241,6 @@ export function generateExtendedQuoteReportSources(
         });
     } else {
         sourcesDelivered = [
-            // tslint:disable-next-line: no-unnecessary-type-assertion
             multiHopSampleToReportSource(liquidityDelivered as DexSample<MultiHopFillData>, marketOperation),
         ];
     }
@@ -367,7 +365,6 @@ export function nativeOrderToReportEntry(
 
     if (isRFQ) {
         const nativeOrder = fillData.order as RfqOrderFields;
-        // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
@@ -378,7 +375,6 @@ export function nativeOrderToReportEntry(
             fillData,
         };
     } else {
-        // tslint:disable-next-line: no-object-literal-type-assertion
         return {
             liquiditySource: ERC20BridgeSource.Native,
             ...nativeOrderBase,
@@ -402,7 +398,6 @@ export function indicativeQuoteToReportEntry(
         fillableTakerAmount: order.takerAmount,
     };
 
-    // tslint:disable-next-line: no-object-literal-type-assertion
     return {
         liquiditySource: ERC20BridgeSource.Native,
         ...nativeOrderBase,

@@ -122,8 +122,6 @@ export interface PoolsCacheMap {
     [ERC20BridgeSource.Beethovenx]: PoolsCache;
 }
 
-// tslint:disable:no-inferred-empty-object-type no-unbound-method
-
 /**
  * Composable operations that can be batched in a single transaction,
  * for use with `DexOrderSampler.executeAsync()`.
@@ -243,7 +241,6 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableTakerAssetAmounts,
-            // tslint:disable-next-line:no-unnecessary-type-assertion
             params: [orders.map((o) => o.order as LimitOrderFields), orders.map((o) => o.signature), exchangeAddress],
         });
     }
@@ -263,7 +260,6 @@ export class SamplerOperations {
             source: ERC20BridgeSource.Native,
             contract: this._samplerContract,
             function: this._samplerContract.getLimitOrderFillableMakerAssetAmounts,
-            // tslint:disable-next-line:no-unnecessary-type-assertion
             params: [orders.map((o) => o.order as LimitOrderFields), orders.map((o) => o.signature), exchangeAddress],
         });
     }
@@ -825,7 +821,7 @@ export class SamplerOperations {
                     secondHopOps.map((op) => op.encodeCall()),
                     sellAmount,
                 ],
-                fillData: { intermediateToken } as MultiHopFillData, // tslint:disable-line:no-object-literal-type-assertion
+                fillData: { intermediateToken } as MultiHopFillData,
                 callback: (callResults: string, fillData: MultiHopFillData): BigNumber[] => {
                     const [firstHop, secondHop, buyAmount] = this._samplerContract.getABIDecodedReturnData<
                         [HopInfo, HopInfo, BigNumber]
@@ -888,7 +884,7 @@ export class SamplerOperations {
                     secondHopOps.map((op) => op.encodeCall()),
                     buyAmount,
                 ],
-                fillData: { intermediateToken } as MultiHopFillData, // tslint:disable-line:no-object-literal-type-assertion
+                fillData: { intermediateToken } as MultiHopFillData,
                 callback: (callResults: string, fillData: MultiHopFillData): BigNumber[] => {
                     const [firstHop, secondHop, sellAmount] = this._samplerContract.getABIDecodedReturnData<
                         [HopInfo, HopInfo, BigNumber]
@@ -1127,7 +1123,6 @@ export class SamplerOperations {
         });
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public getAaveV2SellQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
@@ -1141,7 +1136,6 @@ export class SamplerOperations {
         });
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public getAaveV2BuyQuotes(
         aaveInfo: AaveV2Info,
         makerToken: string,
@@ -1155,7 +1149,6 @@ export class SamplerOperations {
         });
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public getGeistSellQuotes(
         geistInfo: GeistInfo,
         makerToken: string,
@@ -1169,7 +1162,6 @@ export class SamplerOperations {
         });
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public getGeistBuyQuotes(
         geistInfo: GeistInfo,
         makerToken: string,
@@ -2211,4 +2203,3 @@ export class SamplerOperations {
         };
     }
 }
-// tslint:disable max-file-line-count

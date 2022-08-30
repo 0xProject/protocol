@@ -59,8 +59,6 @@ import {
     OptimizerResultWithReport,
 } from './types';
 
-// tslint:disable:boolean-naming
-
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
@@ -492,7 +490,6 @@ export class MarketOperationUtils {
 
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(
             (q) =>
-                // tslint:disable-next-line: no-object-literal-type-assertion
                 ({
                     order: { ...new RfqOrder({ ...q }) },
                     signature: INVALID_SIGNATURE,
@@ -862,5 +859,3 @@ export class MarketOperationUtils {
             .forEach((cache) => cache?.getFreshPoolsForPairAsync(takerToken, makerToken));
     }
 }
-
-// tslint:disable: max-file-line-count

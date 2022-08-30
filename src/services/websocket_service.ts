@@ -216,13 +216,11 @@ export class WebsocketService {
             }
         };
     }
-    // tslint:disable-next-line:prefer-function-over-method
     private _processError(ws: WrappedWebSocket, err: Error): void {
         const { errorBody } = errorUtils.generateError(err);
         ws.send(JSON.stringify(errorBody));
         ws.terminate();
     }
-    // tslint:disable-next-line:prefer-function-over-method
     private _pongHandler(ws: WrappedWebSocket): () => void {
         return () => {
             ws.isAlive = true;

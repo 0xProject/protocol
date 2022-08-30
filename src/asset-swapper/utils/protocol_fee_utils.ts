@@ -65,7 +65,6 @@ export class ProtocolFeeUtils {
         this._initializeHeartBeat();
     }
 
-    // tslint:disable-next-line: prefer-function-over-method
     private async _getGasPriceFromGasStationOrThrowAsync(): Promise<BigNumber> {
         try {
             const res = await fetch(this._zeroExGasApiUrl);

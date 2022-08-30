@@ -6,8 +6,6 @@ import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { DEFAULT_FEE_ESTIMATE, POSITIVE_INF, SOURCE_FLAGS } from './constants';
 import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
 
-// tslint:disable: prefer-for-of no-bitwise completed-docs
-
 /**
  * Converts the ETH value to an amount in output tokens.
  *

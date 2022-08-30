@@ -6,7 +6,6 @@ export interface AaveInfo {
     aToken: string;
     underlyingToken: string;
 }
-// tslint:disable-next-line:no-unnecessary-class
 export class AaveV2Sampler {
     public static sampleSellsFromAaveV2(
         aaveInfo: AaveInfo,

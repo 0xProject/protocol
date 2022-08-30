@@ -22,7 +22,6 @@ export class CreatePersistentSignedOrder1604516429383 implements MigrationInterf
         (colName) => new TableIndex({ name: `persistent_signed_orders_${colName}`, columnNames: [colName] }),
     );
 
-    // tslint:disable-next-line
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
             `CREATE TYPE "persistent_signed_orders_state_enum" AS ENUM(\'${OrderEventEndStateStrings.join(
@@ -64,7 +63,6 @@ export class CreatePersistentSignedOrder1604516429383 implements MigrationInterf
         await queryRunner.createIndices('persistent_signed_orders', this.indices);
     }
 
-    // tslint:disable-next-line
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.dropTable('persistent_signed_orders', true, true, true);
         await queryRunner.query(`DROP TYPE "persistent_signed_orders_state_enum"`);

@@ -1,6 +1,3 @@
-// tslint:disable:no-console
-// tslint:disable:no-unbound-method
-
 import { signatureUtils, SignedZeroExTransaction, ZeroExTransaction } from '@0x/order-utils';
 import { PrivateKeyWalletSubprovider, SupportedProvider, Web3ProviderEngine } from '@0x/subproviders';
 import { NULL_ADDRESS, providerUtils } from '@0x/utils';
@@ -27,7 +24,6 @@ export class TestMetaTxnUser {
         this._takerPrivateKey = TAKER_PRIVATE_KEY;
         this._provider = this._createWeb3Provider();
     }
-    // tslint:disable-next-line
     public getQuoteString(buyToken: string, sellToken: string, buyAmount: string): string {
         return `?buyToken=${buyToken}&sellToken=${sellToken}&buyAmount=${buyAmount}&takerAddress=${this._takerAddress}`;
     }

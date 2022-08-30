@@ -1,4 +1,3 @@
-// tslint:disable-next-line:ordered-imports no-var-requires
 import { Web3Wrapper } from '@0x/dev-utils';
 import { S3 } from 'aws-sdk';
 import axios from 'axios';

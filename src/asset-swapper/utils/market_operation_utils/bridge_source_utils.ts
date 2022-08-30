@@ -66,14 +66,12 @@ export function isValidAddress(address: string | String): address is string {
     return (typeof address === 'string' || address instanceof String) && address.toString() !== NULL_ADDRESS;
 }
 
-// tslint:disable completed-docs
 export function getDodoV2Offsets(): BigNumber[] {
     return Array(MAX_DODOV2_POOLS_QUERIED)
         .fill(0)
         .map((_v, i) => new BigNumber(i));
 }
 
-// tslint:disable completed-docs
 export function getShellsForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
@@ -83,7 +81,6 @@ export function getShellsForPair(chainId: ChainId, takerToken: string, makerToke
         .map((i) => i.poolAddress);
 }
 
-// tslint:disable completed-docs
 export function getComponentForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
@@ -93,7 +90,6 @@ export function getComponentForPair(chainId: ChainId, takerToken: string, makerT
         .map((i) => i.poolAddress);
 }
 
-// tslint:disable completed-docs
 export function getMStableForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet && chainId !== ChainId.Polygon) {
         return [];
@@ -103,7 +99,6 @@ export function getMStableForPair(chainId: ChainId, takerToken: string, makerTok
         .map((i) => i.poolAddress);
 }
 
-// tslint:disable completed-docs
 export function getCurveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     switch (chainId) {
         case ChainId.Mainnet:
@@ -165,7 +160,6 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
     }
 }
 
-// tslint:disable completed-docs
 export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     switch (chainId) {
         case ChainId.Mainnet:

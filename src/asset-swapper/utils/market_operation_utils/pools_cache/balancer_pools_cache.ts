@@ -11,7 +11,6 @@ import { NoOpPoolsCache } from './no_op_pools_cache';
 import { AbstractPoolsCache, CacheValue, PoolsCache } from './pools_cache';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-// tslint:disable: member-ordering
 
 const BALANCER_SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer';
 

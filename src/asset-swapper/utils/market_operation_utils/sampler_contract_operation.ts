@@ -31,7 +31,7 @@ export class SamplerContractOperation<
 
     constructor(opts: { source: ERC20BridgeSource; fillData?: TFillData } & SamplerContractCall<TFunc, TFillData>) {
         this.source = opts.source;
-        this.fillData = opts.fillData || ({} as TFillData); // tslint:disable-line:no-object-literal-type-assertion
+        this.fillData = opts.fillData || ({} as TFillData);
         this._samplerContract = opts.contract;
         this._samplerFunction = opts.function;
         this._params = opts.params;

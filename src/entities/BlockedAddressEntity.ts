@@ -20,7 +20,6 @@ export class BlockedAddressEntity {
     @Column({ name: 'ignore', type: 'boolean', default: () => false })
     public ignore: boolean;
 
-    // tslint:disable-next-line: no-object-literal-type-assertion
     constructor(opts: BlockedAddressConstructorOpts = {} as BlockedAddressConstructorOpts) {
         // allow createdAt overrides for testing
         if (opts.createdAt) {

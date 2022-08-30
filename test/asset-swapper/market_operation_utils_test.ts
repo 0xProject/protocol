@@ -1,4 +1,3 @@
-// tslint:disable: no-unbound-method
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import {
     assertRoughlyEquals,
@@ -114,7 +113,6 @@ class MockPoolsCache extends AbstractPoolsCache {
 }
 
 // Return some pool so that sampling functions are called for Balancer and BalancerV2
-// tslint:disable:custom-no-magic-numbers
 const mockPoolsCache = new MockPoolsCache((_takerToken: string, _makerToken: string) => {
     return [
         {
@@ -128,9 +126,7 @@ const mockPoolsCache = new MockPoolsCache((_takerToken: string, _makerToken: str
         },
     ];
 });
-// tslint:enable:custom-no-magic-numbers
 
-// tslint:disable: custom-no-magic-numbers promise-function-async
 describe('MarketOperationUtils tests', () => {
     const CHAIN_ID = ChainId.Mainnet;
     const contractAddresses = {
@@ -731,7 +727,6 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 expect(result.optimizedOrders.length).to.eql(1);
-                // tslint:disable-next-line:no-unnecessary-type-assertion
                 expect(requestedComparisonPrice!.toString()).to.eql('320');
                 expect(result.optimizedOrders[0].makerAmount.toString()).to.eql('321000000');
                 expect(result.optimizedOrders[0].takerAmount.toString()).to.eql('1000000000000000000');
@@ -1202,7 +1197,6 @@ describe('MarketOperationUtils tests', () => {
                 ).to.eql(liquidityProviderAddress);
 
                 // // TODO (xianny): decode bridge data in v4 format
-                // // tslint:disable-next-line:no-unnecessary-type-assertion
                 // const decodedAssetData = assetDataUtils.decodeAssetDataOrThrow(
                 //     result[0].makerAssetData,
                 // ) as ERC20BridgeAssetData;
@@ -1625,4 +1619,3 @@ describe('MarketOperationUtils tests', () => {
         });
     });
 });
-// tslint:disable-next-line: max-file-line-count

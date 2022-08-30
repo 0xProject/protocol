@@ -15,7 +15,6 @@ export const parsePoolData = (
     const pools: SubGraphPoolDictionary = {};
 
     // First add direct pair paths
-    // tslint:disable-next-line:forin
     for (const idKey in directPools) {
         const p: SubGraphPool = directPools[idKey];
         // Add pool to the set with all pools (only adds if it's still not present in dict)

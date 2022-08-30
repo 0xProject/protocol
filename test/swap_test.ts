@@ -1,4 +1,3 @@
-// tslint:disable:max-file-line-count
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { assertRoughlyEquals, expect, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
@@ -583,7 +582,6 @@ function expectCorrectQuote(quoteResponse: GetSwapQuoteResponse, assertions: Par
         // Only have 0x liquidity for now.
         expect(quoteResponse.sources).to.be.eql(liquiditySources0xOnly);
     } catch (err) {
-        // tslint:disable-next-line:no-console
         console.log(`should return a valid quote matching ${assertions}`);
     }
 }

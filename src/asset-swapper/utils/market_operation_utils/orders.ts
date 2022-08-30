@@ -44,8 +44,6 @@ import {
     WOOFiFillData,
 } from './types';
 
-// tslint:disable completed-docs
-
 export interface CreateOrderFromPathOpts {
     side: MarketOperation;
     inputToken: string;

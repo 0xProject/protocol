@@ -30,7 +30,6 @@ export class TokenAdjacencyGraph {
     }
 }
 
-// tslint:disable-next-line: max-classes-per-file
 export class TokenAdjacencyGraphBuilder {
     private readonly _graph: Map<Address, Address[]>;
     private readonly _defaultTokens: readonly Address[];

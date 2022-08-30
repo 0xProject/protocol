@@ -129,7 +129,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts.extensionContractOpts,
         };
-        // tslint:disable-next-line:no-object-literal-type-assertion
         const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = optsWithDefaults;
 
         const sellToken = quote.takerToken;
@@ -526,7 +525,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         };
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public async executeSwapQuoteOrThrowAsync(
         _quote: SwapQuote,
         _opts: Partial<SwapQuoteExecutionOpts>,

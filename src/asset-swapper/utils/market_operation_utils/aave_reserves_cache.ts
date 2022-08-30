@@ -51,7 +51,6 @@ export class AaveV2ReservesCache {
     private _cache: Cache = {};
     constructor(private readonly _subgraphUrl: string) {
         const resfreshReserves = async () => this.fetchAndUpdateReservesAsync();
-        // tslint:disable-next-line:no-floating-promises
         resfreshReserves();
         setInterval(resfreshReserves, RESERVES_REFRESH_INTERVAL_MS);
     }

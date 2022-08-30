@@ -19,8 +19,6 @@ import { TestNativeOrderSamplerContract } from '../../wrappers';
 
 const { NULL_BYTES, ZERO_AMOUNT } = constants;
 
-// tslint:disable: custom-no-magic-numbers
-
 blockchainTests.resets('NativeOrderSampler contract', (env) => {
     let testContract: TestNativeOrderSamplerContract;
     let makerToken: string;

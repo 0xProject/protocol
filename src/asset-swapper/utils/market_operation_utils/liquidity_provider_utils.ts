@@ -1,6 +1,5 @@
 import { LiquidityProviderRegistry } from './types';
 
-// tslint:disable completed-docs
 export function getLiquidityProvidersForPair(
     registry: LiquidityProviderRegistry,
     takerToken: string,

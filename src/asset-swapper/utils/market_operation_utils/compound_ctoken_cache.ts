@@ -30,7 +30,6 @@ export class CompoundCTokenCache {
     private _cache: Cache = {};
     constructor(private readonly _apiUrl: string, private readonly _wethAddress: string) {
         const refreshCTokenCache = async () => this.fetchAndUpdateCTokensAsync();
-        // tslint:disable-next-line:no-floating-promises
         refreshCTokenCache();
         setInterval(refreshCTokenCache, CTOKEN_REFRESH_INTERVAL_MS);
     }

@@ -18,11 +18,10 @@ export class SamplerNoOperation<TFillData extends FillData = FillData> implement
 
     constructor(opts: { source: ERC20BridgeSource; fillData?: TFillData } & SamplerNoOperationCall) {
         this.source = opts.source;
-        this.fillData = opts.fillData || ({} as TFillData); // tslint:disable-line:no-object-literal-type-assertion
+        this.fillData = opts.fillData || ({} as TFillData);
         this._callback = opts.callback;
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public encodeCall(): string {
         return NULL_BYTES;
     }

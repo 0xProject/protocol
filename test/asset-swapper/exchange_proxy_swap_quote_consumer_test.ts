@@ -43,8 +43,6 @@ const expect = chai.expect;
 const { NULL_ADDRESS } = constants;
 const { MAX_UINT256, ZERO_AMOUNT } = contractConstants;
 
-// tslint:disable: custom-no-magic-numbers
-
 describe('ExchangeProxySwapQuoteConsumer', () => {
     const CHAIN_ID = 1;
     const TAKER_TOKEN = randomAddress();
@@ -107,7 +105,6 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             takerToken: order.takerToken,
             makerAmount: order.makerAmount,
             takerAmount: order.takerAmount,
-            // tslint:disable-next-line:no-object-literal-type-assertion
             fill: {} as Fill<NativeFillData>,
             ...optimizerFields,
         };

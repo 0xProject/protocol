@@ -35,7 +35,6 @@ export class OrderBookService {
             return orderUtils.deserializeOrderToSRAOrder(signedOrderEntity as Required<SignedOrderV4Entity>);
         }
     }
-    // tslint:disable-next-line:prefer-function-over-method
     public async getOrderBookAsync(
         page: number,
         perPage: number,
@@ -70,7 +69,6 @@ export class OrderBookService {
         };
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public async getOrdersAsync(
         page: number,
         perPage: number,

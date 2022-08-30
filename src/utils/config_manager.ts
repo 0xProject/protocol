@@ -1,5 +1,3 @@
-// tslint:disable: prefer-function-over-method
-
 import { ChainId } from '../asset-swapper';
 import {
     CHAIN_ID,

@@ -22,7 +22,6 @@ export class RfqMakerPairs {
     // TypeORM runs a validation check where it calls this initializer with no argument.
     // With no default `opts`, `opts` will be undefined and the validation will throw,
     // therefore, add this hacky default.
-    // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqMakerPairsOpts = {} as RfqMakerPairsOpts) {
         this.makerId = opts.makerId;
         this.chainId = opts.chainId;

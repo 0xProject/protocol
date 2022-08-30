@@ -238,7 +238,6 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const affiliateAddress = req.query.affiliateAddress as string | undefined;
 
-    // tslint:disable-next-line:boolean-naming
     const includePriceComparisons = false;
 
     return {

@@ -3,7 +3,6 @@
  */
 import { cacheControl, createDefaultServer } from '@0x/api-utils';
 import * as express from 'express';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 

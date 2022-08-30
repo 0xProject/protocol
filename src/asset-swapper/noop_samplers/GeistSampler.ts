@@ -6,7 +6,6 @@ export interface GeistInfo {
     gToken: string;
     underlyingToken: string;
 }
-// tslint:disable-next-line:no-unnecessary-class
 export class GeistSampler {
     public static sampleSellsFromGeist(
         geistInfo: GeistInfo,

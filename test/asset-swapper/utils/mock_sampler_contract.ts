@@ -65,8 +65,6 @@ interface Handlers {
     sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
 }
 
-// tslint:disable: no-unbound-method
-
 export class MockSamplerContract extends ERC20BridgeSamplerContract {
     private readonly _handlers: Partial<Handlers> = {};
 
@@ -189,7 +187,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
         if (callData === '0x') {
             return callData;
         }
-        // tslint:disable-next-line: custom-no-magic-numbers
         const selector = hexUtils.slice(callData, 0, 4);
         for (const [name, handler] of Object.entries(this._handlers)) {
             if (handler && this.getSelector(name) === selector) {
@@ -217,7 +214,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
     private _wrapCall<TArgs extends any[], TResult>(
         superFn: (this: MockSamplerContract, ...args: TArgs) => ContractTxFunctionObj<TResult>,
         handler?: (this: MockSamplerContract, ...args: TArgs) => TResult,
-        // tslint:disable-next-line: trailing-comma
         ...args: TArgs
     ): ContractTxFunctionObj<TResult> {
         return {

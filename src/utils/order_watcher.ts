@@ -10,7 +10,6 @@ export interface OrderWatcherInterface {
 }
 
 export class OrderWatcher implements OrderWatcherInterface {
-    // tslint:disable:prefer-function-over-method
     public async postOrdersAsync(orders: SignedLimitOrder[]): Promise<void> {
         try {
             await axios.post(`${ORDER_WATCHER_URL}/orders`, orders, {

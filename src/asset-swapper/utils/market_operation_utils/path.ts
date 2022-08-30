@@ -9,8 +9,6 @@ import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts,
 import { getCompleteRate, getRate } from './rate_utils';
 import { ERC20BridgeSource, ExchangeProxyOverhead, Fill, NativeFillData, OptimizedMarketOrder } from './types';
 
-// tslint:disable: prefer-for-of no-bitwise completed-docs
-
 export interface PathSize {
     input: BigNumber;
     output: BigNumber;

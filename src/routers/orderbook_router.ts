@@ -4,7 +4,6 @@ import * as asyncHandler from 'express-async-handler';
 import { SRAHandlers } from '../handlers/sra_handlers';
 import { OrderBookService } from '../services/orderbook_service';
 
-// tslint:disable-next-line:completed-docs
 export function createOrderBookRouter(orderBook: OrderBookService): express.Router {
     const router = express.Router();
     const handlers = new SRAHandlers(orderBook);

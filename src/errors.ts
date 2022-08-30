@@ -19,7 +19,6 @@ export {
     ValidationErrorItem,
 } from '@0x/api-utils';
 
-// tslint:disable:max-classes-per-file
 export class InsufficientFundsError extends BadRequestError<APIErrorCodes> {
     public statusCode = HttpStatus.BAD_REQUEST;
     public generalErrorCode = APIErrorCodes.InsufficientFundsError;

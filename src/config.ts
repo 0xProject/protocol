@@ -42,8 +42,6 @@ import { schemaUtils } from './utils/schema_utils';
 
 const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
 
-// tslint:disable:no-bitwise
-
 enum EnvVarType {
     AddressList,
     StringList,
@@ -374,7 +372,6 @@ export const RFQM_MAKER_ASSET_OFFERINGS = resolveEnvVar<RfqMakerAssetOfferings>(
 
 export const META_TX_EXPIRATION_BUFFER_MS = TEN_MINUTES_MS;
 
-// tslint:disable-next-line:boolean-naming
 export const RFQT_REQUEST_MAX_RESPONSE_MS: number = _.isEmpty(process.env.RFQT_REQUEST_MAX_RESPONSE_MS)
     ? 600
     : assertEnvVarType('RFQT_REQUEST_MAX_RESPONSE_MS', process.env.RFQT_REQUEST_MAX_RESPONSE_MS, EnvVarType.Integer);
@@ -390,7 +387,6 @@ export const SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS: string[] =
           );
 
 // Whether or not prometheus metrics should be enabled.
-// tslint:disable-next-line:boolean-naming
 export const ENABLE_PROMETHEUS_METRICS: boolean = _.isEmpty(process.env.ENABLE_PROMETHEUS_METRICS)
     ? false
     : assertEnvVarType('ENABLE_PROMETHEUS_METRICS', process.env.ENABLE_PROMETHEUS_METRICS, EnvVarType.Boolean);
@@ -416,7 +412,6 @@ export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPI
     ? undefined
     : assertEnvVarType('KAFKA_TOPIC_QUOTE_REPORT', process.env.KAFKA_TOPIC_QUOTE_REPORT, EnvVarType.NonEmptyString);
 
-// tslint:disable-next-line:boolean-naming
 export const SENTRY_ENABLED: boolean = _.isEmpty(process.env.SENTRY_ENABLED)
     ? false
     : assertEnvVarType('SENTRY_ENABLED', process.env.SENTRY_ENABLED, EnvVarType.Boolean);
@@ -801,7 +796,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return JSON.parse(value);
         case EnvVarType.RfqMakerAssetOfferings:
             const offerings: RfqMakerAssetOfferings = JSON.parse(value);
-            // tslint:disable-next-line:forin
             for (const makerEndpoint in offerings) {
                 assert.isWebUri('market maker endpoint', makerEndpoint);
 
@@ -830,7 +824,6 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return offerings;
         case EnvVarType.LiquidityProviderRegistry:
             const registry: LiquidityProviderRegistry = JSON.parse(value);
-            // tslint:disable-next-line:forin
             for (const liquidityProvider in registry) {
                 assert.isETHAddressHex('liquidity provider address', liquidityProvider);
 

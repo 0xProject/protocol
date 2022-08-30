@@ -16,8 +16,6 @@ import {
     MultiHopFillData,
 } from './types';
 
-// tslint:disable:no-bitwise
-
 /**
  * Returns the fee-adjusted rate of a two-hop quote. Returns zero if the
  * quote falls short of the target input.

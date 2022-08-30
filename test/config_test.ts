@@ -37,7 +37,6 @@ describe('Config', () => {
         it('returns `undefined` for non-existent api keys', () => {
             const id = getIntegratorIdForApiKey('test-api-key-does-not-exist');
 
-            // tslint:disable-next-line: no-unused-expression
             expect(id).to.be.undefined;
         });
     });

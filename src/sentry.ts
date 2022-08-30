@@ -1,7 +1,6 @@
 import * as Sentry from '@sentry/node';
 import * as Tracing from '@sentry/tracing';
 import { SamplingContext } from '@sentry/types';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 
 import { HEALTHCHECK_PATH } from './constants';

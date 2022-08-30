@@ -42,7 +42,6 @@ export class AssetSwapperOrderbook extends Orderbook {
         );
         return groupedByMakerToken;
     }
-    // tslint:disable-next-line:prefer-function-over-method
     public async destroyAsync(): Promise<void> {
         return;
     }

@@ -193,14 +193,12 @@ describe(SUITE_NAME, () => {
                         };
                         await Promise.all([deletePromise(orders, false), deletePromise(persistentOrders, true)]);
                         // If anything went wrong, the test failed
-                        // tslint:disable:no-console
                     } catch (e) {
                         console.log(indent, color('bright fail', `${symbols.err}`), color('fail', description));
                         throw e;
                     }
                     // Otherwise, succeeded
                     console.log(indent, color('checkmark', `${symbols.ok}`), color('pass', description));
-                    // tslint:enable:no-console
                 };
             }
 

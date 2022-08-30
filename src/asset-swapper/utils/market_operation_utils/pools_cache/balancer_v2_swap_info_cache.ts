@@ -65,7 +65,6 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
 
         for (const pool of pools) {
             const { tokensList } = pool;
-            // tslint:disable-next-line: await-promise
             await null; // This loop can be CPU heavy so yield to event loop.
             for (const from of tokensList) {
                 for (const to of tokensList.filter((t) => t.toLowerCase() !== from.toLowerCase())) {

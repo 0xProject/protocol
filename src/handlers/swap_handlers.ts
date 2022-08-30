@@ -86,7 +86,6 @@ export class SwapHandlers {
         const message = `This is the root of the Swap API. Visit ${SWAP_DOCS_URL} for details about this API.`;
         res.status(HttpStatus.OK).send({ message });
     }
-    // tslint:disable-next-line:prefer-function-over-method
     public static getTokens(_req: express.Request, res: express.Response): void {
         const tokens = TokenMetadatasForChains.map((tm) => ({
             symbol: tm.symbol,
@@ -234,7 +233,6 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send(response);
     }
 
-    // tslint:disable-next-line:prefer-function-over-method
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'price');
         const quote = await this._getSwapQuoteAsync({ ...params }, req);
@@ -379,7 +377,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const { takerAddress, affiliateAddress } = req.query;
 
     // Parse boolean params and defaults
-    // tslint:disable:boolean-naming
 
     // The /quote and /price endpoints should have different default behavior on skip validation
     const defaultSkipValidation = endpoint === 'quote' ? false : true;
@@ -398,7 +395,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // Whether the entire callers balance should be sold, used for contracts where the
     // amount available is non-deterministic
     const shouldSellEntireBalance = req.query.shouldSellEntireBalance === 'true' ? true : false;
-    // tslint:enable:boolean-naming
 
     // Parse tokens and eth wrap/unwraps
     const sellTokenRaw = req.query.sellToken as string;
@@ -462,7 +458,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     }
 
     // Parse sources
-    // tslint:disable-next-line: boolean-naming
     const { excludedSources, includedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
         {
             excludedSources: req.query.excludedSources as string | undefined,
@@ -516,7 +511,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const integrator = integratorId ? getIntegratorByIdOrThrow(integratorId) : undefined;
 
-    // tslint:disable:boolean-naming
     const enableSlippageProtection = parseOptionalBooleanParam(
         req.query.enableSlippageProtection as string,
         DEFAULT_ENABLE_SLIPPAGE_PROTECTION,

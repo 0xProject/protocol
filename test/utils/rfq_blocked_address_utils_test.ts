@@ -110,4 +110,3 @@ describe(SUITE_NAME, () => {
         expect(isUpperCaseBlocked).to.be.true();
     });
 });
-// tslint:disable-line:max-file-line-count

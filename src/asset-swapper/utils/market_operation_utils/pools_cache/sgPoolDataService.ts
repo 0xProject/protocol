@@ -96,7 +96,6 @@ export class SubgraphPoolDataService implements PoolDataService {
         this._gqlQuery = QUERY_BY_CHAIN_ID[this._config.chainId];
     }
 
-    // tslint:disable-next-line: async-suffix
     public async getPools(): Promise<SubgraphPoolBase[]> {
         if (!this._gqlQuery || !this._config.subgraphUrl) {
             return [];

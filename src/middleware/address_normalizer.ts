@@ -1,5 +1,4 @@
 import * as express from 'express';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 
 import { objectETHAddressNormalizer } from '../utils/address_utils';
