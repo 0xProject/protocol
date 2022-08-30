@@ -465,7 +465,7 @@ const EXCLUDED_SOURCES = (() => {
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
             );
-        case ChainId.Ropsten:
+        case ChainId.Ropsten: {
             const supportedRopstenSources = new Set([
                 ERC20BridgeSource.Native,
                 ERC20BridgeSource.SushiSwap,
@@ -476,6 +476,7 @@ const EXCLUDED_SOURCES = (() => {
                 ERC20BridgeSource.Mooniswap,
             ]);
             return allERC20BridgeSources.filter((s) => !supportedRopstenSources.has(s));
+        }
         case ChainId.Ganache:
             return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
         case ChainId.BSC:
@@ -724,13 +725,14 @@ function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): 
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
     let returnValue;
     switch (expectedType) {
-        case EnvVarType.Port:
+        case EnvVarType.Port: {
             returnValue = parseInt(value, 10);
             const isWithinRange = returnValue >= 0 && returnValue <= 65535;
             if (isNaN(returnValue) || !isWithinRange) {
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
             }
             return returnValue;
+        }
         case EnvVarType.ChainId:
         case EnvVarType.KeepAliveTimeout:
         case EnvVarType.Integer:
@@ -751,11 +753,12 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
         case EnvVarType.Url:
             assert.isUri(name, value);
             return value;
-        case EnvVarType.UrlList:
+        case EnvVarType.UrlList: {
             assert.isString(name, value);
             const urlList = (value as string).split(',');
             urlList.forEach((url, i) => assert.isUri(`${name}[${i}]`, url));
             return urlList;
+        }
         case EnvVarType.Boolean:
             return value === 'true';
         case EnvVarType.UnitAmount:
@@ -764,15 +767,17 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be valid number greater than 0.`);
             }
             return returnValue;
-        case EnvVarType.AddressList:
+        case EnvVarType.AddressList: {
             assert.isString(name, value);
             const addressList = (value as string).split(',').map((a) => a.toLowerCase());
             addressList.forEach((a, i) => assert.isETHAddressHex(`${name}[${i}]`, a));
             return addressList;
-        case EnvVarType.StringList:
+        }
+        case EnvVarType.StringList: {
             assert.isString(name, value);
             const stringList = (value as string).split(',');
             return stringList;
+        }
         case EnvVarType.WhitelistAllTokens:
             return '*';
         case EnvVarType.NonEmptyString:
@@ -781,7 +786,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 throw new Error(`${name} must be supplied`);
             }
             return value;
-        case EnvVarType.APIKeys:
+        case EnvVarType.APIKeys: {
             assert.isString(name, value);
             const apiKeys = (value as string).split(',').filter((key) => !!key.trim());
             apiKeys.forEach((apiKey) => {
@@ -791,10 +796,12 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 }
             });
             return apiKeys;
-        case EnvVarType.JsonStringList:
+        }
+        case EnvVarType.JsonStringList: {
             assert.isString(name, value);
             return JSON.parse(value);
-        case EnvVarType.RfqMakerAssetOfferings:
+        }
+        case EnvVarType.RfqMakerAssetOfferings: {
             const offerings: RfqMakerAssetOfferings = JSON.parse(value);
             for (const makerEndpoint in offerings) {
                 assert.isWebUri('market maker endpoint', makerEndpoint);
@@ -822,7 +829,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 });
             }
             return offerings;
-        case EnvVarType.LiquidityProviderRegistry:
+        }
+        case EnvVarType.LiquidityProviderRegistry: {
             const registry: LiquidityProviderRegistry = JSON.parse(value);
             for (const liquidityProvider in registry) {
                 assert.isETHAddressHex('liquidity provider address', liquidityProvider);
@@ -836,7 +844,7 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
                 // assert.isNumber(`gas cost for liquidity provider ${liquidityProvider}`, gasCost);
             }
             return registry;
-
+        }
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);
     }

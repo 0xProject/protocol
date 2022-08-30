@@ -73,7 +73,7 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.ApeSwap,
     ERC20BridgeSource.CheeseSwap,
 ];
-const FAKE_PROVIDER: any = {
+const FAKE_PROVIDER = {
     sendAsync(): void {
         return;
     },
@@ -373,7 +373,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         // Build up the transforms.
         const transforms = [];
         // Create a WETH wrapper if coming from ETH.
-        // Dont add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
+        // Don't add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
         if (isFromETH && this.chainId !== ChainId.Celo) {
             transforms.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
@@ -572,7 +572,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
                     break switch_statement;
-                case ERC20BridgeSource.UniswapV3:
+                case ERC20BridgeSource.UniswapV3: {
                     const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
                     subcalls.push({
                         id: MultiplexSubcall.UniswapV3,
@@ -580,7 +580,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         data: fillData.uniswapPath,
                     });
                     break switch_statement;
-                default:
+                }
+                default: {
                     const fqtData = encodeFillQuoteTransformerData({
                         side: FillQuoteTransformerSide.Sell,
                         sellToken: quote.takerToken,
@@ -607,6 +608,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
                     break for_loop;
+                }
             }
         }
         if (opts.isFromETH) {

@@ -111,6 +111,7 @@ async function runRfqBalanceCacheAsync(
 
     const workerId = _.uniqueId('rfqw_');
     let lastBlockSeen = -1;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         if (blockRequestErrors >= MAX_REQUEST_ERRORS) {
             throw new Error(`too many bad Web3 requests to fetch blocks (reached limit of ${MAX_REQUEST_ERRORS})`);

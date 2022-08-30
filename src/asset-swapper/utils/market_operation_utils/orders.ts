@@ -241,7 +241,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.FirebirdOneSwap:
         case ERC20BridgeSource.IronSwap:
         case ERC20BridgeSource.ACryptos:
-        case ERC20BridgeSource.MobiusMoney:
+        case ERC20BridgeSource.MobiusMoney: {
             const curveFillData = (order as OptimizedMarketBridgeOrder<CurveFillData>).fillData;
             bridgeData = encoder.encode([
                 curveFillData.pool.poolAddress,
@@ -250,6 +250,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 curveFillData.toTokenIdx,
             ]);
             break;
+        }
         case ERC20BridgeSource.Balancer:
         case ERC20BridgeSource.BalancerV2:
             {
@@ -261,15 +262,17 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 ]);
             }
             break;
-        case ERC20BridgeSource.Beethovenx:
+        case ERC20BridgeSource.Beethovenx: {
             const beethovenFillData = (order as OptimizedMarketBridgeOrder<BalancerV2FillData>).fillData;
             const { vault, poolId } = beethovenFillData;
             bridgeData = encoder.encode([vault, poolId]);
             break;
-        case ERC20BridgeSource.Bancor:
+        }
+        case ERC20BridgeSource.Bancor: {
             const bancorFillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
             bridgeData = encoder.encode([bancorFillData.networkAddress, bancorFillData.path]);
             break;
+        }
         case ERC20BridgeSource.UniswapV2:
         case ERC20BridgeSource.SushiSwap:
         case ERC20BridgeSource.CryptoCom:
@@ -292,15 +295,17 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
         case ERC20BridgeSource.MDex:
         case ERC20BridgeSource.KnightSwap:
         case ERC20BridgeSource.Yoshi:
-        case ERC20BridgeSource.MeshSwap:
+        case ERC20BridgeSource.MeshSwap: {
             const uniswapV2FillData = (order as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             bridgeData = encoder.encode([uniswapV2FillData.router, uniswapV2FillData.tokenAddressPath]);
             break;
-        case ERC20BridgeSource.Mooniswap:
+        }
+        case ERC20BridgeSource.Mooniswap: {
             const mooniswapFillData = (order as OptimizedMarketBridgeOrder<MooniswapFillData>).fillData;
             bridgeData = encoder.encode([mooniswapFillData.poolAddress]);
             break;
-        case ERC20BridgeSource.Dodo:
+        }
+        case ERC20BridgeSource.Dodo: {
             const dodoFillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
             bridgeData = encoder.encode([
                 dodoFillData.helperAddress,
@@ -308,36 +313,44 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 dodoFillData.isSellBase,
             ]);
             break;
-        case ERC20BridgeSource.DodoV2:
+        }
+        case ERC20BridgeSource.DodoV2: {
             const dodoV2FillData = (order as OptimizedMarketBridgeOrder<DODOFillData>).fillData;
             bridgeData = encoder.encode([dodoV2FillData.poolAddress, dodoV2FillData.isSellBase]);
             break;
+        }
         case ERC20BridgeSource.Shell:
-        case ERC20BridgeSource.Component:
+        case ERC20BridgeSource.Component: {
             const shellFillData = (order as OptimizedMarketBridgeOrder<ShellFillData>).fillData;
             bridgeData = encoder.encode([shellFillData.poolAddress]);
             break;
-        case ERC20BridgeSource.LiquidityProvider:
+        }
+        case ERC20BridgeSource.LiquidityProvider: {
             const lpFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
             bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
             break;
-        case ERC20BridgeSource.Uniswap:
+        }
+        case ERC20BridgeSource.Uniswap: {
             const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([uniFillData.router]);
             break;
-        case ERC20BridgeSource.MStable:
+        }
+        case ERC20BridgeSource.MStable: {
             const mStableFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([mStableFillData.router]);
             break;
-        case ERC20BridgeSource.MakerPsm:
+        }
+        case ERC20BridgeSource.MakerPsm: {
             const psmFillData = (order as OptimizedMarketBridgeOrder<MakerPsmFillData>).fillData;
             bridgeData = encoder.encode([psmFillData.psmAddress, psmFillData.gemTokenAddress]);
             break;
-        case ERC20BridgeSource.UniswapV3:
+        }
+        case ERC20BridgeSource.UniswapV3: {
             const uniswapV3FillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
             bridgeData = encoder.encode([uniswapV3FillData.router, uniswapV3FillData.uniswapPath]);
             break;
-        case ERC20BridgeSource.KyberDmm:
+        }
+        case ERC20BridgeSource.KyberDmm: {
             const kyberDmmFillData = (order as OptimizedMarketBridgeOrder<KyberDmmFillData>).fillData;
             bridgeData = encoder.encode([
                 kyberDmmFillData.router,
@@ -345,23 +358,28 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 kyberDmmFillData.tokenAddressPath,
             ]);
             break;
-        case ERC20BridgeSource.Lido:
+        }
+        case ERC20BridgeSource.Lido: {
             const lidoFillData = (order as OptimizedMarketBridgeOrder<LidoFillData>).fillData;
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress, lidoFillData.wstEthTokenAddress]);
             break;
-        case ERC20BridgeSource.AaveV2:
+        }
+        case ERC20BridgeSource.AaveV2: {
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
             bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
             break;
-        case ERC20BridgeSource.Compound:
+        }
+        case ERC20BridgeSource.Compound: {
             const compoundFillData = (order as OptimizedMarketBridgeOrder<CompoundFillData>).fillData;
             bridgeData = encoder.encode([compoundFillData.cToken]);
             break;
-        case ERC20BridgeSource.Geist:
+        }
+        case ERC20BridgeSource.Geist: {
             const geistFillData = (order as OptimizedMarketBridgeOrder<GeistFillData>).fillData;
             bridgeData = encoder.encode([geistFillData.lendingPool, geistFillData.gToken]);
             break;
-        case ERC20BridgeSource.GMX:
+        }
+        case ERC20BridgeSource.GMX: {
             const gmxFillData = (order as OptimizedMarketBridgeOrder<GMXFillData>).fillData;
             bridgeData = encoder.encode([
                 gmxFillData.router,
@@ -370,7 +388,8 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 gmxFillData.tokenAddressPath,
             ]);
             break;
-        case ERC20BridgeSource.Platypus:
+        }
+        case ERC20BridgeSource.Platypus: {
             const platypusFillData = (order as OptimizedMarketBridgeOrder<PlatypusFillData>).fillData;
             bridgeData = encoder.encode([
                 platypusFillData.router,
@@ -378,15 +397,18 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 platypusFillData.tokenAddressPath,
             ]);
             break;
-        case ERC20BridgeSource.BancorV3:
+        }
+        case ERC20BridgeSource.BancorV3: {
             const bancorV3FillData = (order as OptimizedMarketBridgeOrder<BancorFillData>).fillData;
             bridgeData = encoder.encode([bancorV3FillData.networkAddress, bancorV3FillData.path]);
             break;
-        case ERC20BridgeSource.Velodrome:
+        }
+        case ERC20BridgeSource.Velodrome: {
             const velodromeFillData = (order as OptimizedMarketBridgeOrder<VelodromeFillData>).fillData;
             bridgeData = encoder.encode([velodromeFillData.router, velodromeFillData.stable]);
             break;
-        case ERC20BridgeSource.Synthetix:
+        }
+        case ERC20BridgeSource.Synthetix: {
             const fillData = (order as OptimizedMarketBridgeOrder<SynthetixFillData>).fillData;
             bridgeData = encoder.encode([
                 fillData.synthetix,
@@ -394,10 +416,12 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
                 fillData.makerTokenSymbolBytes32,
             ]);
             break;
-        case ERC20BridgeSource.WOOFi:
+        }
+        case ERC20BridgeSource.WOOFi: {
             const woofiFillData = (order as OptimizedMarketBridgeOrder<WOOFiFillData>).fillData;
             bridgeData = encoder.encode([woofiFillData.poolAddress]);
             break;
+        }
         default:
             throw new Error(AggregationError.NoBridgeForSource);
     }

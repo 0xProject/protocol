@@ -41,7 +41,10 @@ type SlippageModelCache = Map<string, SlippageModelCacheForPair>;
 /**
  * Create an in-memory cache for all slippage models loaded from file.
  */
-const createSlippageModelCache = (slippageModelFileContent: string, logLabels: {}): SlippageModelCache => {
+const createSlippageModelCache = (
+    slippageModelFileContent: string,
+    logLabels: Record<string, unknown>,
+): SlippageModelCache => {
     const slippageModelList: SlippageModel[] = JSON.parse(slippageModelFileContent);
     schemaUtils.validateSchema(slippageModelList, schemas.slippageModelFileSchema);
     const cache: SlippageModelCache = new Map();

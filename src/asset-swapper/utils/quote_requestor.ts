@@ -102,7 +102,7 @@ function hasExpectedAddresses(comparisons: [string, string][]): boolean {
 }
 
 function convertIfAxiosError(error: any): Error | object /* axios' .d.ts has AxiosError.toJSON() returning object */ {
-    if (error.hasOwnProperty('isAxiosError') && error.isAxiosError) {
+    if (Object.prototype.hasOwnProperty.call(error, 'isAxiosError') && error.isAxiosError) {
         const { message, name, config } = error;
         const { headers, timeout, httpsAgent } = config;
         const { keepAlive, keepAliveMsecs, sockets } = httpsAgent;

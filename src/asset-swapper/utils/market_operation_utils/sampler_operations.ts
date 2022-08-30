@@ -1556,7 +1556,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.BiSwap:
                     case ERC20BridgeSource.MDex:
                     case ERC20BridgeSource.KnightSwap:
-                    case ERC20BridgeSource.MeshSwap:
+                    case ERC20BridgeSource.MeshSwap: {
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1565,12 +1565,14 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source));
-                    case ERC20BridgeSource.KyberDmm:
+                    }
+                    case ERC20BridgeSource.KyberDmm: {
                         const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(kyberDmmRouter)) {
                             return [];
                         }
                         return this.getKyberDmmSellQuotes(kyberDmmRouter, [takerToken, makerToken], takerFillAmounts);
+                    }
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Nerve:
@@ -1701,12 +1703,13 @@ export class SamplerOperations {
                             takerToken,
                             takerFillAmounts,
                         );
-                    case ERC20BridgeSource.MakerPsm:
+                    case ERC20BridgeSource.MakerPsm: {
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {
                             return [];
                         }
                         return this.getMakerPsmSellQuotes(psmInfo, makerToken, takerToken, takerFillAmounts);
+                    }
                     case ERC20BridgeSource.UniswapV3: {
                         const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(router) || !isValidAddress(quoter)) {
@@ -1898,7 +1901,7 @@ export class SamplerOperations {
                     case ERC20BridgeSource.BiSwap:
                     case ERC20BridgeSource.MDex:
                     case ERC20BridgeSource.KnightSwap:
-                    case ERC20BridgeSource.MeshSwap:
+                    case ERC20BridgeSource.MeshSwap: {
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -1907,12 +1910,14 @@ export class SamplerOperations {
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
                         ].map((path) => this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source));
-                    case ERC20BridgeSource.KyberDmm:
+                    }
+                    case ERC20BridgeSource.KyberDmm: {
                         const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(kyberDmmRouter)) {
                             return [];
                         }
                         return this.getKyberDmmBuyQuotes(kyberDmmRouter, [takerToken, makerToken], makerFillAmounts);
+                    }
                     case ERC20BridgeSource.Curve:
                     case ERC20BridgeSource.CurveV2:
                     case ERC20BridgeSource.Nerve:
@@ -2043,12 +2048,13 @@ export class SamplerOperations {
                         // Unimplemented
                         // return this.getBancorBuyQuotes(makerToken, takerToken, makerFillAmounts);
                         return [];
-                    case ERC20BridgeSource.MakerPsm:
+                    case ERC20BridgeSource.MakerPsm: {
                         const psmInfo = MAKER_PSM_INFO_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(psmInfo.psmAddress)) {
                             return [];
                         }
                         return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
+                    }
                     case ERC20BridgeSource.UniswapV3: {
                         const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(router) || !isValidAddress(quoter)) {

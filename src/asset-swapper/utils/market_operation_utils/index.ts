@@ -513,8 +513,7 @@ export class MarketOperationUtils {
         const makerAmountPerEth = side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth;
 
         // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
-        let optimalPath: Path | undefined;
-        optimalPath = findOptimalPathFromSamples(
+        const optimalPath = findOptimalPathFromSamples(
             side,
             dexQuotes,
             [...nativeOrders, ...augmentedRfqtIndicativeQuotes],
@@ -833,14 +832,14 @@ export class MarketOperationUtils {
         }
 
         // Always compute the Extended Quote Report
-        let extendedQuoteReportSources: ExtendedQuoteReportSources | undefined;
-        extendedQuoteReportSources = MarketOperationUtils._computeExtendedQuoteReportSources(
-            _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-            marketSideLiquidity,
-            amount,
-            optimizerResult,
-            wholeOrderPrice,
-        );
+        const extendedQuoteReportSources: ExtendedQuoteReportSources | undefined =
+            MarketOperationUtils._computeExtendedQuoteReportSources(
+                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
+                marketSideLiquidity,
+                amount,
+                optimizerResult,
+                wholeOrderPrice,
+            );
 
         let priceComparisonsReport: PriceComparisonsReport | undefined;
         if (_opts.shouldIncludePriceComparisonsReport) {

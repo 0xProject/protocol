@@ -178,6 +178,7 @@ export interface GeistInfo {
 }
 
 // Internal `fillData` field for `Fill` objects.
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FillData {}
 
 // `FillData` for native fills. Represents a single native order

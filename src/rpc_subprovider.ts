@@ -120,12 +120,13 @@ export class RPCSubprovider extends Subprovider {
                 case StatusCodes.MethodNotAllowed:
                     end(new JsonRpcError.MethodNotFound());
                     return;
-                case StatusCodes.GatewayTimeout:
+                case StatusCodes.GatewayTimeout: {
                     const errMsg =
                         'Gateway timeout. The request took too long to process. This can happen when querying logs over too wide a block range.';
                     const err = new Error(errMsg);
                     end(new JsonRpcError.InternalError(err));
                     return;
+                }
                 default:
                     end(new JsonRpcError.InternalError(text));
                     return;

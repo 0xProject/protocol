@@ -184,13 +184,14 @@ export class WebsocketService {
         schemaUtils.validateSchema(message, schemas.sraOrdersChannelSubscribeSchema);
         const { requestId, payload, type } = message;
         switch (type) {
-            case MessageTypes.Subscribe:
+            case MessageTypes.Subscribe: {
                 ws.requestIds.add(requestId);
                 const subscriptionOpts =
                     payload === undefined || _.isEmpty(payload) ? 'ALL_SUBSCRIPTION_OPTS' : payload;
                 this._requestIdToSubscriptionOpts.set(requestId, subscriptionOpts);
                 this._requestIdToSocket.set(requestId, ws);
                 break;
+            }
             default:
                 throw new NotImplementedError(message.type);
         }

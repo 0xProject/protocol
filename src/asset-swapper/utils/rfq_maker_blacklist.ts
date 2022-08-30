@@ -15,7 +15,7 @@ export class RfqMakerBlacklist {
         public infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
     ) {}
     public logTimeoutOrLackThereof(makerUrl: string, didTimeout: boolean): void {
-        if (!this._makerTimeoutStreakLength.hasOwnProperty(makerUrl)) {
+        if (!Object.prototype.hasOwnProperty.call(this._makerTimeoutStreakLength, makerUrl)) {
             this._makerTimeoutStreakLength[makerUrl] = 0;
         }
         if (didTimeout) {

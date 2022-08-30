@@ -38,9 +38,9 @@ export function getAltMarketInfo(
     return undefined;
 }
 
-function parseFirmQuoteResponseFromAltMM(altFirmQuoteReponse: AltFirmQuoteResponse): V4RFQFirmQuote {
+function parseFirmQuoteResponseFromAltMM(altFirmQuoteResponse: AltFirmQuoteResponse): V4RFQFirmQuote {
     return {
-        signedOrder: altFirmQuoteReponse.data['0xv4order'],
+        signedOrder: altFirmQuoteResponse.data['0xv4order'],
     };
 }
 
@@ -153,8 +153,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
             : undefined;
     }
 
-    let data: AltQuoteRequestData;
-    data = {
+    const data: AltQuoteRequestData = {
         market: `${altPair.id}`,
         model: quoteModel,
         profile,
