@@ -1,7 +1,6 @@
 import { createMetricsRouter, MetricsService } from '@0x/api-utils';
 import { Worker } from 'bullmq';
 import * as express from 'express';
-import Redis from 'ioredis';
 
 import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT } from '../config';
 import { METRICS_PATH } from '../constants';
@@ -12,14 +11,17 @@ import { logger } from '../logger';
  *
  * @param redisConnections Redis connections to close.
  */
-export async function closeRedisConnectionsAsync(redisConnections: Redis[]): Promise<void> {
+export async function closeRedisConnectionsAsync<T>(redisConnections: { quit: () => Promise<T> }[]): Promise<T[]> {
+    const results: T[] = [];
     for (const connection of redisConnections) {
         try {
-            await connection.quit();
+            const result = await connection.quit();
+            results.push(result);
         } catch (error) {
             logger.error({ errorMessage: error.message, stack: error.stack }, 'Faied to shutdown redis connection');
         }
     }
+    return results;
 }
 
 /**

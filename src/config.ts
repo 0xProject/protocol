@@ -80,6 +80,9 @@ export interface ChainConfiguration {
     // The smaller sleep time, the more frequent a transaction is checked to see it has been
     // settled on-chain but it also consumes more RPC calls.
     rfqmWorkerTransactionWatcherSleepTimeMs?: number;
+    // Configuration for the gasless swap service. If no configuration is present,
+    // the chain will not have the gasless swap service active.
+    gaslessSwapServiceConfiguration?: { metaTransactionServiceUrl: string };
 }
 
 export type ChainConfigurations = ChainConfiguration[];
