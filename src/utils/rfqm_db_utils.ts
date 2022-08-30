@@ -1,3 +1,4 @@
+// tslint:disable:max-file-line-count
 import { OtcOrder } from '@0x/protocol-utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
@@ -5,6 +6,7 @@ import { FindOptionsWhere, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
 
 import {
+    LastLookRejectionCooldownEntity,
     MetaTransactionJobEntity,
     MetaTransactionSubmissionEntity,
     RfqmV2JobEntity,
@@ -26,6 +28,8 @@ import {
     UnresolvedRfqmJobStatuses,
 } from '../entities/types';
 import { FeeWithDetails } from '../services/types';
+
+import { toPairString } from './pair_utils';
 
 /**
  * Map a StoredOtcOrder to an OtcOrder
@@ -268,6 +272,26 @@ export class RfqmDbUtils {
     }
 
     /**
+     * [RFQm v2] Queries the last_look_rejection_cooldowns table with primary key
+     */
+    public async findV2LastLookRejectionCooldownAsync(
+        makerId: string,
+        chainId: number,
+        tokenA: string,
+        tokenB: string,
+        startTime: Date,
+    ): Promise<LastLookRejectionCooldownEntity | null> {
+        return this._connection.getRepository(LastLookRejectionCooldownEntity).findOne({
+            where: {
+                makerId,
+                chainId,
+                pairKey: toPairString(tokenA, tokenB),
+                startTime,
+            },
+        });
+    }
+
+    /**
      * [RFQm v2] Queries the rfqm_v2_transaction_submission table with the given orderHash
      */
     public async findV2TransactionSubmissionsByOrderHashAsync(
@@ -336,6 +360,30 @@ export class RfqmDbUtils {
         await this._connection.getRepository(RfqmV2TransactionSubmissionEntity).save(entity);
 
         return entity;
+    }
+
+    /**
+     * [RFQm v2] writes to the last_look_rejection_cooldowns table
+     */
+    public async writeV2LastLookRejectionCooldownAsync(
+        makerId: string,
+        chainId: number,
+        tokenA: string,
+        tokenB: string,
+        startTime: Date,
+        endTime: Date,
+        orderHash: string,
+    ): Promise<void> {
+        await this._connection.getRepository(LastLookRejectionCooldownEntity).insert(
+            new LastLookRejectionCooldownEntity({
+                makerId,
+                chainId,
+                pairKey: toPairString(tokenA, tokenB),
+                startTime,
+                endTime,
+                orderHash,
+            }),
+        );
     }
 
     /**

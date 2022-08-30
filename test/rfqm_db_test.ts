@@ -207,6 +207,32 @@ describe('RFQM Database', () => {
             expect(storedJob?.status).to.equal(RfqmJobStatus.FailedEthCallFailed);
         });
 
+        it('should be able to write to and read from the last_look_rejection_cooldowns table', async () => {
+            const makerId = 'makerId1';
+            const nowMs = Date.now();
+            const startTime = new Date(nowMs);
+            const endTime = new Date(nowMs + ONE_MINUTE_MS);
+            await dbUtils.writeV2LastLookRejectionCooldownAsync(
+                makerId,
+                chainId,
+                otcOrder.makerToken,
+                otcOrder.takerToken,
+                startTime,
+                endTime,
+                otcOrderHash,
+            );
+
+            const storedCooldown = await dbUtils.findV2LastLookRejectionCooldownAsync(
+                makerId,
+                chainId,
+                otcOrder.makerToken,
+                otcOrder.takerToken,
+                startTime,
+            );
+            expect(storedCooldown?.endTime).to.deep.eq(endTime);
+            expect(storedCooldown?.orderHash).to.deep.eq(otcOrderHash);
+        });
+
         it('should be able to write, update, and read the rfqm_v2_transaction_submission table', async () => {
             // Write
             const rfqmTransactionSubmissionEntityOpts: RfqmV2TransactionSubmissionEntityConstructorOpts = {
