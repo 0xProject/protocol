@@ -23,9 +23,11 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
+import { MetaTransactionJobEntity, RfqmV2JobEntity } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 import { RfqmService } from '../services/rfqm_service';
+import { RfqmTypes } from '../services/types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
@@ -177,9 +179,36 @@ export function createRfqmWorker(
         beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerIndex, workerAddress),
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.labels(workerAddress).inc();
-            const { orderHash } = JSON.parse(message.Body!);
-            logger.info({ workerAddress, orderHash }, 'Job dequeued from SQS');
-            await rfqmService.processJobAsync(orderHash, workerAddress);
+
+            // Message body should not be empty; refine type
+            if (!message.Body) {
+                throw new Error('Message body should not be empty');
+            }
+
+            const messageBody = JSON.parse(message.Body);
+            const type = messageBody.type as RfqmTypes;
+            let identifier;
+            let kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'];
+
+            switch (type) {
+                case RfqmTypes.OtcOrder:
+                    const { orderHash } = messageBody;
+                    identifier = orderHash;
+                    kind = 'rfqm_v2_job';
+                    break;
+                case RfqmTypes.MetaTransaction:
+                    const { id } = messageBody;
+                    identifier = id;
+                    kind = 'meta_transaction_job';
+                    break;
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(type);
+            }
+
+            logger.info({ workerAddress, kind, identifier }, 'Job dequeued from SQS');
+            await rfqmService.processJobAsync(identifier, workerAddress, kind);
         },
     });
 

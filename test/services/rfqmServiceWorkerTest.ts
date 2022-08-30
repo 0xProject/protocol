@@ -183,8 +183,116 @@ describe('RfqmService Worker Logic', () => {
     beforeEach(() => {
         loggerSpy = spy(logger);
     });
+
+    describe('workerBeforeLogicAsync', () => {
+        it('calls `processJobAsync` with the correct arguments', async () => {
+            const workerIndex = 0;
+            const workerAddress = MOCK_WORKER_REGISTRY_ADDRESS;
+            const jobId = 'jobId';
+            const metaTransactionJob = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: '0xinputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xworkeraddress',
+                },
+                jobId,
+            );
+            const rfqmV2Job = new RfqmV2JobEntity({
+                affiliateAddress: '',
+                chainId: 1,
+                createdAt: new Date(),
+                expiry: new BigNumber(fakeFiveMinutesLater),
+                fee: {
+                    amount: '0',
+                    token: '',
+                    type: 'fixed',
+                },
+                integratorId: '',
+                lastLookResult: null,
+                makerUri: 'http://foo.bar',
+                makerSignature: null,
+                order: {
+                    order: {
+                        chainId: '1',
+                        expiryAndNonce: OtcOrder.encodeExpiryAndNonce(
+                            new BigNumber(fakeFiveMinutesLater),
+                            new BigNumber(1),
+                            new BigNumber(1),
+                        ).toString(),
+                        maker,
+                        makerAmount: '1000000',
+                        makerToken: '0xmakertoken',
+                        taker: '0xtaker',
+                        takerAmount: '10000000',
+                        takerToken: '0xtakertoken',
+                        txOrigin: '',
+                        verifyingContract: '',
+                    },
+                    type: RfqmOrderTypes.Otc,
+                },
+                orderHash,
+                status: RfqmJobStatus.PendingEnqueued,
+                takerSignature: {
+                    signatureType: SignatureType.EthSign,
+                    v: 1,
+                    r: '',
+                    s: '',
+                },
+                updatedAt: new Date(),
+                workerAddress,
+            });
+
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
+
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            when(blockchainUtilsMock.getAccountBalanceAsync(workerAddress)).thenResolve(WORKER_FULL_BALANCE_WEI);
+
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findV2UnresolvedJobsAsync(workerAddress, anything())).thenResolve([rfqmV2Job]);
+            when(dbUtilsMock.findUnresolvedMetaTransactionJobsAsync(workerAddress, anything())).thenResolve([
+                metaTransactionJob,
+            ]);
+
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(dbUtilsMock),
+                rfqBlockchainUtils: instance(blockchainUtilsMock),
+                rfqmFeeService: instance(rfqmFeeServiceMock),
+            });
+            const spiedRfqmService = spy(rfqmService);
+            when(spiedRfqmService.processJobAsync(anything(), anything(), anything())).thenResolve();
+
+            await rfqmService.workerBeforeLogicAsync(workerIndex, workerAddress);
+            verify(spiedRfqmService.processJobAsync(orderHash, workerAddress, 'rfqm_v2_job')).once();
+            verify(spiedRfqmService.processJobAsync(jobId, workerAddress, 'meta_transaction_job')).once();
+        });
+    });
+
     describe('processJobAsync', () => {
-        it('fails if no job is found', async () => {
+        it('fails if no rfqm v2 job is found', async () => {
             // Return `undefined` for v1 and v2 job for orderhash
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(null);
@@ -193,11 +301,11 @@ describe('RfqmService Worker Logic', () => {
 
             await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
             expect(capture(loggerSpy.error).last()[0]).to.include({
-                errorMessage: 'No job found for order hash',
+                errorMessage: 'No job found for identifier',
             });
         });
 
-        it('fails if a worker ends up with a job assigned to a different worker', async () => {
+        it('fails if a worker ends up with a job assigned to a different worker for a rfqm v2 job', async () => {
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(
                 new RfqmV2JobEntity({
@@ -242,6 +350,69 @@ describe('RfqmService Worker Logic', () => {
             const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
             await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
+            expect(capture(loggerSpy.error).last()[0]).to.include({
+                errorMessage: 'Worker was sent a job claimed by a different worker',
+            });
+        });
+
+        it('fails if no meta-transaction job is found', async () => {
+            const dbUtilsMock = mock(RfqmDbUtils);
+            const jobId = 'jobId';
+            when(dbUtilsMock.findMetaTransactionJobByIdAsync(jobId)).thenResolve(null);
+
+            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+            await rfqmService.processJobAsync(jobId, '0xworkeraddress', 'meta_transaction_job');
+            expect(capture(loggerSpy.error).last()[0]).to.include({
+                errorMessage: 'No job found for identifier',
+            });
+        });
+
+        it('fails if a worker ends up with a job assigned to a different worker for a meta-transaction job', async () => {
+            const jobId = 'jobId';
+            const job = createMeaTrsanctionJobEntity(
+                {
+                    chainId: 1,
+                    createdAt: new Date(),
+                    expiry: new BigNumber(fakeFiveMinutesLater),
+                    fee: {
+                        amount: new BigNumber(0),
+                        token: '',
+                        type: 'fixed',
+                    },
+                    inputToken: 'inputToken',
+                    inputTokenAmount: new BigNumber(10),
+                    integratorId: '0xintegrator',
+                    metaTransaction: MOCK_META_TRANSACTION,
+                    metaTransactionHash: MOCK_META_TRANSACTION.getHash(),
+                    minOutputTokenAmount: new BigNumber(10),
+                    outputToken: '0xoutputToken',
+                    takerAddress: '0xtakerAddress',
+                    takerSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                    status: RfqmJobStatus.PendingEnqueued,
+                    workerAddress: '0xwrongworkeraddress',
+                    approval: MOCK_EXECUTE_META_TRANSACTION_APPROVAL,
+                    approvalSignature: {
+                        signatureType: SignatureType.EthSign,
+                        v: 1,
+                        r: '',
+                        s: '',
+                    },
+                },
+                jobId,
+            );
+
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.findMetaTransactionJobByIdAsync(jobId)).thenResolve(job);
+
+            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+            await rfqmService.processJobAsync(jobId, '0xworkeraddress', 'meta_transaction_job');
             expect(capture(loggerSpy.error).last()[0]).to.include({
                 errorMessage: 'Worker was sent a job claimed by a different worker',
             });

@@ -748,14 +748,31 @@ export class RfqmService {
         RFQM_WORKER_BALANCE.labels(workerAddress, this._chainId.toString()).set(balanceUnitAmount.toNumber());
 
         // check for outstanding jobs from the worker and resolve them
-        const unresolvedJobOrderHashes = await this._dbUtils
-            .findV2UnresolvedJobsAsync(workerAddress, this._chainId)
-            .then((x) => x.flat().map((j) => j.orderHash));
+        const unresolvedJobs = await Promise.all([
+            this._dbUtils.findV2UnresolvedJobsAsync(workerAddress, this._chainId),
+            this._dbUtils.findUnresolvedMetaTransactionJobsAsync(workerAddress, this._chainId),
+        ]).then((x) => x.flat());
 
-        RFQM_JOB_REPAIR.labels(workerAddress, this._chainId.toString()).inc(unresolvedJobOrderHashes.length);
-        for (const orderHash of unresolvedJobOrderHashes) {
-            logger.info({ workerAddress, orderHash }, `Unresolved job found, attempting to reprocess`);
-            await this.processJobAsync(orderHash, workerAddress);
+        RFQM_JOB_REPAIR.labels(workerAddress, this._chainId.toString()).inc(unresolvedJobs.length);
+        for (const job of unresolvedJobs) {
+            const { kind } = job;
+            let jobIdentifier;
+
+            switch (kind) {
+                case 'rfqm_v2_job':
+                    jobIdentifier = job.orderHash;
+                    break;
+                case 'meta_transaction_job':
+                    jobIdentifier = job.id;
+                    break;
+                default:
+                    ((_x: never): never => {
+                        throw new Error('Unreachable');
+                    })(kind);
+            }
+
+            logger.info({ kind, jobIdentifier, workerAddress }, `Unresolved job found, attempting to reprocess`);
+            await this.processJobAsync(jobIdentifier, workerAddress, kind);
         }
 
         const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
@@ -1167,16 +1184,14 @@ export class RfqmService {
     }
 
     /**
-     * Top-level logic the worker uses to take a v1 or v2 job to completion.
-     * The orderHash can come from either an unfinished job found during the
-     * worker before logic or from an SQS message, and it may be the hash for
-     * either a v1 or v2 job.
+     * Top-level logic the worker uses to take a v2 job or meta-transaction job to completion.
+     * The identifier (orderHash for v2 job and jod id for meta-transaction job) can come from
+     * either an unfinished job found during the worker before logic or from an SQS message.
      *
      * Big picture steps:
      * 1. Fetch the job from the database
-     * 2. Prepare the job by validating it & conducting a last look (v1)
-     *    or getting the market maker signature (v2).
-     *    This step uses different functions for v1 and v2 jobs.
+     * 2. Prepare the job by validating it (and getting the market maker signature for v2 job).
+     *    This step is different for v2 and meta-transaction jobs.
      * 3. Submit a transaction if none exist, wait for mining + confirmation,
      *    and submit new transactions if gas prices rise
      * 4. Finalize the job status
@@ -1186,15 +1201,32 @@ export class RfqmService {
      *
      * This function handles processing latency metrics & job success/fail counters.
      */
-    public async processJobAsync(orderHash: string, workerAddress: string): Promise<void> {
-        logger.info({ orderHash, workerAddress }, 'Start process job');
+    public async processJobAsync(
+        identifier: string,
+        workerAddress: string,
+        kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'] = 'rfqm_v2_job',
+    ): Promise<void> {
+        logger.info({ kind, identifier, workerAddress }, 'Start process job');
         const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.labels(this._chainId.toString()).startTimer();
 
         try {
-            // Step 1: Find the job via the order hash
-            const job = await this._dbUtils.findV2JobByOrderHashAsync(orderHash);
+            // Step 1: Find the job
+            let job;
+            switch (kind) {
+                case 'rfqm_v2_job':
+                    job = await this._dbUtils.findV2JobByOrderHashAsync(identifier);
+                    break;
+                case 'meta_transaction_job':
+                    job = await this._dbUtils.findMetaTransactionJobByIdAsync(identifier);
+                    break;
+                default:
+                    ((_x: never) => {
+                        throw new Error('unreachable');
+                    })(kind);
+            }
+
             if (!job) {
-                throw new Error('No job found for order hash');
+                throw new Error('No job found for identifier');
             }
 
             // Step 2: Prepare the job for submission
@@ -1213,10 +1245,10 @@ export class RfqmService {
                 // trade only workflow
                 await this.processTradeAsync(job, workerAddress);
             }
-            logger.info({ orderHash, workerAddress }, 'Job completed without errors');
+            logger.info({ kind, identifier, workerAddress }, 'Job completed without errors');
             RFQM_JOB_COMPLETED.labels(workerAddress, this._chainId.toString()).inc();
         } catch (error) {
-            logger.error({ workerAddress, orderHash, errorMessage: error.message }, 'Job completed with error');
+            logger.error({ kind, workerAddress, identifier, errorMessage: error.message }, 'Job completed with error');
             RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress, this._chainId.toString()).inc();
         } finally {
             timerStopFunction();
