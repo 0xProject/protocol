@@ -338,26 +338,13 @@ export class SwapService {
                 : buyAmount!.times(affiliateFee.buyTokenPercentageFee + 1).integerValue(BigNumber.ROUND_DOWN);
 
         // Fetch the Swap quote
-        const useRfqClient = isHashSmallEnough({
+        const rfqClient = isHashSmallEnough({
             message:
                 `${assetSwapperOpts.rfqt?.txOrigin}-${sellToken}-${buyToken}-${amount}-${marketSide}`.toLowerCase(),
             threshold: RFQ_CLIENT_ROLLOUT_PERCENT / 100,
-        });
-        const rfqClient = useRfqClient ? this._rfqClient : undefined;
-
-        logger.info(
-            {
-                isRfqClientDefined: this._rfqClient !== undefined,
-                useRfqClient,
-                sellToken,
-                buyToken,
-                sellAmount,
-                buyAmount,
-                rfqt: _rfqt,
-                RFQ_CLIENT_ROLLOUT_PERCENT,
-            },
-            'debug: useRfqClient',
-        );
+        })
+            ? this._rfqClient
+            : undefined;
 
         const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
             buyToken,
