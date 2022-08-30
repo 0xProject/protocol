@@ -121,9 +121,9 @@ export class GaslessSwapHandlers {
      */
     public async getStatusAsync(req: express.Request, res: express.Response): Promise<void> {
         const chainId = extractChainId(req, this._gaslessSwapServices);
-        const { orderHash } = req.params;
+        const { hash } = req.params;
 
-        const status = await this._getServiceForChain(chainId).getStatusAsync(orderHash);
+        const status = await this._getServiceForChain(chainId).getStatusAsync(hash);
 
         status ? res.status(HttpStatus.OK).send(status) : res.status(HttpStatus.NOT_FOUND).send();
     }
