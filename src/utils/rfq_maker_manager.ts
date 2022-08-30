@@ -157,6 +157,14 @@ export class RfqMakerManager extends EventEmitter {
     }
 
     /**
+     * Find maker ID from its RFQm URI
+     */
+    public findMakerIdWithRfqmUri(makerRfqmUri: string): string | null {
+        const maker = this._rfqmMakers.find((m) => m.rfqmUri === makerRfqmUri);
+        return maker?.makerId || null;
+    }
+
+    /**
      * Refresh RfqMaker entities by querying database.
      * Emit an 'refreshed' event for subscribers to refresh if the operation is successful.
      */

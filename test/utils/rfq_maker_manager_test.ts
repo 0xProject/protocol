@@ -165,6 +165,40 @@ describe('RfqMakerManager', () => {
         });
     });
 
+    describe('findMakerIdWithRfqmUri', () => {
+        it('should return correct maker Id if the rfqm URI exists', async () => {
+            // Given
+            const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
+
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
+            await rfqMakerManager.initializeAsync();
+
+            // When
+            const maker1Id = rfqMakerManager.findMakerIdWithRfqmUri('https://maker1.asdf');
+            const maker2Id = rfqMakerManager.findMakerIdWithRfqmUri('https://maker2.asdf');
+
+            // Then
+            expect(maker1Id).toEqual('maker1');
+            expect(maker2Id).toEqual('maker2');
+        });
+
+        it('should return null if the maker URI does not exist', async () => {
+            // Given
+            const rfqMakerDbUtils = createMockRfqMakerDbUtilsInstance(rfqMaker);
+            const configManager = createMockConfigManager(makerIdSet, makerIdSet, makerIdSet);
+
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, CHAIN_ID);
+            await rfqMakerManager.initializeAsync();
+
+            // When
+            const nullMakerId = rfqMakerManager.findMakerIdWithRfqmUri('https://maker-null.asdf');
+
+            // Then
+            expect(nullMakerId).toEqual(null);
+        });
+    });
+
     describe('getRfqtV2MakerOfferings', () => {
         it('should return the RfqMakerAssetOfferings for OtcOrder', async () => {
             // Given
