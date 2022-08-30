@@ -398,6 +398,13 @@ export class QuoteRequestor {
         return this._orderSignatureToMakerUri[nativeDataToId({ signature })];
     }
 
+    /**
+     * Set the makerUri for a given signature for future lookup by signature
+     */
+    public setMakerUriForSignature(signature: Signature, makerUri: string): void {
+        this._orderSignatureToMakerUri[nativeDataToId({ signature })] = makerUri;
+    }
+
     private _isValidRfqtIndicativeQuoteResponse(response: V4RFQIndicativeQuoteMM): boolean {
         const requiredKeys: (keyof V4RFQIndicativeQuoteMM)[] = [
             'makerAmount',

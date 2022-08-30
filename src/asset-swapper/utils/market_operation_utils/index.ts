@@ -742,7 +742,12 @@ export class MarketOperationUtils {
                                   takerToken,
                                   txOrigin: rfqt.txOrigin,
                               })
-                          ).quotes.map(toSignedNativeOrder)
+                          ).quotes.map((quote) => {
+                              DEFAULT_INFO_LOGGER({ ...quote, txOrigin: rfqt.txOrigin }, 'results from RFQ Client');
+                              // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
+                              rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
+                              return toSignedNativeOrder(quote);
+                          })
                         : await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
                               makerToken,
                               takerToken,
