@@ -62,6 +62,11 @@ jobs:
               run: |
                 sed -i -e 's/newTag:.*/newTag: ${{ inputs.git_commit_id }}/g' clusters/main-cluster/kubernetes/goerli-api/kustomization.yaml
 
+            - name: Update API configs (Arbitrum)
+              if: env.chain == 'arbitrum' || (env.chain == 'all' && env.folder_env == 'production')
+              run: |
+                sed -i -e 's/newTag:.*/newTag: ${{ inputs.git_commit_id }}/g' clusters/main-cluster/kubernetes/arbitrum-api/kustomization.yaml
+
             - name: Update API configs (BSC)
               if: env.chain == 'bsc' || env.chain == 'all'
               run: sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.git_commit_id }}"/g' env/0x-api/${{ env.folder_env }}/apis/bsc/*.yml
