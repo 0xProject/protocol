@@ -67,6 +67,8 @@ export interface ChainConfiguration {
     initialMaxPriorityFeePerGasGwei: number;
     quoteReportTopic?: string;
     enableAccessList?: boolean;
+    // Enables caching for maker balances on observed tokens
+    enableMakerBalanceCache?: boolean;
     feeModelVersion?: number;
     // Use this config to override the 0x Exchange Proxy contract address.
     // There might be a case when we want a different exchange

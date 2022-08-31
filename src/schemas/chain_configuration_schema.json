@@ -4,6 +4,9 @@
         "enableAccessList": {
             "type": "boolean"
         },
+        "enableMakerBalanceCache": {
+            "type": "boolean"
+        },
         "gasStationUrl": {
             "type": "string"
         },

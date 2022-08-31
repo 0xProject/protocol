@@ -223,14 +223,8 @@ describe('RFQM Integration', () => {
         when(
             rfqBlockchainUtilsMock.validateMetaTransactionOrThrowAsync(anything(), anything(), anything(), anything()),
         ).thenResolve(validationResponse);
-        when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
-            new BigNumber(1),
-            new BigNumber(1),
-        ]);
-        when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
-            new BigNumber(1),
-            new BigNumber(1),
-        ]);
+        when(rfqBlockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1)]);
+        when(rfqBlockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([new BigNumber(1)]);
         when(rfqBlockchainUtilsMock.getNonceAsync(anything())).thenResolve(1);
         when(rfqBlockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(GAS_ESTIMATE);
         when(rfqBlockchainUtilsMock.signTransactionAsync(anything())).thenResolve({
@@ -289,6 +283,9 @@ describe('RFQM Integration', () => {
 
         // Create the maker balance cache service
         const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+        when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+            new BigNumber(1),
+        ]);
         const rfqMakerBalanceCacheService = instance(rfqMakerBalanceCacheServiceMock);
 
         // Create the mock RfqMakerManager

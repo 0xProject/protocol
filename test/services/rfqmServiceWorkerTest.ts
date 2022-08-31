@@ -602,12 +602,8 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([
-                new BigNumber(1000000000),
-                new BigNumber(1000000000),
-            ]);
+            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1000000000)]);
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xcalldata',
             );
@@ -640,6 +636,9 @@ describe('RfqmService Worker Logic', () => {
             });
 
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -802,12 +801,8 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([
-                new BigNumber(1000000000),
-                new BigNumber(1000000000),
-            ]);
+            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(1000000000)]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
                     anything(),
@@ -858,6 +853,9 @@ describe('RfqmService Worker Logic', () => {
             });
 
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -1353,7 +1351,6 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getExchangeProxyAddress()).thenReturn('0xexchangeproxyaddress');
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
@@ -1389,6 +1386,9 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -2651,11 +2651,11 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
-                new BigNumber(100),
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([new BigNumber(100)]);
+            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(5),
             ]);
-            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -2741,9 +2741,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -2821,9 +2823,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -2903,9 +2907,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -2977,7 +2983,6 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -2989,6 +2994,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReject(new Error('fake eth call failure'));
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3066,7 +3074,6 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -3087,6 +3094,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3172,7 +3182,6 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.generateTakerSignedOtcOrderCallData(
@@ -3184,6 +3193,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3361,7 +3373,6 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -3382,6 +3393,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3467,7 +3481,6 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -3488,6 +3501,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3813,11 +3829,11 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
-                new BigNumber(100),
+            when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([new BigNumber(100)]);
+            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(5),
             ]);
-            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3896,11 +3912,11 @@ describe('RfqmService Worker Logic', () => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
             });
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
-            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([
-                new BigNumber(100),
+            when(mockBlockchainUtils.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(100)]);
+            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
                 new BigNumber(5),
             ]);
-            const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -3977,9 +3993,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -4062,9 +4080,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -4142,9 +4162,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -4224,9 +4246,11 @@ describe('RfqmService Worker Logic', () => {
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
@@ -4299,7 +4323,6 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.isValidOrderSignerAsync(anything(), anything())).thenResolve(true);
             when(mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1000000000),
-                new BigNumber(1000000000),
             ]);
             when(
                 mockBlockchainUtils.estimateGasForFillTakerSignedOtcOrderAsync(
@@ -4320,6 +4343,9 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
             const mockRfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
+            when(mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(1000000000),
+            ]);
 
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),

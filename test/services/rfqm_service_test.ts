@@ -295,9 +295,11 @@ describe('RfqmService HTTP Logic', () => {
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
-                new BigNumber(10000),
             ]);
             const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+            ]);
 
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
@@ -429,9 +431,11 @@ describe('RfqmService HTTP Logic', () => {
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(10000),
-                new BigNumber(10000),
             ]);
             const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+            ]);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
@@ -507,15 +511,15 @@ describe('RfqmService HTTP Logic', () => {
                 isUnwrap: false,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
-                new BigNumber(10000),
-                new BigNumber(10000),
-            ]);
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(10000)]);
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
             when(blockchainUtilsMock.simulateTransactionAsync(anything(), anything())).thenResolve();
             const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+            ]);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
@@ -599,15 +603,15 @@ describe('RfqmService HTTP Logic', () => {
                 isUnwrap: false,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([
-                new BigNumber(10000),
-                new BigNumber(10000),
-            ]);
+            when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(10000)]);
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 '0xvalidcalldata',
             );
             when(blockchainUtilsMock.estimateGasForAsync(anything())).thenResolve(10);
             const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(10000),
+            ]);
             const service = buildRfqmServiceForUnitTest({
                 chainId: 1,
                 feeModelVersion: 0,
