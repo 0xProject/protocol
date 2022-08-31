@@ -31,6 +31,7 @@ import "../features/libs/LibNativeOrder.sol";
 import "./bridges/IBridgeAdapter.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
+import "../IZeroEx.sol";
 
 /// @dev A transformer that fills an ERC20 market sell/buy quote.
 ///      This transformer shortcuts bridge orders and fills them directly
@@ -52,7 +53,8 @@ contract FillQuoteTransformer is
     enum OrderType {
         Bridge,
         Limit,
-        Rfq
+        Rfq,
+        Otc
     }
 
     struct LimitOrderInfo {
@@ -64,6 +66,13 @@ contract FillQuoteTransformer is
 
     struct RfqOrderInfo {
         LibNativeOrder.RfqOrder order;
+        LibSignature.Signature signature;
+        // Maximum taker token amount of this limit order to fill.
+        uint256 maxTakerTokenFillAmount;
+    }
+
+    struct OtcOrderInfo {
+        LibNativeOrder.OtcOrder order;
         LibSignature.Signature signature;
         // Maximum taker token amount of this limit order to fill.
         uint256 maxTakerTokenFillAmount;
@@ -84,6 +93,8 @@ contract FillQuoteTransformer is
         IBridgeAdapter.BridgeOrder[] bridgeOrders;
         // Native limit orders. Sorted by fill sequence.
         LimitOrderInfo[] limitOrders;
+        // Otc orders. Sorted by fill sequence.
+        OtcOrderInfo[] otcOrders;
         // Native RFQ orders. Sorted by fill sequence.
         RfqOrderInfo[] rfqOrders;
 
@@ -123,7 +134,7 @@ contract FillQuoteTransformer is
         uint256 soldAmount;
         uint256 protocolFee;
         uint256 takerTokenBalanceRemaining;
-        uint256[3] currentIndices;
+        uint256[4] currentIndices;
         OrderType currentOrderType;
     }
 
@@ -147,12 +158,12 @@ contract FillQuoteTransformer is
     IBridgeAdapter public immutable bridgeAdapter;
 
     /// @dev The exchange proxy contract.
-    INativeOrdersFeature public immutable zeroEx;
+    IZeroEx public immutable zeroEx;
 
     /// @dev Create this contract.
     /// @param bridgeAdapter_ The bridge adapter contract.
     /// @param zeroEx_ The Exchange Proxy contract.
-    constructor(IBridgeAdapter bridgeAdapter_, INativeOrdersFeature zeroEx_)
+    constructor(IBridgeAdapter bridgeAdapter_, IZeroEx zeroEx_)
         public
         Transformer()
     {
@@ -183,7 +194,8 @@ contract FillQuoteTransformer is
 
         if (data.bridgeOrders.length
                 + data.limitOrders.length
-                + data.rfqOrders.length != data.fillSequence.length
+                + data.rfqOrders.length
+                + data.otcOrders.length != data.fillSequence.length
         ) {
             LibTransformERC20RichErrors.InvalidTransformDataError(
                 LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_ARRAY_LENGTH,
@@ -198,7 +210,7 @@ contract FillQuoteTransformer is
 
         // Approve the exchange proxy to spend our sell tokens if native orders
         // are present.
-        if (data.limitOrders.length + data.rfqOrders.length != 0) {
+        if (data.limitOrders.length + data.rfqOrders.length + data.otcOrders.length != 0) {
             data.sellToken.approveIfBelow(address(zeroEx), data.fillAmount);
             // Compute the protocol fee if a limit order is present.
             if (data.limitOrders.length != 0) {
@@ -230,6 +242,8 @@ contract FillQuoteTransformer is
                 results = _fillLimitOrder(data.limitOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Rfq) {
                 results = _fillRfqOrder(data.rfqOrders[orderIndex], data, state);
+            } else if (state.currentOrderType == OrderType.Otc) {
+                results = _fillOtcOrder(data.otcOrders[orderIndex], data, state);
             } else {
                 revert("INVALID_ORDER_TYPE");
             }
@@ -400,6 +414,42 @@ contract FillQuoteTransformer is
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
         } catch {}
+    }
+
+    // Fill a single OTC order.
+    function _fillOtcOrder(
+        OtcOrderInfo memory orderInfo,
+        TransformData memory data,
+        FillState memory state
+    )
+        private
+        returns (FillOrderResults memory results)
+    {
+
+        uint256 takerTokenFillAmount = LibSafeMathV06.min256(
+            _computeTakerTokenFillAmount(
+                data,
+                state,
+                orderInfo.order.takerAmount,
+                orderInfo.order.makerAmount,
+                0
+            ),
+            orderInfo.maxTakerTokenFillAmount
+        );
+        try
+            zeroEx.fillOtcOrder
+                (
+                    orderInfo.order,
+                    orderInfo.signature,
+                    takerTokenFillAmount.safeDowncastToUint128()
+                )
+            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+        {
+            results.takerTokenSoldAmount = takerTokenFilledAmount;
+            results.makerTokenBoughtAmount = makerTokenFilledAmount;
+        } catch {
+            revert("FillQuoteTransformer/OTC_ORDER_FILL_FAILED");
+        }
     }
 
     // Compute the next taker token fill amount of a generic order.
