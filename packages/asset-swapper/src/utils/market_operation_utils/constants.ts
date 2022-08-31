@@ -224,10 +224,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
         ]),
-        [ChainId.ArbitrumRinkeby]: new SourceFilters([
-            ERC20BridgeSource.Native,
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.ArbitrumRinkeby]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
@@ -379,10 +376,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
         ]),
-        [ChainId.ArbitrumRinkeby]: new SourceFilters([
-            ERC20BridgeSource.Native,
-            ERC20BridgeSource.UniswapV3,
-        ]),
+        [ChainId.ArbitrumRinkeby]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
     },
     new SourceFilters([]),
 );
