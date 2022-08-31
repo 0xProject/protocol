@@ -109,7 +109,7 @@ export class MetaTransactionService {
         return {
             callData,
             minGasPrice: new BigNumber(1),
-            maxGasPrice: new BigNumber(2).pow(32), // high value 0x100000000
+            maxGasPrice: new BigNumber(2).pow(48), // high value 0x1000000000000
             expirationTimeSeconds: createExpirationTime(),
             salt: generatePseudoRandomSalt(),
             signer: takerAddress,
