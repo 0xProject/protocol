@@ -393,6 +393,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             buyToken: makerToken.address,
             bridgeOrders: [],
             limitOrders: [],
+            otcOrders: [],
             rfqOrders: [],
             fillSequence: [],
             fillAmount: MAX_UINT256,
