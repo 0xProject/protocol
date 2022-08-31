@@ -7,7 +7,6 @@ import {
     BAKERYSWAP_ROUTER_BY_CHAIN_ID,
     BELT_BSC_INFOS,
     BISWAP_ROUTER_BY_CHAIN_ID,
-    CHEESESWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
     CURVE_ARBITRUM_INFOS,
@@ -56,7 +55,6 @@ import {
     UBESWAP_ROUTER_BY_CHAIN_ID,
     UNISWAPV2_ROUTER_BY_CHAIN_ID,
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
-    XSIGMA_MAINNET_INFOS,
     YOSHI_ROUTER_BY_CHAIN_ID,
 } from './constants';
 import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
@@ -362,19 +360,6 @@ export function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, ma
     );
 }
 
-export function getXSigmaInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
-    if (chainId !== ChainId.Mainnet) {
-        return [];
-    }
-    return Object.values(XSIGMA_MAINNET_INFOS).filter((c) =>
-        [makerToken, takerToken].every(
-            (t) =>
-                (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                (c.tokens.includes(t) && [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-        ),
-    );
-}
-
 export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
@@ -445,7 +430,6 @@ export function getCurveLikeInfosForPair(
         | ERC20BridgeSource.Ellipsis
         | ERC20BridgeSource.Saddle
         | ERC20BridgeSource.IronSwap
-        | ERC20BridgeSource.XSigma
         | ERC20BridgeSource.FirebirdOneSwap
         | ERC20BridgeSource.ACryptos
         | ERC20BridgeSource.MobiusMoney,
@@ -472,9 +456,6 @@ export function getCurveLikeInfosForPair(
             break;
         case ERC20BridgeSource.Saddle:
             pools = getSaddleInfosForPair(chainId, takerToken, makerToken);
-            break;
-        case ERC20BridgeSource.XSigma:
-            pools = getXSigmaInfosForPair(chainId, takerToken, makerToken);
             break;
         case ERC20BridgeSource.FirebirdOneSwap:
             pools = getFirebirdOneSwapInfosForPair(chainId, takerToken, makerToken);
@@ -508,7 +489,6 @@ export function uniswapV2LikeRouterAddress(
         | ERC20BridgeSource.PancakeSwapV2
         | ERC20BridgeSource.BakerySwap
         | ERC20BridgeSource.ApeSwap
-        | ERC20BridgeSource.CheeseSwap
         | ERC20BridgeSource.QuickSwap
         | ERC20BridgeSource.Dfyn
         | ERC20BridgeSource.WaultSwap
@@ -540,8 +520,6 @@ export function uniswapV2LikeRouterAddress(
             return BAKERYSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.ApeSwap:
             return APESWAP_ROUTER_BY_CHAIN_ID[chainId];
-        case ERC20BridgeSource.CheeseSwap:
-            return CHEESESWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.QuickSwap:
             return QUICKSWAP_ROUTER_BY_CHAIN_ID[chainId];
         case ERC20BridgeSource.Dfyn:

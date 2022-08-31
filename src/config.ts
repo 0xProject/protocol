@@ -534,7 +534,6 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
             SOURCE_FLAGS.PancakeSwap_V2,
             SOURCE_FLAGS.BakerySwap,
             SOURCE_FLAGS.ApeSwap,
-            SOURCE_FLAGS.CheeseSwap,
         ].includes(sourceFlags) &&
         CHAIN_ID === ChainId.BSC
     ) {

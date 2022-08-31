@@ -50,7 +50,6 @@ export enum ERC20BridgeSource {
     KyberDmm = 'KyberDMM',
     Component = 'Component',
     Saddle = 'Saddle',
-    XSigma = 'xSigma',
     UniswapV3 = 'Uniswap_V3',
     CurveV2 = 'Curve_V2',
     Lido = 'Lido',
@@ -72,7 +71,6 @@ export enum ERC20BridgeSource {
     Belt = 'Belt',
     Ellipsis = 'Ellipsis',
     ApeSwap = 'ApeSwap',
-    CheeseSwap = 'CheeseSwap',
     ACryptos = 'ACryptoS',
     // Polygon only
     QuickSwap = 'QuickSwap',
@@ -95,7 +93,6 @@ export enum ERC20BridgeSource {
     Beethovenx = 'Beethovenx',
     MorpheusSwap = 'MorpheusSwap',
     Yoshi = 'Yoshi',
-    Geist = 'Geist',
     // Optimism
     Velodrome = 'Velodrome',
 }
@@ -168,12 +165,6 @@ export interface BalancerV2PoolInfo {
 export interface AaveV2Info {
     lendingPool: string;
     aToken: string;
-    underlyingToken: string;
-}
-
-export interface GeistInfo {
-    lendingPool: string;
-    gToken: string;
     underlyingToken: string;
 }
 
@@ -330,13 +321,6 @@ export interface CompoundFillData extends FillData {
     cToken: string;
     takerToken: string;
     makerToken: string;
-}
-
-export interface GeistFillData extends FillData {
-    lendingPool: string;
-    gToken: string;
-    underlyingToken: string;
-    takerToken: string;
 }
 
 export interface PlatypusInfo {

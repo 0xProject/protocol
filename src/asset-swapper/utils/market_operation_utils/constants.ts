@@ -21,7 +21,6 @@ import {
     FillData,
     FinalUniswapV3FillData,
     GasSchedule,
-    GeistFillData,
     GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
     LidoFillData,
@@ -99,7 +98,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
-            ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
@@ -142,7 +140,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
@@ -195,7 +192,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
-            ERC20BridgeSource.Geist,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
@@ -259,7 +255,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.KyberDmm,
             ERC20BridgeSource.Component,
             ERC20BridgeSource.Saddle,
-            ERC20BridgeSource.XSigma,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.ShibaSwap,
@@ -302,7 +297,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
@@ -355,7 +349,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
-            ERC20BridgeSource.Geist,
             ERC20BridgeSource.MorpheusSwap,
             ERC20BridgeSource.SpiritSwap,
             ERC20BridgeSource.SpookySwap,
@@ -686,10 +679,6 @@ export const ARBITRUM_TOKENS = {
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
 };
 
-export const GEIST_FANTOM_POOLS = {
-    lendingPool: '0x9fad24f572045c7869117160a571b2e50b10d068',
-};
-
 export const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
@@ -846,10 +835,6 @@ export const BELT_POOLS = {
 
 export const ELLIPSIS_POOLS = {
     threePool: '0x160caed03795365f3a589f10c379ffa7d75d4e76',
-};
-
-export const XSIGMA_POOLS = {
-    stable: '0x3333333ACdEdBbC9Ad7bda0876e60714195681c5',
 };
 
 export const FIREBIRDONESWAP_BSC_POOLS = {
@@ -1569,16 +1554,6 @@ export const CURVE_FANTOM_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_FANTOM_POOLS.tri_v2,
         gasSchedule: 176e3,
     }),
-    ['geist_exchangeunderlying']: createCurveExchangeUnderlyingPool({
-        tokens: [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC, FANTOM_TOKENS.fUSDT],
-        pool: CURVE_FANTOM_POOLS.geist,
-        gasSchedule: 850e3,
-    }),
-    ['geist_exchange']: createCurveExchangePool({
-        tokens: [FANTOM_TOKENS.gDAI, FANTOM_TOKENS.gUSDC, FANTOM_TOKENS.gfUSDT],
-        pool: CURVE_FANTOM_POOLS.geist,
-        gasSchedule: 150e3,
-    }),
     [CURVE_FANTOM_POOLS.FRAX_twoPool]: createCurveMetaTwoPoolFantom({
         tokens: [FANTOM_TOKENS.FRAX],
         pool: CURVE_FANTOM_POOLS.FRAX_twoPool,
@@ -1623,14 +1598,6 @@ export const ELLIPSIS_BSC_INFOS: { [name: string]: CurveInfo } = {
         tokens: [BSC_TOKENS.BUSD, BSC_TOKENS.USDC, BSC_TOKENS.USDT],
         pool: ELLIPSIS_POOLS.threePool,
         gasSchedule: 140e3,
-    }),
-};
-
-export const XSIGMA_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [XSIGMA_POOLS.stable]: createCurveExchangePool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
-        pool: XSIGMA_POOLS.stable,
-        gasSchedule: 150e3,
     }),
 };
 
@@ -2343,13 +2310,6 @@ export const APESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const CHEESESWAP_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
-    {
-        [ChainId.BSC]: '0x3047799262d8d2ef41ed2a222205968bc9b0d895',
-    },
-    NULL_ADDRESS,
-);
-
 //
 // Polygon
 //
@@ -2526,7 +2486,6 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.CheeseSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
         ],
@@ -2572,7 +2531,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.Ellipsis]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Saddle]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.IronSwap]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.XSigma]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.FirebirdOneSwap]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MobiusMoney]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MultiBridge]: () => 350e3,
@@ -2674,10 +2632,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
         // NOTE: The Aave deposit method is more expensive than the withdraw
         return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
     },
-    [ERC20BridgeSource.Geist]: (fillData?: FillData) => {
-        const geistFillData = fillData as GeistFillData;
-        return geistFillData.takerToken === geistFillData.underlyingToken ? 400e3 : 300e3;
-    },
     [ERC20BridgeSource.Compound]: (fillData?: FillData) => {
         // NOTE: cETH is handled differently than other cTokens
         const wethAddress = NATIVE_FEE_TOKEN_BY_CHAIN_ID[ChainId.Mainnet];
@@ -2717,7 +2671,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.PancakeSwapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.BakerySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ApeSwap]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.CheeseSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.WaultSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.ACryptos]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.WOOFi]: (fillData?: FillData) => {
