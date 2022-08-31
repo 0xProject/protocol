@@ -83,6 +83,23 @@ export async function getQuoteAsync(
     try {
         response = await axiosInstance.get<GetMetaTransactionQuoteResponse>(url.toString(), {
             params,
+            // TODO (rhinodavid): Formalize this value once we have a good idea of the
+            // actual numbers
+            timeout: 10000,
+            paramsSerializer: (data: typeof params) => {
+                const result = new URLSearchParams({
+                    buyToken: data.buyToken,
+                    sellToken: data.sellToken,
+                    takerAddress: data.takerAddress,
+                });
+                const { buyAmount: buyAmountData, sellAmount: sellAmountData, slippagePercentage } = data;
+                // tslint:disable: no-unused-expression
+                buyAmountData && result.append('buyAmount', buyAmountData.toString());
+                sellAmountData && result.append('sellAmount', sellAmountData.toString());
+                slippagePercentage && result.append('slippagePercentage', slippagePercentage.toString());
+                // tslint:enable: no-unused-expression
+                return result.toString();
+            },
         });
     } catch (e) {
         if (e.response?.data) {
