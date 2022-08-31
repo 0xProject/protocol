@@ -1,9 +1,8 @@
 import { ContractAddresses } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 
-export enum ForwarderError {
-    CompleteFillFailed = 'COMPLETE_FILL_FAILED',
-}
+// not formatted
+export enum ForwarderError { CompleteFillFailed   = 'COMPLETE_FILL_FAILED',          }
 
 export enum ContractError {
     ContractNotDeployedOnChain = 'CONTRACT_NOT_DEPLOYED_ON_CHAIN',
