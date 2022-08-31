@@ -3,7 +3,12 @@
         "version": "0.37.0",
         "changes": [
             {
-                "note": "Add support for OTC orders in the FillQuoteTransformer"
+                "note": "Add support for OTC orders in the FillQuoteTransformer",
+                "pr": "565"
+            },
+            {
+                "note": "fix CI",
+                "pr": "569"
             }
         ]
     },
