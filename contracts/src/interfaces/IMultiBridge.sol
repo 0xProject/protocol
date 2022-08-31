@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6;
 
-
 interface IMultiBridge {
-
     /// @dev Transfers `amount` of the ERC20 `tokenAddress` from `from` to `to`.
     /// @param tokenAddress The address of the ERC20 token to transfer.
     /// @param from Address to transfer asset from.
@@ -35,9 +33,7 @@ interface IMultiBridge {
         address to,
         uint256 amount,
         bytes calldata bridgeData
-    )
-        external
-        returns (bytes4 success);
+    ) external returns (bytes4 success);
 
     /// @dev Quotes the amount of `makerToken` that would be obtained by
     ///      selling `sellAmount` of `takerToken`.
@@ -52,8 +48,5 @@ interface IMultiBridge {
         address intermediateToken,
         address makerToken,
         uint256 sellAmount
-    )
-        external
-        view
-        returns (uint256 makerTokenAmount);
+    ) external view returns (uint256 makerTokenAmount);
 }

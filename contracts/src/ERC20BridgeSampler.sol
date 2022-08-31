@@ -48,7 +48,6 @@ import "./VelodromeSampler.sol";
 import "./WooPPSampler.sol";
 import "./UtilitySampler.sol";
 
-
 contract ERC20BridgeSampler is
     BalancerSampler,
     BalancerV2Sampler,
@@ -78,7 +77,6 @@ contract ERC20BridgeSampler is
     WooPPSampler,
     UtilitySampler
 {
-
     struct CallResults {
         bytes data;
         bool success;
@@ -87,10 +85,7 @@ contract ERC20BridgeSampler is
     /// @dev Call multiple public functions on this contract in a single transaction.
     /// @param callDatas ABI-encoded call data for each function call.
     /// @return callResults ABI-encoded results data for each call.
-    function batchCall(bytes[] calldata callDatas)
-        external
-        returns (CallResults[] memory callResults)
-    {
+    function batchCall(bytes[] calldata callDatas) external returns (CallResults[] memory callResults) {
         callResults = new CallResults[](callDatas.length);
         for (uint256 i = 0; i != callDatas.length; ++i) {
             callResults[i].success = true;

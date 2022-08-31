@@ -22,13 +22,11 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBancorV3.sol";
 
-
-contract BancorV3Sampler
-{
+contract BancorV3Sampler {
     /// @dev Gas limit for BancorV3 calls.
-    uint256 constant private BancorV3_CALL_GAS = 150e3; // 150k
+    uint256 private constant BancorV3_CALL_GAS = 150e3; // 150k
 
-    address constant public ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     /// @dev Sample sell quotes from BancorV3.
     /// @param weth The WETH contract address
@@ -42,26 +40,21 @@ contract BancorV3Sampler
         address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
-        if(path[0] == weth){
+        if (path[0] == weth) {
             path[0] = ETH;
         }
-        if(path[1] == weth){
+        if (path[1] == weth) {
             path[1] = ETH;
         }
 
         for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IBancorV3(router).tradeOutputBySourceAmount(path[0], path[1], takerTokenAmounts[i])
-                returns (uint256 amount)
-            {
+            try IBancorV3(router).tradeOutputBySourceAmount(path[0], path[1], takerTokenAmounts[i]) returns (
+                uint256 amount
+            ) {
                 makerTokenAmounts[i] = amount;
                 // Break early if there are 0 amounts
                 if (makerTokenAmounts[i] == 0) {
@@ -86,26 +79,21 @@ contract BancorV3Sampler
         address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
 
-        if(path[0] == weth){
+        if (path[0] == weth) {
             path[0] = ETH;
         }
-        if(path[1] == weth){
+        if (path[1] == weth) {
             path[1] = ETH;
         }
 
         for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IBancorV3(router).tradeInputByTargetAmount(path[0], path[1], makerTokenAmounts[i])
-                returns (uint256 amount)
-            {
+            try IBancorV3(router).tradeInputByTargetAmount(path[0], path[1], makerTokenAmounts[i]) returns (
+                uint256 amount
+            ) {
                 takerTokenAmounts[i] = amount;
                 // Break early if there are 0 amounts
                 if (takerTokenAmounts[i] == 0) {

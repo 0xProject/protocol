@@ -25,13 +25,9 @@ import "@0x/contracts-zero-ex/contracts/src/vendor/ILiquidityProvider.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
-
-contract LiquidityProviderSampler is
-    SamplerUtils,
-    ApproximateBuys
-{
+contract LiquidityProviderSampler is SamplerUtils, ApproximateBuys {
     /// @dev Default gas limit for liquidity provider calls.
-    uint256 constant private DEFAULT_CALL_GAS = 400e3; // 400k
+    uint256 private constant DEFAULT_CALL_GAS = 400e3; // 400k
 
     /// @dev Sample sell quotes from an arbitrary on-chain liquidity provider.
     /// @param providerAddress Address of the liquidity provider.
@@ -45,26 +41,19 @@ contract LiquidityProviderSampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         // Initialize array of maker token amounts.
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                ILiquidityProvider(providerAddress).getSellQuote
-                    {gas: DEFAULT_CALL_GAS}
-                    (
-                        IERC20TokenV06(takerToken),
-                        IERC20TokenV06(makerToken),
-                        takerTokenAmounts[i]
-                    )
-                returns (uint256 amount)
-            {
+                ILiquidityProvider(providerAddress).getSellQuote{gas: DEFAULT_CALL_GAS}(
+                    IERC20TokenV06(takerToken),
+                    IERC20TokenV06(makerToken),
+                    takerTokenAmounts[i]
+                )
+            returns (uint256 amount) {
                 makerTokenAmounts[i] = amount;
                 // Break early if there are 0 amounts
                 if (makerTokenAmounts[i] == 0) {
@@ -89,11 +78,7 @@ contract LiquidityProviderSampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
                 makerTokenData: abi.encode(makerToken, providerAddress),
@@ -108,21 +93,17 @@ contract LiquidityProviderSampler is
         bytes memory takerTokenData,
         bytes memory makerTokenData,
         uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256 buyAmount)
-    {
-        (address takerToken, address providerAddress) =
-            abi.decode(takerTokenData, (address, address));
-        (address makerToken) =
-            abi.decode(makerTokenData, (address));
+    ) private view returns (uint256 buyAmount) {
+        (address takerToken, address providerAddress) = abi.decode(takerTokenData, (address, address));
+        address makerToken = abi.decode(makerTokenData, (address));
         try
-            this.sampleSellsFromLiquidityProvider
-                {gas: DEFAULT_CALL_GAS}
-                (providerAddress, takerToken, makerToken, _toSingleValueArray(sellAmount))
-            returns (uint256[] memory amounts)
-        {
+            this.sampleSellsFromLiquidityProvider{gas: DEFAULT_CALL_GAS}(
+                providerAddress,
+                takerToken,
+                makerToken,
+                _toSingleValueArray(sellAmount)
+            )
+        returns (uint256[] memory amounts) {
             return amounts[0];
         } catch (bytes memory) {
             // Swallow failures, leaving all results as zero.

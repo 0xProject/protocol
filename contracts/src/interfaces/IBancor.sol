@@ -19,15 +19,16 @@
 
 pragma solidity ^0.6;
 
-
 interface IBancor {}
 
 interface IBancorNetwork {
-  function conversionPath(address _sourceToken, address _targetToken) external view returns (address[] memory);
-  function rateByPath(address[] memory _path, uint256 _amount) external view returns (uint256);
+    function conversionPath(address _sourceToken, address _targetToken) external view returns (address[] memory);
+
+    function rateByPath(address[] memory _path, uint256 _amount) external view returns (uint256);
 }
 
 interface IBancorRegistry {
     function getAddress(bytes32 _contractName) external view returns (address);
+
     function BANCOR_NETWORK() external view returns (bytes32);
 }

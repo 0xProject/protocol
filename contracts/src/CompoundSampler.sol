@@ -25,26 +25,26 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 // Minimal CToken interface
 interface ICToken {
-    function mint(uint mintAmount) external returns (uint);
-    function redeem(uint redeemTokens) external returns (uint);
-    function redeemUnderlying(uint redeemAmount) external returns (uint);
-    function exchangeRateStored() external view returns (uint);
+    function mint(uint256 mintAmount) external returns (uint256);
+
+    function redeem(uint256 redeemTokens) external returns (uint256);
+
+    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
+
+    function exchangeRateStored() external view returns (uint256);
+
     function decimals() external view returns (uint8);
 }
 
 contract CompoundSampler is SamplerUtils {
-    uint256 constant private EXCHANGE_RATE_SCALE = 1e10;
+    uint256 private constant EXCHANGE_RATE_SCALE = 1e10;
 
     function sampleSellsFromCompound(
         ICToken cToken,
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
@@ -54,13 +54,14 @@ contract CompoundSampler is SamplerUtils {
         if (address(makerToken) == address(cToken)) {
             // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals) / exchangeRate;
+                makerTokenAmounts[i] = (takerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10**cTokenDecimals) / exchangeRate;
             }
-
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * exchangeRate) / (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
+                makerTokenAmounts[i] =
+                    (takerTokenAmounts[i] * exchangeRate) /
+                    (EXCHANGE_RATE_SCALE * 10**cTokenDecimals);
             }
         }
     }
@@ -70,11 +71,7 @@ contract CompoundSampler is SamplerUtils {
         IERC20TokenV06 takerToken,
         IERC20TokenV06 makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         // Exchange rate is scaled by 1 * 10^(18 - 8 + Underlying Token Decimals
@@ -84,12 +81,14 @@ contract CompoundSampler is SamplerUtils {
         if (address(makerToken) == address(cToken)) {
             // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = makerTokenAmounts[i] * exchangeRate / (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
+                takerTokenAmounts[i] =
+                    (makerTokenAmounts[i] * exchangeRate) /
+                    (EXCHANGE_RATE_SCALE * 10**cTokenDecimals);
             }
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = (makerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals)/exchangeRate;
+                takerTokenAmounts[i] = (makerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10**cTokenDecimals) / exchangeRate;
             }
         }
     }

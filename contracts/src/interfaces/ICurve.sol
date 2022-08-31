@@ -19,10 +19,8 @@
 
 pragma solidity ^0.6;
 
-
 // solhint-disable func-name-mixedcase
 interface ICurve {
-
     /// @dev Sell `sellAmount` of `fromToken` token and receive `toToken` token.
     ///      This function exists on later versions of Curve (USDC/DAI/USDT)
     /// @param i The token index being sold.
@@ -34,8 +32,7 @@ interface ICurve {
         int128 j,
         uint256 sellAmount,
         uint256 minBuyAmount
-    )
-        external;
+    ) external;
 
     /// @dev Get the amount of `toToken` by selling `sellAmount` of `fromToken`
     /// @param i The token index being sold.
@@ -45,9 +42,7 @@ interface ICurve {
         int128 i,
         int128 j,
         uint256 sellAmount
-    )
-        external
-        returns (uint256 dy);
+    ) external returns (uint256 dy);
 
     /// @dev Get the amount of `fromToken` by buying `buyAmount` of `toToken`
     ///      This function exists on later versions of Curve (USDC/DAI/USDT)
@@ -58,15 +53,9 @@ interface ICurve {
         int128 i,
         int128 j,
         uint256 buyAmount
-    )
-        external
-        returns (uint256 dx);
+    ) external returns (uint256 dx);
 
     /// @dev Get the underlying token address from the token index
     /// @param i The token index.
-    function underlying_coins(
-        int128 i
-    )
-        external
-        returns (address tokenAddress);
+    function underlying_coins(int128 i) external returns (address tokenAddress);
 }

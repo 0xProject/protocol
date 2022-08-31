@@ -24,18 +24,13 @@ import "./ApproximateBuys.sol";
 import "./interfaces/IShell.sol";
 import "./SamplerUtils.sol";
 
-
-contract ShellSampler is
-    SamplerUtils,
-    ApproximateBuys
-{
-
+contract ShellSampler is SamplerUtils, ApproximateBuys {
     struct ShellInfo {
         address poolAddress;
     }
 
     /// @dev Default gas limit for Shell calls.
-    uint256 constant private DEFAULT_CALL_GAS = 300e3; // 300k
+    uint256 private constant DEFAULT_CALL_GAS = 300e3; // 300k
 
     /// @dev Sample sell quotes from the Shell pool contract
     /// @param pool Address of the Shell pool contract
@@ -49,22 +44,15 @@ contract ShellSampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         // Initialize array of maker token amounts.
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
 
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IShell(pool).viewOriginSwap
-                    {gas: DEFAULT_CALL_GAS}
-                    (takerToken, makerToken, takerTokenAmounts[i])
-                returns (uint256 amount)
-            {
+                IShell(pool).viewOriginSwap{gas: DEFAULT_CALL_GAS}(takerToken, makerToken, takerTokenAmounts[i])
+            returns (uint256 amount) {
                 makerTokenAmounts[i] = amount;
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
@@ -85,38 +73,29 @@ contract ShellSampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
-        return _sampleApproximateBuys(
-            ApproximateBuyQuoteOpts({
-                makerTokenData: abi.encode(makerToken, pool),
-                takerTokenData: abi.encode(takerToken, pool),
-                getSellQuoteCallback: _sampleSellForApproximateBuyFromShell
-            }),
-            makerTokenAmounts
-        );
+    ) public view returns (uint256[] memory takerTokenAmounts) {
+        return
+            _sampleApproximateBuys(
+                ApproximateBuyQuoteOpts({
+                    makerTokenData: abi.encode(makerToken, pool),
+                    takerTokenData: abi.encode(takerToken, pool),
+                    getSellQuoteCallback: _sampleSellForApproximateBuyFromShell
+                }),
+                makerTokenAmounts
+            );
     }
 
     function _sampleSellForApproximateBuyFromShell(
         bytes memory takerTokenData,
         bytes memory makerTokenData,
         uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256 buyAmount)
-    {
+    ) private view returns (uint256 buyAmount) {
         (address takerToken, address pool) = abi.decode(takerTokenData, (address, address));
-        (address makerToken) = abi.decode(makerTokenData, (address));
+        address makerToken = abi.decode(makerTokenData, (address));
 
-        try
-            this.sampleSellsFromShell
-                (pool, takerToken, makerToken, _toSingleValueArray(sellAmount))
-            returns (uint256[] memory amounts)
-        {
+        try this.sampleSellsFromShell(pool, takerToken, makerToken, _toSingleValueArray(sellAmount)) returns (
+            uint256[] memory amounts
+        ) {
             return amounts[0];
         } catch (bytes memory) {
             // Swallow failures, leaving all results as zero.

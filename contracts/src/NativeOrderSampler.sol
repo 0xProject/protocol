@@ -25,9 +25,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-
 interface IExchange {
-
     enum OrderStatus {
         INVALID,
         FILLABLE,
@@ -96,10 +94,7 @@ interface IExchange {
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
     /// @return orderInfo Info about the order.
-    function getLimitOrderInfo(LimitOrder memory order)
-        external
-        view
-        returns (OrderInfo memory orderInfo);
+    function getLimitOrderInfo(LimitOrder memory order) external view returns (OrderInfo memory orderInfo);
 
     /// @dev Get order info, fillable amount, and signature validity for a limit order.
     ///      Fillable amount is determined using balances and allowances of the maker.
@@ -109,10 +104,7 @@ interface IExchange {
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getLimitOrderRelevantState(
-        LimitOrder memory order,
-        Signature calldata signature
-    )
+    function getLimitOrderRelevantState(LimitOrder memory order, Signature calldata signature)
         external
         view
         returns (
@@ -127,7 +119,7 @@ contract NativeOrderSampler {
     using LibBytesV06 for bytes;
 
     /// @dev Gas limit for calls to `getOrderFillableTakerAmount()`.
-    uint256 constant internal DEFAULT_CALL_GAS = 200e3; // 200k
+    uint256 internal constant DEFAULT_CALL_GAS = 200e3; // 200k
 
     /// @dev Queries the fillable taker asset amounts of native orders.
     ///      Effectively ignores orders that have empty signatures or
@@ -141,23 +133,12 @@ contract NativeOrderSampler {
         IExchange.LimitOrder[] memory orders,
         IExchange.Signature[] memory orderSignatures,
         IExchange exchange
-    )
-        public
-        view
-        returns (uint256[] memory orderFillableTakerAssetAmounts)
-    {
+    ) public view returns (uint256[] memory orderFillableTakerAssetAmounts) {
         orderFillableTakerAssetAmounts = new uint256[](orders.length);
         for (uint256 i = 0; i != orders.length; i++) {
             try
-                this.getLimitOrderFillableTakerAmount
-                    {gas: DEFAULT_CALL_GAS}
-                    (
-                       orders[i],
-                       orderSignatures[i],
-                       exchange
-                    )
-                returns (uint256 amount)
-            {
+                this.getLimitOrderFillableTakerAmount{gas: DEFAULT_CALL_GAS}(orders[i], orderSignatures[i], exchange)
+            returns (uint256 amount) {
                 orderFillableTakerAssetAmounts[i] = amount;
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
@@ -177,16 +158,8 @@ contract NativeOrderSampler {
         IExchange.LimitOrder[] memory orders,
         IExchange.Signature[] memory orderSignatures,
         IExchange exchange
-    )
-        public
-        view
-        returns (uint256[] memory orderFillableMakerAssetAmounts)
-    {
-        orderFillableMakerAssetAmounts = getLimitOrderFillableTakerAssetAmounts(
-            orders,
-            orderSignatures,
-            exchange
-        );
+    ) public view returns (uint256[] memory orderFillableMakerAssetAmounts) {
+        orderFillableMakerAssetAmounts = getLimitOrderFillableTakerAssetAmounts(orders, orderSignatures, exchange);
         // `orderFillableMakerAssetAmounts` now holds taker asset amounts, so
         // convert them to maker asset amounts.
         for (uint256 i = 0; i < orders.length; ++i) {
@@ -206,31 +179,24 @@ contract NativeOrderSampler {
         IExchange.LimitOrder memory order,
         IExchange.Signature memory signature,
         IExchange exchange
-    )
-        virtual
-        public
-        view
-        returns (uint256 fillableTakerAmount)
-    {
-        if (signature.signatureType == IExchange.SignatureType.ILLEGAL ||
+    ) public view virtual returns (uint256 fillableTakerAmount) {
+        if (
+            signature.signatureType == IExchange.SignatureType.ILLEGAL ||
             signature.signatureType == IExchange.SignatureType.INVALID ||
             order.makerAmount == 0 ||
-            order.takerAmount == 0)
-        {
+            order.takerAmount == 0
+        ) {
             return 0;
         }
 
-        (
-            IExchange.OrderInfo memory orderInfo,
-            uint128 remainingFillableTakerAmount,
-            bool isSignatureValid
-        ) = exchange.getLimitOrderRelevantState(order, signature);
+        (IExchange.OrderInfo memory orderInfo, uint128 remainingFillableTakerAmount, bool isSignatureValid) = exchange
+            .getLimitOrderRelevantState(order, signature);
 
         if (
-              orderInfo.status != IExchange.OrderStatus.FILLABLE ||
-              !isSignatureValid ||
-              order.makerToken == IERC20TokenV06(0)
-            ) {
+            orderInfo.status != IExchange.OrderStatus.FILLABLE ||
+            !isSignatureValid ||
+            order.makerToken == IERC20TokenV06(0)
+        ) {
             return 0;
         }
 

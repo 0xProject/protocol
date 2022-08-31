@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 
-
 contract TwoHopSampler {
     using LibBytesV06 for bytes;
 
@@ -92,10 +91,7 @@ contract TwoHopSampler {
             (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (
-                    amount > 0 &&
-                    amount < intermediateAssetAmount
-                ) {
+                if (amount > 0 && amount < intermediateAssetAmount) {
                     intermediateAssetAmount = amount;
                     secondHop.sourceIndex = j;
                     secondHop.returnData = returnData;
@@ -110,10 +106,7 @@ contract TwoHopSampler {
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (
-                    amount > 0 &&
-                    amount < sellAmount
-                ) {
+                if (amount > 0 && amount < sellAmount) {
                     sellAmount = amount;
                     firstHop.sourceIndex = i;
                     firstHop.returnData = returnData;

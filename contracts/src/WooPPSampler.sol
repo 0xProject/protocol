@@ -22,16 +22,15 @@ interface IWooPP {
     function querySellQuote(address baseToken, uint256 quoteAmount) external view returns (uint256 baseAmount);
 }
 
-contract WooPPSampler is SamplerUtils, ApproximateBuys{
-
-   function query(
-        uint amountIn, 
-        address tokenIn, 
+contract WooPPSampler is SamplerUtils, ApproximateBuys {
+    function query(
+        uint256 amountIn,
+        address tokenIn,
         address tokenOut,
         address pool
     ) internal view returns (uint256 amountOut) {
-        if (amountIn == 0) { 
-            return 0; 
+        if (amountIn == 0) {
+            return 0;
         }
         address quoteToken = IWooPP(pool).quoteToken();
         if (tokenIn == quoteToken) {
@@ -39,7 +38,7 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         } else if (tokenOut == quoteToken) {
             amountOut = IWooPP(pool).querySellBase(tokenIn, amountIn);
         } else {
-            uint quoteAmount = IWooPP(pool).querySellBase(tokenIn, amountIn);
+            uint256 quoteAmount = IWooPP(pool).querySellBase(tokenIn, amountIn);
             amountOut = IWooPP(pool).querySellQuote(tokenOut, quoteAmount);
         }
     }
@@ -56,21 +55,17 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-        {
-            uint256 numSamples = takerTokenAmounts.length;
-            makerTokenAmounts = new uint256[](numSamples);
-            for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = query(takerTokenAmounts[i], takerToken, makerToken, pool);
+    ) public view returns (uint256[] memory makerTokenAmounts) {
+        uint256 numSamples = takerTokenAmounts.length;
+        makerTokenAmounts = new uint256[](numSamples);
+        for (uint256 i = 0; i < numSamples; i++) {
+            makerTokenAmounts[i] = query(takerTokenAmounts[i], takerToken, makerToken, pool);
 
-                if (makerTokenAmounts[i] == 0) {
-                    break;
-                }
+            if (makerTokenAmounts[i] == 0) {
+                break;
             }
         }
+    }
 
     /// @dev Sample buy quotes from WooFI.
     /// @param pool Address of the pool we are sampling from
@@ -84,15 +79,11 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                takerTokenData: abi.encode(pool,takerToken, makerToken),
+                takerTokenData: abi.encode(pool, takerToken, makerToken),
                 makerTokenData: abi.encode(pool, makerToken, takerToken),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromWoofi
             }),
@@ -105,15 +96,20 @@ contract WooPPSampler is SamplerUtils, ApproximateBuys{
         bytes memory makerTokenData,
         uint256 sellAmount
     ) internal view returns (uint256) {
-        (address _pool, address _takerToken, address _makerToken) = abi.decode(takerTokenData, (address, address, address));
-        (bool success, bytes memory resultData) = address(this).staticcall(abi.encodeWithSelector(
-            this.sampleSellsFromWooPP.selector,
-            _pool,
-            _takerToken,
-            _makerToken,
-            _toSingleValueArray(sellAmount)
-        ));
-        if(!success) {
+        (address _pool, address _takerToken, address _makerToken) = abi.decode(
+            takerTokenData,
+            (address, address, address)
+        );
+        (bool success, bytes memory resultData) = address(this).staticcall(
+            abi.encodeWithSelector(
+                this.sampleSellsFromWooPP.selector,
+                _pool,
+                _takerToken,
+                _makerToken,
+                _toSingleValueArray(sellAmount)
+            )
+        );
+        if (!success) {
             return 0;
         }
         return abi.decode(resultData, (uint256[]))[0];

@@ -19,12 +19,15 @@
 
 pragma solidity ^0.6;
 
-
 interface IBalancer {
     function isBound(address t) external view returns (bool);
+
     function getDenormalizedWeight(address token) external view returns (uint256);
+
     function getBalance(address token) external view returns (uint256);
+
     function getSwapFee() external view returns (uint256);
+
     function calcOutGivenIn(
         uint256 tokenBalanceIn,
         uint256 tokenWeightIn,
@@ -33,6 +36,7 @@ interface IBalancer {
         uint256 tokenAmountIn,
         uint256 swapFee
     ) external pure returns (uint256 tokenAmountOut);
+
     function calcInGivenOut(
         uint256 tokenBalanceIn,
         uint256 tokenWeightIn,

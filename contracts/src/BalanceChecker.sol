@@ -24,12 +24,12 @@ abstract contract IToken {
     /// @dev Query the balance of owner
     /// @param _owner The address from which the balance will be retrieved
     /// @return Balance of owner
-    function balanceOf(address _owner) public virtual view returns (uint256);
+    function balanceOf(address _owner) public view virtual returns (uint256);
 
     /// @param _owner The address of the account owning tokens
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowance(address _owner, address _spender) public virtual view returns (uint256);
+    function allowance(address _owner, address _spender) public view virtual returns (uint256);
 }
 
 contract BalanceChecker {
@@ -47,7 +47,7 @@ contract BalanceChecker {
 
         uint256[] memory addrBalances = new uint256[](users.length);
 
-        for(uint i = 0; i < users.length; i++) {
+        for (uint256 i = 0; i < users.length; i++) {
             if (tokens[i] != address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
                 addrBalances[i] = IToken(tokens[i]).balanceOf(users[i]);
             } else {
@@ -66,13 +66,17 @@ contract BalanceChecker {
 
       Returns a one-dimensional that's user.length long. It is the lesser of balance and allowance
     */
-    function getMinOfBalancesOrAllowances(address[] calldata users, address[] calldata tokens, address spender) external view returns (uint256[] memory) {
+    function getMinOfBalancesOrAllowances(
+        address[] calldata users,
+        address[] calldata tokens,
+        address spender
+    ) external view returns (uint256[] memory) {
         // make sure the users array and tokens array are of equal length
         require(users.length == tokens.length, "users array is a different length than the tokens array");
 
         uint256[] memory addrBalances = new uint256[](users.length);
 
-        for(uint i = 0; i < users.length; i++) {
+        for (uint256 i = 0; i < users.length; i++) {
             if (tokens[i] != address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
                 uint256 balance;
                 uint256 allowance;
@@ -100,14 +104,18 @@ contract BalanceChecker {
 
       Returns a one-dimensional array that's owners.length long.
     */
-    function allowances(address[] calldata owners, address[] calldata spenders, address[] calldata tokens) external view returns (uint256[] memory) {
+    function allowances(
+        address[] calldata owners,
+        address[] calldata spenders,
+        address[] calldata tokens
+    ) external view returns (uint256[] memory) {
         // make sure the arrays are all of equal length
         require(owners.length == spenders.length, "all arrays must be of equal length");
         require(owners.length == tokens.length, "all arrays must be of equal length");
 
         uint256[] memory addrAllowances = new uint256[](owners.length);
 
-        for(uint i = 0; i < owners.length; i++) {
+        for (uint256 i = 0; i < owners.length; i++) {
             if (tokens[i] != address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
                 addrAllowances[i] = IToken(tokens[i]).allowance(owners[i], spenders[i]);
             } else {
@@ -118,6 +126,4 @@ contract BalanceChecker {
 
         return addrAllowances;
     }
-
-
 }
