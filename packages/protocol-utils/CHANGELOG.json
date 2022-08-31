@@ -1,5 +1,13 @@
 [
     {
+        "version": "11.16.7",
+        "changes": [
+            {
+                "note": "Add otc order info to transformer_utils"
+            }
+        ]
+    },
+    {
         "timestamp": 1661462289,
         "version": "11.16.6",
         "changes": [
