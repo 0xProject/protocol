@@ -3,6 +3,7 @@ import { ITransformERC20Contract } from '@0x/contract-wrappers';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { utils as ethersUtils } from 'ethers';
+import { Summary } from 'prom-client';
 import { RedisClientType } from 'redis';
 import { Producer } from 'sqs-producer';
 
@@ -78,6 +79,16 @@ function decodeTransformErc20Calldata(calldata: string): {
     };
 }
 
+const ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS = new Summary({
+    name: 'zerog_meta_transaction_quote_request_duration_seconds',
+    help: 'Histogram of request duration of gasless swap',
+    // tslint:disable-next-line: custom-no-magic-numbers
+    percentiles: [0.5, 0.9, 0.95, 0.99, 0.999],
+    labelNames: ['chainId', 'success'],
+    maxAgeSeconds: 60,
+    ageBuckets: 5,
+});
+
 /**
  * Contains logic to fetch RFQm quotes, but with a fallback to
  * a MetaTransaction-wrapped AMM trade in the case no RFQm
@@ -114,12 +125,20 @@ export class GaslessSwapService {
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
         const [rfqPrice, ammPrice] = await Promise.all([
             this._rfqmService.fetchIndicativeQuoteAsync(params),
-            getQuoteAsync(this._axiosInstance, new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`), {
-                ...params,
-                // Can use the null address here since we won't be returning
-                // the actual metatransaction
-                takerAddress: params.takerAddress ?? NULL_ADDRESS,
-            }).then((r) => r?.price),
+            getQuoteAsync(
+                this._axiosInstance,
+                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                {
+                    ...params,
+                    // Can use the null address here since we won't be returning
+                    // the actual metatransaction
+                    takerAddress: params.takerAddress ?? NULL_ADDRESS,
+                },
+                {
+                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                    chainId: this._chainId,
+                },
+            ).then((r) => r?.price),
         ]);
 
         if (rfqPrice) {
@@ -149,6 +168,10 @@ export class GaslessSwapService {
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 params,
+                {
+                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                    chainId: this._chainId,
+                },
             ),
         ]);
 

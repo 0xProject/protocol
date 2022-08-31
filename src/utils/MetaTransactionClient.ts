@@ -75,9 +75,9 @@ export async function getQuoteAsync(
         slippagePercentage?: number;
         takerAddress: string;
     },
-    requestDurationSummary?: Summary<''>,
+    meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
 ): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
-    const startTimestamp = Date.now();
+    const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
     let response: AxiosResponse<GetMetaTransactionQuoteResponse>;
     try {
@@ -102,6 +102,9 @@ export async function getQuoteAsync(
             },
         });
     } catch (e) {
+        // tslint:disable-next-line: no-unused-expression
+        stopTimer && stopTimer({ success: 'false' });
+
         if (e.response?.data) {
             const axiosError = e as AxiosError<{
                 code: number;
@@ -136,7 +139,7 @@ export async function getQuoteAsync(
     }
 
     // tslint:disable-next-line: no-unused-expression
-    requestDurationSummary && requestDurationSummary.observe(Date.now() - startTimestamp);
+    stopTimer && stopTimer({ success: 'true' });
 
     const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;
 
