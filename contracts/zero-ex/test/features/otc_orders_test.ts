@@ -42,17 +42,8 @@ blockchainTests.resets('OtcOrdersFeature', env => {
         // Useful for ETH balance accounting
         const txDefaults = { ...env.txDefaults, gasPrice: 0 };
         let owner;
-        [
-            owner,
-            maker,
-            taker,
-            notMaker,
-            notTaker,
-            contractWalletOwner,
-            contractWalletSigner,
-            txOrigin,
-            notTxOrigin,
-        ] = await env.getAccountAddressesAsync();
+        [owner, maker, taker, notMaker, notTaker, contractWalletOwner, contractWalletSigner, txOrigin, notTxOrigin] =
+            await env.getAccountAddressesAsync();
         [makerToken, takerToken] = await Promise.all(
             [...new Array(2)].map(async () =>
                 TestMintableERC20TokenContract.deployFrom0xArtifactAsync(

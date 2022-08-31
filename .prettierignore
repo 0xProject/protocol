@@ -40,6 +40,8 @@ lib
 /contracts/erc20/test/generated-wrappers
 /contracts/erc20/generated-artifacts
 /contracts/erc20/test/generated-artifacts
+/contracts/erc20/src/artifacts.ts
+/contracts/erc20/test/artifacts.ts
 /contracts/erc721/generated-wrappers
 /contracts/erc721/test/generated-wrappers
 /contracts/erc721/generated-artifacts
@@ -64,6 +66,7 @@ lib
 /contracts/zero-ex/test/generated-wrappers
 /contracts/zero-ex/generated-artifacts
 /contracts/zero-ex/test/generated-artifacts
+/contracts/zero-ex/test/artifacts.ts
 /contracts/treasury/generated-wrappers
 /contracts/treasury/test/generated-wrappers
 /contracts/treasury/generated-artifacts
@@ -80,11 +83,11 @@ lib
 /contracts/erc1155/build/
 /contracts/extensions/build/
 /contracts/exchange-forwarder/build/
-/packages/asset-swapper/generated-artifacts
-/packages/asset-swapper/generated-wrappers
-/packages/asset-swapper/test/generated-artifacts
-/packages/asset-swapper/test/generated-wrappers
+/packages/contract-wrappers/src/generated-wrappers
 package.json
 packages/*/docs
 docs/
 *.sol
+
+# Deprecated packages:
+/packages/asset-swapper
