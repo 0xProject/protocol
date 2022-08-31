@@ -46,7 +46,7 @@ interface V1RequestParameters {
     marketOperation: MarketOperation;
     takerToken: string; // expect this to be NULL_ADDRESS
     takerAddress: string;
-    txOrigin: string; // expect this to be the taker address
+    txOrigin?: string; // expect this to be the taker address, can be missing for /price but not /quote
     intentOnFilling: boolean;
     integratorId: string;
 }
@@ -109,8 +109,13 @@ export class RfqtHandlers {
     ): Promise<void> {
         let parsedParameters: Omit<V1RequestParameters, 'integratorId'> & { integrator: Integrator };
         let service: RfqtService;
+        let txOrigin: string;
         try {
             parsedParameters = this._parseRequestParameters(req);
+            if (parsedParameters.txOrigin === undefined) {
+                throw new Error('Received request with missing parameter txOrigin');
+            }
+            txOrigin = parsedParameters.txOrigin;
             service = this._getServiceForChain(parsedParameters.chainId);
         } catch (error) {
             RFQT_V1_QUOTE_REQUEST_FAILED.inc();
@@ -120,7 +125,10 @@ export class RfqtHandlers {
         }
 
         try {
-            const quotes = await service.getV1QuotesAsync(parsedParameters);
+            const quotes = await service.getV1QuotesAsync({
+                ...parsedParameters,
+                txOrigin,
+            });
             RFQT_V1_QUOTE_REQUEST_SUCCEEDED.inc();
             logger.info({ requestBody: req.body }, 'Rfqt V1 quote request succeeded');
             res.status(HttpStatus.OK).json({
@@ -153,7 +161,6 @@ export class RfqtHandlers {
             !body.marketOperation ||
             !body.takerToken ||
             !body.takerAddress ||
-            !body.txOrigin ||
             typeof body.intentOnFilling !== 'boolean' ||
             !body.integratorId
         ) {

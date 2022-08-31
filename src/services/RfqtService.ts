@@ -125,7 +125,7 @@ export class RfqtService {
         marketOperation: MarketOperation;
         takerToken: string; // expect this to be NULL_ADDRESS
         takerAddress: string;
-        txOrigin: string; // expect this to be the taker address
+        txOrigin?: string; // expect this to be the taker address
         intentOnFilling: boolean;
         integrator: Integrator;
     }): Promise<V4RFQIndicativeQuoteMM[]> {
@@ -156,7 +156,7 @@ export class RfqtService {
                 isLastLook: false,
                 makerEndpointMaxResponseTimeMs: 600,
                 takerAddress,
-                txOrigin,
+                txOrigin: txOrigin || NULL_ADDRESS,
             },
         );
     }
