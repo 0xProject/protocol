@@ -145,7 +145,11 @@ export class GaslessSwapService {
     ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
         const [rfqQuote, ammQuote] = await Promise.all([
             this._rfqmService.fetchFirmQuoteAsync(params),
-            getQuoteAsync(this._axiosInstance, new URL('/quote', this._metaTransactionServiceBaseUrl), params),
+            getQuoteAsync(
+                this._axiosInstance,
+                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                params,
+            ),
         ]);
 
         if (rfqQuote) {
