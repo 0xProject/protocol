@@ -114,7 +114,7 @@ export class GaslessSwapService {
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
         const [rfqPrice, ammPrice] = await Promise.all([
             this._rfqmService.fetchIndicativeQuoteAsync(params),
-            getQuoteAsync(this._axiosInstance, new URL('/quote', this._metaTransactionServiceBaseUrl), {
+            getQuoteAsync(this._axiosInstance, new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`), {
                 ...params,
                 // Can use the null address here since we won't be returning
                 // the actual metatransaction
