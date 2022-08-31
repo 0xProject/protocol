@@ -3,7 +3,8 @@
         "version": "11.16.7",
         "changes": [
             {
-                "note": "Add otc order info to transformer_utils"
+                "note": "Add otc order info to transformer_utils",
+                "pr": "565"
             }
         ]
     },
