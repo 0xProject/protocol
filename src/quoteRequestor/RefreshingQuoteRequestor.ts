@@ -3,14 +3,14 @@ import { Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
-import { ONE_MINUTE_MS } from '../constants';
+import { ONE_SECOND_MS } from '../constants';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
 import { MetricsProxy, QuoteRequestor, V4RFQIndicativeQuoteMM } from './QuoteRequestor';
 
-// Matches asset swapper:
-// https://github.com/0xProject/protocol/blob/4327885a00c15bb17a3ab0c010d2b8071e366488/packages/asset-swapper/src/constants.ts#L34
-const DEFAULT_EXPIRY_BUFFER_MS = ONE_MINUTE_MS * 2;
+// This number should not be greater than 90s. Otherwise, the RFQt quotes from Jump and WM are likely to be filtered out
+// tslint:disable-next-line: custom-no-magic-numbers
+const DEFAULT_EXPIRY_BUFFER_MS = ONE_SECOND_MS * 80;
 
 /**
  * A wrapper of `QuoteRequestor` constructed with an instance of `RfqMakerManager`
