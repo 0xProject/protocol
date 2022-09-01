@@ -669,8 +669,9 @@ export class MarketOperationUtils {
                 // Make the RFQT request and then re-run the sampler if new orders come back.
 
                 const indicativeQuotes =
-                    rfqt.rfqClient !== undefined
-                        ? ((
+                    rfqt.rfqClient === undefined
+                        ? []
+                        : ((
                               await rfqt.rfqClient.getV1PricesAsync({
                                   altRfqAssetOfferings: filteredOfferings,
                                   assetFillAmount: amount,
@@ -684,20 +685,13 @@ export class MarketOperationUtils {
                                   takerToken,
                                   txOrigin: rfqt.txOrigin,
                               })
-                          ).prices as V4RFQIndicativeQuoteMM[])
-                        : await rfqt.quoteRequestor.requestRfqtIndicativeQuotesAsync(
-                              makerToken,
-                              takerToken,
-                              amount,
-                              side,
-                              wholeOrderPrice,
-                              rfqt,
-                          );
+                          ).prices as V4RFQIndicativeQuoteMM[]);
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'indicative',
                     deltaTime,
                 });
+
                 // Re-run optimizer with the new indicative quote
                 if (indicativeQuotes.length > 0) {
                     // Attach the indicative quotes to the market side liquidity
@@ -727,8 +721,9 @@ export class MarketOperationUtils {
                 // A firm quote is being requested, and firm quotes price-aware enabled.
                 // Ensure that `intentOnFilling` is enabled and make the request.
                 const firmQuotes =
-                    rfqt.rfqClient !== undefined
-                        ? (
+                    rfqt.rfqClient === undefined
+                        ? []
+                        : (
                               await rfqt.rfqClient.getV1QuotesAsync({
                                   altRfqAssetOfferings: filteredOfferings,
                                   assetFillAmount: amount,
@@ -747,15 +742,8 @@ export class MarketOperationUtils {
                               // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
                               rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
                               return toSignedNativeOrder(quote);
-                          })
-                        : await rfqt.quoteRequestor.requestRfqtFirmQuotesAsync(
-                              makerToken,
-                              takerToken,
-                              amount,
-                              side,
-                              wholeOrderPrice,
-                              rfqt,
-                          );
+                          });
+
                 const deltaTime = new Date().getTime() - timeStart;
                 DEFAULT_INFO_LOGGER({
                     rfqQuoteType: 'firm',

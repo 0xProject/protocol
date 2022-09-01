@@ -187,11 +187,11 @@ export async function getDefaultAppDependenciesAsync(
             new AssetSwapperOrderbook(orderBookService),
             provider,
             contractAddresses,
+            rfqClient,
             rfqtFirmQuoteValidator,
             rfqDynamicBlacklist,
             pairsManager,
             slippageModelManager,
-            rfqClient,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(swapService, contractAddresses);
     } catch (err) {

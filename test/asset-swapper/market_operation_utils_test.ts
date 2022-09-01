@@ -17,6 +17,8 @@ import * as TypeMoq from 'typemoq';
 import {
     MarketOperation,
     QuoteRequestor,
+    RfqClientV1Price,
+    RfqClientV1Quote,
     RfqRequestOpts,
     SignedNativeOrder,
     TokenAdjacencyGraph,
@@ -45,6 +47,7 @@ import {
     OptimizedMarketBridgeOrder,
     OptimizerResultWithReport,
 } from '../../src/asset-swapper/utils/market_operation_utils/types';
+import { RfqClient } from '../../src/utils/rfq_client';
 
 const MAKER_TOKEN = randomAddress();
 const TAKER_TOKEN = randomAddress();
@@ -68,6 +71,8 @@ const FOO_INTEGRATOR: Integrator = {
     integratorId: 'foo',
     label: 'foo',
 };
+
+const MAKER_URI = 'https://foo.bar';
 
 /**
  * gets the orders required for a market sell operation by (potentially) merging native orders with
@@ -101,6 +106,26 @@ async function getMarketBuyOrdersAsync(
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
     return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
+}
+
+function toRfqClientV1Price(order: SignedNativeOrder): RfqClientV1Price {
+    return {
+        expiry: order.order.expiry,
+        kind: 'rfq',
+        makerAmount: order.order.makerAmount,
+        makerToken: order.order.makerToken,
+        makerUri: MAKER_URI,
+        takerAmount: order.order.takerAmount,
+        takerToken: order.order.takerToken,
+    };
+}
+
+function toRfqClientV1Quote(order: SignedNativeOrder): RfqClientV1Quote {
+    return {
+        order: new RfqOrder(order.order),
+        signature: order.signature,
+        makerUri: MAKER_URI,
+    };
 }
 
 class MockPoolsCache extends AbstractPoolsCache {
@@ -147,9 +172,10 @@ describe('MarketOperationUtils tests', () => {
             TypeMoq.It.isAny(),
         ];
         const requestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, true);
+        requestor.setup((r) => r.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE))).returns(() => MAKER_URI);
         requestor
-            .setup((mqr) => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
-            .returns(() => 'https://foo.bar');
+            .setup((r) => r.setMakerUriForSignature(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => undefined);
         if (type === 'firm') {
             requestor
                 .setup((r) => r.requestRfqtFirmQuotesAsync(...args))
@@ -604,134 +630,6 @@ describe('MarketOperationUtils tests', () => {
                 mockedMarketOpUtils.verifyAll();
             });
 
-            it('optimizer will send in a comparison price to RFQ providers', async () => {
-                // Set up mocked quote requestor, will return an order that is better
-                // than the best of the orders.
-                const mockedQuoteRequestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, false, {});
-
-                let requestedComparisonPrice: BigNumber | undefined;
-
-                // to get a comparisonPrice, you need a feeschedule for a native order
-                const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant({ gas: 1, fee: new BigNumber(1) }),
-                };
-                mockedQuoteRequestor
-                    .setup((mqr) => mqr.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE)))
-                    .returns(() => 'https://foo.bar');
-                mockedQuoteRequestor
-                    .setup((mqr) =>
-                        mqr.requestRfqtFirmQuotesAsync(
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
-                    )
-                    .callback(
-                        (
-                            _makerToken: string,
-                            _takerToken: string,
-                            _assetFillAmount: BigNumber,
-                            _marketOperation: MarketOperation,
-                            comparisonPrice: BigNumber | undefined,
-                            _options: RfqRequestOpts,
-                        ) => {
-                            requestedComparisonPrice = comparisonPrice;
-                        },
-                    )
-                    .returns(async () => {
-                        return [
-                            {
-                                order: {
-                                    ...new RfqOrder({
-                                        makerToken: MAKER_TOKEN,
-                                        takerToken: TAKER_TOKEN,
-                                        makerAmount: Web3Wrapper.toBaseUnitAmount(321, 6),
-                                        takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                    }),
-                                },
-                                signature: SIGNATURE,
-                                type: FillQuoteTransformerOrderType.Rfq,
-                            },
-                        ];
-                    });
-
-                // Set up sampler, will only return 1 on-chain order
-                const mockedMarketOpUtils = TypeMoq.Mock.ofType(
-                    MarketOperationUtils,
-                    TypeMoq.MockBehavior.Loose,
-                    false,
-                    MOCK_SAMPLER,
-                    contractAddresses,
-                );
-                mockedMarketOpUtils.callBase = true;
-                mockedMarketOpUtils
-                    .setup((mou) =>
-                        mou.getMarketSellLiquidityAsync(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    )
-                    .returns(async () => {
-                        return {
-                            side: MarketOperation.Sell,
-                            inputAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                            inputToken: MAKER_TOKEN,
-                            outputToken: TAKER_TOKEN,
-                            inputAmountPerEth: Web3Wrapper.toBaseUnitAmount(1, 18),
-                            outputAmountPerEth: Web3Wrapper.toBaseUnitAmount(1, 6),
-                            quoteSourceFilters: new SourceFilters(),
-                            makerTokenDecimals: 6,
-                            takerTokenDecimals: 18,
-                            quotes: {
-                                dexQuotes: [],
-                                rfqtIndicativeQuotes: [],
-                                twoHopQuotes: [],
-                                nativeOrders: [
-                                    {
-                                        order: new LimitOrder({
-                                            makerToken: MAKER_TOKEN,
-                                            takerToken: TAKER_TOKEN,
-                                            makerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
-                                            takerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                        }),
-                                        fillableTakerAmount: Web3Wrapper.toBaseUnitAmount(1, 18),
-                                        fillableMakerAmount: Web3Wrapper.toBaseUnitAmount(320, 6),
-                                        fillableTakerFeeAmount: new BigNumber(0),
-                                        type: FillQuoteTransformerOrderType.Limit,
-                                        signature: SIGNATURE,
-                                    },
-                                ],
-                            },
-                            isRfqSupported: true,
-                            blockNumber: 1337420,
-                        };
-                    });
-                const result = await mockedMarketOpUtils.object.getOptimizerResultAsync(
-                    ORDERS,
-                    Web3Wrapper.toBaseUnitAmount(1, 18),
-                    MarketOperation.Sell,
-                    {
-                        ...DEFAULT_OPTS,
-                        feeSchedule,
-                        rfqt: {
-                            isIndicative: false,
-                            integrator: FOO_INTEGRATOR,
-                            takerAddress: randomAddress(),
-                            txOrigin: randomAddress(),
-                            intentOnFilling: true,
-                            quoteRequestor: {
-                                requestRfqtFirmQuotesAsync: mockedQuoteRequestor.object.requestRfqtFirmQuotesAsync,
-                                getMakerUriForSignature: mockedQuoteRequestor.object.getMakerUriForSignature,
-                            } as any,
-                        },
-                    },
-                );
-                expect(result.optimizedOrders.length).to.eql(1);
-                expect(requestedComparisonPrice!.toString()).to.eql('320');
-                expect(result.optimizedOrders[0].makerAmount.toString()).to.eql('321000000');
-                expect(result.optimizedOrders[0].takerAmount.toString()).to.eql('1000000000000000000');
-            });
-
             it('getMarketSellOrdersAsync() will not rerun the optimizer if no orders are returned', async () => {
                 // Ensure that `_generateOptimizedOrdersAsync` is only called once
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
@@ -748,6 +646,11 @@ describe('MarketOperationUtils tests', () => {
                     .verifiable(TypeMoq.Times.once());
 
                 const requestor = getMockedQuoteRequestor('firm', [], TypeMoq.Times.once());
+                const rfqClient = TypeMoq.Mock.ofType(RfqClient, TypeMoq.MockBehavior.Loose, true);
+                rfqClient
+                    .setup((client) => client.getV1QuotesAsync(TypeMoq.It.isAny()))
+                    .returns(async () => ({ quotes: [] }))
+                    .verifiable(TypeMoq.Times.once());
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
@@ -762,6 +665,10 @@ describe('MarketOperationUtils tests', () => {
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             txOrigin: randomAddress(),
+                            rfqClient: {
+                                getV1PricesAsync: rfqClient.object.getV1PricesAsync,
+                                getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
+                            },
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                             } as any,
@@ -769,11 +676,16 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 mockedMarketOpUtils.verifyAll();
-                requestor.verifyAll();
+                rfqClient.verifyAll();
             });
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more indicative are returned', async () => {
                 const requestor = getMockedQuoteRequestor('indicative', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
+                const rfqClient = TypeMoq.Mock.ofType(RfqClient, TypeMoq.MockBehavior.Loose, true);
+                rfqClient
+                    .setup((client) => client.getV1PricesAsync(TypeMoq.It.isAny()))
+                    .returns(async () => ({ prices: [ORDERS[0], ORDERS[1]].map(toRfqClientV1Price) }))
+                    .verifiable(TypeMoq.Times.once());
 
                 const numOrdersInCall: number[] = [];
                 const numIndicativeQuotesInCall: number[] = [];
@@ -808,6 +720,10 @@ describe('MarketOperationUtils tests', () => {
                             takerAddress: randomAddress(),
                             txOrigin: randomAddress(),
                             intentOnFilling: true,
+                            rfqClient: {
+                                getV1PricesAsync: rfqClient.object.getV1PricesAsync,
+                                getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
+                            },
                             quoteRequestor: {
                                 requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
                                 getMakerUriForSignature: requestor.object.getMakerUriForSignature,
@@ -816,7 +732,7 @@ describe('MarketOperationUtils tests', () => {
                     },
                 );
                 mockedMarketOpUtils.verifyAll();
-                requestor.verifyAll();
+                rfqClient.verifyAll();
 
                 // The first and second optimizer call contains same number of RFQ orders.
                 expect(numOrdersInCall.length).to.eql(2);
@@ -832,6 +748,11 @@ describe('MarketOperationUtils tests', () => {
 
             it('getMarketSellOrdersAsync() will rerun the optimizer if one or more RFQ orders are returned', async () => {
                 const requestor = getMockedQuoteRequestor('firm', [ORDERS[0]], TypeMoq.Times.once());
+                const rfqClient = TypeMoq.Mock.ofType(RfqClient, TypeMoq.MockBehavior.Loose, true);
+                rfqClient
+                    .setup((client) => client.getV1QuotesAsync(TypeMoq.It.isAny()))
+                    .returns(async () => ({ quotes: [ORDERS[0]].map(toRfqClientV1Quote) }))
+                    .verifiable(TypeMoq.Times.once());
 
                 // Ensure that `_generateOptimizedOrdersAsync` is only called once
 
@@ -869,14 +790,20 @@ describe('MarketOperationUtils tests', () => {
                             takerAddress: randomAddress(),
                             intentOnFilling: true,
                             txOrigin: randomAddress(),
+                            rfqClient: {
+                                getV1PricesAsync: rfqClient.object.getV1PricesAsync,
+                                getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
+                            },
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
+                                setMakerUriForSignature: requestor.object.setMakerUriForSignature,
+                                getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },
                 );
                 mockedMarketOpUtils.verifyAll();
-                requestor.verifyAll();
+                rfqClient.verifyAll();
                 expect(numOrdersInCall.length).to.eql(2);
 
                 // The first call to optimizer was without an RFQ order.
@@ -889,6 +816,12 @@ describe('MarketOperationUtils tests', () => {
                 let hasFirstOptimizationRun = false;
                 let hasSecondOptimizationRun = false;
                 const requestor = getMockedQuoteRequestor('firm', [ORDERS[0], ORDERS[1]], TypeMoq.Times.once());
+
+                const rfqClient = TypeMoq.Mock.ofType(RfqClient, TypeMoq.MockBehavior.Loose, true);
+                rfqClient
+                    .setup((client) => client.getV1QuotesAsync(TypeMoq.It.isAny()))
+                    .returns(async () => ({ quotes: [ORDERS[0], ORDERS[1]].map(toRfqClientV1Quote) }))
+                    .verifiable(TypeMoq.Times.once());
 
                 const mockedMarketOpUtils = TypeMoq.Mock.ofType(
                     MarketOperationUtils,
@@ -926,14 +859,20 @@ describe('MarketOperationUtils tests', () => {
                             takerAddress: randomAddress(),
                             txOrigin: randomAddress(),
                             intentOnFilling: true,
+                            rfqClient: {
+                                getV1PricesAsync: rfqClient.object.getV1PricesAsync,
+                                getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
+                            },
                             quoteRequestor: {
                                 requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
+                                setMakerUriForSignature: requestor.object.setMakerUriForSignature,
+                                getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
                         },
                     },
                 );
                 mockedMarketOpUtils.verifyAll();
-                requestor.verifyAll();
+                rfqClient.verifyAll();
 
                 expect(hasFirstOptimizationRun).to.eql(true);
                 expect(hasSecondOptimizationRun).to.eql(true);

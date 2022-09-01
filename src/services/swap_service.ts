@@ -189,11 +189,11 @@ export class SwapService {
         orderbook: Orderbook,
         provider: SupportedProvider,
         contractAddresses: AssetSwapperContractAddresses,
+        private readonly _rfqClient: RfqClient,
         firmQuoteValidator?: RfqFirmQuoteValidator | undefined,
         rfqDynamicBlacklist?: RfqDynamicBlacklist,
         private readonly _pairsManager?: PairsManager,
         readonly slippageModelManager?: SlippageModelManager,
-        private readonly _rfqClient?: RfqClient,
     ) {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
@@ -338,21 +338,13 @@ export class SwapService {
                 : buyAmount!.times(affiliateFee.buyTokenPercentageFee + 1).integerValue(BigNumber.ROUND_DOWN);
 
         // Fetch the Swap quote
-        const rfqClient = isHashSmallEnough({
-            message:
-                `${assetSwapperOpts.rfqt?.txOrigin}-${sellToken}-${buyToken}-${amount}-${marketSide}`.toLowerCase(),
-            threshold: RFQ_CLIENT_ROLLOUT_PERCENT / 100,
-        })
-            ? this._rfqClient
-            : undefined;
-
         const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
             buyToken,
             sellToken,
             amount!, // was validated earlier
             marketSide,
             assetSwapperOpts,
-            rfqClient,
+            this._rfqClient,
         );
 
         const {
