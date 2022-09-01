@@ -18,11 +18,12 @@ import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { Integrator, RFQM_MAINTENANCE_MODE } from '../config';
+import { ENABLE_LLR_COOLDOWN, Integrator, LLR_COOLDOWN_DURATION_SECONDS, RFQM_MAINTENANCE_MODE } from '../config';
 import {
     ETH_DECIMALS,
     GAS_ESTIMATE_BUFFER,
     GWEI_DECIMALS,
+    LLR_COOLDOWN_WINDOW_SECONDS,
     NULL_ADDRESS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
@@ -1955,6 +1956,71 @@ export class RfqmService {
                 job.lastLookResult = false;
                 job.status = RfqmJobStatus.FailedLastLookDeclined;
                 await this._dbUtils.updateRfqmJobAsync(job);
+
+                if (ENABLE_LLR_COOLDOWN) {
+                    try {
+                        const quote = await this._dbUtils.findV2QuoteByOrderHashAsync(orderHash);
+                        if (quote === null) {
+                            throw new Error(`Failed to find quote with order hash ${orderHash}`);
+                        }
+
+                        // `bad` last look rejection, rejected within the cooldown window
+                        if (
+                            signAttemptTimeMs - quote.createdAt.valueOf() <
+                            LLR_COOLDOWN_WINDOW_SECONDS * ONE_SECOND_MS
+                        ) {
+                            const makerId = this._rfqMakerManager.findMakerIdWithRfqmUri(makerUri);
+                            if (makerId === null) {
+                                throw new Error(`Failed to find maker ID with RFQm URI ${makerUri}`);
+                            }
+
+                            const cooldownEndTimeMs = signAttemptTimeMs + LLR_COOLDOWN_DURATION_SECONDS * ONE_SECOND_MS;
+
+                            // schedule cooldown
+                            const isScheduleUpdated = await this._cacheClient.addMakerToCooldownAsync(
+                                makerId,
+                                cooldownEndTimeMs,
+                                this._chainId,
+                                otcOrder.makerToken,
+                                otcOrder.takerToken,
+                            );
+
+                            logger.info(
+                                {
+                                    makerId,
+                                    chainId: this._chainId,
+                                    makerToken: otcOrder.makerToken,
+                                    takerToken: otcOrder.takerToken,
+                                    startTime: signAttemptTimeMs,
+                                    endTime: cooldownEndTimeMs,
+                                    orderHash,
+                                    isScheduleUpdated,
+                                },
+                                'LLR cooldown scheduled',
+                            );
+
+                            try {
+                                // insert cooldown entry to db for record keeping
+                                await this._dbUtils.writeV2LastLookRejectionCooldownAsync(
+                                    makerId,
+                                    this._chainId,
+                                    otcOrder.makerToken,
+                                    otcOrder.takerToken,
+                                    new Date(signAttemptTimeMs), // startTime
+                                    new Date(cooldownEndTimeMs), // endTime
+                                    orderHash,
+                                );
+                            } catch (e) {
+                                logger.warn({ orderHash, errorMessage: e.message }, 'Saving LLR cooldown failed');
+                            }
+                        }
+                    } catch (error) {
+                        logger.warn(
+                            { errorMessage: error.message },
+                            'Encountered error when detecting bad LLR and scheduling cooldown',
+                        );
+                    }
+                }
 
                 // We'd like some data on how much the price the market maker is offering
                 // has changed. We query the market maker's price endpoint with the same

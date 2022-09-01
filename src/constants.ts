@@ -88,3 +88,7 @@ export const PERMIT_EIP_712_TYPES = {
 // Default buffer for gas estimation returned by `eth_estimateGas`. For example, 0.5 means to
 // add a 50% buffer.
 export const GAS_ESTIMATE_BUFFER = 0.5;
+
+// Time window to apply last look rejections (LLRs) cooldown, in seconds. Any LLRs for quotes
+// submited within the window are considered as `bad` LLRs, and the maker will be cooldown.
+export const LLR_COOLDOWN_WINDOW_SECONDS = 30;

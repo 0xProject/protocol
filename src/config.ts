@@ -449,6 +449,15 @@ export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROX
     ? undefined
     : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
 
+// tslint:disable-next-line boolean-naming
+export const ENABLE_LLR_COOLDOWN: boolean = _.isEmpty(process.env.ENABLE_LLR_COOLDOWN)
+    ? false
+    : assertEnvVarType('ENABLE_LLR_COOLDOWN', process.env.ENABLE_LLR_COOLDOWN, EnvVarType.Boolean);
+
+export const LLR_COOLDOWN_DURATION_SECONDS: number = _.isEmpty(process.env.LLR_COOLDOWN_DURATION_SECONDS)
+    ? 60
+    : assertEnvVarType('LLR_COOLDOWN_DURATION_SECONDS', process.env.LLR_COOLDOWN_DURATION_SECONDS, EnvVarType.Integer);
+
 export const defaultHttpServiceConfig: HttpServiceConfig = {
     httpPort: HTTP_PORT,
     healthcheckHttpPort: HEALTHCHECK_HTTP_PORT,

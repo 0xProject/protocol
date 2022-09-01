@@ -20,6 +20,7 @@ import {
     RfqmJobEntity,
     RfqmTransactionSubmissionEntity,
     RfqmV2JobEntity,
+    RfqmV2QuoteEntity,
     RfqmV2TransactionSubmissionEntity,
 } from '../../src/entities';
 import { MetaTransactionJobConstructorOpts } from '../../src/entities/MetaTransactionJobEntity';
@@ -4092,6 +4093,16 @@ describe('RfqmService Worker Logic', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
+            when(mockDbUtils.findV2QuoteByOrderHashAsync('0xorderhash')).thenResolve(
+                new RfqmV2QuoteEntity({
+                    createdAt: new Date(),
+                    chainId: job.chainId,
+                    fee: job.fee,
+                    makerUri: job.makerUri,
+                    order: job.order,
+                    orderHash: job.orderHash,
+                }),
+            );
             const updateRfqmJobCalledArgs: RfqmJobEntity[] = [];
             when(mockDbUtils.updateRfqmJobAsync(anything())).thenCall(async (jobArg) => {
                 updateRfqmJobCalledArgs.push(_.cloneDeep(jobArg));
@@ -4108,11 +4119,18 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
+            const mockCacheClient = mock(CacheClient);
+
+            const mockRfqMakerManager = mock(RfqMakerManager);
+            when(mockRfqMakerManager.findMakerIdWithRfqmUri(job.makerUri)).thenReturn('makerId1');
+
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
+                rfqMakerManager: instance(mockRfqMakerManager),
+                cacheClient: instance(mockCacheClient),
             });
 
             try {
@@ -4125,6 +4143,28 @@ describe('RfqmService Worker Logic', () => {
                     lastLookResult: false,
                     status: RfqmJobStatus.FailedLastLookDeclined,
                 });
+
+                verify(
+                    mockCacheClient.addMakerToCooldownAsync(
+                        'makerId1',
+                        anything(),
+                        job.chainId,
+                        job.order.order.makerToken,
+                        job.order.order.takerToken,
+                    ),
+                ).once();
+
+                verify(
+                    mockDbUtils.writeV2LastLookRejectionCooldownAsync(
+                        'makerId1',
+                        job.chainId,
+                        job.order.order.makerToken,
+                        job.order.order.takerToken,
+                        anything(),
+                        anything(),
+                        job.orderHash,
+                    ),
+                ).once();
             }
         });
 
