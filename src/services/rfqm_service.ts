@@ -1773,10 +1773,25 @@ export class RfqmService {
         try {
             await retry(
                 async () => {
+                    // The following gas fee operations are added because `executeMetaTransaction` in 0x Exchange Proxy
+                    // would check whether the gas price of the transaction is within a window. If left empty, it will
+                    // fail the simulation. The gas fee estimation below is the same as the first gas fee estimation
+                    // used in `submitToChain`.
+                    const gasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+                    const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
+                        Math.pow(10, GWEI_DECIMALS),
+                    );
+                    const gasFees: GasFees = {
+                        maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+                        maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
+                    };
+
                     return this._blockchainUtils.estimateGasForAsync({
                         from: workerAddress,
                         to: this._blockchainUtils.getExchangeProxyAddress(),
                         data: calldata,
+                        maxFeePerGas: gasFees.maxFeePerGas.toString(),
+                        maxPriorityFeePerGas: gasFees.maxPriorityFeePerGas.toString(),
                     });
                 },
                 {
@@ -2164,6 +2179,11 @@ export class RfqmService {
                 to,
                 from,
                 data: calldata,
+                // The following gas fee properties are added because `executeMetaTransaction` in 0x Exchange Proxy
+                // would check whether the gas price of the transaction is within a window. If left empty, it will
+                // fail the simulation.
+                maxFeePerGas: gasFees.maxFeePerGas.toString(),
+                maxPriorityFeePerGas: gasFees.maxPriorityFeePerGas.toString(),
             });
             // Add buffer to gas estimate returned by `eth_estimateGas` as the RPC method
             // tends to under estimate gas usage

@@ -3559,9 +3559,16 @@ describe('RfqmService Worker Logic', () => {
             );
 
             const _job = _.cloneDeep(expiredJob);
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
+            const rfqmService = buildRfqmServiceForUnitTest({
+                dbUtils: instance(mockDbUtils),
+                rfqmFeeService: instance(rfqmFeeServiceMock),
+            });
 
             try {
                 await rfqmService.prepareMetaTransactionTradeAsync(
@@ -3611,6 +3618,10 @@ describe('RfqmService Worker Logic', () => {
             );
             const _job = _.cloneDeep(job);
 
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
@@ -3622,6 +3633,7 @@ describe('RfqmService Worker Logic', () => {
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
+                rfqmFeeService: instance(rfqmFeeServiceMock),
             });
 
             try {
@@ -3683,6 +3695,10 @@ describe('RfqmService Worker Logic', () => {
             );
             const _job = _.cloneDeep(job);
 
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([transaction]);
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
@@ -3693,6 +3709,7 @@ describe('RfqmService Worker Logic', () => {
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
+                rfqmFeeService: instance(rfqmFeeServiceMock),
             });
 
             const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
@@ -3740,6 +3757,10 @@ describe('RfqmService Worker Logic', () => {
             );
             const _job = _.cloneDeep(job);
 
+            const rfqmFeeServiceMock = mock(RfqmFeeService);
+            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                new BigNumber(10).shiftedBy(GWEI_DECIMALS),
+            );
             const mockDbUtils = mock(RfqmDbUtils);
             const updateRfqmJobCalledArgs: MetaTransactionJobEntity[] = [];
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
@@ -3755,6 +3776,7 @@ describe('RfqmService Worker Logic', () => {
             const rfqmService = buildRfqmServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
+                rfqmFeeService: instance(rfqmFeeServiceMock),
             });
 
             const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
