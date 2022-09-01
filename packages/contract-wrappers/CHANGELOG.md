@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v13.22.0 - _September 1, 2022_
+
+    * Remove deprecated contracts
+
 ## v13.21.3 - _August 25, 2022_
 
     * Dependencies updated

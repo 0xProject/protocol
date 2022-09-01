@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.23.0 - _September 1, 2022_
+
+    * Remove contract addresses that are no longer needed (#564)
+    * Change WETH address in contract-addresses (#571)
+
 ## v6.22.0 - _August 25, 2022_
 
     * Arbitrum Rinkeby support (#552)

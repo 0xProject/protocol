@@ -10,7 +10,8 @@
                 "note": "Change WETH address in contract-addresses",
                 "pr": 571
             }
-        ]
+        ],
+        "timestamp": 1662046042
     },
     {
         "version": "6.22.0",
