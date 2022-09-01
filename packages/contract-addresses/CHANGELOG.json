@@ -5,6 +5,10 @@
             {
                 "note": "Remove contract addresses that are no longer needed",
                 "pr": 564
+            },
+            {
+                "note": "Change WETH address in contract-addresses",
+                "pr": 571
             }
         ]
     },
