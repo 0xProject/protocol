@@ -8,6 +8,7 @@ import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AaveV2FillData,
     AggregationError,
+    BalancerFillData,
     BalancerV2BatchSwapFillData,
     BalancerV2FillData,
     BancorFillData,
@@ -243,7 +244,11 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             ]);
             break;
         }
-        case ERC20BridgeSource.Balancer:
+        case ERC20BridgeSource.Balancer: {
+            const balancerFillData = (order as OptimizedMarketBridgeOrder<BalancerFillData>).fillData;
+            bridgeData = encoder.encode([balancerFillData.poolAddress]);
+            break;
+        }
         case ERC20BridgeSource.BalancerV2:
             {
                 const balancerV2FillData = (order as OptimizedMarketBridgeOrder<BalancerV2BatchSwapFillData>).fillData;
