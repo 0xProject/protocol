@@ -152,7 +152,10 @@ if (require.main === module) {
             },
             Promise.resolve(new Map<number, GaslessSwapService>()),
         );
-
+        logger.info(
+            { chains: chainsConfigurationsWithGaslessSwap.map((c) => c.name) },
+            'Starting gasless swap service',
+        );
         await runGaslessSwapServiceAsync(gaslessSwapServices, configManager, defaultHttpServiceConfig, connection);
     })().catch((error) => logger.error(error.stack));
 }
