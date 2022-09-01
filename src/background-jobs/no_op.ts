@@ -7,11 +7,6 @@ import { logger } from '../logger';
 import { BackgroundJobBlueprint } from './blueprint';
 
 const QUEUE_NAME = 'no-op';
-const RETRY_COUNT = 2;
-const BACKOFF_OPS = {
-    type: 'fixed',
-    delay: ONE_SECOND_MS * 10,
-};
 const REMOVE_ON_COMPLETE_OPS = {
     count: 100,
 };
@@ -58,8 +53,6 @@ async function createAsync(
 ): Promise<Job<BackgroundJobNoOpData, BackgroundJobNoOpResult>> {
     logger.info({ queue: QUEUE_NAME, data }, 'Creating the no-op background job on queue');
     return queue.add(`${QUEUE_NAME}.${data.timestamp}`, data, {
-        attempts: RETRY_COUNT,
-        backoff: BACKOFF_OPS,
         removeOnComplete: REMOVE_ON_COMPLETE_OPS,
         removeOnFail: REMOVE_ON_FAILURE_OPS,
     });
