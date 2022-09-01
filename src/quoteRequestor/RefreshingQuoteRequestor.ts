@@ -6,6 +6,7 @@ import { AxiosInstance } from 'axios';
 import { ONE_SECOND_MS } from '../constants';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
+import { METRICS_PROXY } from './MetricsProxyImpl';
 import { MetricsProxy, QuoteRequestor, V4RFQIndicativeQuoteMM } from './QuoteRequestor';
 
 // This number should not be greater than 90s. Otherwise, the RFQt quotes from Jump and WM are likely to be filtered out
@@ -19,13 +20,14 @@ const DEFAULT_EXPIRY_BUFFER_MS = ONE_SECOND_MS * 80;
  */
 export class RefreshingQuoteRequestor {
     private _quoteRequestor: QuoteRequestor;
+    private readonly _metrics: MetricsProxy;
     constructor(
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
         private readonly _expiryBufferMs: number = DEFAULT_EXPIRY_BUFFER_MS,
-        private readonly _metrics?: MetricsProxy,
     ) {
+        this._metrics = METRICS_PROXY;
         this._quoteRequestor = this._createQuoteRequestor();
         this._rfqMakerManager.on(
             RfqMakerManager.REFRESHED_EVENT,
