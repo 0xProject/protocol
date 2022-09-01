@@ -69,9 +69,7 @@ spec:
             - name: LOGGER_INCLUDE_TIMESTAMP
               value: "false"
             - name: REDIS_BACKGROUND_JOB_URI
-              value: ""
-            - name: BACKGROUND_JOB_TYPES
-              value: "" # job types for bull-board to monitor (separated by ,)
+            - name: BACKGROUND_JOB_TYPES # job types for the processor to process (separated by ,)
             - name: ENABLE_PROMETHEUS_METRICS
               value: "true"
             - name: PROMETHEUS_PORT

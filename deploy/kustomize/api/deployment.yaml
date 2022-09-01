@@ -59,9 +59,7 @@ spec:
             - name: LOGGER_INCLUDE_TIMESTAMP
               value: "false"
             - name: POSTGRES_URI
-              value: ""
             - name: REDIS_URI
-              value: ""
             - name: ENABLE_PROMETHEUS_METRICS
               value: "true"
             - name: PROMETHEUS_PORT
