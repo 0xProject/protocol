@@ -19,7 +19,6 @@ import {
     OptimizedMarketOrder,
 } from './utils/market_operation_utils/types';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
-import { MetricsProxy } from './utils/quote_requestor';
 import { TokenAdjacencyGraph } from './utils/token_adjacency_graph';
 
 export type Address = string;
@@ -307,16 +306,12 @@ export interface Integrator {
 
 export interface SwapQuoterRfqOpts {
     integratorsWhitelist: Integrator[];
-    makerAssetOfferings: RfqMakerAssetOfferings;
     txOriginBlacklist: Set<string>;
     altRfqCreds?: {
         altRfqApiKey: string;
         altRfqProfile: string;
     };
     warningLogger?: LogFunction;
-    infoLogger?: LogFunction;
-    metricsProxy?: MetricsProxy;
-    axiosInstanceOpts?: AxiosRequestConfig;
 }
 
 export type AssetSwapperContractAddresses = ContractAddresses;

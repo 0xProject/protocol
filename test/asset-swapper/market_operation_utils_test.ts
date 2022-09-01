@@ -176,21 +176,6 @@ describe('MarketOperationUtils tests', () => {
         requestor
             .setup((r) => r.setMakerUriForSignature(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => undefined);
-        if (type === 'firm') {
-            requestor
-                .setup((r) => r.requestRfqtFirmQuotesAsync(...args))
-                .returns(async () => results)
-                .verifiable(verifiable);
-        } else {
-            requestor
-                .setup((r) => r.requestRfqtIndicativeQuotesAsync(...args))
-                .returns(async () =>
-                    results.map((r) => {
-                        return { ...r.order, makerUri: 'https://foo.bar/' };
-                    }),
-                )
-                .verifiable(verifiable);
-        }
         return requestor;
     }
 
@@ -669,9 +654,7 @@ describe('MarketOperationUtils tests', () => {
                                 getV1PricesAsync: rfqClient.object.getV1PricesAsync,
                                 getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
                             },
-                            quoteRequestor: {
-                                requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
-                            } as any,
+                            quoteRequestor: {} as any,
                         },
                     },
                 );
@@ -725,7 +708,6 @@ describe('MarketOperationUtils tests', () => {
                                 getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
                             },
                             quoteRequestor: {
-                                requestRfqtIndicativeQuotesAsync: requestor.object.requestRfqtIndicativeQuotesAsync,
                                 getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
                         },
@@ -795,7 +777,6 @@ describe('MarketOperationUtils tests', () => {
                                 getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
                             },
                             quoteRequestor: {
-                                requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                                 setMakerUriForSignature: requestor.object.setMakerUriForSignature,
                                 getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,
@@ -864,7 +845,6 @@ describe('MarketOperationUtils tests', () => {
                                 getV1QuotesAsync: rfqClient.object.getV1QuotesAsync,
                             },
                             quoteRequestor: {
-                                requestRfqtFirmQuotesAsync: requestor.object.requestRfqtFirmQuotesAsync,
                                 setMakerUriForSignature: requestor.object.setMakerUriForSignature,
                                 getMakerUriForSignature: requestor.object.getMakerUriForSignature,
                             } as any,

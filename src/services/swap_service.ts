@@ -66,8 +66,6 @@ import {
     TokenMetadata,
 } from '../types';
 import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
-import { isHashSmallEnough } from '../utils/hash_utils';
-import { METRICS_PROXY } from '../utils/metrics_service';
 import { paginationUtils } from '../utils/pagination_utils';
 import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
@@ -198,23 +196,11 @@ export class SwapService {
         this._provider = provider;
         this._firmQuoteValidator = firmQuoteValidator;
 
-        let axiosOpts = {};
-        if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
-            axiosOpts = {
-                proxy: {
-                    host: RFQ_PROXY_ADDRESS,
-                    port: RFQ_PROXY_PORT,
-                },
-            };
-        }
         this._swapQuoterOpts = {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
                 ...SWAP_QUOTER_OPTS.rfqt!,
                 warningLogger: logger.warn.bind(logger),
-                infoLogger: logger.info.bind(logger),
-                axiosInstanceOpts: axiosOpts,
-                metricsProxy: METRICS_PROXY,
             },
             contractAddresses,
         };
@@ -232,10 +218,6 @@ export class SwapService {
             };
         }
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, this._swapQuoterOpts);
-        this._renewSwapQuoter();
-        this._pairsManager?.on(PairsManager.REFRESHED_EVENT, () => {
-            this._renewSwapQuoter();
-        });
 
         this._swapQuoteConsumer = new SwapQuoteConsumer(this._swapQuoterOpts);
         this._web3Wrapper = new Web3Wrapper(this._provider);
@@ -783,19 +765,5 @@ export class SwapService {
         }
 
         return (await this._altRfqMarketsCache.getResultAsync()).result;
-    }
-
-    /**
-     * Update to a new SwapQuoter instance with the newest RFQt assets offerings
-     */
-    private _renewSwapQuoter(): void {
-        if (this._pairsManager !== undefined && this._swapQuoterOpts.rfqt !== undefined) {
-            this._swapQuoterOpts.rfqt.makerAssetOfferings = this._pairsManager.getRfqtMakerOfferingsForRfqOrder();
-            this._swapQuoter = new SwapQuoter(
-                this._swapQuoter.provider,
-                this._swapQuoter.orderbook,
-                this._swapQuoterOpts,
-            );
-        }
     }
 }

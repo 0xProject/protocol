@@ -71,7 +71,6 @@ export class SwapQuoter {
     private readonly _protocolFeeUtils: ProtocolFeeUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqOpts;
-    private readonly _quoteRequestorHttpClient: AxiosInstance;
     private readonly _integratorIdsSet: Set<string>;
 
     /**
@@ -152,12 +151,6 @@ export class SwapQuoter {
             ),
             this._contractAddresses,
         );
-
-        this._quoteRequestorHttpClient = Axios.create({
-            httpAgent: new HttpAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-            httpsAgent: new HttpsAgent({ keepAlive: true, timeout: KEEP_ALIVE_TTL }),
-            ...(rfqt ? rfqt.axiosInstanceOpts : {}),
-        });
 
         const integratorIds =
             this._rfqtOptions?.integratorsWhitelist.map((integrator) => integrator.integratorId) || [];
@@ -277,7 +270,6 @@ export class SwapQuoter {
         const sourceFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
 
         opts.rfqt = this._validateRfqtOpts(sourceFilters, opts.rfqt);
-        const rfqtOptions = this._rfqtOptions;
 
         // Get SRA orders (limit orders)
         const shouldSkipOpenOrderbook =
@@ -305,18 +297,9 @@ export class SwapQuoter {
             }),
             exchangeProxyOverhead: (flags) => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
-        // pass the QuoteRequestor on if rfqt enabled
+        // pass the rfqClient on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
-            calcOpts.rfqt.quoteRequestor = new QuoteRequestor(
-                rfqtOptions?.makerAssetOfferings || {},
-                {},
-                this._quoteRequestorHttpClient,
-                rfqtOptions?.altRfqCreds,
-                rfqtOptions?.warningLogger,
-                rfqtOptions?.infoLogger,
-                this.expiryBufferMs,
-                rfqtOptions?.metricsProxy,
-            );
+            calcOpts.rfqt.quoteRequestor = new QuoteRequestor();
             calcOpts.rfqt.rfqClient = rfqClient;
         }
 

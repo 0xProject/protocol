@@ -644,7 +644,7 @@ export class MarketOperationUtils {
         if (
             marketSideLiquidity.isRfqSupported &&
             rfqt &&
-            rfqt.quoteRequestor &&
+            rfqt.quoteRequestor && // only needed for quote report
             marketSideLiquidity.quoteSourceFilters.isAllowed(ERC20BridgeSource.Native)
         ) {
             // Timing of RFQT lifecycle

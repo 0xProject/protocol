@@ -598,7 +598,6 @@ export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
 
 let SWAP_QUOTER_RFQT_OPTS: SwapQuoterRfqOpts = {
     integratorsWhitelist: RFQT_INTEGRATORS,
-    makerAssetOfferings: RFQT_MAKER_ASSET_OFFERINGS,
     txOriginBlacklist: RFQT_TX_ORIGIN_BLACKLIST,
 };
 
