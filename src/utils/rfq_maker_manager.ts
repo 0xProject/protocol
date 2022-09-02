@@ -146,11 +146,15 @@ export class RfqMakerManager extends EventEmitter {
         makerToken: string,
         takerToken: string,
         whitelistMakerIds: string[] | null = null,
+        blacklistMakerIds: string[] | null = null,
     ): string[] {
         let makers = makersForPair(this._rfqmMakers, toPairString(makerToken, takerToken)) || [];
 
         if (whitelistMakerIds !== null) {
             makers = makers.filter((maker) => whitelistMakerIds.includes(maker.makerId));
+        }
+        if (blacklistMakerIds !== null) {
+            makers = makers.filter((maker) => !blacklistMakerIds.includes(maker.makerId));
         }
 
         return makers.map((m) => m.rfqmUri).filter((uri: string | null): uri is string => uri !== null);

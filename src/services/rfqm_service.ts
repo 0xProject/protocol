@@ -2538,10 +2538,34 @@ export class RfqmService {
             isLastLook: true,
             fee,
         });
+
+        // If LLR Cooldown is enabled, filter out makers in cooldown before querying the quote server
+        let makerIdsInCooldown: string[] | undefined;
+        if (ENABLE_LLR_COOLDOWN) {
+            makerIdsInCooldown = await this._cacheClient.getMakersInCooldownForPairAsync(
+                this._chainId,
+                makerToken,
+                takerToken,
+            );
+            // log blocked maker ids
+            makerIdsInCooldown.map((makerId) => {
+                logger.warn(
+                    {
+                        makerId,
+                        makerToken,
+                        takerToken,
+                        timestamp: Date.now(),
+                    },
+                    'Maker is on cooldown due to a bad last look reject',
+                );
+            });
+        }
+
         const otcOrderMakerUris = this._rfqMakerManager.getRfqmV2MakerUrisForPair(
             makerToken,
             takerToken,
             integrator.whitelistMakerIds || null,
+            makerIdsInCooldown || null,
         );
 
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(

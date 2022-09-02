@@ -139,6 +139,7 @@ const buildRfqmServiceForUnitTest = (
     when(sqsMock.queueSize()).thenResolve(0);
     const quoteServerClientMock = mock(QuoteServerClient);
     const cacheClientMock = mock(CacheClient);
+    when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve([]);
     const rfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
@@ -153,7 +154,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
-        overrides.cacheClient || cacheClientMock,
+        overrides.cacheClient || instance(cacheClientMock),
         overrides.rfqMakerBalanceCacheService || rfqMakerBalanceCacheService,
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
@@ -1035,6 +1036,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1086,6 +1090,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1135,6 +1142,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1185,6 +1195,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1240,6 +1253,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1303,6 +1319,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);
@@ -1353,6 +1372,9 @@ describe('RfqmService HTTP Logic', () => {
 
                 const cacheClientMock = mock(CacheClient);
                 when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+                when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve(
+                    [],
+                );
 
                 // Mock out the dbUtils
                 const dbUtilsMock = mock(RfqmDbUtils);

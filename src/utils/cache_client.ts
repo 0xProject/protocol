@@ -141,7 +141,7 @@ export class CacheClient {
     }
 
     /**
-     * Get a list of makers that are cooling down for given pair.
+     * Get a list of makers that are cooling down for given pair. Only includes unexpired entries.
      *
      * @param chainId chainId of the pair
      * @param tokenA address of one trading token
