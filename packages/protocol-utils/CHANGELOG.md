@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.8 - _September 2, 2022_
+
+    * Dependencies updated
+
 ## v11.16.7 - _September 1, 2022_
 
     * Add otc order info to transformer_utils (#565)

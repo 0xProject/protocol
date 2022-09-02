@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.37.1 - _September 2, 2022_
+
+    * Dependencies updated
+
 ## v0.37.0 - _September 1, 2022_
 
     * Add support for OTC orders in the FillQuoteTransformer (#565)

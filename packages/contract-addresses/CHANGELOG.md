@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.23.1 - _September 2, 2022_
+
+    * New FQT for arbitrum (#572)
+
 ## v6.23.0 - _September 1, 2022_
 
     * Remove contract addresses that are no longer needed (#564)
