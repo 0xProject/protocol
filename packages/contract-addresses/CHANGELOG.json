@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.23.1",
+        "changes": [
+            {
+                "note": "New FQT for arbitrum"
+            }
+        ]
+
+    },
+    {
         "version": "6.23.0",
         "changes": [
             {
