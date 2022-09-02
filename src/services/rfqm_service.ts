@@ -162,7 +162,7 @@ const RFQM_JOB_MM_REJECTED_LAST_LOOK = new Counter({
 
 const RFQM_PROCESS_JOB_LATENCY = new Summary({
     name: 'rfqm_process_job_latency',
-    labelNames: ['chain_id'],
+    labelNames: ['chain_id', 'job_kind'],
     help: 'Latency for the worker processing the job',
 });
 
@@ -175,13 +175,13 @@ const RFQM_MINING_LATENCY = new Summary({
 const RFQM_JOB_COMPLETED = new Counter({
     name: 'rfqm_job_completed',
     help: 'An Rfqm Job completed with no errors',
-    labelNames: ['address', 'chain_id'],
+    labelNames: ['address', 'chain_id', 'job_kind'],
 });
 
 const RFQM_JOB_COMPLETED_WITH_ERROR = new Counter({
     name: 'rfqm_job_completed_with_error',
     help: 'An Rfqm Job completed with an error',
-    labelNames: ['address', 'chain_id'],
+    labelNames: ['address', 'chain_id', 'job_kind'],
 });
 
 const RFQM_CREATE_ACCESS_LIST_REQUEST = new Counter({
@@ -1204,7 +1204,7 @@ export class RfqmService {
         kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'] = 'rfqm_v2_job',
     ): Promise<void> {
         logger.info({ kind, identifier, workerAddress }, 'Start process job');
-        const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.labels(this._chainId.toString()).startTimer();
+        const timerStopFunction = RFQM_PROCESS_JOB_LATENCY.labels(this._chainId.toString(), kind).startTimer();
 
         try {
             // Step 1: Find the job
@@ -1243,10 +1243,10 @@ export class RfqmService {
                 await this.processTradeAsync(job, workerAddress);
             }
             logger.info({ kind, identifier, workerAddress }, 'Job completed without errors');
-            RFQM_JOB_COMPLETED.labels(workerAddress, this._chainId.toString()).inc();
+            RFQM_JOB_COMPLETED.labels(workerAddress, this._chainId.toString(), kind).inc();
         } catch (error) {
             logger.error({ kind, workerAddress, identifier, errorMessage: error.message }, 'Job completed with error');
-            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress, this._chainId.toString()).inc();
+            RFQM_JOB_COMPLETED_WITH_ERROR.labels(workerAddress, this._chainId.toString(), kind).inc();
         } finally {
             timerStopFunction();
         }
