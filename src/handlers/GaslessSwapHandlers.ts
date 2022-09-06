@@ -363,6 +363,8 @@ export class GaslessSwapHandlers {
             ]);
         }
 
+        parsedParams.kind = trade.type;
+
         return {
             chainId,
             integrator,
