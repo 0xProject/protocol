@@ -1,5 +1,24 @@
 [
     {
+        "version": "6.23.2",
+        "changes": [
+            {
+                "note": "Change FQT in contract addresses",
+                "pr": 573
+            }
+        ]
+    },
+    {
+        "version": "6.23.1",
+        "changes": [
+            {
+                "note": "New FQT for arbitrum",
+                "pr": 572
+            }
+        ],
+        "timestamp": 1662147076
+    },
+    {
         "version": "6.23.0",
         "changes": [
             {
@@ -9,10 +28,6 @@
             {
                 "note": "Change WETH address in contract-addresses",
                 "pr": 571
-            },
-            {
-                "note": "Change FQT in contract addresses",
-                "pr": 573
             }
         ]
     },
