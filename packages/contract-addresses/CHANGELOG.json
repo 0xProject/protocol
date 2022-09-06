@@ -9,6 +9,9 @@
             {
                 "note": "Change WETH address in contract-addresses",
                 "pr": 571
+            },
+            {
+                "note": "Change FQT in contract addresses"
             }
         ]
     },
