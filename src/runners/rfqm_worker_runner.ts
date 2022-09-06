@@ -42,7 +42,7 @@ import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
     help: 'An Rfqm Job was pulled from the queue',
-    labelNames: ['address'],
+    labelNames: ['address', 'chain_id'],
 });
 
 process.on(
@@ -178,7 +178,7 @@ export function createRfqmWorker(
         sqsClient,
         beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerIndex, workerAddress),
         handleMessage: async (message) => {
-            RFQM_JOB_DEQUEUED.labels(workerAddress).inc();
+            RFQM_JOB_DEQUEUED.labels(workerAddress, chain.chainId.toString()).inc();
 
             // Message body should not be empty; refine type
             if (!message.Body) {
