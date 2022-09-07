@@ -3,7 +3,8 @@
         "version": "6.23.2",
         "changes": [
             {
-                "note": "New FQT for arbitrum again"
+                "note": "New FQT for arbitrum again",
+                "pr": 574
             }
         ]
     },
