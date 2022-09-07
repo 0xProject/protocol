@@ -254,11 +254,17 @@ export class GaslessSwapService {
         // Verify that the metatransaction was created by 0x API
         const doesMetaTransactionHashExist = await this._doesMetaTransactionHashExistAsync(metaTransaction.getHash());
         if (!doesMetaTransactionHashExist) {
-            // TODO (rhinodavid): log
+            logger.warn(
+                { metaTransactionHash: metaTransaction.getHash() },
+                'Received metatransaction submission not created by 0x API',
+            );
             throw new Error('MetaTransaction hash not found');
         }
 
         // Verify that there is not a pending transaction for this taker and taker token
+
+        // TODO (rhinodavid): optimize this query by adding the taker & takerToken instead
+        // of filtering it out in the next step
         const pendingJobs = await this._dbUtils.findMetaTransactionJobsWithStatusesAsync([
             RfqmJobStatus.PendingEnqueued,
             RfqmJobStatus.PendingProcessing,
@@ -269,20 +275,35 @@ export class GaslessSwapService {
         if (
             pendingJobs.some(
                 (job) =>
-                    job.takerAddress.toLowerCase() === params.trade.metaTransaction.signer.toLowerCase() &&
+                    job.takerAddress.toLowerCase() === metaTransaction.signer.toLowerCase() &&
                     job.inputToken.toLowerCase() === inputToken.toLowerCase() &&
                     // Other logic handles the case where the same order is submitted twice
                     job.metaTransactionHash !== metaTransaction.getHash(),
             )
         ) {
             // TODO (rhinodavid): Meter
+            logger.warn(
+                {
+                    metaTransactionHash: metaTransaction.getHash(),
+                    takerToken: inputToken,
+                    takerAddress: metaTransaction.signer.toLowerCase(),
+                },
+                'Metatransaction submission rejected because a job is pending with the same taker and taker token',
+            );
             throw new TooManyRequestsError('a pending trade for this taker and takertoken already exists');
         }
 
         // validate that the given taker signature is valid
         const signerAddress = getSignerFromHash(metaTransaction.getHash(), params.trade.signature).toLowerCase();
         if (signerAddress !== metaTransaction.signer) {
-            // TODO (rhinodavid): log
+            logger.warn(
+                {
+                    metaTransactionHash: metaTransaction.getHash(),
+                    metaTransactionSigner: metaTransaction.signer,
+                    transactionSigner: signerAddress,
+                },
+                'Received submission with signer mismatch',
+            );
             throw new Error('invalid signer address');
         }
 
