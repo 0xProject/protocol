@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.23.2 - _September 7, 2022_
+
+    * New FQT for arbitrum again (#574)
+
 ## v6.23.1 - _September 2, 2022_
 
     * New FQT for arbitrum (#572)
