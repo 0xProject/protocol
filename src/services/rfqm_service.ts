@@ -57,6 +57,7 @@ import {
     PermitEip712Context,
 } from '../types';
 import { CacheClient } from '../utils/cache_client';
+import { toPairString } from '../utils/pair_utils';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
@@ -158,6 +159,12 @@ const RFQM_JOB_MM_REJECTED_LAST_LOOK = new Counter({
     name: 'rfqm_job_mm_rejected_last_look',
     help: 'A job rejected by market maker on last look',
     labelNames: ['makerUri', 'chain_id'],
+});
+
+const RFQM_MAKER_BLOCKED_FOR_LLR_COOLDOWN = new Counter({
+    name: 'rfqm_maker_blocked_for_llr_cooldown',
+    help: 'A maker get blocked because of LLR cooldown',
+    labelNames: ['maker_id', 'chain_id', 'pair_key'],
 });
 
 const RFQM_PROCESS_JOB_LATENCY = new Summary({
@@ -2549,6 +2556,11 @@ export class RfqmService {
             );
             // log blocked maker ids
             makerIdsInCooldown.map((makerId) => {
+                RFQM_MAKER_BLOCKED_FOR_LLR_COOLDOWN.labels(
+                    makerId,
+                    this._chainId.toString(),
+                    toPairString(makerToken, takerToken),
+                ).inc();
                 logger.warn(
                     {
                         makerId,
@@ -2565,7 +2577,7 @@ export class RfqmService {
             makerToken,
             takerToken,
             integrator.whitelistMakerIds || null,
-            makerIdsInCooldown || null,
+            null, // Dry run only: avoid using `makerIdsInCooldown` to block MMs
         );
 
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(
