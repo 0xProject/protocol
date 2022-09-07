@@ -90,8 +90,6 @@ export const DEFAULT_WARNING_LOGGER: LogFunction = (obj, msg) =>
 const EMPTY_BYTES32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r: EMPTY_BYTES32, s: EMPTY_BYTES32 };
 
-export { DEFAULT_FEE_SCHEDULE, DEFAULT_GAS_SCHEDULE } from './utils/market_operation_utils/constants';
-
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 
 export const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;

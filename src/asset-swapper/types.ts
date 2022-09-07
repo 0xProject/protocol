@@ -10,7 +10,6 @@ import {
 import { TakerRequestQueryParamsUnnested, V4SignedRfqOrder } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
-import { AxiosRequestConfig } from 'axios';
 
 import {
     ERC20BridgeSource,

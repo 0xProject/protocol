@@ -337,11 +337,6 @@ export const RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER: MakerIdsToConfigs = getMakerCo
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
 export const RFQ_API_URL: string = resolveEnvVar<string>('RFQ_API_URL', EnvVarType.NonEmptyString, '');
-export const RFQ_CLIENT_ROLLOUT_PERCENT: number = resolveEnvVar<number>(
-    'RFQ_CLIENT_ROLLOUT_PERCENT',
-    EnvVarType.Integer,
-    0,
-);
 export const RFQT_TX_ORIGIN_BLACKLIST: Set<string> = new Set(
     resolveEnvVar<string[]>('RFQT_TX_ORIGIN_BLACKLIST', EnvVarType.JsonStringList, []).map((addr) =>
         addr.toLowerCase(),
@@ -399,10 +394,6 @@ export const PROMETHEUS_PORT: number = _.isEmpty(process.env.PROMETHEUS_PORT)
 export const ZERO_EX_GAS_API_URL: string = _.isEmpty(process.env.ZERO_EX_GAS_API_URL)
     ? DEFAULT_ZERO_EX_GAS_API_URL
     : assertEnvVarType('ZERO_EX_GAS_API_URL', process.env.ZERO_EX_GAS_API_URL, EnvVarType.Url);
-
-export const RFQ_PROXY_ADDRESS: string | undefined = _.isEmpty(process.env.RFQ_PROXY_ADDRESS)
-    ? undefined
-    : assertEnvVarType('RFQ_PROXY_ADDRESS', process.env.RFQ_PROXY_ADDRESS, EnvVarType.NonEmptyString);
 
 export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROXY_PORT)
     ? undefined
