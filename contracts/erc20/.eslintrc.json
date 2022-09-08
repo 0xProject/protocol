@@ -7,9 +7,17 @@
     "overrides": [],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
+        "project": "./tsconfig.json",
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
     "plugins": ["@typescript-eslint"],
+    "ignorePatterns": [
+        "generated-wrappers/**/*",
+        "generated-artifacts/**/*",
+        "test/generated-wrappers/**/*",
+        "test/generated-artifacts/**/*",
+        "**/lib/**/*"
+    ],
     "rules": {}
 }
