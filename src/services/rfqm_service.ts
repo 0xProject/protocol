@@ -575,6 +575,17 @@ export class RfqmService {
         // (Quote Report) If `quotesWithGasFee` have not been reused, save them as intermediate quotes
         const intermediateQuotes = quotesWithGasFee && otherFeesAmount.gt(ZERO) ? quotesWithGasFee : [];
 
+        // (Maker Balance Cache) Fetch maker balances to validate whether quotes are fully fillable
+        const quotedMakerBalances = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
+            this._chainId,
+            finalQuotes.map((quote) => {
+                return {
+                    owner: quote.order.maker,
+                    token: makerToken,
+                };
+            }),
+        );
+
         // Get the best quote
         const bestQuote = getBestQuote(
             finalQuotes,
@@ -583,6 +594,7 @@ export class RfqmService {
             makerToken,
             assetFillAmount,
             RFQM_MINIMUM_EXPIRY_DURATION_MS,
+            quotedMakerBalances,
         );
 
         const isLiquidityAvailable = bestQuote !== null;

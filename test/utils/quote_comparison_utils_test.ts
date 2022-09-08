@@ -345,10 +345,16 @@ describe('Quote Comparison Utils', () => {
                     }),
                 };
 
+                // TODO (MKR-671): uncomment once filter is enabled
+                // const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
+                // const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
+
                 const tests = [
                     {
                         name: 'should return null when no quotes valid',
-                        quotes: [partialFillQuote],
+                        args: {
+                            quotes: [partialFillQuote],
+                        },
                         expectations: {
                             isNull: true,
                             makerAmount: undefined,
@@ -357,7 +363,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should only select quotes that are 100% filled',
-                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        args: {
+                            quotes: [partialFillQuote, fullQuoteBadPricing],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 99,
@@ -366,7 +374,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should select quote with best pricing',
-                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 125,
@@ -375,7 +385,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should ignore quotes with the wrong pair',
-                        quotes: [fullQuoteBadPricing, wrongPair],
+                        args: {
+                            quotes: [fullQuoteBadPricing, wrongPair],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 99,
@@ -384,24 +396,52 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should ignore quotes that expire too soon',
-                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        args: {
+                            quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 99,
                             takerAmount: 100,
                         },
                     },
+                    // TODO (MKR-671): uncomment once filter is enabled
+                    // {
+                    //     name: 'should not ignore quotes if makers have enough balances',
+                    //     args: {
+                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                    //         quotedMakerBalances: validMakerBalances,
+                    //     },
+                    //     expectations: {
+                    //         isNull: false,
+                    //         makerAmount: 105,
+                    //         takerAmount: 100,
+                    //     },
+                    // },
+                    // {
+                    //     name: 'should ignore quotes if makers do not have enough balances',
+                    //     args: {
+                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                    //         quotedMakerBalances: invalidMakerBalances,
+                    //     },
+                    //     expectations: {
+                    //         isNull: false,
+                    //         makerAmount: 99,
+                    //         takerAmount: 100,
+                    //     },
+                    // },
                 ];
 
-                tests.forEach(({ name, quotes, expectations }) => {
+                tests.forEach(({ name, args, expectations }) => {
                     it(name, () => {
                         const bestQuote = getBestQuote(
-                            quotes,
+                            args?.quotes,
                             isSelling,
                             takerToken,
                             makerToken,
                             assetFillAmount,
                             validityWindowMs,
+                            // args?.quotedMakerBalances,
                         );
 
                         if (bestQuote === null) {
@@ -474,10 +514,16 @@ describe('Quote Comparison Utils', () => {
                     }),
                 };
 
+                // TODO (MKR-671): uncomment once filter is enabled
+                // const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
+                // const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
+
                 const tests = [
                     {
                         name: 'should return null when no quotes valid',
-                        quotes: [partialFillQuote],
+                        args: {
+                            quotes: [partialFillQuote],
+                        },
                         expectations: {
                             isNull: true,
                             makerAmount: undefined,
@@ -486,7 +532,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should only select quotes that are 100% filled',
-                        quotes: [partialFillQuote, fullQuoteBadPricing],
+                        args: {
+                            quotes: [partialFillQuote, fullQuoteBadPricing],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 100,
@@ -495,7 +543,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should select quote with best pricing',
-                        quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteGreatPricing, fullQuoteOkPricing],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 100,
@@ -504,7 +554,9 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should ignore quotes with the wrong pair',
-                        quotes: [fullQuoteBadPricing, wrongPair],
+                        args: {
+                            quotes: [fullQuoteBadPricing, wrongPair],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 100,
@@ -513,24 +565,52 @@ describe('Quote Comparison Utils', () => {
                     },
                     {
                         name: 'should ignore quotes that expire too soon',
-                        quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        args: {
+                            quotes: [fullQuoteBadPricing, expiresInOneMinute],
+                        },
                         expectations: {
                             isNull: false,
                             makerAmount: 100,
                             takerAmount: 125,
                         },
                     },
+                    // TODO (MKR-671): uncomment once filter is enabled
+                    // {
+                    //     name: 'should not ignore quotes if makers have enough balances',
+                    //     args: {
+                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                    //         quotedMakerBalances: validMakerBalances,
+                    //     },
+                    //     expectations: {
+                    //         isNull: false,
+                    //         makerAmount: 100,
+                    //         takerAmount: 120,
+                    //     },
+                    // },
+                    // {
+                    //     name: 'should ignore quotes if makers do not have enough balances',
+                    //     args: {
+                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                    //         quotedMakerBalances: invalidMakerBalances,
+                    //     },
+                    //     expectations: {
+                    //         isNull: false,
+                    //         makerAmount: 100,
+                    //         takerAmount: 125,
+                    //     },
+                    // },
                 ];
 
-                tests.forEach(({ name, quotes, expectations }) => {
+                tests.forEach(({ name, args, expectations }) => {
                     it(name, () => {
                         const bestQuote = getBestQuote(
-                            quotes,
+                            args?.quotes,
                             isSelling,
                             takerToken,
                             makerToken,
                             assetFillAmount,
                             validityWindowMs,
+                            // args?.quotedMakerBalances,
                         );
 
                         if (bestQuote === null) {

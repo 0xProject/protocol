@@ -1049,10 +1049,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
                 const res = await service.fetchFirmQuoteAsync({
@@ -1103,10 +1109,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
                 const res = await service.fetchFirmQuoteAsync({
@@ -1155,10 +1167,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
                 const res = await service.fetchFirmQuoteAsync({
@@ -1208,10 +1226,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
                 const spiedService = spy(service);
                 when(spiedService.getGaslessApprovalResponseAsync(anything(), anything(), anything())).thenThrow(
@@ -1266,10 +1290,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
                 const approval: ApprovalResponse = {
                     isRequired: true,
@@ -1332,10 +1362,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
                 const res = await service.fetchFirmQuoteAsync({
@@ -1385,10 +1421,16 @@ describe('RfqmService HTTP Logic', () => {
                 when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([
                     quote,
                 ]);
+                const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+                when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                    new BigNumber(150),
+                ]);
+
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
                     dbUtils,
                     cacheClient: instance(cacheClientMock),
+                    rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
                 const res = await service.fetchFirmQuoteAsync({
