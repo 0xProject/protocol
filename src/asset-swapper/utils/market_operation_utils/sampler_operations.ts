@@ -760,7 +760,7 @@ export class SamplerOperations {
                     inputAmount: takerFillAmounts[i],
                     gasUsed: gasUsed[i].toNumber(),
                 }));
-
+                fillData.chainId = this.chainId;
                 return samples;
             },
         });
@@ -789,6 +789,7 @@ export class SamplerOperations {
                     inputAmount: makerFillAmounts[i],
                     gasUsed: gasUsed[i].toNumber(),
                 }));
+                fillData.chainId = this.chainId;
                 return samples;
             },
         });

@@ -282,6 +282,8 @@ export interface UniswapV3FillData extends FillData {
     tokenAddressPath: string[];
     router: string;
     pathAmounts: UniswapV3PathAmount[];
+    // Only needed for gas estimation.
+    chainId: ChainId;
 }
 
 export interface KyberDmmFillData extends UniswapV2FillData {
