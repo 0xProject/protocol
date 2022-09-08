@@ -236,13 +236,19 @@ export class GaslessSwapService {
         const { inputToken, inputTokenAmount, outputToken, minOutputTokenAmount } = decodeTransformErc20Calldata(
             metaTransaction.callData,
         );
+
         // Verify that the metatransaction is not expired
-        // NOTE: RFQm logic here adds a 1 minute buffer to the expiration time. This value seems specific
-        // to Ethereum; we should consider putting it into the chain configuration. For now, we'll use a
-        // pure expiration with no buffer.
         const currentTimeMs = new Date().getTime();
-        if (metaTransaction.expirationTimeSeconds.times(ONE_SECOND_MS).isLessThanOrEqualTo(currentTimeMs)) {
+        const bufferS = 30;
+        if (
+            metaTransaction.expirationTimeSeconds.minus(bufferS).times(ONE_SECOND_MS).isLessThanOrEqualTo(currentTimeMs)
+        ) {
             // TODO (rhinodavid): Counter
+            logger.warn(
+                { metaTransactionHash: metaTransaction.getHash() },
+                'Received metatransaction submission which is about to expire',
+            );
+
             throw new ValidationError([
                 {
                     field: 'expirationTimeSeconds',
@@ -251,6 +257,7 @@ export class GaslessSwapService {
                 },
             ]);
         }
+
         // Verify that the metatransaction was created by 0x API
         const doesMetaTransactionHashExist = await this._doesMetaTransactionHashExistAsync(metaTransaction.getHash());
         if (!doesMetaTransactionHashExist) {
