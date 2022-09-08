@@ -120,6 +120,18 @@ yarn db:migrate
     yarn dev
     ```
 
+#### Adding a new contract
+
+NOTE: This repo is undergoing a tooling change.
+
+To add a new contract, you will need to add it to `compiler.json`.
+
+You can generate the entire list by running the following:
+
+```sh
+find . -type f -name "*.sol" | grep -v foundry | grep -v "contracts/lib" | grep -v "node_modules"
+```
+
 #### Developing on Ganache
 
 To use ganache, use the `.env` file below:
@@ -134,6 +146,23 @@ Then run
 ```
 $ docker-compose up
 $ yarn dev
+```
+
+#### Developing on Foundry
+
+Install Foundry if needed.
+
+Initialize git submodule:
+
+```sh
+git submodule update --init --recursive
+```
+
+Compile using `forge`
+
+```
+cd contracts
+forge build
 ```
 
 ## Testing
