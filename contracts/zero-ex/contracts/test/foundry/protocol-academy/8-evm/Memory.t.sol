@@ -23,19 +23,19 @@ pragma experimental ABIEncoderV2;
 contract Memory {
 
     function expand() public {
-      // forge debug contracts/test/foundry/protocol-academy/8-evm/Memory.sol --sig 'expand()'
+      // forge debug contracts/test/foundry/protocol-academy/8-evm/Memory.t.sol --sig 'expand()'
 
       // Observe the free memory pointer increase
       // when more memory is allocated
-      bytes1[3] memory data;
+      bytes32[3] memory data;
     }
 
     function mstore() public {
-      // forge debug contracts/test/foundry/protocol-academy/8-evm/Memory.sol --sig 'mstore()'
+      // forge debug contracts/test/foundry/protocol-academy/8-evm/Memory.t.sol --sig 'mstore()'
 
       // Observe the free memory pointer increase
       // when more memory is allocated
-      bytes1[3] memory data;
+      bytes1[4] memory data;
       // Observe each value being set in the memory
       // slots
       data[1] = 0x42;
