@@ -212,6 +212,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
         ]),
@@ -369,6 +370,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.MultiHop,
+            ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
         ]),
@@ -440,6 +442,8 @@ export const MAINNET_TOKENS = {
     USDN: '0x674c6ad92fd080e4004b2312b45f796a192d27a0',
     dUSD: '0x5bc25f649fc4e26069ddf4cf4010f9f706c23831',
     USDP: '0x1456688345527be1f37e9e627da0837d6f08c925',
+    USX: '0x0a5e677a6a24b2f1a2bf4f3bffc443231d2fdec8',
+    WCUSD: '0xad3e3fc59dff318beceaab7d00eb4f68b1ecf195',
     // Bitcoins
     WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
     RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
@@ -646,6 +650,8 @@ export const FANTOM_TOKENS = {
     gCRV: '0x690754a168b022331caa2467207c61919b3f8a98',
     gMIM: '0xc664fc7b8487a3e10824cda768c1d239f2403bbe',
     WOO: '0x6626c47c00f1d87902fc13eecfac3ed06d5e8d8a',
+    USDT: '0x049d68029688eabf473097a2fc38ef61633a3c7a',
+    alUSD: '0xb67fa6defce4042070eb1ae1511dcd6dcc6a532e',
 };
 
 export const OPTIMISM_TOKENS = {
@@ -653,6 +659,7 @@ export const OPTIMISM_TOKENS = {
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
     USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
     DAI: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    FRAX: '0x2e3d870790dc77a83dd1d18184acc7439a53f475',
     WBTC: '0x68f180fcce6836688e9084f035309e29bf0a2095',
     nETH: '0x809dc529f07651bd43a172e8db6f4a7a0d771036',
     sWETH: '0x121ab82b49b2bc4c7901ca46b8277962b4350204',
@@ -672,6 +679,7 @@ export const OPTIMISM_TOKENS = {
 export const ARBITRUM_TOKENS = {
     USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
+    FRAX: '0x17fc002b466eec40dae837fc4be5c67993ddbd6f',
     nETH: '0x3ea9b0ab55f34Fb188824Ee288CeaEfC63cf908e',
     WETH: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     nUSD: '0x2913E812Cf0dcCA30FB28E6Cac3d2DCFF4497688',
@@ -783,11 +791,32 @@ export const CURVE_ARBITRUM_POOLS = {
     tri: '0x960ea3e3c7fb317332d990873d354e18d7645590',
 };
 
-export const SADDLE_POOLS = {
+export const SADDLE_MAINNET_POOLS = {
+    // swaps
     stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7',
     bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
+    '4Pool': '0x101cd330d088634b6f64c2eb4276e63bf1bbfde3',
+    fraxBP: '0x13cc34aa8037f722405285ad2c82fe570bfa2bdc',
+    frax3Pool: '0x8caea59f3bf1f341f89c51607e4919841131e47a',
+    usx: '0x2bff1b48cc01284416e681b099a0cddca0231d72',
+
+    // metaswaps
+    susdMetaPoolV3: '0x4568727f50c7246ded8c39214ed6ff3c157f080d',
+    fraxAlusdMetaPool: '0xfb516cf3710fc6901f2266aaeb8834cf5e4e9558',
+    fraxSusdMetaPool: '0x69baa0d7c2e864b74173922ca069ac79d3be1556',
+};
+
+export const SADDLE_OPTIMISM_POOLS = {
+    // swaps
+    fraxBP: '0xf6c2e0adc659007ba7c48446f5a4e4e94dfe08b5',
+};
+
+export const SADDLE_ARBITRUM_POOLS = {
+    // swaps
+    arbUSDPoolV2: '0xfeea4d1bacb0519e8f952460a70719944fe56ee0',
+    fraxBP: '0x401afbc31ad2a3bc0ed8960d63efcdea749b4849',
 };
 
 export const IRONSWAP_POOLS = {
@@ -1601,44 +1630,89 @@ export const ELLIPSIS_BSC_INFOS: { [name: string]: CurveInfo } = {
     }),
 };
 
+const createSaddleSwapPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.swap,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: info.tokens,
+    metaTokens: undefined,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
+const createSaddleMetaSwapPool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.swapUnderlying,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwapUnderlying,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: info.tokens,
+    metaTokens: [info.tokens[0]],
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
 // Curve-like sources using custom selectors
 export const SADDLE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
-    [SADDLE_POOLS.stablesV2]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.stablesV2,
+    [SADDLE_MAINNET_POOLS.stablesV2]: createSaddleSwapPool({
         tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
-        metaTokens: undefined,
+        pool: SADDLE_MAINNET_POOLS.stablesV2,
         gasSchedule: 150e3,
-    },
-    [SADDLE_POOLS.bitcoinsV2]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.bitcoinsV2,
+    }),
+    [SADDLE_MAINNET_POOLS.bitcoinsV2]: createSaddleSwapPool({
         tokens: [MAINNET_TOKENS.WBTC, MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.sBTC],
-        metaTokens: undefined,
+        pool: SADDLE_MAINNET_POOLS.bitcoinsV2,
         gasSchedule: 150e3,
-    },
-    [SADDLE_POOLS.alETH]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.alETH,
+    }),
+    [SADDLE_MAINNET_POOLS.alETH]: createSaddleSwapPool({
         tokens: [MAINNET_TOKENS.WETH, MAINNET_TOKENS.alETH, MAINNET_TOKENS.sETH],
-        metaTokens: undefined,
+        pool: SADDLE_MAINNET_POOLS.alETH,
         gasSchedule: 200e3,
-    },
-    [SADDLE_POOLS.d4]: {
-        exchangeFunctionSelector: CurveFunctionSelectors.swap,
-        sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
-        buyQuoteFunctionSelector: CurveFunctionSelectors.None,
-        poolAddress: SADDLE_POOLS.d4,
-        tokens: [MAINNET_TOKENS.alUSD, MAINNET_TOKENS.FEI, MAINNET_TOKENS.FRAX, MAINNET_TOKENS.LUSD],
-        metaTokens: undefined,
+    }),
+    [SADDLE_MAINNET_POOLS.fraxBP]: createSaddleSwapPool({
+        tokens: [MAINNET_TOKENS.USDC, MAINNET_TOKENS.FRAX],
+        pool: SADDLE_MAINNET_POOLS.fraxBP,
         gasSchedule: 150e3,
-    },
+    }),
+    [SADDLE_MAINNET_POOLS.usx]: createSaddleSwapPool({
+        tokens: [MAINNET_TOKENS.USDC, MAINNET_TOKENS.USX],
+        pool: SADDLE_MAINNET_POOLS.usx,
+        gasSchedule: 150e3,
+    }),
+    [SADDLE_MAINNET_POOLS.susdMetaPoolV3]: createSaddleMetaSwapPool({
+        tokens: [MAINNET_TOKENS.sUSD, MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+        pool: SADDLE_MAINNET_POOLS.susdMetaPoolV3,
+        gasSchedule: 370e3,
+    }),
+    [SADDLE_MAINNET_POOLS.fraxAlusdMetaPool]: createSaddleMetaSwapPool({
+        tokens: [MAINNET_TOKENS.alUSD, MAINNET_TOKENS.USDC, MAINNET_TOKENS.FRAX],
+        pool: SADDLE_MAINNET_POOLS.fraxAlusdMetaPool,
+        gasSchedule: 320e3,
+    }),
+    [SADDLE_MAINNET_POOLS.fraxSusdMetaPool]: createSaddleMetaSwapPool({
+        tokens: [MAINNET_TOKENS.sUSD, MAINNET_TOKENS.USDC, MAINNET_TOKENS.FRAX],
+        pool: SADDLE_MAINNET_POOLS.fraxSusdMetaPool,
+        gasSchedule: 370e3,
+    }),
+};
+
+export const SADDLE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
+    [SADDLE_OPTIMISM_POOLS.fraxBP]: createSaddleSwapPool({
+        tokens: [OPTIMISM_TOKENS.USDC, OPTIMISM_TOKENS.FRAX],
+        pool: SADDLE_OPTIMISM_POOLS.fraxBP,
+        gasSchedule: 150e3,
+    }),
+};
+
+export const SADDLE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
+    [SADDLE_ARBITRUM_POOLS.fraxBP]: createSaddleSwapPool({
+        tokens: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.FRAX],
+        pool: SADDLE_ARBITRUM_POOLS.fraxBP,
+        gasSchedule: 150e3,
+    }),
+    [SADDLE_ARBITRUM_POOLS.arbUSDPoolV2]: createSaddleSwapPool({
+        tokens: [ARBITRUM_TOKENS.FRAX, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT],
+        pool: SADDLE_ARBITRUM_POOLS.arbUSDPoolV2,
+        gasSchedule: 150e3,
+    }),
 };
 
 export const IRONSWAP_POLYGON_INFOS: { [name: string]: CurveInfo } = {
