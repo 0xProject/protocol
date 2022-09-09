@@ -13,7 +13,7 @@ contract GMXSampler is SamplerUtils, ApproximateBuys {
     }
 
     function sampleSellsFromGMX(
-        address reader,
+        IGMX reader,
         address vault,
         address[] memory path,
         uint256[] memory takerTokenAmounts
@@ -21,6 +21,15 @@ contract GMXSampler is SamplerUtils, ApproximateBuys {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
+            try IGMX(reader).getMaxAmountIn(IVault(vault), path[0], path[1]) returns (uint256 maxAmountIn) {
+                // Break early if GMX does not have enough liquidity to perform the swap
+                if (takerTokenAmounts[i] > maxAmountIn) {
+                    break;
+                }
+            } catch (bytes memory) {
+                // Swallow failures, leaving all results as zero.
+                break;
+            }
             try IGMX(reader).getAmountOut(IVault(vault), path[0], path[1], takerTokenAmounts[i]) returns (
                 uint256 amountAfterFees,
                 uint256 feeAmount
@@ -38,7 +47,7 @@ contract GMXSampler is SamplerUtils, ApproximateBuys {
     }
 
     function sampleBuysFromGMX(
-        address reader,
+        IGMX reader,
         address vault,
         address[] memory path,
         uint256[] memory makerTokenAmounts
@@ -49,8 +58,8 @@ contract GMXSampler is SamplerUtils, ApproximateBuys {
         return
             _sampleApproximateBuys(
                 ApproximateBuyQuoteOpts({
-                    makerTokenData: abi.encode(reader, vault, invertBuyPath),
-                    takerTokenData: abi.encode(reader, vault, path),
+                    makerTokenData: abi.encode(address(reader), vault, invertBuyPath),
+                    takerTokenData: abi.encode(address(reader), vault, path),
                     getSellQuoteCallback: _sampleSellForApproximateBuyFromGMX
                 }),
                 makerTokenAmounts
