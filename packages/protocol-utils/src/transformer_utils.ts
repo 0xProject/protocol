@@ -336,11 +336,7 @@ export function decodeAffiliateFeeTransformerData(encoded: string): AffiliateFee
  * Find the nonce for a transformer given its deployer.
  * If `deployer` is the null address, zero will always be returned.
  */
-export function findTransformerNonce(
-    transformer: string,
-    deployer: string = NULL_ADDRESS,
-    maxGuesses = 1024,
-): number {
+export function findTransformerNonce(transformer: string, deployer: string = NULL_ADDRESS, maxGuesses = 1024): number {
     if (deployer === NULL_ADDRESS) {
         return 0;
     }
