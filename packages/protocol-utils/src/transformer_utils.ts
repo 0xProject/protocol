@@ -341,7 +341,7 @@ export function decodeAffiliateFeeTransformerData(encoded: string): AffiliateFee
 export function findTransformerNonce(
     transformer: string,
     deployer: string = NULL_ADDRESS,
-    maxGuesses: number = 1024,
+    maxGuesses = 1024,
 ): number {
     if (deployer === NULL_ADDRESS) {
         return 0;
