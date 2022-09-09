@@ -80,6 +80,12 @@ const HTTP_SWAP_RESPONSE_TIME = new Histogram({
     buckets: PROMETHEUS_REQUEST_BUCKETS,
 });
 
+const HTTP_SWAP_REQUESTS = new Counter({
+    name: 'swap_requests',
+    help: 'Total number of swap requests',
+    labelNames: ['endpoint', 'chain_id', 'api_key', 'integrator_id'],
+});
+
 export class SwapHandlers {
     private readonly _swapService: SwapService;
     public static root(_req: express.Request, res: express.Response): void {
@@ -229,7 +235,15 @@ export class SwapHandlers {
             response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
         }
         const duration = (new Date().getTime() - begin) / ONE_SECOND_MS;
+
         HTTP_SWAP_RESPONSE_TIME.observe(duration);
+        HTTP_SWAP_REQUESTS.labels(
+            'quote',
+            CHAIN_ID.toString(),
+            params.apiKey !== undefined ? params.apiKey : 'N/A',
+            params.integrator?.integratorId || 'N/A',
+        ).inc();
+
         res.status(HttpStatus.OK).send(response);
     }
 
@@ -311,6 +325,13 @@ export class SwapHandlers {
                 kafkaProducer,
             );
         }
+
+        HTTP_SWAP_REQUESTS.labels(
+            'price',
+            CHAIN_ID.toString(),
+            params.apiKey !== undefined ? params.apiKey : 'N/A',
+            params.integrator?.integratorId || 'N/A',
+        ).inc();
 
         res.status(HttpStatus.OK).send(response);
     }
