@@ -23,7 +23,7 @@ on:
             - staging-all
             - staging-bsc
             - staging-polygon
-          default: production-all
+          default: prod-all
 
 jobs:
     deploy:
@@ -58,12 +58,12 @@ jobs:
                 sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.git_commit_id }}"/g' env/0x-api/${{ env.folder_env }}/common/*.yml env/0x-api/${{ env.folder_env }}/apis/*.yml
 
             - name: Update API configs (Ethereum Gorli)
-              if: env.chain == 'ethereum' || (env.chain == 'all' && env.folder_env == 'production')
+              if: env.chain == 'ethereum' || (env.chain == 'all' && env.folder_env == 'prod')
               run: |
                 sed -i -e 's/newTag:.*/newTag: ${{ inputs.git_commit_id }}/g' clusters/main-cluster/kubernetes/goerli-api/kustomization.yaml
 
             - name: Update API configs (Arbitrum)
-              if: env.chain == 'arbitrum' || (env.chain == 'all' && env.folder_env == 'production')
+              if: env.chain == 'arbitrum' || (env.chain == 'all' && env.folder_env == 'prod')
               run: |
                 sed -i -e 's/newTag:.*/newTag: ${{ inputs.git_commit_id }}/g' clusters/main-cluster/kubernetes/arbitrum-api/kustomization.yaml
 
@@ -77,7 +77,7 @@ jobs:
                 sed -i -e 's/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:.*"/"883408475785\.dkr\.ecr\.us-east-1\.amazonaws\.com\/0x\/api\:${{ inputs.git_commit_id }}"/g' env/0x-api/${{ env.folder_env }}/apis/polygon/*.yml
 
             - name: Update API configs (Polygon Mumbai)
-              if: env.chain == 'polygon' || (env.chain == 'all' && env.folder_env == 'production')
+              if: env.chain == 'polygon' || (env.chain == 'all' && env.folder_env == 'prod')
               run: |
                 sed -i -e 's/newTag:.*/newTag: ${{ inputs.git_commit_id }}/g' clusters/main-cluster/kubernetes/mumbai-api/kustomization.yaml
 
