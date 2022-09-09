@@ -1,14 +1,5 @@
 [
     {
-        "version": "6.23.3",
-        "changes": [
-            {
-                "note": "New FQT for Optimism with BalV2",
-                "pr": 577
-            }
-        ]
-    },
-    {
         "version": "6.23.2",
         "changes": [
             {
