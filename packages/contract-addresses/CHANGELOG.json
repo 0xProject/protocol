@@ -5,6 +5,10 @@
             {
                 "note": "New FQT for Optimism with BalV2",
                 "pr": 577
+            },
+            {
+                "note": "Add balV2/batch to opt bridge adapter code",
+                "pr": 578
             }
         ]
     },
