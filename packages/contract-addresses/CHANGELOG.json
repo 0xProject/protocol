@@ -6,7 +6,8 @@
                 "note": "New FQT for Optimism with BalV2",
                 "pr": 577
             }
-        ]
+        ],
+        "timestamp": 1662998180
     },
     {
         "version": "6.23.2",
