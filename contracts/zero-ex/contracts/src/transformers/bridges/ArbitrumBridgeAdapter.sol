@@ -28,6 +28,7 @@ import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinGMX.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
+import "./mixins/MixinNerve.sol";
 
 contract ArbitrumBridgeAdapter is
     AbstractBridgeAdapter(42161, "Arbitrum"),
@@ -36,7 +37,8 @@ contract ArbitrumBridgeAdapter is
     MixinDodoV2,
     MixinGMX,
     MixinUniswapV3,
-    MixinZeroExBridge
+    MixinZeroExBridge,
+    MixinNerve
 {
     constructor(IEtherTokenV06 weth)
         public
@@ -88,6 +90,13 @@ contract ArbitrumBridgeAdapter is
         } else if (protocolId == BridgeProtocols.GMX) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeGMX(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.NERVE) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeNerve(
                 sellToken,
                 sellAmount,
                 order.bridgeData
