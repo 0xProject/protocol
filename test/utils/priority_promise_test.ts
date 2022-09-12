@@ -75,7 +75,34 @@ describe('prorityPromise', () => {
         expect(res).toEqual(sleepTime2);
     });
 
-    it('throws if all promises either throw or does not pass `successDeterminator`', async () => {
+    it('calls `fallBackHandler` if no promise resolves and passes `successDeterminator`', async () => {
+        const sleepTime1 = 100000;
+        const promise1 = (async (): Promise<number> => {
+            await sleepAsync(sleepTime1);
+            throw new Error('error');
+        })();
+        const sleepTime2 = 300000;
+        const promise2 = (async (): Promise<number> => {
+            await sleepAsync(sleepTime2);
+            return sleepTime2;
+        })();
+        const errorHandler = jest.fn();
+        const returnValue = '0x';
+        const fallBackHandler = jest.fn();
+        fallBackHandler.mockReturnValue(returnValue);
+        jest.runAllTimers();
+
+        const result = await priorityPromiseAsync(
+            [promise1, promise2],
+            (arg: number): boolean => arg !== sleepTime2,
+            errorHandler,
+            fallBackHandler,
+        );
+        expect(fallBackHandler).toBeCalled();
+        expect(result).toEqual(returnValue);
+    });
+
+    it('throws if no promise resolves and passes `successDeterminator` & no `successDeterminator` is provided', async () => {
         const sleepTime1 = 100000;
         const promise1 = (async (): Promise<number> => {
             await sleepAsync(sleepTime1);

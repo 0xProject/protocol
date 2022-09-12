@@ -13,6 +13,7 @@ import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
+import { priorityPromiseAsync } from '../utils/priority_promise';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -123,31 +124,49 @@ export class GaslessSwapService {
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
-        const [rfqPrice, ammPrice] = await Promise.all([
-            this._rfqmService.fetchIndicativeQuoteAsync(params),
-            getQuoteAsync(
-                this._axiosInstance,
-                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                {
-                    ...params,
-                    // Can use the null address here since we won't be returning
-                    // the actual metatransaction
-                    takerAddress: params.takerAddress ?? NULL_ADDRESS,
-                },
-                {
-                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                    chainId: this._chainId,
-                },
-            ).then((r) => r?.price),
-        ]);
+        try {
+            const price = await priorityPromiseAsync(
+                [
+                    this._rfqmService.fetchIndicativeQuoteAsync(params).then((rfqPrice) => {
+                        if (rfqPrice) {
+                            return { ...rfqPrice, ...rfqPrice, source: 'rfq' };
+                        }
 
-        if (rfqPrice) {
-            return { ...rfqPrice, source: 'rfq' };
+                        return null;
+                    }),
+                    getQuoteAsync(
+                        this._axiosInstance,
+                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                        {
+                            ...params,
+                            // Can use the null address here since we won't be returning
+                            // the actual metatransaction
+                            takerAddress: params.takerAddress ?? NULL_ADDRESS,
+                        },
+                        {
+                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                            chainId: this._chainId,
+                        },
+                    )
+                        .then((r) => r?.price)
+                        .then((ammPrice) => {
+                            if (ammPrice) {
+                                return { ...ammPrice, source: 'amm' };
+                            }
+
+                            return null;
+                        }),
+                ],
+                priorityPromiseSuccessDeterminator,
+                priotityPromiseErrorHandler,
+                priotityPromiseFallBackHandler,
+            );
+
+            return price;
+        } catch (e) {
+            logger.error(e, 'Both rfq and amm encounter error while making price requests');
+            throw e;
         }
-        if (ammPrice) {
-            return { ...ammPrice, source: 'amm' };
-        }
-        return null;
     }
 
     /**
@@ -162,41 +181,53 @@ export class GaslessSwapService {
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams & { slippagePercentage?: number },
     ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
-        const [rfqQuote, ammQuote] = await Promise.all([
-            this._rfqmService.fetchFirmQuoteAsync(params),
-            getQuoteAsync(
-                this._axiosInstance,
-                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                params,
-                {
-                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                    chainId: this._chainId,
-                },
-            ),
-        ]);
+        try {
+            const quote = await priorityPromiseAsync(
+                [
+                    this._rfqmService.fetchFirmQuoteAsync(params),
+                    // Anonymous async function is used to prevent having a long `then` chaining
+                    (async () => {
+                        const ammQuote = await getQuoteAsync(
+                            this._axiosInstance,
+                            new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                            params,
+                            {
+                                requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                                chainId: this._chainId,
+                            },
+                        );
 
-        if (rfqQuote) {
-            return rfqQuote;
-        }
+                        if (ammQuote) {
+                            const approval = params.checkApproval
+                                ? await this._rfqmService.getGaslessApprovalResponseAsync(
+                                      params.takerAddress,
+                                      params.sellToken,
+                                      ammQuote.price.sellAmount,
+                                  )
+                                : null;
+                            await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
+                            return {
+                                ...ammQuote.price,
+                                approval: approval ?? undefined,
+                                metaTransaction: ammQuote.metaTransaction,
+                                metaTransactionHash: ammQuote.metaTransaction.getHash(),
+                                type: RfqmTypes.MetaTransaction,
+                            };
+                        }
 
-        if (ammQuote) {
-            const approval = params.checkApproval
-                ? await this._rfqmService.getGaslessApprovalResponseAsync(
-                      params.takerAddress,
-                      params.sellToken,
-                      ammQuote.price.sellAmount,
-                  )
-                : null;
-            await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
-            return {
-                ...ammQuote.price,
-                approval: approval ?? undefined,
-                metaTransaction: ammQuote.metaTransaction,
-                metaTransactionHash: ammQuote.metaTransaction.getHash(),
-                type: RfqmTypes.MetaTransaction,
-            };
+                        return null;
+                    })(),
+                ],
+                priorityPromiseSuccessDeterminator,
+                priotityPromiseErrorHandler,
+                priotityPromiseFallBackHandler,
+            );
+
+            return quote;
+        } catch (e) {
+            logger.error(e, 'Both rfq and amm encounter error while making quote requests');
+            throw e;
         }
-        return null;
     }
 
     /**
@@ -412,4 +443,40 @@ export class GaslessSwapService {
             EX: META_TRANSACTION_HASH_TTL_S,
         });
     }
+}
+
+function priorityPromiseSuccessDeterminator(response: any): boolean {
+    return response !== null;
+}
+
+function priotityPromiseErrorHandler(e: Error): void {
+    logger.error(e, 'Encoutered error when resolving a promise in `prorityPromiseAsync`');
+}
+
+/**
+ * Fall back handler for `priorityPromiseAsync` when fetching rfq and amm prices / quotes. Throws only when both
+ * requests encouter exceptions. Return null otherwise.
+ *
+ * @param response Responses of rfq and amm prices / quotes.
+ */
+function priotityPromiseFallBackHandler(response: any[]): null {
+    // This should never happen
+    if (response.length !== 2) {
+        throw new Error('Length of array passed in fall back handlder for `GaslessSwapService` is not 2');
+    }
+
+    const [rfqResponse, ammResponse] = response;
+    // This should never happen
+    if (!(rfqResponse === null || rfqResponse instanceof Error)) {
+        throw new Error(`rfq response is not null and error: ${rfqResponse}`);
+    }
+    if (!(ammResponse === null || ammResponse instanceof Error)) {
+        throw new Error(`amm response is not null and error: ${ammResponse}`);
+    }
+
+    if (rfqResponse instanceof Error && ammResponse instanceof Error) {
+        throw new Error('Both rfq and amm requests encountered errors');
+    }
+
+    return null;
 }
