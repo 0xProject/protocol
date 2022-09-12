@@ -23,22 +23,32 @@ pragma experimental ABIEncoderV2;
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinBalancerV2.sol";
+import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
+import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinDodoV2.sol";
+import "./mixins/MixinDodo.sol";
+import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinGMX.sol";
-import "./mixins/MixinUniswapV3.sol";
-import "./mixins/MixinZeroExBridge.sol";
 import "./mixins/MixinNerve.sol";
+import "./mixins/MixinUniswapV3.sol";
+import "./mixins/MixinUniswapV2.sol";
+import "./mixins/MixinZeroExBridge.sol";
 
 contract ArbitrumBridgeAdapter is
     AbstractBridgeAdapter(42161, "Arbitrum"),
     MixinBalancerV2,
+    MixinBalancerV2Batch,
     MixinCurve,
+    MixinCurveV2,
+    MixinDodo,
     MixinDodoV2,
+    MixinKyberDmm,
     MixinGMX,
+    MixinNerve,
     MixinUniswapV3,
-    MixinZeroExBridge,
-    MixinNerve
+    MixinUniswapV2,
+    MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth)
         public
@@ -65,10 +75,45 @@ contract ArbitrumBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
+        } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeBalancerV2Batch(
+                sellAmount,
+                order.bridgeData
+            );
         } else if (protocolId == BridgeProtocols.CURVE) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeCurve(
                 sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.CURVEV2) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeCurveV2(
+                sellToken,
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
+        }  else if (protocolId == BridgeProtocols.DODO) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeDodo(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.DODOV2) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeDodoV2(
+                sellToken,
+                sellAmount,
+                order.bridgeData
+            );
+        } else if (protocolId == BridgeProtocols.KYBERDMM) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeKyberDmm(
                 buyToken,
                 sellAmount,
                 order.bridgeData
@@ -87,10 +132,17 @@ contract ArbitrumBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
+        } else if (protocolId == BridgeProtocols.UNISWAPV2) {
+            if (dryRun) { return (0, true); }
+            boughtAmount = _tradeUniswapV2(
+                buyToken,
+                sellAmount,
+                order.bridgeData
+            );
         } else if (protocolId == BridgeProtocols.GMX) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeGMX(
-                sellToken,
+                buyToken,
                 sellAmount,
                 order.bridgeData
             );
