@@ -2589,7 +2589,7 @@ export class RfqmService {
             makerToken,
             takerToken,
             integrator.whitelistMakerIds || null,
-            null, // Dry run only: avoid using `makerIdsInCooldown` to block MMs
+            makerIdsInCooldown || null,
         );
 
         const quotes = await this._quoteServerClient.batchGetPriceV2Async(
