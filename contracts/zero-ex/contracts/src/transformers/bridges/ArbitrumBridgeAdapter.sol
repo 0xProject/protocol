@@ -118,13 +118,6 @@ contract ArbitrumBridgeAdapter is
                 sellAmount,
                 order.bridgeData
             );
-        } else if (protocolId == BridgeProtocols.DODOV2) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeDodoV2(
-                sellToken,
-                sellAmount,
-                order.bridgeData
-            );
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
             if (dryRun) { return (0, true); }
             boughtAmount = _tradeUniswapV3(
