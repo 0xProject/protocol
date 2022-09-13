@@ -35,6 +35,9 @@ import "./interfaces/IOtcOrdersFeature.sol";
 import "./libs/LibNativeOrder.sol";
 import "./libs/LibSignature.sol";
 
+import "forge-std/console.sol";
+
+
 
 /// @dev Feature for interacting with OTC orders.
 contract OtcOrdersFeature is
@@ -76,6 +79,7 @@ contract OtcOrdersFeature is
         _registerFeatureFunction(this.fillTakerSignedOtcOrderForEth.selector);
         _registerFeatureFunction(this.fillTakerSignedOtcOrder.selector);
         _registerFeatureFunction(this.batchFillTakerSignedOtcOrders.selector);
+        _registerFeatureFunction(this.matchOtcOrders.selector);
         _registerFeatureFunction(this._fillOtcOrder.selector);
         _registerFeatureFunction(this.getOtcOrderInfo.selector);
         _registerFeatureFunction(this.getOtcOrderHash.selector);
@@ -364,6 +368,23 @@ contract OtcOrdersFeature is
                 )
             );
         }
+    }
+
+    function matchOtcOrders(
+        LibNativeOrder.OtcOrder memory takerOrder,
+        LibSignature.Signature memory takerSignature,
+        MatchingRfqLiquidity[] calldata rfqLiquidity
+    )
+        external 
+        override
+    {
+        // require(1 == 2, "Muahahahah its working");
+        LibNativeOrder.OtcOrderInfo memory orderInfo = getOtcOrderInfo(takerOrder);
+        console.log('got order info');
+        address taker = LibSignature.getSignerOfHash(orderInfo.orderHash, takerSignature);
+        console.log('got taker from sig');
+        console.log(taker);
+
     }
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.

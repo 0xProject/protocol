@@ -42,6 +42,13 @@ interface IOtcOrdersFeature {
         uint128 makerTokenFilledAmount,
         uint128 takerTokenFilledAmount
     );
+    
+    struct MatchingRfqLiquidity {
+        LibNativeOrder.OtcOrder makerOrder;
+        LibSignature.Signature makerSignature;
+        uint128 settlementTakerAmount; // <= makerOrder.takerAmount
+        uint128 settlementMakerAmount; // <= makerOrder.makerAmount
+    }
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     /// @param order The OTC order.
@@ -132,6 +139,14 @@ interface IOtcOrdersFeature {
     )
         external
         returns (bool[] memory successes);
+
+    function matchOtcOrders(
+        LibNativeOrder.OtcOrder memory takerOrder,
+        LibSignature.Signature memory takerSignature,
+        MatchingRfqLiquidity[] calldata rfqLiquidity
+        // IBridgeAdapter.BridgeOrder[] calldata ammLiquidity // TODO
+    )
+        external;
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     ///      Internal variant.
