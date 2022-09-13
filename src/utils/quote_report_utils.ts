@@ -1,9 +1,4 @@
-import {
-    ERC20BridgeSource,
-    ExtendedQuoteReport,
-    ExtendedQuoteReportIndexedEntryOutbound,
-    jsonifyFillData,
-} from '@0x/asset-swapper';
+import { ERC20BridgeSource, FillData, jsonifyFillData, NativeFillData, RfqOrderFields } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
@@ -12,6 +7,80 @@ import { logger } from '../logger';
 import { FirmOtcQuote, IndicativeQuote } from '../types';
 
 import { numberUtils } from './number_utils';
+
+/** Migrated from @0x/asset-swapper */
+
+export interface ExtendedQuoteReport {
+    quoteId?: string;
+    taker?: string;
+    timestamp: number;
+    firmQuoteReport: boolean;
+    submissionBy: 'taker' | 'metaTxn' | 'rfqm' | 'gaslessSwap';
+    buyAmount?: string;
+    sellAmount?: string;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    integratorId?: string;
+    slippageBips?: number;
+    zeroExTransactionHash?: string;
+    decodedUniqueId?: string;
+    sourcesConsidered: ExtendedQuoteReportIndexedEntryOutbound[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntryOutbound[] | undefined;
+}
+
+export interface QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource;
+    makerAmount: BigNumber;
+    takerAmount: BigNumber;
+    fillData: FillData;
+}
+export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
+}
+export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.MultiHop;
+    hopSources: ERC20BridgeSource[];
+}
+export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillData: NativeFillData;
+    fillableTakerAmount: BigNumber;
+    isRFQ: false;
+}
+export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillData: NativeFillData;
+    fillableTakerAmount: BigNumber;
+    isRFQ: true;
+    nativeOrder: RfqOrderFields;
+    makerUri: string;
+    comparisonPrice?: number;
+}
+export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillableTakerAmount: BigNumber;
+    isRFQ: true;
+    makerUri?: string;
+    comparisonPrice?: number;
+}
+
+export declare type ExtendedQuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry
+    | IndicativeRfqOrderQuoteReportEntry;
+
+export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
+    quoteEntryIndex: number;
+    isDelivered: boolean;
+};
+
+export type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
+    fillData?: string;
+};
+
+/************************************/
 
 type ExtendedQuoteReportEntryWithIntermediateQuote = ExtendedQuoteReportIndexedEntryOutbound & {
     isIntermediate: boolean;
@@ -47,6 +116,7 @@ export const quoteReportUtils = {
         logOpts: ExtendedQuoteReportForRFQMLogOptions,
         kafkaProducer: Producer,
         quoteReportTopic?: string,
+        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
     ): Promise<void> {
         if (kafkaProducer && quoteReportTopic) {
             const quoteId = numberUtils.randomHexNumberOfLength(10);
@@ -121,7 +191,7 @@ export const quoteReportUtils = {
                 taker: logOpts.taker,
                 timestamp: Date.now(),
                 firmQuoteReport: logOpts.finalQuotes[0] ? isFirmQuote(logOpts.finalQuotes[0]) : false,
-                submissionBy: 'rfqm',
+                submissionBy: extendedQuoteReportSubmissionBy,
                 buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
                 sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
                 buyTokenAddress: logOpts.buyTokenAddress,

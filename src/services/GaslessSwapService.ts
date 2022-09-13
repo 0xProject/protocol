@@ -127,7 +127,7 @@ export class GaslessSwapService {
         try {
             const price = await priorityPromiseAsync(
                 [
-                    this._rfqmService.fetchIndicativeQuoteAsync(params).then((rfqPrice) => {
+                    this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwap').then((rfqPrice) => {
                         if (rfqPrice) {
                             return { ...rfqPrice, ...rfqPrice, source: 'rfq' };
                         }
@@ -184,7 +184,7 @@ export class GaslessSwapService {
         try {
             const quote = await priorityPromiseAsync(
                 [
-                    this._rfqmService.fetchFirmQuoteAsync(params),
+                    this._rfqmService.fetchFirmQuoteAsync(params, 'gaslessSwap'),
                     // Anonymous async function is used to prevent having a long `then` chaining
                     (async () => {
                         const ammQuote = await getQuoteAsync(

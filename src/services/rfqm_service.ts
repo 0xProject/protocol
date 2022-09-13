@@ -59,7 +59,7 @@ import {
 import { CacheClient } from '../utils/cache_client';
 import { toPairString } from '../utils/pair_utils';
 import { getBestQuote } from '../utils/quote_comparison_utils';
-import { quoteReportUtils } from '../utils/quote_report_utils';
+import { ExtendedQuoteReport, quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import {
     feeToStoredFee,
@@ -442,6 +442,7 @@ export class RfqmService {
      */
     public async fetchIndicativeQuoteAsync(
         params: FetchIndicativeQuoteParams,
+        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
     ): Promise<FetchIndicativeQuoteResponse | null> {
         // Retrieve quote context
         const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ false);
@@ -506,6 +507,7 @@ export class RfqmService {
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
+                extendedQuoteReportSubmissionBy,
             );
         }
 
@@ -537,7 +539,10 @@ export class RfqmService {
     /**
      * Fetch the best firm quote available, including a metatransaction. Returns null if no valid quotes found
      */
-    public async fetchFirmQuoteAsync(params: FetchFirmQuoteParams): Promise<OtcOrderRfqmQuoteResponse | null> {
+    public async fetchFirmQuoteAsync(
+        params: FetchFirmQuoteParams,
+        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
+    ): Promise<OtcOrderRfqmQuoteResponse | null> {
         // Retrieve quote context
         const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ true);
         const {
@@ -620,6 +625,7 @@ export class RfqmService {
                 },
                 this._kafkaProducer,
                 this._quoteReportTopic,
+                extendedQuoteReportSubmissionBy,
             );
         }
 
