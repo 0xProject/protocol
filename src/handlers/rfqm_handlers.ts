@@ -1,11 +1,5 @@
 // tslint:disable:max-file-line-count
-import {
-    InternalServerError,
-    InvalidAPIKeyError,
-    isAPIError,
-    ValidationError,
-    ValidationErrorCodes,
-} from '@0x/api-utils';
+import { InvalidAPIKeyError, ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { OtcOrder } from '@0x/protocol-utils';
 import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSymbol } from '@0x/token-metadata';
 import { addressUtils, BigNumber } from '@0x/utils';
@@ -37,7 +31,6 @@ import {
 import { RfqmServices } from '../utils/rfqm_service_builder';
 import { schemaUtils } from '../utils/schema_utils';
 
-// TODO (MKR-123): Remove the apiKey reference once dashboards are updated
 const RFQM_INDICATIVE_QUOTE_REQUEST = new Counter({
     name: 'rfqm_handler_indicative_quote_requested',
     help: 'Request made to fetch rfqm indicative quote',
@@ -102,13 +95,13 @@ export class RfqmHandlers {
         let indicativeQuote;
         try {
             indicativeQuote = await this._getServiceForChain(chainId).fetchIndicativeQuoteAsync(params);
-        } catch (err) {
-            req.log.error(err, 'Encountered an error while fetching an rfqm indicative quote');
+        } catch (e) {
+            req.log.error(e, 'Encountered an error while fetching an rfqm indicative quote');
             RFQM_INDICATIVE_QUOTE_ERROR.inc({
                 integratorLabel: params.integrator.label,
                 chainId,
             });
-            throw new InternalServerError('Unexpected error encountered');
+            throw e;
         }
 
         // Log no quote returned
@@ -139,13 +132,13 @@ export class RfqmHandlers {
         let firmQuote;
         try {
             firmQuote = await this._getServiceForChain(chainId).fetchFirmQuoteAsync(params);
-        } catch (err) {
-            req.log.error(err, 'Encountered an error while fetching an rfqm firm quote');
+        } catch (e) {
+            req.log.error(e, 'Encountered an error while fetching an rfqm firm quote');
             RFQM_FIRM_QUOTE_ERROR.inc({
                 integratorLabel: params.integrator.label,
                 chainId,
             });
-            throw new InternalServerError('Unexpected error encountered');
+            throw e;
         }
 
         // Log no quote returned
@@ -205,13 +198,9 @@ export class RfqmHandlers {
         try {
             const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderAsync(params);
             res.status(HttpStatus.CREATED).send(response);
-        } catch (err) {
-            req.log.error(err, 'Encountered an error while queuing a signed quote');
-            if (isAPIError(err)) {
-                throw err;
-            } else {
-                throw new InternalServerError(`An unexpected error occurred`);
-            }
+        } catch (e) {
+            req.log.error(e, 'Encountered an error while queuing a signed quote');
+            throw e;
         }
     }
 
@@ -224,13 +213,9 @@ export class RfqmHandlers {
         try {
             const response = await this._getServiceForChain(chainId).submitTakerSignedOtcOrderWithApprovalAsync(params);
             res.status(HttpStatus.CREATED).send(response);
-        } catch (err) {
-            req.log.error(err, 'Encountered an error while queuing a signed quote with approval');
-            if (isAPIError(err)) {
-                throw err;
-            } else {
-                throw new InternalServerError(`An unexpected error occurred`);
-            }
+        } catch (e) {
+            req.log.error(e, 'Encountered an error while queuing a signed quote with approval');
+            throw e;
         }
     }
 
