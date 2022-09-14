@@ -1,9 +1,10 @@
+// tslint:disable:max-file-line-count
 import { InternalServerError, TooManyRequestsError, ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { ITransformERC20Contract } from '@0x/contract-wrappers';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { utils as ethersUtils } from 'ethers';
-import { Summary } from 'prom-client';
+import { Counter, Summary } from 'prom-client';
 import { RedisClientType } from 'redis';
 import { Producer } from 'sqs-producer';
 
@@ -45,6 +46,18 @@ import {
  * is stored in Redis.
  */
 const META_TRANSACTION_HASH_TTL_S = 15 * ONE_MINUTE_S; // tslint:disable-line binary-expression-operand-order custom-no-magic-numbers
+
+enum GaslessSwapServiceErrorReason {
+    MetaTransactionAboutToExpire = 'meta_transaction_about_to_expire', // meta-transaction is about to expire
+    MetaTransactionPendingJobAlreadyExist = 'meta_transaction_pending_job_already_exist', // a pendingmeta-transaction job already exists for a taker-takerToken
+    MetaTransactionTakerBalanceCheckFailed = 'meta_transaction_taker_balance_check_failed', // taker balance check failed when submitting a meta-transaction
+    MetaTransactionHashNotExist = 'meta_transaction_hash_does_not_exist', // meta-transaction hash does not exist
+    MetaTransactionInvalidSigner = 'meta_transaction_invalid_signer', // invalid signer for the mta-transaction
+    MetaTransactionFailedToQueue = 'meta_transaction_failed_to_queue', // failed to queue meta-transaction
+    RfqFailedAmmSucceeded = 'rfq_failed_amm_succeeded', // rfq requests failed due to exceptions but amm requests succeeded
+    RfqAmmPriceFailed = 'rfq_amm_price_failed', // both rfq and amm price requests failed due to exceptions
+    RfqAmmQuoteFailed = 'rfq_amm_quote_failed', // both rfq and amm quote requests failed due to exceptions
+}
 
 /**
  * Produces a key for Redis using the MetaTransaction hash
@@ -88,6 +101,11 @@ const ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS = new Summary({
     labelNames: ['chainId', 'success'],
     maxAgeSeconds: 60,
     ageBuckets: 5,
+});
+const ZEROG_GASLESSS_SWAP_SERVICE_ERRORS = new Counter({
+    name: 'zerog_gasless_swap_service_errors_total',
+    labelNames: ['chainId', 'reason'],
+    help: 'Number of errors (with specific reason) encountered in galess swap service',
 });
 
 /**
@@ -159,11 +177,15 @@ export class GaslessSwapService {
                 ],
                 priorityPromiseSuccessDeterminator,
                 priotityPromiseErrorHandler,
-                priotityPromiseFallBackHandler,
+                this._priotityPromiseFallBackHandler.bind(this),
             );
 
             return price;
         } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.RfqAmmPriceFailed,
+            ).inc();
             logger.error(e, 'Both rfq and amm encounter error while making price requests');
             throw e;
         }
@@ -220,11 +242,15 @@ export class GaslessSwapService {
                 ],
                 priorityPromiseSuccessDeterminator,
                 priotityPromiseErrorHandler,
-                priotityPromiseFallBackHandler,
+                this._priotityPromiseFallBackHandler.bind(this),
             );
 
             return quote;
         } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.RfqAmmQuoteFailed,
+            ).inc();
             logger.error(e, 'Both rfq and amm encounter error while making quote requests');
             throw e;
         }
@@ -274,7 +300,10 @@ export class GaslessSwapService {
         if (
             metaTransaction.expirationTimeSeconds.minus(bufferS).times(ONE_SECOND_MS).isLessThanOrEqualTo(currentTimeMs)
         ) {
-            // TODO (rhinodavid): Counter
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionAboutToExpire,
+            ).inc();
             logger.warn(
                 { metaTransactionHash: metaTransaction.getHash() },
                 'Received metatransaction submission which is about to expire',
@@ -292,6 +321,10 @@ export class GaslessSwapService {
         // Verify that the metatransaction was created by 0x API
         const doesMetaTransactionHashExist = await this._doesMetaTransactionHashExistAsync(metaTransaction.getHash());
         if (!doesMetaTransactionHashExist) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionHashNotExist,
+            ).inc();
             logger.warn(
                 { metaTransactionHash: metaTransaction.getHash() },
                 'Received metatransaction submission not created by 0x API',
@@ -319,7 +352,10 @@ export class GaslessSwapService {
                     job.metaTransactionHash !== metaTransaction.getHash(),
             )
         ) {
-            // TODO (rhinodavid): Meter
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionPendingJobAlreadyExist,
+            ).inc();
             logger.warn(
                 {
                     metaTransactionHash: metaTransaction.getHash(),
@@ -334,6 +370,10 @@ export class GaslessSwapService {
         // validate that the given taker signature is valid
         const signerAddress = getSignerFromHash(metaTransaction.getHash(), params.trade.signature).toLowerCase();
         if (signerAddress !== metaTransaction.signer) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionInvalidSigner,
+            ).inc();
             logger.warn(
                 {
                     metaTransactionHash: metaTransaction.getHash(),
@@ -353,7 +393,10 @@ export class GaslessSwapService {
               ]);
 
         if (takerBalance.isLessThan(inputTokenAmount)) {
-            // TODO (rhinodavid): meter
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionTakerBalanceCheckFailed,
+            ).inc();
             logger.warn(
                 {
                     takerBalance,
@@ -389,6 +432,10 @@ export class GaslessSwapService {
             const { id } = await this._dbUtils.writeMetaTransactionJobAsync(jobOptions);
             await this._enqueueJobAsync(id, RfqmTypes.MetaTransaction);
         } catch (error) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.MetaTransactionFailedToQueue,
+            ).inc();
             logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
             throw new InternalServerError(
                 `failed to queue the quote for submission, it may have already been submitted`,
@@ -443,6 +490,41 @@ export class GaslessSwapService {
             EX: META_TRANSACTION_HASH_TTL_S,
         });
     }
+
+    /**
+     * Fall back handler for `priorityPromiseAsync` when fetching rfq and amm prices / quotes. Throws only when both
+     * requests encouter exceptions. Return null otherwise.
+     *
+     * @param response Responses of rfq and amm prices / quotes.
+     */
+    private _priotityPromiseFallBackHandler(response: any[]): null {
+        // This should never happen
+        if (response.length !== 2) {
+            throw new Error('Length of array passed in fall back handlder for `GaslessSwapService` is not 2');
+        }
+
+        const [rfqResponse, ammResponse] = response;
+        // This should never happen
+        if (!(rfqResponse === null || rfqResponse instanceof Error)) {
+            throw new Error(`rfq response is not null and error: ${rfqResponse}`);
+        }
+        if (!(ammResponse === null || ammResponse instanceof Error)) {
+            throw new Error(`amm response is not null and error: ${ammResponse}`);
+        }
+
+        if (rfqResponse instanceof Error) {
+            if (ammResponse instanceof Error) {
+                throw new Error('Both rfq and amm requests encountered errors');
+            }
+
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.RfqFailedAmmSucceeded,
+            ).inc();
+        }
+
+        return null;
+    }
 }
 
 function priorityPromiseSuccessDeterminator(response: any): boolean {
@@ -451,32 +533,4 @@ function priorityPromiseSuccessDeterminator(response: any): boolean {
 
 function priotityPromiseErrorHandler(e: Error): void {
     logger.error(e, 'Encoutered error when resolving a promise in `prorityPromiseAsync`');
-}
-
-/**
- * Fall back handler for `priorityPromiseAsync` when fetching rfq and amm prices / quotes. Throws only when both
- * requests encouter exceptions. Return null otherwise.
- *
- * @param response Responses of rfq and amm prices / quotes.
- */
-function priotityPromiseFallBackHandler(response: any[]): null {
-    // This should never happen
-    if (response.length !== 2) {
-        throw new Error('Length of array passed in fall back handlder for `GaslessSwapService` is not 2');
-    }
-
-    const [rfqResponse, ammResponse] = response;
-    // This should never happen
-    if (!(rfqResponse === null || rfqResponse instanceof Error)) {
-        throw new Error(`rfq response is not null and error: ${rfqResponse}`);
-    }
-    if (!(ammResponse === null || ammResponse instanceof Error)) {
-        throw new Error(`amm response is not null and error: ${ammResponse}`);
-    }
-
-    if (rfqResponse instanceof Error && ammResponse instanceof Error) {
-        throw new Error('Both rfq and amm requests encountered errors');
-    }
-
-    return null;
 }
