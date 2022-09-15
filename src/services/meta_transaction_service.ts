@@ -5,17 +5,19 @@ import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
 import * as _ from 'lodash';
 
-import { ContractAddresses, QuoteReport, ZERO_AMOUNT } from '../asset-swapper';
+import { ContractAddresses } from '../asset-swapper';
 import { CHAIN_ID, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
 import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
-import {
-    CalculateMetaTransactionQuoteParams,
-    CalculateMetaTransactionQuoteResponse,
-    GetMetaTransactionQuoteResponse,
-    GetSwapQuoteResponse,
-} from '../types';
+import { MetaTransactionQuoteParams, GetSwapQuoteResponse, QuoteBase, MetaTransactionQuoteResponse } from '../types';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
+
+export interface MetaTransactionQuoteResult extends QuoteBase {
+    buyTokenAddress: string;
+    callData: string;
+    sellTokenAddress: string;
+    taker: string;
+}
 
 const WETHToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
 
@@ -39,25 +41,23 @@ export class MetaTransactionService {
         this._swapService = swapService;
     }
 
-    public async calculateMetaTransactionPriceAsync(
-        params: CalculateMetaTransactionQuoteParams,
-    ): Promise<CalculateMetaTransactionQuoteResponse> {
-        return this._calculateMetaTransactionQuoteAsync(params, 'price');
+    public async getMetaTransactionPriceAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResult> {
+        return this._getMetaTransactionQuoteAsync(params, 'price');
     }
 
-    public async calculateMetaTransactionQuoteAsync(
-        params: CalculateMetaTransactionQuoteParams,
-    ): Promise<GetMetaTransactionQuoteResponse & { quoteReport?: QuoteReport }> {
-        const quote = await this._calculateMetaTransactionQuoteAsync(params, 'quote');
-        const { sellTokenToEthRate, buyTokenToEthRate } = quote;
+    public async getMetaTransactionQuoteAsync(
+        params: MetaTransactionQuoteParams,
+    ): Promise<MetaTransactionQuoteResponse> {
+        const quote = await this._getMetaTransactionQuoteAsync(params, 'quote');
+
         const commonQuoteFields = {
             chainId: quote.chainId,
             price: quote.price,
             estimatedPriceImpact: quote.estimatedPriceImpact,
             sellTokenAddress: params.sellTokenAddress,
             buyTokenAddress: params.buyTokenAddress,
-            buyAmount: quote.buyAmount!,
-            sellAmount: quote.sellAmount!,
+            buyAmount: quote.buyAmount,
+            sellAmount: quote.sellAmount,
             // orders: quote.orders,
             sources: quote.sources,
             gasPrice: quote.gasPrice,
@@ -67,24 +67,23 @@ export class MetaTransactionService {
             minimumProtocolFee: quote.minimumProtocolFee,
             value: quote.protocolFee,
             allowanceTarget: quote.allowanceTarget,
-            sellTokenToEthRate,
-            buyTokenToEthRate,
-            quoteReport: quote.quoteReport,
+            sellTokenToEthRate: quote.sellTokenToEthRate,
+            buyTokenToEthRate: quote.buyTokenToEthRate,
         };
 
         // Go through the Exchange Proxy.
-        const epmtx = this._generateExchangeProxyMetaTransaction(
+        const metaTransaction = this._generateExchangeProxyMetaTransaction(
             quote.callData,
             quote.taker,
             normalizeGasPrice(quote.gasPrice),
-            ZERO_AMOUNT, // protocol fee
+            ZERO, // protocol fee
         );
 
-        const mtxHash = getExchangeProxyMetaTransactionHash(epmtx);
+        const metaTransactionHash = getExchangeProxyMetaTransactionHash(metaTransaction);
         return {
             ...commonQuoteFields,
-            mtx: epmtx,
-            mtxHash,
+            metaTransaction,
+            metaTransactionHash,
         };
     }
 
@@ -112,28 +111,21 @@ export class MetaTransactionService {
         };
     }
 
-    private async _calculateMetaTransactionQuoteAsync(
-        params: CalculateMetaTransactionQuoteParams,
+    private async _getMetaTransactionQuoteAsync(
+        params: MetaTransactionQuoteParams,
         endpoint: 'price' | 'quote',
-    ): Promise<CalculateMetaTransactionQuoteResponse> {
+    ): Promise<MetaTransactionQuoteResult> {
         const quoteParams = {
-            endpoint,
-            skipValidation: true,
-            // RFQT Disabled for MetaTxn
-            // rfqt: {
-            //     apiKey: params.apiKey,
-            //     takerAddress: params.takerAddress,
-            //     intentOnFilling: isQuote,
-            //     isIndicative: !isQuote,
-            // },
-            isMetaTransaction: true,
             ...params,
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
             buyToken: params.isETHBuy ? WETHToken.tokenAddress : params.buyTokenAddress,
+            endpoint,
+            isMetaTransaction: true,
+            isUnwrap: false,
+            isWrap: false,
             sellToken: params.sellTokenAddress,
             shouldSellEntireBalance: false,
-            isWrap: false,
-            isUnwrap: false,
+            skipValidation: true,
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
@@ -175,7 +167,6 @@ export class MetaTransactionService {
             allowanceTarget: quote.allowanceTarget,
             sellTokenToEthRate: quote.sellTokenToEthRate,
             buyTokenToEthRate: quote.buyTokenToEthRate,
-            quoteReport: quote.quoteReport,
             callData: quote.data,
             minimumProtocolFee: quote.protocolFee,
             buyTokenAddress: params.buyTokenAddress,

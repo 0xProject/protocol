@@ -175,7 +175,7 @@ export interface AffiliateFeeAmounts {
 
 /** Begin /swap and /meta_transaction types */
 
-interface QuoteBase {
+export interface QuoteBase {
     chainId: ChainId;
     price: BigNumber;
     buyAmount: BigNumber;
@@ -289,18 +289,27 @@ export interface Price {
     price: BigNumber;
 }
 
-// GET /meta_transaction/quote
-export interface GetMetaTransactionQuoteResponse extends BasePriceResponse {
-    mtxHash: string;
-    mtx: ExchangeProxyMetaTransaction;
+/**
+ * Response type for /meta_transaction/v1/quote endpoint
+ */
+export interface MetaTransactionQuoteResponse extends BasePriceResponse {
+    metaTransactionHash: string;
+    metaTransaction: ExchangeProxyMetaTransaction;
     orders?: any;
 }
 
-// GET /meta_transaction/price
-export type GetMetaTransactionPriceResponse = BasePriceResponse;
+/**
+ * Response type for the /meta_transaction/v1/price endpoint
+ */
+export type MetaTransactionPriceResponse = BasePriceResponse;
 
 // Request params
-export interface GetTransactionRequestParams extends SwapQuoteParamsBase {
+
+/**
+ * Request type for /meta_transaction/v1/price and /meta_transaction/v1/quote.
+ * Reflected in `meta_transaction_quote_request_schema.json`.
+ */
+export interface MetaTransactionQuoteRequestParams extends SwapQuoteParamsBase {
     buyTokenAddress: string;
     integratorId: string;
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
@@ -311,25 +320,18 @@ export interface GetTransactionRequestParams extends SwapQuoteParamsBase {
 // Interim types
 export type ZeroExTransactionWithoutDomain = Omit<ZeroExTransaction, 'domain'>;
 
-export interface CalculateMetaTransactionQuoteResponse extends QuoteBase {
-    sellTokenAddress: string;
+/**
+ * Parameters for the Meta Transaction Service price and quote functions.
+ */
+export interface MetaTransactionQuoteParams extends SwapQuoteParamsBase {
     buyTokenAddress: string;
-    taker: string;
-    quoteReport?: QuoteReport;
-    // orders: SignedOrder[];
-    callData: string;
-}
-
-export interface CalculateMetaTransactionQuoteParams extends SwapQuoteParamsBase {
-    sellTokenAddress: string;
-    buyTokenAddress: string;
-    takerAddress: string;
     from: string;
-    apiKey?: string;
+    integratorId: string;
     isETHBuy: boolean;
     isETHSell: boolean;
-    integratorId: string;
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
+    sellTokenAddress: string;
+    takerAddress: string;
 }
 
 /** End /swap types */
