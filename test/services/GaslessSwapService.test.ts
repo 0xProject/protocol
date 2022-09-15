@@ -258,25 +258,11 @@ describe('GaslessSwapService', () => {
             expect(result).toBeNull();
         });
 
-        it('returns `null` if one of the quote service fetch throws', async () => {
+        it('throws if a quote service fetch throws', async () => {
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
-            mockRfqmService.fetchIndicativeQuoteAsync.mockRejectedValueOnce(new Error('rfqm quote threw up'));
-
-            const result = await gaslessSwapService.fetchPriceAsync({
-                buyAmount: new BigNumber(1800054805473),
-                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                buyTokenDecimals: 6,
-                integrator: {} as Integrator,
-                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-                sellTokenDecimals: 18,
+            mockRfqmService.fetchIndicativeQuoteAsync.mockImplementationOnce(() => {
+                throw new Error('rfqm quote threw up');
             });
-
-            expect(result).toBeNull();
-        });
-
-        it('throws if both of the quote services fetch throws', async () => {
-            mockRfqmService.fetchIndicativeQuoteAsync.mockRejectedValueOnce(new Error('rfqm quote threw up'));
-            getMetaTransactionQuoteAsyncMock.mockRejectedValueOnce(new Error('meta-transaction quote threw up'));
 
             await expect(() =>
                 gaslessSwapService.fetchPriceAsync({
@@ -287,7 +273,7 @@ describe('GaslessSwapService', () => {
                     sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                     sellTokenDecimals: 18,
                 }),
-            ).rejects.toThrow('Both rfq and amm requests encountered errors');
+            ).rejects.toThrow('threw up');
         });
     });
     describe('fetchQuoteAsync', () => {
@@ -428,60 +414,6 @@ describe('GaslessSwapService', () => {
             });
 
             expect(result?.approval).not.toBeUndefined();
-        });
-
-        it('returns `null` if no liquidity is available', async () => {
-            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
-
-            const result = await gaslessSwapService.fetchQuoteAsync({
-                buyAmount: new BigNumber(1800054805473),
-                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                buyTokenDecimals: 6,
-                integrator: {} as Integrator,
-                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-                sellTokenDecimals: 18,
-                takerAddress: '0xtaker',
-                checkApproval: false,
-            });
-
-            expect(result).toBeNull();
-        });
-
-        it('returns `null` if one of the quote service fetch throws', async () => {
-            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
-            mockRfqmService.fetchFirmQuoteAsync.mockRejectedValueOnce(new Error('rfqm quote threw up'));
-
-            const result = await gaslessSwapService.fetchQuoteAsync({
-                buyAmount: new BigNumber(1800054805473),
-                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                buyTokenDecimals: 6,
-                integrator: {} as Integrator,
-                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-                sellTokenDecimals: 18,
-                takerAddress: '0xtaker',
-                checkApproval: false,
-            });
-
-            expect(result).toBeNull();
-        });
-
-        it('throws if both of the quote services fetch throws', async () => {
-            mockRfqmService.fetchFirmQuoteAsync.mockRejectedValueOnce(new Error('rfqm quote threw up'));
-            getMetaTransactionQuoteAsyncMock.mockRejectedValueOnce(new Error('meta-transaction quote threw up'));
-
-            await expect(() =>
-                gaslessSwapService.fetchQuoteAsync({
-                    buyAmount: new BigNumber(1800054805473),
-                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                    buyTokenDecimals: 6,
-                    integrator: {} as Integrator,
-                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-                    sellTokenDecimals: 18,
-                    takerAddress: '0xtaker',
-                    checkApproval: false,
-                }),
-            ).rejects.toThrow('Both rfq and amm requests encountered errors');
         });
     });
     describe('processSubmitAsync', () => {

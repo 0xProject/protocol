@@ -14,7 +14,6 @@ import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
 import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
-import { priorityPromiseAsync } from '../utils/priority_promise';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -54,9 +53,6 @@ enum GaslessSwapServiceErrorReason {
     MetaTransactionHashNotExist = 'meta_transaction_hash_does_not_exist', // meta-transaction hash does not exist
     MetaTransactionInvalidSigner = 'meta_transaction_invalid_signer', // invalid signer for the mta-transaction
     MetaTransactionFailedToQueue = 'meta_transaction_failed_to_queue', // failed to queue meta-transaction
-    RfqFailedAmmSucceeded = 'rfq_failed_amm_succeeded', // rfq requests failed due to exceptions but amm requests succeeded
-    RfqAmmPriceFailed = 'rfq_amm_price_failed', // both rfq and amm price requests failed due to exceptions
-    RfqAmmQuoteFailed = 'rfq_amm_quote_failed', // both rfq and amm quote requests failed due to exceptions
 }
 
 /**
@@ -142,53 +138,31 @@ export class GaslessSwapService {
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
-        try {
-            const price = await priorityPromiseAsync(
-                [
-                    this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwap').then((rfqPrice) => {
-                        if (rfqPrice) {
-                            return { ...rfqPrice, ...rfqPrice, source: 'rfq' };
-                        }
+        const [rfqPrice, ammPrice] = await Promise.all([
+            this._rfqmService.fetchIndicativeQuoteAsync(params),
+            getQuoteAsync(
+                this._axiosInstance,
+                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                {
+                    ...params,
+                    // Can use the null address here since we won't be returning
+                    // the actual metatransaction
+                    takerAddress: params.takerAddress ?? NULL_ADDRESS,
+                },
+                {
+                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                    chainId: this._chainId,
+                },
+            ).then((r) => r?.price),
+        ]);
 
-                        return null;
-                    }),
-                    getQuoteAsync(
-                        this._axiosInstance,
-                        new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                        {
-                            ...params,
-                            // Can use the null address here since we won't be returning
-                            // the actual metatransaction
-                            takerAddress: params.takerAddress ?? NULL_ADDRESS,
-                        },
-                        {
-                            requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                            chainId: this._chainId,
-                        },
-                    )
-                        .then((r) => r?.price)
-                        .then((ammPrice) => {
-                            if (ammPrice) {
-                                return { ...ammPrice, source: 'amm' };
-                            }
-
-                            return null;
-                        }),
-                ],
-                priorityPromiseSuccessDeterminator,
-                priotityPromiseErrorHandler,
-                this._priotityPromiseFallBackHandler.bind(this),
-            );
-
-            return price;
-        } catch (e) {
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.RfqAmmPriceFailed,
-            ).inc();
-            logger.error(e, 'Both rfq and amm encounter error while making price requests');
-            throw e;
+        if (rfqPrice) {
+            return { ...rfqPrice, source: 'rfq' };
         }
+        if (ammPrice) {
+            return { ...ammPrice, source: 'amm' };
+        }
+        return null;
     }
 
     /**
@@ -203,57 +177,41 @@ export class GaslessSwapService {
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams & { slippagePercentage?: number },
     ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
-        try {
-            const quote = await priorityPromiseAsync(
-                [
-                    this._rfqmService.fetchFirmQuoteAsync(params, 'gaslessSwap'),
-                    // Anonymous async function is used to prevent having a long `then` chaining
-                    (async () => {
-                        const ammQuote = await getQuoteAsync(
-                            this._axiosInstance,
-                            new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                            params,
-                            {
-                                requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
-                                chainId: this._chainId,
-                            },
-                        );
+        const [rfqQuote, ammQuote] = await Promise.all([
+            this._rfqmService.fetchFirmQuoteAsync(params),
+            getQuoteAsync(
+                this._axiosInstance,
+                new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
+                params,
+                {
+                    requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
+                    chainId: this._chainId,
+                },
+            ),
+        ]);
 
-                        if (ammQuote) {
-                            const approval = params.checkApproval
-                                ? await this._rfqmService.getGaslessApprovalResponseAsync(
-                                      params.takerAddress,
-                                      params.sellToken,
-                                      ammQuote.price.sellAmount,
-                                  )
-                                : null;
-                            await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
-                            return {
-                                ...ammQuote.price,
-                                approval: approval ?? undefined,
-                                metaTransaction: ammQuote.metaTransaction,
-                                metaTransactionHash: ammQuote.metaTransaction.getHash(),
-                                type: RfqmTypes.MetaTransaction,
-                            };
-                        }
-
-                        return null;
-                    })(),
-                ],
-                priorityPromiseSuccessDeterminator,
-                priotityPromiseErrorHandler,
-                this._priotityPromiseFallBackHandler.bind(this),
-            );
-
-            return quote;
-        } catch (e) {
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.RfqAmmQuoteFailed,
-            ).inc();
-            logger.error(e, 'Both rfq and amm encounter error while making quote requests');
-            throw e;
+        if (rfqQuote) {
+            return rfqQuote;
         }
+
+        if (ammQuote) {
+            const approval = params.checkApproval
+                ? await this._rfqmService.getGaslessApprovalResponseAsync(
+                      params.takerAddress,
+                      params.sellToken,
+                      ammQuote.price.sellAmount,
+                  )
+                : null;
+            await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
+            return {
+                ...ammQuote.price,
+                approval: approval ?? undefined,
+                metaTransaction: ammQuote.metaTransaction,
+                metaTransactionHash: ammQuote.metaTransaction.getHash(),
+                type: RfqmTypes.MetaTransaction,
+            };
+        }
+        return null;
     }
 
     /**
@@ -490,47 +448,4 @@ export class GaslessSwapService {
             EX: META_TRANSACTION_HASH_TTL_S,
         });
     }
-
-    /**
-     * Fall back handler for `priorityPromiseAsync` when fetching rfq and amm prices / quotes. Throws only when both
-     * requests encouter exceptions. Return null otherwise.
-     *
-     * @param response Responses of rfq and amm prices / quotes.
-     */
-    private _priotityPromiseFallBackHandler(response: any[]): null {
-        // This should never happen
-        if (response.length !== 2) {
-            throw new Error('Length of array passed in fall back handlder for `GaslessSwapService` is not 2');
-        }
-
-        const [rfqResponse, ammResponse] = response;
-        // This should never happen
-        if (!(rfqResponse === null || rfqResponse instanceof Error)) {
-            throw new Error(`rfq response is not null and error: ${rfqResponse}`);
-        }
-        if (!(ammResponse === null || ammResponse instanceof Error)) {
-            throw new Error(`amm response is not null and error: ${ammResponse}`);
-        }
-
-        if (rfqResponse instanceof Error) {
-            if (ammResponse instanceof Error) {
-                throw new Error('Both rfq and amm requests encountered errors');
-            }
-
-            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
-                this._chainId.toString(),
-                GaslessSwapServiceErrorReason.RfqFailedAmmSucceeded,
-            ).inc();
-        }
-
-        return null;
-    }
-}
-
-function priorityPromiseSuccessDeterminator(response: any): boolean {
-    return response !== null;
-}
-
-function priotityPromiseErrorHandler(e: Error): void {
-    logger.error(e, 'Encoutered error when resolving a promise in `prorityPromiseAsync`');
 }
