@@ -49,8 +49,8 @@ export interface BasePriceResponse extends QuoteBase {
 }
 
 interface GetMetaTransactionQuoteResponse extends BasePriceResponse {
-    mtxHash: string;
-    mtx: ExchangeProxyMetaTransaction;
+    metaTransactionHash: string;
+    metaTransaction: ExchangeProxyMetaTransaction;
 }
 
 /**
@@ -148,9 +148,9 @@ export async function getQuoteAsync(
     // and put it at the top level of the constructor parameters
     return {
         metaTransaction: new MetaTransaction({
-            ...response.data.mtx,
-            chainId: response.data.mtx.domain.chainId,
-            verifyingContract: response.data.mtx.domain.verifyingContract,
+            ...response.data.metaTransaction,
+            chainId: response.data.metaTransaction.domain.chainId,
+            verifyingContract: response.data.metaTransaction.domain.verifyingContract,
         }),
         price: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
     };
