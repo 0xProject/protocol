@@ -53,6 +53,10 @@ enum GaslessSwapServiceErrorReason {
     MetaTransactionHashNotExist = 'meta_transaction_hash_does_not_exist', // meta-transaction hash does not exist
     MetaTransactionInvalidSigner = 'meta_transaction_invalid_signer', // invalid signer for the mta-transaction
     MetaTransactionFailedToQueue = 'meta_transaction_failed_to_queue', // failed to queue meta-transaction
+    RfqPriceError = 'rfq_price_error', // encountered error when fetching rfq price
+    AmmPriceError = 'amm_price_error', // encountered error when fetching amm price
+    RfqQuoteError = 'rfq_quote_error', // encountered error when fetching rfq quote
+    AmmQuoteError = 'amm_quote_error', // encountered error when fetching amm quote
 }
 
 /**
@@ -124,8 +128,8 @@ export class GaslessSwapService {
     /**
      * Fetches a "price" (aka "Indicative Quote").
      *
-     * For speed, both the market maker servers and the metatransaction
-     * service are queried in parallel.
+     * The request is first sent to market maker servers and then to the metatransaction
+     * service if the market makers don't provide liquidity or errors out.
      *
      * If RFQ liquidity exists, then it is used to compute the price.
      * If AMM liquidity exists but RFQ liquidity is unavailable then
@@ -133,14 +137,32 @@ export class GaslessSwapService {
      *
      * Returns `null` if neither AMM or RFQ liquidity exists.
      *
-     * TOOD (rhinodavid): See if we actually need slippage percentage here
+     * TODO (rhinodavid): See if we actually need slippage percentage here
+     * TODO (vichuang): Add set of pairs market makers support and check if an incoming pair is supported
+     *                  by market makers
      */
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
-        const [rfqPrice, ammPrice] = await Promise.all([
-            this._rfqmService.fetchIndicativeQuoteAsync(params),
-            getQuoteAsync(
+        try {
+            const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params);
+
+            if (rfqPrice) {
+                return { ...rfqPrice, source: 'rfq' };
+            }
+        } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.RfqPriceError,
+            ).inc();
+            logger.error(
+                { params, errorMessage: e.message, stack: e.stack },
+                'Encountered error when fetching RFQ price in `GaslessSwapService`',
+            );
+        }
+
+        try {
+            const ammPrice = await getQuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
@@ -153,15 +175,25 @@ export class GaslessSwapService {
                     requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
                     chainId: this._chainId,
                 },
-            ).then((r) => r?.price),
-        ]);
+            ).then((r) => r?.price);
 
-        if (rfqPrice) {
-            return { ...rfqPrice, source: 'rfq' };
+            if (ammPrice) {
+                return { ...ammPrice, source: 'amm' };
+            }
+        } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.AmmPriceError,
+            ).inc();
+            logger.error(
+                { params, errorMessage: e.message, stack: e.stack },
+                'Encountered error when fetching AMM price in `GaslessSwapService`',
+            );
+
+            // Throw here as it means RFQ throws / does not liquidity and AMM throws
+            throw new Error(`Error fetching price for ${params}`);
         }
-        if (ammPrice) {
-            return { ...ammPrice, source: 'amm' };
-        }
+
         return null;
     }
 
@@ -177,9 +209,25 @@ export class GaslessSwapService {
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams & { slippagePercentage?: number },
     ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
-        const [rfqQuote, ammQuote] = await Promise.all([
-            this._rfqmService.fetchFirmQuoteAsync(params),
-            getQuoteAsync(
+        try {
+            const rfqQuote = await this._rfqmService.fetchFirmQuoteAsync(params);
+
+            if (rfqQuote) {
+                return rfqQuote;
+            }
+        } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.RfqQuoteError,
+            ).inc();
+            logger.error(
+                { params, errorMessage: e.message, stack: e.stack },
+                'Encountered error when fetching RFQ quote in `GaslessSwapService`',
+            );
+        }
+
+        try {
+            const ammQuote = await getQuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 params,
@@ -187,30 +235,39 @@ export class GaslessSwapService {
                     requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
                     chainId: this._chainId,
                 },
-            ),
-        ]);
+            );
 
-        if (rfqQuote) {
-            return rfqQuote;
+            if (ammQuote) {
+                const approval = params.checkApproval
+                    ? await this._rfqmService.getGaslessApprovalResponseAsync(
+                          params.takerAddress,
+                          params.sellToken,
+                          ammQuote.price.sellAmount,
+                      )
+                    : null;
+                await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
+                return {
+                    ...ammQuote.price,
+                    approval: approval ?? undefined,
+                    metaTransaction: ammQuote.metaTransaction,
+                    metaTransactionHash: ammQuote.metaTransaction.getHash(),
+                    type: RfqmTypes.MetaTransaction,
+                };
+            }
+        } catch (e) {
+            ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
+                this._chainId.toString(),
+                GaslessSwapServiceErrorReason.AmmQuoteError,
+            ).inc();
+            logger.error(
+                { params, errorMessage: e.message, stack: e.stack },
+                'Encountered error when fetching AMM quote in `GaslessSwapService`',
+            );
+
+            // Throw here as it means RFQ throws / does not liquidity and AMM throws
+            throw new Error(`Error fetching quote for ${params}`);
         }
 
-        if (ammQuote) {
-            const approval = params.checkApproval
-                ? await this._rfqmService.getGaslessApprovalResponseAsync(
-                      params.takerAddress,
-                      params.sellToken,
-                      ammQuote.price.sellAmount,
-                  )
-                : null;
-            await this._storeMetaTransactionHashAsync(ammQuote.metaTransaction.getHash());
-            return {
-                ...ammQuote.price,
-                approval: approval ?? undefined,
-                metaTransaction: ammQuote.metaTransaction,
-                metaTransactionHash: ammQuote.metaTransaction.getHash(),
-                type: RfqmTypes.MetaTransaction,
-            };
-        }
         return null;
     }
 

@@ -188,8 +188,7 @@ describe('GaslessSwapService', () => {
     });
 
     describe('fetchPriceAsync', () => {
-        it('gets an RFQ price if both RFQ and AMM available', async () => {
-            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
+        it('gets an RFQ price if available', async () => {
             mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(price);
 
             const result = await gaslessSwapService.fetchPriceAsync({
@@ -213,11 +212,41 @@ describe('GaslessSwapService', () => {
                   "source": "rfq",
                 }
             `);
+            expect(getMetaTransactionQuoteAsyncMock).not.toBeCalled();
         });
 
         it('gets an AMM price if no RFQ liquidity is available', async () => {
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
             mockRfqmService.fetchIndicativeQuoteAsync.mockResolvedValueOnce(null);
+
+            const result = await gaslessSwapService.fetchPriceAsync({
+                buyAmount: new BigNumber(1800054805473),
+                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                buyTokenDecimals: 6,
+                integrator: {} as Integrator,
+                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                sellTokenDecimals: 18,
+            });
+
+            expect(result?.source).toEqual('amm');
+            expect(result).toMatchInlineSnapshot(`
+                Object {
+                  "buyAmount": "1800054805473",
+                  "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                  "gas": "1043459",
+                  "price": "1800.054805",
+                  "sellAmount": "1000000000000000000000",
+                  "sellTokenAddress": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+                  "source": "amm",
+                }
+            `);
+        });
+
+        it('gets an AMM price if RFQ request throws', async () => {
+            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
+            mockRfqmService.fetchIndicativeQuoteAsync.mockImplementationOnce(() => {
+                throw new Error('rfqm quote threw up');
+            });
 
             const result = await gaslessSwapService.fetchPriceAsync({
                 buyAmount: new BigNumber(1800054805473),
@@ -258,10 +287,12 @@ describe('GaslessSwapService', () => {
             expect(result).toBeNull();
         });
 
-        it('throws if a quote service fetch throws', async () => {
-            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
+        it('throws if AMM request throws and RFQ has no liquidity / request throws', async () => {
             mockRfqmService.fetchIndicativeQuoteAsync.mockImplementationOnce(() => {
-                throw new Error('rfqm quote threw up');
+                throw new Error('rfqm price threw up');
+            });
+            getMetaTransactionQuoteAsyncMock.mockImplementationOnce(() => {
+                throw new Error('amm price threw up');
             });
 
             await expect(() =>
@@ -273,12 +304,11 @@ describe('GaslessSwapService', () => {
                     sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                     sellTokenDecimals: 18,
                 }),
-            ).rejects.toThrow('threw up');
+            ).rejects.toThrow('Error fetching price');
         });
     });
     describe('fetchQuoteAsync', () => {
-        it('fetches an RFQ quote', async () => {
-            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
+        it('gets an RFQ quote if available', async () => {
             mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(otcQuote);
 
             const result = await gaslessSwapService.fetchQuoteAsync({
@@ -321,9 +351,10 @@ describe('GaslessSwapService', () => {
                   "type": "otc",
                 }
             `);
+            expect(getMetaTransactionQuoteAsyncMock).not.toBeCalled();
         });
 
-        it('fetches an AMM quote', async () => {
+        it('gets an AMM quote if no RFQ liquidity is available', async () => {
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
             mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
 
@@ -372,6 +403,46 @@ describe('GaslessSwapService', () => {
                   "type": "metatransaction",
                 }
             `);
+        });
+
+        it('returns `null` if no liquidity is available', async () => {
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
+            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
+
+            const result = await gaslessSwapService.fetchQuoteAsync({
+                buyAmount: new BigNumber(1800054805473),
+                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                buyTokenDecimals: 6,
+                integrator: {} as Integrator,
+                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                sellTokenDecimals: 18,
+                takerAddress: '0xtaker',
+                checkApproval: false,
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it('throws if AMM request throws and RFQ has no liquidity / request throws', async () => {
+            mockRfqmService.fetchFirmQuoteAsync.mockImplementationOnce(() => {
+                throw new Error('rfqm price threw up');
+            });
+            getMetaTransactionQuoteAsyncMock.mockImplementationOnce(() => {
+                throw new Error('amm price threw up');
+            });
+
+            await expect(() =>
+                gaslessSwapService.fetchQuoteAsync({
+                    buyAmount: new BigNumber(1800054805473),
+                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyTokenDecimals: 6,
+                    integrator: {} as Integrator,
+                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    sellTokenDecimals: 18,
+                    takerAddress: '0xtaker',
+                    checkApproval: false,
+                }),
+            ).rejects.toThrow('Error fetching quote');
         });
 
         it('stores a metatransaction hash', async () => {
