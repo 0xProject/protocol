@@ -2,24 +2,32 @@ import { generatePseudoRandomSalt, getExchangeProxyMetaTransactionHash } from '@
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { Kafka, Producer } from 'kafkajs';
 import * as _ from 'lodash';
 
 import { ContractAddresses, QuoteReport, ZERO_AMOUNT } from '../asset-swapper';
-import { CHAIN_ID, META_TX_EXPIRATION_BUFFER_MS } from '../config';
-import { NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
+import { CHAIN_ID, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
+import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import {
     CalculateMetaTransactionQuoteParams,
     CalculateMetaTransactionQuoteResponse,
     GetMetaTransactionQuoteResponse,
-    GetSwapQuoteParams,
     GetSwapQuoteResponse,
 } from '../types';
 import { quoteReportUtils } from '../utils/quote_report_utils';
+import { SwapService } from './swap_service';
 
 const WETHToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
 
-interface SwapService {
-    calculateSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse>;
+let kafkaProducer: Producer | undefined;
+if (KAFKA_BROKERS !== undefined) {
+    const kafka = new Kafka({
+        clientId: '0x-api',
+        brokers: KAFKA_BROKERS,
+    });
+
+    kafkaProducer = kafka.producer();
+    kafkaProducer.connect();
 }
 
 export class MetaTransactionService {
@@ -64,8 +72,6 @@ export class MetaTransactionService {
             quoteReport: quote.quoteReport,
         };
 
-        const shouldLogQuoteReport = quote.quoteReport && params.apiKey !== undefined;
-
         // Go through the Exchange Proxy.
         const epmtx = this._generateExchangeProxyMetaTransaction(
             quote.callData,
@@ -75,24 +81,6 @@ export class MetaTransactionService {
         );
 
         const mtxHash = getExchangeProxyMetaTransactionHash(epmtx);
-
-        // log quote report and associate with txn hash if this is an RFQT firm quote
-        if (quote.quoteReport && shouldLogQuoteReport) {
-            quoteReportUtils.logQuoteReport({
-                submissionBy: 'metaTxn',
-                quoteReport: quote.quoteReport,
-                zeroExTransactionHash: mtxHash,
-                buyTokenAddress: params.buyTokenAddress,
-                sellTokenAddress: params.sellTokenAddress,
-                buyAmount: params.buyAmount,
-                sellAmount: params.sellAmount,
-                integratorId: params.apiKey,
-                slippage: undefined,
-                // TODO: if we ever want to turn metatxs back on we should return blocknumber here
-                blockNumber: undefined,
-                estimatedGas: quote.estimatedGas,
-            });
-        }
         return {
             ...commonQuoteFields,
             mtx: epmtx,
@@ -149,6 +137,31 @@ export class MetaTransactionService {
         };
 
         const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
+
+        // Quote Report
+        if (endpoint === 'quote' && quote.extendedQuoteReportSources && kafkaProducer) {
+            const quoteId = getQuoteIdFromSwapQuote(quote);
+            quoteReportUtils.publishQuoteReport(
+                {
+                    quoteId,
+                    taker: params.takerAddress,
+                    quoteReportSources: quote.extendedQuoteReportSources,
+                    submissionBy: 'taker',
+                    decodedUniqueId: params.quoteUniqueId ? params.quoteUniqueId : quote.decodedUniqueId,
+                    buyTokenAddress: quote.buyTokenAddress,
+                    sellTokenAddress: quote.sellTokenAddress,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integratorId,
+                    blockNumber: quote.blockNumber,
+                    slippage: params.slippagePercentage,
+                    estimatedGas: quote.estimatedGas,
+                },
+                true,
+                kafkaProducer,
+            );
+        }
+
         return {
             chainId: quote.chainId,
             price: quote.price,
@@ -180,4 +193,15 @@ function createExpirationTime(): BigNumber {
     return new BigNumber(Date.now() + META_TX_EXPIRATION_BUFFER_MS)
         .div(ONE_SECOND_MS)
         .integerValue(BigNumber.ROUND_CEIL);
+}
+
+/*
+ * Extract the quote ID from the quote filldata
+ */
+function getQuoteIdFromSwapQuote(quote: GetSwapQuoteResponse): string {
+    const bytesPos = quote.data.indexOf(AFFILIATE_DATA_SELECTOR);
+    const quoteIdOffset = 118; // Offset of quoteId from Affiliate data selector
+    const startingIndex = bytesPos + quoteIdOffset;
+    const quoteId = quote.data.slice(startingIndex, startingIndex + 10);
+    return quoteId;
 }

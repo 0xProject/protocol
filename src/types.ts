@@ -301,9 +301,11 @@ export type GetMetaTransactionPriceResponse = BasePriceResponse;
 
 // Request params
 export interface GetTransactionRequestParams extends SwapQuoteParamsBase {
-    takerAddress: string;
-    sellTokenAddress: string;
     buyTokenAddress: string;
+    integratorId: string;
+    quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
+    sellTokenAddress: string;
+    takerAddress: string;
 }
 
 // Interim types
@@ -326,6 +328,8 @@ export interface CalculateMetaTransactionQuoteParams extends SwapQuoteParamsBase
     apiKey?: string;
     isETHBuy: boolean;
     isETHSell: boolean;
+    integratorId: string;
+    quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
 }
 
 /** End /swap types */

@@ -18,9 +18,15 @@
         },
         "slippagePercentage": {
             "$ref": "/numberSchema"
+        },
+        "integratorId": {
+            "type": "string"
+        },
+        "quoteUniqueId": {
+            "type": "string"
         }
     },
-    "required": ["sellToken", "buyToken", "takerAddress"],
+    "required": ["sellToken", "buyToken", "takerAddress", "integratorId"],
     "oneOf": [
         {
             "required": ["sellAmount"]

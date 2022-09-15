@@ -240,6 +240,9 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
 
     const includePriceComparisons = false;
 
+    const integratorId = req.query.integratorId as string;
+    const quoteUniqueId = req.query.quoteUniqueId as string | undefined;
+
     return {
         takerAddress,
         sellTokenAddress,
@@ -252,5 +255,7 @@ const parseGetTransactionRequestParams = (req: express.Request): GetTransactionR
         includePriceComparisons,
         affiliateFee,
         affiliateAddress,
+        integratorId,
+        quoteUniqueId,
     };
 };
