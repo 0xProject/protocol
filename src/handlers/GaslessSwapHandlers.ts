@@ -10,6 +10,7 @@ import { getTokenMetadataIfExists, isNativeSymbolOrAddress, nativeWrappedTokenSy
 import { addressUtils, BigNumber } from '@0x/utils';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
+import { Counter } from 'prom-client';
 
 import { Integrator } from '../config';
 import { schemas } from '../schemas';
@@ -39,6 +40,17 @@ import { schemaUtils } from '../utils/schema_utils';
 // If the cache is more milliseconds old than the value specified here, it will be refreshed.
 const HEALTH_CHECK_RESULT_CACHE_DURATION_MS = 30000;
 
+const ZEROG_GASLESS_SWAP_REQUEST = new Counter({
+    name: 'zerog_gasless_swap_request_total',
+    help: 'Number of requests of a gasless swap endpoint',
+    labelNames: ['chainId', 'integratorLabel', 'endpoint'],
+});
+const ZEROG_GASLESS_SWAP_REQUEST_ERROR = new Counter({
+    name: 'zerog_gasless_swap_request_error',
+    help: 'Number of request errors of a gasless swap endpoint',
+    labelNames: ['chainId', 'integratorLabel', 'endpoint'],
+});
+
 type HealthCheckResultCache = [HealthCheckResult, Date];
 
 /**
@@ -57,11 +69,22 @@ export class GaslessSwapHandlers {
      */
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const { chainId, params } = await this._parsePriceParamsAsync(req);
+        // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
+        ZEROG_GASLESS_SWAP_REQUEST.inc({
+            chainId,
+            integratorLabel: params.integrator.label,
+            endpoint: '/price',
+        });
 
         let price;
         try {
             price = await this._getServiceForChain(chainId).fetchPriceAsync(params);
         } catch (err) {
+            ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
+                chainId,
+                integratorLabel: params.integrator.label,
+                endpoint: '/price',
+            });
             throw new InternalServerError('Unexpected error encountered');
         }
 
@@ -78,11 +101,22 @@ export class GaslessSwapHandlers {
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         // Parse request
         const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
+        // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
+        ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
+            chainId,
+            integratorLabel: params.integrator.label,
+            endpoint: '/quote',
+        });
 
         let quote;
         try {
             quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params);
         } catch (err) {
+            ZEROG_GASLESS_SWAP_REQUEST.inc({
+                chainId,
+                integratorLabel: params.integrator.label,
+                endpoint: '/quote',
+            });
             throw new InternalServerError('Unexpected error encountered');
         }
         // Result
@@ -133,6 +167,12 @@ export class GaslessSwapHandlers {
      */
     public async processSubmitAsync(req: express.Request, res: express.Response): Promise<void> {
         const { chainId, integrator, params } = this._parseSubmitParams(req);
+        // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
+        ZEROG_GASLESS_SWAP_REQUEST.inc({
+            chainId,
+            integratorLabel: integrator.label,
+            endpoint: '/submit',
+        });
 
         try {
             const response = await this._getServiceForChain(chainId).processSubmitAsync(
@@ -141,6 +181,11 @@ export class GaslessSwapHandlers {
             );
             res.status(HttpStatus.CREATED).send(response);
         } catch (err) {
+            ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
+                chainId,
+                integratorLabel: integrator.label,
+                endpoint: '/submit',
+            });
             req.log.error(err, 'Encountered an error while queuing a signed quote');
             if (isAPIError(err)) {
                 throw err;
