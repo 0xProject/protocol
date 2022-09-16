@@ -346,8 +346,8 @@ describe('Quote Comparison Utils', () => {
                 };
 
                 // TODO (MKR-671): uncomment once filter is enabled
-                // const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
-                // const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
+                const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
+                const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
 
                 const tests = [
                     {
@@ -406,30 +406,30 @@ describe('Quote Comparison Utils', () => {
                         },
                     },
                     // TODO (MKR-671): uncomment once filter is enabled
-                    // {
-                    //     name: 'should not ignore quotes if makers have enough balances',
-                    //     args: {
-                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
-                    //         quotedMakerBalances: validMakerBalances,
-                    //     },
-                    //     expectations: {
-                    //         isNull: false,
-                    //         makerAmount: 105,
-                    //         takerAmount: 100,
-                    //     },
-                    // },
-                    // {
-                    //     name: 'should ignore quotes if makers do not have enough balances',
-                    //     args: {
-                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
-                    //         quotedMakerBalances: invalidMakerBalances,
-                    //     },
-                    //     expectations: {
-                    //         isNull: false,
-                    //         makerAmount: 99,
-                    //         takerAmount: 100,
-                    //     },
-                    // },
+                    {
+                        name: 'should not ignore quotes if makers have enough balances',
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                            quotedMakerBalances: validMakerBalances,
+                        },
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 105,
+                            takerAmount: 100,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes if makers do not have enough balances',
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                            quotedMakerBalances: invalidMakerBalances,
+                        },
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 99,
+                            takerAmount: 100,
+                        },
+                    },
                 ];
 
                 tests.forEach(({ name, args, expectations }) => {
@@ -441,7 +441,7 @@ describe('Quote Comparison Utils', () => {
                             makerToken,
                             assetFillAmount,
                             validityWindowMs,
-                            // args?.quotedMakerBalances,
+                            args?.quotedMakerBalances,
                         );
 
                         if (bestQuote === null) {
@@ -515,8 +515,8 @@ describe('Quote Comparison Utils', () => {
                 };
 
                 // TODO (MKR-671): uncomment once filter is enabled
-                // const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
-                // const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
+                const validMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(150)];
+                const invalidMakerBalances: BigNumber[] = [new BigNumber(150), new BigNumber(50)];
 
                 const tests = [
                     {
@@ -575,30 +575,30 @@ describe('Quote Comparison Utils', () => {
                         },
                     },
                     // TODO (MKR-671): uncomment once filter is enabled
-                    // {
-                    //     name: 'should not ignore quotes if makers have enough balances',
-                    //     args: {
-                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
-                    //         quotedMakerBalances: validMakerBalances,
-                    //     },
-                    //     expectations: {
-                    //         isNull: false,
-                    //         makerAmount: 100,
-                    //         takerAmount: 120,
-                    //     },
-                    // },
-                    // {
-                    //     name: 'should ignore quotes if makers do not have enough balances',
-                    //     args: {
-                    //         quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
-                    //         quotedMakerBalances: invalidMakerBalances,
-                    //     },
-                    //     expectations: {
-                    //         isNull: false,
-                    //         makerAmount: 100,
-                    //         takerAmount: 125,
-                    //     },
-                    // },
+                    {
+                        name: 'should not ignore quotes if makers have enough balances',
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                            quotedMakerBalances: validMakerBalances,
+                        },
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 120,
+                        },
+                    },
+                    {
+                        name: 'should ignore quotes if makers do not have enough balances',
+                        args: {
+                            quotes: [fullQuoteBadPricing, fullQuoteOkPricing],
+                            quotedMakerBalances: invalidMakerBalances,
+                        },
+                        expectations: {
+                            isNull: false,
+                            makerAmount: 100,
+                            takerAmount: 125,
+                        },
+                    },
                 ];
 
                 tests.forEach(({ name, args, expectations }) => {
@@ -610,7 +610,7 @@ describe('Quote Comparison Utils', () => {
                             makerToken,
                             assetFillAmount,
                             validityWindowMs,
-                            // args?.quotedMakerBalances,
+                            args?.quotedMakerBalances,
                         );
 
                         if (bestQuote === null) {

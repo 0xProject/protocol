@@ -42,7 +42,6 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
             throw new Error('Quotes do not match with provided maker balances');
         }
         isMakerFillablePredicate = (q: T, idx: number) => {
-            // TODO (MKR-671): actually filter out invalid quotes
             if (isFirmQuote(q) && q.order.makerAmount.gt(quotedMakerBalances[idx])) {
                 RFQM_MAKER_BLOCKED_FOR_LOW_MAKER_BALANCE.labels(
                     q.makerUri,
@@ -57,7 +56,7 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
                     },
                     'Quote has insufficient maker balance',
                 );
-                // return false;
+                return false;
             }
             return true;
         };

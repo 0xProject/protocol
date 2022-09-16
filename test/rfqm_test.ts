@@ -284,8 +284,8 @@ describe('RFQM Integration', () => {
         // Create the maker balance cache service
         const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
         when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve(
-            [new BigNumber(1)],
-            [new BigNumber(1), new BigNumber(1)],
+            [new BigNumber(200000000000000000)],
+            [new BigNumber(200000000000000000), new BigNumber(200000000000000000)],
         );
         const rfqMakerBalanceCacheService = instance(rfqMakerBalanceCacheServiceMock);
 
