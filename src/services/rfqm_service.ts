@@ -581,15 +581,24 @@ export class RfqmService {
         const intermediateQuotes = quotesWithGasFee && otherFeesAmount.gt(ZERO) ? quotesWithGasFee : [];
 
         // (Maker Balance Cache) Fetch maker balances to validate whether quotes are fully fillable
-        const quotedMakerBalances = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
-            this._chainId,
-            finalQuotes.map((quote) => {
-                return {
-                    owner: quote.order.maker,
-                    token: makerToken,
-                };
-            }),
-        );
+        let quotedMakerBalances: BigNumber[] | undefined;
+        const quotedERC20Owners = finalQuotes.map((quote) => {
+            return {
+                owner: quote.order.maker,
+                token: makerToken,
+            };
+        });
+        try {
+            quotedMakerBalances = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
+                this._chainId,
+                quotedERC20Owners,
+            );
+        } catch (e) {
+            logger.error(
+                { chainId: this._chainId, quotedERC20Owners, errorMessage: e.message },
+                'Failed to fetch maker balances to validate firm quotes',
+            );
+        }
 
         // Get the best quote
         const bestQuote = getBestQuote(
@@ -2567,28 +2576,35 @@ export class RfqmService {
         // If LLR Cooldown is enabled, filter out makers in cooldown before querying the quote server
         let makerIdsInCooldown: string[] | undefined;
         if (ENABLE_LLR_COOLDOWN) {
-            makerIdsInCooldown = await this._cacheClient.getMakersInCooldownForPairAsync(
-                this._chainId,
-                makerToken,
-                takerToken,
-            );
-            // log blocked maker ids
-            makerIdsInCooldown.map((makerId) => {
-                RFQM_MAKER_BLOCKED_FOR_LLR_COOLDOWN.labels(
-                    makerId,
-                    this._chainId.toString(),
-                    toPairString(makerToken, takerToken),
-                ).inc();
-                logger.warn(
-                    {
-                        makerId,
-                        makerToken,
-                        takerToken,
-                        timestamp: Date.now(),
-                    },
-                    'Maker is on cooldown due to a bad last look reject',
+            try {
+                makerIdsInCooldown = await this._cacheClient.getMakersInCooldownForPairAsync(
+                    this._chainId,
+                    makerToken,
+                    takerToken,
                 );
-            });
+                // log blocked maker ids
+                makerIdsInCooldown.map((makerId) => {
+                    RFQM_MAKER_BLOCKED_FOR_LLR_COOLDOWN.labels(
+                        makerId,
+                        this._chainId.toString(),
+                        toPairString(makerToken, takerToken),
+                    ).inc();
+                    logger.warn(
+                        {
+                            makerId,
+                            makerToken,
+                            takerToken,
+                            timestamp: Date.now(),
+                        },
+                        'Maker is on cooldown due to a bad last look reject',
+                    );
+                });
+            } catch (e) {
+                logger.error(
+                    { chainId: this._chainId, makerToken, takerToken, errorMessage: e.message },
+                    'Encountered an error while filtering makers on LLR cooldown',
+                );
+            }
         }
 
         const otcOrderMakerUris = this._rfqMakerManager.getRfqmV2MakerUrisForPair(

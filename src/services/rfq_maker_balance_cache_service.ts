@@ -1,6 +1,7 @@
 import { BigNumber } from '@0x/utils';
 import { Counter, Gauge, Summary } from 'prom-client';
 
+import { logger } from '../logger';
 import { ERC20Owner } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -53,9 +54,10 @@ export class RfqMakerBalanceCacheService {
         try {
             RFQ_BALANCE_CACHE_CHECKED.inc(erc20OwnersArr.length);
             cachedBalances = await this._cacheClient.getERC20OwnerBalancesAsync(chainId, erc20OwnersArr);
-        } catch (error) {
+        } catch (e) {
             timerStopFunction();
-            throw new Error('Failed to read entries from maker balance cache');
+            logger.error({ chainId, erc20Owners }, 'Failed to read entries from maker balance cache');
+            throw e;
         }
 
         // On cache miss (i.e. if balance is null), add to pending maker token addresses
@@ -109,8 +111,9 @@ export class RfqMakerBalanceCacheService {
 
                 await this._cacheClient.setERC20OwnerBalancesAsync(chainId, erc20Owners, balances);
             }
-        } catch (error) {
-            throw new Error('Failed to update entries for maker balance cache');
+        } catch (e) {
+            logger.error({ chainId }, 'Failed to update entries for maker balance cache');
+            throw e;
         } finally {
             timerStopFunction();
         }
@@ -123,8 +126,9 @@ export class RfqMakerBalanceCacheService {
         const timerStopFunction = RFQ_BALANCE_CACHE_EVICT_LATENCY.startTimer();
         try {
             return this._cacheClient.evictZeroBalancesAsync(chainId);
-        } catch (error) {
-            throw new Error('Failed to evict entries from maker balance cache');
+        } catch (e) {
+            logger.error({ chainId }, 'Failed to evict entries from maker balance cache');
+            throw e;
         } finally {
             timerStopFunction();
         }

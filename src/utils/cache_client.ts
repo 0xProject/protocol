@@ -88,6 +88,11 @@ export class CacheClient {
      */
     public async getERC20OwnerBalancesAsync(chainId: number, erc20Owners: ERC20Owner[]): Promise<(BigNumber | null)[]> {
         const cacheKeys = this._validateAndGetBalanceCacheKeys(chainId, erc20Owners);
+        // Redis mGet only accepts non-empty arrays
+        // if erc20Owners is empty, balances should be empty as well
+        if (cacheKeys.length === 0) {
+            return [];
+        }
         const balances = await this._redisClient.mGet(cacheKeys);
         return balances.map((balance) => (balance ? new BigNumber(balance) : null));
     }

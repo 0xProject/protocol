@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
+import { ERC20Owner } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 
@@ -131,6 +132,21 @@ describe('RfqMakerBalanceCacheService', () => {
                 expect(error.message).to.contain('maker balance cache');
                 verify(blockchainUtilsMock.getTokenBalancesAsync(anything())).never();
             }
+        });
+
+        it('should get empty array when addresses are empty', async () => {
+            const emptyAddresses: ERC20Owner[] = [];
+
+            const cacheClientMock = mock(CacheClient);
+            when(cacheClientMock.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).thenResolve([]);
+            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const makerBalanceCacheService = new RfqMakerBalanceCacheService(
+                instance(cacheClientMock),
+                instance(blockchainUtilsMock),
+            );
+
+            expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).to.deep.eq([]);
+            verify(blockchainUtilsMock.getTokenBalancesAsync(anything())).never();
         });
     });
 

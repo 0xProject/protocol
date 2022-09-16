@@ -47,7 +47,7 @@ describe('CacheClient', () => {
     });
 
     describe('addERC20OwnerAsync', () => {
-        it('adds pending address to observed addresses without error', () => {
+        it('adds pending address to observed addresses without error', async () => {
             expect(cacheClient.addERC20OwnerAsync(chainId, { owner: makerA, token: tokenA })).to.eventually.be.equal(
                 void 0,
             );
@@ -82,14 +82,18 @@ describe('CacheClient', () => {
         ];
         const balances = [new BigNumber(1), new BigNumber(2), new BigNumber(3)];
 
-        it('sets balances in the cache without error', () => {
+        it('sets balances in the cache without error', async () => {
             expect(cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances)).to.eventually.be.equal(void 0);
         });
 
-        it('should fail when addresses do not match balances', () => {
+        it('should fail when addresses do not match balances', async () => {
             expect(
                 cacheClient.setERC20OwnerBalancesAsync(chainId, addresses, balances.slice(0, -1)),
             ).to.be.rejectedWith('balances');
+        });
+
+        it('should not fail when addresses are empty', async () => {
+            expect(cacheClient.setERC20OwnerBalancesAsync(chainId, [], [])).to.eventually.be.equal(void 0);
         });
     });
 
@@ -132,6 +136,10 @@ describe('CacheClient', () => {
                 null,
                 null,
             ]);
+        });
+
+        it('returns an empty array if addresses are empty', async () => {
+            expect(await cacheClient.getERC20OwnerBalancesAsync(chainId, [])).to.deep.eq([]);
         });
     });
 
