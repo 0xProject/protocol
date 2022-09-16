@@ -167,6 +167,7 @@ export class GaslessSwapService {
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
                     ...params,
+                    integratorId: params.integrator.integratorId,
                     // Can use the null address here since we won't be returning
                     // the actual metatransaction
                     takerAddress: params.takerAddress ?? NULL_ADDRESS,
@@ -230,7 +231,7 @@ export class GaslessSwapService {
             const ammQuote = await getQuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                params,
+                { ...params, integratorId: params.integrator.integratorId },
                 {
                     requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
                     chainId: this._chainId,

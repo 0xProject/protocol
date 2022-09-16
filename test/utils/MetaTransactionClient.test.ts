@@ -77,6 +77,7 @@ describe('MetaTransactionClient', () => {
 
             const response = await getQuoteAsync(axiosClient, url, {
                 buyToken: 'USDC',
+                integratorId: 'integrator-id',
                 sellToken: 'WETH',
                 sellAmount: new BigNumber(1000000000000000000000),
                 takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -113,6 +114,7 @@ describe('MetaTransactionClient', () => {
 
             const response = await getQuoteAsync(axiosClient, url, {
                 buyToken: 'USDC',
+                integratorId: 'integrator-id',
                 sellToken: '0x0000000000000000000000000000000000000000',
                 sellAmount: new BigNumber(1000000000000000000000),
                 takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -129,6 +131,7 @@ describe('MetaTransactionClient', () => {
             await expect(() =>
                 getQuoteAsync(axiosClient, url, {
                     buyToken: 'USDC',
+                    integratorId: 'integrator-id',
                     sellToken: '0x0000000000000000000000000000000000000000',
                     sellAmount: new BigNumber(1000000000000000000000),
                     takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',

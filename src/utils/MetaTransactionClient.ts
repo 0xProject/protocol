@@ -70,6 +70,7 @@ export async function getQuoteAsync(
     params: {
         buyAmount?: BigNumber;
         buyToken: string;
+        integratorId: string;
         sellAmount?: BigNumber;
         sellToken: string;
         slippagePercentage?: number;
@@ -91,6 +92,7 @@ export async function getQuoteAsync(
                     buyToken: data.buyToken,
                     sellToken: data.sellToken,
                     takerAddress: data.takerAddress,
+                    integratorId: data.integratorId,
                 });
                 const { buyAmount: buyAmountData, sellAmount: sellAmountData, slippagePercentage } = data;
                 // tslint:disable: no-unused-expression
