@@ -1,5 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { ETH_TOKEN_ADDRESS, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String, parseBytes32String } from '@ethersproject/strings';
 
@@ -22,6 +22,8 @@ import {
     FinalUniswapV3FillData,
     GasSchedule,
     GetMarketOrdersOpts,
+    GMXFillData,
+    GMXFillDataWithChainId,
     isFinalUniswapV3FillData,
     LidoFillData,
     LidoInfo,
@@ -33,6 +35,7 @@ import {
     PsmInfo,
     SynthetixFillData,
     UniswapV2FillData,
+    UniswapV2FillDataWithChainId,
     UniswapV3FillData,
     WOOFiFillData,
 } from './types';
@@ -218,12 +221,13 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.SushiSwap,
+            //ERC20BridgeSource.BalancerV2,
             // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.SushiSwap,
-            ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
-            ERC20BridgeSource.Dodo,
+            //ERC20BridgeSource.Dodo,
         ]),
     },
     new SourceFilters([]),
@@ -376,12 +380,12 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
-            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.SushiSwap,
-            ERC20BridgeSource.BalancerV2,
+            //ERC20BridgeSource.BalancerV2,
+            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
-            ERC20BridgeSource.Dodo,
+            //ERC20BridgeSource.Dodo,
         ]),
     },
     new SourceFilters([]),
@@ -685,6 +689,7 @@ export const ARBITRUM_TOKENS = {
     nUSD: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
     MIM: '0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a',
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
+    VST: '0x64343594ab9b56e99087bfa6f2335db24c2d1f17',
 };
 
 export const CURVE_POOLS = {
@@ -789,6 +794,10 @@ export const CURVE_OPTIMISM_POOLS = {
 
 export const CURVE_V2_ARBITRUM_POOLS = {
     tri: '0x960ea3e3c7fb317332d990873d354e18d7645590',
+    twoPool: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
+    vstFrax: '0x59bf0545fca0e5ad48e13da269facd2e8c886ba4',
+    MIM: '0x30df229cefa463e991e29d42db0bae2e122b2ac7',
+    fraxBP: '0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5',
 };
 
 export const SADDLE_MAINNET_POOLS = {
@@ -1005,7 +1014,14 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             OPTIMISM_TOKENS.nETH,
             OPTIMISM_TOKENS.sWETH,
         ],
-        [ChainId.Arbitrum]: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.WETH, ARBITRUM_TOKENS.WBTC],
+        [ChainId.Arbitrum]: [
+            ARBITRUM_TOKENS.USDC,
+            ARBITRUM_TOKENS.USDT,
+            ARBITRUM_TOKENS.WETH,
+            ARBITRUM_TOKENS.WBTC,
+            ARBITRUM_TOKENS.FRAX,
+            ARBITRUM_TOKENS.MIM,
+        ],
     },
     [],
 );
@@ -1113,6 +1129,7 @@ const CURVE_TRI_BTC_POOL_TOKEN = [MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.WBTC, MA
 const CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS = [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT];
 const CURVE_POLYGON_ATRICRYPTO_TOKENS = [POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT];
 const CURVE_FANTOM_TWO_POOL_TOKENS = [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC];
+const CURVE_ARBITRUM_TWO_POOL_TOKENS = [FANTOM_TOKENS.USDC, FANTOM_TOKENS.USDT];
 
 const createCurveExchangePool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -1164,6 +1181,16 @@ const createCurveMetaTwoPoolFantom = (info: { tokens: string[]; pool: string; ga
     gasSchedule: info.gasSchedule,
 });
 
+const createCurveMetaTwoPoolArbitrum = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+    buyQuoteFunctionSelector: CurveFunctionSelectors.None,
+    tokens: [...info.tokens, ...CURVE_ARBITRUM_TWO_POOL_TOKENS],
+    metaTokens: info.tokens,
+    poolAddress: info.pool,
+    gasSchedule: info.gasSchedule,
+});
+
 const createCurveExchangeV2Pool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange_v2,
     sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_v2,
@@ -1193,6 +1220,7 @@ const createCurveFactoryCryptoExchangePool = (info: { tokens: string[]; pool: st
     poolAddress: info.pool,
     gasSchedule: info.gasSchedule,
 });
+
 const MOBIUSMONEY_CELO_SHARED: CurveInfo = {
     exchangeFunctionSelector: CurveFunctionSelectors.swap,
     sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
@@ -1610,8 +1638,29 @@ export const CURVE_V2_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_ARBITRUM_POOLS.tri]: createCurveExchangeV2Pool({
         tokens: [ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.WBTC, ARBITRUM_TOKENS.WETH],
         pool: CURVE_V2_ARBITRUM_POOLS.tri,
-        gasSchedule: 350e3,
+        gasSchedule: 600e3,
     }),
+    [CURVE_V2_ARBITRUM_POOLS.twoPool]: createCurveExchangePool({
+        tokens: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT],
+        pool: CURVE_V2_ARBITRUM_POOLS.twoPool,
+        gasSchedule: 400e3,
+    }),
+    //to do resolve curve pools function selector issues
+    // [CURVE_V2_ARBITRUM_POOLS.MIM]: createCurveMetaTwoPoolArbitrum({
+    //     tokens: [ARBITRUM_TOKENS.MIM],
+    //     pool: CURVE_V2_ARBITRUM_POOLS.MIM,
+    //     gasSchedule: 700e3,
+    // }),
+    // [CURVE_V2_ARBITRUM_POOLS.fraxBP]: createCurveExchangeV2Pool({
+    //     tokens: [ARBITRUM_TOKENS.FRAX, ARBITRUM_TOKENS.USDC],
+    //     pool: CURVE_V2_ARBITRUM_POOLS.fraxBP,
+    //     gasSchedule: 700e3,
+    // }),
+    // [CURVE_V2_ARBITRUM_POOLS.vstFrax]: createCurveExchangeV2Pool({
+    //     tokens: [ARBITRUM_TOKENS.VST, ARBITRUM_TOKENS.FRAX],
+    //     pool: CURVE_V2_ARBITRUM_POOLS.vstFrax,
+    //     gasSchedule: 700e3,
+    // }),
 };
 
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
@@ -2568,11 +2617,27 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
 );
 
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
+    const uniV2FillData = fillData as UniswapV2FillData | UniswapV2FillDataWithChainId;
     // TODO: Different base cost if to/from ETH.
     let gas = 90e3;
-    const path = (fillData as UniswapV2FillData).tokenAddressPath;
+    const path = (uniV2FillData as UniswapV2FillData).tokenAddressPath;
+    const chainId = (uniV2FillData as UniswapV2FillDataWithChainId).chainId;
+    if (chainId === ChainId.Arbitrum) {
+        gas += 650e3;
+    }
     if (path.length > 2) {
         gas += (path.length - 2) * 60e3; // +60k for each hop.
+    }
+    return gas;
+};
+
+const gmxGasSchedule = (fillData?: FillData) => {
+    const gmxFillData = fillData as GMXFillData | GMXFillDataWithChainId;
+
+    let gas = 450e3;
+    const chainId = (gmxFillData as GMXFillDataWithChainId).chainId;
+    if (chainId === ChainId.Arbitrum) {
+        gas += 400e3;
     }
     return gas;
 };
@@ -2662,7 +2727,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
         const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
         // NOTE: This base value was heuristically chosen by looking at how much it generally
         // underestimated gas usage
-        const base = uniFillData.chainId == ChainId.Arbitrum ? 208e3 : 34e3; // 34k base
+        const base = uniFillData.chainId == ChainId.Arbitrum ? 900e3 : 34e3; // 34k base
         let gas = base;
         if (isFinalUniswapV3FillData(uniFillData)) {
             gas += uniFillData.gasUsed;
@@ -2792,7 +2857,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     //
     [ERC20BridgeSource.Pangolin]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.TraderJoe]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.GMX]: () => 400e3,
+    [ERC20BridgeSource.GMX]: gmxGasSchedule,
     [ERC20BridgeSource.Platypus]: () => 450e3,
 
     //

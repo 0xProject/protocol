@@ -38,6 +38,7 @@ import {
     ShellFillData,
     SynthetixFillData,
     UniswapV2FillData,
+    UniswapV2FillDataWithChainId,
     UniswapV3FillData,
     UniswapV3PathAmount,
     VelodromeFillData,
@@ -604,6 +605,14 @@ function createFinalBridgeOrderFillDataFromCollapsedFill(fill: Fill): FillData {
                 uniswapPath,
                 gasUsed,
                 chainId: fd.chainId,
+            };
+            return finalFillData;
+        }
+        case ERC20BridgeSource.UniswapV2: {
+            const fd = fill.fillData as UniswapV2FillDataWithChainId;
+            const finalFillData: UniswapV2FillData = {
+                router: fd.router,
+                tokenAddressPath: fd.tokenAddressPath,
             };
             return finalFillData;
         }

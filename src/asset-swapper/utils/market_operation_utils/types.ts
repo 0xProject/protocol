@@ -224,7 +224,13 @@ export interface BalancerV2BatchSwapFillData extends FillData {
     assets: string[];
 }
 
-export interface UniswapV2FillData extends FillData {
+export interface UniswapV2FillDataWithChainId extends FillData {
+    tokenAddressPath: string[];
+    router: string;
+    chainId: ChainId;
+}
+
+export interface UniswapV2FillData extends Omit<UniswapV2FillDataWithChainId, 'chainId'> {
     tokenAddressPath: string[];
     router: string;
 }
@@ -332,8 +338,15 @@ export interface PlatypusInfo {
     tokens: string[];
     gasSchedule: number;
 }
+export interface GMXFillDataWithChainId extends FillData {
+    router: string;
+    reader: string;
+    vault: string;
+    tokenAddressPath: string[];
+    chainId: ChainId;
+}
 
-export interface GMXFillData extends FillData {
+export interface GMXFillData extends Omit<GMXFillDataWithChainId, 'chainId'> {
     router: string;
     reader: string;
     vault: string;
