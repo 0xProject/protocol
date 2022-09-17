@@ -9,7 +9,7 @@ import {
     BISWAP_ROUTER_BY_CHAIN_ID,
     COMPONENT_POOLS_BY_CHAIN_ID,
     CRYPTO_COM_ROUTER_BY_CHAIN_ID,
-    CURVE_ARBITRUM_INFOS,
+    CURVE_V2_ARBITRUM_INFOS,
     CURVE_AVALANCHE_INFOS,
     CURVE_FANTOM_INFOS,
     CURVE_MAINNET_INFOS,
@@ -146,58 +146,33 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
                             [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
                 ),
             );
-        case ChainId.Arbitrum:
-            return Object.values(CURVE_ARBITRUM_INFOS).filter((c) =>
-                [makerToken, takerToken].every(
-                    (t) =>
-                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) &&
-                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-                ),
-            );
         default:
             return [];
     }
 }
 
 export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+    const filterTokenInfos = function (curveV2ChainInfos: { [name: string]: CurveInfo }): CurveInfo[] {
+        return Object.values(curveV2ChainInfos).filter((c) =>
+            [makerToken, takerToken].every(
+                (t) =>
+                    (c.tokens.includes(t) && c.metaTokens === undefined) ||
+                    (c.tokens.includes(t) &&
+                        [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
+            ),
+        );
+    };
     switch (chainId) {
         case ChainId.Mainnet:
-            return Object.values(CURVE_V2_MAINNET_INFOS).filter((c) =>
-                [makerToken, takerToken].every(
-                    (t) =>
-                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) &&
-                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-                ),
-            );
+            return filterTokenInfos(CURVE_V2_MAINNET_INFOS);
         case ChainId.Polygon:
-            return Object.values(CURVE_V2_POLYGON_INFOS).filter((c) =>
-                [makerToken, takerToken].every(
-                    (t) =>
-                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) &&
-                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-                ),
-            );
+            return filterTokenInfos(CURVE_V2_POLYGON_INFOS);
         case ChainId.Fantom:
-            return Object.values(CURVE_V2_FANTOM_INFOS).filter((c) =>
-                [makerToken, takerToken].every(
-                    (t) =>
-                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) &&
-                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-                ),
-            );
+            return filterTokenInfos(CURVE_V2_FANTOM_INFOS);
         case ChainId.Avalanche:
-            return Object.values(CURVE_V2_AVALANCHE_INFOS).filter((c) =>
-                [makerToken, takerToken].every(
-                    (t) =>
-                        (c.tokens.includes(t) && c.metaTokens === undefined) ||
-                        (c.tokens.includes(t) &&
-                            [makerToken, takerToken].filter((v) => c.metaTokens?.includes(v)).length > 0),
-                ),
-            );
+            return filterTokenInfos(CURVE_V2_AVALANCHE_INFOS);
+        case ChainId.Arbitrum:
+            return filterTokenInfos(CURVE_V2_ARBITRUM_INFOS);
         default:
             return [];
     }

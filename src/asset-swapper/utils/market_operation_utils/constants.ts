@@ -221,7 +221,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.BalancerV2,
-            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Dodo,
         ]),
@@ -379,7 +379,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.BalancerV2,
-            ERC20BridgeSource.Curve,
+            ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Dodo,
         ]),
@@ -681,7 +681,7 @@ export const ARBITRUM_TOKENS = {
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     FRAX: '0x17fc002b466eec40dae837fc4be5c67993ddbd6f',
     nETH: '0x3ea9b0ab55f34Fb188824Ee288CeaEfC63cf908e',
-    WETH: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     nUSD: '0x2913E812Cf0dcCA30FB28E6Cac3d2DCFF4497688',
     MIM: '0xFEa7a6a0B346362BF88A9e4A88416B77a57D6c2A',
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
@@ -787,7 +787,7 @@ export const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
 };
 
-export const CURVE_ARBITRUM_POOLS = {
+export const CURVE_V2_ARBITRUM_POOLS = {
     tri: '0x960ea3e3c7fb317332d990873d354e18d7645590',
 };
 
@@ -1606,11 +1606,11 @@ export const CURVE_OPTIMISM_INFOS: { [name: string]: CurveInfo } = {
     }),
 };
 
-export const CURVE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
-    [CURVE_ARBITRUM_POOLS.tri]: createCurveExchangePool({
-        tokens: [ARBITRUM_TOKENS.WBTC, OPTIMISM_TOKENS.WETH, OPTIMISM_TOKENS.USDT],
-        pool: CURVE_ARBITRUM_POOLS.tri,
-        gasSchedule: 150e3,
+export const CURVE_V2_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
+    [CURVE_V2_ARBITRUM_POOLS.tri]: createCurveExchangeV2Pool({
+        tokens: [ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.WBTC, ARBITRUM_TOKENS.WETH],
+        pool: CURVE_V2_ARBITRUM_POOLS.tri,
+        gasSchedule: 350e3,
     }),
 };
 
