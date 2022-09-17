@@ -218,7 +218,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
-            ERC20BridgeSource.Synapse,
+            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.CurveV2,
@@ -376,7 +376,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
-            ERC20BridgeSource.Synapse,
+            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.CurveV2,
@@ -680,10 +680,10 @@ export const ARBITRUM_TOKENS = {
     USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     FRAX: '0x17fc002b466eec40dae837fc4be5c67993ddbd6f',
-    nETH: '0x3ea9b0ab55f34Fb188824Ee288CeaEfC63cf908e',
+    nETH: '0x3ea9b0ab55f34fb188824ee288ceaefc63cf908e',
     WETH: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-    nUSD: '0x2913E812Cf0dcCA30FB28E6Cac3d2DCFF4497688',
-    MIM: '0xFEa7a6a0B346362BF88A9e4A88416B77a57D6c2A',
+    nUSD: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
+    MIM: '0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a',
     WBTC: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
 };
 
