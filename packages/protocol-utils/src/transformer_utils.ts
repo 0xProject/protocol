@@ -105,8 +105,8 @@ export enum FillQuoteTransformerSide {
 export enum FillQuoteTransformerOrderType {
     Bridge,
     Limit,
-    Otc,
     Rfq,
+    Otc,
 }
 
 /**
