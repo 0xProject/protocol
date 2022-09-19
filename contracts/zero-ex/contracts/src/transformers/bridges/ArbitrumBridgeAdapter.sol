@@ -27,7 +27,6 @@ import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinDodoV2.sol";
-import "./mixins/MixinDodo.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinGMX.sol";
 import "./mixins/MixinNerve.sol";
