@@ -41,7 +41,6 @@ contract ArbitrumBridgeAdapter is
     MixinBalancerV2Batch,
     MixinCurve,
     MixinCurveV2,
-    MixinDodo,
     MixinDodoV2,
     MixinKyberDmm,
     MixinGMX,
@@ -94,13 +93,6 @@ contract ArbitrumBridgeAdapter is
             boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
-                sellAmount,
-                order.bridgeData
-            );
-        }  else if (protocolId == BridgeProtocols.DODO) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeDodo(
-                sellToken,
                 sellAmount,
                 order.bridgeData
             );
