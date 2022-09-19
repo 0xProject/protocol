@@ -102,7 +102,7 @@ export class GaslessSwapHandlers {
         // Parse request
         const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
-        ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
+        ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
             integratorLabel: params.integrator.label,
             endpoint: '/quote',
@@ -112,7 +112,7 @@ export class GaslessSwapHandlers {
         try {
             quote = await this._getServiceForChain(chainId).fetchQuoteAsync(params);
         } catch (err) {
-            ZEROG_GASLESS_SWAP_REQUEST.inc({
+            ZEROG_GASLESS_SWAP_REQUEST_ERROR.inc({
                 chainId,
                 integratorLabel: params.integrator.label,
                 endpoint: '/quote',
