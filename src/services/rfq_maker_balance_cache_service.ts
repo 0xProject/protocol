@@ -77,7 +77,7 @@ export class RfqMakerBalanceCacheService {
         // and will be subject to eviction.
         let balances: BigNumber[];
         if (pendingIndices.length !== 0) {
-            const fetchedBalances = await this._blockchainUtils.getTokenBalancesAsync(
+            const fetchedBalances = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
                 erc20OwnersArr.filter((_, i) => pendingIndices.includes(i)),
             );
             balances = cachedBalances.map((balance) => {
@@ -107,7 +107,7 @@ export class RfqMakerBalanceCacheService {
             const erc20Owners = await this._cacheClient.getERC20OwnersAsync(chainId);
             if (erc20Owners.length > 0) {
                 RFQ_BALANCE_CACHE_NUM_ADDRESSES.set(erc20Owners.length);
-                const balances = await this._blockchainUtils.getTokenBalancesAsync(erc20Owners);
+                const balances = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(erc20Owners);
 
                 await this._cacheClient.setERC20OwnerBalancesAsync(chainId, erc20Owners, balances);
             }
