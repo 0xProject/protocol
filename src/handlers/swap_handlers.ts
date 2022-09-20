@@ -13,7 +13,7 @@ import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
 
-import { ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
+import { ChainId, ERC20BridgeSource, RfqRequestOpts, SwapQuoterError } from '../asset-swapper';
 import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -48,12 +48,14 @@ import { schemas } from '../schemas';
 import { SwapService } from '../services/swap_service';
 import { GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
+import { estimateArbitrumL1CalldataGasCost } from '../utils/l2_gas_utils';
 import { paginationUtils } from '../utils/pagination_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { serviceUtils } from '../utils/service_utils';
+import { zeroExGasApiUtils } from '../utils/zero_ex_gas_api_utils';
 
 let kafkaProducer: Producer | undefined;
 if (KAFKA_BROKERS !== undefined) {
@@ -152,7 +154,7 @@ export class SwapHandlers {
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         const begin = Date.now();
         const params = parseSwapQuoteRequestParams(req, 'quote');
-        const quote = await this._getSwapQuoteAsync(params, req);
+        const quote = await this._getSwapQuoteAsync(params);
         if (params.rfqt !== undefined) {
             req.log.info({
                 firmQuoteServed: {
@@ -243,13 +245,12 @@ export class SwapHandlers {
             params.apiKey !== undefined ? params.apiKey : 'N/A',
             params.integrator?.integratorId || 'N/A',
         ).inc();
-
         res.status(HttpStatus.OK).send(response);
     }
 
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
         const params = parseSwapQuoteRequestParams(req, 'price');
-        const quote = await this._getSwapQuoteAsync({ ...params }, req);
+        const quote = await this._getSwapQuoteAsync({ ...params });
         req.log.info({
             indicativeQuoteServed: {
                 taker: params.takerAddress,
@@ -336,7 +337,7 @@ export class SwapHandlers {
         res.status(HttpStatus.OK).send(response);
     }
 
-    private async _getSwapQuoteAsync(params: GetSwapQuoteParams, req: express.Request): Promise<GetSwapQuoteResponse> {
+    private async _getSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         try {
             let swapQuote: GetSwapQuoteResponse;
             if (params.isUnwrap) {
@@ -346,6 +347,23 @@ export class SwapHandlers {
             } else {
                 swapQuote = await this._swapService.calculateSwapQuoteAsync(params);
             }
+
+            // Add additional L1 gas cost.
+            if (CHAIN_ID === ChainId.Arbitrum) {
+                const gasPrices = await zeroExGasApiUtils.getGasPricesOrDefault({
+                    fast: 100_000_000, // 0.1 gwei in wei
+                });
+                const l1GasCostEstimate = new BigNumber(
+                    estimateArbitrumL1CalldataGasCost({
+                        l2GasPrice: gasPrices.fast,
+                        l1CalldataPricePerUnit: gasPrices.l1CalldataPricePerUnit,
+                        calldata: swapQuote.data,
+                    }),
+                );
+                swapQuote.estimatedGas = swapQuote.estimatedGas.plus(l1GasCostEstimate);
+                swapQuote.gas = swapQuote.gas.plus(l1GasCostEstimate);
+            }
+
             return swapQuote;
         } catch (e) {
             // If this is already a transformed error then just re-throw

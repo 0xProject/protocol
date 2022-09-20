@@ -1,5 +1,3 @@
-import { BigNumber } from '@0x/utils';
-
 import { ZERO_EX_GAS_API_URL } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 
@@ -7,12 +5,14 @@ let previousGasInfo: GasInfoResponse | undefined;
 let lastAccessed: number;
 const CACHE_EXPIRY_SEC = 60;
 
+// Gas prices in wei
+interface GasPrices {
+    fast: number;
+    l1CalldataPricePerUnit?: number;
+}
+
 interface GasInfoResponse {
-    // gas prices in wei
-    result: {
-        fast: number;
-        fastest: number;
-    };
+    result: GasPrices;
 }
 
 const getGasInfoAsync = async () => {
@@ -30,9 +30,16 @@ const getGasInfoAsync = async () => {
 };
 
 export const zeroExGasApiUtils = {
-    /** @returns gas price in wei. */
-    getGasPriceOrThrowAsync: async (txConfirmationSpeed: 'fast' | 'fastest' = 'fast'): Promise<BigNumber> => {
+    /** @returns gas prices or default gas prices.*/
+    getGasPricesOrDefault: async (defaultGasPrices: GasPrices): Promise<GasPrices> => {
         const gasInfo = await getGasInfoAsync();
-        return new BigNumber(gasInfo!.result[txConfirmationSpeed]);
+        if (gasInfo !== undefined) {
+            return {
+                ...defaultGasPrices,
+                ...gasInfo.result,
+            };
+        }
+
+        return defaultGasPrices;
     },
 };
