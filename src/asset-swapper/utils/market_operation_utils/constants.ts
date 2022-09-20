@@ -1641,12 +1641,12 @@ export const CURVE_V2_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_V2_ARBITRUM_POOLS.tri]: createCurveExchangeV2Pool({
         tokens: [ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.WBTC, ARBITRUM_TOKENS.WETH],
         pool: CURVE_V2_ARBITRUM_POOLS.tri,
-        gasSchedule: 600e3,
+        gasSchedule: 1200e3,
     }),
     [CURVE_V2_ARBITRUM_POOLS.twoPool]: createCurveExchangePool({
         tokens: [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT],
         pool: CURVE_V2_ARBITRUM_POOLS.twoPool,
-        gasSchedule: 400e3,
+        gasSchedule: 800e3,
     }),
     //to do resolve curve pools function selector issues
     // [CURVE_V2_ARBITRUM_POOLS.MIM]: createCurveMetaTwoPoolArbitrum({
@@ -2626,7 +2626,7 @@ const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
     const path = (uniV2FillData as UniswapV2FillData).tokenAddressPath;
     const chainId = (uniV2FillData as UniswapV2FillDataWithChainId).chainId;
     if (chainId === ChainId.Arbitrum) {
-        gas += 650e3;
+        gas += 1250e3;
     }
     if (path.length > 2) {
         gas += (path.length - 2) * 60e3; // +60k for each hop.
@@ -2640,7 +2640,7 @@ const gmxGasSchedule = (fillData?: FillData) => {
     let gas = 450e3;
     const chainId = (gmxFillData as GMXFillDataWithChainId).chainId;
     if (chainId === ChainId.Arbitrum) {
-        gas += 400e3;
+        gas += 700e3;
     }
     return gas;
 };
@@ -2730,7 +2730,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
         const uniFillData = fillData as UniswapV3FillData | FinalUniswapV3FillData;
         // NOTE: This base value was heuristically chosen by looking at how much it generally
         // underestimated gas usage
-        const base = uniFillData.chainId == ChainId.Arbitrum ? 900e3 : 34e3; // 34k base
+        const base = uniFillData.chainId == ChainId.Arbitrum ? 1300e3 : 34e3; // 34k base
         let gas = base;
         if (isFinalUniswapV3FillData(uniFillData)) {
             gas += uniFillData.gasUsed;
