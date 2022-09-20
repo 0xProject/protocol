@@ -145,7 +145,7 @@ export class GaslessSwapService {
         params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
     ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
         try {
-            const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params);
+            const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwap');
 
             if (rfqPrice) {
                 return { ...rfqPrice, source: 'rfq' };
@@ -211,7 +211,7 @@ export class GaslessSwapService {
         params: FetchFirmQuoteParams & { slippagePercentage?: number },
     ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
         try {
-            const rfqQuote = await this._rfqmService.fetchFirmQuoteAsync(params);
+            const rfqQuote = await this._rfqmService.fetchFirmQuoteAsync(params, 'gaslessSwap');
 
             if (rfqQuote) {
                 return rfqQuote;
