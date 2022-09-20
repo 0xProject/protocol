@@ -143,12 +143,12 @@ export class GaslessSwapService {
      */
     public async fetchPriceAsync(
         params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
-    ): Promise<(FetchIndicativeQuoteResponse & { source: 'rfq' | 'amm' }) | null> {
+    ): Promise<(FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' }) | null> {
         try {
             const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwap');
 
             if (rfqPrice) {
-                return { ...rfqPrice, source: 'rfq' };
+                return { ...rfqPrice, liquiditySource: 'rfq' };
             }
         } catch (e) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
@@ -179,7 +179,7 @@ export class GaslessSwapService {
             ).then((r) => r?.price);
 
             if (ammPrice) {
-                return { ...ammPrice, source: 'amm' };
+                return { ...ammPrice, liquiditySource: 'amm' };
             }
         } catch (e) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
@@ -209,12 +209,14 @@ export class GaslessSwapService {
      */
     public async fetchQuoteAsync(
         params: FetchFirmQuoteParams & { slippagePercentage?: number },
-    ): Promise<OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse | null> {
+    ): Promise<
+        ((OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse) & { liquiditySource: 'rfq' | 'amm' }) | null
+    > {
         try {
             const rfqQuote = await this._rfqmService.fetchFirmQuoteAsync(params, 'gaslessSwap');
 
             if (rfqQuote) {
-                return rfqQuote;
+                return { ...rfqQuote, liquiditySource: 'rfq' };
             }
         } catch (e) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
@@ -253,6 +255,7 @@ export class GaslessSwapService {
                     metaTransaction: ammQuote.metaTransaction,
                     metaTransactionHash: ammQuote.metaTransaction.getHash(),
                     type: RfqmTypes.MetaTransaction,
+                    liquiditySource: 'amm',
                 };
             }
         } catch (e) {

@@ -215,7 +215,7 @@ describe('GaslessSwapHandlers', () => {
         });
 
         it('returns returns an RFQ Price', async () => {
-            const price: FetchIndicativeQuoteResponse & { source: 'rfq' } = {
+            const price: FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' } = {
                 allowanceTarget: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
                 buyAmount: new BigNumber(1000),
                 sellAmount: new BigNumber(2000),
@@ -223,7 +223,7 @@ describe('GaslessSwapHandlers', () => {
                 sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                 gas: new BigNumber(1043459),
                 price: new BigNumber(2),
-                source: 'rfq',
+                liquiditySource: 'rfq',
             };
 
             mockGaslessSwapService.fetchPriceAsync.mockResolvedValue(price);
@@ -252,7 +252,7 @@ describe('GaslessSwapHandlers', () => {
         });
 
         it('returns returns an AMM Price', async () => {
-            const price: FetchIndicativeQuoteResponse & { source: 'amm' } = {
+            const price: FetchIndicativeQuoteResponse & { liquiditySource: 'amm' } = {
                 allowanceTarget: '0xdef1c0ded9bec7f1a1670819833240f027b25eff',
                 buyAmount: new BigNumber(1000),
                 sellAmount: new BigNumber(2000),
@@ -260,7 +260,7 @@ describe('GaslessSwapHandlers', () => {
                 sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                 gas: new BigNumber(1043459),
                 price: new BigNumber(2),
-                source: 'amm',
+                liquiditySource: 'amm',
             };
 
             mockGaslessSwapService.fetchPriceAsync.mockResolvedValue(price);
@@ -344,7 +344,7 @@ describe('GaslessSwapHandlers', () => {
         });
 
         it('returns an RFQ quote', async () => {
-            const quote: OtcOrderRfqmQuoteResponse = {
+            const quote: OtcOrderRfqmQuoteResponse & { liquiditySource: 'rfq' } = {
                 buyAmount: new BigNumber('1800054805473'),
                 buyTokenAddress: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
                 gas: new BigNumber('1043459'),
@@ -367,6 +367,7 @@ describe('GaslessSwapHandlers', () => {
                 sellAmount: new BigNumber('1000000000000000000000'),
                 sellTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                 type: RfqmTypes.OtcOrder,
+                liquiditySource: 'rfq',
             };
             mockGaslessSwapService.fetchQuoteAsync.mockResolvedValue(quote);
 
@@ -394,7 +395,7 @@ describe('GaslessSwapHandlers', () => {
         });
 
         it('returns an AMM quote', async () => {
-            const quote: MetaTransactionQuoteResponse = {
+            const quote: MetaTransactionQuoteResponse & { liquiditySource: 'amm' } = {
                 buyAmount: new BigNumber('1800054805473'),
                 buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
                 gas: new BigNumber('1043459'),
@@ -420,6 +421,7 @@ describe('GaslessSwapHandlers', () => {
                 sellAmount: new BigNumber('1000000000000000000000'),
                 sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
                 type: RfqmTypes.MetaTransaction,
+                liquiditySource: 'amm',
             };
             mockGaslessSwapService.fetchQuoteAsync.mockResolvedValue(quote);
 
