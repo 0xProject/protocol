@@ -80,7 +80,6 @@ import {
     FeeSchedule,
     GenericRouterFillData,
     GMXFillData,
-    GMXFillDataWithChainId,
     HopInfo,
     KyberDmmFillData,
     LidoFillData,
@@ -348,11 +347,10 @@ export class SamplerOperations {
         tokenAddressPath: string[],
         takerFillAmounts: BigNumber[],
         source: ERC20BridgeSource = ERC20BridgeSource.UniswapV2,
-        chainId: ChainId,
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source,
-            fillData: { tokenAddressPath, router, chainId },
+            fillData: { tokenAddressPath, router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromUniswapV2,
             params: [router, tokenAddressPath, takerFillAmounts],
@@ -364,11 +362,10 @@ export class SamplerOperations {
         tokenAddressPath: string[],
         makerFillAmounts: BigNumber[],
         source: ERC20BridgeSource = ERC20BridgeSource.UniswapV2,
-        chainId: ChainId,
     ): SourceQuoteOperation<UniswapV2FillData> {
         return new SamplerContractOperation({
             source,
-            fillData: { tokenAddressPath, router, chainId },
+            fillData: { tokenAddressPath, router },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswapV2,
             params: [router, tokenAddressPath, makerFillAmounts],
@@ -763,7 +760,6 @@ export class SamplerOperations {
                     inputAmount: takerFillAmounts[i],
                     gasUsed: gasUsed[i].toNumber(),
                 }));
-                fillData.chainId = this.chainId;
                 return samples;
             },
         });
@@ -792,7 +788,6 @@ export class SamplerOperations {
                     inputAmount: makerFillAmounts[i],
                     gasUsed: gasUsed[i].toNumber(),
                 }));
-                fillData.chainId = this.chainId;
                 return samples;
             },
         });
@@ -1185,11 +1180,10 @@ export class SamplerOperations {
         vault: string,
         tokenAddressPath: string[],
         takerFillAmounts: BigNumber[],
-        chainId: ChainId,
-    ): SourceQuoteOperation<GMXFillDataWithChainId> {
+    ): SourceQuoteOperation<GMXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.GMX,
-            fillData: { router, reader, vault, tokenAddressPath, chainId },
+            fillData: { router, reader, vault, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleSellsFromGMX,
             params: [reader, vault, tokenAddressPath, takerFillAmounts],
@@ -1201,11 +1195,10 @@ export class SamplerOperations {
         vault: string,
         tokenAddressPath: string[],
         makerFillAmounts: BigNumber[],
-        chainId: ChainId,
-    ): SourceQuoteOperation<GMXFillDataWithChainId> {
+    ): SourceQuoteOperation<GMXFillData> {
         return new SamplerContractOperation({
             source: ERC20BridgeSource.GMX,
-            fillData: { router, reader, vault, tokenAddressPath, chainId },
+            fillData: { router, reader, vault, tokenAddressPath },
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromGMX,
             params: [reader, vault, tokenAddressPath, makerFillAmounts],
@@ -1539,9 +1532,7 @@ export class SamplerOperations {
                         return [
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
-                        ].map((path) =>
-                            this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source, this.chainId),
-                        );
+                        ].map((path) => this.getUniswapV2SellQuotes(uniLikeRouter, path, takerFillAmounts, source));
                     }
                     case ERC20BridgeSource.KyberDmm: {
                         const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
@@ -1746,7 +1737,6 @@ export class SamplerOperations {
                             GMX_VAULT_BY_CHAIN_ID[this.chainId],
                             [takerToken, makerToken],
                             takerFillAmounts,
-                            this.chainId,
                         );
                     }
                     case ERC20BridgeSource.Platypus: {
@@ -1878,9 +1868,7 @@ export class SamplerOperations {
                         return [
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
-                        ].map((path) =>
-                            this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source, this.chainId),
-                        );
+                        ].map((path) => this.getUniswapV2BuyQuotes(uniLikeRouter, path, makerFillAmounts, source));
                     }
                     case ERC20BridgeSource.KyberDmm: {
                         const kyberDmmRouter = KYBER_DMM_ROUTER_BY_CHAIN_ID[this.chainId];
@@ -2079,7 +2067,6 @@ export class SamplerOperations {
                             GMX_VAULT_BY_CHAIN_ID[this.chainId],
                             [takerToken, makerToken],
                             makerFillAmounts,
-                            this.chainId,
                         );
                     }
                     case ERC20BridgeSource.Platypus: {

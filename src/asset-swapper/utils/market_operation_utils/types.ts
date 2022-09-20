@@ -224,13 +224,7 @@ export interface BalancerV2BatchSwapFillData extends FillData {
     assets: string[];
 }
 
-export interface UniswapV2FillDataWithChainId extends FillData {
-    tokenAddressPath: string[];
-    router: string;
-    chainId: ChainId;
-}
-
-export interface UniswapV2FillData extends Omit<UniswapV2FillDataWithChainId, 'chainId'> {
+export interface UniswapV2FillData extends FillData {
     tokenAddressPath: string[];
     router: string;
 }
@@ -291,7 +285,6 @@ export interface UniswapV3FillData extends FillData {
     router: string;
     pathAmounts: UniswapV3PathAmount[];
     // Only needed for gas estimation.
-    chainId: ChainId;
 }
 
 export interface KyberDmmFillData extends UniswapV2FillData {
@@ -338,15 +331,8 @@ export interface PlatypusInfo {
     tokens: string[];
     gasSchedule: number;
 }
-export interface GMXFillDataWithChainId extends FillData {
-    router: string;
-    reader: string;
-    vault: string;
-    tokenAddressPath: string[];
-    chainId: ChainId;
-}
 
-export interface GMXFillData extends Omit<GMXFillDataWithChainId, 'chainId'> {
+export interface GMXFillData extends FillData {
     router: string;
     reader: string;
     vault: string;
