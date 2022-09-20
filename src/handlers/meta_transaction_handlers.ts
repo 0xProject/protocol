@@ -6,7 +6,7 @@ import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 
 import { SwapQuoterError } from '../asset-swapper';
-import { CHAIN_ID } from '../config';
+import { CHAIN_ID, META_TX_MIN_ALLOWED_SLIPPAGE } from '../config';
 import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
 import {
     EthSellNotSupportedError,
@@ -186,6 +186,15 @@ function parseRequestParams(req: express.Request): MetaTransactionQuoteRequestPa
                 field: 'slippagePercentage',
                 code: ValidationErrorCodes.ValueOutOfRange,
                 reason: ValidationErrorReasons.PercentageOutOfRange,
+            },
+        ]);
+    }
+    if (slippagePercentage < META_TX_MIN_ALLOWED_SLIPPAGE) {
+        throw new ValidationError([
+            {
+                field: 'slippagePercentage',
+                code: ValidationErrorCodes.ValueOutOfRange,
+                reason: ValidationErrorReasons.MinSlippageTooLow,
             },
         ]);
     }

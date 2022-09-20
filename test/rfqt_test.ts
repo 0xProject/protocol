@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { expect } from '@0x/contracts-test-utils';
@@ -426,6 +427,7 @@ describe.skip(SUITE_NAME, () => {
                         ...DEFAULT_RFQT_RESPONSE_DATA,
                         responseData: rfqtIndicativeQuoteResponse,
                     };
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     mock.requestParams!.txOrigin = NULL_ADDRESS;
                     return rfqtMocker.withMockedRfqtQuotes(
                         [mock as any],
@@ -453,6 +455,7 @@ describe.skip(SUITE_NAME, () => {
                         responseData: {},
                         responseCode: 500,
                     };
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     mock.requestParams!.txOrigin = NULL_ADDRESS;
                     return rfqtMocker.withMockedRfqtQuotes(
                         [mock as any],
