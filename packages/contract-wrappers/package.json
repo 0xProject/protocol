@@ -18,7 +18,7 @@
         "rebuild": "yarn wrappers:clean && yarn wrappers:generate && yarn wrappers:prettier && yarn build",
         "build:ci": "yarn build",
         "publish:private": "yarn rebuild && gitpkg publish",
-        "lint": "# TODO: add eslint", 
+        "lint": "", 
         "fix": "# TODO: add eslint",
         "prettier": "prettier --write **/* --config ../../.prettierrc",
         "clean": "shx rm -rf lib generated_docs",
