@@ -97,6 +97,7 @@ type ExtendedQuoteReportWithFee = ExtendedQuoteReportWithIntermediateQuote & {
 };
 
 interface ExtendedQuoteReportForRFQMLogOptions {
+    isFirmQuote: boolean;
     sellAmount?: BigNumber;
     buyAmount?: BigNumber;
     buyTokenAddress: string;
@@ -190,7 +191,7 @@ export const quoteReportUtils = {
                 quoteId,
                 taker: logOpts.taker,
                 timestamp: Date.now(),
-                firmQuoteReport: logOpts.finalQuotes[0] ? isFirmQuote(logOpts.finalQuotes[0]) : false,
+                firmQuoteReport: logOpts.isFirmQuote,
                 submissionBy: extendedQuoteReportSubmissionBy,
                 buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
                 sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,

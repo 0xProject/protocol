@@ -447,6 +447,7 @@ export class RfqmService {
         // Retrieve quote context
         const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ false);
         const {
+            isFirm,
             takerAmount,
             makerAmount,
             takerToken,
@@ -492,6 +493,7 @@ export class RfqmService {
         if (this._kafkaProducer) {
             await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
+                    isFirmQuote: isFirm,
                     taker: takerAddress,
                     buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
@@ -546,6 +548,7 @@ export class RfqmService {
         // Retrieve quote context
         const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ true);
         const {
+            isFirm,
             takerAmount,
             makerAmount,
             takerToken,
@@ -619,6 +622,7 @@ export class RfqmService {
         if (this._kafkaProducer) {
             await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
+                    isFirmQuote: isFirm,
                     taker: takerAddress,
                     buyTokenAddress: originalMakerToken,
                     sellTokenAddress: takerToken,
