@@ -18,13 +18,8 @@
         "rebuild": "yarn wrappers:clean && yarn wrappers:generate && yarn wrappers:prettier && yarn build",
         "build:ci": "yarn build",
         "publish:private": "yarn rebuild && gitpkg publish",
-<<<<<<< HEAD
         "lint": "eslint src",
         "fix": "eslint --fix src",
-=======
-        "lint": "# TODO: add eslint", 
-        "fix": "# TODO: add eslint",
->>>>>>> f624e2476 (add todo comment)
         "prettier": "prettier --write **/* --config ../../.prettierrc",
         "clean": "shx rm -rf lib generated_docs",
         "docs_test": "typedoc --excludePrivate --excludeExternals --target ES5 --tsconfig typedoc-tsconfig.json --out generated_docs ./src/generated-wrappers/*",
