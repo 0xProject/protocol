@@ -1,5 +1,14 @@
 [
     {
+        "version": "6.23.4",
+        "changes": [
+            {
+                "note": "New FQT for Arbitrum with Nerve",
+                "pr": 581
+            }
+        ]
+    },
+    {
         "version": "6.23.3",
         "changes": [
             {
