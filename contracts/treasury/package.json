@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-treasury",
-    "version": "1.4.26",
+    "version": "1.4.27",
     "engines": {
         "node": ">=6.12"
     },
@@ -47,12 +47,12 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/treasury",
     "devDependencies": {
         "@0x/abi-gen": "^5.8.1",
-        "@0x/contract-addresses": "^6.23.3",
+        "@0x/contract-addresses": "^6.23.4",
         "@0x/contracts-asset-proxy": "^3.7.19",
-        "@0x/contracts-erc20": "^3.3.43",
+        "@0x/contracts-erc20": "^3.3.44",
         "@0x/contracts-gen": "^2.0.47",
         "@0x/contracts-staking": "^2.0.45",
-        "@0x/contracts-test-utils": "^5.4.34",
+        "@0x/contracts-test-utils": "^5.4.35",
         "@0x/sol-compiler": "^4.8.2",
         "@0x/ts-doc-gen": "^0.0.28",
         "@0x/tslint-config": "^4.1.4",
@@ -73,7 +73,7 @@
     },
     "dependencies": {
         "@0x/base-contract": "^7.0.0",
-        "@0x/protocol-utils": "^11.16.10",
+        "@0x/protocol-utils": "^11.16.11",
         "@0x/subproviders": "^7.0.0",
         "@0x/types": "^3.3.6",
         "@0x/typescript-typings": "^5.3.1",
