@@ -18,7 +18,7 @@
         "rebuild": "yarn wrappers:clean && yarn wrappers:generate && yarn wrappers:prettier && yarn build",
         "build:ci": "yarn build",
         "publish:private": "yarn rebuild && gitpkg publish",
-        "lint": "tslint --format stylish --project . --exclude **/lib/**/*",
+        "lint": "eslint src --max-warnings 256",
         "fix": "tslint --fix --format stylish --project . --exclude **/lib/**/*",
         "prettier": "prettier --write **/* --config ../../.prettierrc",
         "clean": "shx rm -rf lib generated_docs",
@@ -48,7 +48,10 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/packages/contract-wrappers",
     "devDependencies": {
         "@0x/ts-doc-gen": "^0.0.28",
+        "@typescript-eslint/eslint-plugin": "^5.38.0",
+        "@typescript-eslint/parser": "^5.38.0",
         "eslint": "^8.23.1",
+        "eslint-config-prettier": "^8.5.0",
         "gitpkg": "https://github.com/0xProject/gitpkg.git",
         "typedoc": "~0.16.11",
         "typescript": "4.6.3"
