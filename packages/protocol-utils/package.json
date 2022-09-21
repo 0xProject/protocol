@@ -19,7 +19,7 @@
         "test:coverage": "mkdir -p ./coverage && nyc npm run test --all && yarn coverage:report:lcov",
         "coverage:report:lcov": "nyc report --reporter=text-lcov > coverage/lcov.info",
         "clean": "shx rm -rf lib generated_docs",
-        "lint": "eslint src --max-warnings 256",
+        "lint": "eslint src --max-warnings 32",
         "fix": "eslint --fix --quiet src test",
         "diff_docs": "git diff --exit-code ./docs",
         "s3:sync_md_docs": "aws s3 sync ./docs s3://docs-markdown/${npm_package_name}/v${npm_package_version} --profile 0xproject --region us-east-1 --grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers",
