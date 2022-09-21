@@ -13,6 +13,7 @@
   },
   "plugins": ["@typescript-eslint"],
   "ignorePatterns": [
+      "lib/**/*",
       "migrations/*",
       "generated-wrappers/**/*",
       "generated-artifacts/**/*",
