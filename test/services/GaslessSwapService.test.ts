@@ -66,6 +66,7 @@ jest.mock('../../src/utils/rfq_blockchain_utils', () => {
             return {
                 getTokenBalancesAsync: jest.fn(),
                 getMinOfBalancesAndAllowancesAsync: jest.fn(),
+                getExchangeProxyAddress: jest.fn(),
             };
         }),
     };
@@ -151,6 +152,7 @@ describe('GaslessSwapService', () => {
         value: new BigNumber(0),
     });
     const price: FetchIndicativeQuoteResponse = {
+        allowanceTarget: '0x12345',
         buyAmount: new BigNumber(1800054805473),
         sellAmount: new BigNumber(1000000000000000000000),
         buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -170,6 +172,7 @@ describe('GaslessSwapService', () => {
         verifyingContract: '0x0000000000000000000000000000000000000000',
     });
     const otcQuote: OtcOrderRfqmQuoteResponse = {
+        allowanceTarget: '0x12345',
         buyAmount: new BigNumber(1800054805473),
         sellAmount: new BigNumber(1000000000000000000000),
         buyTokenAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -182,6 +185,7 @@ describe('GaslessSwapService', () => {
     };
 
     beforeEach(() => {
+        mockBlockchainUtils.getExchangeProxyAddress.mockReturnValue('0x12345');
         jest.clearAllMocks();
     });
 
@@ -201,6 +205,7 @@ describe('GaslessSwapService', () => {
             expect(result?.liquiditySource).toEqual('rfq');
             expect(result).toMatchInlineSnapshot(`
                 Object {
+                  "allowanceTarget": "0x12345",
                   "buyAmount": "1800054805473",
                   "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                   "gas": "1043459",
@@ -229,6 +234,7 @@ describe('GaslessSwapService', () => {
             expect(result?.liquiditySource).toEqual('amm');
             expect(result).toMatchInlineSnapshot(`
                 Object {
+                  "allowanceTarget": "0x12345",
                   "buyAmount": "1800054805473",
                   "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                   "gas": "1043459",
@@ -258,6 +264,7 @@ describe('GaslessSwapService', () => {
             expect(result?.liquiditySource).toEqual('amm');
             expect(result).toMatchInlineSnapshot(`
                 Object {
+                  "allowanceTarget": "0x12345",
                   "buyAmount": "1800054805473",
                   "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                   "gas": "1043459",
@@ -324,6 +331,7 @@ describe('GaslessSwapService', () => {
             expect(result?.type).toEqual(RfqmTypes.OtcOrder);
             expect(result).toMatchInlineSnapshot(`
                 Object {
+                  "allowanceTarget": "0x12345",
                   "buyAmount": "1800054805473",
                   "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                   "gas": "1043459",
@@ -377,6 +385,7 @@ describe('GaslessSwapService', () => {
             expect(result.metaTransaction.getHash()).toEqual(metaTransaction.getHash());
             expect(result).toMatchInlineSnapshot(`
                 Object {
+                  "allowanceTarget": "0x12345",
                   "approval": undefined,
                   "buyAmount": "1800054805473",
                   "buyTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",

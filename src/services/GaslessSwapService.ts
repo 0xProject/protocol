@@ -179,7 +179,11 @@ export class GaslessSwapService {
             ).then((r) => r?.price);
 
             if (ammPrice) {
-                return { ...ammPrice, liquiditySource: 'amm' };
+                return {
+                    ...ammPrice,
+                    allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
+                    liquiditySource: 'amm',
+                };
             }
         } catch (e) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
@@ -255,6 +259,7 @@ export class GaslessSwapService {
                     metaTransaction: ammQuote.metaTransaction,
                     metaTransactionHash: ammQuote.metaTransaction.getHash(),
                     type: RfqmTypes.MetaTransaction,
+                    allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     liquiditySource: 'amm',
                 };
             }
