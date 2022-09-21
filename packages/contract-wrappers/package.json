@@ -19,7 +19,7 @@
         "build:ci": "yarn build",
         "publish:private": "yarn rebuild && gitpkg publish",
         "lint": "eslint src --max-warnings 256",
-        "fix": "tslint --fix --format stylish --project . --exclude **/lib/**/*",
+        "fix": "eslint --fix src --max-warnings 256",
         "prettier": "prettier --write **/* --config ../../.prettierrc",
         "clean": "shx rm -rf lib generated_docs",
         "docs_test": "typedoc --excludePrivate --excludeExternals --target ES5 --tsconfig typedoc-tsconfig.json --out generated_docs ./src/generated-wrappers/*",

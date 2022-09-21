@@ -15,10 +15,8 @@
   "ignorePatterns": [
       "lib/**/*",
       "migrations/*",
-      "generated-wrappers/**/*",
-      "generated-artifacts/**/*",
-      "test/generated-wrappers/**/*",
-      "test/generated-artifacts/**/*"
+      "src/generated-wrappers/**/*",
+      "src/generated-artifacts/**/*"
   ],
   "rules": {}
 }
