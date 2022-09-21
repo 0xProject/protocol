@@ -221,7 +221,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
             //ERC20BridgeSource.BalancerV2,
-            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
+            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.MultiHop,
@@ -382,7 +382,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
             //ERC20BridgeSource.BalancerV2,
-            // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
+            ERC20BridgeSource.Synapse,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.MultiHop,
@@ -869,7 +869,7 @@ export const SYNAPSE_AVALANCHE_POOLS = {
 
 export const SYNAPSE_ARBITRUM_POOLS = {
     nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
-    nETHLP: '0x1c3fe783a7c06bfabd124f2708f5cc51fa42e102',
+    nETHLP: '0xa067668661c84476afcdc6fa5d758c4c01c34352',
 };
 
 export const BELT_POOLS = {
@@ -1880,9 +1880,9 @@ export const SYNAPSE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
         sellQuoteFunctionSelector: CurveFunctionSelectors.calculateSwap,
         buyQuoteFunctionSelector: CurveFunctionSelectors.None,
         poolAddress: SYNAPSE_ARBITRUM_POOLS.nUSDLP,
-        tokens: [ARBITRUM_TOKENS.nUSD, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT, ARBITRUM_TOKENS.MIM],
+        tokens: [ARBITRUM_TOKENS.nUSD, ARBITRUM_TOKENS.MIM, ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT],
         metaTokens: undefined,
-        gasSchedule: 140e3,
+        gasSchedule: 200e3,
     },
     [SYNAPSE_ARBITRUM_POOLS.nETHLP]: {
         exchangeFunctionSelector: CurveFunctionSelectors.swap,
@@ -1891,7 +1891,7 @@ export const SYNAPSE_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
         poolAddress: SYNAPSE_ARBITRUM_POOLS.nETHLP,
         tokens: [ARBITRUM_TOKENS.nETH, ARBITRUM_TOKENS.WETH],
         metaTokens: undefined,
-        gasSchedule: 140e3,
+        gasSchedule: 175e3,
     },
 };
 
