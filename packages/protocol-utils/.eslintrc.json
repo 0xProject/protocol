@@ -1,15 +1,24 @@
 {
     "env": {
-        "browser": true,
-        "es2021": true
+        "es2021": true,
+        "node": true
     },
-    "extends": "standard-with-typescript",
-    "overrides": [
-    ],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+    "overrides": [],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
+        "project": "./tsconfig.json",
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "rules": {
-    }
-}
+    "plugins": ["@typescript-eslint"],
+    "ignorePatterns": [
+        "lib/**/*",
+        "migrations/*",
+        "generated-wrappers/**/*",
+        "generated-artifacts/**/*",
+        "test/generated-wrappers/**/*",
+        "test/generated-artifacts/**/*"
+    ],
+    "rules": {}
+  }
