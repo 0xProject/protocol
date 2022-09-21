@@ -33,6 +33,7 @@ import {
 import { logger } from '../logger';
 import { Approval } from '../types';
 import { CacheClient } from '../utils/cache_client';
+import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqmDbUtils, storedFeeToFee, storedOtcOrderToOtcOrder } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
@@ -40,7 +41,6 @@ import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { SubmissionContext } from '../utils/SubmissionContext';
 
-import { RfqmFeeService } from './rfqm_fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 
 interface GasFees {
@@ -230,7 +230,7 @@ export class WorkerService {
 
     constructor(
         private readonly _chainId: number,
-        private readonly _rfqmFeeService: RfqmFeeService,
+        private readonly _gasStationAttendant: GasStationAttendant,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _dbUtils: RfqmDbUtils,
@@ -246,7 +246,7 @@ export class WorkerService {
     public async workerBeforeLogicAsync(workerIndex: number, workerAddress: string): Promise<boolean> {
         let gasPrice;
         try {
-            gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
+            gasPrice = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
         } catch (error) {
             logger.error(
                 { errorMessage: error.message },
@@ -917,7 +917,7 @@ export class WorkerService {
                     // would check whether the gas price of the transaction is within a window. If left empty, it will
                     // fail the simulation. The gas fee estimation below is the same as the first gas fee estimation
                     // used in `submitToChain`.
-                    const gasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+                    const gasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
                     const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
                         Math.pow(10, GWEI_DECIMALS),
                     );
@@ -1333,7 +1333,7 @@ export class WorkerService {
 
         const previousSubmissions = await this._recoverPresubmitTransactionsAsync(previousSubmissionsWithPresubmits);
 
-        const gasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+        const gasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
 
         // For the first submission, we use the "fast" gas estimate to approximate the base fee.
         // We use the strategy outlined in https://www.blocknative.com/blog/eip-1559-fees --
@@ -1502,7 +1502,7 @@ export class WorkerService {
                     }
 
                     // "Fast" gas price estimation; used to approximate the base fee
-                    const newGasPriceEstimate = await this._rfqmFeeService.getGasPriceEstimationAsync();
+                    const newGasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
 
                     if (submissionContext.transactionType === 0) {
                         throw new Error('Non-EIP-1559 transactions are not implemented');

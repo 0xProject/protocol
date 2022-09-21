@@ -35,10 +35,11 @@ import {
     SubmissionContextStatus,
 } from '../../src/entities/types';
 import { logger } from '../../src/logger';
-import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import { WorkerService } from '../../src/services/WorkerService';
 import { CacheClient } from '../../src/utils/cache_client';
+import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
+import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
@@ -65,7 +66,7 @@ const buildWorkerServiceForUnitTest = (
         dbUtils?: RfqmDbUtils;
         rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService;
         rfqMakerManager?: RfqMakerManager;
-        rfqmFeeService?: RfqmFeeService;
+        gasStationAttendant?: GasStationAttendant;
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         initialMaxPriorityFeePerGasGwei?: number;
@@ -94,9 +95,9 @@ const buildWorkerServiceForUnitTest = (
         },
     ]);
 
-    const rfqmFeeServiceMock = mock(RfqmFeeService);
-    when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
-    const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);
+    const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+    when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(MOCK_GAS_PRICE);
+    const gasStationAttendantInstance = instance(gasStationAttendantMock);
 
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
@@ -113,7 +114,7 @@ const buildWorkerServiceForUnitTest = (
 
     return new WorkerService(
         1,
-        overrides.rfqmFeeService || rfqmFeeServiceInstance,
+        overrides.gasStationAttendant || gasStationAttendantInstance,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
         overrides.dbUtils || instance(defaultDbUtilsMock),
@@ -254,8 +255,8 @@ describe('WorkerService', () => {
                 workerAddress,
             });
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -271,7 +272,7 @@ describe('WorkerService', () => {
             const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
+                gasStationAttendant: instance(gasStationAttendantMock),
             });
             const spiedRfqmService = spy(rfqmService);
             when(spiedRfqmService.processJobAsync(anything(), anything(), anything())).thenResolve();
@@ -568,8 +569,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -758,8 +759,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -1000,8 +1001,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -1166,8 +1167,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -1315,8 +1316,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -1481,8 +1482,8 @@ describe('WorkerService', () => {
             };
             const mockNonce = 0;
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
 
@@ -3550,15 +3551,15 @@ describe('WorkerService', () => {
             );
 
             const _job = _.cloneDeep(expiredJob);
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
             const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
+                gasStationAttendant: instance(gasStationAttendantMock),
             });
 
             try {
@@ -3609,8 +3610,8 @@ describe('WorkerService', () => {
             );
             const _job = _.cloneDeep(job);
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
             const mockDbUtils = mock(RfqmDbUtils);
@@ -3624,7 +3625,7 @@ describe('WorkerService', () => {
             const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
+                gasStationAttendant: instance(gasStationAttendantMock),
             });
 
             try {
@@ -3686,8 +3687,8 @@ describe('WorkerService', () => {
             );
             const _job = _.cloneDeep(job);
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
             const mockDbUtils = mock(RfqmDbUtils);
@@ -3700,7 +3701,7 @@ describe('WorkerService', () => {
             const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
+                gasStationAttendant: instance(gasStationAttendantMock),
             });
 
             const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
@@ -3748,8 +3749,8 @@ describe('WorkerService', () => {
             );
             const _job = _.cloneDeep(job);
 
-            const rfqmFeeServiceMock = mock(RfqmFeeService);
-            when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+            const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+            when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                 new BigNumber(10).shiftedBy(GWEI_DECIMALS),
             );
             const mockDbUtils = mock(RfqmDbUtils);
@@ -3767,7 +3768,7 @@ describe('WorkerService', () => {
             const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
-                rfqmFeeService: instance(rfqmFeeServiceMock),
+                gasStationAttendant: instance(gasStationAttendantMock),
             });
 
             const calldata = await rfqmService.prepareMetaTransactionTradeAsync(
@@ -4489,8 +4490,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -4559,7 +4560,7 @@ describe('WorkerService', () => {
                 });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
 
@@ -4683,8 +4684,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -4756,7 +4757,7 @@ describe('WorkerService', () => {
                 });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
 
@@ -4882,8 +4883,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -4955,7 +4956,7 @@ describe('WorkerService', () => {
                 });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
                 const callback = async (
@@ -5088,8 +5089,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5140,7 +5141,7 @@ describe('WorkerService', () => {
                 });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
                 const callback = async (
@@ -5236,8 +5237,8 @@ describe('WorkerService', () => {
                     type: RfqmTransactionSubmissionType.Trade,
                 });
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5252,7 +5253,7 @@ describe('WorkerService', () => {
                 when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([]);
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
                 const callback = async (
@@ -5357,8 +5358,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5434,7 +5435,7 @@ describe('WorkerService', () => {
                 });
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                     enableAccessList: true,
                 });
@@ -5545,8 +5546,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5616,7 +5617,7 @@ describe('WorkerService', () => {
                 when(mockBlockchainUtils.createAccessListForAsync(anything())).thenReject(new Error('error'));
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                     enableAccessList: true,
                 });
@@ -5728,8 +5729,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5772,7 +5773,7 @@ describe('WorkerService', () => {
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
 
@@ -5906,8 +5907,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -5934,7 +5935,7 @@ describe('WorkerService', () => {
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
                 const callback = async (
@@ -6044,8 +6045,8 @@ describe('WorkerService', () => {
                 };
                 const mockNonce = 0;
 
-                const rfqmFeeServiceMock = mock(RfqmFeeService);
-                when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(
+                const gasStationAttendantMock = mock(GasStationAttendantEthereum);
+                when(gasStationAttendantMock.getExpectedTransactionGasRateAsync()).thenResolve(
                     new BigNumber(10).shiftedBy(GWEI_DECIMALS),
                 );
                 const mockDbUtils = mock(RfqmDbUtils);
@@ -6088,7 +6089,7 @@ describe('WorkerService', () => {
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
                 const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
-                    rfqmFeeService: instance(rfqmFeeServiceMock),
+                    gasStationAttendant: instance(gasStationAttendantMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
                 });
 

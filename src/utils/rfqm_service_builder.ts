@@ -268,8 +268,6 @@ export async function buildRfqmServiceAsync(
 export async function buildWorkerServiceAsync(
     rfqmDbUtils: RfqmDbUtils,
     rfqMakerManager: RfqMakerManager,
-    tokenPriceOracle: TokenPriceOracle,
-    configManager: ConfigManager,
     chain: ChainConfiguration,
     workerIndex: number,
 ): Promise<WorkerService> {
@@ -322,22 +320,11 @@ export async function buildWorkerServiceAsync(
         throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
     }
 
-    const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
-
-    const rfqmFeeService = new RfqmFeeService(
-        chain.chainId,
-        feeTokenMetadata,
-        configManager,
-        gasStationAttendant,
-        tokenPriceOracle,
-        zeroExApiClient,
-    );
-
     const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
 
     return new WorkerService(
         chain.chainId,
-        rfqmFeeService,
+        gasStationAttendant,
         chain.registryAddress,
         rfqBlockchainUtils,
         rfqmDbUtils,

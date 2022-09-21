@@ -6,22 +6,18 @@ import * as Sentry from '@sentry/node';
 // Workaround for Sentry tracing to work: https://github.com/getsentry/sentry-javascript/issues/4731
 import '@sentry/tracing';
 import { SQS } from 'aws-sdk';
-import Axios from 'axios';
 import { Counter } from 'prom-client';
 
 import {
     ChainConfiguration,
     CHAIN_CONFIGURATIONS,
     CHAIN_ID,
-    DEFINED_FI_API_KEY,
-    DEFINED_FI_ENDPOINT,
     META_TX_WORKER_MNEMONIC,
     RFQM_WORKER_GROUP_INDEX,
     RFQM_WORKER_GROUP_SIZE,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
-    TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
 import { MetaTransactionJobEntity, RfqmV2JobEntity } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
@@ -30,14 +26,13 @@ import { RfqmTypes } from '../services/types';
 import { WorkerService } from '../services/WorkerService';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
-import { buildWorkerServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
+import { buildWorkerServiceAsync } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { startMetricsServer } from '../utils/runner_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
-import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
 const RFQM_JOB_DEQUEUED = new Counter({
     name: 'rfqm_job_dequeued',
@@ -80,8 +75,6 @@ if (require.main === module) {
         const connection = await getDbDataSourceAsync();
         const rfqmDbUtils = new RfqmDbUtils(connection);
         const rfqMakerDbUtils = new RfqMakerDbUtils(connection);
-        const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
-        const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
 
         const chain = CHAIN_CONFIGURATIONS.find((c) => c.chainId === CHAIN_ID);
         if (!chain) {
@@ -120,14 +113,7 @@ if (require.main === module) {
                 META_TX_WORKER_MNEMONIC!,
                 workerIndex,
             );
-            const workerService = await buildWorkerServiceAsync(
-                rfqmDbUtils,
-                rfqMakerManager,
-                tokenPriceOracle,
-                configManager,
-                chain,
-                workerIndex,
-            );
+            const workerService = await buildWorkerServiceAsync(rfqmDbUtils, rfqMakerManager, chain, workerIndex);
             workers.push(createGaslessSwapWorker(workerService, workerIndex, workerAddress, chain));
         }
 
