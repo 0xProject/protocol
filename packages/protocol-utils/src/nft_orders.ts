@@ -19,12 +19,10 @@ import {
     SignatureType,
 } from './signature_utils';
 
-// tslint:disable:enum-naming
 export enum TradeDirection {
     SellNFT = 0,
     BuyNFT = 1,
 }
-// tslint:enable:enum-naming
 
 export enum OrderStatus {
     Invalid = 0,

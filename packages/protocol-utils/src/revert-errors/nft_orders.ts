@@ -1,4 +1,3 @@
-// tslint:disable: max-classes-per-file
 import { Numberish, RevertError } from '@0x/utils';
 
 import { OrderStatus } from '../nft_orders';
