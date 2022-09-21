@@ -123,6 +123,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.MultiHop,
         ]),
         [ChainId.PolygonMumbai]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -223,6 +224,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
+            ERC20BridgeSource.MultiHop,
             //ERC20BridgeSource.Dodo,
         ]),
     },
@@ -279,6 +281,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Uniswap,
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.MultiHop,
         ]),
         [ChainId.PolygonMumbai]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
         [ChainId.Rinkeby]: new SourceFilters([ERC20BridgeSource.Native]),
@@ -381,6 +384,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             // ERC20BridgeSource.Synapse, // TODO: re-enable once fixed.
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
+            ERC20BridgeSource.MultiHop,
             //ERC20BridgeSource.Dodo,
         ]),
     },
