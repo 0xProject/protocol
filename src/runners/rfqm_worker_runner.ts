@@ -26,11 +26,11 @@ import {
 import { MetaTransactionJobEntity, RfqmV2JobEntity } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
-import { RfqmService } from '../services/rfqm_service';
 import { RfqmTypes } from '../services/types';
+import { WorkerService } from '../services/WorkerService';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
-import { buildRfqmServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
+import { buildWorkerServiceAsync, getAxiosRequestConfig } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
@@ -120,8 +120,7 @@ if (require.main === module) {
                 META_TX_WORKER_MNEMONIC!,
                 workerIndex,
             );
-            const rfqmService = await buildRfqmServiceAsync(
-                true,
+            const workerService = await buildWorkerServiceAsync(
                 rfqmDbUtils,
                 rfqMakerManager,
                 tokenPriceOracle,
@@ -129,7 +128,7 @@ if (require.main === module) {
                 chain,
                 workerIndex,
             );
-            workers.push(createRfqmWorker(rfqmService, workerIndex, workerAddress, chain));
+            workers.push(createGaslessSwapWorker(workerService, workerIndex, workerAddress, chain));
         }
 
         const consumeLoops: Promise<void>[] = workers.map(async (worker) => {
@@ -162,10 +161,10 @@ if (require.main === module) {
 }
 
 /**
- * Create an RFQM Worker
+ * Creates gasless swap worker
  */
-export function createRfqmWorker(
-    rfqmService: RfqmService,
+export function createGaslessSwapWorker(
+    workerService: WorkerService,
     workerIndex: number,
     workerAddress: string,
     chain: ChainConfiguration,
@@ -176,7 +175,7 @@ export function createRfqmWorker(
         workerIndex,
         workerAddress,
         sqsClient,
-        beforeHandle: async () => rfqmService.workerBeforeLogicAsync(workerIndex, workerAddress),
+        beforeHandle: async () => workerService.workerBeforeLogicAsync(workerIndex, workerAddress),
         handleMessage: async (message) => {
             RFQM_JOB_DEQUEUED.labels(workerAddress, chain.chainId.toString()).inc();
 
@@ -208,7 +207,7 @@ export function createRfqmWorker(
             }
 
             logger.info({ workerAddress, kind, identifier }, 'Job dequeued from SQS');
-            await rfqmService.processJobAsync(identifier, workerAddress, kind);
+            await workerService.processJobAsync(identifier, workerAddress, kind);
         },
     });
 

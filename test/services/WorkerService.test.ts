@@ -9,7 +9,6 @@ import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
-import { Producer as KafkaProducer } from 'kafkajs';
 import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
@@ -37,8 +36,8 @@ import {
 } from '../../src/entities/types';
 import { logger } from '../../src/logger';
 import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
-import { RfqmService } from '../../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
+import { WorkerService } from '../../src/services/WorkerService';
 import { CacheClient } from '../../src/utils/cache_client';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
@@ -60,23 +59,19 @@ const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 50;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 let loggerSpy: pino.Logger;
 
-const buildRfqmServiceForUnitTest = (
+const buildWorkerServiceForUnitTest = (
     overrides: {
         cacheClient?: CacheClient;
         dbUtils?: RfqmDbUtils;
         rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService;
         rfqMakerManager?: RfqMakerManager;
-        producer?: Producer;
         rfqmFeeService?: RfqmFeeService;
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         initialMaxPriorityFeePerGasGwei?: number;
-        kafkaProducer?: KafkaProducer;
-        quoteReportTopic?: string;
         enableAccessList?: boolean;
-        feeModelVersion?: number;
     } = {},
-): RfqmService => {
+): WorkerService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
     const quoteRequestorMock = mock(QuoteRequestor);
     when(
@@ -116,23 +111,18 @@ const buildRfqmServiceForUnitTest = (
     const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
-    return new RfqmService(
+    return new WorkerService(
         1,
         overrides.rfqmFeeService || rfqmFeeServiceInstance,
-        overrides.feeModelVersion || 0,
-        contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,
         overrides.rfqBlockchainUtils || instance(rfqBlockchainUtilsMock),
         overrides.dbUtils || instance(defaultDbUtilsMock),
-        overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
         TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || cacheClientMock,
         overrides.rfqMakerBalanceCacheService || instance(rfqMakerBalanceCacheServiceMock),
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
-        overrides.kafkaProducer,
-        overrides.quoteReportTopic,
         overrides.enableAccessList,
     );
 };
@@ -180,7 +170,7 @@ const missingByteSig = {
 
 jest.setTimeout(ONE_SECOND_MS * 120);
 
-describe('RfqmService Worker Logic', () => {
+describe('WorkerService', () => {
     beforeEach(() => {
         loggerSpy = spy(logger);
     });
@@ -278,7 +268,7 @@ describe('RfqmService Worker Logic', () => {
                 metaTransactionJob,
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(dbUtilsMock),
                 rfqBlockchainUtils: instance(blockchainUtilsMock),
                 rfqmFeeService: instance(rfqmFeeServiceMock),
@@ -298,7 +288,7 @@ describe('RfqmService Worker Logic', () => {
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findV2JobByOrderHashAsync('0xorderhash')).thenResolve(null);
 
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+            const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
             await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
             expect(capture(loggerSpy.error).last()[0]).to.include({
@@ -348,7 +338,7 @@ describe('RfqmService Worker Logic', () => {
                 }),
             );
 
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+            const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
             await rfqmService.processJobAsync('0xorderhash', '0xworkeraddress');
             expect(capture(loggerSpy.error).last()[0]).to.include({
@@ -361,7 +351,7 @@ describe('RfqmService Worker Logic', () => {
             const jobId = 'jobId';
             when(dbUtilsMock.findMetaTransactionJobByIdAsync(jobId)).thenResolve(null);
 
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+            const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
             await rfqmService.processJobAsync(jobId, '0xworkeraddress', 'meta_transaction_job');
             expect(capture(loggerSpy.error).last()[0]).to.include({
@@ -411,7 +401,7 @@ describe('RfqmService Worker Logic', () => {
             const dbUtilsMock = mock(RfqmDbUtils);
             when(dbUtilsMock.findMetaTransactionJobByIdAsync(jobId)).thenResolve(job);
 
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+            const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
 
             await rfqmService.processJobAsync(jobId, '0xworkeraddress', 'meta_transaction_job');
             expect(capture(loggerSpy.error).last()[0]).to.include({
@@ -467,7 +457,7 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
 
-            const rfqmService = buildRfqmServiceForUnitTest();
+            const rfqmService = buildWorkerServiceForUnitTest();
 
             try {
                 await rfqmService.processApprovalAndTradeAsync(job, '0xworkeraddress');
@@ -641,7 +631,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -858,7 +848,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -908,7 +898,7 @@ describe('RfqmService Worker Logic', () => {
                 jobId,
             );
 
-            const rfqmService = buildRfqmServiceForUnitTest();
+            const rfqmService = buildWorkerServiceForUnitTest();
 
             try {
                 await rfqmService.processApprovalAndTradeAsync(job, '0xworkeraddress');
@@ -1040,7 +1030,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -1217,7 +1207,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -1391,7 +1381,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -1530,7 +1520,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
             when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -1593,7 +1583,7 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
 
-            const result = RfqmService.validateRfqmV2Job(job, new Date(fakeClockMs));
+            const result = WorkerService.validateRfqmV2Job(job, new Date(fakeClockMs));
             expect(result).to.equal(null);
         });
 
@@ -1639,7 +1629,7 @@ describe('RfqmService Worker Logic', () => {
                 workerAddress: '',
             });
 
-            const result = RfqmService.validateRfqmV2Job(job, new Date(fakeClockMs));
+            const result = WorkerService.validateRfqmV2Job(job, new Date(fakeClockMs));
             expect(result).to.equal(RfqmJobStatus.FailedValidationNoTakerSignature);
         });
 
@@ -1676,7 +1666,7 @@ describe('RfqmService Worker Logic', () => {
                 'jobId',
             );
 
-            const result = RfqmService.validateMetaTransactionJob(job, new Date(fakeClockMs));
+            const result = WorkerService.validateMetaTransactionJob(job, new Date(fakeClockMs));
             expect(result).to.equal(null);
         });
 
@@ -1711,7 +1701,7 @@ describe('RfqmService Worker Logic', () => {
                 'jobId',
             );
 
-            const result = RfqmService.validateMetaTransactionJob(job, new Date(fakeClockMs + 1000000));
+            const result = WorkerService.validateMetaTransactionJob(job, new Date(fakeClockMs + 1000000));
             expect(result).to.equal(RfqmJobStatus.FailedExpired);
         });
     });
@@ -1721,19 +1711,19 @@ describe('RfqmService Worker Logic', () => {
             const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
             const newGasPrice = new BigNumber(105);
 
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(false);
+            expect(WorkerService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(false);
         });
         it('should return true if new gas price is 10% greater than previous', async () => {
             const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
             const newGasPrice = new BigNumber(110);
 
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
+            expect(WorkerService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
         });
         it('should return true if new gas price > 10% greater than previous', async () => {
             const gasFees = { maxFeePerGas: new BigNumber(100), maxPriorityFeePerGas: new BigNumber(10) };
             const newGasPrice = new BigNumber(120);
 
-            expect(RfqmService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
+            expect(WorkerService.shouldResubmitTransaction(gasFees, newGasPrice)).to.equal(true);
         });
     });
 
@@ -1785,7 +1775,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
             });
 
@@ -1840,7 +1830,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
             });
 
@@ -1900,7 +1890,7 @@ describe('RfqmService Worker Logic', () => {
             });
 
             const mockDbUtils = mock(RfqmDbUtils);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
             });
 
@@ -1940,7 +1930,7 @@ describe('RfqmService Worker Logic', () => {
             );
 
             const mockDbUtils = mock(RfqmDbUtils);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
             });
 
@@ -1985,7 +1975,7 @@ describe('RfqmService Worker Logic', () => {
             );
 
             const mockDbUtils = mock(RfqmDbUtils);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
             });
 
@@ -2064,7 +2054,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2156,7 +2146,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2238,7 +2228,7 @@ describe('RfqmService Worker Logic', () => {
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenThrow(new Error('error'));
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2320,7 +2310,7 @@ describe('RfqmService Worker Logic', () => {
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(10);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2395,7 +2385,7 @@ describe('RfqmService Worker Logic', () => {
             when(mockBlockchainUtils.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2457,7 +2447,7 @@ describe('RfqmService Worker Logic', () => {
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenThrow(new Error('error'));
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2518,7 +2508,7 @@ describe('RfqmService Worker Logic', () => {
                 MOCK_EXECUTE_META_TRANSACTION_CALLDATA,
             );
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(10);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -2587,7 +2577,7 @@ describe('RfqmService Worker Logic', () => {
 
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findV2TransactionSubmissionsByOrderHashAsync('0xorderhash')).thenResolve([]);
-            const rfqmService = buildRfqmServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
+            const rfqmService = buildWorkerServiceForUnitTest({ dbUtils: instance(mockDbUtils) });
 
             try {
                 await rfqmService.preparerfqmV2TradeAsync(expiredJob, '0xworkeraddress', true, new Date(fakeClockMs));
@@ -2658,7 +2648,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(5),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
@@ -2748,7 +2738,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -2830,7 +2820,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -2914,7 +2904,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -2999,7 +2989,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -3099,7 +3089,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -3198,7 +3188,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -3307,7 +3297,7 @@ describe('RfqmService Worker Logic', () => {
                 ),
             ).thenReturn('0xvalidcalldata');
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
             });
@@ -3398,7 +3388,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -3506,7 +3496,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
@@ -3566,7 +3556,7 @@ describe('RfqmService Worker Logic', () => {
             );
             const mockDbUtils = mock(RfqmDbUtils);
             when(mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId)).thenResolve([]);
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqmFeeService: instance(rfqmFeeServiceMock),
             });
@@ -3631,7 +3621,7 @@ describe('RfqmService Worker Logic', () => {
             ]);
             when(mockBlockchainUtils.estimateGasForAsync(anything())).thenReject(new Error('fake eth call failure'));
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqmFeeService: instance(rfqmFeeServiceMock),
@@ -3707,7 +3697,7 @@ describe('RfqmService Worker Logic', () => {
                 '0xvalidcalldata',
             );
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqmFeeService: instance(rfqmFeeServiceMock),
@@ -3774,7 +3764,7 @@ describe('RfqmService Worker Logic', () => {
                 '0xvalidcalldata',
             );
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqmFeeService: instance(rfqmFeeServiceMock),
@@ -3858,7 +3848,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(5),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
@@ -3941,7 +3931,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(5),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
@@ -4022,7 +4012,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
                 rfqMakerBalanceCacheService: instance(mockRfqMakerBalanceCacheService),
@@ -4124,7 +4114,7 @@ describe('RfqmService Worker Logic', () => {
             const mockRfqMakerManager = mock(RfqMakerManager);
             when(mockRfqMakerManager.findMakerIdWithRfqmUri(job.makerUri)).thenReturn('makerId1');
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4230,7 +4220,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4314,7 +4304,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4409,7 +4399,7 @@ describe('RfqmService Worker Logic', () => {
                 new BigNumber(1000000000),
             ]);
 
-            const rfqmService = buildRfqmServiceForUnitTest({
+            const rfqmService = buildWorkerServiceForUnitTest({
                 dbUtils: instance(mockDbUtils),
                 quoteServerClient: instance(mockQuoteServerClient),
                 rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4567,7 +4557,7 @@ describe('RfqmService Worker Logic', () => {
                         takerTokenFilledAmount: new BigNumber(5),
                     },
                 });
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4764,7 +4754,7 @@ describe('RfqmService Worker Logic', () => {
                         takerTokenFilledAmount: new BigNumber(5),
                     },
                 });
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -4963,7 +4953,7 @@ describe('RfqmService Worker Logic', () => {
                         takerTokenFilledAmount: new BigNumber(5),
                     },
                 });
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5148,7 +5138,7 @@ describe('RfqmService Worker Logic', () => {
                         takerTokenFilledAmount: new BigNumber(5),
                     },
                 });
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5260,7 +5250,7 @@ describe('RfqmService Worker Logic', () => {
                 const mockBlockchainUtils = mock(RfqBlockchainUtils);
                 when(mockBlockchainUtils.estimateGasForAsync(anything())).thenResolve(100);
                 when(mockBlockchainUtils.getReceiptsAsync(deepEqual(['0xpresubmittransactionhash']))).thenResolve([]);
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5442,7 +5432,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                     gasEstimate: 1000,
                 });
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5624,7 +5614,7 @@ describe('RfqmService Worker Logic', () => {
                     },
                 });
                 when(mockBlockchainUtils.createAccessListForAsync(anything())).thenReject(new Error('error'));
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5780,7 +5770,7 @@ describe('RfqmService Worker Logic', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -5942,7 +5932,7 @@ describe('RfqmService Worker Logic', () => {
                 ]);
                 when(mockBlockchainUtils.getBlockAsync('0xblockhash')).thenResolve(mockMinedBlock);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),
@@ -6096,7 +6086,7 @@ describe('RfqmService Worker Logic', () => {
                     mockTransactionReceipt,
                 ]);
                 when(mockBlockchainUtils.getCurrentBlockAsync()).thenResolve(4);
-                const rfqmService = buildRfqmServiceForUnitTest({
+                const rfqmService = buildWorkerServiceForUnitTest({
                     dbUtils: instance(mockDbUtils),
                     rfqmFeeService: instance(rfqmFeeServiceMock),
                     rfqBlockchainUtils: instance(mockBlockchainUtils),

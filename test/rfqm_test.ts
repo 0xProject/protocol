@@ -103,7 +103,6 @@ const SUCCESSFUL_TRANSACTION_RECEIPT = {
     transactionIndex: 5,
     type: 2,
 };
-const TEST_TRANSACTION_WATCHER_SLEEP_MS = 500;
 
 const MOCK_RFQM_JOB = new RfqmV2JobEntity({
     chainId: 1337,
@@ -310,11 +309,9 @@ describe('RFQM Integration', () => {
             dbUtils,
             sqsProducer,
             quoteServerClient,
-            TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
             rfqMakerBalanceCacheService,
             rfqMakerManager,
-            /* initialMaxPriorityFeePerGasGwei */ 2,
         );
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
@@ -333,11 +330,9 @@ describe('RFQM Integration', () => {
             dbUtils,
             sqsProducer,
             quoteServerClient,
-            TEST_TRANSACTION_WATCHER_SLEEP_MS,
             cacheClient,
             rfqMakerBalanceCacheService,
             rfqMakerManagerChainId3,
-            /* initialMaxPriorityFeePerGasGwei */ 2,
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);

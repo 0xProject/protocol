@@ -50,7 +50,6 @@ const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38
 const MOCK_TOKEN = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const MOCK_GAS_PRICE = new BigNumber(100000000000);
 const MOCK_MM_URI = 'https://mm-address';
-const TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS = 500;
 const WORKER_FULL_BALANCE_WEI = new BigNumber(1).shiftedBy(ETH_DECIMALS);
 const MOCK_INTEGRATOR: Integrator = {
     apiKeys: ['an-integrator-id'],
@@ -74,7 +73,6 @@ const buildRfqmServiceForUnitTest = (
         cacheClient?: CacheClient;
         rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService;
         rfqMakerManager?: RfqMakerManager;
-        initialMaxPriorityFeePerGasGwei?: number;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -153,11 +151,9 @@ const buildRfqmServiceForUnitTest = (
         overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
-        TEST_RFQM_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         overrides.cacheClient || instance(cacheClientMock),
         overrides.rfqMakerBalanceCacheService || rfqMakerBalanceCacheService,
         overrides.rfqMakerManager || rfqMakerManagerMock,
-        overrides.initialMaxPriorityFeePerGasGwei || 2,
     );
 };
 

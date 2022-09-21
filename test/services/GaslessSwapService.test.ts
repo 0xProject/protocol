@@ -114,11 +114,9 @@ const mockRfqmService = jest.mocked(
         {} as RfqmDbUtils,
         {} as Producer,
         {} as QuoteServerClient,
-        0,
         {} as CacheClient,
         {} as RfqMakerBalanceCacheService,
         {} as RfqMakerManager,
-        0,
     ),
 );
 

@@ -36,6 +36,7 @@ import { logger } from '../logger';
 import { RfqmFeeService } from '../services/rfqm_fee_service';
 import { RfqmService } from '../services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
+import { WorkerService } from '../services/WorkerService';
 
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
@@ -180,43 +181,20 @@ function getGasStationAttendant(
 }
 
 /**
- * Builds a single instance of RfqmService, intended to be used
- * when creating the RFQM worker.
+ * Builds a single instance of RfqmService
  */
 export async function buildRfqmServiceAsync(
-    asWorker: boolean,
     rfqmDbUtils: RfqmDbUtils,
     rfqMakerManager: RfqMakerManager,
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager,
     chain: ChainConfiguration,
-    workerIndex: number,
 ): Promise<RfqmService> {
-    let provider: SupportedProvider;
-
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
     const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
-    let ethersWallet: Wallet | undefined;
 
     const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
-    if (asWorker) {
-        if (META_TX_WORKER_MNEMONIC === undefined) {
-            throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);
-        }
-        const workerPrivateKey = RfqBlockchainUtils.getPrivateKeyFromIndexAndPhrase(
-            META_TX_WORKER_MNEMONIC,
-            workerIndex,
-        );
-
-        // TODO (rhinodavid): Remove once migration to ethers.js is complete
-        const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
-        provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);
-
-        ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${workerIndex!}`);
-        ethersWallet = ethersWallet.connect(ethersProvider);
-    } else {
-        provider = rpcProvider;
-    }
+    const provider: SupportedProvider = rpcProvider;
 
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
@@ -232,7 +210,6 @@ export async function buildRfqmServiceAsync(
         contractAddresses.exchangeProxy,
         balanceChecker,
         ethersProvider,
-        ethersWallet,
     );
 
     const sqsProducer = Producer.create({
@@ -277,13 +254,99 @@ export async function buildRfqmServiceAsync(
         rfqmDbUtils,
         sqsProducer,
         quoteServerClient,
+        cacheClient,
+        rfqMakerBalanceCacheService,
+        rfqMakerManager,
+        kafkaProducer,
+        chain.quoteReportTopic,
+    );
+}
+
+/**
+ * Builds a single instance of the WorkerService
+ */
+export async function buildWorkerServiceAsync(
+    rfqmDbUtils: RfqmDbUtils,
+    rfqMakerManager: RfqMakerManager,
+    tokenPriceOracle: TokenPriceOracle,
+    configManager: ConfigManager,
+    chain: ChainConfiguration,
+    workerIndex: number,
+): Promise<WorkerService> {
+    let provider: SupportedProvider;
+
+    // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
+    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+    let ethersWallet: Wallet | undefined;
+
+    const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
+    if (META_TX_WORKER_MNEMONIC === undefined) {
+        throw new Error(`META_TX_WORKER_MNEMONIC must be defined to run RFQM service as a worker`);
+    }
+    const workerPrivateKey = RfqBlockchainUtils.getPrivateKeyFromIndexAndPhrase(META_TX_WORKER_MNEMONIC, workerIndex);
+
+    // TODO (rhinodavid): Remove once migration to ethers.js is complete
+    const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
+    provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);
+
+    ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${workerIndex!}`);
+    ethersWallet = ethersWallet.connect(ethersProvider);
+
+    const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
+    const axiosInstance = Axios.create(getAxiosRequestConfigWithProxy());
+
+    const protocolFeeUtils = ProtocolFeeUtils.getInstance(
+        PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+        chain.gasStationUrl,
+    );
+
+    const balanceChecker = new BalanceChecker(provider);
+    const rfqBlockchainUtils = new RfqBlockchainUtils(
+        provider,
+        contractAddresses.exchangeProxy,
+        balanceChecker,
+        ethersProvider,
+        ethersWallet,
+    );
+
+    const quoteServerClient = new QuoteServerClient(axiosInstance);
+
+    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
+    await redisClient.connect();
+    const cacheClient = new CacheClient(redisClient);
+
+    const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+
+    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+    if (feeTokenMetadata === undefined) {
+        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
+    }
+
+    const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
+
+    const rfqmFeeService = new RfqmFeeService(
+        chain.chainId,
+        feeTokenMetadata,
+        configManager,
+        gasStationAttendant,
+        tokenPriceOracle,
+        zeroExApiClient,
+    );
+
+    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
+
+    return new WorkerService(
+        chain.chainId,
+        rfqmFeeService,
+        chain.registryAddress,
+        rfqBlockchainUtils,
+        rfqmDbUtils,
+        quoteServerClient,
         chain.rfqmWorkerTransactionWatcherSleepTimeMs || DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
         rfqMakerBalanceCacheService,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
-        kafkaProducer,
-        chain.quoteReportTopic,
         chain.enableAccessList,
     );
 }
@@ -331,15 +394,7 @@ export async function buildRfqmServicesAsync(
         chainConfigurations.map(async (chain) => {
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
             await rfqMakerManager.initializeAsync();
-            return buildRfqmServiceAsync(
-                asWorker,
-                rfqmDbUtils,
-                rfqMakerManager,
-                tokenPriceOracle,
-                configManager,
-                chain,
-                workerIndex,
-            );
+            return buildRfqmServiceAsync(rfqmDbUtils, rfqMakerManager, tokenPriceOracle, configManager, chain);
         }),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));
