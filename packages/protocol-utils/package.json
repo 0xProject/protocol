@@ -60,7 +60,7 @@
         "shx": "^0.2.2",
         "sinon": "^4.0.0",
         "typedoc": "~0.16.11",
-        "typescript": "*",
+        "typescript": "4.6.3",
         "web3-provider-engine": "14.0.6"
     },
     "dependencies": {

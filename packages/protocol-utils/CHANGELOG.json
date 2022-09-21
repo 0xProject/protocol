@@ -1,6 +1,6 @@
 [
     {
-        "version": "11.17.00",
+        "version": "11.16.12",
         "changes": [
             {
                 "note": "tslint -> eslint",
