@@ -29,7 +29,8 @@ export const RFQM_NUM_BUCKETS = 1000;
 // API namespaces
 export const METRICS_PATH = '/metrics';
 export const RFQM_PATH = '/rfqm/v1';
-export const RFQT_PATH = '/rfqt/v1';
+export const RFQT_V1_PATH = '/rfqt/v1'; // RFQt should be internal in general, but as v1 will be deprecated soon we won't update it.
+export const RFQT_V2_PATH = '/internal/rfqt/v2';
 export const GASLESS_SWAP_SERVICE_PATH = '/zero-gas/swap/v1';
 export const GASLESS_SWAP_SERVICE_REAL_PATH = '/zero-g/swap/v1';
 export const RFQ_MAKER_PATH = '/maker/v1';

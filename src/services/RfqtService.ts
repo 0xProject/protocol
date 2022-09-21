@@ -9,28 +9,15 @@ import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import {
-    QuoteServerPriceParams,
-    RequireOnlyOne,
-    RfqtV2PricesApiRequest,
-    RfqtV2PricesApiResponse,
-    RfqtV2QuotesApiResponse,
-} from '../types';
+import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes, RfqtV2RequestInternal } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
-
-type RfqtV2PricesApiRequestWithIntegrator = Omit<RfqtV2PricesApiRequest, 'integratorId'> & {
-    integrator: Integrator;
-};
 
 /**
  * Converts the parameters of an RFQt v2 prices request from 0x API
  * into the format needed for `QuoteServerClient` to call the market makers
  */
-function transformRfqtV2PricesParameters(
-    p: RfqtV2PricesApiRequestWithIntegrator,
-    chainId: number,
-): QuoteServerPriceParams {
+function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: number): QuoteServerPriceParams {
     const buyTokenAddress = p.makerToken;
     const sellTokenAddress = p.takerToken;
     // Typescript gymnastics with `baseUnits` to caputure the "oneof" nature--
@@ -226,7 +213,7 @@ export class RfqtService {
      * Note that by this point, 0x API should be sending the null address
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
-    public async getV2PricesAsync(parameters: RfqtV2PricesApiRequestWithIntegrator): Promise<RfqtV2PricesApiResponse> {
+    public async getV2PricesAsync(parameters: RfqtV2RequestInternal): Promise<RfqtV2Prices> {
         const { integrator, makerToken, takerToken } = parameters;
 
         // Fetch the makers active on this pair
@@ -280,10 +267,7 @@ export class RfqtService {
      *  2. Valid prices are then sent to the market makers' `/sign`
      *     endpoint to get a signed quote
      */
-    public async getV2QuotesAsync(
-        parameters: RfqtV2PricesApiRequestWithIntegrator,
-        now: Date = new Date(),
-    ): Promise<RfqtV2QuotesApiResponse> {
+    public async getV2QuotesAsync(parameters: RfqtV2RequestInternal, now: Date = new Date()): Promise<RfqtV2Quotes> {
         // TODO (rhinodavid): put a meter on this response time
         const prices = await this.getV2PricesAsync(parameters);
 
@@ -342,7 +326,7 @@ export class RfqtService {
      * into an v2 order
      */
     private _v2priceToOrder(
-        price: RfqtV2PricesApiResponse[0],
+        price: RfqtV2Prices[0],
         takerAddress: string,
         nonce: BigNumber,
         nonceBucket: BigNumber = new BigNumber(0),

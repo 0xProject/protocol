@@ -245,6 +245,7 @@ describe('Rfqt Service', () => {
             it('transforms the API request into a quote server client request for buys', async () => {
                 const request = {
                     assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
                     integrator,
                     intentOnFilling: true,
                     makerToken: '0x1',
@@ -300,6 +301,7 @@ describe('Rfqt Service', () => {
             it('transforms the API request into a quote server client request for sells', async () => {
                 const request = {
                     assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
                     integrator,
                     intentOnFilling: true,
                     makerToken: '0x1',
@@ -355,6 +357,7 @@ describe('Rfqt Service', () => {
             it('gets prices', async () => {
                 const request = {
                     assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
                     integrator,
                     intentOnFilling: true,
                     makerToken: '0x1',

@@ -2,6 +2,8 @@ import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
+import { Integrator } from './config';
+
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
         [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
@@ -107,22 +109,30 @@ export interface Eip712DataField {
  * Parameters for the request from 0x API
  * to 0x RFQ api for the RFQt v2 `prices` endpoint
  */
-export interface RfqtV2PricesApiRequest {
+export interface RfqtV2Request {
     assetFillAmount: BigNumber;
+    chainId: number;
     makerToken: string;
     marketOperation: MarketOperation;
-    takerToken: string; // expect this to be NULL_ADDRESS
-    takerAddress: string;
-    txOrigin: string; // expect this to be the taker address
+    takerToken: string;
+    takerAddress: string; // expect this to be NULL_ADDRESS
+    txOrigin?: string; // expect this to be the taker address, can be missing for /price but not /quote
     intentOnFilling: boolean;
     integratorId: string;
 }
 
 /**
- * Response format for the response to 0x API
+ * Parsed RFQt v2 request type for internal use
+ */
+export type RfqtV2RequestInternal = Omit<RfqtV2Request, 'integratorId'> & {
+    integrator: Integrator;
+};
+
+/**
+ * Format of response payload which is sent to 0x API
  * from 0x RFQ API for the RFQt v2 `prices` endpoint
  */
-export type RfqtV2PricesApiResponse = {
+export type RfqtV2Prices = {
     expiry: BigNumber;
     makerAddress: string;
     makerAmount: BigNumber;
@@ -134,10 +144,10 @@ export type RfqtV2PricesApiResponse = {
 }[];
 
 /**
- * Response format for the response to 0x API
+ * Format of response payload which is sent to 0x API
  * from 0x RFQ API for the RFQt v2 `quotes` endpoint
  */
-export type RfqtV2QuotesApiResponse = {
+export type RfqtV2Quotes = {
     fillableMakerAmount: BigNumber;
     fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
