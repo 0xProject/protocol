@@ -3,13 +3,12 @@ import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
-import * as _ from 'lodash';
 
 import { ContractAddresses } from '../asset-swapper';
 import { CHAIN_ID, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
 import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import { MetaTransactionQuoteParams, GetSwapQuoteResponse, QuoteBase, MetaTransactionQuoteResponse } from '../types';
-import { quoteReportUtils } from '../utils/quote_report_utils';
+import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
 
 export interface MetaTransactionQuoteResult extends QuoteBase {
@@ -133,7 +132,7 @@ export class MetaTransactionService {
         // Quote Report
         if (endpoint === 'quote' && quote.extendedQuoteReportSources && kafkaProducer) {
             const quoteId = getQuoteIdFromSwapQuote(quote);
-            quoteReportUtils.publishQuoteReport(
+            publishQuoteReport(
                 {
                     quoteId,
                     taker: params.takerAddress,
