@@ -617,7 +617,7 @@ describe('GaslessSwapService', () => {
                     },
                     'integratorId',
                 ),
-            ).rejects.toThrowError('invalid signer address');
+            ).rejects.toThrow(ValidationError);
         });
 
         it('fails if taker balance is too low', async () => {
@@ -635,7 +635,7 @@ describe('GaslessSwapService', () => {
                     },
                     'integratorId',
                 ),
-            ).rejects.toThrowError('balance is too low');
+            ).rejects.toThrow(ValidationError);
         });
 
         it('creates a metatransaction job', async () => {

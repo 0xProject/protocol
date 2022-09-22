@@ -406,7 +406,13 @@ export class GaslessSwapService {
                 },
                 'Received submission with signer mismatch',
             );
-            throw new Error('invalid signer address');
+            throw new ValidationError([
+                {
+                    field: 'signature',
+                    code: ValidationErrorCodes.InvalidSignatureOrHash,
+                    reason: `signature is not valid`,
+                },
+            ]);
         }
 
         // Validate that order is fillable according to balance and/or allowance.
@@ -429,7 +435,13 @@ export class GaslessSwapService {
                 },
                 'Balance check failed while user was submitting',
             );
-            throw new Error('taker balance is too low');
+            throw new ValidationError([
+                {
+                    field: 'n/a',
+                    code: ValidationErrorCodes.InvalidOrder,
+                    reason: `order is not fillable`,
+                },
+            ]);
         }
 
         const rfqmApprovalOpts = params.approval
