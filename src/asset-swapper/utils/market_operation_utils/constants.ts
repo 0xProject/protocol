@@ -1134,7 +1134,7 @@ const CURVE_TRI_BTC_POOL_TOKEN = [MAINNET_TOKENS.RenBTC, MAINNET_TOKENS.WBTC, MA
 const CURVE_POLYGON_ATRICRYPTO_UNDERLYING_TOKENS = [POLYGON_TOKENS.DAI, POLYGON_TOKENS.USDC, POLYGON_TOKENS.USDT];
 const CURVE_POLYGON_ATRICRYPTO_TOKENS = [POLYGON_TOKENS.amDAI, POLYGON_TOKENS.amUSDC, POLYGON_TOKENS.amUSDT];
 const CURVE_FANTOM_TWO_POOL_TOKENS = [FANTOM_TOKENS.DAI, FANTOM_TOKENS.USDC];
-const CURVE_ARBITRUM_TWO_POOL_TOKENS = [FANTOM_TOKENS.USDC, FANTOM_TOKENS.USDT];
+const CURVE_ARBITRUM_TWO_POOL_TOKENS = [ARBITRUM_TOKENS.USDC, ARBITRUM_TOKENS.USDT];
 
 const createCurveExchangePool = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
     exchangeFunctionSelector: CurveFunctionSelectors.exchange,
@@ -1187,8 +1187,8 @@ const createCurveMetaTwoPoolFantom = (info: { tokens: string[]; pool: string; ga
 });
 
 const createCurveMetaTwoPoolArbitrum = (info: { tokens: string[]; pool: string; gasSchedule: number }) => ({
-    exchangeFunctionSelector: CurveFunctionSelectors.exchange,
-    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy,
+    exchangeFunctionSelector: CurveFunctionSelectors.exchange_underlying,
+    sellQuoteFunctionSelector: CurveFunctionSelectors.get_dy_underlying,
     buyQuoteFunctionSelector: CurveFunctionSelectors.None,
     tokens: [...info.tokens, ...CURVE_ARBITRUM_TWO_POOL_TOKENS],
     metaTokens: info.tokens,
@@ -1650,22 +1650,21 @@ export const CURVE_V2_ARBITRUM_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_V2_ARBITRUM_POOLS.twoPool,
         gasSchedule: 400e3,
     }),
-    //to do resolve curve pools function selector issues
-    // [CURVE_V2_ARBITRUM_POOLS.MIM]: createCurveMetaTwoPoolArbitrum({
-    //     tokens: [ARBITRUM_TOKENS.MIM],
-    //     pool: CURVE_V2_ARBITRUM_POOLS.MIM,
-    //     gasSchedule: 700e3,
-    // }),
-    // [CURVE_V2_ARBITRUM_POOLS.fraxBP]: createCurveExchangeV2Pool({
-    //     tokens: [ARBITRUM_TOKENS.FRAX, ARBITRUM_TOKENS.USDC],
-    //     pool: CURVE_V2_ARBITRUM_POOLS.fraxBP,
-    //     gasSchedule: 700e3,
-    // }),
-    // [CURVE_V2_ARBITRUM_POOLS.vstFrax]: createCurveExchangeV2Pool({
-    //     tokens: [ARBITRUM_TOKENS.VST, ARBITRUM_TOKENS.FRAX],
-    //     pool: CURVE_V2_ARBITRUM_POOLS.vstFrax,
-    //     gasSchedule: 700e3,
-    // }),
+    [CURVE_V2_ARBITRUM_POOLS.MIM]: createCurveMetaTwoPoolArbitrum({
+        tokens: [ARBITRUM_TOKENS.MIM],
+        pool: CURVE_V2_ARBITRUM_POOLS.MIM,
+        gasSchedule: 400e3,
+    }),
+    [CURVE_V2_ARBITRUM_POOLS.fraxBP]: createCurveExchangePool({
+        tokens: [ARBITRUM_TOKENS.FRAX, ARBITRUM_TOKENS.USDC],
+        pool: CURVE_V2_ARBITRUM_POOLS.fraxBP,
+        gasSchedule: 200e3,
+    }),
+    [CURVE_V2_ARBITRUM_POOLS.vstFrax]: createCurveExchangePool({
+        tokens: [ARBITRUM_TOKENS.VST, ARBITRUM_TOKENS.FRAX],
+        pool: CURVE_V2_ARBITRUM_POOLS.vstFrax,
+        gasSchedule: 200e3,
+    }),
 };
 
 export const BELT_BSC_INFOS: { [name: string]: CurveInfo } = {
