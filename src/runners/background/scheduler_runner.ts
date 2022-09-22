@@ -6,6 +6,7 @@ import { pino } from '@0x/api-utils';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 
+import backgroundJobLiquidityMonitor from '../../background-jobs/liquidity_montior';
 import backgroundJobMBCEvict from '../../background-jobs/maker_balance_cache_evict';
 import backgroundJobMBCUpdate from '../../background-jobs/maker_balance_cache_update';
 import backgroundJobNoOp from '../../background-jobs/no_op';
@@ -62,12 +63,10 @@ if (require.main === module) {
         // Prepare Redis connections
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!);
         connections.push(connection);
-        // Prepare queues
-        const noOpBackgroundJobQueue = new Queue(backgroundJobNoOp.queueName, { connection });
+
+        // Maker Balance Cache
         const mbcEvictBackgroundJobQueue = new Queue(backgroundJobMBCEvict.queueName, { connection });
         const mbcUpdateBackgroundJobQueue = new Queue(backgroundJobMBCUpdate.queueName, { connection });
-
-        // Construct update and evict jobs for Maker Balance Cache
         const mbcChains = CHAIN_CONFIGURATIONS.filter((chain) => chain.enableMakerBalanceCache === true);
         const mbcJobs = mbcChains.flatMap((chain) => {
             const chainId = chain.chainId;
@@ -78,12 +77,28 @@ if (require.main === module) {
         });
 
         const schedule: ScheduledBackgroundJob[] = [
+            // No-op
             {
                 schedule: backgroundJobNoOp.schedule,
                 func: async () => {
-                    await backgroundJobNoOp.createAsync(noOpBackgroundJobQueue, { timestamp: Date.now() });
+                    await backgroundJobNoOp.createAsync(new Queue(backgroundJobNoOp.queueName, { connection }), {
+                        timestamp: Date.now(),
+                    });
                 },
             },
+            // Liquidity Montior
+            {
+                schedule: backgroundJobLiquidityMonitor.schedule,
+                func: async () => {
+                    await backgroundJobLiquidityMonitor.createAsync(
+                        new Queue(backgroundJobLiquidityMonitor.queueName, { connection }),
+                        {
+                            timestamp: Date.now(),
+                        },
+                    );
+                },
+            },
+            // Maker Balance Cache
             ...mbcJobs,
         ];
 
