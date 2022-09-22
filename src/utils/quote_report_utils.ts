@@ -32,20 +32,15 @@ interface QuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     submissionBy: 'taker';
     decodedUniqueId: string;
 }
-interface QuoteReportForMetaTxn extends QuoteReportLogOptionsBase {
-    quoteReport: QuoteReport;
-    submissionBy: 'metaTxn';
-    zeroExTransactionHash: string;
-}
 interface ExtendedQuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
     quoteReportSources: ExtendedQuoteReportSources;
     submissionBy: 'taker';
     decodedUniqueId: string;
 }
-interface ExtendedQuoteReportForMetaTxn extends QuoteReportLogOptionsBase {
+interface ExtendedQuoteReportForGaslessSwapAmm extends QuoteReportLogOptionsBase {
     quoteReportSources: ExtendedQuoteReportSources;
-    submissionBy: 'metaTxn';
-    zeroExTransactionHash: string;
+    submissionBy: 'gaslessSwapAmm';
+    decodedUniqueId: string;
 }
 
 export interface WrappedSignedNativeOrderMM {
@@ -53,8 +48,7 @@ export interface WrappedSignedNativeOrderMM {
     makerUri: string;
 }
 
-type QuoteReportLogOptions = QuoteReportForTakerTxn | QuoteReportForMetaTxn;
-type ExtendedQuoteReportLogOptions = ExtendedQuoteReportForTakerTxn | ExtendedQuoteReportForMetaTxn;
+type ExtendedQuoteReportLogOptions = ExtendedQuoteReportForTakerTxn | ExtendedQuoteReportForGaslessSwapAmm;
 
 const BIPS_IN_INT = 10000;
 
@@ -80,7 +74,7 @@ const getTimestampFromUniqueId = (decodedUniqueId: string): number => {
 };
 
 export const quoteReportUtils = {
-    logQuoteReport(logOpts: QuoteReportLogOptions, contextLogger?: PinoLogger): void {
+    logQuoteReport(logOpts: QuoteReportForTakerTxn, contextLogger?: PinoLogger): void {
         const _logger = contextLogger ? contextLogger : logger;
         // NOTE: Removes bridge report fillData which we do not want to log to Kibana
         const qr: QuoteReport = {
@@ -101,9 +95,7 @@ export const quoteReportUtils = {
             blockNumber: logOpts.blockNumber?.toString(),
             estimatedGas: logOpts.estimatedGas.toString(),
         };
-        if (logOpts.submissionBy === 'metaTxn') {
-            logBase = { ...logBase, zeroExTransactionHash: logOpts.zeroExTransactionHash };
-        } else if (logOpts.submissionBy === 'taker') {
+        if (logOpts.submissionBy === 'taker' || logOpts.submissionBy === 'gaslessSwapAmm') {
             logBase = { ...logBase, decodedUniqueId: logOpts.decodedUniqueId };
         }
 
@@ -142,8 +134,10 @@ export const quoteReportUtils = {
                 sellTokenAddress: logOpts.sellTokenAddress,
                 integratorId: logOpts.integratorId,
                 slippageBips: logOpts.slippage ? logOpts.slippage * BIPS_IN_INT : undefined,
-                zeroExTransactionHash: logOpts.submissionBy === 'metaTxn' ? logOpts.zeroExTransactionHash : undefined,
-                decodedUniqueId: logOpts.submissionBy === 'taker' ? logOpts.decodedUniqueId : undefined,
+                decodedUniqueId:
+                    logOpts.submissionBy === 'taker' || logOpts.submissionBy === 'gaslessSwapAmm'
+                        ? logOpts.decodedUniqueId
+                        : undefined,
                 sourcesConsidered: logOpts.quoteReportSources.sourcesConsidered.map(jsonifyFillData),
                 sourcesDelivered: logOpts.quoteReportSources.sourcesDelivered?.map(jsonifyFillData),
                 blockNumber: logOpts.blockNumber,

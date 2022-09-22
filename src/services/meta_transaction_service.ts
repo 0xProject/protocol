@@ -138,7 +138,7 @@ export class MetaTransactionService {
                     quoteId,
                     taker: params.takerAddress,
                     quoteReportSources: quote.extendedQuoteReportSources,
-                    submissionBy: 'taker',
+                    submissionBy: 'gaslessSwapAmm',
                     decodedUniqueId: params.quoteUniqueId ? params.quoteUniqueId : quote.decodedUniqueId,
                     buyTokenAddress: quote.buyTokenAddress,
                     sellTokenAddress: quote.sellTokenAddress,
