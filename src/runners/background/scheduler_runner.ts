@@ -6,7 +6,7 @@ import { pino } from '@0x/api-utils';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 
-import backgroundJobLiquidityMonitor from '../../background-jobs/liquidity_montior';
+import backgroundJobLiquidityMonitor from '../../background-jobs/liquidity_monitor';
 import backgroundJobMBCEvict from '../../background-jobs/maker_balance_cache_evict';
 import backgroundJobMBCUpdate from '../../background-jobs/maker_balance_cache_update';
 import backgroundJobNoOp from '../../background-jobs/no_op';
