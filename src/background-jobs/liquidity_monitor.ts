@@ -38,13 +38,6 @@ export interface BackgroundJobLiquidityMonitorResult {
     timestamp: number;
 }
 
-const devApiKey = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.apiKeys[0];
-if (!devApiKey) {
-    throw new Error('[liquidity montior] Unable to get API key');
-}
-
-const axiosInstance = axios.create({ headers: { '0x-api-key': devApiKey } });
-
 const backgroundJobLiquidityMonitor: BackgroundJobBlueprint<
     BackgroundJobLiquidityMonitorData,
     BackgroundJobLiquidityMonitorResult
@@ -70,7 +63,7 @@ enum Status {
     LiquidityAvailable,
 }
 
-const LIQUIDITY_MONITOR_GUAGE = new Gauge({
+const LIQUIDITY_MONITOR_GAUGE = new Gauge({
     name: 'liquidity_monitor_gauge',
     labelNames: [
         'pair',
@@ -95,11 +88,18 @@ async function createAsync(
 }
 
 /**
- * The logic that runs to check liquidity and update the guage.
+ * The logic that runs to check liquidity and update the gauge.
  */
 async function processAsync(
     job: Job<BackgroundJobLiquidityMonitorData, BackgroundJobLiquidityMonitorResult>,
 ): Promise<BackgroundJobLiquidityMonitorResult> {
+    const devApiKey = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.apiKeys[0];
+    if (!devApiKey) {
+        throw new Error('[liquidity montior] Unable to get API key');
+    }
+
+    const axiosInstance = axios.create({ headers: { '0x-api-key': devApiKey } });
+
     await job.updateProgress(0);
     logger.info(
         { jobName: job.name, queue: job.queueName, data: job.data, timestamp: Date.now() },
@@ -108,14 +108,15 @@ async function processAsync(
 
     // Starting off simple here with a handcoded check of RFQm and zero/g polygon WMATIC->USDC
     // Later, we can add more pairs and more sources.
-
     const wmaticPolygon = '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270';
     const usdcPowPolygon = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 
-    try {
-        const { data: response } = await axiosInstance.get<{ liquidityAvailable: boolean }>(
-            'https://polygon.api.0x.org/rfqm/v1/quote',
-            {
+    [
+        { source: 'rfqm', url: 'https://polygon.api.0x.org/rfqm/v1/quote' },
+        { source: 'zero/g', url: 'https://polygon.api.0x.org/zero-gas/swap/v1/quote' },
+    ].forEach(async ({ source, url }) => {
+        try {
+            const { data: response } = await axiosInstance.get<{ liquidityAvailable: boolean }>(url, {
                 params: {
                     buyToken: wmaticPolygon,
                     sellToken: usdcPowPolygon,
@@ -125,19 +126,20 @@ async function processAsync(
                 headers: {
                     '0x-chain-id': '137',
                 },
-            },
-        );
-        if (!response.hasOwnProperty('liquidityAvailable')) {
-            throw new Error('Malformed response');
+            });
+            if (!response.hasOwnProperty('liquidityAvailable')) {
+                throw new Error('Malformed response');
+            }
+            const { liquidityAvailable: isLiquidityAvailable } = response;
+            LIQUIDITY_MONITOR_GAUGE.labels('WMATIC-USDC', source, '137').set(
+                isLiquidityAvailable ? Status.LiquidityAvailable : Status.NoLiquidityAvailable,
+            );
+        } catch (e) {
+            const errorJson = axios.isAxiosError(e) ? e.toJSON() : null;
+            logger.error({ message: e.message, axiosErrorJson: errorJson }, 'Liquidity check failed');
+            LIQUIDITY_MONITOR_GAUGE.labels('WMATIC-USDC', source, '137').set(Status.Fail);
         }
-        const { liquidityAvailable: isLiquidityAvailable } = response;
-        LIQUIDITY_MONITOR_GUAGE.labels('WMATIC-USDC', 'rfqm', '137').set(
-            isLiquidityAvailable ? Status.LiquidityAvailable : Status.NoLiquidityAvailable,
-        );
-    } catch (e) {
-        logger.error({ message: e.message }, 'Liqudity check failed');
-        LIQUIDITY_MONITOR_GUAGE.labels('WMATIC-USDC', 'rfqm', '137').set(Status.Fail);
-    }
+    });
 
     // tslint:disable-next-line: custom-no-magic-numbers
     await job.updateProgress(100);
