@@ -15,7 +15,7 @@ export interface ExtendedQuoteReport {
     taker?: string;
     timestamp: number;
     firmQuoteReport: boolean;
-    submissionBy: 'taker' | 'metaTxn' | 'rfqm' | 'gaslessSwap';
+    submissionBy: 'taker' | 'metaTxn' | 'rfqm' | 'gaslessSwapRfq' | 'gaslessSwapAmm';
     buyAmount?: string;
     sellAmount?: string;
     buyTokenAddress: string;
