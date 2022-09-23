@@ -69,6 +69,7 @@ enum Status {
     Fail = 0,
     NoLiquidityAvailable,
     LiquidityAvailable,
+    Timeout,
 }
 
 const LIQUIDITY_MONITOR_GAUGE = new Gauge({
@@ -185,7 +186,9 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
             .getRepository(RfqMaker)
             .findOne({ select: { rfqmUri: true }, where: { makerId: maker.makerId, chainId: params.chainId } });
         if (!makerRecord) {
-            throw new Error(`Unable to find maker record with label ${label}`);
+            throw new Error(
+                `Unable to find maker record with label ${label} and ID ${maker.makerId} on chain ${params.chainId}`,
+            );
         }
         const url = makerRecord.rfqmUri;
         if (!url) {
@@ -323,7 +326,22 @@ async function processAsync(
                 );
             } catch (e) {
                 const errorJson = axios.isAxiosError(e) ? e.toJSON() : null;
-                logger.error({ message: e.message, axiosErrorJson: errorJson }, 'Liquidity check failed');
+                // Check for timeout
+                // See https://github.com/axios/axios/issues/1174#issuecomment-349014752
+                if (e.response.status === HttpStatus.REQUEST_TIMEOUT || e.code === 'ECONNABORTED') {
+                    logger.warn(
+                        { axiosErrorJson: errorJson, code: e.code, message: e.message, status: e.response?.status },
+                        'Timeout checking market maker',
+                    );
+                    LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
+                        Status.Timeout,
+                    );
+                    return;
+                }
+                logger.error(
+                    { axiosErrorJson: errorJson, code: e.code, message: e.message, status: e.response?.status },
+                    'Liquidity check failed',
+                );
                 LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
                     Status.Fail,
                 );
