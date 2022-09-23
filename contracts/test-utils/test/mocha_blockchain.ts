@@ -4,6 +4,7 @@ import * as process from 'process';
 import { expect } from '../src/chai_setup';
 import { constants } from '../src/constants';
 import { blockchainTests, describe } from '../src/mocha_blockchain';
+import { append } from './subtests/mocha_blockchain_1';
 
 blockchainTests('mocha blockchain extensions', env => {
     describe('blockchainTests()', () => {
@@ -78,7 +79,7 @@ blockchainTests('mocha blockchain extensions', env => {
         });
 
         describe('subtests', () => {
-            require('./subtests/mocha_blockchain_1').append(env);
+            append(env);
         });
     });
 
