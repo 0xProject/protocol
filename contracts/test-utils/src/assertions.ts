@@ -104,7 +104,7 @@ export async function expectTransactionFailedAsync(p: sendTransactionResult, rea
     }
     const rejectionMessageRegex = new RegExp(`^VM Exception while processing transaction: revert ${reason}$`);
     switch (nodeType) {
-        case NodeType.Ganache:        
+        case NodeType.Ganache:
             return expect(p).to.be.rejectedWith(rejectionMessageRegex);
         case NodeType.Geth:
             logUtils.warn(
