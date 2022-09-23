@@ -91,7 +91,7 @@ export function getAxiosRequestConfig(timeout: number = DEFAULT_AXIOS_TIMEOUT): 
 /**
  * Creates the Axios Request Config with egress proxy
  */
-function getAxiosRequestConfigWithProxy(): AxiosRequestConfig {
+export function getAxiosRequestConfigWithProxy(): AxiosRequestConfig {
     const axiosRequestConfig: AxiosRequestConfig = getAxiosRequestConfig();
     if (RFQ_PROXY_ADDRESS !== undefined && RFQ_PROXY_PORT !== undefined) {
         axiosRequestConfig.proxy = {

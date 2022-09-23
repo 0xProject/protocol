@@ -11,6 +11,7 @@ import { NULL_ADDRESS } from '../constants';
 import { RfqMaker } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
+import { getAxiosRequestConfigWithProxy } from '../utils/rfqm_service_builder';
 
 import { BackgroundJobBlueprint } from './blueprint';
 
@@ -203,7 +204,7 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
         }
         const nativeWrappedTokenAddress = nativeWrappedTokenMetadata.tokenAddress;
 
-        const axiosInstance = axios.create();
+        const axiosInstance = axios.create(getAxiosRequestConfigWithProxy());
         const response = await axiosInstance.get(`${url}/rfqm/v2/price`, {
             params: {
                 buyAmountBaseUnits: params.buyAmount,
@@ -278,7 +279,7 @@ async function processAsync(
     /////////////////////////////////////////////////////
 
     const wmaticUsdcPolygonCheck = {
-        buyAmount: '10000000000',
+        buyAmount: '1000000000000000000', // 1 WMATIC | 18 decimals
         buyToken: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
         chainId: 137,
         checks: [
@@ -291,6 +292,8 @@ async function processAsync(
                 source: 'zero/g',
             },
             { checkerFunction: createCheckMarketMaker('Altonomy', dataSource), source: 'altonomy' },
+            { checkerFunction: createCheckMarketMaker('Jump', dataSource), source: 'jump' },
+            { checkerFunction: createCheckMarketMaker('Wintermute', dataSource), source: 'wintermute' },
         ],
         feeAmount: '0',
         pair: 'WMATIC-USDC',
