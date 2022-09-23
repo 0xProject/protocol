@@ -294,7 +294,7 @@ blockchainTests.resets('MultiplexFeature', env => {
         };
     }
 
-    function getUniswapV2MultiHopSubcall(tokens: string[], isSushi: boolean = false): MultiHopSellSubcall {
+    function getUniswapV2MultiHopSubcall(tokens: string[], isSushi = false): MultiHopSellSubcall {
         const uniswapDataEncoder = AbiEncoder.create([
             { name: 'tokens', type: 'address[]' },
             { name: 'isSushi', type: 'bool' },
@@ -307,7 +307,7 @@ blockchainTests.resets('MultiplexFeature', env => {
     function getUniswapV2BatchSubcall(
         tokens: string[],
         sellAmount: BigNumber = getRandomInteger(1, toBaseUnitAmount(1)),
-        isSushi: boolean = false,
+        isSushi = false,
     ): BatchSellSubcall {
         return {
             ...getUniswapV2MultiHopSubcall(tokens, isSushi),

@@ -386,7 +386,7 @@ async function getMainnetContractAsync(): Promise<wrappers.IZeroExContract> {
     const proxyFunctions = await querySubgraphAsync();
     const deployments = reconstructDeployments(proxyFunctions);
 
-    while (true) {
+    for (;;) {
         const { action } = await prompts({
             type: 'select',
             name: 'action',
