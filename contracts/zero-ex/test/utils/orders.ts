@@ -34,7 +34,7 @@ interface RfqOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
     takerTokenFilledAmount: BigNumber;
 }
-type OtcOrderFilledAmounts = RfqOrderFilledAmounts
+type OtcOrderFilledAmounts = RfqOrderFilledAmounts;
 
 interface LimitOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
