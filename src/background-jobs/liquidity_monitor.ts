@@ -214,7 +214,7 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
                 feeType: 'fixed',
                 isLastLook: true,
                 protocolVersion: 4,
-                sellToken: params.sellToken,
+                sellTokenAddress: params.sellToken,
                 takerAddress: NULL_ADDRESS,
                 txOrigin: registryAddress,
             },
