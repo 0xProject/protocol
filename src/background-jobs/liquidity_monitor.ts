@@ -1,8 +1,15 @@
-import axios, { AxiosInstance } from 'axios';
+import { getTokenMetadataIfExists, nativeWrappedTokenSymbol } from '@0x/token-metadata';
+import axios from 'axios';
 import { Job, Queue } from 'bullmq';
+import * as HttpStatus from 'http-status-codes';
 import { Gauge } from 'prom-client';
+import { DataSource } from 'typeorm';
+import * as uuid from 'uuid';
 
-import { INTEGRATORS_ACL } from '../config';
+import { CHAIN_CONFIGURATIONS, INTEGRATORS_ACL, RFQ_MAKER_CONFIGS } from '../config';
+import { NULL_ADDRESS } from '../constants';
+import { RfqMaker } from '../entities';
+import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
 
 import { BackgroundJobBlueprint } from './blueprint';
@@ -95,22 +102,21 @@ interface PairCheck {
     feeAmount: string;
     pair: string; // buy token - sell token, e.g. WETH-USDT
     sellToken: string; // contract address
-    takerAddress: string;
 }
 
 /**
  * A function containing the information needed to execute a liquidity
- * check against a 0x API endpoint or a market maker quote server endpoint
+ * check against a 0x API endpoint or a market maker quote server endpoint.
+ *
+ * Returns `true` if liquidity is available.
  */
 type CheckerFunction = (parameters: {
-    axiosInstance: AxiosInstance;
     buyAmount: string;
     buyToken: string;
     chainId: number;
     feeAmount?: string;
     sellToken: string;
-    takerAddress: string;
-}) => Promise<{ liquidityAvailable: boolean }>;
+}) => Promise<boolean>;
 
 /**
  * Creates a checker function to check top-level 0x API endpoints
@@ -118,25 +124,125 @@ type CheckerFunction = (parameters: {
  */
 function createCheckProduct(url: string): CheckerFunction {
     return async (params: {
-        axiosInstance: AxiosInstance;
         buyAmount: string;
         buyToken: string;
         chainId: number;
         sellToken: string;
-        takerAddress: string;
-    }): Promise<{ liquidityAvailable: boolean }> => {
-        const response = await params.axiosInstance.get<{ liquidityAvailable: boolean }>(url, {
+    }): Promise<boolean> => {
+        const devApiKey = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.apiKeys[0];
+        if (!devApiKey) {
+            throw new Error('[liquidity montior] Unable to get API key');
+        }
+        const axiosInstance = axios.create();
+        const response = await axiosInstance.get<{ liquidityAvailable: boolean }>(url, {
             params: {
                 buyToken: params.buyToken,
                 sellToken: params.sellToken,
                 buyAmount: params.buyAmount,
-                takerAddress: params.takerAddress,
+                takerAddress: '0x4Ea754349AcE5303c82f0d1D491041e042f2ad22', // dev reserve
             },
             headers: {
+                '0x-api-key': devApiKey,
                 '0x-chain-id': params.chainId.toString(),
             },
         });
-        return response.data;
+
+        if (response.status !== HttpStatus.OK) {
+            return false;
+        }
+        const body = response.data;
+        if (!body.hasOwnProperty('liquidityAvailable')) {
+            throw new Error('Malformed response');
+        }
+        return body.liquidityAvailable;
+    };
+}
+
+/**
+ * Creates a checker function to check a market maker's rfqm
+ * quote server
+ */
+function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerFunction {
+    const maker = RFQ_MAKER_CONFIGS.find((m) => m.label.toLowerCase() === label.toLowerCase());
+    if (!maker) {
+        throw new Error(`Unable to find maker configuration with label ${label}`);
+    }
+
+    return async (params: {
+        buyAmount: string;
+        buyToken: string;
+        chainId: number;
+        feeAmount?: string;
+        sellToken: string;
+    }): Promise<boolean> => {
+        const devIntegratorId = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.integratorId;
+        if (!devIntegratorId) {
+            throw new Error('[liquidity montior] Unable to get 0x integrator id');
+        }
+
+        const makerRecord = await dataSource
+            .getRepository(RfqMaker)
+            .findOne({ select: { rfqmUri: true }, where: { makerId: maker.makerId, chainId: params.chainId } });
+        if (!makerRecord) {
+            throw new Error(`Unable to find maker record with label ${label}`);
+        }
+        const url = makerRecord.rfqmUri;
+        if (!url) {
+            throw new Error(`No rfqmUri exists for maker with label ${label}`);
+        }
+
+        const registryAddress = CHAIN_CONFIGURATIONS.find((chain) => chain.chainId === params.chainId)?.registryAddress;
+        if (!registryAddress) {
+            throw new Error(`Cannot find registry address for chain ${params.chainId}`);
+        }
+
+        const nativeWrappedTokenSymbolValue = nativeWrappedTokenSymbol(params.chainId);
+        const nativeWrappedTokenMetadata = getTokenMetadataIfExists(nativeWrappedTokenSymbolValue, params.chainId);
+        if (!nativeWrappedTokenMetadata) {
+            throw new Error(`Cannot find native token data for chain ${params.chainId}`);
+        }
+        const nativeWrappedTokenAddress = nativeWrappedTokenMetadata.tokenAddress;
+
+        const axiosInstance = axios.create();
+        const response = await axiosInstance.get(`${url}/rfqm/v2/price`, {
+            params: {
+                buyAmountBaseUnits: params.buyAmount,
+                buyTokenAddress: params.buyToken,
+                chainId: params.chainId,
+                feeAmount: params.feeAmount ?? '0',
+                feeToken: nativeWrappedTokenAddress,
+                feeType: 'fixed',
+                isLastLook: true,
+                protocolVersion: 4,
+                sellToken: params.sellToken,
+                takerAddress: NULL_ADDRESS,
+                txOrigin: registryAddress,
+            },
+            headers: {
+                '0x-chain-id': params.chainId.toString(),
+                '0x-integrator-id': devIntegratorId,
+                '0x-request-uuid': uuid.v4(),
+            },
+        });
+
+        if (response.status !== HttpStatus.OK) {
+            return false;
+        }
+
+        // Check a few properties that should be present
+        const body = response.data;
+        if (body === undefined) {
+            return false;
+        }
+        if (
+            !body.hasOwnProperty('expiry') ||
+            !body.hasOwnProperty('makerToken') ||
+            !body.hasOwnProperty('takerToken')
+        ) {
+            logger.error({ responseBody: body }, 'Malformed response from market maker');
+            throw new Error('Malformed response');
+        }
+        return true;
     };
 }
 
@@ -160,24 +266,19 @@ async function createAsync(
 async function processAsync(
     job: Job<BackgroundJobLiquidityMonitorData, BackgroundJobLiquidityMonitorResult>,
 ): Promise<BackgroundJobLiquidityMonitorResult> {
-    const devApiKey = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.apiKeys[0];
-    if (!devApiKey) {
-        throw new Error('[liquidity montior] Unable to get API key');
-    }
-
-    const axiosInstance = axios.create({ headers: { '0x-api-key': devApiKey } });
-
     logger.info(
         { jobName: job.name, queue: job.queueName, data: job.data, timestamp: Date.now() },
         'Processing liquidity monitor job',
     );
+
+    const dataSource = await getDbDataSourceAsync();
 
     /////////////////////////////////////////////////////
     // ADD NEW CHECKS HERE
     /////////////////////////////////////////////////////
 
     const wmaticUsdcPolygonCheck = {
-        buyAmount: '1000000',
+        buyAmount: '10000000000',
         buyToken: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
         chainId: 137,
         checks: [
@@ -189,11 +290,11 @@ async function processAsync(
                 checkerFunction: createCheckProduct('https://polygon.api.0x.org/zero-gas/swap/v1/quote'),
                 source: 'zero/g',
             },
+            { checkerFunction: createCheckMarketMaker('Altonomy', dataSource), source: 'altonomy' },
         ],
         feeAmount: '0',
         pair: 'WMATIC-USDC',
         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-        takerAddress: '0x4Ea754349AcE5303c82f0d1D491041e042f2ad22',
     };
 
     const pairChecks: PairCheck[] = [wmaticUsdcPolygonCheck];
@@ -207,18 +308,13 @@ async function processAsync(
     pairChecks.forEach((pairCheck) => {
         pairCheck.checks.forEach(async (check) => {
             try {
-                const result = await check.checkerFunction({
-                    axiosInstance,
+                const isLiquidityAvailable = await check.checkerFunction({
                     buyAmount: pairCheck.buyAmount,
                     buyToken: pairCheck.buyToken,
                     chainId: pairCheck.chainId,
                     sellToken: pairCheck.sellToken,
-                    takerAddress: pairCheck.takerAddress,
                 });
-                if (!result.hasOwnProperty('liquidityAvailable')) {
-                    throw new Error('Malformed response');
-                }
-                const { liquidityAvailable: isLiquidityAvailable } = result;
+
                 LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
                     isLiquidityAvailable ? Status.LiquidityAvailable : Status.NoLiquidityAvailable,
                 );
