@@ -1,3 +1,4 @@
+// tslint:disable:max-file-line-count
 import {
     InternalServerError,
     InvalidAPIKeyError,
@@ -36,6 +37,9 @@ import {
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../utils/schema_utils';
+
+// Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
+const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%
 
 // If the cache is more milliseconds old than the value specified here, it will be refreshed.
 const HEALTH_CHECK_RESULT_CACHE_DURATION_MS = 30000;
@@ -323,6 +327,19 @@ export class GaslessSwapHandlers {
         const sellAmount =
             req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount as string);
         const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
+        const slippagePercentage =
+            req.query.slippagePercentage === undefined
+                ? undefined
+                : new BigNumber(req.query.slippagePercentage as string);
+        if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE) || slippagePercentage?.gt(1)) {
+            throw new ValidationError([
+                {
+                    field: 'slippagePercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                },
+            ]);
+        }
 
         return {
             chainId,
@@ -335,6 +352,7 @@ export class GaslessSwapHandlers {
                 sellToken: sellTokenContractAddress,
                 sellTokenDecimals,
                 affiliateAddress: affiliateAddress as string,
+                slippagePercentage,
             },
         };
     }

@@ -38,6 +38,7 @@ export interface FetchQuoteParamsBase {
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
+    slippagePercentage?: BigNumber;
 }
 
 export interface BaseRfqmQuoteResponse {

@@ -22,6 +22,9 @@
         "checkApproval": {
             "type": "string",
             "enum": ["true", "false"]
+        },
+        "slippagePercentage": {
+            "$ref": "/numberSchema"
         }
     },
     "oneOf": [

@@ -73,7 +73,7 @@ export async function getQuoteAsync(
         integratorId: string;
         sellAmount?: BigNumber;
         sellToken: string;
-        slippagePercentage?: number;
+        slippagePercentage?: BigNumber;
         takerAddress: string;
     },
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },

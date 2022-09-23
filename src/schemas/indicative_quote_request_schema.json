@@ -18,6 +18,9 @@
         },
         "affiliateAddress": {
             "$ref": "/addressSchema"
+        },
+        "slippagePercentage": {
+            "$ref": "/numberSchema"
         }
     },
     "oneOf": [

@@ -134,6 +134,75 @@ describe('GaslessSwapHandlers', () => {
             expect(response.body.validationErrors[0].reason).toContain('Service unavailable on specified chain');
             expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
         });
+
+        it('throws if the `slippagePercentage` is out of range for /price', async () => {
+            const response = await supertest(
+                express()
+                    .use(express.json())
+                    .get('/', asyncHandler(gaslessSwapHandlers.getPriceAsync.bind(gaslessSwapHandlers)))
+                    .use(errorHandler),
+            )
+                .get('/')
+                .set('Content-type', 'application/json')
+                .set('0x-api-key', 'integrator-api-key')
+                .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                .query({
+                    buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                    sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyAmount: 1000,
+                    takerAddress,
+                    slippagePercentage: 2.1,
+                });
+
+            expect(response.body.validationErrors[0].reason).toContain('out of range');
+            expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+        });
+
+        it('throws if the `slippagePercentage` is out of range for /quote', async () => {
+            const response = await supertest(
+                express()
+                    .use(express.json())
+                    .get('/', asyncHandler(gaslessSwapHandlers.getQuoteAsync.bind(gaslessSwapHandlers)))
+                    .use(errorHandler),
+            )
+                .get('/')
+                .set('Content-type', 'application/json')
+                .set('0x-api-key', 'integrator-api-key')
+                .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                .query({
+                    buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                    sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyAmount: 1000,
+                    takerAddress,
+                    slippagePercentage: 0.00001,
+                });
+
+            expect(response.body.validationErrors[0].reason).toContain('out of range');
+            expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+        });
+
+        it('throws if the `slippagePercentage` is invalid for /quote', async () => {
+            const response = await supertest(
+                express()
+                    .use(express.json())
+                    .get('/', asyncHandler(gaslessSwapHandlers.getQuoteAsync.bind(gaslessSwapHandlers)))
+                    .use(errorHandler),
+            )
+                .get('/')
+                .set('Content-type', 'application/json')
+                .set('0x-api-key', 'integrator-api-key')
+                .set('0x-chain-id', '1337') // tslint:disable-line: custom-no-magic-numbers
+                .query({
+                    buyToken: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+                    sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyAmount: 1000,
+                    takerAddress,
+                    slippagePercentage: 'invalid',
+                });
+
+            expect(response.body.validationErrors[0].reason).toContain('should match pattern');
+            expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
+        });
     });
 
     describe('getPriceAsync', () => {
@@ -208,6 +277,7 @@ describe('GaslessSwapHandlers', () => {
                     "sellAmount": undefined,
                     "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                     "sellTokenDecimals": 18,
+                    "slippagePercentage": undefined,
                     "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                   },
                 ]
@@ -337,6 +407,7 @@ describe('GaslessSwapHandlers', () => {
                     "sellAmount": undefined,
                     "sellToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
                     "sellTokenDecimals": 18,
+                    "slippagePercentage": undefined,
                     "takerAddress": "0x4c42a706410f1190f97d26fe3c999c90070aa40f",
                   },
                 ]

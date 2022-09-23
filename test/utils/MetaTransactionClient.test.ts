@@ -118,6 +118,7 @@ describe('MetaTransactionClient', () => {
                 sellToken: '0x0000000000000000000000000000000000000000',
                 sellAmount: new BigNumber(1000000000000000000000),
                 takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                slippagePercentage: new BigNumber(0.2),
             });
 
             expect(response).toBeNull();

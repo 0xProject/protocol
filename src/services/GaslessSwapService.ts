@@ -136,13 +136,9 @@ export class GaslessSwapService {
      * AMM liquidity is used to compute the price.
      *
      * Returns `null` if neither AMM or RFQ liquidity exists.
-     *
-     * TODO (rhinodavid): See if we actually need slippage percentage here
-     * TODO (vichuang): Add set of pairs market makers support and check if an incoming pair is supported
-     *                  by market makers
      */
     public async fetchPriceAsync(
-        params: FetchIndicativeQuoteParams & { slippagePercentage?: number },
+        params: FetchIndicativeQuoteParams,
     ): Promise<(FetchIndicativeQuoteResponse & { liquiditySource: 'rfq' | 'amm' }) | null> {
         try {
             const rfqPrice = await this._rfqmService.fetchIndicativeQuoteAsync(params, 'gaslessSwapRfq');
@@ -212,7 +208,7 @@ export class GaslessSwapService {
      * submit.
      */
     public async fetchQuoteAsync(
-        params: FetchFirmQuoteParams & { slippagePercentage?: number },
+        params: FetchFirmQuoteParams,
     ): Promise<
         ((OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse) & { liquiditySource: 'rfq' | 'amm' }) | null
     > {
