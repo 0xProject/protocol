@@ -1,5 +1,4 @@
 // tslint:disable: max-file-line-count
-import { constants } from '@0x/asset-swapper/lib/src/constants';
 import {
     AltQuoteModel,
     AltRfqMakerAssetOfferings,
@@ -24,12 +23,16 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 
+import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 
 import { returnQuoteFromAltMMAsync } from './altMmImplementaionUtils';
 import { RfqMakerBlacklist } from './rfqMakerBlacklist';
 
+// Matches value at
+// https://github.com/0xProject/protocol/blob/d3d4a08f917a084f72b649fc1b0b322c22f98129/packages/asset-swapper/src/constants.ts#L34
+const EXPIRY_BUFFER_MS = 120000;
 const MAKER_TIMEOUT_STREAK_LENGTH = 10;
 const MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES = 10;
 const FILL_RATIO_WARNING_LEVEL = 0.99;
@@ -282,7 +285,7 @@ export class QuoteRequestor {
         private readonly _rfqtAssetOfferings: RfqMakerAssetOfferings,
         private readonly _quoteRequestorHttpClient: AxiosInstance,
         private readonly _altRfqCreds?: { altRfqApiKey: string; altRfqProfile: string },
-        private readonly _expiryBufferMs: number = constants.DEFAULT_SWAP_QUOTER_OPTS.expiryBufferMs,
+        private readonly _expiryBufferMs: number = EXPIRY_BUFFER_MS,
         private readonly _metrics?: MetricsProxy,
     ) {}
 
@@ -294,7 +297,7 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
     ): Promise<SignedNativeOrder[]> {
-        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { makerEndpointMaxResponseTimeMs: RFQ_PRICE_ENDPOINT_TIMEOUT_MS, ...options };
         if (!_opts.txOrigin || [undefined, '', '0x', NULL_ADDRESS].includes(_opts.txOrigin)) {
             throw new Error('RFQ-T firm quotes require the presence of a tx origin');
         }
@@ -318,17 +321,17 @@ export class QuoteRequestor {
         comparisonPrice: BigNumber | undefined,
         options: RfqRequestOpts,
     ): Promise<V4RFQIndicativeQuoteMM[]> {
-        const _opts: RfqRequestOpts = { ...constants.DEFAULT_RFQT_REQUEST_OPTS, ...options };
+        const _opts: RfqRequestOpts = { makerEndpointMaxResponseTimeMs: RFQ_PRICE_ENDPOINT_TIMEOUT_MS, ...options };
         // Originally a takerAddress was required for indicative quotes, but
         // now we've eliminated that requirement.  @0x/quote-server, however,
         // is still coded to expect a takerAddress.  So if the client didn't
         // send one, just use the null address to satisfy the quote server's
         // expectations.
         if (!_opts.takerAddress) {
-            _opts.takerAddress = constants.NULL_ADDRESS;
+            _opts.takerAddress = NULL_ADDRESS;
         }
         if (!_opts.txOrigin) {
-            _opts.txOrigin = constants.NULL_ADDRESS;
+            _opts.txOrigin = NULL_ADDRESS;
         }
         return this._fetchAndValidateIndicativeQuotesAsync(
             makerToken,
@@ -413,9 +416,7 @@ export class QuoteRequestor {
             }
         })();
 
-        const timeoutMs =
-            options.makerEndpointMaxResponseTimeMs ||
-            constants.DEFAULT_RFQT_REQUEST_OPTS.makerEndpointMaxResponseTimeMs!;
+        const timeoutMs = options.makerEndpointMaxResponseTimeMs || RFQ_PRICE_ENDPOINT_TIMEOUT_MS;
         const bufferMs = 20;
 
         // Set Timeout on CancelToken

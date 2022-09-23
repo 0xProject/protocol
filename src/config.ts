@@ -412,10 +412,13 @@ export const RFQM_MAINTENANCE_MODE: boolean = _.isEmpty(process.env.RFQM_MAINTEN
     ? false
     : assertEnvVarType('RFQM_MAINTENANCE_MODE', process.env.RFQM_MAINTENANCE_MODE, EnvVarType.Boolean);
 
-// tslint:disable-next-line:boolean-naming
-export const RFQT_REQUEST_MAX_RESPONSE_MS = _.isEmpty(process.env.RFQT_REQUEST_MAX_RESPONSE_MS)
-    ? 600
-    : assertEnvVarType('RFQT_REQUEST_MAX_RESPONSE_MS', process.env.RFQT_REQUEST_MAX_RESPONSE_MS, EnvVarType.Integer);
+export const RFQ_PRICE_ENDPOINT_TIMEOUT_MS: number = _.isEmpty(process.env.RFQ_PRICE_ENDPOINT_TIMEOUT_MS)
+    ? 1000
+    : assertEnvVarType('RFQ_PRICE_ENDPOINT_TIMEOUT_MS', process.env.RFQ_PRICE_ENDPOINT_TIMEOUT_MS, EnvVarType.Integer);
+
+export const RFQ_SIGN_ENDPOINT_TIMEOUT_MS = _.isEmpty(process.env.RFQ_SIGN_ENDPOINT_TIMEOUT_MS)
+    ? 2000
+    : assertEnvVarType('RFQ_SIGN_ENDPOINT_TIMEOUT_MS', process.env.RFQ_SIGN_ENDPOINT_TIMEOUT_MS, EnvVarType.Integer);
 
 // The expected time for a meta-txn to be included in a block.
 export const META_TXN_RELAY_EXPECTED_MINED_SEC: number = _.isEmpty(process.env.META_TXN_RELAY_EXPECTED_MINED_SEC)

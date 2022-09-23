@@ -6,7 +6,7 @@ import { Gauge } from 'prom-client';
 import { DataSource } from 'typeorm';
 import * as uuid from 'uuid';
 
-import { CHAIN_CONFIGURATIONS, INTEGRATORS_ACL, RFQ_MAKER_CONFIGS } from '../config';
+import { CHAIN_CONFIGURATIONS, INTEGRATORS_ACL, RFQ_MAKER_CONFIGS, RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { NULL_ADDRESS } from '../constants';
 import { RfqMaker } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
@@ -137,16 +137,17 @@ function createCheckProduct(url: string): CheckerFunction {
         }
         const axiosInstance = axios.create();
         const response = await axiosInstance.get<{ liquidityAvailable: boolean }>(url, {
-            params: {
-                buyToken: params.buyToken,
-                sellToken: params.sellToken,
-                buyAmount: params.buyAmount,
-                takerAddress: '0x4Ea754349AcE5303c82f0d1D491041e042f2ad22', // dev reserve
-            },
             headers: {
                 '0x-api-key': devApiKey,
                 '0x-chain-id': params.chainId.toString(),
             },
+            params: {
+                buyAmount: params.buyAmount,
+                buyToken: params.buyToken,
+                sellToken: params.sellToken,
+                takerAddress: '0x4Ea754349AcE5303c82f0d1D491041e042f2ad22', // dev reserve
+            },
+            timeout: 5000,
         });
 
         if (response.status !== HttpStatus.OK) {
@@ -209,6 +210,11 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
 
         const axiosInstance = axios.create(getAxiosRequestConfigWithProxy());
         const response = await axiosInstance.get(`${url}/rfqm/v2/price`, {
+            headers: {
+                '0x-chain-id': params.chainId.toString(),
+                '0x-integrator-id': devIntegratorId,
+                '0x-request-uuid': uuid.v4(),
+            },
             params: {
                 buyAmountBaseUnits: params.buyAmount,
                 buyTokenAddress: params.buyToken,
@@ -222,11 +228,7 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
                 takerAddress: NULL_ADDRESS,
                 txOrigin: registryAddress,
             },
-            headers: {
-                '0x-chain-id': params.chainId.toString(),
-                '0x-integrator-id': devIntegratorId,
-                '0x-request-uuid': uuid.v4(),
-            },
+            timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
         });
 
         if (response.status !== HttpStatus.OK) {
