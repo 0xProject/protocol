@@ -15,7 +15,7 @@ export const txDefaults = {
     gasPrice: constants.DEFAULT_GAS_PRICE,
 };
 
-export let providerConfigs: Web3Config = {
+export const providerConfigs: Web3Config = {
     total_accounts: constants.NUM_TEST_ACCOUNTS,
     shouldUseInProcessGanache: true,
     shouldAllowUnlimitedContractSize: true,

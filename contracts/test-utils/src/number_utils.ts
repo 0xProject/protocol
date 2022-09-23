@@ -66,7 +66,7 @@ export function fromFixed(n: Numberish): BigNumber {
  * Converts two decimal numbers to integers with `precision` digits, then returns
  * the absolute difference.
  */
-export function getNumericalDivergence(a: Numberish, b: Numberish, precision: number = 18): number {
+export function getNumericalDivergence(a: Numberish, b: Numberish, precision = 18): number {
     const _a = new BigNumber(a);
     const _b = new BigNumber(b);
     const maxIntegerDigits = Math.max(
@@ -86,7 +86,7 @@ export function getNumericalDivergence(a: Numberish, b: Numberish, precision: nu
 /**
  * Asserts that two numbers are equal up to `precision` digits.
  */
-export function assertRoughlyEquals(actual: Numberish, expected: Numberish, precision: number = 18): void {
+export function assertRoughlyEquals(actual: Numberish, expected: Numberish, precision = 18): void {
     if (getNumericalDivergence(actual, expected, precision) <= 1) {
         return;
     }
@@ -99,7 +99,7 @@ export function assertRoughlyEquals(actual: Numberish, expected: Numberish, prec
 export function assertIntegerRoughlyEquals(
     actual: Numberish,
     expected: Numberish,
-    maxError: number = 1,
+    maxError = 1,
     msg?: string,
 ): void {
     const diff = new BigNumber(actual)
