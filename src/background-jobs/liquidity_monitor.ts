@@ -313,8 +313,8 @@ async function processAsync(
     await job.updateProgress(0);
     const totalCheckCount = pairChecks.flatMap((pairCheck) => pairCheck.checks).length;
 
-    pairChecks.forEach((pairCheck) => {
-        pairCheck.checks.forEach(async (check) => {
+    for (const pairCheck of pairChecks) {
+        for (const check of pairCheck.checks) {
             try {
                 const isLiquidityAvailable = await check.checkerFunction({
                     buyAmount: pairCheck.buyAmount,
@@ -345,7 +345,7 @@ async function processAsync(
                     LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
                         Status.Timeout,
                     );
-                    return;
+                    continue;
                 }
                 logger.error(
                     {
@@ -366,8 +366,8 @@ async function processAsync(
                 progress += 100 / totalCheckCount; // tslint:disable-line: custom-no-magic-numbers
                 await job.updateProgress(progress);
             }
-        });
-    });
+        }
+    }
 
     // tslint:disable-next-line: custom-no-magic-numbers
     await job.updateProgress(100);
