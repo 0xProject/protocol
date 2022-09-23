@@ -328,7 +328,7 @@ async function processAsync(
                 const errorJson = axios.isAxiosError(e) ? e.toJSON() : null;
                 // Check for timeout
                 // See https://github.com/axios/axios/issues/1174#issuecomment-349014752
-                if (e.response.status === HttpStatus.REQUEST_TIMEOUT || e.code === 'ECONNABORTED') {
+                if (e.response?.status === HttpStatus.REQUEST_TIMEOUT || e.code === 'ECONNABORTED') {
                     logger.warn(
                         { axiosErrorJson: errorJson, code: e.code, message: e.message, status: e.response?.status },
                         'Timeout checking market maker',
