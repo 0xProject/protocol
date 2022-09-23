@@ -4,7 +4,7 @@
         "changes": [
             {
                 "note": "Migrate from TSLint to ESLint and fix linting errors",
-                "pr": 588
+                "pr": 589
             }
         ]
     }, 
