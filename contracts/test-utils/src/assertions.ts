@@ -102,9 +102,9 @@ export async function expectTransactionFailedAsync(p: sendTransactionResult, rea
     if (nodeType === undefined) {
         nodeType = await web3Wrapper.getNodeTypeAsync();
     }
+    const rejectionMessageRegex = new RegExp(`^VM Exception while processing transaction: revert ${reason}$`);
     switch (nodeType) {
         case NodeType.Ganache:
-            const rejectionMessageRegex = new RegExp(`^VM Exception while processing transaction: revert ${reason}$`);
             return expect(p).to.be.rejectedWith(rejectionMessageRegex);
         case NodeType.Geth:
             logUtils.warn(
