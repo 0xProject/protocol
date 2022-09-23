@@ -189,7 +189,14 @@ export class QuoteServerClient {
         const timerStopFn = RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS.startTimer();
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
-            validateStatus: () => true, // Don't throw errors on 4xx or 5xx
+            validateStatus: (status: number) => {
+                // tslint:disable-next-line: custom-no-magic-numbers
+                if (status >= 300) {
+                    logger.warn({ status, makerUri }, 'Received non-OK status requesting price from market maker');
+                }
+                // Don't throw errors on 4xx or 5xx
+                return true;
+            },
             headers: {
                 '0x-request-uuid': uuid.v4(),
                 '0x-integrator-id': integrator.integratorId,

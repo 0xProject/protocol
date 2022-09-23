@@ -245,7 +245,7 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
             !body.hasOwnProperty('makerToken') ||
             !body.hasOwnProperty('takerToken')
         ) {
-            logger.error({ responseBody: body }, 'Malformed response from market maker');
+            logger.error({ responseBody: body }, '[liquidity monitor] Malformed response from market maker');
             throw new Error('Malformed response');
         }
         return true;
@@ -327,13 +327,20 @@ async function processAsync(
                     isLiquidityAvailable ? Status.LiquidityAvailable : Status.NoLiquidityAvailable,
                 );
             } catch (e) {
-                const errorJson = axios.isAxiosError(e) ? e.toJSON() : null;
                 // Check for timeout
                 // See https://github.com/axios/axios/issues/1174#issuecomment-349014752
                 if (e.response?.status === HttpStatus.REQUEST_TIMEOUT || e.code === 'ECONNABORTED') {
                     logger.warn(
-                        { axiosErrorJson: errorJson, code: e.code, message: e.message, status: e.response?.status },
-                        'Timeout checking market maker',
+                        {
+                            code: e.code,
+                            message: e.message,
+                            pair: pairCheck.pair,
+                            pathname: e.pathname,
+                            search: e.search,
+                            source: check.source,
+                            status: e.response?.status,
+                        },
+                        '[liquidity monitor] Timeout checking market maker',
                     );
                     LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
                         Status.Timeout,
@@ -341,8 +348,16 @@ async function processAsync(
                     return;
                 }
                 logger.error(
-                    { axiosErrorJson: errorJson, code: e.code, message: e.message, status: e.response?.status },
-                    'Liquidity check failed',
+                    {
+                        code: e.code,
+                        message: e.message,
+                        pair: pairCheck.pair,
+                        pathname: e.pathname,
+                        search: e.search,
+                        source: check.source,
+                        status: e.response?.status,
+                    },
+                    '[liquidity monitor] Liquidity check failed',
                 );
                 LIQUIDITY_MONITOR_GAUGE.labels(pairCheck.pair, check.source, pairCheck.chainId.toString()).set(
                     Status.Fail,
