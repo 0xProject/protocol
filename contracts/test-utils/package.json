@@ -16,8 +16,8 @@
         "test:coverage": "run-s build run_mocha coverage:report:text coverage:report:lcov",
         "run_mocha": "mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/*.js' --timeout 100000 --bail --exit",
         "clean": "shx rm -rf lib",
-        "lint": "tslint --format stylish --project tsconfig.lint.json",
-        "fix": "tslint --fix --format stylish --project tsconfig.lint.json",
+        "lint": "eslint src test",
+        "fix": "eslint --fix src test",
         "coverage:report:text": "istanbul report text",
         "coverage:report:html": "istanbul report html && open coverage/index.html",
         "profiler:report:html": "istanbul report html && open coverage/index.html",
@@ -35,10 +35,12 @@
     "homepage": "https://github.com/0xProject/protocol/tree/main/contracts/test-utils",
     "devDependencies": {
         "@0x/sol-compiler": "^4.8.2",
-        "@0x/tslint-config": "^4.1.4",
         "npm-run-all": "^4.1.2",
         "shx": "^0.2.2",
-        "tslint": "5.11.0",
+        "@typescript-eslint/eslint-plugin": "^5.38.0",
+        "@typescript-eslint/parser": "^5.38.0",
+        "eslint": "^8.23.1",
+        "eslint-config-prettier": "^8.5.0",
         "typescript": "4.6.3"
     },
     "dependencies": {
