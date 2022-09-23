@@ -12,13 +12,6 @@
         "sourceType": "module"
     },
     "plugins": ["@typescript-eslint"],
-    "ignorePatterns": [
-        "lib/**/*",
-        "migrations/*",
-        "generated-wrappers/**/*",
-        "generated-artifacts/**/*",
-        "test/generated-wrappers/**/*",
-        "test/generated-artifacts/**/*"
-    ],
+    "ignorePatterns": ["generated-artifacts/**/*", "test/generated-wrappers/**/*", "test/generated-artifacts/**/*"],
     "rules": {}
 }
