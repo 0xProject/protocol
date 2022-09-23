@@ -133,7 +133,7 @@ function createCheckProduct(url: string): CheckerFunction {
     }): Promise<boolean> => {
         const devApiKey = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.apiKeys[0];
         if (!devApiKey) {
-            throw new Error('[liquidity montior] Unable to get API key');
+            throw new Error('[liquidity monitor] Unable to get API key');
         }
         const axiosInstance = axios.create();
         const response = await axiosInstance.get<{ liquidityAvailable: boolean }>(url, {
@@ -180,7 +180,7 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
     }): Promise<boolean> => {
         const devIntegratorId = INTEGRATORS_ACL.find((i) => i.label === '0x Internal')?.integratorId;
         if (!devIntegratorId) {
-            throw new Error('[liquidity montior] Unable to get 0x integrator id');
+            throw new Error('[liquidity monitor] Unable to get 0x integrator id');
         }
 
         const makerRecord = await dataSource
