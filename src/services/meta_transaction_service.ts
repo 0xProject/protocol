@@ -1,10 +1,9 @@
 import { generatePseudoRandomSalt, getExchangeProxyMetaTransactionHash } from '@0x/order-utils';
-import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { Kafka, Producer } from 'kafkajs';
 
-import { ContractAddresses } from '../asset-swapper';
+import { ContractAddresses, NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '../asset-swapper';
 import { CHAIN_ID, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
 import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import { MetaTransactionQuoteParams, GetSwapQuoteResponse, QuoteBase, MetaTransactionQuoteResponse } from '../types';
@@ -17,8 +16,6 @@ export interface MetaTransactionQuoteResult extends QuoteBase {
     sellTokenAddress: string;
     taker: string;
 }
-
-const WETHToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
 
 let kafkaProducer: Producer | undefined;
 if (KAFKA_BROKERS !== undefined) {
@@ -114,10 +111,12 @@ export class MetaTransactionService {
         params: MetaTransactionQuoteParams,
         endpoint: 'price' | 'quote',
     ): Promise<MetaTransactionQuoteResult> {
+        const wrappedNativeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
+
         const quoteParams = {
             ...params,
             // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
-            buyToken: params.isETHBuy ? WETHToken.tokenAddress : params.buyTokenAddress,
+            buyToken: params.isETHBuy ? wrappedNativeToken : params.buyTokenAddress,
             endpoint,
             isMetaTransaction: true,
             isUnwrap: false,

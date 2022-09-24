@@ -1103,6 +1103,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
     TokenAdjacencyGraph.getEmptyGraph(),
 );
 
+// TODO (rhinodavid): this constant is being used for reasons other than fees
+// (see swap_handlers). Needs to be rethought or at least renamed.
 export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: getContractAddressesForChainOrThrow(ChainId.Mainnet).etherToken,
