@@ -24,9 +24,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/ITransformERC20Feature.sol";
 
-
 abstract contract MultiplexTransformERC20 {
-
     using LibSafeMathV06 for uint256;
 
     function _batchSellTransformERC20(
@@ -34,9 +32,7 @@ abstract contract MultiplexTransformERC20 {
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
         uint256 sellAmount
-    )
-        internal
-    {
+    ) internal {
         ITransformERC20Feature.TransformERC20Args memory args;
         // We want the TransformedERC20 event to have
         // `msg.sender` as the taker.
@@ -52,10 +48,9 @@ abstract contract MultiplexTransformERC20 {
             (ITransformERC20Feature.Transformation[])
         );
         // Execute the transformations and swallow reverts.
-        try ITransformERC20Feature(address(this))._transformERC20
-            (args)
-            returns (uint256 outputTokenAmount)
-        {
+        try
+            ITransformERC20Feature(address(this))._transformERC20(args)
+        returns (uint256 outputTokenAmount) {
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(sellAmount);
             state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);

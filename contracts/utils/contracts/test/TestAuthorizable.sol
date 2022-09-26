@@ -20,14 +20,7 @@ pragma solidity ^0.5.9;
 
 import "../src/Authorizable.sol";
 
-
 // solhint-disable no-empty-blocks
-contract TestAuthorizable is
-    Authorizable
-{
-    function onlyAuthorizedFn()
-        external
-        view
-        onlyAuthorized
-    {}
+contract TestAuthorizable is Authorizable {
+    function onlyAuthorizedFn() external view onlyAuthorized {}
 }

@@ -32,7 +32,7 @@ interface IVelodromeRouter {
         bool stable,
         address to,
         uint256 deadline
-    ) external returns (uint256[] memory amounts); 
+    ) external returns (uint256[] memory amounts);
 }
 
 contract MixinVelodrome {
@@ -43,17 +43,16 @@ contract MixinVelodrome {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
-
-        (IVelodromeRouter router, bool stable) = abi.decode(bridgeData, (IVelodromeRouter, bool));
+    ) internal returns (uint256 boughtAmount) {
+        (IVelodromeRouter router, bool stable) = abi.decode(
+            bridgeData,
+            (IVelodromeRouter, bool)
+        );
         sellToken.approveIfBelow(address(router), sellAmount);
 
         boughtAmount = router.swapExactTokensForTokensSimple(
             sellAmount,
-            0, 
+            0,
             address(sellToken),
             address(buyToken),
             stable,

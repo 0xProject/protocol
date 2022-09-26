@@ -20,9 +20,7 @@ pragma solidity ^0.5.9;
 
 import "../src/LibBytes.sol";
 
-
 contract TestLibBytes {
-
     using LibBytes for bytes;
 
     /// @dev Pops the last byte off of a byte array by modifying its length.
@@ -65,10 +63,7 @@ contract TestLibBytes {
     /// @param b Byte array containing an address.
     /// @param index Index in byte array of address.
     /// @return address from byte array.
-    function publicReadAddress(
-        bytes memory b,
-        uint256 index
-    )
+    function publicReadAddress(bytes memory b, uint256 index)
         public
         pure
         returns (address result)
@@ -85,11 +80,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 index,
         address input
-    )
-        public
-        pure
-        returns (bytes memory)
-    {
+    ) public pure returns (bytes memory) {
         b.writeAddress(index, input);
         return b;
     }
@@ -98,10 +89,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a bytes32 value.
     /// @param index Index in byte array of bytes32 value.
     /// @return bytes32 value from byte array.
-    function publicReadBytes32(
-        bytes memory b,
-        uint256 index
-    )
+    function publicReadBytes32(bytes memory b, uint256 index)
         public
         pure
         returns (bytes32 result)
@@ -118,11 +106,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 index,
         bytes32 input
-    )
-        public
-        pure
-        returns (bytes memory)
-    {
+    ) public pure returns (bytes memory) {
         b.writeBytes32(index, input);
         return b;
     }
@@ -131,10 +115,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a uint256 value.
     /// @param index Index in byte array of uint256 value.
     /// @return uint256 value from byte array.
-    function publicReadUint256(
-        bytes memory b,
-        uint256 index
-    )
+    function publicReadUint256(bytes memory b, uint256 index)
         public
         pure
         returns (uint256 result)
@@ -151,11 +132,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 index,
         uint256 input
-    )
-        public
-        pure
-        returns (bytes memory)
-    {
+    ) public pure returns (bytes memory) {
         b.writeUint256(index, input);
         return b;
     }
@@ -164,10 +141,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a bytes4 value.
     /// @param index Index in byte array of bytes4 value.
     /// @return bytes4 value from byte array.
-    function publicReadBytes4(
-        bytes memory b,
-        uint256 index
-    )
+    function publicReadBytes4(bytes memory b, uint256 index)
         public
         pure
         returns (bytes4 result)
@@ -186,12 +160,8 @@ contract TestLibBytes {
         bytes memory mem,
         uint256 dest,
         uint256 source,
-        uint256 length
-    )
-        public // not external, we need input in memory
-        pure
-        returns (bytes memory)
-    {
+        uint256 length // not external, we need input in memory
+    ) public pure returns (bytes memory) {
         // Sanity check. Overflows are not checked.
         require(source + length <= mem.length);
         require(dest + length <= mem.length);
@@ -215,11 +185,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 from,
         uint256 to
-    )
-        public
-        pure
-        returns (bytes memory result, bytes memory original)
-    {
+    ) public pure returns (bytes memory result, bytes memory original) {
         result = LibBytes.slice(b, from, to);
         return (result, b);
     }
@@ -234,11 +200,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 from,
         uint256 to
-    )
-        public
-        pure
-        returns (bytes memory result, bytes memory original)
-    {
+    ) public pure returns (bytes memory result, bytes memory original) {
         result = LibBytes.sliceDestructive(b, from, to);
         return (result, b);
     }
@@ -254,11 +216,7 @@ contract TestLibBytes {
         bytes memory b,
         uint256 length,
         bytes memory extraBytes
-    )
-        public
-        pure
-        returns (bytes memory)
-    {
+    ) public pure returns (bytes memory) {
         uint256 bEnd = b.contentAddress() + b.length;
         LibBytes.memCopy(bEnd, extraBytes.contentAddress(), extraBytes.length);
         b.writeLength(length);
@@ -268,10 +226,7 @@ contract TestLibBytes {
     function assertBytesUnchangedAfterLengthReset(
         bytes memory b,
         uint256 tempLength
-    )
-        public
-        pure
-    {
+    ) public pure {
         uint256 length = b.length;
         bytes memory bCopy = b.slice(0, length);
         b.writeLength(tempLength);

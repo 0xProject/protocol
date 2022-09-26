@@ -20,7 +20,6 @@
 pragma solidity ^0.6.12;
 pragma experimental ABIEncoderV2;
 
-
 interface IStaking {
     /// @dev Statuses that stake can exist in.
     ///      Any stake can be (re)delegated effective at the next epoch
@@ -61,10 +60,7 @@ interface IStaking {
 
     /// @dev Returns the current staking epoch number.
     /// @return epoch The current epoch.
-    function currentEpoch()
-        external
-        view
-        returns (uint256 epoch);
+    function currentEpoch() external view returns (uint256 epoch);
 
     /// @dev Returns the time (in seconds) at which the current staking epoch started.
     /// @return startTime The start time of the current epoch, in seconds.
@@ -75,17 +71,11 @@ interface IStaking {
 
     /// @dev Returns the duration of an epoch in seconds. This value can be updated.
     /// @return duration The duration of an epoch, in seconds.
-    function epochDurationInSeconds()
-        external
-        view
-        returns (uint256 duration);
+    function epochDurationInSeconds() external view returns (uint256 duration);
 
     /// @dev Returns a staking pool
     /// @param poolId Unique id of pool.
-    function getStakingPool(bytes32 poolId)
-        external
-        view
-        returns (Pool memory);
+    function getStakingPool(bytes32 poolId) external view returns (Pool memory);
 
     /// @dev Gets global stake for a given status.
     /// @param stakeStatus UNDELEGATED or DELEGATED
@@ -99,10 +89,7 @@ interface IStaking {
     /// @param staker Owner of stake.
     /// @param stakeStatus UNDELEGATED or DELEGATED
     /// @return balance Owner's stake balances for given status.
-    function getOwnerStakeByStatus(
-        address staker,
-        StakeStatus stakeStatus
-    )
+    function getOwnerStakeByStatus(address staker, StakeStatus stakeStatus)
         external
         view
         returns (StoredBalance memory balance);

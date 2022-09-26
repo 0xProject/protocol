@@ -20,9 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 interface IERC1155Token {
-
     /// @dev Either TransferSingle or TransferBatch MUST emit when tokens are transferred,
     ///      including zero value transfers as well as minting or burning.
     /// Operator will always be msg.sender.
@@ -67,10 +65,7 @@ interface IERC1155Token {
     /// @dev MUST emit when the URI is updated for a token ID.
     /// URIs are defined in RFC 3986.
     /// The URI MUST point a JSON file that conforms to the "ERC-1155 Metadata JSON Schema".
-    event URI(
-        string value,
-        uint256 indexed id
-    );
+    event URI(string value, uint256 indexed id);
 
     /// @notice Transfers value amount of an _id from the _from address to the _to address specified.
     /// @dev MUST emit TransferSingle event on success.
@@ -92,8 +87,7 @@ interface IERC1155Token {
         uint256 id,
         uint256 value,
         bytes calldata data
-    )
-        external;
+    ) external;
 
     /// @notice Send multiple types of Tokens from a 3rd party in one transfer (with safety call).
     /// @dev MUST emit TransferBatch event on success.
@@ -116,8 +110,7 @@ interface IERC1155Token {
         uint256[] calldata ids,
         uint256[] calldata values,
         bytes calldata data
-    )
-        external;
+    ) external;
 
     /// @notice Enable or disable approval for a third party ("operator") to manage all of the caller's tokens.
     /// @dev MUST emit the ApprovalForAll event on success.
@@ -129,22 +122,25 @@ interface IERC1155Token {
     /// @param owner        The owner of the Tokens
     /// @param operator     Address of authorized operator
     /// @return isApproved  True if the operator is approved, false if not
-    function isApprovedForAll(address owner, address operator) external view returns (bool isApproved);
+    function isApprovedForAll(address owner, address operator)
+        external
+        view
+        returns (bool isApproved);
 
     /// @notice Get the balance of an account's Tokens.
     /// @param owner     The address of the token holder
     /// @param id        ID of the Token
     /// @return balance  The _owner's balance of the Token type requested
-    function balanceOf(address owner, uint256 id) external view returns (uint256 balance);
+    function balanceOf(address owner, uint256 id)
+        external
+        view
+        returns (uint256 balance);
 
     /// @notice Get the balance of multiple account/token pairs
     /// @param owners      The addresses of the token holders
     /// @param ids         ID of the Tokens
     /// @return balances_  The _owner's balance of the Token types requested
-    function balanceOfBatch(
-        address[] calldata owners,
-        uint256[] calldata ids
-    )
+    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids)
         external
         view
         returns (uint256[] memory balances_);

@@ -20,14 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 contract TestMintableERC20Token {
-    event Transfer(
-        address token,
-        address from,
-        address to,
-        uint256 value
-    );
+    event Transfer(address token, address from, address to, uint256 value);
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -49,34 +43,32 @@ contract TestMintableERC20Token {
         return true;
     }
 
-    function approveAs(address owner, address spender, uint256 amount)
-        external
-        returns (bool)
-    {
+    function approveAs(
+        address owner,
+        address spender,
+        uint256 amount
+    ) external returns (bool) {
         allowance[owner][spender] = amount;
         return true;
     }
 
-    function mint(address owner, uint256 amount)
-        external
-        virtual
-    {
+    function mint(address owner, uint256 amount) external virtual {
         balanceOf[owner] += amount;
     }
 
-    function burn(address owner, uint256 amount)
-        external
-        virtual
-    {
-        require(balanceOf[owner] >= amount, "TestMintableERC20Token/INSUFFICIENT_FUNDS");
+    function burn(address owner, uint256 amount) external virtual {
+        require(
+            balanceOf[owner] >= amount,
+            "TestMintableERC20Token/INSUFFICIENT_FUNDS"
+        );
         balanceOf[owner] -= amount;
     }
 
-    function transferFrom(address from, address to, uint256 amount)
-        public
-        virtual
-        returns (bool)
-    {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual returns (bool) {
         if (from != msg.sender) {
             require(
                 allowance[from][msg.sender] >= amount,
@@ -84,7 +76,10 @@ contract TestMintableERC20Token {
             );
             allowance[from][msg.sender] -= amount;
         }
-        require(balanceOf[from] >= amount, "TestMintableERC20Token/INSUFFICIENT_FUNDS");
+        require(
+            balanceOf[from] >= amount,
+            "TestMintableERC20Token/INSUFFICIENT_FUNDS"
+        );
         balanceOf[from] -= amount;
         balanceOf[to] += amount;
         emit Transfer(address(this), from, to, amount);
@@ -96,8 +91,9 @@ contract TestMintableERC20Token {
         view
         returns (uint256)
     {
-        return balanceOf[owner] < allowance[owner][spender]
-            ? balanceOf[owner]
-            : allowance[owner][spender];
+        return
+            balanceOf[owner] < allowance[owner][spender]
+                ? balanceOf[owner]
+                : allowance[owner][spender];
     }
 }

@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "./LibStorage.sol";
 
-
 /// @dev Storage helpers for `ERC721OrdersFeature`.
 library LibERC721OrdersStorage {
-
     /// @dev Storage bucket for this feature.
     struct Storage {
         // maker => nonce range => order status bit vector
@@ -42,6 +40,8 @@ library LibERC721OrdersStorage {
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries
-        assembly { stor_slot := storageSlot }
+        assembly {
+            stor_slot := storageSlot
+        }
     }
 }

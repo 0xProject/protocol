@@ -25,10 +25,8 @@ import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC721Token.sol";
 
-
 /// @dev Feature for interacting with ERC721 orders.
 interface IERC721OrdersFeature {
-
     /// @dev Emitted whenever an `ERC721Order` is filled.
     /// @param direction Whether the order is selling or
     ///        buying the ERC721 token.
@@ -57,10 +55,7 @@ interface IERC721OrdersFeature {
     /// @dev Emitted whenever an `ERC721Order` is cancelled.
     /// @param maker The maker of the order.
     /// @param nonce The nonce of the order that was cancelled.
-    event ERC721OrderCancelled(
-        address maker,
-        uint256 nonce
-    );
+    event ERC721OrderCancelled(address maker, uint256 nonce);
 
     /// @dev Emitted when an `ERC721Order` is pre-signed.
     ///      Contains all the fields of the order.
@@ -98,8 +93,7 @@ interface IERC721OrdersFeature {
         uint256 erc721TokenId,
         bool unwrapNativeToken,
         bytes calldata callbackData
-    )
-        external;
+    ) external;
 
     /// @dev Buys an ERC721 asset by filling the given order.
     /// @param sellOrder The ERC721 sell order.
@@ -114,25 +108,21 @@ interface IERC721OrdersFeature {
         LibNFTOrder.ERC721Order calldata sellOrder,
         LibSignature.Signature calldata signature,
         bytes calldata callbackData
-    )
-        external
-        payable;
+    ) external payable;
 
     /// @dev Cancel a single ERC721 order by its nonce. The caller
     ///      should be the maker of the order. Silently succeeds if
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonce The order nonce.
-    function cancelERC721Order(uint256 orderNonce)
-        external;
+    function cancelERC721Order(uint256 orderNonce) external;
 
     /// @dev Cancel multiple ERC721 orders by their nonces. The caller
     ///      should be the maker of the orders. Silently succeeds if
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonces The order nonces.
-    function batchCancelERC721Orders(uint256[] calldata orderNonces)
-        external;
+    function batchCancelERC721Orders(uint256[] calldata orderNonces) external;
 
     /// @dev Buys multiple ERC721 assets by filling the
     ///      given orders.
@@ -150,10 +140,7 @@ interface IERC721OrdersFeature {
         LibSignature.Signature[] calldata signatures,
         bytes[] calldata callbackData,
         bool revertIfIncomplete
-    )
-        external
-        payable
-        returns (bool[] memory successes);
+    ) external payable returns (bool[] memory successes);
 
     /// @dev Matches a pair of complementary orders that have
     ///      a non-negative spread. Each order is filled at
@@ -171,9 +158,7 @@ interface IERC721OrdersFeature {
         LibNFTOrder.ERC721Order calldata buyOrder,
         LibSignature.Signature calldata sellOrderSignature,
         LibSignature.Signature calldata buyOrderSignature
-    )
-        external
-        returns (uint256 profit);
+    ) external returns (uint256 profit);
 
     /// @dev Matches pairs of complementary orders that have
     ///      non-negative spreads. Each order is filled at
@@ -193,9 +178,7 @@ interface IERC721OrdersFeature {
         LibNFTOrder.ERC721Order[] calldata buyOrders,
         LibSignature.Signature[] calldata sellOrderSignatures,
         LibSignature.Signature[] calldata buyOrderSignatures
-    )
-        external
-        returns (uint256[] memory profits, bool[] memory successes);
+    ) external returns (uint256[] memory profits, bool[] memory successes);
 
     /// @dev Callback for the ERC721 `safeTransferFrom` function.
     ///      This callback can be used to sell an ERC721 asset if
@@ -216,9 +199,7 @@ interface IERC721OrdersFeature {
         address from,
         uint256 tokenId,
         bytes calldata data
-    )
-        external
-        returns (bytes4 success);
+    ) external returns (bytes4 success);
 
     /// @dev Approves an ERC721 order on-chain. After pre-signing
     ///      the order, the `PRESIGNED` signature type will become
@@ -234,9 +215,7 @@ interface IERC721OrdersFeature {
     function validateERC721OrderSignature(
         LibNFTOrder.ERC721Order calldata order,
         LibSignature.Signature calldata signature
-    )
-        external
-        view;
+    ) external view;
 
     /// @dev If the given order is buying an ERC721 asset, checks
     ///      whether or not the given token ID satisfies the required
@@ -250,9 +229,7 @@ interface IERC721OrdersFeature {
     function validateERC721OrderProperties(
         LibNFTOrder.ERC721Order calldata order,
         uint256 erc721TokenId
-    )
-        external
-        view;
+    ) external view;
 
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.

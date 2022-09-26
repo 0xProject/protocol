@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../../errors/LibSignatureRichErrors.sol";
 
-
 /// @dev A library for validating signatures.
 library LibSignature {
     using LibRichErrorsV06 for bytes;
@@ -34,10 +33,13 @@ library LibSignature {
     /// @dev Exclusive upper limit on ECDSA signatures 'R' values.
     ///      The valid range is given by fig (282) of the yellow paper.
     uint256 private constant ECDSA_SIGNATURE_R_LIMIT =
-        uint256(0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);
+        uint256(
+            0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+        );
     /// @dev Exclusive upper limit on ECDSA signatures 'S' values.
     ///      The valid range is given by fig (283) of the yellow paper.
-    uint256 private constant ECDSA_SIGNATURE_S_LIMIT = ECDSA_SIGNATURE_R_LIMIT / 2 + 1;
+    uint256 private constant ECDSA_SIGNATURE_S_LIMIT =
+        ECDSA_SIGNATURE_R_LIMIT / 2 + 1;
 
     /// @dev Allowed signature types.
     enum SignatureType {
@@ -65,10 +67,7 @@ library LibSignature {
     /// @param hash The hash that was signed.
     /// @param signature The signature.
     /// @return recovered The recovered signer address.
-    function getSignerOfHash(
-        bytes32 hash,
-        Signature memory signature
-    )
+    function getSignerOfHash(bytes32 hash, Signature memory signature)
         internal
         pure
         returns (address recovered)
@@ -78,12 +77,7 @@ library LibSignature {
 
         if (signature.signatureType == SignatureType.EIP712) {
             // Signed using EIP712
-            recovered = ecrecover(
-                hash,
-                signature.v,
-                signature.r,
-                signature.s
-            );
+            recovered = ecrecover(hash, signature.v, signature.r, signature.s);
         } else if (signature.signatureType == SignatureType.ETHSIGN) {
             // Signed using `eth_sign`
             // Need to hash `hash` with "\x19Ethereum Signed Message:\n32" prefix
@@ -104,10 +98,14 @@ library LibSignature {
         }
         // `recovered` can be null if the signature values are out of range.
         if (recovered == address(0)) {
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,
-                hash
-            ).rrevert();
+            LibSignatureRichErrors
+                .SignatureValidationError(
+                    LibSignatureRichErrors
+                        .SignatureValidationErrorCodes
+                        .BAD_SIGNATURE_DATA,
+                    hash
+                )
+                .rrevert();
         }
     }
 
@@ -117,43 +115,57 @@ library LibSignature {
     function _validateHashCompatibleSignature(
         bytes32 hash,
         Signature memory signature
-    )
-        private
-        pure
-    {
+    ) private pure {
         // Ensure the r and s are within malleability limits.
-        if (uint256(signature.r) >= ECDSA_SIGNATURE_R_LIMIT ||
-            uint256(signature.s) >= ECDSA_SIGNATURE_S_LIMIT)
-        {
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.BAD_SIGNATURE_DATA,
-                hash
-            ).rrevert();
+        if (
+            uint256(signature.r) >= ECDSA_SIGNATURE_R_LIMIT ||
+            uint256(signature.s) >= ECDSA_SIGNATURE_S_LIMIT
+        ) {
+            LibSignatureRichErrors
+                .SignatureValidationError(
+                    LibSignatureRichErrors
+                        .SignatureValidationErrorCodes
+                        .BAD_SIGNATURE_DATA,
+                    hash
+                )
+                .rrevert();
         }
 
         // Always illegal signature.
         if (signature.signatureType == SignatureType.ILLEGAL) {
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.ILLEGAL,
-                hash
-            ).rrevert();
+            LibSignatureRichErrors
+                .SignatureValidationError(
+                    LibSignatureRichErrors
+                        .SignatureValidationErrorCodes
+                        .ILLEGAL,
+                    hash
+                )
+                .rrevert();
         }
 
         // Always invalid.
         if (signature.signatureType == SignatureType.INVALID) {
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.ALWAYS_INVALID,
-                hash
-            ).rrevert();
+            LibSignatureRichErrors
+                .SignatureValidationError(
+                    LibSignatureRichErrors
+                        .SignatureValidationErrorCodes
+                        .ALWAYS_INVALID,
+                    hash
+                )
+                .rrevert();
         }
 
-        // If a feature supports pre-signing, it wouldn't use 
+        // If a feature supports pre-signing, it wouldn't use
         // `getSignerOfHash` on a pre-signed order.
         if (signature.signatureType == SignatureType.PRESIGNED) {
-            LibSignatureRichErrors.SignatureValidationError(
-                LibSignatureRichErrors.SignatureValidationErrorCodes.UNSUPPORTED,
-                hash
-            ).rrevert();
+            LibSignatureRichErrors
+                .SignatureValidationError(
+                    LibSignatureRichErrors
+                        .SignatureValidationErrorCodes
+                        .UNSUPPORTED,
+                    hash
+                )
+                .rrevert();
         }
 
         // Solidity should check that the signature type is within enum range for us

@@ -26,7 +26,6 @@ import "./features/BootstrapFeature.sol";
 import "./storage/LibProxyStorage.sol";
 import "./errors/LibProxyRichErrors.sol";
 
-
 /// @dev An extensible proxy contract that serves as a universal entry point for
 ///      interacting with the 0x protocol.
 contract ZeroEx {
@@ -41,8 +40,9 @@ contract ZeroEx {
         // Temporarily create and register the bootstrap feature.
         // It will deregister itself after `bootstrap()` has been called.
         BootstrapFeature bootstrap = new BootstrapFeature(bootstrapper);
-        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] =
-            address(bootstrap);
+        LibProxyStorage.getStorage().impls[
+            bootstrap.bootstrap.selector
+        ] = address(bootstrap);
     }
 
     // solhint-disable state-visibility
@@ -81,12 +81,16 @@ contract ZeroEx {
     /// @dev Revert with arbitrary bytes.
     /// @param data Revert data.
     function _revertWithData(bytes memory data) private pure {
-        assembly { revert(add(data, 32), mload(data)) }
+        assembly {
+            revert(add(data, 32), mload(data))
+        }
     }
 
     /// @dev Return with arbitrary bytes.
     /// @param data Return data.
     function _returnWithData(bytes memory data) private pure {
-        assembly { return(add(data, 32), mload(data)) }
+        assembly {
+            return(add(data, 32), mload(data))
+        }
     }
 }

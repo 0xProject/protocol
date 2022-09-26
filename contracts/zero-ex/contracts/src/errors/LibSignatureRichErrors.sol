@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.5;
 
-
 library LibSignatureRichErrors {
-
     enum SignatureValidationErrorCodes {
         ALWAYS_INVALID,
         INVALID_LENGTH,
@@ -38,32 +36,30 @@ library LibSignatureRichErrors {
         bytes32 hash,
         address signerAddress,
         bytes memory signature
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("SignatureValidationError(uint8,bytes32,address,bytes)")),
-            code,
-            hash,
-            signerAddress,
-            signature
-        );
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSelector(
+                bytes4(
+                    keccak256(
+                        "SignatureValidationError(uint8,bytes32,address,bytes)"
+                    )
+                ),
+                code,
+                hash,
+                signerAddress,
+                signature
+            );
     }
 
     function SignatureValidationError(
         SignatureValidationErrorCodes code,
         bytes32 hash
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("SignatureValidationError(uint8,bytes32)")),
-            code,
-            hash
-        );
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSelector(
+                bytes4(keccak256("SignatureValidationError(uint8,bytes32)")),
+                code,
+                hash
+            );
     }
 }

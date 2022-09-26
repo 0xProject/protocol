@@ -25,7 +25,6 @@ import "../IBridgeAdapter.sol";
     UniswapV2
 */
 interface IGmxRouter {
-
     // /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
     // ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
     // ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).
@@ -34,12 +33,14 @@ interface IGmxRouter {
     // /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
     // /// @param _reciever Recipient of the output tokens.
     function swap(
-       address[] calldata _path, uint256 _amountIn, uint256 _minOut, address _receiver
+        address[] calldata _path,
+        uint256 _amountIn,
+        uint256 _minOut,
+        address _receiver
     ) external;
 }
 
 contract MixinGMX {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -47,10 +48,7 @@ contract MixinGMX {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        public
-        returns (uint256 boughtAmount)
-    {
+    ) public returns (uint256 boughtAmount) {
         address _router;
         address reader;
         address vault;
@@ -60,9 +58,14 @@ contract MixinGMX {
 
         {
             //decode the bridge data
-            (_router, reader, vault, _path) = abi.decode(bridgeData, (address, address, address, address[]));
+            (_router, reader, vault, _path) = abi.decode(
+                bridgeData,
+                (address, address, address, address[])
+            );
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
         require(path.length >= 2, "MixinGMX/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
@@ -82,9 +85,9 @@ contract MixinGMX {
         router.swap(
             // Convert to `buyToken` along this path.
             _path,
-             // Sell all tokens we hold.
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             0,
             // Recipient is `this`.
             address(this)

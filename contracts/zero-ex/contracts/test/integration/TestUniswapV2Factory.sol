@@ -13,7 +13,8 @@ contract TestUniswapV2Factory {
     event PoolCreated(TestUniswapV2Pool pool);
 
     bytes32 public immutable POOL_INIT_CODE_HASH;
-    mapping (IERC20TokenV06 => mapping (IERC20TokenV06 => TestUniswapV2Pool)) public getPool;
+    mapping(IERC20TokenV06 => mapping(IERC20TokenV06 => TestUniswapV2Pool))
+        public getPool;
     CreationParameters public creationParameters;
 
     constructor() public {
@@ -35,8 +36,9 @@ contract TestUniswapV2Factory {
             token0: token0,
             token1: token1
         });
-        pool = new TestUniswapV2Pool
-            { salt: keccak256(abi.encodePacked(token0, token1)) }();
+        pool = new TestUniswapV2Pool{
+            salt: keccak256(abi.encodePacked(token0, token1))
+        }();
         getPool[token0][token1] = pool;
         getPool[token1][token0] = pool;
         emit PoolCreated(pool);

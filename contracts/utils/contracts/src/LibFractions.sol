@@ -2,9 +2,7 @@ pragma solidity ^0.5.9;
 
 import "./LibSafeMath.sol";
 
-
 library LibFractions {
-
     using LibSafeMath for uint256;
 
     /// @dev Safely adds two fractions `n1/d1 + n2/d2`
@@ -19,23 +17,14 @@ library LibFractions {
         uint256 d1,
         uint256 n2,
         uint256 d2
-    )
-        internal
-        pure
-        returns (
-            uint256 numerator,
-            uint256 denominator
-        )
-    {
+    ) internal pure returns (uint256 numerator, uint256 denominator) {
         if (n1 == 0) {
             return (numerator = n2, denominator = d2);
         }
         if (n2 == 0) {
             return (numerator = n1, denominator = d1);
         }
-        numerator = n1
-            .safeMul(d2)
-            .safeAdd(n2.safeMul(d1));
+        numerator = n1.safeMul(d2).safeAdd(n2.safeMul(d1));
         denominator = d1.safeMul(d2);
         return (numerator, denominator);
     }
@@ -55,15 +44,14 @@ library LibFractions {
     )
         internal
         pure
-        returns (
-            uint256 scaledNumerator,
-            uint256 scaledDenominator
-        )
+        returns (uint256 scaledNumerator, uint256 scaledDenominator)
     {
         // If either the numerator or the denominator are > `maxValue`,
         // re-scale them by `maxValue` to prevent overflows in future operations.
         if (numerator > maxValue || denominator > maxValue) {
-            uint256 rescaleBase = numerator >= denominator ? numerator : denominator;
+            uint256 rescaleBase = numerator >= denominator
+                ? numerator
+                : denominator;
             rescaleBase = rescaleBase.safeDiv(maxValue);
             scaledNumerator = numerator.safeDiv(rescaleBase);
             scaledDenominator = denominator.safeDiv(rescaleBase);
@@ -80,18 +68,12 @@ library LibFractions {
     /// @param denominator The denominator.
     /// @return scaledNumerator The rescaled numerator.
     /// @return scaledDenominator The rescaled denominator.
-    function normalize(
-        uint256 numerator,
-        uint256 denominator
-    )
+    function normalize(uint256 numerator, uint256 denominator)
         internal
         pure
-        returns (
-            uint256 scaledNumerator,
-            uint256 scaledDenominator
-        )
+        returns (uint256 scaledNumerator, uint256 scaledDenominator)
     {
-        return normalize(numerator, denominator, 2 ** 127);
+        return normalize(numerator, denominator, 2**127);
     }
 
     /// @dev Safely scales the difference between two fractions.
@@ -107,25 +89,15 @@ library LibFractions {
         uint256 n2,
         uint256 d2,
         uint256 s
-    )
-        internal
-        pure
-        returns (uint256 result)
-    {
+    ) internal pure returns (uint256 result) {
         if (s == 0) {
             return 0;
         }
         if (n2 == 0) {
-            return result = s
-                .safeMul(n1)
-                .safeDiv(d1);
+            return result = s.safeMul(n1).safeDiv(d1);
         }
-        uint256 numerator = n1
-            .safeMul(d2)
-            .safeSub(n2.safeMul(d1));
+        uint256 numerator = n1.safeMul(d2).safeSub(n2.safeMul(d1));
         uint256 tmp = numerator.safeDiv(d2);
-        return s
-            .safeMul(tmp)
-            .safeDiv(d1);
+        return s.safeMul(tmp).safeDiv(d1);
     }
 }

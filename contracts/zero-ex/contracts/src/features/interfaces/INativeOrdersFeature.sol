@@ -25,17 +25,12 @@ import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
 import "./INativeOrdersEvents.sol";
 
-
 /// @dev Feature for interacting with limit orders.
-interface INativeOrdersFeature is
-    INativeOrdersEvents
-{
-
+interface INativeOrdersFeature is INativeOrdersEvents {
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
-    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
-        external;
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds) external;
 
     /// @dev Fill a limit order. The taker and sender will be the caller.
     /// @param order The limit order. ETH protocol fees can be
@@ -52,7 +47,10 @@ interface INativeOrdersFeature is
     )
         external
         payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller.
@@ -67,7 +65,10 @@ interface INativeOrdersFeature is
         uint128 takerTokenFillAmount
     )
         external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller. ETH protocol fees can be
@@ -81,10 +82,7 @@ interface INativeOrdersFeature is
         LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (uint128 makerTokenFilledAmount);
+    ) external payable returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller.
@@ -96,9 +94,7 @@ interface INativeOrdersFeature is
         LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        returns (uint128 makerTokenFilledAmount);
+    ) external returns (uint128 makerTokenFilledAmount);
 
     /// @dev Fill a limit order. Internal variant. ETH protocol fees can be
     ///      attached to this call. Any unspent ETH will be refunded to
@@ -119,7 +115,10 @@ interface INativeOrdersFeature is
     )
         external
         payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fill an RFQ order. Internal variant.
     /// @param order The RFQ order.
@@ -140,7 +139,10 @@ interface INativeOrdersFeature is
         address recipient
     )
         external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
@@ -151,8 +153,7 @@ interface INativeOrdersFeature is
     /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The RFQ order.
-    function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order)
-        external;
+    function cancelRfqOrder(LibNativeOrder.RfqOrder calldata order) external;
 
     /// @dev Mark what tx.origin addresses are allowed to fill an order that
     ///      specifies the message sender as its txOrigin.
@@ -184,8 +185,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be a signer registered to the maker.
@@ -200,8 +200,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all limit orders for a given maker and pairs with salts less
     ///      than the values provided. The caller must be the maker. Subsequent
@@ -214,8 +213,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all limit orders for a given maker and pairs with salts less
     ///      than the values provided. The caller must be a signer registered to the maker.
@@ -230,8 +228,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] memory makerTokens,
         IERC20TokenV06[] memory takerTokens,
         uint256[] memory minValidSalts
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
@@ -244,8 +241,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be a signer registered to the maker.
@@ -260,8 +256,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06 makerToken,
         IERC20TokenV06 takerToken,
         uint256 minValidSalt
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
     ///      than the values provided. The caller must be the maker. Subsequent
@@ -274,8 +269,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] calldata makerTokens,
         IERC20TokenV06[] calldata takerTokens,
         uint256[] calldata minValidSalts
-    )
-        external;
+    ) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pairs with salts less
     ///      than the values provided. The caller must be a signer registered to the maker.
@@ -290,8 +284,7 @@ interface INativeOrdersFeature is
         IERC20TokenV06[] memory makerTokens,
         IERC20TokenV06[] memory takerTokens,
         uint256[] memory minValidSalts
-    )
-        external;
+    ) external;
 
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
@@ -419,19 +412,12 @@ interface INativeOrdersFeature is
     ///      This allows one to sign on behalf of a contract that calls this function
     /// @param signer The address from which you plan to generate signatures
     /// @param allowed True to register, false to unregister.
-    function registerAllowedOrderSigner(
-        address signer,
-        bool allowed
-    )
-        external;
+    function registerAllowedOrderSigner(address signer, bool allowed) external;
 
     /// @dev checks if a given address is registered to sign on behalf of a maker address
     /// @param maker The maker address encoded in an order (can be a contract)
     /// @param signer The address that is providing a signature
-    function isValidOrderSigner(
-        address maker,
-        address signer
-    )
+    function isValidOrderSigner(address maker, address signer)
         external
         view
         returns (bool isAllowed);

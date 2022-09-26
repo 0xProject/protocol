@@ -29,10 +29,7 @@ import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";
 import "../vendor/IMooniswapPool.sol";
 
-
-contract MooniswapLiquidityProvider is
-    ILiquidityProvider
-{
+contract MooniswapLiquidityProvider is ILiquidityProvider {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -62,15 +59,11 @@ contract MooniswapLiquidityProvider is
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) external override returns (uint256 boughtAmount) {
         require(
-            !LibERC20Transformer.isTokenETH(inputToken)
-                && !LibERC20Transformer.isTokenETH(outputToken)
-                && inputToken != outputToken,
+            !LibERC20Transformer.isTokenETH(inputToken) &&
+                !LibERC20Transformer.isTokenETH(outputToken) &&
+                inputToken != outputToken,
             "MooniswapLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
@@ -96,12 +89,7 @@ contract MooniswapLiquidityProvider is
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        payable
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) external payable override returns (uint256 boughtAmount) {
         require(
             !LibERC20Transformer.isTokenETH(outputToken),
             "MooniswapLiquidityProvider/INVALID_ARGS"
@@ -128,11 +116,7 @@ contract MooniswapLiquidityProvider is
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) external override returns (uint256 boughtAmount) {
         require(
             !LibERC20Transformer.isTokenETH(inputToken),
             "MooniswapLiquidityProvider/INVALID_ARGS"
@@ -150,15 +134,10 @@ contract MooniswapLiquidityProvider is
     /// @dev Quotes the amount of `outputToken` that would be obtained by
     ///      selling `sellAmount` of `inputToken`.
     function getSellQuote(
-        IERC20TokenV06 /* inputToken */,
-        IERC20TokenV06 /* outputToken */,
+        IERC20TokenV06, /* inputToken */
+        IERC20TokenV06, /* outputToken */
         uint256 /* sellAmount */
-    )
-        external
-        view
-        override
-        returns (uint256)
-    {
+    ) external view override returns (uint256) {
         revert("MooniswapLiquidityProvider/NOT_IMPLEMENTED");
     }
 
@@ -170,25 +149,33 @@ contract MooniswapLiquidityProvider is
         uint256 minBuyAmount,
         IMooniswapPool pool,
         address recipient // Only used to log event
-    )
-        private
-        returns (uint256 boughtAmount)
-    {
-        uint256 sellAmount =
-            LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
+    ) private returns (uint256 boughtAmount) {
+        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(
+            inputToken,
+            address(this)
+        );
         uint256 ethValue = 0;
         if (inputToken == WETH) {
             // Selling WETH. Unwrap to ETH.
-            require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
+            require(
+                !_isTokenEthLike(outputToken),
+                "MooniswapLiquidityProvider/ETH_TO_ETH"
+            );
             WETH.withdraw(sellAmount);
             ethValue = sellAmount;
         } else if (LibERC20Transformer.isTokenETH(inputToken)) {
             // Selling ETH directly.
             ethValue = sellAmount;
-            require(!_isTokenEthLike(outputToken), 'MooniswapLiquidityProvider/ETH_TO_ETH');
+            require(
+                !_isTokenEthLike(outputToken),
+                "MooniswapLiquidityProvider/ETH_TO_ETH"
+            );
         } else {
             // Selling a regular ERC20.
-            require(inputToken != outputToken, 'MooniswapLiquidityProvider/SAME_TOKEN');
+            require(
+                inputToken != outputToken,
+                "MooniswapLiquidityProvider/SAME_TOKEN"
+            );
             inputToken.approveIfBelow(address(pool), sellAmount);
         }
 

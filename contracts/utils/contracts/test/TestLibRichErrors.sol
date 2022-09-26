@@ -20,13 +20,8 @@ pragma solidity ^0.5.9;
 
 import "../src/LibRichErrors.sol";
 
-
 contract TestLibRichErrors {
-
-    function externalRRevert(bytes calldata errorData)
-        external
-        pure
-    {
+    function externalRRevert(bytes calldata errorData) external pure {
         LibRichErrors.rrevert(errorData);
     }
 }

@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "./LibStorage.sol";
 
-
 /// @dev Storage helpers for `NativeOrdersFeature`.
 library LibNativeOrdersStorage {
-
     /// @dev Storage bucket for this feature.
     struct Storage {
         // How much taker token has been filled in order.
@@ -34,12 +32,10 @@ library LibNativeOrdersStorage {
         mapping(bytes32 => uint256) orderHashToTakerTokenFilledAmount;
         // The minimum valid order salt for a given maker and order pair (maker, taker)
         // for limit orders.
-        mapping(address => mapping(address => mapping(address => uint256)))
-            limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        mapping(address => mapping(address => mapping(address => uint256))) limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
         // The minimum valid order salt for a given maker and order pair (maker, taker)
         // for RFQ orders.
-        mapping(address => mapping(address => mapping(address => uint256)))
-            rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        mapping(address => mapping(address => mapping(address => uint256))) rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
         // For a given order origin, which tx.origin addresses are allowed to
         // fill the order.
         mapping(address => mapping(address => bool)) originRegistry;
@@ -56,6 +52,8 @@ library LibNativeOrdersStorage {
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries
-        assembly { stor_slot := storageSlot }
+        assembly {
+            stor_slot := storageSlot
+        }
     }
 }

@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.5;
 
-
 library LibProxyRichErrors {
-
     // solhint-disable func-name-mixedcase
 
     function NotImplementedError(bytes4 selector)
@@ -29,10 +27,11 @@ library LibProxyRichErrors {
         pure
         returns (bytes memory)
     {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("NotImplementedError(bytes4)")),
-            selector
-        );
+        return
+            abi.encodeWithSelector(
+                bytes4(keccak256("NotImplementedError(bytes4)")),
+                selector
+            );
     }
 
     function InvalidBootstrapCallerError(address actual, address expected)
@@ -40,11 +39,14 @@ library LibProxyRichErrors {
         pure
         returns (bytes memory)
     {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("InvalidBootstrapCallerError(address,address)")),
-            actual,
-            expected
-        );
+        return
+            abi.encodeWithSelector(
+                bytes4(
+                    keccak256("InvalidBootstrapCallerError(address,address)")
+                ),
+                actual,
+                expected
+            );
     }
 
     function InvalidDieCallerError(address actual, address expected)
@@ -52,11 +54,12 @@ library LibProxyRichErrors {
         pure
         returns (bytes memory)
     {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("InvalidDieCallerError(address,address)")),
-            actual,
-            expected
-        );
+        return
+            abi.encodeWithSelector(
+                bytes4(keccak256("InvalidDieCallerError(address,address)")),
+                actual,
+                expected
+            );
     }
 
     function BootstrapCallFailedError(address target, bytes memory resultData)
@@ -64,10 +67,11 @@ library LibProxyRichErrors {
         pure
         returns (bytes memory)
     {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("BootstrapCallFailedError(address,bytes)")),
-            target,
-            resultData
-        );
+        return
+            abi.encodeWithSelector(
+                bytes4(keccak256("BootstrapCallFailedError(address,bytes)")),
+                target,
+                resultData
+            );
     }
 }

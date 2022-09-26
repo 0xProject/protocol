@@ -28,6 +28,7 @@ interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM
     // @return tin toll in [wad]
     function tin() external view returns (uint256);
+
     // @dev Get the fee for selling DAI to USDC in PSM
     // @return tout toll out [wad]
     function tout() external view returns (uint256);
@@ -43,21 +44,15 @@ interface IPSM {
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units
-    function sellGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function sellGem(address usr, uint256 gemAmt) external;
+
     // @dev Buy USDC for DAI
     // @param usr The address of the account trading DAI for USDC
     // @param gemAmt The amount of USDC to buy in USDC base units
-    function buyGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function buyGem(address usr, uint256 gemAmt) external;
 }
 
 contract MixinMakerPSM {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -68,11 +63,12 @@ contract MixinMakerPSM {
 
     // Maker units
     // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-    uint256 constant private WAD = 10 ** 18;
+    uint256 private constant WAD = 10**18;
     // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-    uint256 constant private RAY = 10 ** 27;
+    uint256 private constant RAY = 10**27;
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-    uint256 constant private RAD = 10 ** 45;
+    uint256 private constant RAD = 10**45;
+
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.md
 
     function _tradeMakerPsm(
@@ -80,32 +76,29 @@ contract MixinMakerPSM {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data.
-        MakerPsmBridgeData memory data = abi.decode(bridgeData, (MakerPsmBridgeData));
+        MakerPsmBridgeData memory data = abi.decode(
+            bridgeData,
+            (MakerPsmBridgeData)
+        );
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         IPSM psm = IPSM(data.psmAddress);
 
         if (address(sellToken) == data.gemTokenAddres) {
-            sellToken.approveIfBelow(
-                psm.gemJoin(),
-                sellAmount
-            );
+            sellToken.approveIfBelow(psm.gemJoin(), sellAmount);
 
             psm.sellGem(address(this), sellAmount);
         } else if (address(buyToken) == data.gemTokenAddres) {
             uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% fee [tout is in wad];
-            uint256 buyTokenBaseUnit = uint256(10) ** uint256(buyToken.decimals());
-            uint256 gemAmount =  sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
-
-            sellToken.approveIfBelow(
-                data.psmAddress,
-                sellAmount
+            uint256 buyTokenBaseUnit = uint256(10) **
+                uint256(buyToken.decimals());
+            uint256 gemAmount = sellAmount.safeMul(buyTokenBaseUnit).safeDiv(
+                feeDivisor
             );
+
+            sellToken.approveIfBelow(data.psmAddress, sellAmount);
             psm.buyGem(address(this), gemAmount);
         }
 

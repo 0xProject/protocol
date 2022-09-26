@@ -25,7 +25,6 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../errors/LibNativeOrdersRichErrors.sol";
 
-
 /// @dev A library for common native order operations.
 library LibNativeOrder {
     using LibSafeMathV06 for uint256;
@@ -306,14 +305,11 @@ library LibNativeOrder {
     {
         if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
             uint256 refundAmount = msg.value.safeSub(ethProtocolFeePaid);
-            (bool success,) = msg
-                .sender
-                .call{value: refundAmount}("");
+            (bool success, ) = msg.sender.call{value: refundAmount}("");
             if (!success) {
-                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(
-                    msg.sender,
-                    refundAmount
-                ).rrevert();
+                LibNativeOrdersRichErrors
+                    .ProtocolFeeRefundFailed(msg.sender, refundAmount)
+                    .rrevert();
             }
         }
     }

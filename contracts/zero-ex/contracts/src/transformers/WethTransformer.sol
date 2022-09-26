@@ -27,11 +27,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that wraps or unwraps WETH.
-contract WethTransformer is
-    Transformer
-{
+contract WethTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;
@@ -52,10 +49,7 @@ contract WethTransformer is
 
     /// @dev Construct the transformer and store the WETH address in an immutable.
     /// @param weth_ The weth token.
-    constructor(IEtherTokenV06 weth_)
-        public
-        Transformer()
-    {
+    constructor(IEtherTokenV06 weth_) public Transformer() {
         weth = weth_;
     }
 
@@ -69,10 +63,14 @@ contract WethTransformer is
     {
         TransformData memory data = abi.decode(context.data, (TransformData));
         if (!data.token.isTokenETH() && data.token != weth) {
-            LibTransformERC20RichErrors.InvalidTransformDataError(
-                LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
-                context.data
-            ).rrevert();
+            LibTransformERC20RichErrors
+                .InvalidTransformDataError(
+                    LibTransformERC20RichErrors
+                        .InvalidTransformDataErrorCode
+                        .INVALID_TOKENS,
+                    context.data
+                )
+                .rrevert();
         }
 
         uint256 amount = data.amount;

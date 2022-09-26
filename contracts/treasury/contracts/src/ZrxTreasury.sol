@@ -26,10 +26,7 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "@0x/contracts-zero-ex/contracts/src/features/libs/LibSignature.sol";
 import "./IZrxTreasury.sol";
 
-
-contract ZrxTreasury is
-    IZrxTreasury
-{
+contract ZrxTreasury is IZrxTreasury {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
     using LibBytesV06 for bytes;
@@ -41,10 +38,16 @@ contract ZrxTreasury is
     string private constant CONTRACT_VERSION = "1.0.0";
 
     /// The EIP-712 typehash for the contract's domain
-    bytes32 private constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
+    bytes32 private constant DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
 
     /// The EIP-712 typehash for the vote struct
-    bytes32 private constant VOTE_TYPEHASH = keccak256("TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
+    bytes32 private constant VOTE_TYPEHASH =
+        keccak256(
+            "TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)"
+        );
 
     // Immutables
     IStaking public immutable override stakingProxy;
@@ -58,16 +61,13 @@ contract ZrxTreasury is
 
     // Storage
     Proposal[] public proposals;
-    mapping (uint256 => mapping (address => bool)) public hasVoted;
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
 
     /// @dev Initializes the ZRX treasury and creates the default
     ///      staking pool.
     /// @param stakingProxy_ The 0x staking proxy contract.
     /// @param params Immutable treasury parameters.
-    constructor(
-        IStaking stakingProxy_,
-        TreasuryParameters memory params
-    )
+    constructor(IStaking stakingProxy_, TreasuryParameters memory params)
         public
     {
         require(
@@ -79,7 +79,9 @@ contract ZrxTreasury is
         proposalThreshold = params.proposalThreshold;
         quorumThreshold = params.quorumThreshold;
         defaultPoolId = params.defaultPoolId;
-        IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
+        IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(
+            params.defaultPoolId
+        );
         defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
         domainSeparator = keccak256(
             abi.encode(
@@ -95,6 +97,7 @@ contract ZrxTreasury is
     // solhint-disable
     /// @dev Allows this contract to receive ether.
     receive() external payable {}
+
     // solhint-enable
 
     /// @dev Updates the proposal and quorum thresholds to the given
@@ -106,10 +109,7 @@ contract ZrxTreasury is
     function updateThresholds(
         uint256 newProposalThreshold,
         uint256 newQuorumThreshold
-    )
-        external
-        override
-    {
+    ) external override {
         require(msg.sender == address(this), "updateThresholds/ONLY_SELF");
         proposalThreshold = newProposalThreshold;
         quorumThreshold = newQuorumThreshold;
@@ -137,19 +137,12 @@ contract ZrxTreasury is
         uint256 executionEpoch,
         string memory description,
         bytes32[] memory operatedPoolIds
-    )
-        public
-        override
-        returns (uint256 proposalId)
-    {
+    ) public override returns (uint256 proposalId) {
         require(
             getVotingPower(msg.sender, operatedPoolIds) >= proposalThreshold,
             "propose/INSUFFICIENT_VOTING_POWER"
         );
-        require(
-            actions.length > 0,
-            "propose/NO_ACTIONS_PROPOSED"
-        );
+        require(actions.length > 0, "propose/NO_ACTIONS_PROPOSED");
         uint256 currentEpoch = stakingProxy.currentEpoch();
         require(
             executionEpoch >= currentEpoch + 2,
@@ -185,10 +178,7 @@ contract ZrxTreasury is
         uint256 proposalId,
         bool support,
         bytes32[] memory operatedPoolIds
-    )
-        public
-        override
-    {
+    ) public override {
         return _castVote(msg.sender, proposalId, support, operatedPoolIds);
     }
 
@@ -211,14 +201,18 @@ contract ZrxTreasury is
         uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        public
-        override
-    {
+    ) public override {
         bytes32 structHash = keccak256(
-            abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds)))
+            abi.encode(
+                VOTE_TYPEHASH,
+                proposalId,
+                support,
+                keccak256(abi.encodePacked(operatedPoolIds))
+            )
         );
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, structHash)
+        );
         address signatory = ecrecover(digest, v, r, s);
 
         return _castVote(signatory, proposalId, support, operatedPoolIds);
@@ -243,11 +237,10 @@ contract ZrxTreasury is
 
         for (uint256 i = 0; i != actions.length; i++) {
             ProposedAction memory action = actions[i];
-            (bool didSucceed, ) = action.target.call{value: action.value}(action.data);
-            require(
-                didSucceed,
-                "execute/ACTION_EXECUTION_FAILED"
+            (bool didSucceed, ) = action.target.call{value: action.value}(
+                action.data
             );
+            require(didSucceed, "execute/ACTION_EXECUTION_FAILED");
         }
 
         emit ProposalExecuted(proposalId);
@@ -255,12 +248,7 @@ contract ZrxTreasury is
 
     /// @dev Returns the total number of proposals.
     /// @return count The number of proposals.
-    function proposalCount()
-        public
-        override
-        view
-        returns (uint256 count)
-    {
+    function proposalCount() public view override returns (uint256 count) {
         return proposals.length;
     }
 
@@ -276,18 +264,16 @@ contract ZrxTreasury is
     /// @return votingPower The current voting power of the given account.
     function getVotingPower(address account, bytes32[] memory operatedPoolIds)
         public
-        override
         view
+        override
         returns (uint256 votingPower)
     {
-        uint256 delegatedBalance = stakingProxy.getOwnerStakeByStatus(
-            account,
-            IStaking.StakeStatus.DELEGATED
-        ).currentEpochBalance;
-        uint256 balanceDelegatedToDefaultPool = stakingProxy.getStakeDelegatedToPoolByOwner(
-            account,
-            defaultPoolId
-        ).currentEpochBalance;
+        uint256 delegatedBalance = stakingProxy
+            .getOwnerStakeByStatus(account, IStaking.StakeStatus.DELEGATED)
+            .currentEpochBalance;
+        uint256 balanceDelegatedToDefaultPool = stakingProxy
+            .getStakeDelegatedToPoolByOwner(account, defaultPoolId)
+            .currentEpochBalance;
 
         // Voting power for ZRX delegated to the default pool is not diluted,
         // so we double-count the balance delegated to the default pool before
@@ -304,7 +290,9 @@ contract ZrxTreasury is
                     "getVotingPower/DUPLICATE_POOL_ID"
                 );
             }
-            IStaking.Pool memory pool = stakingProxy.getStakingPool(operatedPoolIds[i]);
+            IStaking.Pool memory pool = stakingProxy.getStakingPool(
+                operatedPoolIds[i]
+            );
             require(
                 pool.operator == account,
                 "getVotingPower/POOL_NOT_OPERATED_BY_ACCOUNT"
@@ -325,10 +313,7 @@ contract ZrxTreasury is
     function _assertProposalExecutable(
         Proposal memory proposal,
         ProposedAction[] memory actions
-    )
-        private
-        view
-    {
+    ) private view {
         require(
             keccak256(abi.encode(actions)) == proposal.actionsHash,
             "_assertProposalExecutable/INVALID_ACTIONS"
@@ -402,9 +387,7 @@ contract ZrxTreasury is
         uint256 proposalId,
         bool support,
         bytes32[] memory operatedPoolIds
-    )
-        private
-    {
+    ) private {
         if (proposalId >= proposalCount()) {
             revert("_castVote/INVALID_PROPOSAL_ID");
         }
@@ -426,27 +409,25 @@ contract ZrxTreasury is
         }
 
         if (support) {
-            proposals[proposalId].votesFor = proposals[proposalId].votesFor
+            proposals[proposalId].votesFor = proposals[proposalId]
+                .votesFor
                 .safeAdd(votingPower);
         } else {
-            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst
+            proposals[proposalId].votesAgainst = proposals[proposalId]
+                .votesAgainst
                 .safeAdd(votingPower);
         }
         hasVoted[proposalId][voter] = true;
 
-        emit VoteCast(
-            voter,
-            operatedPoolIds,
-            proposalId,
-            support,
-            votingPower
-        );
+        emit VoteCast(voter, operatedPoolIds, proposalId, support, votingPower);
     }
 
     /// @dev Gets the Ethereum chain id
     function _getChainId() private pure returns (uint256) {
         uint256 chainId;
-        assembly { chainId := chainid() }
+        assembly {
+            chainId := chainid()
+        }
         return chainId;
     }
 }

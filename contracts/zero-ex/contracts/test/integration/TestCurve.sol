@@ -24,7 +24,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../tokens/TestMintableERC20Token.sol";
 
 contract TestCurve {
-
     event CurveCalled(
         uint256 value,
         bytes4 selector,
@@ -50,10 +49,7 @@ contract TestCurve {
         IERC20TokenV06 sellToken_,
         TestMintableERC20Token buyToken_,
         uint256 buyAmount_
-    )
-        public
-        payable
-    {
+    ) public payable {
         sellToken = sellToken_;
         buyToken = buyToken_;
         buyAmount = buyAmount_;
@@ -63,8 +59,8 @@ contract TestCurve {
 
     fallback() external payable {
         bytes4 selector = abi.decode(msg.data, (bytes4));
-        bool shouldReturnBoughtAmount =
-            (selector & RETURN_BOUGHT_AMOUNT_SELECTOR_FLAG) != 0x0;
+        bool shouldReturnBoughtAmount = (selector &
+            RETURN_BOUGHT_AMOUNT_SELECTOR_FLAG) != 0x0;
         bytes4 baseSelector = selector & 0xffff0000;
         require(baseSelector == BASE_SWAP_SELECTOR, "TestCurve/REVERT");
         (
@@ -95,6 +91,8 @@ contract TestCurve {
                 return(0, 32)
             }
         }
-        assembly { return(0, 0) }
+        assembly {
+            return(0, 0)
+        }
     }
 }

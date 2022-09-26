@@ -23,10 +23,8 @@ pragma experimental ABIEncoderV2;
 import "../libs/LibNativeOrder.sol";
 import "../libs/LibSignature.sol";
 
-
 /// @dev Feature for interacting with OTC orders.
 interface IOtcOrdersFeature {
-
     /// @dev Emitted whenever an `OtcOrder` is filled.
     /// @param orderHash The canonical hash of the order.
     /// @param maker The maker of the order.
@@ -56,10 +54,13 @@ interface IOtcOrdersFeature {
         uint128 takerTokenFillAmount
     )
         external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
-    ///      Unwraps bought WETH into ETH before sending it to 
+    ///      Unwraps bought WETH into ETH before sending it to
     ///      the taker.
     /// @param order The OTC order.
     /// @param makerSignature The order signature from the maker.
@@ -73,7 +74,10 @@ interface IOtcOrdersFeature {
         uint128 takerTokenFillAmount
     )
         external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fill an OTC order whose taker token is WETH for up
     ///      to `msg.value`.
@@ -87,7 +91,10 @@ interface IOtcOrdersFeature {
     )
         external
         payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Fully fill an OTC order. "Meta-transaction" variant,
     ///      requires order to be signed by both maker and taker.
@@ -98,12 +105,11 @@ interface IOtcOrdersFeature {
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
         LibSignature.Signature calldata takerSignature
-    )
-        external;
+    ) external;
 
     /// @dev Fully fill an OTC order. "Meta-transaction" variant,
     ///      requires order to be signed by both maker and taker.
-    ///      Unwraps bought WETH into ETH before sending it to 
+    ///      Unwraps bought WETH into ETH before sending it to
     ///      the taker.
     /// @param order The OTC order.
     /// @param makerSignature The order signature from the maker.
@@ -112,15 +118,14 @@ interface IOtcOrdersFeature {
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
         LibSignature.Signature calldata takerSignature
-    )
-        external;
+    ) external;
 
     /// @dev Fills multiple taker-signed OTC orders.
     /// @param orders Array of OTC orders.
     /// @param makerSignatures Array of maker signatures for each order.
     /// @param takerSignatures Array of taker signatures for each order.
-    /// @param unwrapWeth Array of booleans representing whether or not 
-    ///        to unwrap bought WETH into ETH for each order. Should be set 
+    /// @param unwrapWeth Array of booleans representing whether or not
+    ///        to unwrap bought WETH into ETH for each order. Should be set
     ///        to false if the maker token is not WETH.
     /// @return successes Array of booleans representing whether or not
     ///         each order in `orders` was filled successfully.
@@ -129,9 +134,7 @@ interface IOtcOrdersFeature {
         LibSignature.Signature[] calldata makerSignatures,
         LibSignature.Signature[] calldata takerSignatures,
         bool[] calldata unwrapWeth
-    )
-        external
-        returns (bool[] memory successes);
+    ) external returns (bool[] memory successes);
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     ///      Internal variant.
@@ -154,7 +157,10 @@ interface IOtcOrdersFeature {
         address recipient
     )
         external
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        );
 
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.

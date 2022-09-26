@@ -27,7 +27,7 @@ import "../vendor/v3/IStaking.sol";
 /// @dev The collector contract for protocol fees
 contract FeeCollector is AuthorizableV06 {
     /// @dev Allow ether transfers to the collector.
-    receive() external payable { }
+    receive() external payable {}
 
     constructor() public {
         _addAuthorizedAddress(msg.sender);
@@ -42,22 +42,14 @@ contract FeeCollector is AuthorizableV06 {
         IEtherTokenV06 weth,
         IStaking staking,
         bytes32 poolId
-    )
-        external
-        onlyAuthorized
-    {
+    ) external onlyAuthorized {
         weth.approve(address(staking), type(uint256).max);
         staking.joinStakingPoolAsMaker(poolId);
     }
 
     /// @dev Convert all held ether to WETH. Only an authority can call this.
     /// @param weth The WETH contract.
-    function convertToWeth(
-        IEtherTokenV06 weth
-    )
-        external
-        onlyAuthorized
-    {
+    function convertToWeth(IEtherTokenV06 weth) external onlyAuthorized {
         if (address(this).balance > 0) {
             weth.deposit{value: address(this).balance}();
         }

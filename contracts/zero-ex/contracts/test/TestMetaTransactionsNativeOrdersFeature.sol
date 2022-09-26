@@ -24,10 +24,7 @@ import "../src/features/interfaces/IMetaTransactionsFeature.sol";
 import "../src/features/NativeOrdersFeature.sol";
 import "./TestFeeCollectorController.sol";
 
-
-contract TestMetaTransactionsNativeOrdersFeature is
-    NativeOrdersFeature
-{
+contract TestMetaTransactionsNativeOrdersFeature is NativeOrdersFeature {
     constructor()
         public
         NativeOrdersFeature(
@@ -58,8 +55,8 @@ contract TestMetaTransactionsNativeOrdersFeature is
         address sender
     )
         public
-        override
         payable
+        override
         returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
     {
         emit FillLimitOrderCalled(
@@ -90,7 +87,7 @@ contract TestMetaTransactionsNativeOrdersFeature is
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker,
-        bool /* useSelfBalance */,
+        bool, /* useSelfBalance */
         address /* recipient */
     )
         public

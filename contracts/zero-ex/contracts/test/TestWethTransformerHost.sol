@@ -25,12 +25,10 @@ import "./tokens/TestMintableERC20Token.sol";
 import "./TestTransformerHost.sol";
 import "./tokens/TestWeth.sol";
 
-
-contract TestWethTransformerHost is
-    TestTransformerHost
-{
+contract TestWethTransformerHost is TestTransformerHost {
     // solhint-disable
     TestWeth private immutable _weth;
+
     // solhint-enable
 
     constructor(TestWeth weth) public {
@@ -41,10 +39,7 @@ contract TestWethTransformerHost is
         uint256 wethAmount,
         IERC20Transformer transformer,
         bytes calldata data
-    )
-        external
-        payable
-    {
+    ) external payable {
         if (wethAmount != 0) {
             _weth.deposit{value: wethAmount}();
         }

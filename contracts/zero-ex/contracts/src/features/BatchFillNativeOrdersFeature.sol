@@ -33,7 +33,6 @@ import "./interfaces/INativeOrdersFeature.sol";
 import "./libs/LibNativeOrder.sol";
 import "./libs/LibSignature.sol";
 
-
 /// @dev Feature for batch/market filling limit and RFQ orders.
 contract BatchFillNativeOrdersFeature is
     IFeature,
@@ -50,20 +49,14 @@ contract BatchFillNativeOrdersFeature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
-    constructor(address zeroExAddress)
-        public
-        FixinEIP712(zeroExAddress)
-    {
+    constructor(address zeroExAddress) public FixinEIP712(zeroExAddress) {
         // solhint-disable no-empty-blocks
     }
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.batchFillLimitOrders.selector);
         _registerFeatureFunction(this.batchFillRfqOrders.selector);
         return LibMigrate.MIGRATE_SUCCESS;
@@ -92,29 +85,34 @@ contract BatchFillNativeOrdersFeature is
         )
     {
         require(
-            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
-            'BatchFillNativeOrdersFeature::batchFillLimitOrders/MISMATCHED_ARRAY_LENGTHS'
+            orders.length == signatures.length &&
+                orders.length == takerTokenFillAmounts.length,
+            "BatchFillNativeOrdersFeature::batchFillLimitOrders/MISMATCHED_ARRAY_LENGTHS"
         );
         takerTokenFilledAmounts = new uint128[](orders.length);
         makerTokenFilledAmounts = new uint128[](orders.length);
-        uint256 protocolFee = uint256(INativeOrdersFeature(address(this)).getProtocolFeeMultiplier())
-            .safeMul(tx.gasprice);
+        uint256 protocolFee = uint256(
+            INativeOrdersFeature(address(this)).getProtocolFeeMultiplier()
+        ).safeMul(tx.gasprice);
         uint256 ethProtocolFeePaid;
         for (uint256 i = 0; i != orders.length; i++) {
             try
-                INativeOrdersFeature(address(this))._fillLimitOrder
-                    (
-                        orders[i],
-                        signatures[i],
-                        takerTokenFillAmounts[i],
-                        msg.sender,
-                        msg.sender
-                    )
-                returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-            {
+                INativeOrdersFeature(address(this))._fillLimitOrder(
+                    orders[i],
+                    signatures[i],
+                    takerTokenFillAmounts[i],
+                    msg.sender,
+                    msg.sender
+                )
+            returns (
+                uint128 takerTokenFilledAmount,
+                uint128 makerTokenFilledAmount
+            ) {
                 // Update amounts filled.
-                (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) =
-                    (takerTokenFilledAmount, makerTokenFilledAmount);
+                (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) = (
+                    takerTokenFilledAmount,
+                    makerTokenFilledAmount
+                );
                 ethProtocolFeePaid = ethProtocolFeePaid.safeAdd(protocolFee);
             } catch {}
 
@@ -126,11 +124,13 @@ contract BatchFillNativeOrdersFeature is
                     LibNativeOrder.getLimitOrderStructHash(orders[i])
                 );
                 // Did not fill the amount requested.
-                LibNativeOrdersRichErrors.BatchFillIncompleteError(
-                    orderHash,
-                    takerTokenFilledAmounts[i],
-                    takerTokenFillAmounts[i]
-                ).rrevert();
+                LibNativeOrdersRichErrors
+                    .BatchFillIncompleteError(
+                        orderHash,
+                        takerTokenFilledAmounts[i],
+                        takerTokenFillAmounts[i]
+                    )
+                    .rrevert();
             }
         }
         LibNativeOrder.refundExcessProtocolFeeToSender(ethProtocolFeePaid);
@@ -158,27 +158,31 @@ contract BatchFillNativeOrdersFeature is
         )
     {
         require(
-            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
-            'BatchFillNativeOrdersFeature::batchFillRfqOrders/MISMATCHED_ARRAY_LENGTHS'
+            orders.length == signatures.length &&
+                orders.length == takerTokenFillAmounts.length,
+            "BatchFillNativeOrdersFeature::batchFillRfqOrders/MISMATCHED_ARRAY_LENGTHS"
         );
         takerTokenFilledAmounts = new uint128[](orders.length);
         makerTokenFilledAmounts = new uint128[](orders.length);
         for (uint256 i = 0; i != orders.length; i++) {
             try
-                INativeOrdersFeature(address(this))._fillRfqOrder
-                    (
-                        orders[i],
-                        signatures[i],
-                        takerTokenFillAmounts[i],
-                        msg.sender,
-                        false,
-                        msg.sender
-                    )
-                returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-            {
+                INativeOrdersFeature(address(this))._fillRfqOrder(
+                    orders[i],
+                    signatures[i],
+                    takerTokenFillAmounts[i],
+                    msg.sender,
+                    false,
+                    msg.sender
+                )
+            returns (
+                uint128 takerTokenFilledAmount,
+                uint128 makerTokenFilledAmount
+            ) {
                 // Update amounts filled.
-                (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) =
-                    (takerTokenFilledAmount, makerTokenFilledAmount);
+                (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) = (
+                    takerTokenFilledAmount,
+                    makerTokenFilledAmount
+                );
             } catch {}
 
             if (
@@ -189,11 +193,13 @@ contract BatchFillNativeOrdersFeature is
                 bytes32 orderHash = _getEIP712Hash(
                     LibNativeOrder.getRfqOrderStructHash(orders[i])
                 );
-                LibNativeOrdersRichErrors.BatchFillIncompleteError(
-                    orderHash,
-                    takerTokenFilledAmounts[i],
-                    takerTokenFillAmounts[i]
-                ).rrevert();
+                LibNativeOrdersRichErrors
+                    .BatchFillIncompleteError(
+                        orderHash,
+                        takerTokenFilledAmounts[i],
+                        takerTokenFillAmounts[i]
+                    )
+                    .rrevert();
             }
         }
     }

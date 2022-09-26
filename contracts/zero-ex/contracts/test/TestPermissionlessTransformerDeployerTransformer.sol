@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "../src/transformers/LibERC20Transformer.sol";
 
-
 contract TestPermissionlessTransformerDeployerTransformer {
     uint256 public constant CONSTRUCTOR_FAIL_VALUE = 3333;
     address payable public immutable deployer;

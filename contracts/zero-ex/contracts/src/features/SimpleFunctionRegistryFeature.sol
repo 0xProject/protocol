@@ -29,7 +29,6 @@ import "../migrations/LibBootstrap.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ISimpleFunctionRegistryFeature.sol";
 
-
 /// @dev Basic registry management features.
 contract SimpleFunctionRegistryFeature is
     IFeature,
@@ -45,10 +44,7 @@ contract SimpleFunctionRegistryFeature is
 
     /// @dev Initializes this feature, registering its own functions.
     /// @return success Magic bytes if successful.
-    function bootstrap()
-        external
-        returns (bytes4 success)
-    {
+    function bootstrap() external returns (bytes4 success) {
         // Register the registration functions (inception vibes).
         _extend(this.extend.selector, _implementation);
         _extend(this._extendSelf.selector, _implementation);
@@ -90,10 +86,9 @@ contract SimpleFunctionRegistryFeature is
             }
         }
         if (i == 0) {
-            LibSimpleFunctionRegistryRichErrors.NotInRollbackHistoryError(
-                selector,
-                targetImpl
-            ).rrevert();
+            LibSimpleFunctionRegistryRichErrors
+                .NotInRollbackHistoryError(selector, targetImpl)
+                .rrevert();
         }
         proxyStor.impls[selector] = targetImpl;
         emit ProxyFunctionUpdated(selector, currentImpl, targetImpl);
@@ -103,11 +98,7 @@ contract SimpleFunctionRegistryFeature is
     ///      Only directly callable by an authority.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function extend(bytes4 selector, address impl)
-        external
-        override
-        onlyOwner
-    {
+    function extend(bytes4 selector, address impl) external override onlyOwner {
         _extend(selector, impl);
     }
 
@@ -118,10 +109,7 @@ contract SimpleFunctionRegistryFeature is
     ///      complete.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function _extendSelf(bytes4 selector, address impl)
-        external
-        onlySelf
-    {
+    function _extendSelf(bytes4 selector, address impl) external onlySelf {
         _extend(selector, impl);
     }
 
@@ -131,11 +119,15 @@ contract SimpleFunctionRegistryFeature is
     ///         the function.
     function getRollbackLength(bytes4 selector)
         external
-        override
         view
+        override
         returns (uint256 rollbackLength)
     {
-        return LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector].length;
+        return
+            LibSimpleFunctionRegistryStorage
+                .getStorage()
+                .implHistory[selector]
+                .length;
     }
 
     /// @dev Retrieve an entry in the rollback history for a function.
@@ -145,19 +137,20 @@ contract SimpleFunctionRegistryFeature is
     ///         index `idx`.
     function getRollbackEntryAtIndex(bytes4 selector, uint256 idx)
         external
-        override
         view
+        override
         returns (address impl)
     {
-        return LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector][idx];
+        return
+            LibSimpleFunctionRegistryStorage.getStorage().implHistory[selector][
+                idx
+            ];
     }
 
     /// @dev Register or replace a function.
     /// @param selector The function selector.
     /// @param impl The implementation contract for the function.
-    function _extend(bytes4 selector, address impl)
-        private
-    {
+    function _extend(bytes4 selector, address impl) private {
         (
             LibSimpleFunctionRegistryStorage.Storage storage stor,
             LibProxyStorage.Storage storage proxyStor

@@ -11,7 +11,10 @@ interface IUniswapV3PoolDeployer {
         uint24 fee;
     }
 
-    function creationParameters() external view returns (CreationParameters memory);
+    function creationParameters()
+        external
+        view
+        returns (CreationParameters memory);
 }
 
 interface IUniswapV3SwapCallback {
@@ -19,8 +22,7 @@ interface IUniswapV3SwapCallback {
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata data
-    )
-        external;
+    ) external;
 }
 
 contract TestUniswapV3Pool is IUniswapV3Pool {
@@ -29,8 +31,9 @@ contract TestUniswapV3Pool is IUniswapV3Pool {
     uint24 public immutable fee;
 
     constructor() public {
-        IUniswapV3PoolDeployer.CreationParameters memory params =
-            IUniswapV3PoolDeployer(msg.sender).creationParameters();
+        IUniswapV3PoolDeployer.CreationParameters
+            memory params = IUniswapV3PoolDeployer(msg.sender)
+                .creationParameters();
         (token0, token1, fee) = (params.token0, params.token1, params.fee);
     }
 
@@ -40,11 +43,7 @@ contract TestUniswapV3Pool is IUniswapV3Pool {
         int256 amountSpecified,
         uint160,
         bytes calldata data
-    )
-        external
-        override
-        returns (int256 amount0, int256 amount1)
-    {
+    ) external override returns (int256 amount0, int256 amount1) {
         uint256 balance0Before = token0.balanceOf(address(this));
         uint256 balance1Before = token1.balanceOf(address(this));
         if (zeroForOne) {

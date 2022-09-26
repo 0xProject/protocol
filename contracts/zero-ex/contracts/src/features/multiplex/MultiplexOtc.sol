@@ -26,38 +26,29 @@ import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/IOtcOrdersFeature.sol";
 import "../libs/LibNativeOrder.sol";
 
-
-abstract contract MultiplexOtc is
-    FixinEIP712
-{
+abstract contract MultiplexOtc is FixinEIP712 {
     using LibSafeMathV06 for uint256;
 
-    event ExpiredOtcOrder(
-        bytes32 orderHash,
-        address maker,
-        uint64 expiry
-    );
+    event ExpiredOtcOrder(bytes32 orderHash, address maker, uint64 expiry);
 
     function _batchSellOtcOrder(
         IMultiplexFeature.BatchSellState memory state,
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
         uint256 sellAmount
-    )
-        internal
-    {
+    ) internal {
         // Decode the Otc order and signature.
         (
             LibNativeOrder.OtcOrder memory order,
             LibSignature.Signature memory signature
         ) = abi.decode(
-            wrappedCallData,
-            (LibNativeOrder.OtcOrder, LibSignature.Signature)
-        );
+                wrappedCallData,
+                (LibNativeOrder.OtcOrder, LibSignature.Signature)
+            );
         // Validate tokens.
         require(
             order.takerToken == params.inputToken &&
-            order.makerToken == params.outputToken,
+                order.makerToken == params.outputToken,
             "MultiplexOtc::_batchSellOtcOrder/OTC_ORDER_INVALID_TOKENS"
         );
         // Pre-emptively check if the order is expired.
@@ -66,29 +57,28 @@ abstract contract MultiplexOtc is
             bytes32 orderHash = _getEIP712Hash(
                 LibNativeOrder.getOtcOrderStructHash(order)
             );
-            emit ExpiredOtcOrder(
-                orderHash,
-                order.maker,
-                expiry
-            );
+            emit ExpiredOtcOrder(orderHash, order.maker, expiry);
             return;
         }
         // Try filling the Otc order. Swallows reverts.
         try
-            IOtcOrdersFeature(address(this))._fillOtcOrder
-                (
-                    order,
-                    signature,
-                    sellAmount.safeDowncastToUint128(),
-                    msg.sender,
-                    params.useSelfBalance,
-                    params.recipient
-                )
-            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-        {
+            IOtcOrdersFeature(address(this))._fillOtcOrder(
+                order,
+                signature,
+                sellAmount.safeDowncastToUint128(),
+                msg.sender,
+                params.useSelfBalance,
+                params.recipient
+            )
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        ) {
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(takerTokenFilledAmount);
-            state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(
+                makerTokenFilledAmount
+            );
         } catch {}
     }
 }

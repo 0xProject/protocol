@@ -21,9 +21,7 @@ pragma solidity ^0.5.9;
 import "../src/LibERC20Token.sol";
 import "./TestLibERC20TokenTarget.sol";
 
-
 contract TestLibERC20Token {
-
     TestLibERC20TokenTarget public target;
 
     constructor() public {
@@ -36,9 +34,7 @@ contract TestLibERC20Token {
         bytes calldata returnData,
         address spender,
         uint256 allowance
-    )
-        external
-    {
+    ) external {
         target.setBehavior(shouldRevert, revertData, returnData);
         LibERC20Token.approve(address(target), spender, allowance);
     }
@@ -49,9 +45,7 @@ contract TestLibERC20Token {
         bytes calldata returnData,
         address to,
         uint256 amount
-    )
-        external
-    {
+    ) external {
         target.setBehavior(shouldRevert, revertData, returnData);
         LibERC20Token.transfer(address(target), to, amount);
     }
@@ -63,9 +57,7 @@ contract TestLibERC20Token {
         address from,
         address to,
         uint256 amount
-    )
-        external
-    {
+    ) external {
         target.setBehavior(shouldRevert, revertData, returnData);
         LibERC20Token.transferFrom(address(target), from, to, amount);
     }
@@ -74,10 +66,7 @@ contract TestLibERC20Token {
         bool shouldRevert,
         bytes calldata revertData,
         bytes calldata returnData
-    )
-        external
-        returns (uint8)
-    {
+    ) external returns (uint8) {
         target.setBehavior(shouldRevert, revertData, returnData);
         return LibERC20Token.decimals(address(target));
     }

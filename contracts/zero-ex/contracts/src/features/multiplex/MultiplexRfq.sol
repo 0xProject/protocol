@@ -26,68 +26,58 @@ import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/INativeOrdersFeature.sol";
 import "../libs/LibNativeOrder.sol";
 
-
-abstract contract MultiplexRfq is
-    FixinEIP712
-{
+abstract contract MultiplexRfq is FixinEIP712 {
     using LibSafeMathV06 for uint256;
 
-    event ExpiredRfqOrder(
-        bytes32 orderHash,
-        address maker,
-        uint64 expiry
-    );
+    event ExpiredRfqOrder(bytes32 orderHash, address maker, uint64 expiry);
 
     function _batchSellRfqOrder(
         IMultiplexFeature.BatchSellState memory state,
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
         uint256 sellAmount
-    )
-        internal
-    {
+    ) internal {
         // Decode the RFQ order and signature.
         (
             LibNativeOrder.RfqOrder memory order,
             LibSignature.Signature memory signature
         ) = abi.decode(
-            wrappedCallData,
-            (LibNativeOrder.RfqOrder, LibSignature.Signature)
-        );
+                wrappedCallData,
+                (LibNativeOrder.RfqOrder, LibSignature.Signature)
+            );
         // Pre-emptively check if the order is expired.
         if (order.expiry <= uint64(block.timestamp)) {
             bytes32 orderHash = _getEIP712Hash(
                 LibNativeOrder.getRfqOrderStructHash(order)
             );
-            emit ExpiredRfqOrder(
-                orderHash,
-                order.maker,
-                order.expiry
-            );
+            emit ExpiredRfqOrder(orderHash, order.maker, order.expiry);
             return;
         }
         // Validate tokens.
         require(
             order.takerToken == params.inputToken &&
-            order.makerToken == params.outputToken,
+                order.makerToken == params.outputToken,
             "MultiplexRfq::_batchSellRfqOrder/RFQ_ORDER_INVALID_TOKENS"
         );
         // Try filling the RFQ order. Swallows reverts.
         try
-            INativeOrdersFeature(address(this))._fillRfqOrder
-                (
-                    order,
-                    signature,
-                    sellAmount.safeDowncastToUint128(),
-                    msg.sender,
-                    params.useSelfBalance,
-                    params.recipient
-                )
-            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-        {
+            INativeOrdersFeature(address(this))._fillRfqOrder(
+                order,
+                signature,
+                sellAmount.safeDowncastToUint128(),
+                msg.sender,
+                params.useSelfBalance,
+                params.recipient
+            )
+        returns (
+            uint128 takerTokenFilledAmount,
+            uint128 makerTokenFilledAmount
+        ) {
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(takerTokenFilledAmount);
-            state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(
+                makerTokenFilledAmount
+            );
         } catch {}
     }
 }

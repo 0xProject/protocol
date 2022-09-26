@@ -24,10 +24,8 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../../transformers/IERC20Transformer.sol";
 import "../../external/IFlashWallet.sol";
 
-
 /// @dev Feature to composably transform between ERC20 tokens.
 interface ITransformERC20Feature {
-
     /// @dev Defines a transformation to run in `transformERC20()`.
     struct Transformation {
         // The deployment nonce for the transformer.
@@ -93,22 +91,18 @@ interface ITransformERC20Feature {
     ///      Only callable by the owner.
     /// @param transformerDeployer The address of the new trusted deployer
     ///        for transformers.
-    function setTransformerDeployer(address transformerDeployer)
-        external;
+    function setTransformerDeployer(address transformerDeployer) external;
 
     /// @dev Replace the optional signer for `transformERC20()` calldata.
     ///      Only callable by the owner.
     /// @param quoteSigner The address of the new calldata signer.
-    function setQuoteSigner(address quoteSigner)
-        external;
+    function setQuoteSigner(address quoteSigner) external;
 
     /// @dev Deploy a new flash wallet instance and replace the current one with it.
     ///      Useful if we somehow break the current wallet instance.
     ///       Only callable by the owner.
     /// @return wallet The new wallet instance.
-    function createTransformWallet()
-        external
-        returns (IFlashWallet wallet);
+    function createTransformWallet() external returns (IFlashWallet wallet);
 
     /// @dev Executes a series of transformations to convert an ERC20 `inputToken`
     ///      to an ERC20 `outputToken`.
@@ -128,10 +122,7 @@ interface ITransformERC20Feature {
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] calldata transformations
-    )
-        external
-        payable
-        returns (uint256 outputTokenAmount);
+    ) external payable returns (uint256 outputTokenAmount);
 
     /// @dev Internal version of `transformERC20()`. Only callable from within.
     /// @param args A `TransformERC20Args` struct.
@@ -144,22 +135,13 @@ interface ITransformERC20Feature {
     /// @dev Return the current wallet instance that will serve as the execution
     ///      context for transformations.
     /// @return wallet The wallet instance.
-    function getTransformWallet()
-        external
-        view
-        returns (IFlashWallet wallet);
+    function getTransformWallet() external view returns (IFlashWallet wallet);
 
     /// @dev Return the allowed deployer for transformers.
     /// @return deployer The transform deployer address.
-    function getTransformerDeployer()
-        external
-        view
-        returns (address deployer);
+    function getTransformerDeployer() external view returns (address deployer);
 
     /// @dev Return the optional signer for `transformERC20()` calldata.
     /// @return signer The transform deployer address.
-    function getQuoteSigner()
-        external
-        view
-        returns (address signer);
+    function getQuoteSigner() external view returns (address signer);
 }

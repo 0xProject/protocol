@@ -20,36 +20,20 @@ pragma solidity ^0.5.9;
 
 import "../src/Refundable.sol";
 
-
-contract TestRefundable is
-    Refundable
-{
-    function refundNonZeroBalanceExternal()
-        external
-        payable
-    {
+contract TestRefundable is Refundable {
+    function refundNonZeroBalanceExternal() external payable {
         _refundNonZeroBalance();
     }
 
-    function setShouldNotRefund(bool shouldNotRefundNew)
-        external
-    {
+    function setShouldNotRefund(bool shouldNotRefundNew) external {
         _shouldNotRefund = shouldNotRefundNew;
     }
 
-    function getShouldNotRefund()
-        external
-        view
-        returns (bool)
-    {
+    function getShouldNotRefund() external view returns (bool) {
         return _shouldNotRefund;
     }
 
-    function refundFinalBalanceFunction()
-        public
-        payable
-        refundFinalBalance
-    {} // solhint-disable-line no-empty-blocks
+    function refundFinalBalanceFunction() public payable refundFinalBalance {} // solhint-disable-line no-empty-blocks
 
     function disableRefundUntilEndFunction()
         public

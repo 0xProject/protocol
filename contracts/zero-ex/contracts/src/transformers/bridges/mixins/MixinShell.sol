@@ -25,20 +25,16 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
 interface IShell {
-
     function originSwap(
         IERC20TokenV06 from,
         IERC20TokenV06 to,
         uint256 fromAmount,
         uint256 minTargetAmount,
         uint256 deadline
-    )
-        external
-        returns (uint256 toAmount);
+    ) external returns (uint256 toAmount);
 }
 
 contract MixinShell {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeShell(
@@ -46,24 +42,18 @@ contract MixinShell {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         IShell pool = abi.decode(bridgeData, (IShell));
 
         // Grant the Shell contract an allowance to sell the first token.
-        IERC20TokenV06(sellToken).approveIfBelow(
-            address(pool),
-            sellAmount
-        );
+        IERC20TokenV06(sellToken).approveIfBelow(address(pool), sellAmount);
 
         boughtAmount = pool.originSwap(
             sellToken,
             buyToken,
-             // Sell all tokens we hold.
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             1,
             // deadline
             block.timestamp + 1

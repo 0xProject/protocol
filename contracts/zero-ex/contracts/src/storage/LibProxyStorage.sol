@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "./LibStorage.sol";
 
-
 /// @dev Storage helpers for the proxy contract.
 library LibProxyStorage {
-
     /// @dev Storage bucket for proxy contract.
     struct Storage {
         // Mapping of function selector -> function implementation
@@ -42,6 +40,8 @@ library LibProxyStorage {
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries
-        assembly { stor_slot := storageSlot }
+        assembly {
+            stor_slot := storageSlot
+        }
     }
 }

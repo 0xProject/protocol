@@ -28,11 +28,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that transfers tokens to arbitrary addresses.
-contract PositiveSlippageFeeTransformer is
-    Transformer
-{
+contract PositiveSlippageFeeTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;
@@ -53,14 +50,21 @@ contract PositiveSlippageFeeTransformer is
     function transform(TransformContext calldata context)
         external
         override
-    returns (bytes4 success)
+        returns (bytes4 success)
     {
         TokenFee memory fee = abi.decode(context.data, (TokenFee));
 
-        uint256 transformerAmount = LibERC20Transformer.getTokenBalanceOf(fee.token, address(this));
+        uint256 transformerAmount = LibERC20Transformer.getTokenBalanceOf(
+            fee.token,
+            address(this)
+        );
         if (transformerAmount > fee.bestCaseAmount) {
-            uint256 positiveSlippageAmount = transformerAmount - fee.bestCaseAmount;
-            fee.token.transformerTransfer(fee.recipient, positiveSlippageAmount);
+            uint256 positiveSlippageAmount = transformerAmount -
+                fee.bestCaseAmount;
+            fee.token.transformerTransfer(
+                fee.recipient,
+                positiveSlippageAmount
+            );
         }
 
         return LibERC20Transformer.TRANSFORMER_SUCCESS;

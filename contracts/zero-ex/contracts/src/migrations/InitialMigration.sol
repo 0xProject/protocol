@@ -26,10 +26,8 @@ import "../features/SimpleFunctionRegistryFeature.sol";
 import "../features/OwnableFeature.sol";
 import "./LibBootstrap.sol";
 
-
 /// @dev A contract for deploying and configuring a minimal ZeroEx contract.
 contract InitialMigration {
-
     /// @dev Features to bootstrap into the the proxy contract.
     struct BootstrapFeatures {
         SimpleFunctionRegistryFeature registry;
@@ -62,13 +60,12 @@ contract InitialMigration {
         address payable owner,
         ZeroEx zeroEx,
         BootstrapFeatures memory features
-    )
-        public
-        virtual
-        returns (ZeroEx _zeroEx)
-    {
+    ) public virtual returns (ZeroEx _zeroEx) {
         // Must be called by the allowed initializeCaller.
-        require(msg.sender == initializeCaller, "InitialMigration/INVALID_SENDER");
+        require(
+            msg.sender == initializeCaller,
+            "InitialMigration/INVALID_SENDER"
+        );
 
         // Bootstrap the initial feature set.
         IBootstrapFeature(address(zeroEx)).bootstrap(
@@ -107,9 +104,7 @@ contract InitialMigration {
         // Initialize OwnableFeature.
         LibBootstrap.delegatecallBootstrapFunction(
             address(features.ownable),
-            abi.encodeWithSelector(
-                OwnableFeature.bootstrap.selector
-            )
+            abi.encodeWithSelector(OwnableFeature.bootstrap.selector)
         );
 
         // De-register `SimpleFunctionRegistryFeature._extendSelf`.
@@ -127,7 +122,10 @@ contract InitialMigration {
     /// @dev Self-destructs this contract. Only callable by this contract.
     /// @param ethRecipient Who to transfer outstanding ETH to.
     function die(address payable ethRecipient) public virtual {
-        require(msg.sender == _implementation, "InitialMigration/INVALID_SENDER");
+        require(
+            msg.sender == _implementation,
+            "InitialMigration/INVALID_SENDER"
+        );
         selfdestruct(ethRecipient);
     }
 }

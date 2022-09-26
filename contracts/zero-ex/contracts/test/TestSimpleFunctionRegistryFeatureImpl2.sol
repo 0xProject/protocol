@@ -22,15 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "../src/fixins/FixinCommon.sol";
 
-
-contract TestSimpleFunctionRegistryFeatureImpl2 is
-    FixinCommon
-{
-    function testFn()
-        external
-        pure
-        returns (uint256 id)
-    {
+contract TestSimpleFunctionRegistryFeatureImpl2 is FixinCommon {
+    function testFn() external pure returns (uint256 id) {
         return 1338;
     }
 }

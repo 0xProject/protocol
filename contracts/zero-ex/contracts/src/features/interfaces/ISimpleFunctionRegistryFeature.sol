@@ -20,15 +20,17 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 /// @dev Basic registry management features.
 interface ISimpleFunctionRegistryFeature {
-
     /// @dev A function implementation was updated via `extend()` or `rollback()`.
     /// @param selector The function selector.
     /// @param oldImpl The implementation contract address being replaced.
     /// @param newImpl The replacement implementation contract address.
-    event ProxyFunctionUpdated(bytes4 indexed selector, address oldImpl, address newImpl);
+    event ProxyFunctionUpdated(
+        bytes4 indexed selector,
+        address oldImpl,
+        address newImpl
+    );
 
     /// @dev Roll back to a prior implementation of a function.
     /// @param selector The function selector.

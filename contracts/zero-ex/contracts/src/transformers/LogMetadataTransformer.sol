@@ -23,11 +23,8 @@ pragma experimental ABIEncoderV2;
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that just emits an event with an arbitrary byte payload.
-contract LogMetadataTransformer is
-    Transformer
-{
+contract LogMetadataTransformer is Transformer {
     event TransformerMetadata(address sender, address taker, bytes data);
 
     /// @dev Maximum uint256 value.
@@ -41,7 +38,11 @@ contract LogMetadataTransformer is
         override
         returns (bytes4 success)
     {
-        emit TransformerMetadata(context.sender, context.recipient, context.data);
+        emit TransformerMetadata(
+            context.sender,
+            context.recipient,
+            context.data
+        );
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 }

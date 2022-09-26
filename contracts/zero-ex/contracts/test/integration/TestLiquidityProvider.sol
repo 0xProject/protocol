@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 contract TestLiquidityProvider {
     event SellTokenForToken(
         address inputToken,
@@ -62,10 +61,7 @@ contract TestLiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
+    ) external returns (uint256) {
         emit SellTokenForToken(
             inputToken,
             outputToken,
@@ -73,7 +69,9 @@ contract TestLiquidityProvider {
             minBuyAmount,
             IERC20TokenV06(inputToken).balanceOf(address(this))
         );
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(
+            address(this)
+        );
         IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
@@ -88,17 +86,16 @@ contract TestLiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
+    ) external returns (uint256) {
         emit SellEthForToken(
             outputToken,
             recipient,
             minBuyAmount,
             address(this).balance
         );
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(
+            address(this)
+        );
         IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
@@ -113,10 +110,7 @@ contract TestLiquidityProvider {
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
+    ) external returns (uint256) {
         emit SellTokenForEth(
             inputToken,
             recipient,

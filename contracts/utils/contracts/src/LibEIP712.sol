@@ -18,9 +18,7 @@
 
 pragma solidity ^0.5.9;
 
-
 library LibEIP712 {
-
     // Hash of the EIP712 Domain Separator Schema
     // keccak256(abi.encodePacked(
     //     "EIP712Domain(",
@@ -30,7 +28,8 @@ library LibEIP712 {
     //     "address verifyingContract",
     //     ")"
     // ))
-    bytes32 constant internal _EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+    bytes32 internal constant _EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH =
+        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
 
     /// @dev Calculates a EIP712 domain separator.
     /// @param name The EIP712 domain name.
@@ -42,11 +41,7 @@ library LibEIP712 {
         string memory version,
         uint256 chainId,
         address verifyingContract
-    )
-        internal
-        pure
-        returns (bytes32 result)
-    {
+    ) internal pure returns (bytes32 result) {
         bytes32 schemaHash = _EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH;
 
         // Assembly for more efficient computing:
@@ -100,9 +95,12 @@ library LibEIP712 {
             // Load free memory pointer
             let memPtr := mload(64)
 
-            mstore(memPtr, 0x1901000000000000000000000000000000000000000000000000000000000000)  // EIP191 header
-            mstore(add(memPtr, 2), eip712DomainHash)                                            // EIP712 domain hash
-            mstore(add(memPtr, 34), hashStruct)                                                 // Hash of struct
+            mstore(
+                memPtr,
+                0x1901000000000000000000000000000000000000000000000000000000000000
+            ) // EIP191 header
+            mstore(add(memPtr, 2), eip712DomainHash) // EIP712 domain hash
+            mstore(add(memPtr, 34), hashStruct) // Hash of struct
 
             // Compute hash
             result := keccak256(memPtr, 66)

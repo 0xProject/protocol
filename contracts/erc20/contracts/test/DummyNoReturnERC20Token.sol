@@ -20,50 +20,26 @@ pragma solidity ^0.5.5;
 
 import "./DummyERC20Token.sol";
 
-
 // solhint-disable no-empty-blocks
-contract DummyNoReturnERC20Token is
-    DummyERC20Token
-{
-    constructor (
+contract DummyNoReturnERC20Token is DummyERC20Token {
+    constructor(
         string memory _name,
         string memory _symbol,
         uint256 _decimals,
         uint256 _totalSupply
-    )
-        public
-        DummyERC20Token(
-            _name,
-            _symbol,
-            _decimals,
-            _totalSupply
-        )
-    {}
+    ) public DummyERC20Token(_name, _symbol, _decimals, _totalSupply) {}
 
     /// @dev send `value` token to `to` from `msg.sender`
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
-    function transfer(address _to, uint256 _value)
-        external
-        returns (bool)
-    {
-        require(
-            balances[msg.sender] >= _value,
-            "ERC20_INSUFFICIENT_BALANCE"
-        );
-        require(
-            balances[_to] + _value >= balances[_to],
-            "UINT256_OVERFLOW"
-        );
+    function transfer(address _to, uint256 _value) external returns (bool) {
+        require(balances[msg.sender] >= _value, "ERC20_INSUFFICIENT_BALANCE");
+        require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");
 
         balances[msg.sender] -= _value;
         balances[_to] += _value;
 
-        emit Transfer(
-            msg.sender,
-            _to,
-            _value
-        );
+        emit Transfer(msg.sender, _to, _value);
 
         // HACK: This contract will not compile if we remove `returns (bool)`, so we manually return no data
         assembly {
@@ -79,32 +55,19 @@ contract DummyNoReturnERC20Token is
         address _from,
         address _to,
         uint256 _value
-    )
-        external
-        returns (bool)
-    {
-        require(
-            balances[_from] >= _value,
-            "ERC20_INSUFFICIENT_BALANCE"
-        );
+    ) external returns (bool) {
+        require(balances[_from] >= _value, "ERC20_INSUFFICIENT_BALANCE");
         require(
             allowed[_from][msg.sender] >= _value,
             "ERC20_INSUFFICIENT_ALLOWANCE"
         );
-        require(
-            balances[_to] + _value >= balances[_to],
-            "UINT256_OVERFLOW"
-        );
+        require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");
 
         balances[_to] += _value;
         balances[_from] -= _value;
         allowed[_from][msg.sender] -= _value;
-    
-        emit Transfer(
-            _from,
-            _to,
-            _value
-        );
+
+        emit Transfer(_from, _to, _value);
 
         // HACK: This contract will not compile if we remove `returns (bool)`, so we manually return no data
         assembly {
@@ -112,4 +75,3 @@ contract DummyNoReturnERC20Token is
         }
     }
 }
-

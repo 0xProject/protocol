@@ -26,7 +26,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract MixinCurveV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -43,17 +42,17 @@ contract MixinCurveV2 {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data to get the Curve metadata.
-        CurveBridgeDataV2 memory data = abi.decode(bridgeData, (CurveBridgeDataV2));
+        CurveBridgeDataV2 memory data = abi.decode(
+            bridgeData,
+            (CurveBridgeDataV2)
+        );
         sellToken.approveIfBelow(data.curveAddress, sellAmount);
 
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        (bool success, bytes memory resultData) =
-            data.curveAddress.call(abi.encodeWithSelector(
+        (bool success, bytes memory resultData) = data.curveAddress.call(
+            abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,
                 data.toCoinIdx,
@@ -61,7 +60,8 @@ contract MixinCurveV2 {
                 sellAmount,
                 // min dy
                 1
-            ));
+            )
+        );
         if (!success) {
             resultData.rrevert();
         }

@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: Apache-2.0
 /*
 
@@ -33,9 +32,7 @@ contract CeloBridgeAdapter is
     MixinUniswapV2,
     MixinZeroExBridge
 {
-    constructor(address _weth)
-        public
-    {}
+    constructor(address _weth) public {}
 
     function _trade(
         BridgeOrder memory order,
@@ -43,28 +40,26 @@ contract CeloBridgeAdapter is
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bool dryRun
-    )
-        internal
-        override
-        returns (uint256 boughtAmount, bool supportedSource)
-    {
+    ) internal override returns (uint256 boughtAmount, bool supportedSource) {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.UNISWAPV2) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.NERVE) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeNerve(
-                sellToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
-            if (dryRun) { return (0, true); }            
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,

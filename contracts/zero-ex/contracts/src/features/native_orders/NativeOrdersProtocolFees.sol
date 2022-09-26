@@ -27,11 +27,8 @@ import "../../fixins/FixinProtocolFees.sol";
 import "../../errors/LibNativeOrdersRichErrors.sol";
 import "../../vendor/v3/IStaking.sol";
 
-
 /// @dev Mixin for protocol fee utility functions.
-abstract contract NativeOrdersProtocolFees is
-    FixinProtocolFees
-{
+abstract contract NativeOrdersProtocolFees is FixinProtocolFees {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -42,7 +39,12 @@ abstract contract NativeOrdersProtocolFees is
         uint32 protocolFeeMultiplier
     )
         internal
-        FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
+        FixinProtocolFees(
+            weth,
+            staking,
+            feeCollectorController,
+            protocolFeeMultiplier
+        )
     {
         // solhint-disable no-empty-blocks
     }
@@ -50,9 +52,7 @@ abstract contract NativeOrdersProtocolFees is
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
-    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
-        external
-    {
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds) external {
         for (uint256 i = 0; i < poolIds.length; ++i) {
             _transferFeesForPool(poolIds[i]);
         }

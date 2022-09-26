@@ -23,10 +23,8 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../../vendor/ILiquidityProvider.sol";
 
-
 /// @dev Feature to swap directly with an on-chain liquidity provider.
 interface ILiquidityProviderFeature {
-
     /// @dev Event for data pipeline.
     event LiquidityProviderSwap(
         IERC20TokenV06 inputToken,
@@ -58,8 +56,5 @@ interface ILiquidityProviderFeature {
         uint256 sellAmount,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        payable
-        returns (uint256 boughtAmount);
+    ) external payable returns (uint256 boughtAmount);
 }

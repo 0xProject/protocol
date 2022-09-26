@@ -23,10 +23,7 @@ pragma experimental ABIEncoderV2;
 import "../src/features/interfaces/IMetaTransactionsFeature.sol";
 import "../src/features/TransformERC20Feature.sol";
 
-
-contract TestMetaTransactionsTransformERC20Feature is
-    TransformERC20Feature
-{
+contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
     event TransformERC20Called(
         address sender,
         uint256 value,
@@ -42,8 +39,8 @@ contract TestMetaTransactionsTransformERC20Feature is
 
     function _transformERC20(TransformERC20Args memory args)
         public
-        override
         payable
+        override
         returns (uint256 outputTokenAmount)
     {
         if (msg.value == 555) {
@@ -51,7 +48,7 @@ contract TestMetaTransactionsTransformERC20Feature is
         }
 
         if (msg.value == 666) {
-            revert('FAIL');
+            revert("FAIL");
         }
 
         if (msg.value == 777) {
@@ -77,9 +74,12 @@ contract TestMetaTransactionsTransformERC20Feature is
 
         if (msg.value == 888) {
             // Try to reenter `batchExecuteMetaTransactions()`
-            IMetaTransactionsFeature.MetaTransactionData[] memory mtxs =
-                new IMetaTransactionsFeature.MetaTransactionData[](1);
-            LibSignature.Signature[] memory signatures = new LibSignature.Signature[](1);
+            IMetaTransactionsFeature.MetaTransactionData[]
+                memory mtxs = new IMetaTransactionsFeature.MetaTransactionData[](
+                    1
+                );
+            LibSignature.Signature[]
+                memory signatures = new LibSignature.Signature[](1);
             mtxs[0] = IMetaTransactionsFeature.MetaTransactionData({
                 signer: address(0),
                 sender: address(0),
@@ -92,10 +92,8 @@ contract TestMetaTransactionsTransformERC20Feature is
                 feeToken: IERC20TokenV06(0),
                 feeAmount: 0
             });
-            IMetaTransactionsFeature(address(this)).batchExecuteMetaTransactions(
-                mtxs,
-                signatures
-            );
+            IMetaTransactionsFeature(address(this))
+                .batchExecuteMetaTransactions(mtxs, signatures);
         }
 
         emit TransformERC20Called(

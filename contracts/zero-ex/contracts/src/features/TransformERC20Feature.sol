@@ -37,7 +37,6 @@ import "../transformers/LibERC20Transformer.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ITransformERC20Feature.sol";
 
-
 /// @dev Feature to composably transform between ERC20 tokens.
 contract TransformERC20Feature is
     IFeature,
@@ -81,7 +80,9 @@ contract TransformERC20Feature is
             // Create the transform wallet if it doesn't exist.
             this.createTransformWallet();
         }
-        LibTransformERC20Storage.getStorage().transformerDeployer = transformerDeployer;
+        LibTransformERC20Storage
+            .getStorage()
+            .transformerDeployer = transformerDeployer;
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
@@ -93,18 +94,16 @@ contract TransformERC20Feature is
         override
         onlyOwner
     {
-        LibTransformERC20Storage.getStorage().transformerDeployer = transformerDeployer;
+        LibTransformERC20Storage
+            .getStorage()
+            .transformerDeployer = transformerDeployer;
         emit TransformerDeployerUpdated(transformerDeployer);
     }
 
     /// @dev Replace the optional signer for `transformERC20()` calldata.
     ///      Only callable by the owner.
     /// @param quoteSigner The address of the new calldata signer.
-    function setQuoteSigner(address quoteSigner)
-        external
-        override
-        onlyOwner
-    {
+    function setQuoteSigner(address quoteSigner) external override onlyOwner {
         LibTransformERC20Storage.getStorage().quoteSigner = quoteSigner;
         emit QuoteSignerUpdated(quoteSigner);
     }
@@ -113,8 +112,8 @@ contract TransformERC20Feature is
     /// @return deployer The transform deployer address.
     function getTransformerDeployer()
         public
-        override
         view
+        override
         returns (address deployer)
     {
         return LibTransformERC20Storage.getStorage().transformerDeployer;
@@ -122,12 +121,7 @@ contract TransformERC20Feature is
 
     /// @dev Return the optional signer for `transformERC20()` calldata.
     /// @return signer The signer address.
-    function getQuoteSigner()
-        public
-        override
-        view
-        returns (address signer)
-    {
+    function getQuoteSigner() public view override returns (address signer) {
         return LibTransformERC20Storage.getStorage().quoteSigner;
     }
 
@@ -166,24 +160,20 @@ contract TransformERC20Feature is
         uint256 inputTokenAmount,
         uint256 minOutputTokenAmount,
         Transformation[] memory transformations
-    )
-        public
-        override
-        payable
-        returns (uint256 outputTokenAmount)
-    {
-        return _transformERC20Private(
-            TransformERC20Args({
-                taker: msg.sender,
-                inputToken: inputToken,
-                outputToken: outputToken,
-                inputTokenAmount: inputTokenAmount,
-                minOutputTokenAmount: minOutputTokenAmount,
-                transformations: transformations,
-                useSelfBalance: false,
-                recipient: msg.sender
-            })
-        );
+    ) public payable override returns (uint256 outputTokenAmount) {
+        return
+            _transformERC20Private(
+                TransformERC20Args({
+                    taker: msg.sender,
+                    inputToken: inputToken,
+                    outputToken: outputToken,
+                    inputTokenAmount: inputTokenAmount,
+                    minOutputTokenAmount: minOutputTokenAmount,
+                    transformations: transformations,
+                    useSelfBalance: false,
+                    recipient: msg.sender
+                })
+            );
     }
 
     /// @dev Internal version of `transformERC20()`. Only callable from within.
@@ -191,9 +181,9 @@ contract TransformERC20Feature is
     /// @return outputTokenAmount The amount of `outputToken` received by the taker.
     function _transformERC20(TransformERC20Args memory args)
         public
+        payable
         virtual
         override
-        payable
         onlySelf
         returns (uint256 outputTokenAmount)
     {
@@ -227,8 +217,8 @@ contract TransformERC20Feature is
         state.transformerDeployer = getTransformerDeployer();
 
         // Remember the initial output token balance of the recipient.
-        state.recipientOutputTokenBalanceBefore =
-            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.recipient);
+        state.recipientOutputTokenBalanceBefore = LibERC20Transformer
+            .getTokenBalanceOf(args.outputToken, args.recipient);
 
         // Pull input tokens from the taker to the wallet and transfer attached ETH.
         _transferInputTokensAndAttachedEth(args, address(state.wallet));
@@ -252,25 +242,35 @@ contract TransformERC20Feature is
         }
 
         // Compute how much output token has been transferred to the recipient.
-        state.recipientOutputTokenBalanceAfter =
-            LibERC20Transformer.getTokenBalanceOf(args.outputToken, args.recipient);
-        if (state.recipientOutputTokenBalanceAfter < state.recipientOutputTokenBalanceBefore) {
-            LibTransformERC20RichErrors.NegativeTransformERC20OutputError(
-                address(args.outputToken),
-                state.recipientOutputTokenBalanceBefore - state.recipientOutputTokenBalanceAfter
-            ).rrevert();
+        state.recipientOutputTokenBalanceAfter = LibERC20Transformer
+            .getTokenBalanceOf(args.outputToken, args.recipient);
+        if (
+            state.recipientOutputTokenBalanceAfter <
+            state.recipientOutputTokenBalanceBefore
+        ) {
+            LibTransformERC20RichErrors
+                .NegativeTransformERC20OutputError(
+                    address(args.outputToken),
+                    state.recipientOutputTokenBalanceBefore -
+                        state.recipientOutputTokenBalanceAfter
+                )
+                .rrevert();
         }
         outputTokenAmount = LibSafeMathV06.min256(
             outputTokenAmount,
-            state.recipientOutputTokenBalanceAfter.safeSub(state.recipientOutputTokenBalanceBefore)
+            state.recipientOutputTokenBalanceAfter.safeSub(
+                state.recipientOutputTokenBalanceBefore
+            )
         );
         // Ensure enough output token has been sent to the taker.
         if (outputTokenAmount < args.minOutputTokenAmount) {
-            LibTransformERC20RichErrors.IncompleteTransformERC20Error(
-                address(args.outputToken),
-                outputTokenAmount,
-                args.minOutputTokenAmount
-            ).rrevert();
+            LibTransformERC20RichErrors
+                .IncompleteTransformERC20Error(
+                    address(args.outputToken),
+                    outputTokenAmount,
+                    args.minOutputTokenAmount
+                )
+                .rrevert();
         }
 
         // Emit an event.
@@ -288,8 +288,8 @@ contract TransformERC20Feature is
     /// @return wallet The wallet instance.
     function getTransformWallet()
         public
-        override
         view
+        override
         returns (IFlashWallet wallet)
     {
         return LibTransformERC20Storage.getStorage().wallet;
@@ -301,18 +301,15 @@ contract TransformERC20Feature is
     function _transferInputTokensAndAttachedEth(
         TransformERC20Args memory args,
         address payable to
-    )
-        private
-    {
+    ) private {
         if (
             LibERC20Transformer.isTokenETH(args.inputToken) &&
             msg.value < args.inputTokenAmount
         ) {
-             // Token is ETH, so the caller must attach enough ETH to the call.
-            LibTransformERC20RichErrors.InsufficientEthAttachedError(
-                msg.value,
-                args.inputTokenAmount
-            ).rrevert();
+            // Token is ETH, so the caller must attach enough ETH to the call.
+            LibTransformERC20RichErrors
+                .InsufficientEthAttachedError(msg.value, args.inputTokenAmount)
+                .rrevert();
         }
 
         // Transfer any attached ETH.
@@ -351,9 +348,7 @@ contract TransformERC20Feature is
         Transformation memory transformation,
         address transformerDeployer,
         address payable recipient
-    )
-        private
-    {
+    ) private {
         // Derive the transformer address from the deployment nonce.
         address payable transformer = LibERC20Transformer.getDeployedAddress(
             transformerDeployer,
@@ -374,14 +369,18 @@ contract TransformERC20Feature is
             )
         );
         // Ensure the transformer returned the magic bytes.
-        if (resultData.length != 32 ||
-            abi.decode(resultData, (bytes4)) != LibERC20Transformer.TRANSFORMER_SUCCESS
+        if (
+            resultData.length != 32 ||
+            abi.decode(resultData, (bytes4)) !=
+            LibERC20Transformer.TRANSFORMER_SUCCESS
         ) {
-            LibTransformERC20RichErrors.TransformerFailedError(
-                transformer,
-                transformation.data,
-                resultData
-            ).rrevert();
+            LibTransformERC20RichErrors
+                .TransformerFailedError(
+                    transformer,
+                    transformation.data,
+                    resultData
+                )
+                .rrevert();
         }
     }
 
@@ -389,18 +388,13 @@ contract TransformERC20Feature is
         IERC20TokenV06 outputToken,
         IFlashWallet wallet,
         address payable recipient
-    )
-        private
-        returns (uint256 transferAmount)
-    {
-        transferAmount =
-            LibERC20Transformer.getTokenBalanceOf(outputToken, address(wallet));
+    ) private returns (uint256 transferAmount) {
+        transferAmount = LibERC20Transformer.getTokenBalanceOf(
+            outputToken,
+            address(wallet)
+        );
         if (LibERC20Transformer.isTokenETH(outputToken)) {
-            wallet.executeCall(
-                recipient,
-                "",
-                transferAmount
-            );
+            wallet.executeCall(recipient, "", transferAmount);
         } else {
             bytes memory resultData = wallet.executeCall(
                 payable(address(outputToken)),
@@ -415,7 +409,9 @@ contract TransformERC20Feature is
                 // If we get back 0 returndata, this may be a non-standard ERC-20 that
                 // does not return a boolean. Check that it at least contains code.
                 uint256 size;
-                assembly { size := extcodesize(outputToken) }
+                assembly {
+                    size := extcodesize(outputToken)
+                }
                 require(size > 0, "invalid token address, contains no code");
             } else if (resultData.length >= 32) {
                 // If we get back at least 32 bytes, we know the target address

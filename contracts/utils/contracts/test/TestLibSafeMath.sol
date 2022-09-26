@@ -20,9 +20,7 @@ pragma solidity ^0.5.9;
 
 import "../src/LibSafeMath.sol";
 
-
 contract TestLibSafeMath {
-
     using LibSafeMath for uint256;
 
     function externalSafeMul(uint256 a, uint256 b)

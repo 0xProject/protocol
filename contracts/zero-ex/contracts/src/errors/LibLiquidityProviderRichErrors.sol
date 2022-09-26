@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.5;
 
-
 library LibLiquidityProviderRichErrors {
-
     // solhint-disable func-name-mixedcase
 
     function LiquidityProviderIncompleteSellError(
@@ -31,19 +29,20 @@ library LibLiquidityProviderRichErrors {
         uint256 sellAmount,
         uint256 boughtAmount,
         uint256 minBuyAmount
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSelector(
-            bytes4(keccak256("LiquidityProviderIncompleteSellError(address,address,address,uint256,uint256,uint256)")),
-            providerAddress,
-            makerToken,
-            takerToken,
-            sellAmount,
-            boughtAmount,
-            minBuyAmount
-        );
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSelector(
+                bytes4(
+                    keccak256(
+                        "LiquidityProviderIncompleteSellError(address,address,address,uint256,uint256,uint256)"
+                    )
+                ),
+                providerAddress,
+                makerToken,
+                takerToken,
+                sellAmount,
+                boughtAmount,
+                minBuyAmount
+            );
     }
 }

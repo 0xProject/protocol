@@ -26,13 +26,10 @@ import "../src/vendor/IERC1155Token.sol";
 import "../src/vendor/IERC721Token.sol";
 import "../src/features/libs/LibNFTOrder.sol";
 
-
 contract TestNFTOrderPresigner {
     IZeroEx private immutable zeroEx;
 
-    constructor(IZeroEx _zeroEx)
-        public
-    {
+    constructor(IZeroEx _zeroEx) public {
         zeroEx = _zeroEx;
     }
 
@@ -42,28 +39,19 @@ contract TestNFTOrderPresigner {
         uint256 id,
         uint256 value,
         bytes calldata data
-    )
-        external
-        returns(bytes4 success)
-    {
+    ) external returns (bytes4 success) {
         return 0xf23a6e61;
     }
 
-    function approveERC721(IERC721Token token)
-        external
-    {
+    function approveERC721(IERC721Token token) external {
         token.setApprovalForAll(address(zeroEx), true);
     }
 
-    function approveERC1155(IERC1155Token token)
-        external
-    {
+    function approveERC1155(IERC1155Token token) external {
         token.setApprovalForAll(address(zeroEx), true);
     }
 
-    function approveERC20(IERC20TokenV06 token)
-        external
-    {
+    function approveERC20(IERC20TokenV06 token) external {
         token.approve(address(zeroEx), uint256(-1));
     }
 
@@ -79,15 +67,11 @@ contract TestNFTOrderPresigner {
         zeroEx.preSignERC1155Order(order);
     }
 
-    function cancelERC721Order(uint256 orderNonce)
-        external
-    {
+    function cancelERC721Order(uint256 orderNonce) external {
         zeroEx.cancelERC721Order(orderNonce);
     }
 
-    function cancelERC1155Order(uint256 orderNonce)
-        external
-    {
+    function cancelERC1155Order(uint256 orderNonce) external {
         zeroEx.cancelERC1155Order(orderNonce);
     }
 }

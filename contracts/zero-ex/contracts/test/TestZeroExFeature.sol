@@ -23,33 +23,20 @@ pragma experimental ABIEncoderV2;
 import "../src/fixins/FixinCommon.sol";
 import "../src/ZeroEx.sol";
 
-
-contract TestZeroExFeature is
-    FixinCommon
-{
+contract TestZeroExFeature is FixinCommon {
     event PayableFnCalled(uint256 value);
     event NotPayableFnCalled();
 
-    function payableFn()
-        external
-        payable
-    {
+    function payableFn() external payable {
         emit PayableFnCalled(msg.value);
     }
 
-    function notPayableFn()
-        external
-    {
+    function notPayableFn() external {
         emit NotPayableFnCalled();
     }
 
     // solhint-disable no-empty-blocks
-    function unimplmentedFn()
-        external
-    {}
+    function unimplmentedFn() external {}
 
-    function internalFn()
-        external
-        onlySelf
-    {}
+    function internalFn() external onlySelf {}
 }

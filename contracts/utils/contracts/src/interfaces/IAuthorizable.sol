@@ -20,10 +20,7 @@ pragma solidity ^0.5.9;
 
 import "./IOwnable.sol";
 
-
-contract IAuthorizable is
-    IOwnable
-{
+contract IAuthorizable is IOwnable {
     // Event logged when a new address is authorized.
     event AuthorizedAddressAdded(
         address indexed target,
@@ -38,27 +35,19 @@ contract IAuthorizable is
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function addAuthorizedAddress(address target)
-        external;
+    function addAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
-    function removeAuthorizedAddress(address target)
-        external;
+    function removeAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
+    function removeAuthorizedAddressAtIndex(address target, uint256 index)
         external;
 
     /// @dev Gets all authorized addresses.
     /// @return Array of authorized addresses.
-    function getAuthorizedAddresses()
-        external
-        view
-        returns (address[] memory);
+    function getAuthorizedAddresses() external view returns (address[] memory);
 }

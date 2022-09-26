@@ -20,17 +20,12 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 contract TestPropertyValidator {
-
     function validateProperty(
         address tokenAddress,
         uint256 tokenId,
         bytes calldata propertyData
-    )
-        external
-        view
-    {
+    ) external view {
         require(
             propertyData.length > 0,
             "TestPropertyValidator::validateProperty/REVERT"

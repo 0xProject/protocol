@@ -40,10 +40,7 @@ contract TestStaking {
         address makerAddress,
         address payerAddress,
         uint256 amount
-    )
-        external
-        payable
-    {
+    ) external payable {
         require(weth.transferFrom(payerAddress, address(this), amount));
         balanceForPool[poolForMaker[makerAddress]] += amount;
     }

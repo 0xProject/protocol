@@ -23,10 +23,7 @@ import "./interfaces/IOwnableV06.sol";
 import "./errors/LibRichErrorsV06.sol";
 import "./errors/LibOwnableRichErrorsV06.sol";
 
-
-contract OwnableV06 is
-    IOwnableV06
-{
+contract OwnableV06 is IOwnableV06 {
     /// @dev The owner of this contract.
     /// @return 0 The owner address.
     address public override owner;
@@ -42,28 +39,22 @@ contract OwnableV06 is
 
     /// @dev Change the owner of this contract.
     /// @param newOwner New owner address.
-    function transferOwnership(address newOwner)
-        public
-        override
-        onlyOwner
-    {
+    function transferOwnership(address newOwner) public override onlyOwner {
         if (newOwner == address(0)) {
-            LibRichErrorsV06.rrevert(LibOwnableRichErrorsV06.TransferOwnerToZeroError());
+            LibRichErrorsV06.rrevert(
+                LibOwnableRichErrorsV06.TransferOwnerToZeroError()
+            );
         } else {
             owner = newOwner;
             emit OwnershipTransferred(msg.sender, newOwner);
         }
     }
 
-    function _assertSenderIsOwner()
-        internal
-        view
-    {
+    function _assertSenderIsOwner() internal view {
         if (msg.sender != owner) {
-            LibRichErrorsV06.rrevert(LibOwnableRichErrorsV06.OnlyOwnerError(
-                msg.sender,
-                owner
-            ));
+            LibRichErrorsV06.rrevert(
+                LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner)
+            );
         }
     }
 }

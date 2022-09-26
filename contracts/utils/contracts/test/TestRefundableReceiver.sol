@@ -20,18 +20,16 @@ pragma solidity ^0.5.9;
 
 import "./TestRefundable.sol";
 
-
 contract TestRefundableReceiver {
-
     /// @dev A payable fallback function is necessary to receive refunds from the `TestRefundable` contract.
     ///      This function ensures that zero value is not sent to the contract, which tests the feature of
     ///      of the `refundNonzeroBalance` that doesn't transfer if the balance is zero.
-    function ()
-        external
-        payable
-    {
+    function() external payable {
         // Ensure that a value of zero was not transferred to the contract.
-        require(msg.value != 0, "Zero value should not be sent to this contract.");
+        require(
+            msg.value != 0,
+            "Zero value should not be sent to this contract."
+        );
     }
 
     /// @dev This function tests the behavior of the `refundNonzeroBalance` function by checking whether or
@@ -48,7 +46,10 @@ contract TestRefundableReceiver {
         // function contains a check that will fail in the event that a value of zero was sent to the contract.
         if (msg.value > 0) {
             // Ensure that a full refund was provided to this contract.
-            require(address(this).balance == msg.value, "A full refund was not provided by `refundNonzeroBalance`");
+            require(
+                address(this).balance == msg.value,
+                "A full refund was not provided by `refundNonzeroBalance`"
+            );
         }
     }
 
@@ -61,10 +62,7 @@ contract TestRefundableReceiver {
     function testRefundFinalBalance(
         TestRefundable testRefundable,
         bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -85,10 +83,7 @@ contract TestRefundableReceiver {
     function testDisableRefundUntilEnd(
         TestRefundable testRefundable,
         bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -108,15 +103,14 @@ contract TestRefundableReceiver {
     function testNestedDisableRefundUntilEnd(
         TestRefundable testRefundable,
         bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
         // Call `nestedDisableRefundUntilEndFunction` and forward all value from the contract.
-        uint256 balanceWithinCall = testRefundable.nestedDisableRefundUntilEndFunction.value(msg.value)();
+        uint256 balanceWithinCall = testRefundable
+            .nestedDisableRefundUntilEndFunction
+            .value(msg.value)();
 
         // Ensure that the balance within the call was equal to `msg.value` since the inner refund should
         // not have been triggered regardless of the value of `shouldNotRefund`.
@@ -135,15 +129,14 @@ contract TestRefundableReceiver {
     function testMixedRefunds(
         TestRefundable testRefundable,
         bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    ) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
         // Call `mixedRefundModifierFunction` and forward all value from the contract.
-        uint256 balanceWithinCall = testRefundable.mixedRefundModifierFunction.value(msg.value)();
+        uint256 balanceWithinCall = testRefundable
+            .mixedRefundModifierFunction
+            .value(msg.value)();
 
         // Ensure that the balance within the call was equal to `msg.value` since the inner refund should
         // not have been triggered regardless of the value of `shouldNotRefund`.
@@ -161,29 +154,42 @@ contract TestRefundableReceiver {
     function requireCorrectFinalBalancesAndState(
         TestRefundable testRefundable,
         bool shouldNotRefund
-    )
-        internal
-    {
+    ) internal {
         // If `shouldNotRefund` was true, then this contract should have a balance of zero,
         // and `testRefundable` should have a balance of `msg.value`. Otherwise, the opposite
         // should be true.
         if (shouldNotRefund) {
             // Ensure that this contract's balance is zero.
-            require(address(this).balance == 0, "Incorrect balance for TestRefundableReceiver");
+            require(
+                address(this).balance == 0,
+                "Incorrect balance for TestRefundableReceiver"
+            );
 
             // Ensure that the other contract's balance is equal to `msg.value`.
-            require(address(testRefundable).balance == msg.value, "Incorrect balance for TestRefundable");
+            require(
+                address(testRefundable).balance == msg.value,
+                "Incorrect balance for TestRefundable"
+            );
         } else {
             // Ensure that this contract's balance is `msg.value`.
-            require(address(this).balance == msg.value, "Incorrect balance for TestRefundableReceiver");
+            require(
+                address(this).balance == msg.value,
+                "Incorrect balance for TestRefundableReceiver"
+            );
 
             // Ensure that the other contract's balance is equal to zero.
-            require(address(testRefundable).balance == 0, "Incorrect balance for TestRefundable");
+            require(
+                address(testRefundable).balance == 0,
+                "Incorrect balance for TestRefundable"
+            );
         }
 
         // Ensure that `shouldNotRefund` in TestRefundable is set to the parameter `shouldNotRefund`
         // after the call (i.e. the value didn't change during the function call).
-        require(testRefundable.getShouldNotRefund() == shouldNotRefund, "Incorrect shouldNotRefund value");
+        require(
+            testRefundable.getShouldNotRefund() == shouldNotRefund,
+            "Incorrect shouldNotRefund value"
+        );
 
         // Drain the contract of funds so that subsequent tests don't have to account for leftover ether.
         msg.sender.transfer(address(this).balance);

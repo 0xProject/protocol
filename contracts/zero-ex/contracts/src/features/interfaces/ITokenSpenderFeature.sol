@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 /// @dev Feature that allows spending token allowances.
 interface ITokenSpenderFeature {
-
     /// @dev Transfers ERC20 tokens from `owner` to `to`.
     ///      Only callable from within.
     /// @param token The token to spend.
@@ -37,8 +35,7 @@ interface ITokenSpenderFeature {
         address owner,
         address to,
         uint256 amount
-    )
-        external;
+    ) external;
 
     /// @dev Gets the maximum amount of an ERC20 token `token` that can be
     ///      pulled from `owner`.

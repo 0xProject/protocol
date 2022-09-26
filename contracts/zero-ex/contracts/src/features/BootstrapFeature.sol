@@ -25,21 +25,18 @@ import "../migrations/LibBootstrap.sol";
 import "../storage/LibProxyStorage.sol";
 import "./interfaces/IBootstrapFeature.sol";
 
-
 /// @dev Detachable `bootstrap()` feature.
-contract BootstrapFeature is
-    IBootstrapFeature
-{
+contract BootstrapFeature is IBootstrapFeature {
     // solhint-disable state-visibility,indent
     /// @dev The ZeroEx contract.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _deployer;
+    address private immutable _deployer;
     /// @dev The implementation address of this contract.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _implementation;
+    address private immutable _implementation;
     /// @dev The deployer.
     ///      This has to be immutable to persist across delegatecalls.
-    address immutable private _bootstrapCaller;
+    address private immutable _bootstrapCaller;
     // solhint-enable state-visibility,indent
 
     using LibRichErrorsV06 for bytes;
@@ -59,16 +56,20 @@ contract BootstrapFeature is
     ///      deregister itself from the proxy to prevent being called again.
     /// @param target The bootstrapper contract address.
     /// @param callData The call data to execute on `target`.
-    function bootstrap(address target, bytes calldata callData) external override {
+    function bootstrap(address target, bytes calldata callData)
+        external
+        override
+    {
         // Only the bootstrap caller can call this function.
         if (msg.sender != _bootstrapCaller) {
-            LibProxyRichErrors.InvalidBootstrapCallerError(
-                msg.sender,
-                _bootstrapCaller
-            ).rrevert();
+            LibProxyRichErrors
+                .InvalidBootstrapCallerError(msg.sender, _bootstrapCaller)
+                .rrevert();
         }
         // Deregister.
-        LibProxyStorage.getStorage().impls[this.bootstrap.selector] = address(0);
+        LibProxyStorage.getStorage().impls[this.bootstrap.selector] = address(
+            0
+        );
         // Self-destruct.
         BootstrapFeature(_implementation).die();
         // Call the bootstrapper.
@@ -80,7 +81,9 @@ contract BootstrapFeature is
     function die() external {
         assert(address(this) == _implementation);
         if (msg.sender != _deployer) {
-            LibProxyRichErrors.InvalidDieCallerError(msg.sender, _deployer).rrevert();
+            LibProxyRichErrors
+                .InvalidDieCallerError(msg.sender, _deployer)
+                .rrevert();
         }
         selfdestruct(msg.sender);
     }

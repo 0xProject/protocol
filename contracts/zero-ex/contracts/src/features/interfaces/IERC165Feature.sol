@@ -20,10 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 /// @dev Implements the ERC165 `supportsInterface` function
 interface IERC165Feature {
-
     /// @dev Indicates whether the 0x Exchange Proxy implements a particular
     ///      ERC165 interface. This function should use at most 30,000 gas.
     /// @param interfaceId The interface identifier, as specified in ERC165.

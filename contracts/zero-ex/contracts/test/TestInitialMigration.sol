@@ -24,10 +24,7 @@ import "../src/ZeroEx.sol";
 import "../src/features/interfaces/IBootstrapFeature.sol";
 import "../src/migrations/InitialMigration.sol";
 
-
-contract TestInitialMigration is
-    InitialMigration
-{
+contract TestInitialMigration is InitialMigration {
     address public bootstrapFeature;
     address public dieRecipient;
 
@@ -35,7 +32,10 @@ contract TestInitialMigration is
     constructor(address deployer) public InitialMigration(deployer) {}
 
     function callBootstrap(ZeroEx zeroEx) external {
-        IBootstrapFeature(address(zeroEx)).bootstrap(address(this), new bytes(0));
+        IBootstrapFeature(address(zeroEx)).bootstrap(
+            address(this),
+            new bytes(0)
+        );
     }
 
     function bootstrap(address owner, BootstrapFeatures memory features)
@@ -45,8 +45,7 @@ contract TestInitialMigration is
     {
         success = InitialMigration.bootstrap(owner, features);
         // Snoop the bootstrap feature contract.
-        bootstrapFeature =
-            ZeroEx(address(uint160(address(this))))
+        bootstrapFeature = ZeroEx(address(uint160(address(this))))
             .getFunctionImplementation(IBootstrapFeature.bootstrap.selector);
     }
 

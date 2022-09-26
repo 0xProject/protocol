@@ -20,10 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 /// @dev FeeCollectorControllerContract-like contract with a null init code hash.
 //       Does not implement anything else, so finalization will fail.
 contract TestFeeCollectorController {
-
     bytes32 public FEE_COLLECTOR_INIT_CODE_HASH = 0;
 }

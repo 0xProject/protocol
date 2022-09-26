@@ -28,11 +28,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that transfers tokens to arbitrary addresses.
-contract AffiliateFeeTransformer is
-    Transformer
-{
+contract AffiliateFeeTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;
@@ -65,7 +62,10 @@ contract AffiliateFeeTransformer is
         for (uint256 i = 0; i < fees.length; ++i) {
             uint256 amount = fees[i].amount;
             if (amount == MAX_UINT256) {
-                amount = LibERC20Transformer.getTokenBalanceOf(fees[i].token, address(this));
+                amount = LibERC20Transformer.getTokenBalanceOf(
+                    fees[i].token,
+                    address(this)
+                );
             }
             if (amount != 0) {
                 fees[i].token.transformerTransfer(fees[i].recipient, amount);

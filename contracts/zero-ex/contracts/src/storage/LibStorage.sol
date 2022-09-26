@@ -20,10 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 /// @dev Common storage helpers
 library LibStorage {
-
     /// @dev What to bit-shift a storage ID by to get its slot.
     ///      This gives us a maximum of 2**128 inline fields in each bucket.
     uint256 private constant STORAGE_SLOT_EXP = 128;

@@ -22,11 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./TestMintableERC20Token.sol";
 
-
-contract TestTokenSpenderERC20Token is
-    TestMintableERC20Token
-{
-
+contract TestTokenSpenderERC20Token is TestMintableERC20Token {
     event TransferFromCalled(
         address sender,
         address from,
@@ -35,12 +31,12 @@ contract TestTokenSpenderERC20Token is
     );
 
     // `transferFrom()` behavior depends on the value of `amount`.
-    uint256 constant private EMPTY_RETURN_AMOUNT = 1337;
-    uint256 constant private FALSE_RETURN_AMOUNT = 1338;
-    uint256 constant private REVERT_RETURN_AMOUNT = 1339;
-    uint256 constant private TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
-    uint256 constant private EXTRA_RETURN_TRUE_AMOUNT = 1341;
-    uint256 constant private EXTRA_RETURN_FALSE_AMOUNT = 1342;
+    uint256 private constant EMPTY_RETURN_AMOUNT = 1337;
+    uint256 private constant FALSE_RETURN_AMOUNT = 1338;
+    uint256 private constant REVERT_RETURN_AMOUNT = 1339;
+    uint256 private constant TRIGGER_FALLBACK_SUCCESS_AMOUNT = 1340;
+    uint256 private constant EXTRA_RETURN_TRUE_AMOUNT = 1341;
+    uint256 private constant EXTRA_RETURN_FALSE_AMOUNT = 1342;
 
     bool private _isGreedyRevert;
 
@@ -48,14 +44,16 @@ contract TestTokenSpenderERC20Token is
         _isGreedyRevert = isGreedy;
     }
 
-    function transferFrom(address from, address to, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
         emit TransferFromCalled(msg.sender, from, to, amount);
         if (amount == EMPTY_RETURN_AMOUNT) {
-            assembly { return(0, 0) }
+            assembly {
+                return(0, 0)
+            }
         }
         if (amount == FALSE_RETURN_AMOUNT) {
             return false;
@@ -68,8 +66,10 @@ contract TestTokenSpenderERC20Token is
             assert(!_isGreedyRevert);
             return false;
         }
-        if (amount == EXTRA_RETURN_TRUE_AMOUNT
-            || amount == EXTRA_RETURN_FALSE_AMOUNT) {
+        if (
+            amount == EXTRA_RETURN_TRUE_AMOUNT ||
+            amount == EXTRA_RETURN_FALSE_AMOUNT
+        ) {
             bool ret = amount == EXTRA_RETURN_TRUE_AMOUNT;
 
             assembly {
@@ -86,9 +86,7 @@ contract TestTokenSpenderERC20Token is
         uint256 balance,
         address spender,
         uint256 allowance_
-    )
-        external
-    {
+    ) external {
         balanceOf[owner] = balance;
         allowance[owner][spender] = allowance_;
     }

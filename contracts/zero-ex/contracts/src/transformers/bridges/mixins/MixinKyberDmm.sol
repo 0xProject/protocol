@@ -29,7 +29,6 @@ import "../IBridgeAdapter.sol";
     KyberDmm Router
 */
 interface IKyberDmmRouter {
-
     /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
     ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
     ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).
@@ -41,54 +40,60 @@ interface IKyberDmmRouter {
     /// @param deadline Unix timestamp after which the transaction will revert.
     /// @return amounts The input token amount and all subsequent output token amounts.
     function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
+        uint256 amountIn,
+        uint256 amountOutMin,
         address[] calldata pools,
         address[] calldata path,
         address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 }
 
 contract MixinKyberDmm {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeKyberDmm(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         address router;
         address[] memory pools;
         address[] memory path;
-        (router, pools, path) = abi.decode(bridgeData, (address, address[], address[]));
+        (router, pools, path) = abi.decode(
+            bridgeData,
+            (address, address[], address[])
+        );
 
-        require(pools.length >= 1, "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE");
-        require(path.length == pools.length + 1, "MixinKyberDmm/ARRAY_LENGTH_MISMATCH");
-         require(
-             path[path.length - 1] == address(buyToken),
-             "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-         );
+        require(
+            pools.length >= 1,
+            "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE"
+        );
+        require(
+            path.length == pools.length + 1,
+            "MixinKyberDmm/ARRAY_LENGTH_MISMATCH"
+        );
+        require(
+            path[path.length - 1] == address(buyToken),
+            "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
+        );
         // Grant the KyberDmm router an allowance to sell the first token.
         IERC20TokenV06(path[0]).approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = IKyberDmmRouter(router).swapExactTokensForTokens(
-             // Sell all tokens we hold.
-            sellAmount,
-             // Minimum buy amount.
-            1,
-            pools,
-            // Convert to `buyToken` along this path.
-            path,
-            // Recipient is `this`.
-            address(this),
-            // Expires after this block.
-            block.timestamp
-        );
-        return amounts[amounts.length-1];
+        uint256[] memory amounts = IKyberDmmRouter(router)
+            .swapExactTokensForTokens(
+                // Sell all tokens we hold.
+                sellAmount,
+                // Minimum buy amount.
+                1,
+                pools,
+                // Convert to `buyToken` along this path.
+                path,
+                // Recipient is `this`.
+                address(this),
+                // Expires after this block.
+                block.timestamp
+            );
+        return amounts[amounts.length - 1];
     }
 }

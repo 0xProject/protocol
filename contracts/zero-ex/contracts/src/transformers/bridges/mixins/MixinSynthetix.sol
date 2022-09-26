@@ -54,10 +54,7 @@ contract MixinSynthetix {
             ISynthetix synthetix,
             bytes32 sourceCurrencyKey,
             bytes32 destinationCurrencyKey
-        ) = abi.decode(
-                bridgeData,
-                (ISynthetix, bytes32, bytes32)
-            );
+        ) = abi.decode(bridgeData, (ISynthetix, bytes32, bytes32));
 
         boughtAmount = exchange(
             synthetix,

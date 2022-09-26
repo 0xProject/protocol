@@ -69,10 +69,7 @@ interface IMetaTransactionsFeature {
     function executeMetaTransaction(
         MetaTransactionData calldata mtx,
         LibSignature.Signature calldata signature
-    )
-        external
-        payable
-        returns (bytes memory returnResult);
+    ) external payable returns (bytes memory returnResult);
 
     /// @dev Execute multiple meta-transactions.
     /// @param mtxs The meta-transactions.
@@ -81,10 +78,7 @@ interface IMetaTransactionsFeature {
     function batchExecuteMetaTransactions(
         MetaTransactionData[] calldata mtxs,
         LibSignature.Signature[] calldata signatures
-    )
-        external
-        payable
-        returns (bytes[] memory returnResults);
+    ) external payable returns (bytes[] memory returnResults);
 
     /// @dev Get the block at which a meta-transaction has been executed.
     /// @param mtx The meta-transaction.

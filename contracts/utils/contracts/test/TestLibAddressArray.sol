@@ -20,9 +20,7 @@ pragma solidity ^0.5.5;
 
 import "../src/LibAddressArray.sol";
 
-
 contract TestLibAddressArray {
-
     using LibAddressArray for address[];
 
     /// @dev Append a new address to an array of addresses.
@@ -32,11 +30,10 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param addressToAppend  Address to append.
     /// @return Array of addresses: [... addressArray, addressToAppend]
-    function publicAppend(address[] memory addressArray, address addressToAppend)
-        public
-        pure
-        returns (address[] memory)
-    {
+    function publicAppend(
+        address[] memory addressArray,
+        address addressToAppend
+    ) public pure returns (address[] memory) {
         return addressArray.append(addressToAppend);
     }
 
@@ -102,5 +99,4 @@ contract TestLibAddressArray {
     {
         (success, index) = addressArray.indexOf(target);
     }
-
 }

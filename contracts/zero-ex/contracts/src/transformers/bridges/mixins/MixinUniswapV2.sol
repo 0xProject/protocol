@@ -29,7 +29,6 @@ import "../IBridgeAdapter.sol";
     UniswapV2
 */
 interface IUniswapV2Router02 {
-
     /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
     ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
     ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).
@@ -40,36 +39,40 @@ interface IUniswapV2Router02 {
     /// @param deadline Unix timestamp after which the transaction will revert.
     /// @return amounts The input token amount and all subsequent output token amounts.
     function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
+        uint256 amountIn,
+        uint256 amountOutMin,
         IERC20TokenV06[] calldata path,
         address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
+        uint256 deadline
+    ) external returns (uint256[] memory amounts);
 }
 
 contract MixinUniswapV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeUniswapV2(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         IUniswapV2Router02 router;
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
+            (router, _path) = abi.decode(
+                bridgeData,
+                (IUniswapV2Router02, address[])
+            );
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
-        require(path.length >= 2, "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(
+            path.length >= 2,
+            "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
+        );
         require(
             path[path.length - 1] == buyToken,
             "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
@@ -77,10 +80,10 @@ contract MixinUniswapV2 {
         // Grant the Uniswap router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = router.swapExactTokensForTokens(
-             // Sell all tokens we hold.
+        uint256[] memory amounts = router.swapExactTokensForTokens(
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             1,
             // Convert to `buyToken` along this path.
             path,
@@ -89,6 +92,6 @@ contract MixinUniswapV2 {
             // Expires after this block.
             block.timestamp
         );
-        return amounts[amounts.length-1];
+        return amounts[amounts.length - 1];
     }
 }

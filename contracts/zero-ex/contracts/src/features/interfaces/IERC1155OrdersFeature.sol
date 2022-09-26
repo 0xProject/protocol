@@ -25,10 +25,8 @@ import "../libs/LibNFTOrder.sol";
 import "../libs/LibSignature.sol";
 import "../../vendor/IERC1155Token.sol";
 
-
 /// @dev Feature for interacting with ERC1155 orders.
 interface IERC1155OrdersFeature {
-
     /// @dev Emitted whenever an `ERC1155Order` is filled.
     /// @param direction Whether the order is selling or
     ///        buying the ERC1155 token.
@@ -57,10 +55,7 @@ interface IERC1155OrdersFeature {
     /// @dev Emitted whenever an `ERC1155Order` is cancelled.
     /// @param maker The maker of the order.
     /// @param nonce The nonce of the order that was cancelled.
-    event ERC1155OrderCancelled(
-        address maker,
-        uint256 nonce
-    );
+    event ERC1155OrderCancelled(address maker, uint256 nonce);
 
     /// @dev Emitted when an `ERC1155Order` is pre-signed.
     ///      Contains all the fields of the order.
@@ -102,8 +97,7 @@ interface IERC1155OrdersFeature {
         uint128 erc1155SellAmount,
         bool unwrapNativeToken,
         bytes calldata callbackData
-    )
-        external;
+    ) external;
 
     /// @dev Buys an ERC1155 asset by filling the given order.
     /// @param sellOrder The ERC1155 sell order.
@@ -121,25 +115,21 @@ interface IERC1155OrdersFeature {
         LibSignature.Signature calldata signature,
         uint128 erc1155BuyAmount,
         bytes calldata callbackData
-    )
-        external
-        payable;
+    ) external payable;
 
     /// @dev Cancel a single ERC1155 order by its nonce. The caller
     ///      should be the maker of the order. Silently succeeds if
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonce The order nonce.
-    function cancelERC1155Order(uint256 orderNonce)
-        external;
+    function cancelERC1155Order(uint256 orderNonce) external;
 
     /// @dev Cancel multiple ERC1155 orders by their nonces. The caller
     ///      should be the maker of the orders. Silently succeeds if
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonces The order nonces.
-    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
-        external;
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces) external;
 
     /// @dev Buys multiple ERC1155 assets by filling the
     ///      given orders.
@@ -160,10 +150,7 @@ interface IERC1155OrdersFeature {
         uint128[] calldata erc1155TokenAmounts,
         bytes[] calldata callbackData,
         bool revertIfIncomplete
-    )
-        external
-        payable
-        returns (bool[] memory successes);
+    ) external payable returns (bool[] memory successes);
 
     /// @dev Callback for the ERC1155 `safeTransferFrom` function.
     ///      This callback can be used to sell an ERC1155 asset if
@@ -186,9 +173,7 @@ interface IERC1155OrdersFeature {
         uint256 tokenId,
         uint256 value,
         bytes calldata data
-    )
-        external
-        returns (bytes4 success);
+    ) external returns (bytes4 success);
 
     /// @dev Approves an ERC1155 order on-chain. After pre-signing
     ///      the order, the `PRESIGNED` signature type will become
@@ -204,9 +189,7 @@ interface IERC1155OrdersFeature {
     function validateERC1155OrderSignature(
         LibNFTOrder.ERC1155Order calldata order,
         LibSignature.Signature calldata signature
-    )
-        external
-        view;
+    ) external view;
 
     /// @dev If the given order is buying an ERC1155 asset, checks
     ///      whether or not the given token ID satisfies the required
@@ -220,9 +203,7 @@ interface IERC1155OrdersFeature {
     function validateERC1155OrderProperties(
         LibNFTOrder.ERC1155Order calldata order,
         uint256 erc1155TokenId
-    )
-        external
-        view;
+    ) external view;
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.

@@ -20,9 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 interface ITakerCallback {
-
     /// @dev A taker callback function invoked in ERC721OrdersFeature and
     ///      ERC1155OrdersFeature between the maker -> taker transfer and
     ///      the taker -> maker transfer.
@@ -31,10 +29,7 @@ interface ITakerCallback {
     /// @param callbackData Arbitrary data used by this callback.
     /// @return success The selector of this function,
     ///         indicating that the callback succeeded.
-    function zeroExTakerCallback(
-        bytes32 orderHash,
-        bytes calldata callbackData
-    )
+    function zeroExTakerCallback(bytes32 orderHash, bytes calldata callbackData)
         external
         returns (bytes4 success);
 }

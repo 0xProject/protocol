@@ -25,10 +25,8 @@ import "../vendor/v3/IStaking.sol";
 import "./FeeCollector.sol";
 import "./LibFeeCollector.sol";
 
-
 /// @dev A contract that manages `FeeCollector` contracts.
 contract FeeCollectorController {
-
     /// @dev Hash of the fee collector init code.
     bytes32 public immutable FEE_COLLECTOR_INIT_CODE_HASH;
     /// @dev The WETH contract.
@@ -36,13 +34,10 @@ contract FeeCollectorController {
     /// @dev The staking contract.
     IStaking private immutable STAKING;
 
-    constructor(
-        IEtherTokenV06 weth,
-        IStaking staking
-    )
-        public
-    {
-        FEE_COLLECTOR_INIT_CODE_HASH = keccak256(type(FeeCollector).creationCode);
+    constructor(IEtherTokenV06 weth, IStaking staking) public {
+        FEE_COLLECTOR_INIT_CODE_HASH = keccak256(
+            type(FeeCollector).creationCode
+        );
         WETH = weth;
         STAKING = staking;
     }
@@ -84,10 +79,13 @@ contract FeeCollectorController {
         view
         returns (FeeCollector feeCollector)
     {
-        return FeeCollector(LibFeeCollector.getFeeCollectorAddress(
-            address(this),
-            FEE_COLLECTOR_INIT_CODE_HASH,
-            poolId
-        ));
+        return
+            FeeCollector(
+                LibFeeCollector.getFeeCollectorAddress(
+                    address(this),
+                    FEE_COLLECTOR_INIT_CODE_HASH,
+                    poolId
+                )
+            );
     }
 }

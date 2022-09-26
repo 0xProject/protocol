@@ -22,9 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-
 interface IERC1155Receiver {
-
     /// @notice Handle the receipt of a single ERC1155 token type
     /// @dev The smart contract calls this function on the recipient
     /// after a `safeTransferFrom`. This function MAY throw to revert and reject the
@@ -43,9 +41,7 @@ interface IERC1155Receiver {
         uint256 id,
         uint256 value,
         bytes calldata data
-    )
-        external
-        returns(bytes4 success);
+    ) external returns (bytes4 success);
 
     /// @notice Handle the receipt of multiple ERC1155 token types
     /// @dev The smart contract calls this function on the recipient
@@ -65,9 +61,7 @@ interface IERC1155Receiver {
         uint256[] calldata ids,
         uint256[] calldata values,
         bytes calldata data
-    )
-        external
-        returns(bytes4 success);
+    ) external returns (bytes4 success);
 }
 
 contract TestMintableERC1155Token {
@@ -115,36 +109,27 @@ contract TestMintableERC1155Token {
     );
 
     // selectors for receiver callbacks
-    bytes4 constant public ERC1155_RECEIVED       = 0xf23a6e61;
-    bytes4 constant public ERC1155_BATCH_RECEIVED = 0xbc197c81;
+    bytes4 public constant ERC1155_RECEIVED = 0xf23a6e61;
+    bytes4 public constant ERC1155_BATCH_RECEIVED = 0xbc197c81;
 
     // id => (owner => balance)
-    mapping (uint256 => mapping(address => uint256)) internal balances;
+    mapping(uint256 => mapping(address => uint256)) internal balances;
 
     // owner => (operator => approved)
-    mapping (address => mapping(address => bool)) internal operatorApproval;
-
+    mapping(address => mapping(address => bool)) internal operatorApproval;
 
     function mint(
         address to,
         uint256 id,
         uint256 quantity
-    )
-        external
-    {
+    ) external {
         // Grant the items to the caller
         balances[id][to] = quantity.safeAdd(balances[id][to]);
 
         // Emit the Transfer/Mint event.
         // the 0x0 source address implies a mint
         // It will also provide the circulating supply info.
-        emit TransferSingle(
-            msg.sender,
-            address(0x0),
-            to,
-            id,
-            quantity
-        );
+        emit TransferSingle(msg.sender, address(0x0), to, id, quantity);
 
         // if `to` is a contract then trigger its callback
         uint256 receiverCodeSize;
@@ -186,14 +171,9 @@ contract TestMintableERC1155Token {
         uint256 id,
         uint256 value,
         bytes calldata data
-    )
-        external
-    {
+    ) external {
         // sanity checks
-        require(
-            to != address(0x0),
-            "CANNOT_TRANSFER_TO_ADDRESS_ZERO"
-        );
+        require(to != address(0x0), "CANNOT_TRANSFER_TO_ADDRESS_ZERO");
         require(
             from == msg.sender || operatorApproval[from][msg.sender] == true,
             "INSUFFICIENT_ALLOWANCE"
@@ -246,14 +226,9 @@ contract TestMintableERC1155Token {
         uint256[] calldata ids,
         uint256[] calldata values,
         bytes calldata data
-    )
-        external
-    {
+    ) external {
         // sanity checks
-        require(
-            to != address(0x0),
-            "CANNOT_TRANSFER_TO_ADDRESS_ZERO"
-        );
+        require(to != address(0x0), "CANNOT_TRANSFER_TO_ADDRESS_ZERO");
         require(
             ids.length == values.length,
             "TOKEN_AND_VALUES_LENGTH_MISMATCH"
@@ -283,13 +258,8 @@ contract TestMintableERC1155Token {
             receiverCodeSize := extcodesize(to)
         }
         if (receiverCodeSize > 0) {
-            bytes4 callbackReturnValue = IERC1155Receiver(to).onERC1155BatchReceived(
-                msg.sender,
-                from,
-                ids,
-                values,
-                data
-            );
+            bytes4 callbackReturnValue = IERC1155Receiver(to)
+                .onERC1155BatchReceived(msg.sender, from, ids, values, data);
             require(
                 callbackReturnValue == ERC1155_BATCH_RECEIVED,
                 "BAD_RECEIVER_RETURN_VALUE"
@@ -310,7 +280,11 @@ contract TestMintableERC1155Token {
     /// @param owner        The owner of the Tokens
     /// @param operator     Address of authorized operator
     /// @return isApproved  True if the operator is approved, false if not
-    function isApprovedForAll(address owner, address operator) external view returns (bool isApproved) {
+    function isApprovedForAll(address owner, address operator)
+        external
+        view
+        returns (bool isApproved)
+    {
         return operatorApproval[owner][operator];
     }
 
@@ -318,7 +292,11 @@ contract TestMintableERC1155Token {
     /// @param owner     The address of the token holder
     /// @param id        ID of the Token
     /// @return balance  The _owner's balance of the Token type requested
-    function balanceOf(address owner, uint256 id) external view returns (uint256 balance) {
+    function balanceOf(address owner, uint256 id)
+        external
+        view
+        returns (uint256 balance)
+    {
         return balances[id][owner];
     }
 
@@ -326,7 +304,11 @@ contract TestMintableERC1155Token {
     /// @param owners      The addresses of the token holders
     /// @param ids         ID of the Tokens
     /// @return balances_  The _owner's balance of the Token types requested
-    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids) external view returns (uint256[] memory balances_) {
+    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids)
+        external
+        view
+        returns (uint256[] memory balances_)
+    {
         // sanity check
         require(
             owners.length == ids.length,

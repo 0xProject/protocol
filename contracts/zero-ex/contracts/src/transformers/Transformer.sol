@@ -24,11 +24,8 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibRichErrorsV06.sol";
 import "../errors/LibTransformERC20RichErrors.sol";
 import "./IERC20Transformer.sol";
 
-
 /// @dev Abstract base class for transformers.
-abstract contract Transformer is
-    IERC20Transformer
-{
+abstract contract Transformer is IERC20Transformer {
     using LibRichErrorsV06 for bytes;
 
     /// @dev The address of the deployer.
@@ -45,10 +42,7 @@ abstract contract Transformer is
     /// @dev Destruct this contract. Only callable by the deployer and will not
     ///      succeed in the context of a delegatecall (from another contract).
     /// @param ethRecipient The recipient of ETH held in this contract.
-    function die(address payable ethRecipient)
-        external
-        virtual
-    {
+    function die(address payable ethRecipient) external virtual {
         // Only the deployer can call this.
         if (msg.sender != deployer) {
             LibTransformERC20RichErrors

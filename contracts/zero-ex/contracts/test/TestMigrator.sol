@@ -23,12 +23,8 @@ pragma experimental ABIEncoderV2;
 import "../src/migrations/LibMigrate.sol";
 import "../src/features/interfaces/IOwnableFeature.sol";
 
-
 contract TestMigrator {
-    event TestMigrateCalled(
-        bytes callData,
-        address owner
-    );
+    event TestMigrateCalled(bytes callData, address owner);
 
     function succeedingMigrate() external returns (bytes4 success) {
         emit TestMigrateCalled(

@@ -25,28 +25,32 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "./MixinUniswapV2.sol";
 
-contract MixinCryptoCom
-{
+contract MixinCryptoCom {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeCryptoCom(
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         IUniswapV2Router02 router;
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
+            (router, _path) = abi.decode(
+                bridgeData,
+                (IUniswapV2Router02, address[])
+            );
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
-        require(path.length >= 2, "MixinCryptoCom/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(
+            path.length >= 2,
+            "MixinCryptoCom/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
+        );
         require(
             path[path.length - 1] == buyToken,
             "MixinCryptoCom/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
@@ -54,10 +58,10 @@ contract MixinCryptoCom
         // Grant the CryptoCom router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 
-        uint[] memory amounts = router.swapExactTokensForTokens(
-             // Sell all tokens we hold.
+        uint256[] memory amounts = router.swapExactTokensForTokens(
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             1,
             // Convert to `buyToken` along this path.
             path,
@@ -66,6 +70,6 @@ contract MixinCryptoCom
             // Expires after this block.
             block.timestamp
         );
-        return amounts[amounts.length-1];
+        return amounts[amounts.length - 1];
     }
 }

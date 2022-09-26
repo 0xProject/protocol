@@ -25,7 +25,6 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 
-
 /*
     BancorV3
 */
@@ -48,16 +47,13 @@ interface IBancorV3 {
 }
 
 contract MixinBancorV3 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    IERC20TokenV06 constant public BANCORV3_ETH_ADDRESS =
+    IERC20TokenV06 public constant BANCORV3_ETH_ADDRESS =
         IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
@@ -65,11 +61,7 @@ contract MixinBancorV3 {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 amountOut)
-
-    {
+    ) internal returns (uint256 amountOut) {
         IBancorV3 router;
         IERC20TokenV06[] memory path;
         address[] memory _path;
@@ -78,17 +70,22 @@ contract MixinBancorV3 {
         {
             (router, _path) = abi.decode(bridgeData, (IBancorV3, address[]));
             // To get around `abi.decode()` not supporting interface array types.
-            assembly { path := _path }
+            assembly {
+                path := _path
+            }
         }
 
-        require(path.length >= 2, "MixinBancorV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(
+            path.length >= 2,
+            "MixinBancorV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
+        );
         require(
             path[path.length - 1] == buyToken,
             "MixinBancorV3/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
 
         //swap WETH->ETH as Bancor only deals in ETH
-        if(_path[0] == address(WETH)) {
+        if (_path[0] == address(WETH)) {
             //withdraw the sell amount of WETH for ETH
             WETH.withdraw(sellAmount);
             payableAmount = sellAmount;
@@ -100,17 +97,16 @@ contract MixinBancorV3 {
         }
 
         // if we are buying WETH we need to swap to ETH and deposit into WETH after the swap
-        if(_path[1] == address(WETH)){
+        if (_path[1] == address(WETH)) {
             _path[1] = address(BANCORV3_ETH_ADDRESS);
         }
-
 
         uint256 amountOut = router.tradeBySourceAmount{value: payableAmount}(
             _path[0],
             _path[1],
-             // Sell all tokens we hold.
+            // Sell all tokens we hold.
             sellAmount,
-             // Minimum buy amount.
+            // Minimum buy amount.
             1,
             //deadline
             block.timestamp + 1,
@@ -119,7 +115,7 @@ contract MixinBancorV3 {
         );
 
         // if we want to return WETH deposit the ETH amount we sold
-        if(buyToken == WETH){
+        if (buyToken == WETH) {
             WETH.deposit{value: amountOut}();
         }
 

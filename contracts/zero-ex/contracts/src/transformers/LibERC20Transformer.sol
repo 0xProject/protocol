@@ -23,18 +23,18 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 
-
 library LibERC20Transformer {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev ETH pseudo-token address.
-    address constant internal ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address internal constant ETH_TOKEN_ADDRESS =
+        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev ETH pseudo-token.
-    IERC20TokenV06 constant internal ETH_TOKEN = IERC20TokenV06(ETH_TOKEN_ADDRESS);
+    IERC20TokenV06 internal constant ETH_TOKEN =
+        IERC20TokenV06(ETH_TOKEN_ADDRESS);
     /// @dev Return value indicating success in `IERC20Transformer.transform()`.
     ///      This is just `keccak256('TRANSFORMER_SUCCESS')`.
-    bytes4 constant internal TRANSFORMER_SUCCESS = 0x13c9929e;
+    bytes4 internal constant TRANSFORMER_SUCCESS = 0x13c9929e;
 
     /// @dev Transfer ERC20 tokens and ETH.
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
@@ -44,9 +44,7 @@ library LibERC20Transformer {
         IERC20TokenV06 token,
         address payable to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         if (isTokenETH(token)) {
             to.transfer(amount);
         } else {
@@ -94,29 +92,29 @@ library LibERC20Transformer {
             rlpNonce[0] = 0x80;
         } else if (nonce < 0x80) {
             rlpNonce = new bytes(1);
-            rlpNonce[0] = byte(uint8(nonce));
+            rlpNonce[0] = bytes1(uint8(nonce));
         } else if (nonce <= 0xFF) {
             rlpNonce = new bytes(2);
             rlpNonce[0] = 0x81;
-            rlpNonce[1] = byte(uint8(nonce));
+            rlpNonce[1] = bytes1(uint8(nonce));
         } else if (nonce <= 0xFFFF) {
             rlpNonce = new bytes(3);
             rlpNonce[0] = 0x82;
-            rlpNonce[1] = byte(uint8((nonce & 0xFF00) >> 8));
-            rlpNonce[2] = byte(uint8(nonce));
+            rlpNonce[1] = bytes1(uint8((nonce & 0xFF00) >> 8));
+            rlpNonce[2] = bytes1(uint8(nonce));
         } else if (nonce <= 0xFFFFFF) {
             rlpNonce = new bytes(4);
             rlpNonce[0] = 0x83;
-            rlpNonce[1] = byte(uint8((nonce & 0xFF0000) >> 16));
-            rlpNonce[2] = byte(uint8((nonce & 0xFF00) >> 8));
-            rlpNonce[3] = byte(uint8(nonce));
+            rlpNonce[1] = bytes1(uint8((nonce & 0xFF0000) >> 16));
+            rlpNonce[2] = bytes1(uint8((nonce & 0xFF00) >> 8));
+            rlpNonce[3] = bytes1(uint8(nonce));
         } else {
             rlpNonce = new bytes(5);
             rlpNonce[0] = 0x84;
-            rlpNonce[1] = byte(uint8((nonce & 0xFF000000) >> 24));
-            rlpNonce[2] = byte(uint8((nonce & 0xFF0000) >> 16));
-            rlpNonce[3] = byte(uint8((nonce & 0xFF00) >> 8));
-            rlpNonce[4] = byte(uint8(nonce));
+            rlpNonce[1] = bytes1(uint8((nonce & 0xFF000000) >> 24));
+            rlpNonce[2] = bytes1(uint8((nonce & 0xFF0000) >> 16));
+            rlpNonce[3] = bytes1(uint8((nonce & 0xFF00) >> 8));
+            rlpNonce[4] = bytes1(uint8(nonce));
         }
     }
 
@@ -135,11 +133,20 @@ library LibERC20Transformer {
         // hash of the RLP-encoded deployer's account address + account nonce.
         // See: https://ethereum.stackexchange.com/questions/760/how-is-the-address-of-an-ethereum-contract-computed
         bytes memory rlpNonce = rlpEncodeNonce(deploymentNonce);
-        return address(uint160(uint256(keccak256(abi.encodePacked(
-            byte(uint8(0xC0 + 21 + rlpNonce.length)),
-            byte(uint8(0x80 + 20)),
-            deployer,
-            rlpNonce
-        )))));
+        return
+            address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(
+                                bytes1(uint8(0xC0 + 21 + rlpNonce.length)),
+                                bytes1(uint8(0x80 + 20)),
+                                deployer,
+                                rlpNonce
+                            )
+                        )
+                    )
+                )
+            );
     }
 }

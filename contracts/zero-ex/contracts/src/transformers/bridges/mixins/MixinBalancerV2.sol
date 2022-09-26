@@ -23,10 +23,12 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface IBalancerV2Vault {
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
 
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
     /**
      * @dev Performs a swap with a single Pool.
      *
@@ -66,7 +68,6 @@ interface IBalancerV2Vault {
 }
 
 contract MixinBalancerV2 {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     struct BalancerV2BridgeData {
@@ -79,32 +80,34 @@ contract MixinBalancerV2 {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data.
-        BalancerV2BridgeData memory data = abi.decode(bridgeData, (BalancerV2BridgeData));
+        BalancerV2BridgeData memory data = abi.decode(
+            bridgeData,
+            (BalancerV2BridgeData)
+        );
 
         // Grant an allowance to the exchange to spend `fromTokenAddress` token.
         sellToken.approveIfBelow(address(data.vault), sellAmount);
 
         // Sell the entire sellAmount
-        IBalancerV2Vault.SingleSwap memory request = IBalancerV2Vault.SingleSwap({
-            poolId: data.poolId,
-            kind: IBalancerV2Vault.SwapKind.GIVEN_IN,
-            assetIn: sellToken,
-            assetOut: buyToken,
-            amount: sellAmount, // amount in
-            userData: ""
-        });
+        IBalancerV2Vault.SingleSwap memory request = IBalancerV2Vault
+            .SingleSwap({
+                poolId: data.poolId,
+                kind: IBalancerV2Vault.SwapKind.GIVEN_IN,
+                assetIn: sellToken,
+                assetOut: buyToken,
+                amount: sellAmount, // amount in
+                userData: ""
+            });
 
-        IBalancerV2Vault.FundManagement memory funds = IBalancerV2Vault.FundManagement({
-            sender: address(this),
-            fromInternalBalance: false,
-            recipient: payable(address(this)),
-            toInternalBalance: false
-        });
+        IBalancerV2Vault.FundManagement memory funds = IBalancerV2Vault
+            .FundManagement({
+                sender: address(this),
+                fromInternalBalance: false,
+                recipient: payable(address(this)),
+                toInternalBalance: false
+            });
 
         boughtAmount = data.vault.swap(
             request,

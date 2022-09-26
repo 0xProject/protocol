@@ -10,7 +10,10 @@ interface IUniswapV2PoolDeployer {
         IERC20TokenV06 token1;
     }
 
-    function creationParameters() external view returns (CreationParameters memory);
+    function creationParameters()
+        external
+        view
+        returns (CreationParameters memory);
 }
 
 contract TestUniswapV2Pool is IUniswapV2Pair {
@@ -22,8 +25,9 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
     uint32 blockTimestampLast;
 
     constructor() public {
-        IUniswapV2PoolDeployer.CreationParameters memory params =
-            IUniswapV2PoolDeployer(msg.sender).creationParameters();
+        IUniswapV2PoolDeployer.CreationParameters
+            memory params = IUniswapV2PoolDeployer(msg.sender)
+                .creationParameters();
         (token0, token1) = (params.token0, params.token1);
     }
 
@@ -32,10 +36,7 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
         uint256 amount1Out,
         address to,
         bytes calldata /* data */
-    )
-        external
-        override
-    {
+    ) external override {
         if (amount0Out > 0) {
             token0.transfer(to, amount0Out);
         }
@@ -48,9 +49,7 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
         uint112 reserve0_,
         uint112 reserve1_,
         uint32 blockTimestampLast_
-    )
-        external
-    {
+    ) external {
         reserve0 = reserve0_;
         reserve1 = reserve1_;
         blockTimestampLast = blockTimestampLast_;
@@ -58,9 +57,13 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
 
     function getReserves()
         external
-        override
         view
-        returns (uint112, uint112, uint32)
+        override
+        returns (
+            uint112,
+            uint112,
+            uint32
+        )
     {
         return (reserve0, reserve1, blockTimestampLast);
     }

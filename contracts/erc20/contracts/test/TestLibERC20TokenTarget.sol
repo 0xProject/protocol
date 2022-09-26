@@ -18,24 +18,12 @@
 
 pragma solidity ^0.5.9;
 
-
 contract TestLibERC20TokenTarget {
+    event ApproveCalled(address spender, uint256 allowance);
 
-    event ApproveCalled(
-        address spender,
-        uint256 allowance
-    );
+    event TransferCalled(address to, uint256 amount);
 
-    event TransferCalled(
-        address to,
-        uint256 amount
-    );
-
-    event TransferFromCalled(
-        address from,
-        address to,
-        uint256 amount
-    );
+    event TransferFromCalled(address from, address to, uint256 amount);
 
     bool private _shouldRevert;
     bytes private _revertData;
@@ -45,18 +33,13 @@ contract TestLibERC20TokenTarget {
         bool shouldRevert,
         bytes calldata revertData,
         bytes calldata returnData
-    )
-        external
-    {
+    ) external {
         _shouldRevert = shouldRevert;
         _revertData = revertData;
         _returnData = returnData;
     }
 
-    function approve(
-        address spender,
-        uint256 allowance
-    )
+    function approve(address spender, uint256 allowance)
         external
         returns (bool)
     {
@@ -64,13 +47,7 @@ contract TestLibERC20TokenTarget {
         _execute();
     }
 
-    function transfer(
-        address to,
-        uint256 amount
-    )
-        external
-        returns (bool)
-    {
+    function transfer(address to, uint256 amount) external returns (bool) {
         emit TransferCalled(to, amount);
         _execute();
     }
@@ -79,28 +56,25 @@ contract TestLibERC20TokenTarget {
         address from,
         address to,
         uint256 amount
-    )
-        external
-        returns (bool)
-    {
+    ) external returns (bool) {
         emit TransferFromCalled(from, to, amount);
         _execute();
     }
 
-    function decimals()
-        external
-        view
-        returns (uint8)
-    {
+    function decimals() external view returns (uint8) {
         _execute();
     }
 
     function _execute() private view {
         if (_shouldRevert) {
             bytes memory revertData = _revertData;
-            assembly { revert(add(revertData, 0x20), mload(revertData)) }
+            assembly {
+                revert(add(revertData, 0x20), mload(revertData))
+            }
         }
         bytes memory returnData = _returnData;
-        assembly { return(add(returnData, 0x20), mload(returnData)) }
+        assembly {
+            return(add(returnData, 0x20), mload(returnData))
+        }
     }
 }

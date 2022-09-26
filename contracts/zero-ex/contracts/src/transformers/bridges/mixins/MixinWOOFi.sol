@@ -46,15 +46,13 @@ interface IWooPP {
     /// @param baseToken the base token to sell
     /// @param baseAmount the amount to sell
     /// @return quoteAmount the swapped quote amount
-    function querySellBase(
-        address baseToken, 
-        uint256 baseAmount
-    ) external view returns (uint256 quoteAmount);
-
+    function querySellBase(address baseToken, uint256 baseAmount)
+        external
+        view
+        returns (uint256 quoteAmount);
 }
 
-contract MixinWOOFi{
-
+contract MixinWOOFi {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
     using LibSafeMathV06 for uint256;
@@ -73,28 +71,20 @@ contract MixinWOOFi{
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        public
-        returns (uint256 boughtAmount)
-    {
-        (IWooPP _pool) = abi.decode(bridgeData, (IWooPP));
+    ) public returns (uint256 boughtAmount) {
+        IWooPP _pool = abi.decode(bridgeData, (IWooPP));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         sellToken.approveIfBelow(address(_pool), sellAmount);
-        
-        _swap(
-            sellAmount,
-            address(sellToken),
-            address(buyToken),
-            _pool
-        );
+
+        _swap(sellAmount, address(sellToken), address(buyToken), _pool);
         boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 
     function _swap(
-        uint _amountIn, 
-        address _tokenIn, 
-        address _tokenOut, 
+        uint256 _amountIn,
+        address _tokenIn,
+        address _tokenOut,
         IWooPP pool
     ) internal {
         address quoteToken = pool.quoteToken();
@@ -107,30 +97,26 @@ contract MixinWOOFi{
                 rebateAddress
             );
         } else if (_tokenOut == quoteToken) {
-            pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                1, 
-                address(this), 
-                rebateAddress
-            );
-        } else {          
+            pool.sellBase(_tokenIn, _amountIn, 1, address(this), rebateAddress);
+        } else {
             uint256 quoteAmount = pool.sellBase(
-                _tokenIn, 
-                _amountIn, 
-                0, 
-                address(this), 
+                _tokenIn,
+                _amountIn,
+                0,
+                address(this),
                 rebateAddress
             );
-            IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteAmount);
+            IERC20TokenV06(pool.quoteToken()).approveIfBelow(
+                address(pool),
+                quoteAmount
+            );
             pool.sellQuote(
-                _tokenOut, 
-                quoteAmount, 
-                1, 
-                address(this), 
+                _tokenOut,
+                quoteAmount,
+                1,
+                address(this),
                 rebateAddress
             );
         }
     }
-
 }

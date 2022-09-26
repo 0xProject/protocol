@@ -22,9 +22,8 @@ import "@0x/contracts-utils/contracts/src/LibRichErrors.sol";
 import "@0x/contracts-utils/contracts/src/LibBytes.sol";
 import "../src/interfaces/IERC20Token.sol";
 
-
 library LibERC20Token {
-    bytes constant private DECIMALS_CALL_DATA = hex"313ce567";
+    bytes private constant DECIMALS_CALL_DATA = hex"313ce567";
 
     /// @dev Calls `IERC20Token(token).approve()`.
     ///      Reverts if `false` is returned or if the return
@@ -36,9 +35,7 @@ library LibERC20Token {
         address token,
         address spender,
         uint256 allowance
-    )
-        internal
-    {
+    ) internal {
         bytes memory callData = abi.encodeWithSelector(
             IERC20Token(0).approve.selector,
             spender,
@@ -58,9 +55,7 @@ library LibERC20Token {
         address token,
         address spender,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         if (IERC20Token(token).allowance(address(this), spender) < amount) {
             approve(token, spender, uint256(-1));
         }
@@ -76,9 +71,7 @@ library LibERC20Token {
         address token,
         address to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         bytes memory callData = abi.encodeWithSelector(
             IERC20Token(0).transfer.selector,
             to,
@@ -99,9 +92,7 @@ library LibERC20Token {
         address from,
         address to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         bytes memory callData = abi.encodeWithSelector(
             IERC20Token(0).transferFrom.selector,
             from,
@@ -121,7 +112,9 @@ library LibERC20Token {
         returns (uint8 tokenDecimals)
     {
         tokenDecimals = 18;
-        (bool didSucceed, bytes memory resultData) = token.staticcall(DECIMALS_CALL_DATA);
+        (bool didSucceed, bytes memory resultData) = token.staticcall(
+            DECIMALS_CALL_DATA
+        );
         if (didSucceed && resultData.length == 32) {
             tokenDecimals = uint8(LibBytes.readUint256(resultData, 0));
         }
@@ -133,11 +126,11 @@ library LibERC20Token {
     /// @param owner The owner of the tokens.
     /// @param spender The address the spender.
     /// @return allowance The allowance for a token, owner, and spender.
-    function allowance(address token, address owner, address spender)
-        internal
-        view
-        returns (uint256 allowance_)
-    {
+    function allowance(
+        address token,
+        address owner,
+        address spender
+    ) internal view returns (uint256 allowance_) {
         (bool didSucceed, bytes memory resultData) = token.staticcall(
             abi.encodeWithSelector(
                 IERC20Token(0).allowance.selector,
@@ -161,10 +154,7 @@ library LibERC20Token {
         returns (uint256 balance)
     {
         (bool didSucceed, bytes memory resultData) = token.staticcall(
-            abi.encodeWithSelector(
-                IERC20Token(0).balanceOf.selector,
-                owner
-            )
+            abi.encodeWithSelector(IERC20Token(0).balanceOf.selector, owner)
         );
         if (didSucceed && resultData.length == 32) {
             balance = LibBytes.readUint256(resultData, 0);
@@ -179,9 +169,7 @@ library LibERC20Token {
     function _callWithOptionalBooleanResult(
         address target,
         bytes memory callData
-    )
-        private
-    {
+    ) private {
         (bool didSucceed, bytes memory resultData) = target.call(callData);
         if (didSucceed) {
             if (resultData.length == 0) {

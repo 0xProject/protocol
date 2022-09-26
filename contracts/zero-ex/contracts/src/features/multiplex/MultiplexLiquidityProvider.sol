@@ -29,11 +29,7 @@ import "../../fixins/FixinTokenSpender.sol";
 import "../../vendor/ILiquidityProvider.sol";
 import "../interfaces/IMultiplexFeature.sol";
 
-
-abstract contract MultiplexLiquidityProvider is
-    FixinCommon,
-    FixinTokenSpender
-{
+abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -50,9 +46,7 @@ abstract contract MultiplexLiquidityProvider is
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox private immutable SANDBOX;
 
-    constructor(ILiquidityProviderSandbox sandbox)
-        internal
-    {
+    constructor(ILiquidityProviderSandbox sandbox) internal {
         SANDBOX = sandbox;
     }
 
@@ -62,11 +56,7 @@ abstract contract MultiplexLiquidityProvider is
         IMultiplexFeature.BatchSellParams calldata params,
         bytes calldata wrappedCallData,
         uint256 sellAmount
-    )
-        external
-        payable
-        returns (uint256 boughtAmount)
-    {
+    ) external payable returns (uint256 boughtAmount) {
         // Revert if not a delegatecall.
         require(
             address(this) != _implementation,
@@ -82,11 +72,7 @@ abstract contract MultiplexLiquidityProvider is
         if (params.useSelfBalance) {
             // If `useSelfBalance` is true, use the input tokens
             // held by `address(this)`.
-            _transferERC20Tokens(
-                params.inputToken,
-                provider,
-                sellAmount
-            );
+            _transferERC20Tokens(params.inputToken, provider, sellAmount);
         } else {
             // Otherwise, transfer the input tokens from `msg.sender`.
             _transferERC20TokensFrom(
@@ -97,8 +83,7 @@ abstract contract MultiplexLiquidityProvider is
             );
         }
         // Cache the recipient's balance of the output token.
-        uint256 balanceBefore = params.outputToken
-            .balanceOf(params.recipient);
+        uint256 balanceBefore = params.outputToken.balanceOf(params.recipient);
         // Execute the swap.
         SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
@@ -110,9 +95,9 @@ abstract contract MultiplexLiquidityProvider is
         );
         // Compute amount of output token received by the
         // recipient.
-        boughtAmount = params.outputToken
-            .balanceOf(params.recipient)
-            .safeSub(balanceBefore);
+        boughtAmount = params.outputToken.balanceOf(params.recipient).safeSub(
+            balanceBefore
+        );
 
         emit LiquidityProviderSwap(
             address(params.inputToken),
@@ -129,9 +114,7 @@ abstract contract MultiplexLiquidityProvider is
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
         uint256 sellAmount
-    )
-        internal
-    {
+    ) internal {
         // Swallow reverts
         (bool success, bytes memory resultData) = _implementation.delegatecall(
             abi.encodeWithSelector(
@@ -156,19 +139,20 @@ abstract contract MultiplexLiquidityProvider is
         IMultiplexFeature.MultiHopSellState memory state,
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
-    )
-        internal
-    {
-        IERC20TokenV06 inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
-        IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
+    ) internal {
+        IERC20TokenV06 inputToken = IERC20TokenV06(
+            params.tokens[state.hopIndex]
+        );
+        IERC20TokenV06 outputToken = IERC20TokenV06(
+            params.tokens[state.hopIndex + 1]
+        );
         // Decode the provider address and auxiliary data.
         (address provider, bytes memory auxiliaryData) = abi.decode(
             wrappedCallData,
             (address, bytes)
         );
         // Cache the recipient's balance of the output token.
-        uint256 balanceBefore = outputToken
-            .balanceOf(state.to);
+        uint256 balanceBefore = outputToken.balanceOf(state.to);
         // Execute the swap.
         SANDBOX.executeSellTokenForToken(
             ILiquidityProvider(provider),
@@ -186,9 +170,9 @@ abstract contract MultiplexLiquidityProvider is
         uint256 sellAmount = state.outputTokenAmount;
         // Compute amount of output token received by the
         // recipient.
-        state.outputTokenAmount = outputToken
-            .balanceOf(state.to)
-            .safeSub(balanceBefore);
+        state.outputTokenAmount = outputToken.balanceOf(state.to).safeSub(
+            balanceBefore
+        );
 
         emit LiquidityProviderSwap(
             address(inputToken),

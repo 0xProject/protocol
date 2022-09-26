@@ -23,9 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./DefaultPoolOperator.sol";
 import "./IStaking.sol";
 
-
 interface IZrxTreasury {
-
     struct TreasuryParameters {
         uint256 votingPeriod;
         uint256 proposalThreshold;
@@ -67,35 +65,17 @@ interface IZrxTreasury {
 
     event ProposalExecuted(uint256 proposalId);
 
-    function stakingProxy()
-        external
-        view
-        returns (IStaking);
+    function stakingProxy() external view returns (IStaking);
 
-    function defaultPoolOperator()
-        external
-        view
-        returns (DefaultPoolOperator);
+    function defaultPoolOperator() external view returns (DefaultPoolOperator);
 
-    function defaultPoolId()
-        external
-        view
-        returns (bytes32);
+    function defaultPoolId() external view returns (bytes32);
 
-    function votingPeriod()
-        external
-        view
-        returns (uint256);
+    function votingPeriod() external view returns (uint256);
 
-    function proposalThreshold()
-        external
-        view
-        returns (uint256);
+    function proposalThreshold() external view returns (uint256);
 
-    function quorumThreshold()
-        external
-        view
-        returns (uint256);
+    function quorumThreshold() external view returns (uint256);
 
     /// @dev Updates the proposal and quorum thresholds to the given
     ///      values. Note that this function is only callable by the
@@ -106,8 +86,7 @@ interface IZrxTreasury {
     function updateThresholds(
         uint256 newProposalThreshold,
         uint256 newQuorumThreshold
-    )
-        external;
+    ) external;
 
     /// @dev Creates a proposal to send ZRX from this treasury on the
     ///      the given actions. Must have at least `proposalThreshold`
@@ -131,9 +110,7 @@ interface IZrxTreasury {
         uint256 executionEpoch,
         string calldata description,
         bytes32[] calldata operatedPoolIds
-    )
-        external
-        returns (uint256 proposalId);
+    ) external returns (uint256 proposalId);
 
     /// @dev Casts a vote for the given proposal. Only callable
     ///      during the voting period for that proposal.
@@ -148,8 +125,7 @@ interface IZrxTreasury {
         uint256 proposalId,
         bool support,
         bytes32[] calldata operatedPoolIds
-    )
-        external;
+    ) external;
 
     /// @dev Casts a vote for the given proposal, by signature.
     ///      Only callable during the voting period for that proposal.
@@ -170,8 +146,7 @@ interface IZrxTreasury {
         uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        external;
+    ) external;
 
     /// @dev Executes a proposal that has passed and is
     ///      currently executable.
@@ -183,10 +158,7 @@ interface IZrxTreasury {
 
     /// @dev Returns the total number of proposals.
     /// @return count The number of proposals.
-    function proposalCount()
-        external
-        view
-        returns (uint256 count);
+    function proposalCount() external view returns (uint256 count);
 
     /// @dev Computes the current voting power of the given account.
     ///      Voting power is equal to:

@@ -24,16 +24,10 @@ import "../src/transformers/Transformer.sol";
 import "../src/transformers/IERC20Transformer.sol";
 import "../src/transformers/LibERC20Transformer.sol";
 
-
-contract TestTransformerBase is
-    IERC20Transformer,
-    Transformer
-{
-    function transform(TransformContext calldata /* context */)
-        external
-        override
-        returns (bytes4 success)
-    {
+contract TestTransformerBase is IERC20Transformer, Transformer {
+    function transform(
+        TransformContext calldata /* context */
+    ) external override returns (bytes4 success) {
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 }

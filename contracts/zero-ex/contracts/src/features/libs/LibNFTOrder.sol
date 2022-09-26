@@ -25,10 +25,8 @@ import "../../vendor/IERC1155Token.sol";
 import "../../vendor/IERC721Token.sol";
 import "../../vendor/IPropertyValidator.sol";
 
-
 /// @dev A library for common NFT order operations.
 library LibNFTOrder {
-
     enum OrderStatus {
         INVALID,
         FILLABLE,
@@ -243,9 +241,7 @@ library LibNFTOrder {
     // NOTE: This is only safe if `nftOrder` was previously
     // cast from an `ERC1155Order` and the original
     // `erc1155TokenAmount` memory word has not been corrupted!
-    function asERC1155Order(
-        NFTOrder memory nftOrder
-    )
+    function asERC1155Order(NFTOrder memory nftOrder)
         internal
         pure
         returns (ERC1155Order memory erc1155Order)
@@ -282,7 +278,9 @@ library LibNFTOrder {
         //     propertiesHash
         // ));
         assembly {
-            if lt(order, 32) { invalid() } // Don't underflow memory.
+            if lt(order, 32) {
+                invalid()
+            } // Don't underflow memory.
 
             let typeHashPos := sub(order, 32) // order - 32
             let feesHashPos := add(order, 224) // order + (32 * 7)
@@ -295,7 +293,10 @@ library LibNFTOrder {
             mstore(typeHashPos, _ERC_721_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
-            structHash := keccak256(typeHashPos, 384 /* 32 * 12 */ )
+            structHash := keccak256(
+                typeHashPos,
+                384 /* 32 * 12 */
+            )
 
             mstore(typeHashPos, typeHashMemBefore)
             mstore(feesHashPos, feeHashMemBefore)
@@ -332,7 +333,9 @@ library LibNFTOrder {
         //     order.erc1155TokenAmount
         // ));
         assembly {
-            if lt(order, 32) { invalid() } // Don't underflow memory.
+            if lt(order, 32) {
+                invalid()
+            } // Don't underflow memory.
 
             let typeHashPos := sub(order, 32) // order - 32
             let feesHashPos := add(order, 224) // order + (32 * 7)
@@ -345,7 +348,10 @@ library LibNFTOrder {
             mstore(typeHashPos, _ERC_1155_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
-            structHash := keccak256(typeHashPos, 416 /* 32 * 12 */ )
+            structHash := keccak256(
+                typeHashPos,
+                416 /* 32 * 12 */
+            )
 
             mstore(typeHashPos, typeHashMemBefore)
             mstore(feesHashPos, feesHashMemBefore)
@@ -393,16 +399,23 @@ library LibNFTOrder {
                 }
             }
         } else {
-            bytes32[] memory propertyStructHashArray = new bytes32[](numProperties);
+            bytes32[] memory propertyStructHashArray = new bytes32[](
+                numProperties
+            );
             for (uint256 i = 0; i < numProperties; i++) {
-                propertyStructHashArray[i] = keccak256(abi.encode(
-                    _PROPERTY_TYPEHASH,
-                    properties[i].propertyValidator,
-                    keccak256(properties[i].propertyData)
-                ));
+                propertyStructHashArray[i] = keccak256(
+                    abi.encode(
+                        _PROPERTY_TYPEHASH,
+                        properties[i].propertyValidator,
+                        keccak256(properties[i].propertyData)
+                    )
+                );
             }
             assembly {
-                propertiesHash := keccak256(add(propertyStructHashArray, 32), mul(numProperties, 32))
+                propertiesHash := keccak256(
+                    add(propertyStructHashArray, 32),
+                    mul(numProperties, 32)
+                )
             }
         }
     }
@@ -444,15 +457,20 @@ library LibNFTOrder {
         } else {
             bytes32[] memory feeStructHashArray = new bytes32[](numFees);
             for (uint256 i = 0; i < numFees; i++) {
-                feeStructHashArray[i] = keccak256(abi.encode(
-                    _FEE_TYPEHASH,
-                    fees[i].recipient,
-                    fees[i].amount,
-                    keccak256(fees[i].feeData)
-                ));
+                feeStructHashArray[i] = keccak256(
+                    abi.encode(
+                        _FEE_TYPEHASH,
+                        fees[i].recipient,
+                        fees[i].amount,
+                        keccak256(fees[i].feeData)
+                    )
+                );
             }
             assembly {
-                feesHash := keccak256(add(feeStructHashArray, 32), mul(numFees, 32))
+                feesHash := keccak256(
+                    add(feeStructHashArray, 32),
+                    mul(numFees, 32)
+                )
             }
         }
     }

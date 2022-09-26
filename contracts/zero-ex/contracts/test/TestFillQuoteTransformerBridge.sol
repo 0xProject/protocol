@@ -24,28 +24,20 @@ import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 import "../src/vendor/v3/IERC20Bridge.sol";
 import "./tokens/TestMintableERC20Token.sol";
 
-
 contract TestFillQuoteTransformerBridge {
-
     uint256 private constant REVERT_AMOUNT = 0xdeadbeef;
 
     function sellTokenForToken(
-        address /* takerToken */,
+        address, /* takerToken */
         address makerToken,
         address recipient,
-        uint256 /* minBuyAmount */,
+        uint256, /* minBuyAmount */
         bytes calldata auxiliaryData
-    )
-        external
-        returns (uint256 boughtAmount)
-    {
+    ) external returns (uint256 boughtAmount) {
         boughtAmount = abi.decode(auxiliaryData, (uint256));
         if (REVERT_AMOUNT == boughtAmount) {
             revert("REVERT_AMOUNT");
         }
-        TestMintableERC20Token(makerToken).mint(
-          recipient,
-          boughtAmount
-        );
+        TestMintableERC20Token(makerToken).mint(recipient, boughtAmount);
     }
 }

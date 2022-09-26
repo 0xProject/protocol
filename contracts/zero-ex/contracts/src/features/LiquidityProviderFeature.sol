@@ -34,7 +34,6 @@ import "../transformers/LibERC20Transformer.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ILiquidityProviderFeature.sol";
 
-
 contract LiquidityProviderFeature is
     IFeature,
     ILiquidityProviderFeature,
@@ -52,20 +51,14 @@ contract LiquidityProviderFeature is
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
 
-    constructor(LiquidityProviderSandbox sandbox_)
-        public
-        FixinCommon()
-    {
+    constructor(LiquidityProviderSandbox sandbox_) public FixinCommon() {
         sandbox = sandbox_;
     }
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.sellToLiquidityProvider.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -91,12 +84,7 @@ contract LiquidityProviderFeature is
         uint256 sellAmount,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        payable
-        returns (uint256 boughtAmount)
-    {
+    ) external payable override returns (uint256 boughtAmount) {
         if (recipient == address(0)) {
             recipient = msg.sender;
         }
@@ -125,7 +113,9 @@ contract LiquidityProviderFeature is
                 minBuyAmount,
                 auxiliaryData
             );
-            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
+            boughtAmount = IERC20TokenV06(outputToken)
+                .balanceOf(recipient)
+                .safeSub(balanceBefore);
         } else if (LibERC20Transformer.isTokenETH(outputToken)) {
             uint256 balanceBefore = recipient.balance;
             sandbox.executeSellTokenForEth(
@@ -146,18 +136,22 @@ contract LiquidityProviderFeature is
                 minBuyAmount,
                 auxiliaryData
             );
-            boughtAmount = outputToken.balanceOf(recipient).safeSub(balanceBefore);
+            boughtAmount = outputToken.balanceOf(recipient).safeSub(
+                balanceBefore
+            );
         }
 
         if (boughtAmount < minBuyAmount) {
-            LibLiquidityProviderRichErrors.LiquidityProviderIncompleteSellError(
-                address(provider),
-                address(outputToken),
-                address(inputToken),
-                sellAmount,
-                boughtAmount,
-                minBuyAmount
-            ).rrevert();
+            LibLiquidityProviderRichErrors
+                .LiquidityProviderIncompleteSellError(
+                    address(provider),
+                    address(outputToken),
+                    address(inputToken),
+                    sellAmount,
+                    boughtAmount,
+                    minBuyAmount
+                )
+                .rrevert();
         }
 
         emit LiquidityProviderSwap(

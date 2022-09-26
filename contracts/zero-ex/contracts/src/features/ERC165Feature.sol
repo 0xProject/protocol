@@ -23,12 +23,8 @@ pragma experimental ABIEncoderV2;
 import "../fixins/FixinCommon.sol";
 import "./interfaces/IFeature.sol";
 
-
 /// @dev Implements the ERC165 `supportsInterface` function
-contract ERC165Feature is
-    IFeature,
-    FixinCommon
-{
+contract ERC165Feature is IFeature, FixinCommon {
     /// @dev Name of this feature.
     string public constant override FEATURE_NAME = "ERC165";
     /// @dev Version of this feature.
@@ -44,8 +40,9 @@ contract ERC165Feature is
         pure
         returns (bool isSupported)
     {
-        return interfaceId == 0x01ffc9a7 || // ERC-165 support
-               interfaceId == 0x150b7a02 || // ERC-721 `ERC721TokenReceiver` support
-               interfaceId == 0x4e2312e0;   // ERC-1155 `ERC1155TokenReceiver` support
+        return
+            interfaceId == 0x01ffc9a7 || // ERC-165 support
+            interfaceId == 0x150b7a02 || // ERC-721 `ERC721TokenReceiver` support
+            interfaceId == 0x4e2312e0; // ERC-1155 `ERC1155TokenReceiver` support
     }
 }

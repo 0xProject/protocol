@@ -22,9 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "../src/transformers/LibERC20Transformer.sol";
 
-
 contract TestTransformerDeployerTransformer {
-
     uint256 public constant CONSTRUCTOR_FAIL_VALUE = 3333;
     address payable public immutable deployer;
 
@@ -37,22 +35,20 @@ contract TestTransformerDeployerTransformer {
     }
 
     modifier onlyDeployer() {
-        require(msg.sender == deployer, "TestTransformerDeployerTransformer/ONLY_DEPLOYER");
+        require(
+            msg.sender == deployer,
+            "TestTransformerDeployerTransformer/ONLY_DEPLOYER"
+        );
         _;
     }
 
-    function die(address payable ethRecipient)
-        external
-        onlyDeployer
-    {
+    function die(address payable ethRecipient) external onlyDeployer {
         selfdestruct(ethRecipient);
     }
 
-    function isDeployedByDeployer(uint32 nonce)
-        external
-        view
-        returns (bool)
-    {
-        return LibERC20Transformer.getDeployedAddress(deployer, nonce) == address(this);
+    function isDeployedByDeployer(uint32 nonce) external view returns (bool) {
+        return
+            LibERC20Transformer.getDeployedAddress(deployer, nonce) ==
+            address(this);
     }
 }

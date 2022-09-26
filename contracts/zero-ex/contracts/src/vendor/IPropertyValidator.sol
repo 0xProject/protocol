@@ -20,9 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 interface IPropertyValidator {
-
     /// @dev Checks that the given ERC721/ERC1155 asset satisfies the properties encoded in `propertyData`.
     ///      Should revert if the asset does not satisfy the specified properties.
     /// @param tokenAddress The ERC721/ERC1155 token contract address.
@@ -32,7 +30,5 @@ interface IPropertyValidator {
         address tokenAddress,
         uint256 tokenId,
         bytes calldata propertyData
-    )
-        external
-        view;
+    ) external view;
 }

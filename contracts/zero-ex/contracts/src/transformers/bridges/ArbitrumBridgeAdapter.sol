@@ -48,10 +48,7 @@ contract ArbitrumBridgeAdapter is
     MixinUniswapV2,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth)
-        public
-        MixinCurve(weth)
-    {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -59,14 +56,12 @@ contract ArbitrumBridgeAdapter is
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bool dryRun
-    )
-        internal
-        override
-        returns (uint256 boughtAmount, bool supportedSource)
-    {
+    ) internal override returns (uint256 boughtAmount, bool supportedSource) {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId == BridgeProtocols.BALANCERV2) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeBalancerV2(
                 sellToken,
                 buyToken,
@@ -74,13 +69,14 @@ contract ArbitrumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeBalancerV2Batch(
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.CURVE) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeCurve(
                 sellToken,
                 buyToken,
@@ -88,7 +84,9 @@ contract ArbitrumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.CURVEV2) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeCurveV2(
                 sellToken,
                 buyToken,
@@ -96,49 +94,55 @@ contract ArbitrumBridgeAdapter is
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.DODOV2) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeDodoV2(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.KYBERDMM) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeKyberDmm(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeUniswapV3(
                 sellToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.UNISWAPV2) {
-            if (dryRun) { return (0, true); }
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeUniswapV2(
                 buyToken,
                 sellAmount,
                 order.bridgeData
             );
         } else if (protocolId == BridgeProtocols.GMX) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeGMX(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeGMX(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
-            if (dryRun) { return (0, true); }
-            boughtAmount = _tradeNerve(
-                sellToken,
-                sellAmount,
-                order.bridgeData
-            );
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
-            if (dryRun) { return (0, true); }            
+            if (dryRun) {
+                return (0, true);
+            }
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,

@@ -20,35 +20,23 @@ pragma solidity ^0.5.5;
 
 import "./TestLogDecodingDownstream.sol";
 
-
 contract TestLogDecoding {
-
     /// @dev arbitrary event; fields to not matter.
-    event TestEvent(
-        uint256 foo,
-        bytes bar,
-        string car
-    );
+    event TestEvent(uint256 foo, bytes bar, string car);
 
     /// @dev Emits a local event
-    function emitEvent()
-        public
-    {
-        emit TestEvent(256, hex'1234', "4321");
+    function emitEvent() public {
+        emit TestEvent(256, hex"1234", "4321");
     }
 
     /// @dev Emits an event in a downstream contract
-    function emitEventDownstream()
-        public
-    {
+    function emitEventDownstream() public {
         TestLogDecodingDownstream testLogDecodingDownstream = new TestLogDecodingDownstream();
         ITestLogDecodingDownstream(testLogDecodingDownstream).emitEvent();
     }
 
     /// @dev Emits a local event and a downstream event
-    function emitEventsLocalAndDownstream()
-        public
-    {
+    function emitEventsLocalAndDownstream() public {
         emitEvent();
         emitEventDownstream();
     }

@@ -18,10 +18,8 @@
 
 pragma solidity ^0.5.9;
 
-
 contract LibEIP1271 {
-
     /// @dev Magic bytes returned by EIP1271 wallets on success.
     /// @return 0 Magic bytes.
-    bytes4 constant public EIP1271_MAGIC_VALUE = 0x20c13b0b;
+    bytes4 public constant EIP1271_MAGIC_VALUE = 0x20c13b0b;
 }

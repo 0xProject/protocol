@@ -24,14 +24,10 @@ import "./errors/LibRichErrorsV06.sol";
 import "./errors/LibAuthorizableRichErrorsV06.sol";
 import "./OwnableV06.sol";
 
-
 // solhint-disable no-empty-blocks
-contract AuthorizableV06 is
-    OwnableV06,
-    IAuthorizableV06
-{
+contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
     /// @dev Only authorized addresses can invoke functions with this modifier.
-    modifier onlyAuthorized {
+    modifier onlyAuthorized() {
         _assertSenderIsAuthorized();
         _;
     }
@@ -39,25 +35,18 @@ contract AuthorizableV06 is
     // @dev Whether an address is authorized to call privileged functions.
     // @param 0 Address to query.
     // @return 0 Whether the address is authorized.
-    mapping (address => bool) public override authorized;
+    mapping(address => bool) public override authorized;
     // @dev Whether an address is authorized to call privileged functions.
     // @param 0 Index of authorized address.
     // @return 0 Authorized address.
     address[] public override authorities;
 
     /// @dev Initializes the `owner` address.
-    constructor()
-        public
-        OwnableV06()
-    {}
+    constructor() public OwnableV06() {}
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function addAuthorizedAddress(address target)
-        external
-        override
-        onlyOwner
-    {
+    function addAuthorizedAddress(address target) external override onlyOwner {
         _addAuthorizedAddress(target);
     }
 
@@ -69,7 +58,9 @@ contract AuthorizableV06 is
         onlyOwner
     {
         if (!authorized[target]) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target)
+            );
         }
         for (uint256 i = 0; i < authorities.length; i++) {
             if (authorities[i] == target) {
@@ -82,10 +73,7 @@ contract AuthorizableV06 is
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
+    function removeAuthorizedAddressAtIndex(address target, uint256 index)
         external
         override
         onlyOwner
@@ -97,36 +85,41 @@ contract AuthorizableV06 is
     /// @return Array of authorized addresses.
     function getAuthorizedAddresses()
         external
-        override
         view
+        override
         returns (address[] memory)
     {
         return authorities;
     }
 
     /// @dev Reverts if msg.sender is not authorized.
-    function _assertSenderIsAuthorized()
-        internal
-        view
-    {
+    function _assertSenderIsAuthorized() internal view {
         if (!authorized[msg.sender]) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.SenderNotAuthorizedError(msg.sender));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.SenderNotAuthorizedError(
+                    msg.sender
+                )
+            );
         }
     }
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function _addAuthorizedAddress(address target)
-        internal
-    {
+    function _addAuthorizedAddress(address target) internal {
         // Ensure that the target is not the zero address.
         if (target == address(0)) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.ZeroCantBeAuthorizedError());
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.ZeroCantBeAuthorizedError()
+            );
         }
 
         // Ensure that the target is not already authorized.
         if (authorized[target]) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetAlreadyAuthorizedError(target));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.TargetAlreadyAuthorizedError(
+                    target
+                )
+            );
         }
 
         authorized[target] = true;
@@ -137,26 +130,29 @@ contract AuthorizableV06 is
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function _removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
+    function _removeAuthorizedAddressAtIndex(address target, uint256 index)
         internal
     {
         if (!authorized[target]) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target)
+            );
         }
         if (index >= authorities.length) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.IndexOutOfBoundsError(
-                index,
-                authorities.length
-            ));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.IndexOutOfBoundsError(
+                    index,
+                    authorities.length
+                )
+            );
         }
         if (authorities[index] != target) {
-            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.AuthorizedAddressMismatchError(
-                authorities[index],
-                target
-            ));
+            LibRichErrorsV06.rrevert(
+                LibAuthorizableRichErrorsV06.AuthorizedAddressMismatchError(
+                    authorities[index],
+                    target
+                )
+            );
         }
 
         delete authorized[target];

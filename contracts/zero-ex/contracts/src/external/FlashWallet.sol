@@ -25,17 +25,15 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol
 import "../errors/LibWalletRichErrors.sol";
 import "./IFlashWallet.sol";
 
-
 /// @dev A contract that can execute arbitrary calls from its owner.
-contract FlashWallet is
-    IFlashWallet
-{
+contract FlashWallet is IFlashWallet {
     // solhint-disable no-unused-vars,indent,no-empty-blocks
     using LibRichErrorsV06 for bytes;
 
     // solhint-disable
     /// @dev Store the owner/deployer as an immutable to make this contract stateless.
-    address public override immutable owner;
+    address public immutable override owner;
+
     // solhint-enable
 
     constructor() public {
@@ -46,10 +44,7 @@ contract FlashWallet is
     /// @dev Allows only the (immutable) owner to call a function.
     modifier onlyOwner() virtual {
         if (msg.sender != owner) {
-            LibOwnableRichErrorsV06.OnlyOwnerError(
-                msg.sender,
-                owner
-            ).rrevert();
+            LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner).rrevert();
         }
         _;
     }
@@ -63,13 +58,7 @@ contract FlashWallet is
         address payable target,
         bytes calldata callData,
         uint256 value
-    )
-        external
-        payable
-        override
-        onlyOwner
-        returns (bytes memory resultData)
-    {
+    ) external payable override onlyOwner returns (bytes memory resultData) {
         bool success;
         (success, resultData) = target.call{value: value}(callData);
         if (!success) {
@@ -93,13 +82,7 @@ contract FlashWallet is
     function executeDelegateCall(
         address payable target,
         bytes calldata callData
-    )
-        external
-        payable
-        override
-        onlyOwner
-        returns (bytes memory resultData)
-    {
+    ) external payable override onlyOwner returns (bytes memory resultData) {
         bool success;
         (success, resultData) = target.delegatecall(callData);
         if (!success) {
@@ -116,7 +99,8 @@ contract FlashWallet is
 
     // solhint-disable
     /// @dev Allows this contract to receive ether.
-    receive() external override payable {}
+    receive() external payable override {}
+
     // solhint-enable
 
     /// @dev Signal support for receiving ERC1155 tokens.
@@ -127,9 +111,12 @@ contract FlashWallet is
         pure
         returns (bool hasSupport)
     {
-        return  interfaceID == this.supportsInterface.selector ||
-                interfaceID == this.onERC1155Received.selector ^ this.onERC1155BatchReceived.selector ||
-                interfaceID == this.tokenFallback.selector;
+        return
+            interfaceID == this.supportsInterface.selector ||
+            interfaceID ==
+            this.onERC1155Received.selector ^
+                this.onERC1155BatchReceived.selector ||
+            interfaceID == this.tokenFallback.selector;
     }
 
     ///  @dev Allow this contract to receive ERC1155 tokens.
@@ -140,11 +127,7 @@ contract FlashWallet is
         uint256, // id,
         uint256, // value,
         bytes calldata //data
-    )
-        external
-        pure
-        returns (bytes4 success)
-    {
+    ) external pure returns (bytes4 success) {
         return this.onERC1155Received.selector;
     }
 
@@ -156,11 +139,7 @@ contract FlashWallet is
         uint256[] calldata, // ids,
         uint256[] calldata, // values,
         bytes calldata // data
-    )
-        external
-        pure
-        returns (bytes4 success)
-    {
+    ) external pure returns (bytes4 success) {
         return this.onERC1155BatchReceived.selector;
     }
 
@@ -169,8 +148,5 @@ contract FlashWallet is
         address, // from,
         uint256, // value,
         bytes calldata // value
-    )
-        external
-        pure
-    {}
+    ) external pure {}
 }

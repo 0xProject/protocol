@@ -20,14 +20,8 @@ pragma solidity ^0.5.9;
 
 import "./IERC20Token.sol";
 
+contract IEtherToken is IERC20Token {
+    function deposit() public payable;
 
-contract IEtherToken is
-    IERC20Token
-{
-    function deposit()
-        public
-        payable;
-    
-    function withdraw(uint256 amount)
-        public;
+    function withdraw(uint256 amount) public;
 }

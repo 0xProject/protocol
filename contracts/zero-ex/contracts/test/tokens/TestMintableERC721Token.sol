@@ -22,9 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-
 interface IERC721Receiver {
-
     /// @notice Handle the receipt of an NFT
     /// @dev The ERC721 smart contract calls this function on the recipient
     ///  after a `transfer`. This function MAY throw to revert and reject the
@@ -42,9 +40,7 @@ interface IERC721Receiver {
         address _from,
         uint256 _tokenId,
         bytes calldata _data
-    )
-        external
-        returns (bytes4);
+    ) external returns (bytes4);
 }
 
 contract TestMintableERC721Token {
@@ -55,11 +51,7 @@ contract TestMintableERC721Token {
     ///      (`to` == 0). Exception: during contract creation, any number of NFTs
     ///      may be created and assigned without emitting Transfer. At the time of
     ///      any transfer, the approved address for that NFT (if any) is reset to none.
-    event Transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    );
+    event Transfer(address _from, address _to, uint256 _tokenId);
 
     /// @dev This emits when the approved address for an NFT is changed or
     ///      reaffirmed. The zero address indicates there is no approved address.
@@ -81,74 +73,51 @@ contract TestMintableERC721Token {
 
     // Function selector for ERC721Receiver.onERC721Received
     // 0x150b7a02
-    bytes4 constant private ERC721_RECEIVED = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    bytes4 private constant ERC721_RECEIVED =
+        bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
 
     // Mapping of tokenId => owner
-    mapping (uint256 => address) private owners;
+    mapping(uint256 => address) private owners;
 
     // Mapping of tokenId => approved address
-    mapping (uint256 => address) private approvals;
+    mapping(uint256 => address) private approvals;
 
     // Mapping of owner => number of tokens owned
-    mapping (address => uint256) private balances;
+    mapping(address => uint256) private balances;
 
     // Mapping of owner => operator => approved
-    mapping (address => mapping (address => bool)) private operatorApprovals;
+    mapping(address => mapping(address => bool)) private operatorApprovals;
 
     /// @dev Function to mint a new token
     ///      Reverts if the given token ID already exists
     /// @param _to Address of the beneficiary that will own the minted token
-    /// @param _tokenId ID of the token to be minted by the msg.sender    
-    function mint(address _to, uint256 _tokenId)
-        external
-    {
-        require(
-            _to != address(0),
-            "ERC721_ZERO_TO_ADDRESS"
-        );
+    /// @param _tokenId ID of the token to be minted by the msg.sender
+    function mint(address _to, uint256 _tokenId) external {
+        require(_to != address(0), "ERC721_ZERO_TO_ADDRESS");
 
         address owner = owners[_tokenId];
-        require(
-            owner == address(0),
-            "ERC721_OWNER_ALREADY_EXISTS"
-        );
+        require(owner == address(0), "ERC721_OWNER_ALREADY_EXISTS");
 
         owners[_tokenId] = _to;
         balances[_to] = balances[_to].safeAdd(1);
 
-        emit Transfer(
-            address(0),
-            _to,
-            _tokenId
-        );
+        emit Transfer(address(0), _to, _tokenId);
     }
 
     /// @dev Function to burn a token
     ///      Reverts if the given token ID doesn't exist
     /// @param _owner Owner of token with given token ID
     /// @param _tokenId ID of the token to be burned by the msg.sender
-    function burn(address _owner, uint256 _tokenId)
-        external
-    {
-        require(
-            _owner != address(0),
-            "ERC721_ZERO_OWNER_ADDRESS"
-        );
+    function burn(address _owner, uint256 _tokenId) external {
+        require(_owner != address(0), "ERC721_ZERO_OWNER_ADDRESS");
 
         address owner = owners[_tokenId];
-        require(
-            owner == _owner,
-            "ERC721_OWNER_MISMATCH"
-        );
+        require(owner == _owner, "ERC721_OWNER_MISMATCH");
 
         owners[_tokenId] = address(0);
         balances[_owner] = balances[_owner].safeSub(1);
 
-        emit Transfer(
-            _owner,
-            address(0),
-            _tokenId
-        );
+        emit Transfer(_owner, address(0), _tokenId);
     }
 
     /// @notice Transfers the ownership of an NFT from one address to another address
@@ -168,14 +137,8 @@ contract TestMintableERC721Token {
         address _to,
         uint256 _tokenId,
         bytes calldata _data
-    )
-        external
-    {
-        transferFrom(
-            _from,
-            _to,
-            _tokenId
-        );
+    ) external {
+        transferFrom(_from, _to, _tokenId);
 
         uint256 receiverCodeSize;
         assembly {
@@ -188,10 +151,7 @@ contract TestMintableERC721Token {
                 _tokenId,
                 _data
             );
-            require(
-                selector == ERC721_RECEIVED,
-                "ERC721_INVALID_SELECTOR"
-            );
+            require(selector == ERC721_RECEIVED, "ERC721_INVALID_SELECTOR");
         }
     }
 
@@ -205,14 +165,8 @@ contract TestMintableERC721Token {
         address _from,
         address _to,
         uint256 _tokenId
-    )
-        external
-    {
-        transferFrom(
-            _from,
-            _to,
-            _tokenId
-        );
+    ) external {
+        transferFrom(_from, _to, _tokenId);
 
         uint256 receiverCodeSize;
         assembly {
@@ -225,10 +179,7 @@ contract TestMintableERC721Token {
                 _tokenId,
                 ""
             );
-            require(
-                selector == ERC721_RECEIVED,
-                "ERC721_INVALID_SELECTOR"
-            );
+            require(selector == ERC721_RECEIVED, "ERC721_INVALID_SELECTOR");
         }
     }
 
@@ -238,9 +189,7 @@ contract TestMintableERC721Token {
     ///      operator of the current owner.
     /// @param _approved The new approved NFT controller
     /// @param _tokenId The NFT to approve
-    function approve(address _approved, uint256 _tokenId)
-        external
-    {
+    function approve(address _approved, uint256 _tokenId) external {
         address owner = ownerOf(_tokenId);
         require(
             msg.sender == owner || isApprovedForAll(owner, msg.sender),
@@ -248,11 +197,7 @@ contract TestMintableERC721Token {
         );
 
         approvals[_tokenId] = _approved;
-        emit Approval(
-            owner,
-            _approved,
-            _tokenId
-        );
+        emit Approval(owner, _approved, _tokenId);
     }
 
     /// @notice Enable or disable approval for a third party ("operator") to manage
@@ -261,15 +206,9 @@ contract TestMintableERC721Token {
     ///      multiple operators per owner.
     /// @param _operator Address to add to the set of authorized operators
     /// @param _approved True if the operator is approved, false to revoke approval
-    function setApprovalForAll(address _operator, bool _approved)
-        external
-    {
+    function setApprovalForAll(address _operator, bool _approved) external {
         operatorApprovals[msg.sender][_operator] = _approved;
-        emit ApprovalForAll(
-            msg.sender,
-            _operator,
-            _approved
-        );
+        emit ApprovalForAll(msg.sender, _operator, _approved);
     }
 
     /// @notice Count all NFTs assigned to an owner
@@ -277,15 +216,8 @@ contract TestMintableERC721Token {
     ///      function throws for queries about the zero address.
     /// @param _owner An address for whom to query the balance
     /// @return The number of NFTs owned by `_owner`, possibly zero
-    function balanceOf(address _owner)
-        external
-        view
-        returns (uint256)
-    {
-        require(
-            _owner != address(0),
-            "ERC721_ZERO_OWNER"
-        );
+    function balanceOf(address _owner) external view returns (uint256) {
+        require(_owner != address(0), "ERC721_ZERO_OWNER");
         return balances[_owner];
     }
 
@@ -303,26 +235,18 @@ contract TestMintableERC721Token {
         address _from,
         address _to,
         uint256 _tokenId
-    )
-        public
-    {
-        require(
-            _to != address(0),
-            "ERC721_ZERO_TO_ADDRESS"
-        );
+    ) public {
+        require(_to != address(0), "ERC721_ZERO_TO_ADDRESS");
 
         address owner = ownerOf(_tokenId);
-        require(
-            _from == owner,
-            "ERC721_OWNER_MISMATCH"
-        );
+        require(_from == owner, "ERC721_OWNER_MISMATCH");
 
         address spender = msg.sender;
         address approvedAddress = getApproved(_tokenId);
         require(
             spender == owner ||
-            isApprovedForAll(owner, spender) ||
-            approvedAddress == spender,
+                isApprovedForAll(owner, spender) ||
+                approvedAddress == spender,
             "ERC721_INVALID_SPENDER"
         );
 
@@ -334,11 +258,7 @@ contract TestMintableERC721Token {
         balances[_from] = balances[_from].safeSub(1);
         balances[_to] = balances[_to].safeAdd(1);
 
-        emit Transfer(
-            _from,
-            _to,
-            _tokenId
-        );
+        emit Transfer(_from, _to, _tokenId);
     }
 
     /// @notice Find the owner of an NFT
@@ -346,16 +266,9 @@ contract TestMintableERC721Token {
     ///      about them do throw.
     /// @param _tokenId The identifier for an NFT
     /// @return The address of the owner of the NFT
-    function ownerOf(uint256 _tokenId)
-        public
-        view
-        returns (address)
-    {
+    function ownerOf(uint256 _tokenId) public view returns (address) {
         address owner = owners[_tokenId];
-        require(
-            owner != address(0),
-            "ERC721_ZERO_OWNER"
-        );
+        require(owner != address(0), "ERC721_ZERO_OWNER");
         return owner;
     }
 
@@ -363,11 +276,7 @@ contract TestMintableERC721Token {
     /// @dev Throws if `_tokenId` is not a valid NFT.
     /// @param _tokenId The NFT to find the approved address for
     /// @return The approved address for this NFT, or the zero address if there is none
-    function getApproved(uint256 _tokenId)
-        public
-        view
-        returns (address)
-    {
+    function getApproved(uint256 _tokenId) public view returns (address) {
         return approvals[_tokenId];
     }
 

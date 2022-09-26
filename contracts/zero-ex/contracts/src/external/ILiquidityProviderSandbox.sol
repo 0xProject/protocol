@@ -23,9 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../vendor/ILiquidityProvider.sol";
 
-
 interface ILiquidityProviderSandbox {
-
     /// @dev Calls `sellTokenForToken` on the given `provider` contract to
     ///      trigger a trade.
     /// @param provider The address of the on-chain liquidity provider.
@@ -41,8 +39,7 @@ interface ILiquidityProviderSandbox {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external;
+    ) external;
 
     /// @dev Calls `sellEthForToken` on the given `provider` contract to
     ///      trigger a trade.
@@ -57,8 +54,7 @@ interface ILiquidityProviderSandbox {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external;
+    ) external;
 
     /// @dev Calls `sellTokenForEth` on the given `provider` contract to
     ///      trigger a trade.
@@ -73,6 +69,5 @@ interface ILiquidityProviderSandbox {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external;
+    ) external;
 }

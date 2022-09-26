@@ -24,22 +24,24 @@ import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 
-
 /// @dev Minimal interface for minting StETH
 interface IStETH {
     /// @dev Adds eth to the pool
     /// @param _referral optional address for referrals
     /// @return StETH Amount of shares generated
     function submit(address _referral) external payable returns (uint256 StETH);
+
     /// @dev Retrieve the current pooled ETH representation of the shares amount
     /// @param _sharesAmount amount of shares
     /// @return amount of pooled ETH represented by the shares amount
-    function getPooledEthByShares(uint256 _sharesAmount) external view returns (uint256);
+    function getPooledEthByShares(uint256 _sharesAmount)
+        external
+        view
+        returns (uint256);
 }
 
 /// @dev Minimal interface for wrapping/unwrapping stETH.
 interface IWstETH {
-
     /**
      * @notice Exchanges stETH to wstETH
      * @param _stETHAmount amount of stETH to wrap in exchange for wstETH
@@ -64,16 +66,13 @@ interface IWstETH {
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
 
-
 contract MixinLido {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
 
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
@@ -82,13 +81,10 @@ contract MixinLido {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         if (address(sellToken) == address(WETH)) {
             return _tradeStETH(buyToken, sellAmount, bridgeData);
-        } 
+        }
 
         return _tradeWstETH(sellToken, buyToken, sellAmount, bridgeData);
     }
@@ -98,10 +94,13 @@ contract MixinLido {
         uint256 sellAmount,
         bytes memory bridgeData
     ) private returns (uint256 boughtAmount) {
-        (IStETH stETH) = abi.decode(bridgeData, (IStETH));
+        IStETH stETH = abi.decode(bridgeData, (IStETH));
         if (address(buyToken) == address(stETH)) {
             WETH.withdraw(sellAmount);
-            return stETH.getPooledEthByShares(stETH.submit{ value: sellAmount}(address(0)));
+            return
+                stETH.getPooledEthByShares(
+                    stETH.submit{value: sellAmount}(address(0))
+                );
         }
 
         revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
@@ -112,14 +111,22 @@ contract MixinLido {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-
-    ) private returns(uint256 boughtAmount){
-        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(bridgeData, (IEtherTokenV06, IWstETH));
-        if (address(sellToken) == address(stETH) && address(buyToken) == address(wstETH) ) {
+    ) private returns (uint256 boughtAmount) {
+        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(
+            bridgeData,
+            (IEtherTokenV06, IWstETH)
+        );
+        if (
+            address(sellToken) == address(stETH) &&
+            address(buyToken) == address(wstETH)
+        ) {
             sellToken.approveIfBelow(address(wstETH), sellAmount);
             return wstETH.wrap(sellAmount);
         }
-        if (address(sellToken) == address(wstETH) && address(buyToken) == address(stETH) ) {
+        if (
+            address(sellToken) == address(wstETH) &&
+            address(buyToken) == address(stETH)
+        ) {
             return wstETH.unwrap(sellAmount);
         }
 

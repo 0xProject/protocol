@@ -21,9 +21,7 @@ pragma solidity ^0.5.9;
 import "./LibReentrancyGuardRichErrors.sol";
 import "./LibRichErrors.sol";
 
-
 contract ReentrancyGuard {
-
     // Locked state of mutex.
     bool private _locked = false;
 
@@ -35,9 +33,7 @@ contract ReentrancyGuard {
         _unlockMutex();
     }
 
-    function _lockMutexOrThrowIfAlreadyLocked()
-        internal
-    {
+    function _lockMutexOrThrowIfAlreadyLocked() internal {
         // Ensure mutex is unlocked.
         if (_locked) {
             LibRichErrors.rrevert(
@@ -48,9 +44,7 @@ contract ReentrancyGuard {
         _locked = true;
     }
 
-    function _unlockMutex()
-        internal
-    {
+    function _unlockMutex() internal {
         // Unlock mutex.
         _locked = false;
     }

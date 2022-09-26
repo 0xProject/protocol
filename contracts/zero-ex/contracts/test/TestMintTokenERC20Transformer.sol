@@ -25,10 +25,7 @@ import "../src/transformers/IERC20Transformer.sol";
 import "../src/transformers/LibERC20Transformer.sol";
 import "./tokens/TestMintableERC20Token.sol";
 
-
-contract TestMintTokenERC20Transformer is
-    IERC20Transformer
-{
+contract TestMintTokenERC20Transformer is IERC20Transformer {
     struct TransformData {
         IERC20TokenV06 inputToken;
         TestMintableERC20Token outputToken;
@@ -71,21 +68,19 @@ contract TestMintTokenERC20Transformer is
             data.inputToken.transfer(address(0), data.burnAmount);
         }
         // Mint output tokens.
-        if (!LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
+        if (
+            !LibERC20Transformer.isTokenETH(
+                IERC20TokenV06(address(data.outputToken))
+            )
+        ) {
             if (data.feeAmount > data.mintAmount) {
                 data.outputToken.burn(
-                    context.recipient, 
+                    context.recipient,
                     data.feeAmount - data.mintAmount
                 );
             } else {
-                data.outputToken.mint(
-                    address(this),
-                    data.mintAmount
-                );
-                data.outputToken.burn(
-                    context.recipient, 
-                    data.feeAmount
-                );
+                data.outputToken.mint(address(this), data.mintAmount);
+                data.outputToken.burn(context.recipient, data.feeAmount);
             }
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;

@@ -22,11 +22,7 @@ import "@0x/contracts-utils/contracts/src/LibSafeMath.sol";
 import "@0x/contracts-utils/contracts/src/Ownable.sol";
 import "../src/MintableERC20Token.sol";
 
-
-contract DummyERC20Token is
-    Ownable,
-    MintableERC20Token
-{
+contract DummyERC20Token is Ownable, MintableERC20Token {
     using LibSafeMath for uint256;
 
     string public name;
@@ -34,14 +30,12 @@ contract DummyERC20Token is
     uint256 public decimals;
     uint256 public constant MAX_MINT_AMOUNT = 10000000000000000000000;
 
-    constructor (
+    constructor(
         string memory _name,
         string memory _symbol,
         uint256 _decimals,
         uint256 _totalSupply
-    )
-        public
-    {
+    ) public {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -52,10 +46,7 @@ contract DummyERC20Token is
     /// @dev Sets the balance of target address
     /// @param _target Address or which balance will be updated
     /// @param _value New balance of target address
-    function setBalance(address _target, uint256 _value)
-        external
-        onlyOwner
-    {
+    function setBalance(address _target, uint256 _value) external onlyOwner {
         uint256 currBalance = balances[_target];
         if (_value < currBalance) {
             _totalSupply = _totalSupply.safeSub(currBalance.safeSub(_value));
@@ -67,13 +58,8 @@ contract DummyERC20Token is
 
     /// @dev Mints new tokens for sender
     /// @param _value Amount of tokens to mint
-    function mint(uint256 _value)
-        external
-    {
-        require(
-            _value <= MAX_MINT_AMOUNT,
-            "VALUE_TOO_LARGE"
-        );
+    function mint(uint256 _value) external {
+        require(_value <= MAX_MINT_AMOUNT, "VALUE_TOO_LARGE");
 
         _mint(msg.sender, _value);
     }

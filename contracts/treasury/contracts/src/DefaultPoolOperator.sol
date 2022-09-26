@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "./IStaking.sol";
 
-
 contract DefaultPoolOperator {
     // Immutables
     IStaking public immutable stakingProxy;
@@ -33,16 +32,11 @@ contract DefaultPoolOperator {
     /// @dev Initializes this contract and creates a staking pool.
     /// @param stakingProxy_ The 0x staking proxy contract.
     /// @param weth_ The WETH token contract.
-    constructor(
-        IStaking stakingProxy_,
-        IERC20TokenV06 weth_
-    )
-        public
-    {
+    constructor(IStaking stakingProxy_, IERC20TokenV06 weth_) public {
         stakingProxy = stakingProxy_;
         weth = weth_;
         // operator share = 100%
-        poolId = stakingProxy_.createStakingPool(10 ** 6, false);
+        poolId = stakingProxy_.createStakingPool(10**6, false);
     }
 
     /// @dev Sends this contract's entire WETH balance to the
@@ -51,9 +45,7 @@ contract DefaultPoolOperator {
     ///      market making for some reason, thus earning this contract
     ///      some staking rewards. Note that anyone can call this
     ///      function at any time.
-    function returnStakingRewards()
-        external
-    {
+    function returnStakingRewards() external {
         uint256 wethBalance = weth.balanceOf(address(this));
         weth.transfer(address(stakingProxy), wethBalance);
     }

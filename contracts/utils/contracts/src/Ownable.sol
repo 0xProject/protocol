@@ -22,17 +22,12 @@ import "./interfaces/IOwnable.sol";
 import "./LibOwnableRichErrors.sol";
 import "./LibRichErrors.sol";
 
-
-contract Ownable is
-    IOwnable
-{
+contract Ownable is IOwnable {
     /// @dev The owner of this contract.
     /// @return 0 The owner address.
     address public owner;
 
-    constructor ()
-        public
-    {
+    constructor() public {
         owner = msg.sender;
     }
 
@@ -43,27 +38,22 @@ contract Ownable is
 
     /// @dev Change the owner of this contract.
     /// @param newOwner New owner address.
-    function transferOwnership(address newOwner)
-        public
-        onlyOwner
-    {
+    function transferOwnership(address newOwner) public onlyOwner {
         if (newOwner == address(0)) {
-            LibRichErrors.rrevert(LibOwnableRichErrors.TransferOwnerToZeroError());
+            LibRichErrors.rrevert(
+                LibOwnableRichErrors.TransferOwnerToZeroError()
+            );
         } else {
             owner = newOwner;
             emit OwnershipTransferred(msg.sender, newOwner);
         }
     }
 
-    function _assertSenderIsOwner()
-        internal
-        view
-    {
+    function _assertSenderIsOwner() internal view {
         if (msg.sender != owner) {
-            LibRichErrors.rrevert(LibOwnableRichErrors.OnlyOwnerError(
-                msg.sender,
-                owner
-            ));
+            LibRichErrors.rrevert(
+                LibOwnableRichErrors.OnlyOwnerError(msg.sender, owner)
+            );
         }
     }
 }

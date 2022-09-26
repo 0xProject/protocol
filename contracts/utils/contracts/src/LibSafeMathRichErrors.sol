@@ -1,15 +1,11 @@
 pragma solidity ^0.5.9;
 
-
 library LibSafeMathRichErrors {
-
     // bytes4(keccak256("Uint256BinOpError(uint8,uint256,uint256)"))
-    bytes4 internal constant UINT256_BINOP_ERROR_SELECTOR =
-        0xe946c1bb;
+    bytes4 internal constant UINT256_BINOP_ERROR_SELECTOR = 0xe946c1bb;
 
     // bytes4(keccak256("Uint256DowncastError(uint8,uint256)"))
-    bytes4 internal constant UINT256_DOWNCAST_ERROR_SELECTOR =
-        0xc996af7b;
+    bytes4 internal constant UINT256_DOWNCAST_ERROR_SELECTOR = 0xc996af7b;
 
     enum BinOpErrorCodes {
         ADDITION_OVERFLOW,
@@ -29,31 +25,26 @@ library LibSafeMathRichErrors {
         BinOpErrorCodes errorCode,
         uint256 a,
         uint256 b
-    )
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodeWithSelector(
-            UINT256_BINOP_ERROR_SELECTOR,
-            errorCode,
-            a,
-            b
-        );
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSelector(
+                UINT256_BINOP_ERROR_SELECTOR,
+                errorCode,
+                a,
+                b
+            );
     }
 
-    function Uint256DowncastError(
-        DowncastErrorCodes errorCode,
-        uint256 a
-    )
+    function Uint256DowncastError(DowncastErrorCodes errorCode, uint256 a)
         internal
         pure
         returns (bytes memory)
     {
-        return abi.encodeWithSelector(
-            UINT256_DOWNCAST_ERROR_SELECTOR,
-            errorCode,
-            a
-        );
+        return
+            abi.encodeWithSelector(
+                UINT256_DOWNCAST_ERROR_SELECTOR,
+                errorCode,
+                a
+            );
     }
 }

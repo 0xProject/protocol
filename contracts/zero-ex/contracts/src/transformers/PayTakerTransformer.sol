@@ -28,11 +28,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that transfers tokens to the taker.
-contract PayTakerTransformer is
-    Transformer
-{
+contract PayTakerTransformer is Transformer {
     // solhint-disable no-empty-blocks
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
@@ -51,10 +48,7 @@ contract PayTakerTransformer is
     uint256 private constant MAX_UINT256 = uint256(-1);
 
     /// @dev Create this contract.
-    constructor()
-        public
-        Transformer()
-    {}
+    constructor() public Transformer() {}
 
     /// @dev Forwards tokens to the taker.
     /// @param context Context information.
@@ -70,7 +64,9 @@ contract PayTakerTransformer is
         for (uint256 i = 0; i < data.tokens.length; ++i) {
             // The `amounts` array can be shorter than the `tokens` array.
             // Missing elements are treated as `uint256(-1)`.
-            uint256 amount = data.amounts.length > i ? data.amounts[i] : uint256(-1);
+            uint256 amount = data.amounts.length > i
+                ? data.amounts[i]
+                : uint256(-1);
             if (amount == MAX_UINT256) {
                 amount = data.tokens[i].getTokenBalanceOf(address(this));
             }

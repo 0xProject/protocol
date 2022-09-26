@@ -26,34 +26,26 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../IBridgeAdapter.sol";
 
-
 /// @dev Moooniswap pool interface.
 interface IMooniswapPool {
-
     function swap(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         uint256 minBoughtAmount,
         address referrer
-    )
-        external
-        payable
-        returns (uint256 boughtAmount);
+    ) external payable returns (uint256 boughtAmount);
 }
 
 /// @dev BridgeAdapter mixin for mooniswap.
 contract MixinMooniswap {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibERC20TokenV06 for IEtherTokenV06;
 
     /// @dev WETH token.
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
@@ -62,11 +54,8 @@ contract MixinMooniswap {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
-        (IMooniswapPool pool) = abi.decode(bridgeData, (IMooniswapPool));
+    ) internal returns (uint256 boughtAmount) {
+        IMooniswapPool pool = abi.decode(bridgeData, (IMooniswapPool));
 
         // Convert WETH to ETH.
         uint256 ethValue = 0;
@@ -75,10 +64,7 @@ contract MixinMooniswap {
             ethValue = sellAmount;
         } else {
             // Grant the pool an allowance.
-            sellToken.approveIfBelow(
-                address(pool),
-                sellAmount
-            );
+            sellToken.approveIfBelow(address(pool), sellAmount);
         }
 
         boughtAmount = pool.swap{value: ethValue}(
@@ -91,7 +77,7 @@ contract MixinMooniswap {
 
         // Wrap ETH to WETH.
         if (buyToken == WETH) {
-            WETH.deposit{value:boughtAmount}();
+            WETH.deposit{value: boughtAmount}();
         }
     }
 }

@@ -21,10 +21,7 @@ pragma solidity ^0.6.5;
 
 import "./IOwnableV06.sol";
 
-
-interface IAuthorizableV06 is
-    IOwnableV06
-{
+interface IAuthorizableV06 is IOwnableV06 {
     // Event logged when a new address is authorized.
     event AuthorizedAddressAdded(
         address indexed target,
@@ -39,21 +36,16 @@ interface IAuthorizableV06 is
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function addAuthorizedAddress(address target)
-        external;
+    function addAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
-    function removeAuthorizedAddress(address target)
-        external;
+    function removeAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
+    function removeAuthorizedAddressAtIndex(address target, uint256 index)
         external;
 
     /// @dev Gets all authorized addresses.
@@ -72,5 +64,4 @@ interface IAuthorizableV06 is
     /// @param idx Index of authorized address.
     /// @return addr Authorized address.
     function authorities(uint256 idx) external view returns (address addr);
-
 }

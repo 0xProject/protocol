@@ -29,7 +29,6 @@ import "../fixins/FixinTokenSpender.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/IUniswapV3Feature.sol";
 
-
 /// @dev VIP uniswap fill functions.
 contract UniswapV3Feature is
     IFeature,
@@ -58,9 +57,11 @@ contract UniswapV3Feature is
     /// @dev Minimum tick price sqrt ratio.
     uint160 internal constant MIN_PRICE_SQRT_RATIO = 4295128739;
     /// @dev Minimum tick price sqrt ratio.
-    uint160 internal constant MAX_PRICE_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
+    uint160 internal constant MAX_PRICE_SQRT_RATIO =
+        1461446703485210103287273052203988822378723970342;
     /// @dev Mask of lower 20 bytes.
-    uint256 private constant ADDRESS_MASK = 0x00ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK =
+        0x00ffffffffffffffffffffffffffffffffffffffff;
     /// @dev Mask of lower 3 bytes.
     uint256 private constant UINT24_MASK = 0xffffff;
 
@@ -74,21 +75,22 @@ contract UniswapV3Feature is
         bytes32 poolInitCodeHash
     ) public {
         WETH = weth;
-        UNI_FF_FACTORY_ADDRESS = bytes32((uint256(0xff) << 248) | (uint256(uniFactory) << 88));
+        UNI_FF_FACTORY_ADDRESS = bytes32(
+            (uint256(0xff) << 248) | (uint256(uniFactory) << 88)
+        );
         UNI_POOL_INIT_CODE_HASH = poolInitCodeHash;
     }
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.sellEthForTokenToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForEthToUniswapV3.selector);
         _registerFeatureFunction(this.sellTokenForTokenToUniswapV3.selector);
-        _registerFeatureFunction(this._sellHeldTokenForTokenToUniswapV3.selector);
+        _registerFeatureFunction(
+            this._sellHeldTokenForTokenToUniswapV3.selector
+        );
         _registerFeatureFunction(this.uniswapV3SwapCallback.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -102,21 +104,17 @@ contract UniswapV3Feature is
         bytes memory encodedPath,
         uint256 minBuyAmount,
         address recipient
-    )
-        public
-        payable
-        override
-        returns (uint256 buyAmount)
-    {
+    ) public payable override returns (uint256 buyAmount) {
         // Wrap ETH.
-        WETH.deposit{ value: msg.value }();
-        return _swap(
-            encodedPath,
-            msg.value,
-            minBuyAmount,
-            address(this), // we are payer because we hold the WETH
-            _normalizeRecipient(recipient)
-        );
+        WETH.deposit{value: msg.value}();
+        return
+            _swap(
+                encodedPath,
+                msg.value,
+                minBuyAmount,
+                address(this), // we are payer because we hold the WETH
+                _normalizeRecipient(recipient)
+            );
     }
 
     /// @dev Sell a token for ETH directly against uniswap v3.
@@ -130,11 +128,7 @@ contract UniswapV3Feature is
         uint256 sellAmount,
         uint256 minBuyAmount,
         address payable recipient
-    )
-        public
-        override
-        returns (uint256 buyAmount)
-    {
+    ) public override returns (uint256 buyAmount) {
         buyAmount = _swap(
             encodedPath,
             sellAmount,
@@ -144,8 +138,8 @@ contract UniswapV3Feature is
         );
         WETH.withdraw(buyAmount);
         // Transfer ETH to recipient.
-        (bool success, bytes memory revertData) =
-            _normalizeRecipient(recipient).call{ value: buyAmount }("");
+        (bool success, bytes memory revertData) = _normalizeRecipient(recipient)
+            .call{value: buyAmount}("");
         if (!success) {
             revertData.rrevert();
         }
@@ -162,11 +156,7 @@ contract UniswapV3Feature is
         uint256 sellAmount,
         uint256 minBuyAmount,
         address recipient
-    )
-        public
-        override
-        returns (uint256 buyAmount)
-    {
+    ) public override returns (uint256 buyAmount) {
         buyAmount = _swap(
             encodedPath,
             sellAmount,
@@ -188,12 +178,7 @@ contract UniswapV3Feature is
         uint256 sellAmount,
         uint256 minBuyAmount,
         address recipient
-    )
-        public
-        override
-        onlySelf
-        returns (uint256 buyAmount)
-    {
+    ) public override onlySelf returns (uint256 buyAmount) {
         buyAmount = _swap(
             encodedPath,
             sellAmount,
@@ -214,17 +199,17 @@ contract UniswapV3Feature is
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata data
-    )
-        external
-        override
-    {
+    ) external override {
         IERC20TokenV06 token0;
         IERC20TokenV06 token1;
         address payer;
         {
             uint24 fee;
             // Decode the data.
-            require(data.length == SWAP_CALLBACK_DATA_SIZE, "UniswapFeature/INVALID_SWAP_CALLBACK_DATA");
+            require(
+                data.length == SWAP_CALLBACK_DATA_SIZE,
+                "UniswapFeature/INVALID_SWAP_CALLBACK_DATA"
+            );
             assembly {
                 let p := add(36, calldataload(68))
                 token0 := calldataload(p)
@@ -258,12 +243,12 @@ contract UniswapV3Feature is
         uint256 minBuyAmount,
         address payer,
         address recipient
-    )
-        private
-        returns (uint256 buyAmount)
-    {
+    ) private returns (uint256 buyAmount) {
         if (sellAmount != 0) {
-            require(sellAmount <= uint256(type(int256).max), "UniswapV3Feature/SELL_AMOUNT_OVERFLOW");
+            require(
+                sellAmount <= uint256(type(int256).max),
+                "UniswapV3Feature/SELL_AMOUNT_OVERFLOW"
+            );
 
             // Perform a swap for each hop in the path.
             bytes memory swapCallbackData = new bytes(SWAP_CALLBACK_DATA_SIZE);
@@ -299,7 +284,10 @@ contract UniswapV3Feature is
                 );
                 {
                     int256 _buyAmount = -(zeroForOne ? amount1 : amount0);
-                    require(_buyAmount >= 0, "UniswapV3Feature/INVALID_BUY_AMOUNT");
+                    require(
+                        _buyAmount >= 0,
+                        "UniswapV3Feature/INVALID_BUY_AMOUNT"
+                    );
                     buyAmount = uint256(_buyAmount);
                 }
                 if (!isPathMultiHop) {
@@ -323,9 +311,7 @@ contract UniswapV3Feature is
         address payer,
         address to,
         uint256 amount
-    )
-        private
-    {
+    ) private {
         if (payer != address(this)) {
             _transferERC20TokensFrom(token, payer, to, amount);
         } else {
@@ -340,10 +326,7 @@ contract UniswapV3Feature is
         IERC20TokenV06 outputToken,
         uint24 fee,
         address payer
-    )
-        private
-        pure
-    {
+    ) private pure {
         assembly {
             let p := add(swapCallbackData, 32)
             mstore(p, inputToken)
@@ -358,11 +341,7 @@ contract UniswapV3Feature is
         IERC20TokenV06 inputToken,
         uint24 fee,
         IERC20TokenV06 outputToken
-    )
-        private
-        view
-        returns (IUniswapV3Pool pool)
-    {
+    ) private view returns (IUniswapV3Pool pool) {
         // address(keccak256(abi.encodePacked(
         //     hex"ff",
         //     UNI_FACTORY_ADDRESS,
@@ -371,7 +350,8 @@ contract UniswapV3Feature is
         // )))
         bytes32 ffFactoryAddress = UNI_FF_FACTORY_ADDRESS;
         bytes32 poolInitCodeHash = UNI_POOL_INIT_CODE_HASH;
-        (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken < outputToken
+        (IERC20TokenV06 token0, IERC20TokenV06 token1) = inputToken <
+            outputToken
             ? (inputToken, outputToken)
             : (outputToken, inputToken);
         assembly {
@@ -380,10 +360,10 @@ contract UniswapV3Feature is
             mstore(p, ffFactoryAddress)
             p := add(p, 21)
             // Compute the inner hash in-place
-                mstore(p, token0)
-                mstore(add(p, 32), token1)
-                mstore(add(p, 64), and(UINT24_MASK, fee))
-                mstore(p, keccak256(p, 96))
+            mstore(p, token0)
+            mstore(add(p, 32), token1)
+            mstore(add(p, 64), and(UINT24_MASK, fee))
+            mstore(p, keccak256(p, 96))
             p := add(p, 32)
             mstore(p, poolInitCodeHash)
             pool := and(ADDRESS_MASK, keccak256(s, 85))
@@ -399,7 +379,6 @@ contract UniswapV3Feature is
         return encodedPath.length > SINGLE_HOP_PATH_SIZE;
     }
 
-
     // Return the first input token, output token, and fee of an encoded uniswap path.
     function _decodeFirstPoolInfoFromPath(bytes memory encodedPath)
         private
@@ -410,7 +389,10 @@ contract UniswapV3Feature is
             IERC20TokenV06 outputToken
         )
     {
-        require(encodedPath.length >= SINGLE_HOP_PATH_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
+        require(
+            encodedPath.length >= SINGLE_HOP_PATH_SIZE,
+            "UniswapV3Feature/BAD_PATH_ENCODING"
+        );
         assembly {
             let p := add(encodedPath, 32)
             inputToken := shr(96, mload(p))
@@ -427,7 +409,10 @@ contract UniswapV3Feature is
         pure
         returns (bytes memory shiftedEncodedPath)
     {
-        require(encodedPath.length >= PATH_SKIP_HOP_SIZE, "UniswapV3Feature/BAD_PATH_ENCODING");
+        require(
+            encodedPath.length >= PATH_SKIP_HOP_SIZE,
+            "UniswapV3Feature/BAD_PATH_ENCODING"
+        );
         uint256 shiftSize = PATH_SKIP_HOP_SIZE;
         uint256 newSize = encodedPath.length - shiftSize;
         assembly {
