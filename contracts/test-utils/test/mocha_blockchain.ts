@@ -97,7 +97,7 @@ blockchainTests('mocha blockchain extensions', env => {
 function createHookedObject(obj: any, handler: (name: string) => void, methods: string[]): any {
     const hookedMethods = _.map(methods, methodName => {
         // tslint:disable: only-arrow-functions
-        return function(this: any, ...args: any[]): any {
+        return function (this: any, ...args: any[]): any {
             handler(methodName);
             return obj[methodName].call(this, ...args);
         };

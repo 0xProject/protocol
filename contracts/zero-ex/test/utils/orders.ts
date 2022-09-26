@@ -217,11 +217,8 @@ export class NativeOrdersTestEnvironment {
         takerTokenFillAmount: BigNumber = order.takerAmount,
         takerTokenAlreadyFilledAmount: BigNumber = ZERO,
     ): IZeroExLimitOrderFilledEventArgs {
-        const {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
-        } = computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
+        const { makerTokenFilledAmount, takerTokenFilledAmount, takerTokenFeeFilledAmount } =
+            computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
         const protocolFee = order.taker !== NULL_ADDRESS ? ZERO : this.protocolFee;
         return {
             takerTokenFilledAmount,

@@ -236,7 +236,7 @@ export const describe = _.assign(mochaDescribe, {
  * Like mocha's `describe()`, but sets up a blockchain environment for you.
  */
 export const blockchainTests: BlockchainContextDefinition = _.assign(
-    function(description: string, callback: BlockchainSuiteCallback): ISuite {
+    function (description: string, callback: BlockchainSuiteCallback): ISuite {
         return defineBlockchainSuite(StandardBlockchainTestsEnvironmentSingleton, description, callback, describe);
     },
     {
@@ -275,7 +275,7 @@ export const blockchainTests: BlockchainContextDefinition = _.assign(
             );
         },
         fork: _.assign(
-            function(description: string, callback: BlockchainSuiteCallback): ISuite | void {
+            function (description: string, callback: BlockchainSuiteCallback): ISuite | void {
                 return defineBlockchainSuite(
                     ForkedBlockchainTestsEnvironmentSingleton,
                     description,
@@ -319,7 +319,7 @@ export const blockchainTests: BlockchainContextDefinition = _.assign(
             },
         ),
         live: _.assign(
-            function(description: string, callback: BlockchainSuiteCallback): ISuite | void {
+            function (description: string, callback: BlockchainSuiteCallback): ISuite | void {
                 return defineBlockchainSuite(
                     LiveBlockchainTestsEnvironmentSingleton,
                     description,
@@ -355,7 +355,7 @@ export const blockchainTests: BlockchainContextDefinition = _.assign(
             },
         ),
         resets: _.assign(
-            function(description: string, callback: BlockchainSuiteCallback): ISuite {
+            function (description: string, callback: BlockchainSuiteCallback): ISuite {
                 return defineResetsBlockchainSuite(
                     StandardBlockchainTestsEnvironmentSingleton,
                     description,
@@ -399,7 +399,7 @@ function defineBlockchainSuite<T>(
     callback: BlockchainSuiteCallback,
     describeCall: ContextDefinitionCallback<T>,
 ): T {
-    return describeCall(description, function(this: ISuiteCallbackContext): void {
+    return describeCall(description, function (this: ISuiteCallbackContext): void {
         callback.call(this, envFactory.create());
     });
 }
@@ -410,7 +410,7 @@ function defineResetsBlockchainSuite<T>(
     callback: BlockchainSuiteCallback,
     describeCall: ContextDefinitionCallback<T>,
 ): T {
-    return describeCall(description, function(this: ISuiteCallbackContext): void {
+    return describeCall(description, function (this: ISuiteCallbackContext): void {
         const env = envFactory.create();
         beforeEach(async () => env.blockchainLifecycle.startAsync());
         afterEach(async () => env.blockchainLifecycle.revertAsync());

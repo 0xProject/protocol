@@ -40,10 +40,7 @@ export function getRandomPortion(total: Numberish): BigNumber {
 export function getRandomFloat(min: Numberish, max: Numberish): BigNumber {
     // Generate a really high precision number between [0, 1]
     const r = new BigNumber(crypto.randomBytes(32).toString('hex'), 16).dividedBy(new BigNumber(2).pow(256).minus(1));
-    return new BigNumber(max)
-        .minus(min)
-        .times(r)
-        .plus(min);
+    return new BigNumber(max).minus(min).times(r).plus(min);
 }
 
 export const FIXED_POINT_BASE = new BigNumber(2).pow(127);
@@ -77,10 +74,7 @@ export function getNumericalDivergence(a: Numberish, b: Numberish, precision = 1
         const base = 10 ** (precision - maxIntegerDigits);
         return n.times(base).integerValue(BigNumber.ROUND_DOWN);
     };
-    return _toInteger(_a)
-        .minus(_toInteger(_b))
-        .abs()
-        .toNumber();
+    return _toInteger(_a).minus(_toInteger(_b)).abs().toNumber();
 }
 
 /**
@@ -97,10 +91,7 @@ export function assertRoughlyEquals(actual: Numberish, expected: Numberish, prec
  * Asserts that two numbers are equal with up to `maxError` difference between them.
  */
 export function assertIntegerRoughlyEquals(actual: Numberish, expected: Numberish, maxError = 1, msg?: string): void {
-    const diff = new BigNumber(actual)
-        .minus(expected)
-        .abs()
-        .toNumber();
+    const diff = new BigNumber(actual).minus(expected).abs().toNumber();
     if (diff <= maxError) {
         return;
     }
