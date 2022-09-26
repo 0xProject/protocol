@@ -460,8 +460,12 @@ export class RfqmService {
 
         // Prepare the final takerAmount and makerAmount
         const sellAmount = isSelling
-            ? takerAmount!
+            ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              takerAmount!
             : RfqmService._getSellAmountGivenBuyAmountAndQuote(
+                  // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   makerAmount!,
                   bestQuote.order.takerAmount,
                   bestQuote.order.makerAmount,
@@ -469,11 +473,15 @@ export class RfqmService {
 
         const buyAmount = isSelling
             ? RfqmService._getBuyAmountGivenSellAmountAndQuote(
+                  // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   takerAmount!,
                   bestQuote.order.takerAmount,
                   bestQuote.order.makerAmount,
               )
-            : makerAmount!;
+            : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              makerAmount!;
 
         // Get the Order and its hash
         const orderHash = bestQuote.order.getHash();
@@ -491,7 +499,9 @@ export class RfqmService {
         });
 
         const approval = params.checkApproval
-            ? await this.getGaslessApprovalResponseAsync(takerAddress!, takerToken, sellAmount)
+            ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              await this.getGaslessApprovalResponseAsync(takerAddress!, takerToken, sellAmount)
             : null;
 
         RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
@@ -667,6 +677,8 @@ export class RfqmService {
                     }),
                 };
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never): never => {
                     throw new Error('Unreachable');
                 })(status);
@@ -707,6 +719,8 @@ export class RfqmService {
         const rfqmApprovalOpts = approval
             ? await this.createApprovalAsync(approval, trade.order.getHash(), trade.order.takerToken)
             : undefined;
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line prefer-const
         submitRfqmSignedQuoteWithApprovalRes = await this.submitTakerSignedOtcOrderAsync(trade, rfqmApprovalOpts);
 
         return submitRfqmSignedQuoteWithApprovalRes;
@@ -754,6 +768,8 @@ export class RfqmService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -896,6 +912,8 @@ export class RfqmService {
 
         // prepare the job
         let rfqmJobOpts: RfqmV2JobConstructorOpts = {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             orderHash: quote.orderHash!,
             createdAt: new Date(),
             expiry: order.expiry,
@@ -923,6 +941,8 @@ export class RfqmService {
         try {
             // make sure job data is persisted to Postgres before queueing task
             await this._dbUtils.writeV2JobAsync(rfqmJobOpts);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             await this._enqueueJobAsync(quote.orderHash!, RfqmTypes.OtcOrder);
         } catch (error) {
             logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
@@ -933,6 +953,8 @@ export class RfqmService {
 
         return {
             type: RfqmTypes.OtcOrder,
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             orderHash: quote.orderHash!,
         };
     }
@@ -958,6 +980,8 @@ export class RfqmService {
 
         const isUnwrap = originalMakerToken === this._nativeTokenAddress;
         const isSelling = takerAmount !== undefined;
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const assetFillAmount = isSelling ? takerAmount! : makerAmount!;
 
         let makerToken = originalMakerToken;
@@ -974,6 +998,8 @@ export class RfqmService {
             takerToken,
             makerToken,
             originalMakerToken,
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             takerAddress: takerAddress!,
             takerTokenDecimals,
             makerTokenDecimals,
@@ -1095,6 +1121,8 @@ export class RfqmService {
         const otcQuotes = quotes.map((q) =>
             this._mapIndicativeQuoteToFirmOtcQuote(
                 q,
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 takerAddress!,
                 new BigNumber(currentBucket),
                 new BigNumber(nowSeconds),
@@ -1235,6 +1263,8 @@ export class RfqmService {
                     : PermitApproval;
             }
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(primaryType);

@@ -143,6 +143,8 @@ describe('RfqMakerService', () => {
                 rfqtUri: null,
                 rfqmUri: null,
             });
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-inferrable-types
             const newRfqtUri: string = 'http://localhost:3001';
             const rfqMakerServiceMock = mock(RfqMakerService);
             when(rfqMakerServiceMock.getRfqMakerAsync(anything(), anything())).thenResolve(originalRfqMaker);
@@ -280,18 +282,24 @@ describe('RfqMakerService', () => {
 
         it('should throw for non array input', async () => {
             expect(() => {
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow('123' as any);
             }).to.throw();
         });
 
         it('should throw for array of non arrays', async () => {
             expect(() => {
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow(['123'] as any);
             }).to.throw();
         });
 
         it('should throw for incorrect sub-array length', async () => {
             expect(() => {
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 RfqMakerService.validatePairsPayloadOrThrow(['123'] as any);
             }).to.throw();
         });

@@ -24,6 +24,8 @@ const TOKEN_GAS_PREMIUM: Record<string, number> = {
 };
 
 // If the buy token is native, an unwrap operation is needed which cost us additional gas.
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 const UNWRAP_PREMIUM: number = 6e3;
 
 /**

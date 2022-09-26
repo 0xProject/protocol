@@ -370,6 +370,8 @@ describe('QuoteServerClient', () => {
                 );
 
                 // Then
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 expect(indicativeQuotes!.length).toEqual(1);
                 expect(indicativeQuotes[0].makerAmount.toNumber()).toEqual(response.makerAmount.toNumber());
                 expect(indicativeQuotes[0].maker).toEqual(makerAddress);

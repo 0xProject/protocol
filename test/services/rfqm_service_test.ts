@@ -9,6 +9,8 @@ import { eip712SignHashWithKey, ethSignHashWithKey, MetaTransaction, OtcOrder } 
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { constants } from 'ethers';
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
@@ -45,6 +47,8 @@ import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL } from '../constants';
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_TOKEN = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';

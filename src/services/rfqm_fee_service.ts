@@ -220,6 +220,8 @@ export class RfqmFeeService {
         }
 
         return quotes.map((quote) =>
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             reviseQuoteWithFees(quote, fees, isSelling, quoteTokenBaseUnitPriceUsd!, feeTokenBaseUnitPriceUsd!),
         );
     }
@@ -296,6 +298,8 @@ export class RfqmFeeService {
         const zeroExFeeAmount =
             tradeSizeBps > 0
                 ? calculateDefaultFeeAmount(
+                      // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                       tradeTokenAmount!,
                       tradeSizeBps,
                       tradeTokenBaseUnitPriceUsd,
@@ -399,8 +403,12 @@ export class RfqmFeeService {
              * fall back to `default` fee calculated with `tradeSizeBps`.
              */
             const quoteTokenAmount = isSelling
-                ? bestMakerQuoteWithGasFee!.makerAmount
-                : bestMakerQuoteWithGasFee!.takerAmount;
+                ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  bestMakerQuoteWithGasFee!.makerAmount
+                : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  bestMakerQuoteWithGasFee!.takerAmount;
             zeroExFeeAmount = calculateDefaultFeeAmount(
                 quoteTokenAmount,
                 tradeSizeBps,
@@ -433,10 +441,18 @@ export class RfqmFeeService {
             const margin =
                 marginRakeRatio > 0
                     ? calculateMarginAmount(
+                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           bestMakerQuoteWithGasFee!,
+                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           ammQuote!,
                           isSelling,
+                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           quoteTokenBaseUnitPriceUsd!,
+                          // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           feeTokenBaseUnitPriceUsd!,
                       )
                     : ZERO;

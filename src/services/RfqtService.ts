@@ -68,6 +68,8 @@ function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: numb
                 result[key] = stringValue;
             }
             return result;
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }, {} as any);
     })(mmRequestParameters);
 
@@ -230,6 +232,8 @@ export class RfqtService {
 
         const prices = (
             await this._quoteServerClient.batchGetPriceV2Async(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 makers.map((m) => /* won't be null because of previous `filter` operation */ m.rfqtUri!),
                 integrator,
                 transformRfqtV2PricesParameters(parameters, this._chainId),
@@ -317,6 +321,8 @@ export class RfqtService {
                 makerId: price.makerId,
                 makerUri: price.makerUri,
                 order,
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 signature: signature!, // `null` signatures already filtered out
             }));
     }

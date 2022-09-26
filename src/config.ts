@@ -143,6 +143,8 @@ export const FEE_MODEL_CONFIGURATION_MAP: FeeModelConfigurationMap = (() => {
             if (!acc.has(chainId)) {
                 acc.set(chainId, new Map<string, FeeModelConfiguration>());
             }
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             acc.get(chainId)!.set(toPairString(tokenA, tokenB), { marginRakeRatio, tradeSizeBps });
             return acc;
         }, new Map</* chainId */ number, Map</* pairKey */ string, FeeModelConfiguration>>());
@@ -329,6 +331,8 @@ export const ZERO_EX_API_KEY: string = _.isEmpty(process.env.ZERO_EX_API_KEY)
     ? ''
     : assertEnvVarType('ZERO_EX_API_KEY', process.env.ZERO_EX_API_KEY, EnvVarType.NonEmptyString);
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 export const TOKEN_PRICE_ORACLE_TIMEOUT: number = 1000;
 
 // Sampling rate of traces reported to Sentry. Should be a number between 0.0 and 1.0 (inclusive).
@@ -551,11 +555,15 @@ function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): 
     return assertEnvVarType(envVar, process.env[envVar], envVarType);
 }
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
     let returnValue;
     switch (expectedType) {
         case EnvVarType.Port:
             returnValue = parseInt(value, 10);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const isWithinRange = returnValue >= 0 && returnValue <= 65535;
             if (isNaN(returnValue) || !isWithinRange) {
                 throw new Error(`${name} must be between 0 to 65535, found ${value}.`);
@@ -577,6 +585,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return value;
         case EnvVarType.UrlList:
             assert.isString(name, value);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const urlList = (value as string).split(',');
             urlList.forEach((url, i) => assert.isUri(`${name}[${i}]`, url));
             return urlList;
@@ -596,11 +606,15 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return returnValue;
         case EnvVarType.AddressList:
             assert.isString(name, value);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const addressList = (value as string).split(',').map((a) => a.toLowerCase());
             addressList.forEach((a, i) => assert.isETHAddressHex(`${name}[${i}]`, a));
             return addressList;
         case EnvVarType.StringList:
             assert.isString(name, value);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const stringList = (value as string).split(',');
             return stringList;
         case EnvVarType.WhitelistAllTokens:
@@ -613,6 +627,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             return value;
         case EnvVarType.APIKeys:
             assert.isString(name, value);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const apiKeys = (value as string).split(',');
             apiKeys.forEach((apiKey) => {
                 const isValidUUID = validateUUID(apiKey);
@@ -625,6 +641,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             assert.isString(name, value);
             return JSON.parse(value);
         case EnvVarType.RfqMakerAssetOfferings:
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const offerings: RfqMakerAssetOfferings = JSON.parse(value);
             // tslint:disable-next-line:forin
             for (const makerEndpoint in offerings) {
@@ -654,6 +672,8 @@ function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): a
             }
             return offerings;
         case EnvVarType.LiquidityProviderRegistry:
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const registry: LiquidityProviderRegistry = JSON.parse(value);
             // tslint:disable-next-line:forin
             for (const liquidityProvider in registry) {

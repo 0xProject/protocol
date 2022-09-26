@@ -113,10 +113,14 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.tradeSizeBps).toEqual(fee.details.tradeSizeBps);
             expect(storedFee.details.zeroExFeeAmount).toEqual(fee.details.zeroExFeeAmount.toString());
             expect(storedFee.details.feeTokenBaseUnitPriceUsd).toEqual(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 fee.details.feeTokenBaseUnitPriceUsd!.toString(),
             );
             expect(storedFee.details.takerTokenBaseUnitPriceUsd).toEqual(undefined);
             expect(storedFee.details.makerTokenBaseUnitPriceUsd).toEqual(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 fee.details.makerTokenBaseUnitPriceUsd!.toString(),
             );
         });
@@ -156,9 +160,13 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.marginRakeRatio).toEqual(fee.details.marginRakeRatio);
             expect(storedFee.details.zeroExFeeAmount).toEqual(fee.details.zeroExFeeAmount.toString());
             expect(storedFee.details.feeTokenBaseUnitPriceUsd).toEqual(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 fee.details.feeTokenBaseUnitPriceUsd!.toString(),
             );
             expect(storedFee.details.takerTokenBaseUnitPriceUsd).toEqual(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 fee.details.takerTokenBaseUnitPriceUsd!.toString(),
             );
             expect(storedFee.details.makerTokenBaseUnitPriceUsd).toEqual(undefined);

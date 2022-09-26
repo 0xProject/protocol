@@ -26,6 +26,8 @@ describe('rfqm_service_builder', () => {
                 const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(ethersProvider, {
                     chainId: 80001,
                 });
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const contractAddressesFromUpstreamModule = getContractAddressesForChainOrThrow('80001' as any);
                 expect(contractAddresses.exchangeProxy).toBe(contractAddressesFromUpstreamModule.exchangeProxy);
             });

@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class InitialTables1604516429083 implements MigrationInterface {
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async up(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(
             `CREATE TABLE "signed_orders" ("hash" character varying NOT NULL, "sender_address" character varying NOT NULL, "maker_address" character varying NOT NULL, "taker_address" character varying NOT NULL, "maker_asset_data" character varying NOT NULL, "taker_asset_data" character varying NOT NULL, "exchange_address" character varying NOT NULL, "fee_recipient_address" character varying NOT NULL, "expiration_time_seconds" character varying NOT NULL, "maker_fee" character varying NOT NULL, "taker_fee" character varying NOT NULL, "maker_asset_amount" character varying NOT NULL, "taker_asset_amount" character varying NOT NULL, "salt" character varying NOT NULL, "signature" character varying NOT NULL, "remaining_fillable_taker_asset_amount" character varying NOT NULL, "maker_fee_asset_data" character varying NOT NULL, "taker_fee_asset_data" character varying NOT NULL, CONSTRAINT "PK_a3cad7b4fbb8b4111368a152d8f" PRIMARY KEY ("hash"))`,
@@ -19,6 +21,8 @@ export class InitialTables1604516429083 implements MigrationInterface {
         );
     }
 
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async down(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.query(`DROP INDEX "maker_taker_asset_data_idx"`);
         await queryRunner.query(`DROP INDEX "maker_asset_data_idx"`);

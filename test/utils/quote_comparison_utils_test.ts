@@ -12,6 +12,8 @@ import { RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
 import { FirmOtcQuote, IndicativeQuote } from '../../src/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 
 function createBaseQuote(): FirmOtcQuote {

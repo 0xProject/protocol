@@ -146,6 +146,8 @@ describe('GaslessSwapService', () => {
         feeToken: '0x0000000000000000000000000000000000000000',
         maxGasPrice: new BigNumber(4294967296),
         minGasPrice: new BigNumber(1),
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
         salt: new BigNumber(32606650794224189614795510724011106220035660490560169776986607186708081701146),
         sender: '0x0000000000000000000000000000000000000000',
         signer: '0x4c42a706410f1190f97d26fe3c999c90070aa40f',
@@ -160,6 +162,8 @@ describe('GaslessSwapService', () => {
         gas: new BigNumber(1043459),
         price: new BigNumber(1800.054805),
     };
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     const expiry = new BigNumber(9999999999999999); // tslint:disable-line custom-no-magic-numbers
     const otcOrder = new OtcOrder({
         txOrigin: '0x0000000000000000000000000000000000000000',
@@ -508,6 +512,8 @@ describe('GaslessSwapService', () => {
                 feeToken: '0x0000000000000000000000000000000000000000',
                 maxGasPrice: new BigNumber(4294967296),
                 minGasPrice: new BigNumber(1),
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
                 salt: new BigNumber(32606650794224189614795510724011106220035660490560169776986607186708081701146),
                 sender: '0x0000000000000000000000000000000000000000',
                 signer: '0x4C42a706410F1190f97D26Fe3c999c90070aa40F',

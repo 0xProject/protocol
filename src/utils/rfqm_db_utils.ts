@@ -101,6 +101,8 @@ export const feeToStoredFee = (fee: Fee): StoredFee => {
                     gasPrice: fee.details.gasPrice.toString(),
                     tradeSizeBps: fee.details.tradeSizeBps,
                     zeroExFeeAmount: fee.details.zeroExFeeAmount.toString(),
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     feeTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.feeTokenBaseUnitPriceUsd!),
                     takerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.takerTokenBaseUnitPriceUsd),
                     makerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.makerTokenBaseUnitPriceUsd),
@@ -115,6 +117,8 @@ export const feeToStoredFee = (fee: Fee): StoredFee => {
                     margin: fee.details.margin.toString(),
                     marginRakeRatio: fee.details.marginRakeRatio,
                     zeroExFeeAmount: fee.details.zeroExFeeAmount.toString(),
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     feeTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.feeTokenBaseUnitPriceUsd!),
                     takerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.takerTokenBaseUnitPriceUsd),
                     makerTokenBaseUnitPriceUsd: tokenPriceUsdToString(fee.details.makerTokenBaseUnitPriceUsd),
@@ -165,6 +169,8 @@ export class RfqmDbUtils {
                 await this._connection.getRepository(MetaTransactionJobEntity).save(job);
                 return;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -225,6 +231,8 @@ export class RfqmDbUtils {
                     .save(entities as Partial<MetaTransactionSubmissionEntity>[]);
                 return;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);

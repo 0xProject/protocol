@@ -222,6 +222,8 @@ export class RfqmHandlers {
     private async _parseFetchFirmQuoteParamsAsync(
         req: express.Request,
     ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.firmQuoteRequestSchema as any);
         const takerAddress = req.query.takerAddress;
         const shouldCheckApproval = req.query.checkApproval === 'true' ? true : false;
@@ -280,6 +282,8 @@ export class RfqmHandlers {
     private async _parseFetchIndicativeQuoteParamsAsync(
         req: express.Request,
     ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.indicativeQuoteRequestSchema as any);
         const { takerAddress } = req.query;
         const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
@@ -424,6 +428,8 @@ export class RfqmHandlers {
                 const signature = stringsToSignature(approval.signature as StringSignatureFields);
                 parsedParams.approval = {
                     type: approval.type,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     eip712: eip712 as any,
                     signature,
                 };

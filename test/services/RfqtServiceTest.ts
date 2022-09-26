@@ -368,6 +368,8 @@ describe('Rfqt Service', () => {
                 };
 
                 const price: IndicativeQuote = {
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
                     expiry: new BigNumber(9999999999999999),
                     maker: '0xmakeraddress',
                     makerAmount: new BigNumber(1000),

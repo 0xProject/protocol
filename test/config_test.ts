@@ -29,7 +29,11 @@ describe('Config', () => {
 
         it('allows us to fetch Integrator by Integrator key', () => {
             const { whitelistIntegratorUrls } = getIntegratorByIdOrThrow('test-integrator-id-1');
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(whitelistIntegratorUrls!.length).to.eql(1);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(whitelistIntegratorUrls![0]).to.eql('http://foo.bar');
         });
 

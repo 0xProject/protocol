@@ -70,6 +70,8 @@ export const TEST_DECODED_RFQ_ORDER_FILLED_EVENT_LOG: LogWithDecodedArgs<IZeroEx
         makerToken: '0x6b175474e89094c44da98b954eedeac495271d0f',
         takerToken: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
         takerTokenFilledAmount: TEST_RFQ_ORDER_FILLED_EVENT_TAKER_AMOUNT,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
         makerTokenFilledAmount: new BigNumber(16449968672974825217),
         pool: '0x0000000000000000000000000000000000000000000000000000000000000000',
     },

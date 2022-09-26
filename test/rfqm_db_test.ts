@@ -146,7 +146,11 @@ describe('RFQM Database', () => {
             });
 
             const storedQuote = await dbUtils.findV2QuoteByOrderHashAsync(otcOrderHash);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(otcOrder).to.deep.eq(storedOtcOrderToOtcOrder(storedQuote?.order!));
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(fee).to.deep.eq(storedFeeToFee(storedQuote?.fee!));
         });
 
@@ -167,7 +171,11 @@ describe('RFQM Database', () => {
 
             // First Read
             const storedJob = await dbUtils.findV2JobByOrderHashAsync(otcOrderHash);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedOtcOrderToOtcOrder(storedJob?.order!)).to.deep.eq(otcOrder);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
             expect(storedJob?.status).to.equal(RfqmJobStatus.PendingProcessing);
             expect(storedJob?.takerSignature).to.deep.eq(takerSignature);
@@ -178,7 +186,11 @@ describe('RFQM Database', () => {
 
             // Second Read
             const updatedJob = await dbUtils.findV2JobByOrderHashAsync(otcOrderHash);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedOtcOrderToOtcOrder(updatedJob?.order!)).to.deep.eq(otcOrder);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedFeeToFee(updatedJob?.fee!)).to.deep.eq(fee);
             expect(updatedJob?.status).to.equal(RfqmJobStatus.SucceededConfirmed);
         });
@@ -202,7 +214,11 @@ describe('RFQM Database', () => {
 
             // Confirm correctness
             const storedJob = storedJobs[0];
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedOtcOrderToOtcOrder(storedJob?.order!)).to.deep.eq(otcOrder);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedFeeToFee(storedJob?.fee!)).to.deep.eq(fee);
             expect(storedJob?.status).to.equal(RfqmJobStatus.FailedEthCallFailed);
         });
@@ -494,7 +510,11 @@ describe('RFQM Database', () => {
             if (!updatedTransactionSubmissionOrNull) {
                 expect.fail('result should not be null');
             }
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(updatedTransactionSubmissionOrNull!.transactionHash).to.equal(transactionHash);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(updatedTransactionSubmissionOrNull!.status).to.equal(
                 RfqmTransactionSubmissionStatus.SucceededConfirmed,
             );

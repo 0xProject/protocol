@@ -22,6 +22,8 @@ describe('Background jobs integration tests', () => {
     });
 
     afterEach(async () => {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!);
         const keys = await connection.keys('bull:*');
         if (keys.length) {
@@ -39,6 +41,8 @@ describe('Background jobs integration tests', () => {
 
     describe('no-op job', () => {
         it('no-op job should be scheduled and processed', async () => {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const connection = new Redis(REDIS_BACKGROUND_JOB_URI!, {
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,

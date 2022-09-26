@@ -57,6 +57,8 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
                 // would still keep the job in pending submitted status
                 return RfqmJobStatus.PendingSubmitted;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(submissionContextStatus);
@@ -86,6 +88,8 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
             case SubmissionContextStatus.SucceededUnconfirmed:
                 return RfqmJobStatus.SucceededUnconfirmed;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(submissionContextStatus);
@@ -94,6 +98,8 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
 
     constructor(blockchainUtils: RfqBlockchainUtils, transactions: T) {
         this._ensureTransactionsAreConsistent(transactions);
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line no-extra-boolean-cast
         this._transactionType = !!transactions[0].gasPrice ? 0 : 2;
         this._transactions = transactions;
         this._blockchainUtils = blockchainUtils;
@@ -122,6 +128,8 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
      */
     public addTransaction(transaction: T[number]): void {
         // TODO (Vic): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is fixed
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (this._transactions as any[]).push(transaction);
         this._ensureTransactionsAreConsistent(this._transactions);
     }
@@ -144,10 +152,14 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
         if (this._transactionType !== 0) {
             throw new Error('Attempted to access the max gas price of a EIP-1559 transaction set');
         }
-        return this._transactions
-            .map((t) => t.gasPrice!)
-            .filter(Boolean)
-            .reduce((result, gasPrice) => BigNumber.maximum(result, gasPrice));
+        return (
+            this._transactions
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                .map((t) => t.gasPrice!)
+                .filter(Boolean)
+                .reduce((result, gasPrice) => BigNumber.maximum(result, gasPrice))
+        );
     }
 
     /**
@@ -159,7 +171,11 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
             throw new Error('Attempted to access the max gas fees for a non-EIP-1559 transaction set');
         }
         return {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             maxFeePerGas: BigNumber.maximum(...this._transactions.map((t) => t.maxFeePerGas!)),
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             maxPriorityFeePerGas: BigNumber.maximum(...this._transactions.map((t) => t.maxPriorityFeePerGas!)),
         };
     }
@@ -181,9 +197,12 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
      * has been mined; otherwise returns `null`.
      */
     public async getReceiptAsync(): Promise<TransactionReceipt | null> {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
         const receipts = (
             await this._blockchainUtils.getReceiptsAsync(this._transactions.map((t) => t.transactionHash!))
         ).filter(isDefined);
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
         if (receipts.length > 1) {
             throw new Error('Found more than one transaction receipt');
         }
@@ -250,6 +269,8 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
                 case RfqmTransactionSubmissionStatus.SucceededUnconfirmed:
                     return RfqmJobStatus.SucceededUnconfirmed;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(transaction.status);
@@ -312,8 +333,14 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
             throw new Error('Transactions are not unique');
         }
         // TODO (Vic): Remove any[] once https://github.com/microsoft/TypeScript/issues/44373 is fixed
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const areAllGasPricesNonNull = (transactions as any[]).every((t) => t.gasPrice !== null);
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const areAllMaxFeesPerGasNonNull = (transactions as any[]).every((t) => t.maxFeePerGas !== null);
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const areAllMaxPriorityFeesPerGasNonNull = (transactions as any[]).every(
             (t) => t.maxPriorityFeePerGas !== null,
         );

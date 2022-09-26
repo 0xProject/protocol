@@ -13,6 +13,8 @@ export class RfqMakerService {
     /**
      * Validates that the chainId specified by client is a valid (and known) chain ID.
      */
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static isValidChainId(chainId: any): chainId is ChainId {
         return Object.values(ChainId).includes(Number(chainId));
     }

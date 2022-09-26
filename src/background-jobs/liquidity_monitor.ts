@@ -154,6 +154,8 @@ function createCheckProduct(url: string): CheckerFunction {
             return false;
         }
         const body = response.data;
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line no-prototype-builtins
         if (!body.hasOwnProperty('liquidityAvailable')) {
             throw new Error('Malformed response');
         }
@@ -241,8 +243,14 @@ function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerF
             return false;
         }
         if (
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-prototype-builtins
             !body.hasOwnProperty('expiry') ||
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-prototype-builtins
             !body.hasOwnProperty('makerToken') ||
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-prototype-builtins
             !body.hasOwnProperty('takerToken')
         ) {
             logger.error({ responseBody: body }, '[liquidity monitor] Malformed response from market maker');

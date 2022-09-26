@@ -17,9 +17,15 @@ export class SubproviderAdapter extends Subprovider {
     // tslint:disable-next-line:async-suffix
     public async handleRequest(payload: JSONRPCRequestPayload, _next: Callback, end: ErrorCallback): Promise<void> {
         this._provider.sendAsync(payload, (err, result) => {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             result != null && result!.result != null
-                ? end(null, result!.result)
-                : end(err || new Error(result!.error?.message));
+                ? // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  end(null, result!.result)
+                : // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  end(err || new Error(result!.error?.message));
         });
     }
 }

@@ -36,6 +36,8 @@ export function getBestQuote<T extends IndicativeQuote | FirmOtcQuote>(
 ): T | null {
     // If maker balances are provided, quotes in which maker addresses cannot provide sufficient
     // balances to fully fill the order are filtered out
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let isMakerFillablePredicate = (_q: T, _idx: number) => true;
     if (quotedMakerBalances) {
         if (quotes.length !== quotedMakerBalances.length) {

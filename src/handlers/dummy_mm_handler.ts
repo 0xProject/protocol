@@ -114,10 +114,14 @@ export class DummyMMHandlers {
     }
 
     private static _parseSubmitRequest(
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/ban-types
         req: express.Request<{}, {}, Record<keyof SubmitRequest, string>>,
     ): SubmitRequest {
         const { order, orderHash, fee, takerTokenFillAmount } = req.body;
 
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawOrder = order as any;
         const rfqOrder = new RfqOrder({
             txOrigin: rawOrder.txOrigin,
@@ -163,7 +167,11 @@ export class DummyMMHandlers {
             takerSignature: takerSignatureRaw,
         } = req.body;
 
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const order = new OtcOrder(stringsToOtcOrderFields(orderRaw as any));
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const takerSignature = stringsToSignature(takerSignatureRaw as any);
         const expiry = new BigNumber(expiryRaw as string);
 
@@ -197,6 +205,8 @@ export class DummyMMHandlers {
             expiry: expiryRaw,
         } = req.body;
 
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const order = new OtcOrder(stringsToOtcOrderFields(orderRaw as any));
         const expiry = new BigNumber(expiryRaw as string);
 

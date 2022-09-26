@@ -7,15 +7,21 @@ export interface CachedResult<T> {
 }
 
 export interface ResultCache<T> {
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getResultAsync: (args?: any) => Promise<CachedResult<T>>;
 }
 
 export const createResultCache = <T>(
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fn: (fnArgs?: any) => Promise<T>,
     cacheExpiryMs: number = TEN_MINUTES_MS,
 ): ResultCache<T> => {
     const resultCache: { [key: string]: { timestamp: number; result: T } } = {};
     return {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getResultAsync: async (getArgs?: any): Promise<CachedResult<T>> => {
             let timestamp = resultCache[getArgs] && resultCache[getArgs].timestamp;
             let result = resultCache[getArgs] && resultCache[getArgs].result;

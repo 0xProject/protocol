@@ -1,4 +1,6 @@
 import { AbiEncoder, BigNumber } from '@0x/utils';
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from 'lodash';
 
 import { FEE_RECIPIENT_ADDRESS } from '../config';

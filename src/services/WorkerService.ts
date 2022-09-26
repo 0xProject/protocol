@@ -6,6 +6,8 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { retry } from '@lifeomic/attempt';
 import delay from 'delay';
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 
@@ -279,6 +281,8 @@ export class WorkerService {
                     jobIdentifier = job.id;
                     break;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never): never => {
                         throw new Error('Unreachable');
                     })(kind);
@@ -356,6 +360,8 @@ export class WorkerService {
                     job = await this._dbUtils.findMetaTransactionJobByIdAsync(identifier);
                     break;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(kind);
@@ -368,6 +374,8 @@ export class WorkerService {
             // Step 2: Prepare the job for submission
 
             // Claim job for worker
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-extra-non-null-assertion
             if (job.workerAddress!! && job.workerAddress !== workerAddress) {
                 throw new Error('Worker was sent a job claimed by a different worker');
             }
@@ -433,6 +441,8 @@ export class WorkerService {
                 identifier = job.id;
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -464,6 +474,8 @@ export class WorkerService {
                     tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
                     break;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(kind);
@@ -507,6 +519,8 @@ export class WorkerService {
                 calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress);
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -553,6 +567,8 @@ export class WorkerService {
                 errorStatus = WorkerService.validateMetaTransactionJob(job, now);
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -625,6 +641,8 @@ export class WorkerService {
                 );
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -656,6 +674,8 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -700,6 +720,8 @@ export class WorkerService {
     public async preparerfqmV2TradeAsync(
         job: RfqmV2JobEntity,
         workerAddress: string,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
         shouldCheckLastLook: boolean = true,
         now: Date = new Date(),
     ): Promise<string> {
@@ -750,6 +772,8 @@ export class WorkerService {
         }
 
         // Verify the signer was the maker
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const signerAddress = getSignerFromHash(orderHash, job.makerSignature!).toLowerCase();
         const makerAddress = order.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
@@ -797,6 +821,8 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -868,6 +894,8 @@ export class WorkerService {
     public async prepareMetaTransactionTradeAsync(
         job: MetaTransactionJobEntity,
         workerAddress: string,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
         shouldValidateJob: boolean = true,
         now: Date = new Date(),
     ): Promise<string> {
@@ -938,6 +966,8 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -1066,6 +1096,8 @@ export class WorkerService {
                         delay: ONE_SECOND_MS,
                         factor: 2,
                         maxAttempts: 3,
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         handleError: (error, context, _options) => {
                             const { attemptNum: attemptNumber, attemptsRemaining } = context;
                             logger.warn(
@@ -1185,6 +1217,8 @@ export class WorkerService {
                     // tradeoff is reasonable.
                     const integrator: Integrator = {
                         apiKeys: [],
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         integratorId: job.integratorId!,
                         allowedChainIds: [this._chainId],
                         label: 'decline-to-sign-price-check',
@@ -1262,6 +1296,8 @@ export class WorkerService {
         }
 
         // Verify the signer was the maker
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const signerAddress = getSignerFromHash(orderHash, makerSignature!).toLowerCase();
         const makerAddress = order.order.maker.toLowerCase();
         if (signerAddress !== makerAddress) {
@@ -1326,6 +1362,8 @@ export class WorkerService {
                 );
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -1460,6 +1498,8 @@ export class WorkerService {
         }
 
         // The "Watch Loop"
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             // We've already submitted the transaction once at this point, so we first need to wait before checking the status.
             await delay(this._transactionWatcherSleepTimeMs);
@@ -1478,8 +1518,12 @@ export class WorkerService {
                 case SubmissionContextStatus.PendingSubmitted:
                     // We've put in at least one transaction but none have been mined yet.
                     // Check to make sure we haven't passed the expiry window.
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const nowSeconds = new BigNumber(new Date().getTime() / ONE_SECOND_MS);
 
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const secondsPastExpiration = nowSeconds.minus(expiry);
 
                     // If we're more than 120 seconds past expiration, give up.
@@ -1502,6 +1546,8 @@ export class WorkerService {
                     }
 
                     // "Fast" gas price estimation; used to approximate the base fee
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const newGasPriceEstimate = await this._gasStationAttendant.getExpectedTransactionGasRateAsync();
 
                     if (submissionContext.transactionType === 0) {
@@ -1512,6 +1558,8 @@ export class WorkerService {
                     // based bid based onthe knowledge that time (and therefore blocks, theoretically)
                     // has passed without a transaction being mined.
 
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
                         submissionContext.maxGasFees;
 
@@ -1522,6 +1570,8 @@ export class WorkerService {
                         continue;
                     }
 
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas
                         .multipliedBy(MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER)
                         .integerValue(BigNumber.ROUND_CEIL);
@@ -1529,6 +1579,8 @@ export class WorkerService {
                     // The RPC nodes still need at least a 0.1 increase in both values to accept the new transaction.
                     // For the new max fee per gas, we'll take the maximum of a 0.1 increase from the last value
                     // or the value from an increase in the base fee.
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const newMaxFeePerGas = BigNumber.max(
                         oldMaxFeePerGas.multipliedBy(MAX_FEE_PER_GAS_MULTIPLIER).integerValue(BigNumber.ROUND_CEIL),
                         newGasPriceEstimate.multipliedBy(2).plus(newMaxPriorityFeePerGas),
@@ -1602,6 +1654,8 @@ export class WorkerService {
                 case SubmissionContextStatus.SucceededConfirmed:
                     return newSubmissionContextStatus;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(newSubmissionContextStatus);
@@ -1646,6 +1700,8 @@ export class WorkerService {
                             SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
                         break;
                     default:
+                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         ((_x: never) => {
                             throw new Error('unreachable');
                         })(submissionType);
@@ -1674,6 +1730,8 @@ export class WorkerService {
         T extends RfqmV2TransactionSubmissionEntity[] | MetaTransactionSubmissionEntity[],
     >(transactionSubmissions: T): Promise<T> {
         // Any is so nasty -- https://dev.to/shadow1349/typescript-tip-of-the-week-generics-170g
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result: any = await Promise.all(
             transactionSubmissions.map(async (transactionSubmission) => {
                 // If the transaction is any status other than "Presubmit" then we'll leave it
@@ -1682,6 +1740,8 @@ export class WorkerService {
                 }
                 // For transactions in presubmit, check the mempool and chain to see if they exist
                 const transactionResponse = await this._blockchainUtils.getTransactionAsync(
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     transactionSubmission.transactionHash!,
                 );
                 if (transactionResponse) {
@@ -1805,6 +1865,8 @@ export class WorkerService {
                 transactionSubmissionEntity = await this._dbUtils.writeMetaTransactionSubmissionAsync(partialEntity);
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -1843,6 +1905,8 @@ export class WorkerService {
                 );
                 break;
             case 'meta_transaction_job':
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line no-case-declarations
                 const updatedSubmissionEntities =
                     await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(transactionHashFromSubmit);
                 if (updatedSubmissionEntities.length !== 1) {
@@ -1858,6 +1922,8 @@ export class WorkerService {
                 updatedEntity = updatedSubmissionEntities[0];
                 break;
             default:
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);

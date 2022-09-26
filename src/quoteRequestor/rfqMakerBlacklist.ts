@@ -14,6 +14,8 @@ export class RfqMakerBlacklist {
         private readonly _timeoutStreakThreshold: number, //  public infoLogger: LogFunction = constants.DEFAULT_INFO_LOGGER,
     ) {}
     public logTimeoutOrLackThereof(makerUrl: string, didTimeout: boolean): void {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line no-prototype-builtins
         if (!this._makerTimeoutStreakLength.hasOwnProperty(makerUrl)) {
             this._makerTimeoutStreakLength[makerUrl] = 0;
         }

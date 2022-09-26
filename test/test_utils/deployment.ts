@@ -100,6 +100,8 @@ async function waitForDependencyStartupAsync(
     });
 }
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 async function confirmPostgresConnectivityAsync(maxTries: number = 5): Promise<void> {
     try {
         await Promise.all([

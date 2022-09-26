@@ -494,6 +494,8 @@ describe('RfqmFeeService', () => {
 
             // When
             const revisedQuotes = await feeService.reviseQuotesAsync(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 quotesWithGasFee!,
                 expectedZeroExFeeAmount,
                 quoteContex,
@@ -619,6 +621,8 @@ describe('RfqmFeeService', () => {
 
             // When
             const revisedQuotes = await feeService.reviseQuotesAsync(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 quotesWithGasFee!,
                 expectedZeroExFeeAmount,
                 quoteContext,
@@ -732,6 +736,8 @@ describe('RfqmFeeService', () => {
 
             // When
             const revisedQuotes = await feeService.reviseQuotesAsync(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 quotesWithGasFee!,
                 expectedZeroExFeeAmount,
                 quoteContext,

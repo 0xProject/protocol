@@ -180,6 +180,8 @@ export class RfqBlockchainUtils {
         sender: string,
         txOptions?: Partial<CallData>,
     ): Promise<[BigNumber, BigNumber]> {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const metaTxInput: any = this._exchangeProxy.getABIDecodedTransactionData('executeMetaTransaction', calldata);
         return this.validateMetaTransactionOrThrowAsync(metaTxInput[0], metaTxInput[1], sender, txOptions);
     }
@@ -200,9 +202,11 @@ export class RfqBlockchainUtils {
             const results = await this._exchangeProxy
                 .executeMetaTransaction(metaTx, metaTxSig)
                 .callAsync({ from: sender, ...txOptions });
-            const takerTokenFillAmount = (
-                this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTx.callData) as any
-            )[2];
+            const takerTokenFillAmount = // $eslint-fix-me github.com/rhinodavid/eslint-fix-me
+                /* eslint-disable @typescript-eslint/no-explicit-any */
+                (
+                    this._exchangeProxy.getABIDecodedTransactionData('fillRfqOrder', metaTx.callData) as any
+                ) /* eslint-enable @typescript-eslint/no-explicit-any */[2];
             const decodedResults: [BigNumber, BigNumber] = this._exchangeProxy.getABIDecodedReturnData(
                 'fillRfqOrder',
                 results,
@@ -586,6 +590,8 @@ export class RfqBlockchainUtils {
         nowMs: number = Date.now(),
     ): Promise<Approval | null> {
         // If the token does not exist in the token registry, return null
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line no-prototype-builtins
         if (!EIP_712_REGISTRY.hasOwnProperty(chainId) || !EIP_712_REGISTRY[chainId].hasOwnProperty(token)) {
             return null;
         }
@@ -614,6 +620,8 @@ export class RfqBlockchainUtils {
                         message: {
                             nonce: nonce.toNumber(),
                             from: takerAddress,
+                            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             functionSignature: approveCalldata!,
                         },
                     },

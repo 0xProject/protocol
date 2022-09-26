@@ -152,12 +152,16 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
     }
 
     let data: AltQuoteRequestData;
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line prefer-const
     data = {
         market: `${altPair.id}`,
         model: quoteModel,
         profile,
         side,
         meta: {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             txOrigin: takerRequestQueryParams.txOrigin!,
             taker: takerRequestQueryParams.takerAddress,
             client: integratorKey,

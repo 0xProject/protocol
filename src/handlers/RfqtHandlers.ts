@@ -92,6 +92,8 @@ export class RfqtHandlers {
      */
     public async getV1PricesAsync(
         req: TypedRequest<V1RequestParameters>,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ prices: V4RFQIndicativeQuoteMM[] } | { error: any }>,
     ): Promise<void> {
         let parsedParameters: Omit<V1RequestParameters, 'integratorId'> & { integrator: Integrator };
@@ -126,6 +128,8 @@ export class RfqtHandlers {
      */
     public async getV1QuotesAsync(
         req: TypedRequest<V1RequestParameters>,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ quotes: SignedNativeOrder[] } | { error: any }>,
     ): Promise<void> {
         let parsedParameters: Omit<V1RequestParameters, 'integratorId'> & { integrator: Integrator };
@@ -168,6 +172,8 @@ export class RfqtHandlers {
      */
     public async getV2PricesAsync(
         req: TypedRequest<RfqtV2Request>,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ prices: RfqtV2Prices } | { error: any }>,
     ): Promise<void> {
         let parsedParameters: RfqtV2RequestInternal;
@@ -202,6 +208,8 @@ export class RfqtHandlers {
      */
     public async getV2QuotesAsync(
         req: TypedRequest<RfqtV2Request>,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ quotes: RfqtV2Quotes } | { error: any }>,
     ): Promise<void> {
         let parsedParameters: RfqtV2RequestInternal;

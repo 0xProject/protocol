@@ -243,6 +243,8 @@ describe('SqsConsumer', () => {
                     workerIndex: 0,
                     workerAddress: 'id',
                     sqsClient: sqsClientInstance,
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
                     handleMessage: async () => {},
                     afterHandle,
                 });

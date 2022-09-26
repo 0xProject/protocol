@@ -116,6 +116,8 @@ export async function runHttpRfqmServiceAsync(
     configManager: ConfigManager,
     config: HttpServiceConfig,
     connection: DataSource,
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
     useMetricsMiddleware: boolean = true,
     _app?: core.Express,
 ): Promise<{ app: express.Application; server: Server }> {
@@ -160,6 +162,8 @@ export async function runHttpRfqmServiceAsync(
                 ['/status/.*', '/status/#orderHash'], // converts all /status/0xdeadbeef... => /status/#orderHash
                 ['/api-docs.*', '/api-docs'], // converts all /api-docs/favicon... => /api-docs
             ],
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             transformLabels: (labels, req, res) => {
                 Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
             },
@@ -185,6 +189,8 @@ export async function runHttpRfqmServiceAsync(
         // The error handler must be before any other error middleware and after all controllers
         app.use(
             Sentry.Handlers.errorHandler({
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 shouldHandleError(error: any): boolean {
                     if (error.status === undefined || error.status >= HttpStatus.BAD_REQUEST) {
                         return true;

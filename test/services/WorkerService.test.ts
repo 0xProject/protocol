@@ -52,6 +52,8 @@ import {
     MOCK_META_TRANSACTION,
 } from '../constants';
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 const NEVER_EXPIRES = new BigNumber(9999999999999999);
 const MOCK_WORKER_REGISTRY_ADDRESS = '0x1023331a469c6391730ff1E2749422CE8873EC38';
 const MOCK_GAS_PRICE = new BigNumber(100);
@@ -5071,6 +5073,8 @@ describe('WorkerService', () => {
                     nonce: 0,
                     type: 2,
                     value: EthersBigNumber.from(0),
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
                 };
                 const mockMinedBlock: providers.Block = {
@@ -5889,6 +5893,8 @@ describe('WorkerService', () => {
                     nonce: 0,
                     type: 2,
                     value: EthersBigNumber.from(0),
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
                 };
                 const mockMinedBlock: providers.Block = {

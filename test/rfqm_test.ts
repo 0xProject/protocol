@@ -1254,6 +1254,8 @@ describe('RFQM Integration', () => {
             delete typesCopy.EIP712Domain;
             const rawApprovalSignature = await signer._signTypedData(
                 approval.eip712.domain,
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 typesCopy as any,
                 approval.eip712.message,
             );

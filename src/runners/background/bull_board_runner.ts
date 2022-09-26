@@ -58,6 +58,8 @@ if (require.main === module) {
     // Promise rejections would be handled by the unhandledRejection handler
     (async () => {
         // Prepare Redis connections
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!);
         connections.push(connection);
 

@@ -10,7 +10,11 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class PopulateRfqMakerPairsTable1639527388617 implements MigrationInterface {
     name = 'PopulateRfqMakerPairsTable1639527388617';
 
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
     public async up(queryRunner: QueryRunner): Promise<void> {}
 
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
     public async down(queryRunner: QueryRunner): Promise<void> {}
 }

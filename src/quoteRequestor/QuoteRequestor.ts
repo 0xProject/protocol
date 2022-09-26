@@ -107,7 +107,11 @@ function hasExpectedAddresses(comparisons: [string, string][]): boolean {
     return comparisons.every((c) => c[0].toLowerCase() === c[1].toLowerCase());
 }
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function convertIfAxiosError(error: any): Error | object /* axios' .d.ts has AxiosError.toJSON() returning object */ {
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line no-prototype-builtins
     if (error.hasOwnProperty('isAxiosError') && error.isAxiosError) {
         const { message, name, config } = error;
         const { headers, timeout, httpsAgent } = config;

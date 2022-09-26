@@ -139,6 +139,8 @@ export async function getContractAddressesForNetworkOrThrowAsync(
     chainConfiguration: Pick<ChainConfiguration, 'chainId' | 'exchangeProxyContractAddressOverride'>,
 ): Promise<AssetSwapperContractAddresses> {
     const { chainId, exchangeProxyContractAddressOverride } = chainConfiguration;
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let contractAddresses = getContractAddressesForChainOrThrow(chainId.toString() as any);
     // In a testnet where the environment does not support overrides
     // so we deploy the latest sampler
@@ -285,8 +287,12 @@ export async function buildWorkerServiceAsync(
 
     // TODO (rhinodavid): Remove once migration to ethers.js is complete
     const privateWalletSubprovider = new PrivateKeyWalletSubprovider(workerPrivateKey);
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line prefer-const
     provider = RfqBlockchainUtils.createPrivateKeyProvider(rpcProvider, privateWalletSubprovider);
 
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ethersWallet = Wallet.fromMnemonic(META_TX_WORKER_MNEMONIC, `m/44'/60'/0'/0/${workerIndex!}`);
     ethersWallet = ethersWallet.connect(ethersProvider);
 
@@ -375,6 +381,8 @@ export async function buildRfqmServicesAsync(
     chainConfigurations: ChainConfigurations,
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager = new ConfigManager(),
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types,@typescript-eslint/no-unused-vars
     workerIndex: number = 0,
 ): Promise<RfqmServices> {
     const services = await Promise.all(

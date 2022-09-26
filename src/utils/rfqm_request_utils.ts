@@ -10,12 +10,18 @@ export interface StringSignatureFields {
     s: string;
 }
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RawOtcOrderFields = Record<keyof Omit<OtcOrderFields, 'chainId'>, string> & { chainId: any };
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RawMetaTransactionFields = Record<keyof Omit<MetaTransactionFields, 'chainId'>, string> & { chainId: any };
 export interface RawEIP712ContextFields {
     types: Record<string, Record<keyof Eip712DataField, string>[]>;
     primaryType: string;
     domain: Record<keyof Eip712Domain, string>;
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: Record<string, any>;
 }
 
@@ -92,9 +98,15 @@ export function stringsToEIP712Context(
     strings: RawEIP712ContextFields,
 ): ExecuteMetaTransactionEip712Context | PermitEip712Context {
     return {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         types: strings.types as any,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         primaryType: strings.primaryType as any,
         domain: _stringsToEIP712Domain(strings.domain),
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         message: strings.message as any,
     };
 }

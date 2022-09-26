@@ -37,7 +37,11 @@ export async function buildRfqtServicesAsync(
     const altRfqOptions =
         ALT_RFQ_MM_API_KEY !== undefined && ALT_RFQ_MM_PROFILE !== undefined
             ? {
+                  // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   altRfqApiKey: ALT_RFQ_MM_API_KEY!,
+                  // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   altRfqProfile: ALT_RFQ_MM_PROFILE!,
               }
             : undefined;

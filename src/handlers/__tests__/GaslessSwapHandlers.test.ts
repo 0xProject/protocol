@@ -603,6 +603,8 @@ describe('GaslessSwapHandlers', () => {
 /**
  * Deeply transforms object keys from BigNumber to JSON
  */
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function convertBigNumbersToJson(x: Record<string, any>): Record<string, any> {
     return mapValues(x, (v) => {
         if (v instanceof BigNumber) {

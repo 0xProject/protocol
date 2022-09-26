@@ -12,6 +12,8 @@ export function getSignerFromHash(hash: string, signature: Signature): string {
         case SignatureType.EIP712:
             return ecrecover(hash, signature);
         case SignatureType.EthSign:
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-case-declarations
             const eip191Hash = getEIP191Hash(hash);
             return ecrecover(eip191Hash, signature);
         default:

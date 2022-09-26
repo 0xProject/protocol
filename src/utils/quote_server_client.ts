@@ -6,6 +6,8 @@ import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { OK } from 'http-status-codes';
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as _ from 'lodash';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
@@ -288,6 +290,8 @@ export class QuoteServerClient {
         integratorId: string,
         payload: Omit<SignRequest, 'takerSignature'> & Pick<Partial<SignRequest>, 'takerSignature'>,
         makerUriToUrl: (u: string) => string = (u: string) => `${u}/rfqm/v2/sign`,
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-inferrable-types
         requireProceedWithFill: boolean = true,
     ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.startTimer();

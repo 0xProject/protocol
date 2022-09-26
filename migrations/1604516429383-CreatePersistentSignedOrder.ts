@@ -25,8 +25,14 @@ export class CreatePersistentSignedOrder1604516429383 implements MigrationInterf
     // tslint:disable-next-line
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line no-useless-escape
             `CREATE TYPE "persistent_signed_orders_state_enum" AS ENUM(\'${OrderEventEndStateStrings.join(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line no-useless-escape
                 `\',\'`,
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line no-useless-escape
             )}\');`,
         );
         await queryRunner.createTable(

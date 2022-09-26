@@ -10,6 +10,8 @@ import { logger } from '../logger';
 
 import { SqsClient } from './sqs_client';
 
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MessageHandler = (message: SQS.Types.Message) => Promise<any>;
 
 export class SqsRetryableError extends Error {}
@@ -19,6 +21,8 @@ export class SqsConsumer {
     private readonly _sqsClient: SqsClient;
     private readonly _beforeHandle?: () => Promise<boolean>;
     private readonly _handleMessage: MessageHandler;
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly _afterHandle?: (message: SQS.Types.Message, error?: Error) => Promise<any>;
     private _isConsuming: boolean;
 
@@ -28,6 +32,8 @@ export class SqsConsumer {
         sqsClient: SqsClient;
         beforeHandle?: () => Promise<boolean>;
         handleMessage: MessageHandler;
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         afterHandle?: (message: SQS.Types.Message, error?: Error) => Promise<any>;
     }) {
         this._workerIndex = params.workerIndex;
@@ -134,6 +140,8 @@ export class SqsConsumer {
             if (err instanceof SqsRetryableError) {
                 logger.info({ message, id: this._workerAddress, workerIndex: this._workerIndex }, 'Retrying message');
                 // Retry message
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 await this._sqsClient.changeMessageVisibilityAsync(message.ReceiptHandle!, 0);
                 await delay(ONE_SECOND_MS);
                 throw err;
@@ -141,6 +149,8 @@ export class SqsConsumer {
         }
 
         // Delete message
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         await this._sqsClient.deleteMessageAsync(message.ReceiptHandle!);
 
         // Run the after hook

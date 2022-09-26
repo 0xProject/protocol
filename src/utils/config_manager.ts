@@ -82,8 +82,12 @@ export class ConfigManager {
     public getFeeModelConfiguration(chainId: number, tokenA: string, tokenB: string): FeeModelConfiguration {
         if (FEE_MODEL_CONFIGURATION_MAP.has(chainId)) {
             const pairKey = toPairString(tokenA, tokenB);
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const innerMap = FEE_MODEL_CONFIGURATION_MAP.get(chainId)!;
             if (innerMap.has(pairKey)) {
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 return innerMap.get(pairKey)!;
             }
         }

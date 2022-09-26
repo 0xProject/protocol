@@ -64,6 +64,8 @@ if (require.main === module) {
         // Start the metrics server
         startMetricsServer();
         // Prepare Redis connections
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const connection = new Redis(REDIS_BACKGROUND_JOB_URI!, {
             maxRetriesPerRequest: null,
             enableReadyCheck: false,

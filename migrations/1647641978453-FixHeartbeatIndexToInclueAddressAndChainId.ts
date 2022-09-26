@@ -17,6 +17,8 @@ export class FixHeartbeatIndexToInclueAddressAndChainId1647641978453 implements 
         await queryRunner.createPrimaryKey(TABLE_NAME, ['address', 'chain_id']);
     }
 
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async down(_queryRunner: QueryRunner): Promise<void> {
         // a no-op since the table state is ill-defined from the previous
         // migration depending on whether or not there was data in the table

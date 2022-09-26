@@ -44,6 +44,8 @@ export async function httpPostAsync(input: {
     route: string;
     baseURL?: string;
     app?: Express.Application;
+    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any;
     headers?: { [field: string]: string };
 }): Promise<httpRequest.Response> {

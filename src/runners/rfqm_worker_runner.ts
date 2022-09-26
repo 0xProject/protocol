@@ -108,8 +108,12 @@ if (require.main === module) {
         }
         const workers: SqsConsumer[] = [];
         for (let i = 0; i < RFQM_WORKER_GROUP_SIZE; i += 1) {
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const workerIndex: number = RFQM_WORKER_GROUP_INDEX! * RFQM_WORKER_GROUP_SIZE! + i;
             const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 META_TX_WORKER_MNEMONIC!,
                 workerIndex,
             );
@@ -177,16 +181,22 @@ export function createGaslessSwapWorker(
 
             switch (type) {
                 case RfqmTypes.OtcOrder:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const { orderHash } = messageBody;
                     identifier = orderHash;
                     kind = 'rfqm_v2_job';
                     break;
                 case RfqmTypes.MetaTransaction:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line no-case-declarations
                     const { id } = messageBody;
                     identifier = id;
                     kind = 'meta_transaction_job';
                     break;
                 default:
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(type);

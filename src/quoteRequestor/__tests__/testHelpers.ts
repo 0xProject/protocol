@@ -42,6 +42,8 @@ export const testHelpers = {
         afterResponseCallback: () => Promise<void>,
         axiosClient: AxiosInstance = axios,
     ): Promise<void> => {
+        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mockedAxios = new AxiosMockAdapter(axiosClient, { onNoMatch: 'throwException' } as any);
         try {
             // Mock out Standard RFQ-T/M responses
@@ -77,6 +79,8 @@ export const testHelpers = {
                         // hack to get AxiosMockAdapter to recognize the match
                         // b/t the mock data and the request data
                         {
+                            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             asymmetricMatch: (x: any) => {
                                 return _.isEqual(requestData, x);
                             },

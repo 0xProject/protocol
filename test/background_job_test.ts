@@ -29,6 +29,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -72,6 +74,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -112,6 +116,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -157,6 +163,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -195,6 +203,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -238,6 +248,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 
@@ -285,6 +297,8 @@ describe('Background Jobs Unit Tests', () => {
 
             const spiedJob = spy(Job);
             when(spiedJob.create(anything(), anything(), anything(), anything())).thenCall(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (q: Queue, name: any, data: any) => new Job(q, name, data),
             );
 

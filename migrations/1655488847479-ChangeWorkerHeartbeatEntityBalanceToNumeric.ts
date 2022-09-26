@@ -1,3 +1,5 @@
+// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeorm';
 
 /**
