@@ -14,6 +14,7 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
+    OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
@@ -129,9 +130,10 @@ export class RfqmHandlers {
         });
 
         // Try to get firm quote
-        let firmQuote;
+        let firmQuote: OtcOrderRfqmQuoteResponse | null;
         try {
-            firmQuote = await this._getServiceForChain(chainId).fetchFirmQuoteAsync(params);
+            const result = await this._getServiceForChain(chainId).fetchFirmQuoteAsync(params);
+            firmQuote = result.quote;
         } catch (e) {
             req.log.error(e, 'Encountered an error while fetching an rfqm firm quote');
             RFQM_FIRM_QUOTE_ERROR.inc({

@@ -318,7 +318,7 @@ describe('GaslessSwapService', () => {
     });
     describe('fetchQuoteAsync', () => {
         it('gets an RFQ quote if available', async () => {
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(otcQuote);
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: otcQuote, quoteReportId: null });
 
             const result = await gaslessSwapService.fetchQuoteAsync({
                 buyAmount: new BigNumber(1800054805473),
@@ -367,7 +367,7 @@ describe('GaslessSwapService', () => {
 
         it('gets an AMM quote if no RFQ liquidity is available', async () => {
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
             const result = await gaslessSwapService.fetchQuoteAsync({
                 buyAmount: new BigNumber(1800054805473),
@@ -419,7 +419,7 @@ describe('GaslessSwapService', () => {
         });
 
         it('returns `null` if no liquidity is available', async () => {
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);
 
             const result = await gaslessSwapService.fetchQuoteAsync({
@@ -460,7 +460,7 @@ describe('GaslessSwapService', () => {
 
         it('stores a metatransaction hash', async () => {
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
 
             await gaslessSwapService.fetchQuoteAsync({
                 buyAmount: new BigNumber(1800054805473),
@@ -483,7 +483,7 @@ describe('GaslessSwapService', () => {
                 isRequired: true,
             };
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
-            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce(null);
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
             mockRfqmService.getGaslessApprovalResponseAsync.mockResolvedValueOnce(approvalResponse);
 
             const result = await gaslessSwapService.fetchQuoteAsync({

@@ -1061,7 +1061,7 @@ describe('RfqmService HTTP Logic', () => {
                     rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1121,7 +1121,7 @@ describe('RfqmService HTTP Logic', () => {
                     rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1179,7 +1179,7 @@ describe('RfqmService HTTP Logic', () => {
                     rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1242,7 +1242,7 @@ describe('RfqmService HTTP Logic', () => {
                     new Error('`getGaslessApprovalResponseAsync` should not be called'),
                 );
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1312,7 +1312,7 @@ describe('RfqmService HTTP Logic', () => {
                     approval,
                 );
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1374,7 +1374,7 @@ describe('RfqmService HTTP Logic', () => {
                     rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,
@@ -1433,7 +1433,7 @@ describe('RfqmService HTTP Logic', () => {
                     rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
                 });
 
-                const res = await service.fetchFirmQuoteAsync({
+                const { quote: res } = await service.fetchFirmQuoteAsync({
                     integrator: MOCK_INTEGRATOR,
                     takerAddress,
                     buyToken: contractAddresses.zrxToken,

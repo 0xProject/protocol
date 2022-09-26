@@ -118,7 +118,7 @@ export const quoteReportUtils = {
         kafkaProducer: Producer,
         quoteReportTopic?: string,
         extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
-    ): Promise<void> {
+    ): Promise</* quoteId */ string | null> {
         if (kafkaProducer && quoteReportTopic) {
             const quoteId = numberUtils.randomHexNumberOfLength(10);
             logger.info(`Generating and pushing Quote report for: ${quoteId}`);
@@ -214,7 +214,9 @@ export const quoteReportUtils = {
                     },
                 ],
             });
+            return quoteId;
         }
+        return null;
     },
 };
 

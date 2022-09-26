@@ -75,6 +75,7 @@ export async function getQuoteAsync(
         sellToken: string;
         slippagePercentage?: BigNumber;
         takerAddress: string;
+        quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
     },
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
 ): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
@@ -94,17 +95,22 @@ export async function getQuoteAsync(
                     takerAddress: data.takerAddress,
                     integratorId: data.integratorId,
                 });
-                const { buyAmount: buyAmountData, sellAmount: sellAmountData, slippagePercentage } = data;
-                // tslint:disable: no-unused-expression
+                const {
+                    buyAmount: buyAmountData,
+                    sellAmount: sellAmountData,
+                    slippagePercentage,
+                    quoteUniqueId,
+                } = data;
+
                 buyAmountData && result.append('buyAmount', buyAmountData.toString());
                 sellAmountData && result.append('sellAmount', sellAmountData.toString());
                 slippagePercentage && result.append('slippagePercentage', slippagePercentage.toString());
-                // tslint:enable: no-unused-expression
+                quoteUniqueId && result.append('quoteUniqueId', quoteUniqueId);
+
                 return result.toString();
             },
         });
     } catch (e) {
-        // tslint:disable-next-line: no-unused-expression
         stopTimer && stopTimer({ success: 'false' });
 
         if (e.response?.data) {
@@ -140,7 +146,6 @@ export async function getQuoteAsync(
         throw e;
     }
 
-    // tslint:disable-next-line: no-unused-expression
     stopTimer && stopTimer({ success: 'true' });
 
     const { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress } = response.data;

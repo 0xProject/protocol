@@ -212,9 +212,13 @@ export class GaslessSwapService {
     ): Promise<
         ((OtcOrderRfqmQuoteResponse | MetaTransactionQuoteResponse) & { liquiditySource: 'rfq' | 'amm' }) | null
     > {
+        let rfqQuoteReportId: string | null = null;
         try {
-            const rfqQuote = await this._rfqmService.fetchFirmQuoteAsync(params, 'gaslessSwapRfq');
-
+            const { quote: rfqQuote, quoteReportId } = await this._rfqmService.fetchFirmQuoteAsync(
+                params,
+                'gaslessSwapRfq',
+            );
+            rfqQuoteReportId = quoteReportId;
             if (rfqQuote) {
                 return { ...rfqQuote, liquiditySource: 'rfq' };
             }
@@ -233,7 +237,11 @@ export class GaslessSwapService {
             const ammQuote = await getQuoteAsync(
                 this._axiosInstance,
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
-                { ...params, integratorId: params.integrator.integratorId },
+                {
+                    ...params,
+                    integratorId: params.integrator.integratorId,
+                    quoteUniqueId: rfqQuoteReportId ?? undefined,
+                },
                 {
                     requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
                     chainId: this._chainId,

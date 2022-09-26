@@ -340,7 +340,7 @@ export class RfqmService {
     public async fetchFirmQuoteAsync(
         params: FetchFirmQuoteParams,
         extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
-    ): Promise<OtcOrderRfqmQuoteResponse | null> {
+    ): Promise<{ quote: OtcOrderRfqmQuoteResponse | null; quoteReportId: string | null }> {
         // Retrieve quote context
         const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ true);
         const {
@@ -414,9 +414,10 @@ export class RfqmService {
 
         const storedFeeWithDetails = feeToStoredFee(feeWithDetails);
 
+        let quoteReportId: string | null = null;
         // Quote Report
         if (this._kafkaProducer) {
-            await quoteReportUtils.publishRFQMQuoteReportAsync(
+            quoteReportId = await quoteReportUtils.publishRFQMQuoteReportAsync(
                 {
                     isFirmQuote: isFirm,
                     taker: takerAddress,
@@ -440,7 +441,7 @@ export class RfqmService {
 
         // No quote found
         if (!isLiquidityAvailable) {
-            return null;
+            return { quote: null, quoteReportId };
         }
 
         // Get the makerUri
@@ -506,18 +507,21 @@ export class RfqmService {
 
         RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
-            type: RfqmTypes.OtcOrder,
-            price: roundedPrice,
-            gas: feeWithDetails.details.gasPrice,
-            buyAmount,
-            buyTokenAddress: originalMakerToken,
-            sellAmount,
-            sellTokenAddress: bestQuote.order.takerToken,
-            allowanceTarget: this._contractAddresses.exchangeProxy,
-            order: bestQuote.order,
-            orderHash,
-            // use approval variable directly is not ideal as we don't want to include approval field if `approval` is null
-            ...(approval && { approval }),
+            quote: {
+                type: RfqmTypes.OtcOrder,
+                price: roundedPrice,
+                gas: feeWithDetails.details.gasPrice,
+                buyAmount,
+                buyTokenAddress: originalMakerToken,
+                sellAmount,
+                sellTokenAddress: bestQuote.order.takerToken,
+                allowanceTarget: this._contractAddresses.exchangeProxy,
+                order: bestQuote.order,
+                orderHash,
+                // use approval variable directly is not ideal as we don't want to include approval field if `approval` is null
+                ...(approval && { approval }),
+            },
+            quoteReportId,
         };
     }
 
