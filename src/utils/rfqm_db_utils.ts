@@ -483,7 +483,7 @@ export class RfqmDbUtils {
      */
     public async findMetaTransactionSubmissionsByTransactionHashAsync(
         transactionHash: string,
-        type: RfqmTransactionSubmissionType = RfqmTransactionSubmissionType.Trade,
+        type: RfqmTransactionSubmissionType,
     ): Promise<MetaTransactionSubmissionEntity[]> {
         return this._connection.getRepository(MetaTransactionSubmissionEntity).find({
             where: { transactionHash, type },

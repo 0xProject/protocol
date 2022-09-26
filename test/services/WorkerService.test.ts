@@ -1499,7 +1499,10 @@ describe('WorkerService', () => {
                 mockDbUtils.findMetaTransactionSubmissionsByJobIdAsync(jobId, RfqmTransactionSubmissionType.Trade),
             ).thenResolve([]);
             when(
-                mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+                mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                    '0xsignedtransactionhash',
+                    RfqmTransactionSubmissionType.Trade,
+                ),
             ).thenResolve([_.cloneDeep(mockTransaction)]);
 
             const mockBlockchainUtils = mock(RfqBlockchainUtils);
@@ -5751,7 +5754,10 @@ describe('WorkerService', () => {
                     return _.cloneDeep(mockTransaction);
                 });
                 when(
-                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                        '0xsignedtransactionhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
                 ).thenResolve([_.cloneDeep(mockTransaction)]);
                 const updateRfqmTransactionSubmissionsCalledArgs: MetaTransactionSubmissionEntity[][] = [];
                 when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {
@@ -6069,7 +6075,10 @@ describe('WorkerService', () => {
                     return _.cloneDeep(mockTransaction);
                 });
                 when(
-                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync('0xsignedtransactionhash'),
+                    mockDbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                        '0xsignedtransactionhash',
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
                 ).thenResolve([_.cloneDeep(mockTransaction), _.cloneDeep(mockTransaction)]);
                 const updateRfqmTransactionSubmissionsCalledArgs: MetaTransactionSubmissionEntity[][] = [];
                 when(mockDbUtils.updateRfqmTransactionSubmissionsAsync(anything())).thenCall(async (tranactionArg) => {

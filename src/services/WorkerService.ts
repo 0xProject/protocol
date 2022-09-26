@@ -1908,7 +1908,10 @@ export class WorkerService {
                 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                 // eslint-disable-next-line no-case-declarations
                 const updatedSubmissionEntities =
-                    await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(transactionHashFromSubmit);
+                    await this._dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
+                        transactionHashFromSubmit,
+                        submissionType,
+                    );
                 if (updatedSubmissionEntities.length !== 1) {
                     // A transaction hash should never be submitted twice in our system. However, RFQ-562 mentioned cases like this could
                     // happen in our system. Add more log and throw the error to surface it.

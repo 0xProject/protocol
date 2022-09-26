@@ -488,6 +488,7 @@ describe('RFQM Database', () => {
             // First Read
             let transactionSubmissions = await dbUtils.findMetaTransactionSubmissionsByTransactionHashAsync(
                 transactionHash,
+                RfqmTransactionSubmissionType.Trade,
             );
             expect(transactionSubmissions.length).to.equal(1);
 
