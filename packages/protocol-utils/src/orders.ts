@@ -368,9 +368,7 @@ export class OtcOrder extends OrderBase {
     public nonceBucket: BigNumber;
     public nonce: BigNumber;
 
-    public static parseExpiryAndNonce(
-        expiryAndNonce: BigNumber,
-    ): {
+    public static parseExpiryAndNonce(expiryAndNonce: BigNumber): {
         expiry: BigNumber;
         nonceBucket: BigNumber;
         nonce: BigNumber;

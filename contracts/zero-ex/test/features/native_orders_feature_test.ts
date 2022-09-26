@@ -61,15 +61,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
 
     before(async () => {
         let owner;
-        [
-            owner,
-            maker,
-            taker,
-            notMaker,
-            notTaker,
-            contractWalletOwner,
-            contractWalletSigner,
-        ] = await env.getAccountAddressesAsync();
+        [owner, maker, taker, notMaker, notTaker, contractWalletOwner, contractWalletSigner] =
+            await env.getAccountAddressesAsync();
         [makerToken, takerToken, wethToken] = await Promise.all(
             [...new Array(3)].map(async () =>
                 TestMintableERC20TokenContract.deployFrom0xArtifactAsync(
@@ -761,11 +754,8 @@ blockchainTests.resets('NativeOrdersFeature', env => {
             receipt: undefined,
             ...opts,
         };
-        const {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
-        } = computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
+        const { makerTokenFilledAmount, takerTokenFilledAmount, takerTokenFeeFilledAmount } =
+            computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
         const makerBalance = await takerToken.balanceOf(maker).callAsync();
         const takerBalance = await makerToken.balanceOf(taker).callAsync();
         const feeRecipientBalance = await takerToken.balanceOf(order.feeRecipient).callAsync();
