@@ -33,7 +33,10 @@ const REMOVE_ON_COMPLETE_OPS = {
 const REMOVE_ON_FAILURE_OPS = {
     count: 10,
 };
-const SCHEDULE = '*/5 * * * *'; // job will be scheduled at every 1 minute
+
+// job will be scheduled at every 5 minutes, starting at 3 min after the hour
+// https://stackoverflow.com/questions/12786410/run-cron-job-every-n-minutes-plus-offset
+const SCHEDULE = '3-59/5 * * * *';
 const DESCRIPTION = 'Makes requests to 0x API endpoints and logs the results of\
 available liquidity to Prometheus';
 
