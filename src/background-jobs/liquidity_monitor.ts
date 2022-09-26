@@ -33,7 +33,7 @@ const REMOVE_ON_COMPLETE_OPS = {
 const REMOVE_ON_FAILURE_OPS = {
     count: 10,
 };
-const SCHEDULE = '*/1 * * * *'; // job will be scheduled at every 1 minute
+const SCHEDULE = '*/5 * * * *'; // job will be scheduled at every 1 minute
 const DESCRIPTION = 'Makes requests to 0x API endpoints and logs the results of\
 available liquidity to Prometheus';
 
