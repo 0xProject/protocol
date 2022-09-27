@@ -23,8 +23,8 @@
         "watch": "sol-compiler -w",
         "clean": "shx rm -rf lib test/generated-artifacts test/generated-wrappers generated-artifacts generated-wrappers",
         "generate_contract_wrappers": "abi-gen --debug --abis  ${npm_package_config_abis} --output test/generated-wrappers --backend ethers",
-        "lint": "eslint src test && yarn lint-contracts",
-        "fix": "eslint --fix src test && yarn lint-contracts",
+        "lint": "eslint src test",
+        "fix": "eslint --fix src test",
         "coverage:report:text": "istanbul report text",
         "coverage:report:html": "istanbul report html && open coverage/index.html",
         "profiler:report:html": "istanbul report html && open coverage/index.html",
@@ -32,7 +32,6 @@
         "test:circleci": "yarn test",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
-        "lint-contracts": "",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES"
     },
