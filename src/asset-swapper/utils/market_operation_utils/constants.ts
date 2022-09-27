@@ -220,7 +220,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
-            //ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,
@@ -381,7 +381,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.SushiSwap,
-            //ERC20BridgeSource.BalancerV2,
+            ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.CurveV2,
             ERC20BridgeSource.GMX,

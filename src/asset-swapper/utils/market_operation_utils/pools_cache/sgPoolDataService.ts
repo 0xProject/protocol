@@ -74,6 +74,7 @@ const queryWithOutLinear = gql`
 const QUERY_BY_CHAIN_ID: { [chainId: number]: string } = {
     [ChainId.Mainnet]: queryWithLinear,
     [ChainId.Polygon]: queryWithOutLinear,
+    [ChainId.Arbitrum]: queryWithLinear,
 };
 
 const DEFAULT_MAX_POOLS_FETCHED = 96;
