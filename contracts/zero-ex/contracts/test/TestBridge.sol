@@ -41,18 +41,9 @@ contract TestBridge is IERC20Bridge {
         uint256 amount,
         bytes calldata /* bridgeData */
     ) external override returns (bytes4 success) {
-        IERC20TokenV06 takerToken = tokenAddress == address(xAsset)
-            ? yAsset
-            : xAsset;
+        IERC20TokenV06 takerToken = tokenAddress == address(xAsset) ? yAsset : xAsset;
         uint256 takerTokenBalance = takerToken.balanceOf(address(this));
-        emit ERC20BridgeTransfer(
-            address(takerToken),
-            tokenAddress,
-            takerTokenBalance,
-            amount,
-            from,
-            to
-        );
+        emit ERC20BridgeTransfer(address(takerToken), tokenAddress, takerTokenBalance, amount, from, to);
         return 0xdecaf000;
     }
 }

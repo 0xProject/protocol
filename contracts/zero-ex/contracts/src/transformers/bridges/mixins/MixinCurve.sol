@@ -62,9 +62,7 @@ contract MixinCurve {
         }
 
         uint256 beforeBalance = buyToken.balanceOf(address(this));
-        (bool success, bytes memory resultData) = data.curveAddress.call{
-            value: payableAmount
-        }(
+        (bool success, bytes memory resultData) = data.curveAddress.call{value: payableAmount}(
             abi.encodeWithSelector(
                 data.exchangeFunctionSelector,
                 data.fromCoinIdx,

@@ -22,11 +22,7 @@ contract IERC20Token {
     // solhint-disable no-simple-event-func-name
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
-    event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _value
-    );
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
     /// @dev send `value` token to `to` from `msg.sender`
     /// @param _to The address of the recipient
@@ -62,8 +58,5 @@ contract IERC20Token {
     /// @param _owner The address of the account owning tokens
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowance(address _owner, address _spender)
-        external
-        view
-        returns (uint256);
+    function allowance(address _owner, address _spender) external view returns (uint256);
 }

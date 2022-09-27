@@ -76,13 +76,7 @@ contract TestMintableERC1155Token {
     /// be used by clients and exchanges to be added to the "circulating supply" for a given token ID.
     /// To define a token ID with no initial balance, the contract SHOULD emit the TransferSingle event
     /// from `0x0` to `0x0`, with the token creator as `_operator`.
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 value
-    );
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
 
     /// @dev Either TransferSingle or TransferBatch MUST emit when tokens are transferred,
     ///      including zero value transfers as well as minting or burning.
@@ -102,11 +96,7 @@ contract TestMintableERC1155Token {
     );
 
     /// @dev MUST emit when an approval is updated.
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     // selectors for receiver callbacks
     bytes4 public constant ERC1155_RECEIVED = 0xf23a6e61;
@@ -144,10 +134,7 @@ contract TestMintableERC1155Token {
                 quantity,
                 ""
             );
-            require(
-                callbackReturnValue == ERC1155_RECEIVED,
-                "BAD_RECEIVER_RETURN_VALUE"
-            );
+            require(callbackReturnValue == ERC1155_RECEIVED, "BAD_RECEIVER_RETURN_VALUE");
         }
     }
 
@@ -174,10 +161,7 @@ contract TestMintableERC1155Token {
     ) external {
         // sanity checks
         require(to != address(0x0), "CANNOT_TRANSFER_TO_ADDRESS_ZERO");
-        require(
-            from == msg.sender || operatorApproval[from][msg.sender] == true,
-            "INSUFFICIENT_ALLOWANCE"
-        );
+        require(from == msg.sender || operatorApproval[from][msg.sender] == true, "INSUFFICIENT_ALLOWANCE");
 
         // perform transfer
         balances[id][from] = balances[id][from].safeSub(value);
@@ -191,17 +175,8 @@ contract TestMintableERC1155Token {
             receiverCodeSize := extcodesize(to)
         }
         if (receiverCodeSize > 0) {
-            bytes4 callbackReturnValue = IERC1155Receiver(to).onERC1155Received(
-                msg.sender,
-                from,
-                id,
-                value,
-                data
-            );
-            require(
-                callbackReturnValue == ERC1155_RECEIVED,
-                "BAD_RECEIVER_RETURN_VALUE"
-            );
+            bytes4 callbackReturnValue = IERC1155Receiver(to).onERC1155Received(msg.sender, from, id, value, data);
+            require(callbackReturnValue == ERC1155_RECEIVED, "BAD_RECEIVER_RETURN_VALUE");
         }
     }
 
@@ -229,17 +204,11 @@ contract TestMintableERC1155Token {
     ) external {
         // sanity checks
         require(to != address(0x0), "CANNOT_TRANSFER_TO_ADDRESS_ZERO");
-        require(
-            ids.length == values.length,
-            "TOKEN_AND_VALUES_LENGTH_MISMATCH"
-        );
+        require(ids.length == values.length, "TOKEN_AND_VALUES_LENGTH_MISMATCH");
 
         // Only supporting a global operator approval allows us to do
         // only 1 check and not to touch storage to handle allowances.
-        require(
-            from == msg.sender || operatorApproval[from][msg.sender] == true,
-            "INSUFFICIENT_ALLOWANCE"
-        );
+        require(from == msg.sender || operatorApproval[from][msg.sender] == true, "INSUFFICIENT_ALLOWANCE");
 
         // perform transfers
         for (uint256 i = 0; i < ids.length; ++i) {
@@ -258,12 +227,14 @@ contract TestMintableERC1155Token {
             receiverCodeSize := extcodesize(to)
         }
         if (receiverCodeSize > 0) {
-            bytes4 callbackReturnValue = IERC1155Receiver(to)
-                .onERC1155BatchReceived(msg.sender, from, ids, values, data);
-            require(
-                callbackReturnValue == ERC1155_BATCH_RECEIVED,
-                "BAD_RECEIVER_RETURN_VALUE"
+            bytes4 callbackReturnValue = IERC1155Receiver(to).onERC1155BatchReceived(
+                msg.sender,
+                from,
+                ids,
+                values,
+                data
             );
+            require(callbackReturnValue == ERC1155_BATCH_RECEIVED, "BAD_RECEIVER_RETURN_VALUE");
         }
     }
 
@@ -280,11 +251,7 @@ contract TestMintableERC1155Token {
     /// @param owner        The owner of the Tokens
     /// @param operator     Address of authorized operator
     /// @return isApproved  True if the operator is approved, false if not
-    function isApprovedForAll(address owner, address operator)
-        external
-        view
-        returns (bool isApproved)
-    {
+    function isApprovedForAll(address owner, address operator) external view returns (bool isApproved) {
         return operatorApproval[owner][operator];
     }
 
@@ -292,11 +259,7 @@ contract TestMintableERC1155Token {
     /// @param owner     The address of the token holder
     /// @param id        ID of the Token
     /// @return balance  The _owner's balance of the Token type requested
-    function balanceOf(address owner, uint256 id)
-        external
-        view
-        returns (uint256 balance)
-    {
+    function balanceOf(address owner, uint256 id) external view returns (uint256 balance) {
         return balances[id][owner];
     }
 
@@ -310,10 +273,7 @@ contract TestMintableERC1155Token {
         returns (uint256[] memory balances_)
     {
         // sanity check
-        require(
-            owners.length == ids.length,
-            "OWNERS_AND_IDS_MUST_HAVE_SAME_LENGTH"
-        );
+        require(owners.length == ids.length, "OWNERS_AND_IDS_MUST_HAVE_SAME_LENGTH");
 
         // get balances
         balances_ = new uint256[](owners.length);

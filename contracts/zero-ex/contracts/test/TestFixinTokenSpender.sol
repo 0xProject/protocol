@@ -35,18 +35,9 @@ contract TestFixinTokenSpender is FixinTokenSpender {
         _transferERC20TokensFrom(token, owner, to, amount);
     }
 
-    event FallbackCalled(
-        address token,
-        address owner,
-        address to,
-        uint256 amount
-    );
+    event FallbackCalled(address token, address owner, address to, uint256 amount);
 
-    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner)
-        external
-        view
-        returns (uint256)
-    {
+    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) external view returns (uint256) {
         return _getSpendableERC20BalanceOf(token, owner);
     }
 }

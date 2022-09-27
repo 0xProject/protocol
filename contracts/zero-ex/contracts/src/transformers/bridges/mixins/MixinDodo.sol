@@ -40,10 +40,7 @@ interface IDODO {
 }
 
 interface IDODOHelper {
-    function querySellQuoteToken(IDODO dodo, uint256 amount)
-        external
-        view
-        returns (uint256);
+    function querySellQuoteToken(IDODO dodo, uint256 amount) external view returns (uint256);
 }
 
 contract MixinDodo {
@@ -54,10 +51,7 @@ contract MixinDodo {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IDODOHelper helper, IDODO pool, bool isSellBase) = abi.decode(
-            bridgeData,
-            (IDODOHelper, IDODO, bool)
-        );
+        (IDODOHelper helper, IDODO pool, bool isSellBase) = abi.decode(bridgeData, (IDODOHelper, IDODO, bool));
 
         // Grant the Dodo pool contract an allowance to sell the first token.
         sellToken.approveIfBelow(address(pool), sellAmount);

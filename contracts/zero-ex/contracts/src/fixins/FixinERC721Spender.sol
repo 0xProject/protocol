@@ -26,8 +26,7 @@ import "../vendor/IERC721Token.sol";
 /// @dev Helpers for moving ERC721 assets around.
 abstract contract FixinERC721Spender {
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 private constant ADDRESS_MASK =
-        0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
 
     /// @dev Transfers an ERC721 asset from `owner` to `to`.
     /// @param token The address of the ERC721 token contract.
@@ -40,32 +39,18 @@ abstract contract FixinERC721Spender {
         address to,
         uint256 tokenId
     ) internal {
-        require(
-            address(token) != address(this),
-            "FixinERC721Spender/CANNOT_INVOKE_SELF"
-        );
+        require(address(token) != address(this), "FixinERC721Spender/CANNOT_INVOKE_SELF");
 
         assembly {
             let ptr := mload(0x40) // free memory pointer
 
             // selector for transferFrom(address,address,uint256)
-            mstore(
-                ptr,
-                0x23b872dd00000000000000000000000000000000000000000000000000000000
-            )
+            mstore(ptr, 0x23b872dd00000000000000000000000000000000000000000000000000000000)
             mstore(add(ptr, 0x04), and(owner, ADDRESS_MASK))
             mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), tokenId)
 
-            let success := call(
-                gas(),
-                and(token, ADDRESS_MASK),
-                0,
-                ptr,
-                0x64,
-                0,
-                0
-            )
+            let success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x64, 0, 0)
 
             if iszero(success) {
                 let rdsize := returndatasize()

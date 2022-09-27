@@ -24,11 +24,7 @@ contract TestReentrancyGuard is ReentrancyGuard {
     /// @dev Exposes the nonReentrant modifier publicly.
     /// @param shouldBeAttacked True if the contract should be attacked.
     /// @return True if successful.
-    function guarded(bool shouldBeAttacked)
-        external
-        nonReentrant
-        returns (bool)
-    {
+    function guarded(bool shouldBeAttacked) external nonReentrant returns (bool) {
         if (shouldBeAttacked) {
             return this.exploitive();
         } else {

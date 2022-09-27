@@ -26,9 +26,7 @@ library D18 {
     int256 private constant DECIMAL_ONE = int256(10**PRECISION);
     /// @dev Minimum signed integer value.
     int256 private constant MIN_INT256_VALUE =
-        int256(
-            0x8000000000000000000000000000000000000000000000000000000000000000
-        );
+        int256(0x8000000000000000000000000000000000000000000000000000000000000000);
 
     /// @dev Return `1.0`
     function one() internal pure returns (int256 r) {
@@ -156,9 +154,6 @@ library D18 {
     /// @dev Safely add two signed integers.
     function _add(int256 a, int256 b) private pure returns (int256 r) {
         r = a + b;
-        require(
-            !((a < 0 && b < 0 && r > a) || (a > 0 && b > 0 && r < a)),
-            "D18/DECIMAL_ADD_OVERFLOW"
-        );
+        require(!((a < 0 && b < 0 && r > a) || (a > 0 && b > 0 && r < a)), "D18/DECIMAL_ADD_OVERFLOW");
     }
 }

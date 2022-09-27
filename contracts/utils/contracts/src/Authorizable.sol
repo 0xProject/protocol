@@ -53,9 +53,7 @@ contract Authorizable is Ownable, IAuthorizable {
     /// @param target Address to remove authorization from.
     function removeAuthorizedAddress(address target) external onlyOwner {
         if (!authorized[target]) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.TargetNotAuthorizedError(target)
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.TargetNotAuthorizedError(target));
         }
         for (uint256 i = 0; i < authorities.length; i++) {
             if (authorities[i] == target) {
@@ -68,10 +66,7 @@ contract Authorizable is Ownable, IAuthorizable {
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(address target, uint256 index)
-        external
-        onlyOwner
-    {
+    function removeAuthorizedAddressAtIndex(address target, uint256 index) external onlyOwner {
         _removeAuthorizedAddressAtIndex(target, index);
     }
 
@@ -84,9 +79,7 @@ contract Authorizable is Ownable, IAuthorizable {
     /// @dev Reverts if msg.sender is not authorized.
     function _assertSenderIsAuthorized() internal view {
         if (!authorized[msg.sender]) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.SenderNotAuthorizedError(msg.sender)
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.SenderNotAuthorizedError(msg.sender));
         }
     }
 
@@ -95,16 +88,12 @@ contract Authorizable is Ownable, IAuthorizable {
     function _addAuthorizedAddress(address target) internal {
         // Ensure that the target is not the zero address.
         if (target == address(0)) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.ZeroCantBeAuthorizedError()
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.ZeroCantBeAuthorizedError());
         }
 
         // Ensure that the target is not already authorized.
         if (authorized[target]) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.TargetAlreadyAuthorizedError(target)
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.TargetAlreadyAuthorizedError(target));
         }
 
         authorized[target] = true;
@@ -115,29 +104,15 @@ contract Authorizable is Ownable, IAuthorizable {
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function _removeAuthorizedAddressAtIndex(address target, uint256 index)
-        internal
-    {
+    function _removeAuthorizedAddressAtIndex(address target, uint256 index) internal {
         if (!authorized[target]) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.TargetNotAuthorizedError(target)
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.TargetNotAuthorizedError(target));
         }
         if (index >= authorities.length) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.IndexOutOfBoundsError(
-                    index,
-                    authorities.length
-                )
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.IndexOutOfBoundsError(index, authorities.length));
         }
         if (authorities[index] != target) {
-            LibRichErrors.rrevert(
-                LibAuthorizableRichErrors.AuthorizedAddressMismatchError(
-                    authorities[index],
-                    target
-                )
-            );
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.AuthorizedAddressMismatchError(authorities[index], target));
         }
 
         delete authorized[target];

@@ -58,31 +58,17 @@ contract OptimismBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurve(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeCurve(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.CURVEV2) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurveV2(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeCurveV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNISWAPV3) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeUniswapV3(
-                sellToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeUniswapV3(sellToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
             if (dryRun) {
                 return (0, true);
@@ -92,12 +78,7 @@ contract OptimismBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeVelodrome(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeVelodrome(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.SYNTHETIX) {
             if (dryRun) {
                 return (0, true);
@@ -107,6 +88,7 @@ contract OptimismBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
+<<<<<<< HEAD
             boughtAmount = _tradeZeroExBridge(
                 sellToken,
                 buyToken,
@@ -128,13 +110,11 @@ contract OptimismBridgeAdapter is
                 order.bridgeData
             );
         } 
+=======
+            boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
+        }
+>>>>>>> 173593cbb (run prettier again)
 
-        emit BridgeFill(
-            order.source,
-            sellToken,
-            buyToken,
-            sellAmount,
-            boughtAmount
-        );
+        emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
 }

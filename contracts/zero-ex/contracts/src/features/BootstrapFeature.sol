@@ -56,20 +56,13 @@ contract BootstrapFeature is IBootstrapFeature {
     ///      deregister itself from the proxy to prevent being called again.
     /// @param target The bootstrapper contract address.
     /// @param callData The call data to execute on `target`.
-    function bootstrap(address target, bytes calldata callData)
-        external
-        override
-    {
+    function bootstrap(address target, bytes calldata callData) external override {
         // Only the bootstrap caller can call this function.
         if (msg.sender != _bootstrapCaller) {
-            LibProxyRichErrors
-                .InvalidBootstrapCallerError(msg.sender, _bootstrapCaller)
-                .rrevert();
+            LibProxyRichErrors.InvalidBootstrapCallerError(msg.sender, _bootstrapCaller).rrevert();
         }
         // Deregister.
-        LibProxyStorage.getStorage().impls[this.bootstrap.selector] = address(
-            0
-        );
+        LibProxyStorage.getStorage().impls[this.bootstrap.selector] = address(0);
         // Self-destruct.
         BootstrapFeature(_implementation).die();
         // Call the bootstrapper.
@@ -81,9 +74,7 @@ contract BootstrapFeature is IBootstrapFeature {
     function die() external {
         assert(address(this) == _implementation);
         if (msg.sender != _deployer) {
-            LibProxyRichErrors
-                .InvalidDieCallerError(msg.sender, _deployer)
-                .rrevert();
+            LibProxyRichErrors.InvalidDieCallerError(msg.sender, _deployer).rrevert();
         }
         selfdestruct(msg.sender);
     }

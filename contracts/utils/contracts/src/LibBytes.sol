@@ -29,11 +29,7 @@ library LibBytes {
     /// @return memoryAddress Memory address of byte array. This
     ///         points to the header of the byte array which contains
     ///         the length.
-    function rawAddress(bytes memory input)
-        internal
-        pure
-        returns (uint256 memoryAddress)
-    {
+    function rawAddress(bytes memory input) internal pure returns (uint256 memoryAddress) {
         assembly {
             memoryAddress := input
         }
@@ -43,11 +39,7 @@ library LibBytes {
     /// @dev Gets the memory address for the contents of a byte array.
     /// @param input Byte array to lookup.
     /// @return memoryAddress Memory address of the contents of the byte array.
-    function contentAddress(bytes memory input)
-        internal
-        pure
-        returns (uint256 memoryAddress)
-    {
+    function contentAddress(bytes memory input) internal pure returns (uint256 memoryAddress) {
         assembly {
             memoryAddress := add(input, 32)
         }
@@ -181,9 +173,7 @@ library LibBytes {
         if (from > to) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .FromLessThanOrEqualsToRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.FromLessThanOrEqualsToRequired,
                     from,
                     to
                 )
@@ -192,9 +182,7 @@ library LibBytes {
         if (to > b.length) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .ToLessThanOrEqualsLengthRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.ToLessThanOrEqualsLengthRequired,
                     to,
                     b.length
                 )
@@ -203,11 +191,7 @@ library LibBytes {
 
         // Create a new bytes structure and copy contents
         result = new bytes(to - from);
-        memCopy(
-            result.contentAddress(),
-            b.contentAddress() + from,
-            result.length
-        );
+        memCopy(result.contentAddress(), b.contentAddress() + from, result.length);
         return result;
     }
 
@@ -227,9 +211,7 @@ library LibBytes {
         if (from > to) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .FromLessThanOrEqualsToRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.FromLessThanOrEqualsToRequired,
                     from,
                     to
                 )
@@ -238,9 +220,7 @@ library LibBytes {
         if (to > b.length) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .ToLessThanOrEqualsLengthRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.ToLessThanOrEqualsLengthRequired,
                     to,
                     b.length
                 )
@@ -262,9 +242,7 @@ library LibBytes {
         if (b.length == 0) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanZeroRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanZeroRequired,
                     b.length,
                     0
                 )
@@ -286,11 +264,7 @@ library LibBytes {
     /// @param lhs First byte array to compare.
     /// @param rhs Second byte array to compare.
     /// @return True if arrays are the same. False otherwise.
-    function equals(bytes memory lhs, bytes memory rhs)
-        internal
-        pure
-        returns (bool equal)
-    {
+    function equals(bytes memory lhs, bytes memory rhs) internal pure returns (bool equal) {
         // Keccak gas cost is 30 + numWords * 6. This is a cheap way to compare.
         // We early exit on unequal lengths, but keccak would also correctly
         // handle this.
@@ -301,17 +275,11 @@ library LibBytes {
     /// @param b Byte array containing an address.
     /// @param index Index in byte array of address.
     /// @return address from byte array.
-    function readAddress(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (address result)
-    {
+    function readAddress(bytes memory b, uint256 index) internal pure returns (address result) {
         if (b.length < index + 20) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanOrEqualsTwentyRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanOrEqualsTwentyRequired,
                     b.length,
                     index + 20 // 20 is length of address
                 )
@@ -328,10 +296,7 @@ library LibBytes {
             // 1. Add index to address of bytes array
             // 2. Load 32-byte word from memory
             // 3. Apply 20-byte mask to obtain address
-            result := and(
-                mload(add(b, index)),
-                0xffffffffffffffffffffffffffffffffffffffff
-            )
+            result := and(mload(add(b, index)), 0xffffffffffffffffffffffffffffffffffffffff)
         }
         return result;
     }
@@ -348,9 +313,7 @@ library LibBytes {
         if (b.length < index + 20) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanOrEqualsTwentyRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanOrEqualsTwentyRequired,
                     b.length,
                     index + 20 // 20 is length of address
                 )
@@ -390,17 +353,11 @@ library LibBytes {
     /// @param b Byte array containing a bytes32 value.
     /// @param index Index in byte array of bytes32 value.
     /// @return bytes32 value from byte array.
-    function readBytes32(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (bytes32 result)
-    {
+    function readBytes32(bytes memory b, uint256 index) internal pure returns (bytes32 result) {
         if (b.length < index + 32) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanOrEqualsThirtyTwoRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanOrEqualsThirtyTwoRequired,
                     b.length,
                     index + 32
                 )
@@ -429,9 +386,7 @@ library LibBytes {
         if (b.length < index + 32) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanOrEqualsThirtyTwoRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanOrEqualsThirtyTwoRequired,
                     b.length,
                     index + 32
                 )
@@ -451,11 +406,7 @@ library LibBytes {
     /// @param b Byte array containing a uint256 value.
     /// @param index Index in byte array of uint256 value.
     /// @return uint256 value from byte array.
-    function readUint256(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (uint256 result)
-    {
+    function readUint256(bytes memory b, uint256 index) internal pure returns (uint256 result) {
         result = uint256(readBytes32(b, index));
         return result;
     }
@@ -476,17 +427,11 @@ library LibBytes {
     /// @param b Byte array containing a bytes4 value.
     /// @param index Index in byte array of bytes4 value.
     /// @return bytes4 value from byte array.
-    function readBytes4(bytes memory b, uint256 index)
-        internal
-        pure
-        returns (bytes4 result)
-    {
+    function readBytes4(bytes memory b, uint256 index) internal pure returns (bytes4 result) {
         if (b.length < index + 4) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
-                    LibBytesRichErrors
-                        .InvalidByteOperationErrorCodes
-                        .LengthGreaterThanOrEqualsFourRequired,
+                    LibBytesRichErrors.InvalidByteOperationErrorCodes.LengthGreaterThanOrEqualsFourRequired,
                     b.length,
                     index + 4
                 )
@@ -501,10 +446,7 @@ library LibBytes {
             result := mload(add(b, index))
             // Solidity does not require us to clean the trailing bytes.
             // We do it anyway
-            result := and(
-                result,
-                0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-            )
+            result := and(result, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
         }
         return result;
     }

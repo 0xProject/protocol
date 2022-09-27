@@ -27,19 +27,10 @@ contract TestLibEIP712 {
         uint256 chainid,
         address verifyingcontractaddress
     ) external pure returns (bytes32) {
-        return
-            LibEIP712.hashEIP712Domain(
-                name,
-                version,
-                chainid,
-                verifyingcontractaddress
-            );
+        return LibEIP712.hashEIP712Domain(name, version, chainid, verifyingcontractaddress);
     }
 
-    function externalHashEIP712Message(
-        bytes32 eip712DomainHash,
-        bytes32 hashStruct
-    ) external pure returns (bytes32) {
+    function externalHashEIP712Message(bytes32 eip712DomainHash, bytes32 hashStruct) external pure returns (bytes32) {
         return LibEIP712.hashEIP712Message(eip712DomainHash, hashStruct);
     }
 }

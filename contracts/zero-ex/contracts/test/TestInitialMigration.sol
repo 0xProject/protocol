@@ -32,21 +32,15 @@ contract TestInitialMigration is InitialMigration {
     constructor(address deployer) public InitialMigration(deployer) {}
 
     function callBootstrap(ZeroEx zeroEx) external {
-        IBootstrapFeature(address(zeroEx)).bootstrap(
-            address(this),
-            new bytes(0)
-        );
+        IBootstrapFeature(address(zeroEx)).bootstrap(address(this), new bytes(0));
     }
 
-    function bootstrap(address owner, BootstrapFeatures memory features)
-        public
-        override
-        returns (bytes4 success)
-    {
+    function bootstrap(address owner, BootstrapFeatures memory features) public override returns (bytes4 success) {
         success = InitialMigration.bootstrap(owner, features);
         // Snoop the bootstrap feature contract.
-        bootstrapFeature = ZeroEx(address(uint160(address(this))))
-            .getFunctionImplementation(IBootstrapFeature.bootstrap.selector);
+        bootstrapFeature = ZeroEx(address(uint160(address(this)))).getFunctionImplementation(
+            IBootstrapFeature.bootstrap.selector
+        );
     }
 
     function die(address payable ethRecipient) public override {

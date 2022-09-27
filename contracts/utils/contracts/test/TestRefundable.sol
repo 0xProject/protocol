@@ -35,28 +35,14 @@ contract TestRefundable is Refundable {
 
     function refundFinalBalanceFunction() public payable refundFinalBalance {} // solhint-disable-line no-empty-blocks
 
-    function disableRefundUntilEndFunction()
-        public
-        payable
-        disableRefundUntilEnd
-    {} // solhint-disable-line no-empty-blocks
+    function disableRefundUntilEndFunction() public payable disableRefundUntilEnd {} // solhint-disable-line no-empty-blocks
 
-    function nestedDisableRefundUntilEndFunction()
-        public
-        payable
-        disableRefundUntilEnd
-        returns (uint256)
-    {
+    function nestedDisableRefundUntilEndFunction() public payable disableRefundUntilEnd returns (uint256) {
         disableRefundUntilEndFunction();
         return address(this).balance;
     }
 
-    function mixedRefundModifierFunction()
-        public
-        payable
-        disableRefundUntilEnd
-        returns (uint256)
-    {
+    function mixedRefundModifierFunction() public payable disableRefundUntilEnd returns (uint256) {
         refundFinalBalanceFunction();
         return address(this).balance;
     }

@@ -47,11 +47,7 @@ library LibStorage {
     ///     See: https://solidity.readthedocs.io/en/v0.6.6/assembly.html#access-to-external-variables-functions-and-libraries
     /// @param storageId An entry in `StorageId`
     /// @return slot The storage slot.
-    function getStorageSlot(StorageId storageId)
-        internal
-        pure
-        returns (uint256 slot)
-    {
+    function getStorageSlot(StorageId storageId) internal pure returns (uint256 slot) {
         // This should never overflow with a reasonable `STORAGE_SLOT_EXP`
         // because Solidity will do a range check on `storageId` during the cast.
         return (uint256(storageId) + 1) << STORAGE_SLOT_EXP;

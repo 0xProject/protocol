@@ -37,9 +37,7 @@ library LibMath {
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
         if (isRoundingErrorFloor(numerator, denominator, target)) {
-            LibRichErrors.rrevert(
-                LibMathRichErrors.RoundingError(numerator, denominator, target)
-            );
+            LibRichErrors.rrevert(LibMathRichErrors.RoundingError(numerator, denominator, target));
         }
 
         partialAmount = numerator.safeMul(target).safeDiv(denominator);
@@ -58,18 +56,13 @@ library LibMath {
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
         if (isRoundingErrorCeil(numerator, denominator, target)) {
-            LibRichErrors.rrevert(
-                LibMathRichErrors.RoundingError(numerator, denominator, target)
-            );
+            LibRichErrors.rrevert(LibMathRichErrors.RoundingError(numerator, denominator, target));
         }
 
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator
-            .safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }
@@ -101,10 +94,7 @@ library LibMath {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator
-            .safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }

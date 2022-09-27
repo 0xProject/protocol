@@ -49,18 +49,9 @@ contract OwnableFeature is IFeature, IOwnableFeature, FixinCommon {
         LibOwnableStorage.getStorage().owner = address(this);
 
         // Register feature functions.
-        SimpleFunctionRegistryFeature(address(this))._extendSelf(
-            this.transferOwnership.selector,
-            _implementation
-        );
-        SimpleFunctionRegistryFeature(address(this))._extendSelf(
-            this.owner.selector,
-            _implementation
-        );
-        SimpleFunctionRegistryFeature(address(this))._extendSelf(
-            this.migrate.selector,
-            _implementation
-        );
+        SimpleFunctionRegistryFeature(address(this))._extendSelf(this.transferOwnership.selector, _implementation);
+        SimpleFunctionRegistryFeature(address(this))._extendSelf(this.owner.selector, _implementation);
+        SimpleFunctionRegistryFeature(address(this))._extendSelf(this.migrate.selector, _implementation);
         return LibBootstrap.BOOTSTRAP_SUCCESS;
     }
 
@@ -68,8 +59,7 @@ contract OwnableFeature is IFeature, IOwnableFeature, FixinCommon {
     ///      Only directly callable by the owner.
     /// @param newOwner New owner address.
     function transferOwnership(address newOwner) external override onlyOwner {
-        LibOwnableStorage.Storage storage proxyStor = LibOwnableStorage
-            .getStorage();
+        LibOwnableStorage.Storage storage proxyStor = LibOwnableStorage.getStorage();
 
         if (newOwner == address(0)) {
             LibOwnableRichErrors.TransferOwnerToZeroError().rrevert();

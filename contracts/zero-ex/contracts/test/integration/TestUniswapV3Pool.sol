@@ -11,10 +11,7 @@ interface IUniswapV3PoolDeployer {
         uint24 fee;
     }
 
-    function creationParameters()
-        external
-        view
-        returns (CreationParameters memory);
+    function creationParameters() external view returns (CreationParameters memory);
 }
 
 interface IUniswapV3SwapCallback {
@@ -31,9 +28,8 @@ contract TestUniswapV3Pool is IUniswapV3Pool {
     uint24 public immutable fee;
 
     constructor() public {
-        IUniswapV3PoolDeployer.CreationParameters
-            memory params = IUniswapV3PoolDeployer(msg.sender)
-                .creationParameters();
+        IUniswapV3PoolDeployer.CreationParameters memory params = IUniswapV3PoolDeployer(msg.sender)
+            .creationParameters();
         (token0, token1, fee) = (params.token0, params.token1, params.fee);
     }
 
@@ -57,18 +53,9 @@ contract TestUniswapV3Pool is IUniswapV3Pool {
             amount1 = int256(amountSpecified);
             token0.transfer(recipient, balance0Before);
         }
-        IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(
-            amount0,
-            amount1,
-            data
-        );
-        int256 balance0Change = int256(token0.balanceOf(address(this))) -
-            int256(balance0Before);
-        int256 balance1Change = int256(token1.balanceOf(address(this))) -
-            int256(balance1Before);
-        require(
-            balance0Change >= amount0 && balance1Change >= amount1,
-            "TestUniswapV3Pool/SWAP_NOT_PAID"
-        );
+        IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
+        int256 balance0Change = int256(token0.balanceOf(address(this))) - int256(balance0Before);
+        int256 balance1Change = int256(token1.balanceOf(address(this))) - int256(balance1Before);
+        require(balance0Change >= amount0 && balance1Change >= amount1, "TestUniswapV3Pool/SWAP_NOT_PAID");
     }
 }

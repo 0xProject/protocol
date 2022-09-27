@@ -53,10 +53,7 @@ contract ERC20Token is IERC20Token {
         uint256 _value
     ) external returns (bool) {
         require(balances[_from] >= _value, "ERC20_INSUFFICIENT_BALANCE");
-        require(
-            allowed[_from][msg.sender] >= _value,
-            "ERC20_INSUFFICIENT_ALLOWANCE"
-        );
+        require(allowed[_from][msg.sender] >= _value, "ERC20_INSUFFICIENT_ALLOWANCE");
         require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");
 
         balances[_to] += _value;
@@ -94,11 +91,7 @@ contract ERC20Token is IERC20Token {
     /// @param _owner The address of the account owning tokens
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowance(address _owner, address _spender)
-        external
-        view
-        returns (uint256)
-    {
+    function allowance(address _owner, address _spender) external view returns (uint256) {
         return allowed[_owner][_spender];
     }
 }

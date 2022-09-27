@@ -42,10 +42,7 @@ interface ITokenSpenderFeature {
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
     /// @return amount The amount of tokens that can be pulled.
-    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner)
-        external
-        view
-        returns (uint256 amount);
+    function getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) external view returns (uint256 amount);
 
     /// @dev Get the address of the allowance target.
     /// @return target The target of token allowances.

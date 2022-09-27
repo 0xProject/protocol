@@ -28,17 +28,11 @@ contract TestTransformerDeployerTransformer {
 
     constructor() public payable {
         deployer = msg.sender;
-        require(
-            msg.value != CONSTRUCTOR_FAIL_VALUE,
-            "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL"
-        );
+        require(msg.value != CONSTRUCTOR_FAIL_VALUE, "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL");
     }
 
     modifier onlyDeployer() {
-        require(
-            msg.sender == deployer,
-            "TestTransformerDeployerTransformer/ONLY_DEPLOYER"
-        );
+        require(msg.sender == deployer, "TestTransformerDeployerTransformer/ONLY_DEPLOYER");
         _;
     }
 
@@ -47,8 +41,6 @@ contract TestTransformerDeployerTransformer {
     }
 
     function isDeployedByDeployer(uint32 nonce) external view returns (bool) {
-        return
-            LibERC20Transformer.getDeployedAddress(deployer, nonce) ==
-            address(this);
+        return LibERC20Transformer.getDeployedAddress(deployer, nonce) == address(this);
     }
 }

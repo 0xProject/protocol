@@ -52,12 +52,7 @@ interface IOtcOrdersFeature {
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
         uint128 takerTokenFillAmount
-    )
-        external
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an OTC order for up to `takerTokenFillAmount` taker tokens.
     ///      Unwraps bought WETH into ETH before sending it to
@@ -72,12 +67,7 @@ interface IOtcOrdersFeature {
         LibNativeOrder.OtcOrder calldata order,
         LibSignature.Signature calldata makerSignature,
         uint128 takerTokenFillAmount
-    )
-        external
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an OTC order whose taker token is WETH for up
     ///      to `msg.value`.
@@ -85,16 +75,10 @@ interface IOtcOrdersFeature {
     /// @param makerSignature The order signature from the maker.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
-    function fillOtcOrderWithEth(
-        LibNativeOrder.OtcOrder calldata order,
-        LibSignature.Signature calldata makerSignature
-    )
+    function fillOtcOrderWithEth(LibNativeOrder.OtcOrder calldata order, LibSignature.Signature calldata makerSignature)
         external
         payable
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fully fill an OTC order. "Meta-transaction" variant,
     ///      requires order to be signed by both maker and taker.
@@ -155,12 +139,7 @@ interface IOtcOrdersFeature {
         address taker,
         bool useSelfBalance,
         address recipient
-    )
-        external
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
@@ -173,18 +152,12 @@ interface IOtcOrdersFeature {
     /// @dev Get the canonical hash of an OTC order.
     /// @param order The OTC order.
     /// @return orderHash The order hash.
-    function getOtcOrderHash(LibNativeOrder.OtcOrder calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getOtcOrderHash(LibNativeOrder.OtcOrder calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the last nonce used for a particular
     ///      tx.origin address and nonce bucket.
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
     /// @return lastNonce The last nonce value used.
-    function lastOtcTxOriginNonce(address txOrigin, uint64 nonceBucket)
-        external
-        view
-        returns (uint128 lastNonce);
+    function lastOtcTxOriginNonce(address txOrigin, uint64 nonceBucket) external view returns (uint128 lastNonce);
 }

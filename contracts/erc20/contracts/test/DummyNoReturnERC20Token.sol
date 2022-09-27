@@ -57,10 +57,7 @@ contract DummyNoReturnERC20Token is DummyERC20Token {
         uint256 _value
     ) external returns (bool) {
         require(balances[_from] >= _value, "ERC20_INSUFFICIENT_BALANCE");
-        require(
-            allowed[_from][msg.sender] >= _value,
-            "ERC20_INSUFFICIENT_ALLOWANCE"
-        );
+        require(allowed[_from][msg.sender] >= _value, "ERC20_INSUFFICIENT_ALLOWANCE");
         require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");
 
         balances[_to] += _value;

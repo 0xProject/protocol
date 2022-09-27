@@ -53,12 +53,7 @@ contract TestMetaTransactionsNativeOrdersFeature is NativeOrdersFeature {
         uint128 takerTokenFillAmount,
         address taker,
         address sender
-    )
-        public
-        payable
-        override
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) public payable override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         emit FillLimitOrderCalled(
             order,
             signature.signatureType,
@@ -89,11 +84,7 @@ contract TestMetaTransactionsNativeOrdersFeature is NativeOrdersFeature {
         address taker,
         bool, /* useSelfBalance */
         address /* recipient */
-    )
-        public
-        override
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) public override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         emit FillRfqOrderCalled(
             order,
             signature.signatureType,

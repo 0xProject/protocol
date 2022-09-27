@@ -33,18 +33,10 @@ library LibBootstrap {
     /// @dev Perform a delegatecall and ensure it returns the magic bytes.
     /// @param target The call target.
     /// @param data The call data.
-    function delegatecallBootstrapFunction(address target, bytes memory data)
-        internal
-    {
+    function delegatecallBootstrapFunction(address target, bytes memory data) internal {
         (bool success, bytes memory resultData) = target.delegatecall(data);
-        if (
-            !success ||
-            resultData.length != 32 ||
-            abi.decode(resultData, (bytes4)) != BOOTSTRAP_SUCCESS
-        ) {
-            LibProxyRichErrors
-                .BootstrapCallFailedError(target, resultData)
-                .rrevert();
+        if (!success || resultData.length != 32 || abi.decode(resultData, (bytes4)) != BOOTSTRAP_SUCCESS) {
+            LibProxyRichErrors.BootstrapCallFailedError(target, resultData).rrevert();
         }
     }
 }

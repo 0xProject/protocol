@@ -23,15 +23,11 @@ library LibAddressArrayRichErrors {
     bytes4 internal constant MISMANAGED_MEMORY_ERROR_SELECTOR = 0x5fc83722;
 
     // solhint-disable func-name-mixedcase
-    function MismanagedMemoryError(
-        uint256 freeMemPtr,
-        uint256 addressArrayEndPtr
-    ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSelector(
-                MISMANAGED_MEMORY_ERROR_SELECTOR,
-                freeMemPtr,
-                addressArrayEndPtr
-            );
+    function MismanagedMemoryError(uint256 freeMemPtr, uint256 addressArrayEndPtr)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodeWithSelector(MISMANAGED_MEMORY_ERROR_SELECTOR, freeMemPtr, addressArrayEndPtr);
     }
 }

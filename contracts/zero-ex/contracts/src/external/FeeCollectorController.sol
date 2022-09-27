@@ -35,9 +35,7 @@ contract FeeCollectorController {
     IStaking private immutable STAKING;
 
     constructor(IEtherTokenV06 weth, IStaking staking) public {
-        FEE_COLLECTOR_INIT_CODE_HASH = keccak256(
-            type(FeeCollector).creationCode
-        );
+        FEE_COLLECTOR_INIT_CODE_HASH = keccak256(type(FeeCollector).creationCode);
         WETH = weth;
         STAKING = staking;
     }
@@ -46,10 +44,7 @@ contract FeeCollectorController {
     ///      and wrap its ETH into WETH. Anyone may call this.
     /// @param poolId The pool ID associated with the staking pool.
     /// @return feeCollector The `FeeCollector` contract instance.
-    function prepareFeeCollectorToPayFees(bytes32 poolId)
-        external
-        returns (FeeCollector feeCollector)
-    {
+    function prepareFeeCollectorToPayFees(bytes32 poolId) external returns (FeeCollector feeCollector) {
         feeCollector = getFeeCollector(poolId);
         uint256 codeSize;
         assembly {
@@ -74,18 +69,8 @@ contract FeeCollectorController {
     ///      has been called once.
     /// @param poolId The pool ID associated with the staking pool.
     /// @return feeCollector The `FeeCollector` contract instance.
-    function getFeeCollector(bytes32 poolId)
-        public
-        view
-        returns (FeeCollector feeCollector)
-    {
+    function getFeeCollector(bytes32 poolId) public view returns (FeeCollector feeCollector) {
         return
-            FeeCollector(
-                LibFeeCollector.getFeeCollectorAddress(
-                    address(this),
-                    FEE_COLLECTOR_INIT_CODE_HASH,
-                    poolId
-                )
-            );
+            FeeCollector(LibFeeCollector.getFeeCollectorAddress(address(this), FEE_COLLECTOR_INIT_CODE_HASH, poolId));
     }
 }

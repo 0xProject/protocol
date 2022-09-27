@@ -60,8 +60,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
         bytes calldata auxiliaryData
     ) external override returns (uint256 boughtAmount) {
         require(
-            !LibERC20Transformer.isTokenETH(inputToken) &&
-                !LibERC20Transformer.isTokenETH(outputToken),
+            !LibERC20Transformer.isTokenETH(inputToken) && !LibERC20Transformer.isTokenETH(outputToken),
             "CurveLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
@@ -72,10 +71,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
             recipient
         );
         // Every pool contract currently checks this but why not.
-        require(
-            boughtAmount >= minBuyAmount,
-            "CurveLiquidityProvider/UNDERBOUGHT"
-        );
+        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
         outputToken.compatTransfer(recipient, boughtAmount);
     }
 
@@ -93,10 +89,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external payable override returns (uint256 boughtAmount) {
-        require(
-            !LibERC20Transformer.isTokenETH(outputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
-        );
+        require(!LibERC20Transformer.isTokenETH(outputToken), "CurveLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
@@ -105,10 +98,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
             recipient
         );
         // Every pool contract currently checks this but why not.
-        require(
-            boughtAmount >= minBuyAmount,
-            "CurveLiquidityProvider/UNDERBOUGHT"
-        );
+        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
         outputToken.compatTransfer(recipient, boughtAmount);
     }
 
@@ -125,10 +115,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external override returns (uint256 boughtAmount) {
-        require(
-            !LibERC20Transformer.isTokenETH(inputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
-        );
+        require(!LibERC20Transformer.isTokenETH(inputToken), "CurveLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
@@ -137,10 +124,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
             recipient
         );
         // Every pool contract currently checks this but why not.
-        require(
-            boughtAmount >= minBuyAmount,
-            "CurveLiquidityProvider/UNDERBOUGHT"
-        );
+        require(boughtAmount >= minBuyAmount, "CurveLiquidityProvider/UNDERBOUGHT");
         recipient.transfer(boughtAmount);
     }
 
@@ -163,10 +147,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
         CurveData memory data,
         address recipient // Only used to log event.
     ) private returns (uint256 boughtAmount) {
-        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(
-            inputToken,
-            address(this)
-        );
+        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             inputToken.approveIfBelow(data.curveAddress, sellAmount);
         }
@@ -193,10 +174,7 @@ contract CurveLiquidityProvider is ILiquidityProvider {
         } else {
             // Not all pool contracts return a `boughtAmount`, so we return
             // our balance of the output token if it wasn't returned.
-            boughtAmount = LibERC20Transformer.getTokenBalanceOf(
-                outputToken,
-                address(this)
-            );
+            boughtAmount = LibERC20Transformer.getTokenBalanceOf(outputToken, address(this));
         }
 
         emit LiquidityProviderFill(

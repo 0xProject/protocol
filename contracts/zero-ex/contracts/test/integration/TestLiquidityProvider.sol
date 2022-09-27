@@ -31,19 +31,9 @@ contract TestLiquidityProvider {
         uint256 inputTokenBalance
     );
 
-    event SellEthForToken(
-        address outputToken,
-        address recipient,
-        uint256 minBuyAmount,
-        uint256 ethBalance
-    );
+    event SellEthForToken(address outputToken, address recipient, uint256 minBuyAmount, uint256 ethBalance);
 
-    event SellTokenForEth(
-        address inputToken,
-        address recipient,
-        uint256 minBuyAmount,
-        uint256 inputTokenBalance
-    );
+    event SellTokenForEth(address inputToken, address recipient, uint256 minBuyAmount, uint256 inputTokenBalance);
 
     receive() external payable {}
 
@@ -69,9 +59,7 @@ contract TestLiquidityProvider {
             minBuyAmount,
             IERC20TokenV06(inputToken).balanceOf(address(this))
         );
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(
-            address(this)
-        );
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
         IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
@@ -87,15 +75,8 @@ contract TestLiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
     ) external returns (uint256) {
-        emit SellEthForToken(
-            outputToken,
-            recipient,
-            minBuyAmount,
-            address(this).balance
-        );
-        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(
-            address(this)
-        );
+        emit SellEthForToken(outputToken, recipient, minBuyAmount, address(this).balance);
+        uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
         IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
 
@@ -111,12 +92,7 @@ contract TestLiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
     ) external returns (uint256) {
-        emit SellTokenForEth(
-            inputToken,
-            recipient,
-            minBuyAmount,
-            IERC20TokenV06(inputToken).balanceOf(address(this))
-        );
+        emit SellTokenForEth(inputToken, recipient, minBuyAmount, IERC20TokenV06(inputToken).balanceOf(address(this)));
         recipient.transfer(address(this).balance);
     }
 }

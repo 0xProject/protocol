@@ -32,12 +32,7 @@ import "../libs/LibSignature.sol";
 import "./NFTOrders.sol";
 
 /// @dev Feature for interacting with ERC1155 orders.
-contract ERC1155OrdersFeature is
-    IFeature,
-    IERC1155OrdersFeature,
-    FixinERC1155Spender,
-    NFTOrders
-{
+contract ERC1155OrdersFeature is IFeature, IERC1155OrdersFeature, FixinERC1155Spender, NFTOrders {
     using LibSafeMathV06 for uint256;
     using LibSafeMathV06 for uint128;
     using LibNFTOrder for LibNFTOrder.ERC1155Order;
@@ -49,13 +44,9 @@ contract ERC1155OrdersFeature is
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 0, 0);
 
     /// @dev The magic return value indicating the success of a `onERC1155Received`.
-    bytes4 private constant ERC1155_RECEIVED_MAGIC_BYTES =
-        this.onERC1155Received.selector;
+    bytes4 private constant ERC1155_RECEIVED_MAGIC_BYTES = this.onERC1155Received.selector;
 
-    constructor(address zeroExAddress, IEtherTokenV06 weth)
-        public
-        NFTOrders(zeroExAddress, weth)
-    {}
+    constructor(address zeroExAddress, IEtherTokenV06 weth) public NFTOrders(zeroExAddress, weth) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
@@ -130,19 +121,12 @@ contract ERC1155OrdersFeature is
         bytes memory callbackData
     ) public payable override {
         uint256 ethBalanceBefore = address(this).balance.safeSub(msg.value);
-        _buyERC1155(
-            sellOrder,
-            signature,
-            BuyParams(erc1155BuyAmount, msg.value, callbackData)
-        );
+        _buyERC1155(sellOrder, signature, BuyParams(erc1155BuyAmount, msg.value, callbackData));
         uint256 ethBalanceAfter = address(this).balance;
         // Cannot use pre-existing ETH balance
         if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors
-                .OverspentEthError(
-                    ethBalanceBefore - ethBalanceAfter + msg.value,
-                    msg.value
-                )
+                .OverspentEthError(ethBalanceBefore - ethBalanceAfter + msg.value, msg.value)
                 .rrevert();
         }
         // Refund
@@ -159,9 +143,7 @@ contract ERC1155OrdersFeature is
         uint256 flag = 1 << (orderNonce & 255);
         // Update order cancellation bit vector to indicate that the order
         // has been cancelled/filled by setting the designated bit to 1.
-        LibERC1155OrdersStorage.getStorage().orderCancellationByMaker[
-            msg.sender
-        ][uint248(orderNonce >> 8)] |= flag;
+        LibERC1155OrdersStorage.getStorage().orderCancellationByMaker[msg.sender][uint248(orderNonce >> 8)] |= flag;
 
         emit ERC1155OrderCancelled(msg.sender, orderNonce);
     }
@@ -171,10 +153,7 @@ contract ERC1155OrdersFeature is
     ///      an order with the same nonce has already been filled or
     ///      cancelled.
     /// @param orderNonces The order nonces.
-    function batchCancelERC1155Orders(uint256[] calldata orderNonces)
-        external
-        override
-    {
+    function batchCancelERC1155Orders(uint256[] calldata orderNonces) external override {
         for (uint256 i = 0; i < orderNonces.length; i++) {
             cancelERC1155Order(orderNonces[i]);
         }
@@ -248,10 +227,7 @@ contract ERC1155OrdersFeature is
         uint256 ethBalanceAfter = address(this).balance;
         if (ethBalanceAfter < ethBalanceBefore) {
             LibNFTOrdersRichErrors
-                .OverspentEthError(
-                    msg.value + (ethBalanceBefore - ethBalanceAfter),
-                    msg.value
-                )
+                .OverspentEthError(msg.value + (ethBalanceBefore - ethBalanceAfter), msg.value)
                 .rrevert();
         }
 
@@ -287,20 +263,12 @@ contract ERC1155OrdersFeature is
             LibNFTOrder.ERC1155Order memory buyOrder,
             LibSignature.Signature memory signature,
             bool unwrapNativeToken
-        ) = abi.decode(
-                data,
-                (LibNFTOrder.ERC1155Order, LibSignature.Signature, bool)
-            );
+        ) = abi.decode(data, (LibNFTOrder.ERC1155Order, LibSignature.Signature, bool));
 
         // `onERC1155Received` is called by the ERC1155 token contract.
         // Check that it matches the ERC1155 token in the order.
         if (msg.sender != address(buyOrder.erc1155Token)) {
-            LibNFTOrdersRichErrors
-                .ERC1155TokenMismatchError(
-                    msg.sender,
-                    address(buyOrder.erc1155Token)
-                )
-                .rrevert();
+            LibNFTOrdersRichErrors.ERC1155TokenMismatchError(msg.sender, address(buyOrder.erc1155Token)).rrevert();
         }
 
         _sellERC1155(
@@ -323,18 +291,11 @@ contract ERC1155OrdersFeature is
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
     /// @param order An ERC1155 order.
-    function preSignERC1155Order(LibNFTOrder.ERC1155Order memory order)
-        public
-        override
-    {
-        require(
-            order.maker == msg.sender,
-            "ERC1155OrdersFeature::preSignERC1155Order/MAKER_MISMATCH"
-        );
+    function preSignERC1155Order(LibNFTOrder.ERC1155Order memory order) public override {
+        require(order.maker == msg.sender, "ERC1155OrdersFeature::preSignERC1155Order/MAKER_MISMATCH");
         bytes32 orderHash = getERC1155OrderHash(order);
 
-        LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage
-            .getStorage();
+        LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
         // Set `preSigned` to true on the order state variable
         // to indicate that the order has been pre-signed.
         stor.orderState[orderHash].preSigned = true;
@@ -362,11 +323,7 @@ contract ERC1155OrdersFeature is
         LibSignature.Signature memory signature,
         SellParams memory params
     ) private {
-        uint256 erc20FillAmount = _sellNFT(
-            buyOrder.asNFTOrder(),
-            signature,
-            params
-        );
+        uint256 erc20FillAmount = _sellNFT(buyOrder.asNFTOrder(), signature, params);
 
         emit ERC1155OrderFilled(
             buyOrder.direction,
@@ -389,11 +346,7 @@ contract ERC1155OrdersFeature is
         LibSignature.Signature memory signature,
         BuyParams memory params
     ) public payable {
-        uint256 erc20FillAmount = _buyNFT(
-            sellOrder.asNFTOrder(),
-            signature,
-            params
-        );
+        uint256 erc20FillAmount = _buyNFT(sellOrder.asNFTOrder(), signature, params);
 
         emit ERC1155OrderFilled(
             sellOrder.direction,
@@ -434,21 +387,14 @@ contract ERC1155OrdersFeature is
     ) internal view override {
         if (signature.signatureType == LibSignature.SignatureType.PRESIGNED) {
             // Check if order hash has been pre-signed by the maker.
-            bool isPreSigned = LibERC1155OrdersStorage
-                .getStorage()
-                .orderState[orderHash]
-                .preSigned;
+            bool isPreSigned = LibERC1155OrdersStorage.getStorage().orderState[orderHash].preSigned;
             if (!isPreSigned) {
-                LibNFTOrdersRichErrors
-                    .InvalidSignerError(maker, address(0))
-                    .rrevert();
+                LibNFTOrdersRichErrors.InvalidSignerError(maker, address(0)).rrevert();
             }
         } else {
             address signer = LibSignature.getSignerOfHash(orderHash, signature);
             if (signer != maker) {
-                LibNFTOrdersRichErrors
-                    .InvalidSignerError(maker, signer)
-                    .rrevert();
+                LibNFTOrdersRichErrors.InvalidSignerError(maker, signer).rrevert();
             }
         }
     }
@@ -467,13 +413,7 @@ contract ERC1155OrdersFeature is
         uint256 tokenId,
         uint256 amount
     ) internal override {
-        _transferERC1155AssetFrom(
-            IERC1155Token(token),
-            from,
-            to,
-            tokenId,
-            amount
-        );
+        _transferERC1155AssetFrom(IERC1155Token(token), from, to, tokenId, amount);
     }
 
     /// @dev Updates storage to indicate that the given order
@@ -486,8 +426,7 @@ contract ERC1155OrdersFeature is
         bytes32 orderHash,
         uint128 fillAmount
     ) internal override {
-        LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage
-            .getStorage();
+        LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
         uint128 filledAmount = stor.orderState[orderHash].filledAmount;
         // Filled amount should never overflow 128 bits
         assert(filledAmount + fillAmount > filledAmount);
@@ -503,10 +442,11 @@ contract ERC1155OrdersFeature is
     ///      an ERC1155 asset.
     /// @param order The ERC1155 order.
     /// @param erc1155TokenId The ID of the ERC1155 asset.
-    function validateERC1155OrderProperties(
-        LibNFTOrder.ERC1155Order memory order,
-        uint256 erc1155TokenId
-    ) public view override {
+    function validateERC1155OrderProperties(LibNFTOrder.ERC1155Order memory order, uint256 erc1155TokenId)
+        public
+        view
+        override
+    {
         _validateOrderProperties(order.asNFTOrder(), erc1155TokenId);
     }
 
@@ -526,8 +466,7 @@ contract ERC1155OrdersFeature is
         // orders.
         if (
             order.erc1155TokenProperties.length > 0 &&
-            (order.direction != LibNFTOrder.TradeDirection.BUY_NFT ||
-                order.erc1155TokenId != 0)
+            (order.direction != LibNFTOrder.TradeDirection.BUY_NFT || order.erc1155TokenId != 0)
         ) {
             orderInfo.status = LibNFTOrder.OrderStatus.INVALID;
             return orderInfo;
@@ -536,8 +475,7 @@ contract ERC1155OrdersFeature is
         // Buy orders cannot use ETH as the ERC20 token, since ETH cannot be
         // transferred from the buyer by a contract.
         if (
-            order.direction == LibNFTOrder.TradeDirection.BUY_NFT &&
-            address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
+            order.direction == LibNFTOrder.TradeDirection.BUY_NFT && address(order.erc20Token) == NATIVE_TOKEN_ADDRESS
         ) {
             orderInfo.status = LibNFTOrder.OrderStatus.INVALID;
             return orderInfo;
@@ -550,26 +488,17 @@ contract ERC1155OrdersFeature is
         }
 
         {
-            LibERC1155OrdersStorage.Storage
-                storage stor = LibERC1155OrdersStorage.getStorage();
+            LibERC1155OrdersStorage.Storage storage stor = LibERC1155OrdersStorage.getStorage();
 
-            LibERC1155OrdersStorage.OrderState storage orderState = stor
-                .orderState[orderInfo.orderHash];
-            orderInfo.remainingAmount = order.erc1155TokenAmount.safeSub128(
-                orderState.filledAmount
-            );
+            LibERC1155OrdersStorage.OrderState storage orderState = stor.orderState[orderInfo.orderHash];
+            orderInfo.remainingAmount = order.erc1155TokenAmount.safeSub128(orderState.filledAmount);
 
             // `orderCancellationByMaker` is indexed by maker and nonce.
-            uint256 orderCancellationBitVector = stor.orderCancellationByMaker[
-                order.maker
-            ][uint248(order.nonce >> 8)];
+            uint256 orderCancellationBitVector = stor.orderCancellationByMaker[order.maker][uint248(order.nonce >> 8)];
             // The bitvector is indexed by the lower 8 bits of the nonce.
             uint256 flag = 1 << (order.nonce & 255);
 
-            if (
-                orderInfo.remainingAmount == 0 ||
-                orderCancellationBitVector & flag != 0
-            ) {
+            if (orderInfo.remainingAmount == 0 || orderCancellationBitVector & flag != 0) {
                 orderInfo.status = LibNFTOrder.OrderStatus.UNFILLABLE;
                 return orderInfo;
             }

@@ -21,8 +21,7 @@ pragma solidity ^0.6.5;
 
 library LibAuthorizableRichErrorsV06 {
     // bytes4(keccak256("AuthorizedAddressMismatchError(address,address)"))
-    bytes4 internal constant AUTHORIZED_ADDRESS_MISMATCH_ERROR_SELECTOR =
-        0x140a84db;
+    bytes4 internal constant AUTHORIZED_ADDRESS_MISMATCH_ERROR_SELECTOR = 0x140a84db;
 
     // bytes4(keccak256("IndexOutOfBoundsError(uint256,uint256)"))
     bytes4 internal constant INDEX_OUT_OF_BOUNDS_ERROR_SELECTOR = 0xe9f83771;
@@ -31,8 +30,7 @@ library LibAuthorizableRichErrorsV06 {
     bytes4 internal constant SENDER_NOT_AUTHORIZED_ERROR_SELECTOR = 0xb65a25b9;
 
     // bytes4(keccak256("TargetAlreadyAuthorizedError(address)"))
-    bytes4 internal constant TARGET_ALREADY_AUTHORIZED_ERROR_SELECTOR =
-        0xde16f1a0;
+    bytes4 internal constant TARGET_ALREADY_AUTHORIZED_ERROR_SELECTOR = 0xde16f1a0;
 
     // bytes4(keccak256("TargetNotAuthorizedError(address)"))
     bytes4 internal constant TARGET_NOT_AUTHORIZED_ERROR_SELECTOR = 0xeb5108a2;
@@ -41,66 +39,24 @@ library LibAuthorizableRichErrorsV06 {
     bytes internal constant ZERO_CANT_BE_AUTHORIZED_ERROR_BYTES = hex"57654fe4";
 
     // solhint-disable func-name-mixedcase
-    function AuthorizedAddressMismatchError(address authorized, address target)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                AUTHORIZED_ADDRESS_MISMATCH_ERROR_SELECTOR,
-                authorized,
-                target
-            );
+    function AuthorizedAddressMismatchError(address authorized, address target) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(AUTHORIZED_ADDRESS_MISMATCH_ERROR_SELECTOR, authorized, target);
     }
 
-    function IndexOutOfBoundsError(uint256 index, uint256 length)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                INDEX_OUT_OF_BOUNDS_ERROR_SELECTOR,
-                index,
-                length
-            );
+    function IndexOutOfBoundsError(uint256 index, uint256 length) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(INDEX_OUT_OF_BOUNDS_ERROR_SELECTOR, index, length);
     }
 
-    function SenderNotAuthorizedError(address sender)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                SENDER_NOT_AUTHORIZED_ERROR_SELECTOR,
-                sender
-            );
+    function SenderNotAuthorizedError(address sender) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(SENDER_NOT_AUTHORIZED_ERROR_SELECTOR, sender);
     }
 
-    function TargetAlreadyAuthorizedError(address target)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                TARGET_ALREADY_AUTHORIZED_ERROR_SELECTOR,
-                target
-            );
+    function TargetAlreadyAuthorizedError(address target) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(TARGET_ALREADY_AUTHORIZED_ERROR_SELECTOR, target);
     }
 
-    function TargetNotAuthorizedError(address target)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                TARGET_NOT_AUTHORIZED_ERROR_SELECTOR,
-                target
-            );
+    function TargetNotAuthorizedError(address target) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(TARGET_NOT_AUTHORIZED_ERROR_SELECTOR, target);
     }
 
     function ZeroCantBeAuthorizedError() internal pure returns (bytes memory) {

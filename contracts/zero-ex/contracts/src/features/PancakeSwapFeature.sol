@@ -43,23 +43,17 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
     uint256 private constant FF_PANCAKESWAPV2_FACTORY =
         0xffca143ce32fe78f1f7019d7d551a6402fc5350c730000000000000000000000;
     // 0xFF + address of the BakerySwap factory contract.
-    uint256 private constant FF_BAKERYSWAP_FACTORY =
-        0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
+    uint256 private constant FF_BAKERYSWAP_FACTORY = 0xff01bf7c66c6bd861915cdaae475042d3c4bae16a70000000000000000000000;
     // 0xFF + address of the SushiSwap factory contract.
-    uint256 private constant FF_SUSHISWAP_FACTORY =
-        0xffc35DADB65012eC5796536bD9864eD8773aBc74C40000000000000000000000;
+    uint256 private constant FF_SUSHISWAP_FACTORY = 0xffc35DADB65012eC5796536bD9864eD8773aBc74C40000000000000000000000;
     // 0xFF + address of the ApeSwap factory contract.
-    uint256 private constant FF_APESWAP_FACTORY =
-        0xff0841bd0b734e4f5853f0dd8d7ea041c241fb0da60000000000000000000000;
+    uint256 private constant FF_APESWAP_FACTORY = 0xff0841bd0b734e4f5853f0dd8d7ea041c241fb0da60000000000000000000000;
     // 0xFF + address of the CafeSwap factory contract.
-    uint256 private constant FF_CAFESWAP_FACTORY =
-        0xff3e708fdbe3ada63fc94f8f61811196f1302137ad0000000000000000000000;
+    uint256 private constant FF_CAFESWAP_FACTORY = 0xff3e708fdbe3ada63fc94f8f61811196f1302137ad0000000000000000000000;
     // 0xFF + address of the CheeseSwap factory contract.
-    uint256 private constant FF_CHEESESWAP_FACTORY =
-        0xffdd538e4fd1b69b7863e1f741213276a6cf1efb3b0000000000000000000000;
+    uint256 private constant FF_CHEESESWAP_FACTORY = 0xffdd538e4fd1b69b7863e1f741213276a6cf1efb3b0000000000000000000000;
     // 0xFF + address of the JulSwap factory contract.
-    uint256 private constant FF_JULSWAP_FACTORY =
-        0xff553990f2cba90272390f62c5bdb1681ffc8996750000000000000000000000;
+    uint256 private constant FF_JULSWAP_FACTORY = 0xff553990f2cba90272390f62c5bdb1681ffc8996750000000000000000000000;
 
     // Init code hash of the PancakeSwap pair contract.
     uint256 private constant PANCAKESWAP_PAIR_INIT_CODE_HASH =
@@ -87,11 +81,9 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
         0xb1e98e21a5335633815a8cfb3b580071c2e4561c50afd57a8746def9ed890b18;
 
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 private constant ADDRESS_MASK =
-        0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // BNB pseudo-token address.
-    uint256 private constant ETH_TOKEN_ADDRESS_32 =
-        0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+    uint256 private constant ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
     // Maximum token quantity that can be swapped against the PancakeSwapPair contract.
     uint256 private constant MAX_SWAP_AMOUNT = 2**112;
 
@@ -184,10 +176,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
                 // buyToken = tokens[i+1]
                 buyToken := loadTokenAddress(add(i, 1))
                 // The canonical ordering of this token pair.
-                let pairOrder := lt(
-                    normalizeToken(sellToken),
-                    normalizeToken(buyToken)
-                )
+                let pairOrder := lt(normalizeToken(sellToken), normalizeToken(buyToken))
 
                 // Compute the pair address if it hasn't already been computed
                 // from the last iteration.
@@ -219,26 +208,14 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
                         sellToken := mload(0xA40) // Re-assign to WBNB
                         // Call `WBNB.deposit{value: sellAmount}()`
                         mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
-                        if iszero(
-                            call(
-                                gas(),
-                                sellToken,
-                                sellAmount,
-                                0xB00,
-                                0x4,
-                                0x00,
-                                0x0
-                            )
-                        ) {
+                        if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
                             bubbleRevert()
                         }
                         // Call `WBNB.transfer(pair, sellAmount)`
                         mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
                         mstore(0xB04, pair)
                         mstore(0xB24, sellAmount)
-                        if iszero(
-                            call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)
-                        ) {
+                        if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) {
                             bubbleRevert()
                         }
                     }
@@ -282,10 +259,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
                     // buyAmount = (pairSellAmount * 997 * buyReserve) /
                     //     (pairSellAmount * 997 + sellReserve * 1000);
                     let sellAmountWithFee := mul(pairSellAmount, 997)
-                    buyAmount := div(
-                        mul(sellAmountWithFee, buyReserve),
-                        add(sellAmountWithFee, mul(sellReserve, 1000))
-                    )
+                    buyAmount := div(mul(sellAmountWithFee, buyReserve), add(sellAmountWithFee, mul(sellReserve, 1000)))
                 }
 
                 let receiver
@@ -294,10 +268,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
                 case 0 {
                     // Not the last pair contract, so forward bought tokens to
                     // the next pair contract.
-                    nextPair := computePairAddress(
-                        buyToken,
-                        loadTokenAddress(add(i, 2))
-                    )
+                    nextPair := computePairAddress(buyToken, loadTokenAddress(add(i, 2)))
                     receiver := nextPair
                 }
                 default {
@@ -342,15 +313,11 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
                 // Call `WBNB.withdraw(buyAmount)`
                 mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
                 mstore(0xB04, buyAmount)
-                if iszero(
-                    call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)
-                ) {
+                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
                     bubbleRevert()
                 }
                 // Transfer BNB to the caller.
-                if iszero(
-                    call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)
-                ) {
+                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
                     bubbleRevert()
                 }
             }
@@ -359,10 +326,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
 
             // Load a token address from the `tokens` calldata argument.
             function loadTokenAddress(idx) -> addr {
-                addr := and(
-                    ADDRESS_MASK,
-                    calldataload(add(mload(0xA00), mul(idx, 0x20)))
-                )
+                addr := and(ADDRESS_MASK, calldataload(add(mload(0xA00), mul(idx, 0x20))))
             }
 
             // Convert BNB pseudo-token addresses to WBNB.

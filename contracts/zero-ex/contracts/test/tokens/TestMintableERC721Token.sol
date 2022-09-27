@@ -57,24 +57,15 @@ contract TestMintableERC721Token {
     ///      reaffirmed. The zero address indicates there is no approved address.
     ///      When a Transfer event emits, this also indicates that the approved
     ///      address for that NFT (if any) is reset to none.
-    event Approval(
-        address indexed _owner,
-        address indexed _approved,
-        uint256 indexed _tokenId
-    );
+    event Approval(address indexed _owner, address indexed _approved, uint256 indexed _tokenId);
 
     /// @dev This emits when an operator is enabled or disabled for an owner.
     ///      The operator can manage all NFTs of the owner.
-    event ApprovalForAll(
-        address indexed _owner,
-        address indexed _operator,
-        bool _approved
-    );
+    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
 
     // Function selector for ERC721Receiver.onERC721Received
     // 0x150b7a02
-    bytes4 private constant ERC721_RECEIVED =
-        bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    bytes4 private constant ERC721_RECEIVED = bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
 
     // Mapping of tokenId => owner
     mapping(uint256 => address) private owners;
@@ -145,12 +136,7 @@ contract TestMintableERC721Token {
             receiverCodeSize := extcodesize(_to)
         }
         if (receiverCodeSize > 0) {
-            bytes4 selector = IERC721Receiver(_to).onERC721Received(
-                msg.sender,
-                _from,
-                _tokenId,
-                _data
-            );
+            bytes4 selector = IERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, _data);
             require(selector == ERC721_RECEIVED, "ERC721_INVALID_SELECTOR");
         }
     }
@@ -173,12 +159,7 @@ contract TestMintableERC721Token {
             receiverCodeSize := extcodesize(_to)
         }
         if (receiverCodeSize > 0) {
-            bytes4 selector = IERC721Receiver(_to).onERC721Received(
-                msg.sender,
-                _from,
-                _tokenId,
-                ""
-            );
+            bytes4 selector = IERC721Receiver(_to).onERC721Received(msg.sender, _from, _tokenId, "");
             require(selector == ERC721_RECEIVED, "ERC721_INVALID_SELECTOR");
         }
     }
@@ -191,10 +172,7 @@ contract TestMintableERC721Token {
     /// @param _tokenId The NFT to approve
     function approve(address _approved, uint256 _tokenId) external {
         address owner = ownerOf(_tokenId);
-        require(
-            msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            "ERC721_INVALID_SENDER"
-        );
+        require(msg.sender == owner || isApprovedForAll(owner, msg.sender), "ERC721_INVALID_SENDER");
 
         approvals[_tokenId] = _approved;
         emit Approval(owner, _approved, _tokenId);
@@ -244,9 +222,7 @@ contract TestMintableERC721Token {
         address spender = msg.sender;
         address approvedAddress = getApproved(_tokenId);
         require(
-            spender == owner ||
-                isApprovedForAll(owner, spender) ||
-                approvedAddress == spender,
+            spender == owner || isApprovedForAll(owner, spender) || approvedAddress == spender,
             "ERC721_INVALID_SPENDER"
         );
 
@@ -284,11 +260,7 @@ contract TestMintableERC721Token {
     /// @param _owner The address that owns the NFTs
     /// @param _operator The address that acts on behalf of the owner
     /// @return True if `_operator` is an approved operator for `_owner`, false otherwise
-    function isApprovedForAll(address _owner, address _operator)
-        public
-        view
-        returns (bool)
-    {
+    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
         return operatorApprovals[_owner][_operator];
     }
 }

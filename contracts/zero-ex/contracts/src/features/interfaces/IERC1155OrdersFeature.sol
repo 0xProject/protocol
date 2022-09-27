@@ -179,8 +179,7 @@ interface IERC1155OrdersFeature {
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
     /// @param order An ERC1155 order.
-    function preSignERC1155Order(LibNFTOrder.ERC1155Order calldata order)
-        external;
+    function preSignERC1155Order(LibNFTOrder.ERC1155Order calldata order) external;
 
     /// @dev Checks whether the given signature is valid for the
     ///      the given ERC1155 order. Reverts if not.
@@ -200,10 +199,9 @@ interface IERC1155OrdersFeature {
     ///      an ERC1155 asset.
     /// @param order The ERC1155 order.
     /// @param erc1155TokenId The ID of the ERC1155 asset.
-    function validateERC1155OrderProperties(
-        LibNFTOrder.ERC1155Order calldata order,
-        uint256 erc1155TokenId
-    ) external view;
+    function validateERC1155OrderProperties(LibNFTOrder.ERC1155Order calldata order, uint256 erc1155TokenId)
+        external
+        view;
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.
@@ -216,8 +214,5 @@ interface IERC1155OrdersFeature {
     /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderHash The order hash.
-    function getERC1155OrderHash(LibNFTOrder.ERC1155Order calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getERC1155OrderHash(LibNFTOrder.ERC1155Order calldata order) external view returns (bytes32 orderHash);
 }

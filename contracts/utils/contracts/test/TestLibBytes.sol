@@ -26,11 +26,7 @@ contract TestLibBytes {
     /// @dev Pops the last byte off of a byte array by modifying its length.
     /// @param b Byte array that will be modified.
     /// @return The byte that was popped off.
-    function publicPopLastByte(bytes memory b)
-        public
-        pure
-        returns (bytes memory, bytes1 result)
-    {
+    function publicPopLastByte(bytes memory b) public pure returns (bytes memory, bytes1 result) {
         result = b.popLastByte();
         return (b, result);
     }
@@ -39,20 +35,12 @@ contract TestLibBytes {
     /// @param lhs First byte array to compare.
     /// @param rhs Second byte array to compare.
     /// @return True if arrays are the same. False otherwise.
-    function publicEquals(bytes memory lhs, bytes memory rhs)
-        public
-        pure
-        returns (bool equal)
-    {
+    function publicEquals(bytes memory lhs, bytes memory rhs) public pure returns (bool equal) {
         equal = lhs.equals(rhs);
         return equal;
     }
 
-    function publicEqualsPop1(bytes memory lhs, bytes memory rhs)
-        public
-        pure
-        returns (bool equal)
-    {
+    function publicEqualsPop1(bytes memory lhs, bytes memory rhs) public pure returns (bool equal) {
         lhs.popLastByte();
         rhs.popLastByte();
         equal = lhs.equals(rhs);
@@ -63,11 +51,7 @@ contract TestLibBytes {
     /// @param b Byte array containing an address.
     /// @param index Index in byte array of address.
     /// @return address from byte array.
-    function publicReadAddress(bytes memory b, uint256 index)
-        public
-        pure
-        returns (address result)
-    {
+    function publicReadAddress(bytes memory b, uint256 index) public pure returns (address result) {
         result = b.readAddress(index);
         return result;
     }
@@ -89,11 +73,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a bytes32 value.
     /// @param index Index in byte array of bytes32 value.
     /// @return bytes32 value from byte array.
-    function publicReadBytes32(bytes memory b, uint256 index)
-        public
-        pure
-        returns (bytes32 result)
-    {
+    function publicReadBytes32(bytes memory b, uint256 index) public pure returns (bytes32 result) {
         result = b.readBytes32(index);
         return result;
     }
@@ -115,11 +95,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a uint256 value.
     /// @param index Index in byte array of uint256 value.
     /// @return uint256 value from byte array.
-    function publicReadUint256(bytes memory b, uint256 index)
-        public
-        pure
-        returns (uint256 result)
-    {
+    function publicReadUint256(bytes memory b, uint256 index) public pure returns (uint256 result) {
         result = b.readUint256(index);
         return result;
     }
@@ -141,11 +117,7 @@ contract TestLibBytes {
     /// @param b Byte array containing a bytes4 value.
     /// @param index Index in byte array of bytes4 value.
     /// @return bytes4 value from byte array.
-    function publicReadBytes4(bytes memory b, uint256 index)
-        public
-        pure
-        returns (bytes4 result)
-    {
+    function publicReadBytes4(bytes memory b, uint256 index) public pure returns (bytes4 result) {
         result = b.readBytes4(index);
         return result;
     }
@@ -223,10 +195,7 @@ contract TestLibBytes {
         return b;
     }
 
-    function assertBytesUnchangedAfterLengthReset(
-        bytes memory b,
-        uint256 tempLength
-    ) public pure {
+    function assertBytesUnchangedAfterLengthReset(bytes memory b, uint256 tempLength) public pure {
         uint256 length = b.length;
         bytes memory bCopy = b.slice(0, length);
         b.writeLength(tempLength);

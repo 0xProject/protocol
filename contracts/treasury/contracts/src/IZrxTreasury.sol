@@ -55,13 +55,7 @@ interface IZrxTreasury {
         string description
     );
 
-    event VoteCast(
-        address voter,
-        bytes32[] operatedPoolIds,
-        uint256 proposalId,
-        bool support,
-        uint256 votingPower
-    );
+    event VoteCast(address voter, bytes32[] operatedPoolIds, uint256 proposalId, bool support, uint256 votingPower);
 
     event ProposalExecuted(uint256 proposalId);
 
@@ -83,10 +77,7 @@ interface IZrxTreasury {
     ///      updated via a successful treasury proposal.
     /// @param newProposalThreshold The new value for the proposal threshold.
     /// @param newQuorumThreshold The new value for the quorum threshold.
-    function updateThresholds(
-        uint256 newProposalThreshold,
-        uint256 newQuorumThreshold
-    ) external;
+    function updateThresholds(uint256 newProposalThreshold, uint256 newQuorumThreshold) external;
 
     /// @dev Creates a proposal to send ZRX from this treasury on the
     ///      the given actions. Must have at least `proposalThreshold`
@@ -152,9 +143,7 @@ interface IZrxTreasury {
     ///      currently executable.
     /// @param proposalId The ID of the proposal to execute.
     /// @param actions Actions associated with the proposal to execute.
-    function execute(uint256 proposalId, ProposedAction[] memory actions)
-        external
-        payable;
+    function execute(uint256 proposalId, ProposedAction[] memory actions) external payable;
 
     /// @dev Returns the total number of proposals.
     /// @return count The number of proposals.

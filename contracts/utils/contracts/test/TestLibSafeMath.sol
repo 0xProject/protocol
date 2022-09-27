@@ -23,51 +23,27 @@ import "../src/LibSafeMath.sol";
 contract TestLibSafeMath {
     using LibSafeMath for uint256;
 
-    function externalSafeMul(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalSafeMul(uint256 a, uint256 b) external pure returns (uint256) {
         return a.safeMul(b);
     }
 
-    function externalSafeDiv(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalSafeDiv(uint256 a, uint256 b) external pure returns (uint256) {
         return a.safeDiv(b);
     }
 
-    function externalSafeSub(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalSafeSub(uint256 a, uint256 b) external pure returns (uint256) {
         return a.safeSub(b);
     }
 
-    function externalSafeAdd(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalSafeAdd(uint256 a, uint256 b) external pure returns (uint256) {
         return a.safeAdd(b);
     }
 
-    function externalMaxUint256(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalMaxUint256(uint256 a, uint256 b) external pure returns (uint256) {
         return a.max256(b);
     }
 
-    function externalMinUint256(uint256 a, uint256 b)
-        external
-        pure
-        returns (uint256)
-    {
+    function externalMinUint256(uint256 a, uint256 b) external pure returns (uint256) {
         return a.min256(b);
     }
 }

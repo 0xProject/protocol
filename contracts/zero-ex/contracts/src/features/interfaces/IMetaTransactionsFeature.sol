@@ -55,21 +55,16 @@ interface IMetaTransactionsFeature {
     /// @param selector The selector of the function being executed.
     /// @param signer Who to execute the meta-transaction on behalf of.
     /// @param sender Who executed the meta-transaction.
-    event MetaTransactionExecuted(
-        bytes32 hash,
-        bytes4 indexed selector,
-        address signer,
-        address sender
-    );
+    event MetaTransactionExecuted(bytes32 hash, bytes4 indexed selector, address signer, address sender);
 
     /// @dev Execute a single meta-transaction.
     /// @param mtx The meta-transaction.
     /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function executeMetaTransaction(
-        MetaTransactionData calldata mtx,
-        LibSignature.Signature calldata signature
-    ) external payable returns (bytes memory returnResult);
+    function executeMetaTransaction(MetaTransactionData calldata mtx, LibSignature.Signature calldata signature)
+        external
+        payable
+        returns (bytes memory returnResult);
 
     /// @dev Execute multiple meta-transactions.
     /// @param mtxs The meta-transactions.
@@ -91,16 +86,10 @@ interface IMetaTransactionsFeature {
     /// @dev Get the block at which a meta-transaction hash has been executed.
     /// @param mtxHash The meta-transaction hash.
     /// @return blockNumber The block height when the meta-transactioin was executed.
-    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash)
-        external
-        view
-        returns (uint256 blockNumber);
+    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash) external view returns (uint256 blockNumber);
 
     /// @dev Get the EIP712 hash of a meta-transaction.
     /// @param mtx The meta-transaction.
     /// @return mtxHash The EIP712 hash of `mtx`.
-    function getMetaTransactionHash(MetaTransactionData calldata mtx)
-        external
-        view
-        returns (bytes32 mtxHash);
+    function getMetaTransactionHash(MetaTransactionData calldata mtx) external view returns (bytes32 mtxHash);
 }

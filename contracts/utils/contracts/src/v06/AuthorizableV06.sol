@@ -52,15 +52,9 @@ contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
-    function removeAuthorizedAddress(address target)
-        external
-        override
-        onlyOwner
-    {
+    function removeAuthorizedAddress(address target) external override onlyOwner {
         if (!authorized[target]) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target)
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target));
         }
         for (uint256 i = 0; i < authorities.length; i++) {
             if (authorities[i] == target) {
@@ -73,33 +67,20 @@ contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(address target, uint256 index)
-        external
-        override
-        onlyOwner
-    {
+    function removeAuthorizedAddressAtIndex(address target, uint256 index) external override onlyOwner {
         _removeAuthorizedAddressAtIndex(target, index);
     }
 
     /// @dev Gets all authorized addresses.
     /// @return Array of authorized addresses.
-    function getAuthorizedAddresses()
-        external
-        view
-        override
-        returns (address[] memory)
-    {
+    function getAuthorizedAddresses() external view override returns (address[] memory) {
         return authorities;
     }
 
     /// @dev Reverts if msg.sender is not authorized.
     function _assertSenderIsAuthorized() internal view {
         if (!authorized[msg.sender]) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.SenderNotAuthorizedError(
-                    msg.sender
-                )
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.SenderNotAuthorizedError(msg.sender));
         }
     }
 
@@ -108,18 +89,12 @@ contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
     function _addAuthorizedAddress(address target) internal {
         // Ensure that the target is not the zero address.
         if (target == address(0)) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.ZeroCantBeAuthorizedError()
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.ZeroCantBeAuthorizedError());
         }
 
         // Ensure that the target is not already authorized.
         if (authorized[target]) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.TargetAlreadyAuthorizedError(
-                    target
-                )
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetAlreadyAuthorizedError(target));
         }
 
         authorized[target] = true;
@@ -130,28 +105,16 @@ contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function _removeAuthorizedAddressAtIndex(address target, uint256 index)
-        internal
-    {
+    function _removeAuthorizedAddressAtIndex(address target, uint256 index) internal {
         if (!authorized[target]) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target)
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.TargetNotAuthorizedError(target));
         }
         if (index >= authorities.length) {
-            LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.IndexOutOfBoundsError(
-                    index,
-                    authorities.length
-                )
-            );
+            LibRichErrorsV06.rrevert(LibAuthorizableRichErrorsV06.IndexOutOfBoundsError(index, authorities.length));
         }
         if (authorities[index] != target) {
             LibRichErrorsV06.rrevert(
-                LibAuthorizableRichErrorsV06.AuthorizedAddressMismatchError(
-                    authorities[index],
-                    target
-                )
+                LibAuthorizableRichErrorsV06.AuthorizedAddressMismatchError(authorities[index], target)
             );
         }
 

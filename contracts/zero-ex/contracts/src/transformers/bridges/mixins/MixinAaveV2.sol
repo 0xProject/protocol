@@ -70,29 +70,16 @@ contract MixinAaveV2 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256) {
-        (ILendingPool lendingPool, address aToken) = abi.decode(
-            bridgeData,
-            (ILendingPool, address)
-        );
+        (ILendingPool lendingPool, address aToken) = abi.decode(bridgeData, (ILendingPool, address));
 
         sellToken.approveIfBelow(address(lendingPool), sellAmount);
 
         if (address(buyToken) == aToken) {
-            lendingPool.deposit(
-                address(sellToken),
-                sellAmount,
-                address(this),
-                0
-            );
+            lendingPool.deposit(address(sellToken), sellAmount, address(this), 0);
             // 1:1 mapping token -> aToken and have the same number of decimals as the underlying token
             return sellAmount;
         } else if (address(sellToken) == aToken) {
-            return
-                lendingPool.withdraw(
-                    address(buyToken),
-                    sellAmount,
-                    address(this)
-                );
+            return lendingPool.withdraw(address(buyToken), sellAmount, address(this));
         }
 
         revert("MixinAaveV2/UNSUPPORTED_TOKEN_PAIR");

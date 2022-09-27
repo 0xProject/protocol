@@ -22,11 +22,7 @@ pragma solidity ^0.6.5;
 library LibSimpleFunctionRegistryRichErrors {
     // solhint-disable func-name-mixedcase
 
-    function NotInRollbackHistoryError(bytes4 selector, address targetImpl)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function NotInRollbackHistoryError(bytes4 selector, address targetImpl) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("NotInRollbackHistoryError(bytes4,address)")),

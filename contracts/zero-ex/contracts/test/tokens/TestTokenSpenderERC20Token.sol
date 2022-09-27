@@ -23,12 +23,7 @@ pragma experimental ABIEncoderV2;
 import "./TestMintableERC20Token.sol";
 
 contract TestTokenSpenderERC20Token is TestMintableERC20Token {
-    event TransferFromCalled(
-        address sender,
-        address from,
-        address to,
-        uint256 amount
-    );
+    event TransferFromCalled(address sender, address from, address to, uint256 amount);
 
     // `transferFrom()` behavior depends on the value of `amount`.
     uint256 private constant EMPTY_RETURN_AMOUNT = 1337;
@@ -66,10 +61,7 @@ contract TestTokenSpenderERC20Token is TestMintableERC20Token {
             assert(!_isGreedyRevert);
             return false;
         }
-        if (
-            amount == EXTRA_RETURN_TRUE_AMOUNT ||
-            amount == EXTRA_RETURN_FALSE_AMOUNT
-        ) {
+        if (amount == EXTRA_RETURN_TRUE_AMOUNT || amount == EXTRA_RETURN_FALSE_AMOUNT) {
             bool ret = amount == EXTRA_RETURN_TRUE_AMOUNT;
 
             assembly {

@@ -34,12 +34,7 @@ import "../transformers/LibERC20Transformer.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ILiquidityProviderFeature.sol";
 
-contract LiquidityProviderFeature is
-    IFeature,
-    ILiquidityProviderFeature,
-    FixinCommon,
-    FixinTokenSpender
-{
+contract LiquidityProviderFeature is IFeature, ILiquidityProviderFeature, FixinCommon, FixinTokenSpender {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -96,49 +91,21 @@ contract LiquidityProviderFeature is
 
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Transfer input ERC20 tokens to the provider.
-            _transferERC20TokensFrom(
-                inputToken,
-                msg.sender,
-                address(provider),
-                sellAmount
-            );
+            _transferERC20TokensFrom(inputToken, msg.sender, address(provider), sellAmount);
         }
 
         if (LibERC20Transformer.isTokenETH(inputToken)) {
             uint256 balanceBefore = outputToken.balanceOf(recipient);
-            sandbox.executeSellEthForToken(
-                provider,
-                outputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
-            boughtAmount = IERC20TokenV06(outputToken)
-                .balanceOf(recipient)
-                .safeSub(balanceBefore);
+            sandbox.executeSellEthForToken(provider, outputToken, recipient, minBuyAmount, auxiliaryData);
+            boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         } else if (LibERC20Transformer.isTokenETH(outputToken)) {
             uint256 balanceBefore = recipient.balance;
-            sandbox.executeSellTokenForEth(
-                provider,
-                inputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
+            sandbox.executeSellTokenForEth(provider, inputToken, recipient, minBuyAmount, auxiliaryData);
             boughtAmount = recipient.balance.safeSub(balanceBefore);
         } else {
             uint256 balanceBefore = outputToken.balanceOf(recipient);
-            sandbox.executeSellTokenForToken(
-                provider,
-                inputToken,
-                outputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
-            boughtAmount = outputToken.balanceOf(recipient).safeSub(
-                balanceBefore
-            );
+            sandbox.executeSellTokenForToken(provider, inputToken, outputToken, recipient, minBuyAmount, auxiliaryData);
+            boughtAmount = outputToken.balanceOf(recipient).safeSub(balanceBefore);
         }
 
         if (boughtAmount < minBuyAmount) {
@@ -154,13 +121,6 @@ contract LiquidityProviderFeature is
                 .rrevert();
         }
 
-        emit LiquidityProviderSwap(
-            inputToken,
-            outputToken,
-            sellAmount,
-            boughtAmount,
-            provider,
-            recipient
-        );
+        emit LiquidityProviderSwap(inputToken, outputToken, sellAmount, boughtAmount, provider, recipient);
     }
 }

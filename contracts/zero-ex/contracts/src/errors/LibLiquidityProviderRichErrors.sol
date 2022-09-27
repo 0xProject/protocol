@@ -33,9 +33,7 @@ library LibLiquidityProviderRichErrors {
         return
             abi.encodeWithSelector(
                 bytes4(
-                    keccak256(
-                        "LiquidityProviderIncompleteSellError(address,address,address,uint256,uint256,uint256)"
-                    )
+                    keccak256("LiquidityProviderIncompleteSellError(address,address,address,uint256,uint256,uint256)")
                 ),
                 providerAddress,
                 makerToken,

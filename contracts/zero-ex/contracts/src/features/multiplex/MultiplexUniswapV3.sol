@@ -43,9 +43,7 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
             // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature
-                        ._sellHeldTokenForTokenToUniswapV3
-                        .selector,
+                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     sellAmount,
                     0,
@@ -75,10 +73,9 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
         }
     }
 
-    function _multiHopSellUniswapV3(
-        IMultiplexFeature.MultiHopSellState memory state,
-        bytes memory wrappedCallData
-    ) internal {
+    function _multiHopSellUniswapV3(IMultiplexFeature.MultiHopSellState memory state, bytes memory wrappedCallData)
+        internal
+    {
         bool success;
         bytes memory resultData;
         if (state.from == address(this)) {
@@ -87,9 +84,7 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
             // which uses the Exchange Proxy's balance of input token.
             (success, resultData) = address(this).call(
                 abi.encodeWithSelector(
-                    IUniswapV3Feature
-                        ._sellHeldTokenForTokenToUniswapV3
-                        .selector,
+                    IUniswapV3Feature._sellHeldTokenForTokenToUniswapV3.selector,
                     wrappedCallData,
                     state.outputTokenAmount,
                     0,

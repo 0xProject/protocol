@@ -44,13 +44,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
         LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for up to `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller.
@@ -63,12 +57,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
         LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order for exactly `takerTokenFillAmount` taker tokens.
     ///      The taker will be the caller. ETH protocol fees can be
@@ -112,13 +101,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
         uint128 takerTokenFillAmount,
         address taker,
         address sender
-    )
-        external
-        payable
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fill an RFQ order. Internal variant.
     /// @param order The RFQ order.
@@ -137,18 +120,12 @@ interface INativeOrdersFeature is INativeOrdersEvents {
         address taker,
         bool useSelfBalance,
         address recipient
-    )
-        external
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        );
+    ) external returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param order The limit order.
-    function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order)
-        external;
+    function cancelLimitOrder(LibNativeOrder.LimitOrder calldata order) external;
 
     /// @dev Cancel a single RFQ order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
@@ -159,20 +136,17 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     ///      specifies the message sender as its txOrigin.
     /// @param origins An array of origin addresses to update.
     /// @param allowed True to register, false to unregister.
-    function registerAllowedRfqOrigins(address[] memory origins, bool allowed)
-        external;
+    function registerAllowedRfqOrigins(address[] memory origins, bool allowed) external;
 
     /// @dev Cancel multiple limit orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The limit orders.
-    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders)
-        external;
+    function batchCancelLimitOrders(LibNativeOrder.LimitOrder[] calldata orders) external;
 
     /// @dev Cancel multiple RFQ orders. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.
     /// @param orders The RFQ orders.
-    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders)
-        external;
+    function batchCancelRfqOrders(LibNativeOrder.RfqOrder[] calldata orders) external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be the maker. Subsequent
@@ -305,26 +279,17 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
-    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the canonical hash of an RFQ order.
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
-    function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getRfqOrderHash(LibNativeOrder.RfqOrder calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the protocol fee multiplier. This should be multiplied by the
     ///      gas price to arrive at the required protocol fee to fill a native order.
     /// @return multiplier The protocol fee multiplier.
-    function getProtocolFeeMultiplier()
-        external
-        view
-        returns (uint32 multiplier);
+    function getProtocolFeeMultiplier() external view returns (uint32 multiplier);
 
     /// @dev Get order info, fillable amount, and signature validity for a limit order.
     ///      Fillable amount is determined using balances and allowances of the maker.
@@ -354,10 +319,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getRfqOrderRelevantState(
-        LibNativeOrder.RfqOrder calldata order,
-        LibSignature.Signature calldata signature
-    )
+    function getRfqOrderRelevantState(LibNativeOrder.RfqOrder calldata order, LibSignature.Signature calldata signature)
         external
         view
         returns (
@@ -417,8 +379,5 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @dev checks if a given address is registered to sign on behalf of a maker address
     /// @param maker The maker address encoded in an order (can be a contract)
     /// @param signer The address that is providing a signature
-    function isValidOrderSigner(address maker, address signer)
-        external
-        view
-        returns (bool isAllowed);
+    function isValidOrderSigner(address maker, address signer) external view returns (bool isAllowed);
 }

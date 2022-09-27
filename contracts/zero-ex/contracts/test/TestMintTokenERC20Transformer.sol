@@ -44,11 +44,7 @@ contract TestMintTokenERC20Transformer is IERC20Transformer {
         uint256 ethBalance
     );
 
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         emit MintTransform(
             address(this),
@@ -68,16 +64,9 @@ contract TestMintTokenERC20Transformer is IERC20Transformer {
             data.inputToken.transfer(address(0), data.burnAmount);
         }
         // Mint output tokens.
-        if (
-            !LibERC20Transformer.isTokenETH(
-                IERC20TokenV06(address(data.outputToken))
-            )
-        ) {
+        if (!LibERC20Transformer.isTokenETH(IERC20TokenV06(address(data.outputToken)))) {
             if (data.feeAmount > data.mintAmount) {
-                data.outputToken.burn(
-                    context.recipient,
-                    data.feeAmount - data.mintAmount
-                );
+                data.outputToken.burn(context.recipient, data.feeAmount - data.mintAmount);
             } else {
                 data.outputToken.mint(address(this), data.mintAmount);
                 data.outputToken.burn(context.recipient, data.feeAmount);

@@ -22,11 +22,7 @@ pragma solidity ^0.6.5;
 library LibNativeOrdersRichErrors {
     // solhint-disable func-name-mixedcase
 
-    function ProtocolFeeRefundFailed(address receiver, uint256 refundAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function ProtocolFeeRefundFailed(address receiver, uint256 refundAmount) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("ProtocolFeeRefundFailed(address,uint256)")),
@@ -42,28 +38,16 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "OrderNotFillableByOriginError(bytes32,address,address)"
-                    )
-                ),
+                bytes4(keccak256("OrderNotFillableByOriginError(bytes32,address,address)")),
                 orderHash,
                 txOrigin,
                 orderTxOrigin
             );
     }
 
-    function OrderNotFillableError(bytes32 orderHash, uint8 orderStatus)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function OrderNotFillableError(bytes32 orderHash, uint8 orderStatus) internal pure returns (bytes memory) {
         return
-            abi.encodeWithSelector(
-                bytes4(keccak256("OrderNotFillableError(bytes32,uint8)")),
-                orderHash,
-                orderStatus
-            );
+            abi.encodeWithSelector(bytes4(keccak256("OrderNotFillableError(bytes32,uint8)")), orderHash, orderStatus);
     }
 
     function OrderNotSignedByMakerError(
@@ -73,28 +57,15 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "OrderNotSignedByMakerError(bytes32,address,address)"
-                    )
-                ),
+                bytes4(keccak256("OrderNotSignedByMakerError(bytes32,address,address)")),
                 orderHash,
                 signer,
                 maker
             );
     }
 
-    function InvalidSignerError(address maker, address signer)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                bytes4(keccak256("InvalidSignerError(address,address)")),
-                maker,
-                signer
-            );
+    function InvalidSignerError(address maker, address signer) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(bytes4(keccak256("InvalidSignerError(address,address)")), maker, signer);
     }
 
     function OrderNotFillableBySenderError(
@@ -104,11 +75,7 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "OrderNotFillableBySenderError(bytes32,address,address)"
-                    )
-                ),
+                bytes4(keccak256("OrderNotFillableBySenderError(bytes32,address,address)")),
                 orderHash,
                 sender,
                 orderSender
@@ -122,21 +89,14 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "OrderNotFillableByTakerError(bytes32,address,address)"
-                    )
-                ),
+                bytes4(keccak256("OrderNotFillableByTakerError(bytes32,address,address)")),
                 orderHash,
                 taker,
                 orderTaker
             );
     }
 
-    function CancelSaltTooLowError(
-        uint256 minValidSalt,
-        uint256 oldMinValidSalt
-    ) internal pure returns (bytes memory) {
+    function CancelSaltTooLowError(uint256 minValidSalt, uint256 oldMinValidSalt) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("CancelSaltTooLowError(uint256,uint256)")),
@@ -152,9 +112,7 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256("FillOrKillFailedError(bytes32,uint256,uint256)")
-                ),
+                bytes4(keccak256("FillOrKillFailedError(bytes32,uint256,uint256)")),
                 orderHash,
                 takerTokenFilledAmount,
                 takerTokenFillAmount
@@ -168,9 +126,7 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256("OnlyOrderMakerAllowed(bytes32,address,address)")
-                ),
+                bytes4(keccak256("OnlyOrderMakerAllowed(bytes32,address,address)")),
                 orderHash,
                 sender,
                 maker
@@ -184,11 +140,7 @@ library LibNativeOrdersRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "BatchFillIncompleteError(bytes32,uint256,uint256)"
-                    )
-                ),
+                bytes4(keccak256("BatchFillIncompleteError(bytes32,uint256,uint256)")),
                 orderHash,
                 takerTokenFilledAmount,
                 takerTokenFillAmount

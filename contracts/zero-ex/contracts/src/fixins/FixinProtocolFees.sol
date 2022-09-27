@@ -46,8 +46,7 @@ abstract contract FixinProtocolFees {
         uint32 protocolFeeMultiplier
     ) internal {
         FEE_COLLECTOR_CONTROLLER = feeCollectorController;
-        FEE_COLLECTOR_INIT_CODE_HASH = feeCollectorController
-            .FEE_COLLECTOR_INIT_CODE_HASH();
+        FEE_COLLECTOR_INIT_CODE_HASH = feeCollectorController.FEE_COLLECTOR_INIT_CODE_HASH();
         WETH = weth;
         STAKING = staking;
         PROTOCOL_FEE_MULTIPLIER = protocolFeeMultiplier;
@@ -57,19 +56,14 @@ abstract contract FixinProtocolFees {
     ///        The fee is stored in a per-pool fee collector contract.
     /// @param poolId The pool ID for which a fee is being collected.
     /// @return ethProtocolFeePaid How much protocol fee was collected in ETH.
-    function _collectProtocolFee(bytes32 poolId)
-        internal
-        returns (uint256 ethProtocolFeePaid)
-    {
+    function _collectProtocolFee(bytes32 poolId) internal returns (uint256 ethProtocolFeePaid) {
         uint256 protocolFeePaid = _getSingleProtocolFee();
         if (protocolFeePaid == 0) {
             // Nothing to do.
             return 0;
         }
         FeeCollector feeCollector = _getFeeCollector(poolId);
-        (bool success, ) = address(feeCollector).call{value: protocolFeePaid}(
-            ""
-        );
+        (bool success, ) = address(feeCollector).call{value: protocolFeePaid}("");
         require(success, "FixinProtocolFees/ETHER_TRANSFER_FALIED");
         return protocolFeePaid;
     }
@@ -79,27 +73,18 @@ abstract contract FixinProtocolFees {
     function _transferFeesForPool(bytes32 poolId) internal {
         // This will create a FeeCollector contract (if necessary) and wrap
         // fees for the pool ID.
-        FeeCollector feeCollector = FEE_COLLECTOR_CONTROLLER
-            .prepareFeeCollectorToPayFees(poolId);
+        FeeCollector feeCollector = FEE_COLLECTOR_CONTROLLER.prepareFeeCollectorToPayFees(poolId);
         // All fees in the fee collector should be in WETH now.
         uint256 bal = WETH.balanceOf(address(feeCollector));
         if (bal > 1) {
             // Leave 1 wei behind to avoid high SSTORE cost of zero-->non-zero.
-            STAKING.payProtocolFee(
-                address(feeCollector),
-                address(feeCollector),
-                bal - 1
-            );
+            STAKING.payProtocolFee(address(feeCollector), address(feeCollector), bal - 1);
         }
     }
 
     /// @dev Compute the CREATE2 address for a fee collector.
     /// @param poolId The fee collector's pool ID.
-    function _getFeeCollector(bytes32 poolId)
-        internal
-        view
-        returns (FeeCollector)
-    {
+    function _getFeeCollector(bytes32 poolId) internal view returns (FeeCollector) {
         return
             FeeCollector(
                 LibFeeCollector.getFeeCollectorAddress(
@@ -112,11 +97,7 @@ abstract contract FixinProtocolFees {
 
     /// @dev Get the cost of a single protocol fee.
     /// @return protocolFeeAmount The protocol fee amount, in ETH/WETH.
-    function _getSingleProtocolFee()
-        internal
-        view
-        returns (uint256 protocolFeeAmount)
-    {
+    function _getSingleProtocolFee() internal view returns (uint256 protocolFeeAmount) {
         return uint256(PROTOCOL_FEE_MULTIPLIER) * tx.gasprice;
     }
 }

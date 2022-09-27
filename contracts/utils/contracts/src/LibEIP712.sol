@@ -79,11 +79,7 @@ library LibEIP712 {
     ///                         with getDomainHash().
     /// @param hashStruct The EIP712 hash struct.
     /// @return EIP712 hash applied to the given EIP712 Domain.
-    function hashEIP712Message(bytes32 eip712DomainHash, bytes32 hashStruct)
-        internal
-        pure
-        returns (bytes32 result)
-    {
+    function hashEIP712Message(bytes32 eip712DomainHash, bytes32 hashStruct) internal pure returns (bytes32 result) {
         // Assembly for more efficient computing:
         // keccak256(abi.encodePacked(
         //     EIP191_HEADER,
@@ -95,10 +91,7 @@ library LibEIP712 {
             // Load free memory pointer
             let memPtr := mload(64)
 
-            mstore(
-                memPtr,
-                0x1901000000000000000000000000000000000000000000000000000000000000
-            ) // EIP191 header
+            mstore(memPtr, 0x1901000000000000000000000000000000000000000000000000000000000000) // EIP191 header
             mstore(add(memPtr, 2), eip712DomainHash) // EIP712 domain hash
             mstore(add(memPtr, 34), hashStruct) // Hash of struct
 

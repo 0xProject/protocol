@@ -41,9 +41,7 @@ contract OwnableV06 is IOwnableV06 {
     /// @param newOwner New owner address.
     function transferOwnership(address newOwner) public override onlyOwner {
         if (newOwner == address(0)) {
-            LibRichErrorsV06.rrevert(
-                LibOwnableRichErrorsV06.TransferOwnerToZeroError()
-            );
+            LibRichErrorsV06.rrevert(LibOwnableRichErrorsV06.TransferOwnerToZeroError());
         } else {
             owner = newOwner;
             emit OwnershipTransferred(msg.sender, newOwner);
@@ -52,9 +50,7 @@ contract OwnableV06 is IOwnableV06 {
 
     function _assertSenderIsOwner() internal view {
         if (msg.sender != owner) {
-            LibRichErrorsV06.rrevert(
-                LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner)
-            );
+            LibRichErrorsV06.rrevert(LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner));
         }
     }
 }

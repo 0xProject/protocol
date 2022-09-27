@@ -47,24 +47,13 @@ contract PositiveSlippageFeeTransformer is Transformer {
     /// @dev Transfers tokens to recipients.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TokenFee memory fee = abi.decode(context.data, (TokenFee));
 
-        uint256 transformerAmount = LibERC20Transformer.getTokenBalanceOf(
-            fee.token,
-            address(this)
-        );
+        uint256 transformerAmount = LibERC20Transformer.getTokenBalanceOf(fee.token, address(this));
         if (transformerAmount > fee.bestCaseAmount) {
-            uint256 positiveSlippageAmount = transformerAmount -
-                fee.bestCaseAmount;
-            fee.token.transformerTransfer(
-                fee.recipient,
-                positiveSlippageAmount
-            );
+            uint256 positiveSlippageAmount = transformerAmount - fee.bestCaseAmount;
+            fee.token.transformerTransfer(fee.recipient, positiveSlippageAmount);
         }
 
         return LibERC20Transformer.TRANSFORMER_SUCCESS;

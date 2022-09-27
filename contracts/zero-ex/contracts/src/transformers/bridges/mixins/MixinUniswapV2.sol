@@ -59,24 +59,15 @@ contract MixinUniswapV2 {
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (router, _path) = abi.decode(
-                bridgeData,
-                (IUniswapV2Router02, address[])
-            );
+            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
                 path := _path
             }
         }
 
-        require(
-            path.length >= 2,
-            "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
-        );
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path.length >= 2, "MixinUniswapV2/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path[path.length - 1] == buyToken, "MixinUniswapV2/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
         // Grant the Uniswap router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 

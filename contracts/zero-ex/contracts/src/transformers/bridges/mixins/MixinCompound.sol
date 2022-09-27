@@ -82,31 +82,20 @@ contract MixinCompound {
                 sellToken.approveIfBelow(cTokenAddress, sellAmount);
                 // Token -> cToken
                 ICToken cToken = ICToken(cTokenAddress);
-                require(
-                    cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE,
-                    "MixinCompound/FAILED_TO_MINT_CTOKEN"
-                );
+                require(cToken.mint(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_MINT_CTOKEN");
             }
         } else if (address(sellToken) == cTokenAddress) {
             if (address(buyToken) == address(WETH)) {
                 // cETH -> ETH/WETH
                 uint256 etherBalanceBefore = address(this).balance;
                 ICEther cETH = ICEther(cTokenAddress);
-                require(
-                    cETH.redeem(sellAmount) == COMPOUND_SUCCESS_CODE,
-                    "MixinCompound/FAILED_TO_REDEEM_CETHER"
-                );
+                require(cETH.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CETHER");
                 uint256 etherBalanceAfter = address(this).balance;
-                uint256 receivedEtherBalance = etherBalanceAfter.safeSub(
-                    etherBalanceBefore
-                );
+                uint256 receivedEtherBalance = etherBalanceAfter.safeSub(etherBalanceBefore);
                 WETH.deposit{value: receivedEtherBalance}();
             } else {
                 ICToken cToken = ICToken(cTokenAddress);
-                require(
-                    cToken.redeem(sellAmount) == COMPOUND_SUCCESS_CODE,
-                    "MixinCompound/FAILED_TO_REDEEM_CTOKEN"
-                );
+                require(cToken.redeem(sellAmount) == COMPOUND_SUCCESS_CODE, "MixinCompound/FAILED_TO_REDEEM_CTOKEN");
             }
         }
 

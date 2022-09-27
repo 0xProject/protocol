@@ -64,10 +64,7 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
         );
 
         // Decode the provider address and auxiliary data.
-        (address provider, bytes memory auxiliaryData) = abi.decode(
-            wrappedCallData,
-            (address, bytes)
-        );
+        (address provider, bytes memory auxiliaryData) = abi.decode(wrappedCallData, (address, bytes));
 
         if (params.useSelfBalance) {
             // If `useSelfBalance` is true, use the input tokens
@@ -75,12 +72,7 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
             _transferERC20Tokens(params.inputToken, provider, sellAmount);
         } else {
             // Otherwise, transfer the input tokens from `msg.sender`.
-            _transferERC20TokensFrom(
-                params.inputToken,
-                msg.sender,
-                provider,
-                sellAmount
-            );
+            _transferERC20TokensFrom(params.inputToken, msg.sender, provider, sellAmount);
         }
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = params.outputToken.balanceOf(params.recipient);
@@ -95,9 +87,7 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
         );
         // Compute amount of output token received by the
         // recipient.
-        boughtAmount = params.outputToken.balanceOf(params.recipient).safeSub(
-            balanceBefore
-        );
+        boughtAmount = params.outputToken.balanceOf(params.recipient).safeSub(balanceBefore);
 
         emit LiquidityProviderSwap(
             address(params.inputToken),
@@ -140,17 +130,10 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
     ) internal {
-        IERC20TokenV06 inputToken = IERC20TokenV06(
-            params.tokens[state.hopIndex]
-        );
-        IERC20TokenV06 outputToken = IERC20TokenV06(
-            params.tokens[state.hopIndex + 1]
-        );
+        IERC20TokenV06 inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
+        IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
         // Decode the provider address and auxiliary data.
-        (address provider, bytes memory auxiliaryData) = abi.decode(
-            wrappedCallData,
-            (address, bytes)
-        );
+        (address provider, bytes memory auxiliaryData) = abi.decode(wrappedCallData, (address, bytes));
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = outputToken.balanceOf(state.to);
         // Execute the swap.
@@ -170,9 +153,7 @@ abstract contract MultiplexLiquidityProvider is FixinCommon, FixinTokenSpender {
         uint256 sellAmount = state.outputTokenAmount;
         // Compute amount of output token received by the
         // recipient.
-        state.outputTokenAmount = outputToken.balanceOf(state.to).safeSub(
-            balanceBefore
-        );
+        state.outputTokenAmount = outputToken.balanceOf(state.to).safeSub(balanceBefore);
 
         emit LiquidityProviderSwap(
             address(inputToken),

@@ -38,25 +38,19 @@ abstract contract MultiplexRfq is FixinEIP712 {
         uint256 sellAmount
     ) internal {
         // Decode the RFQ order and signature.
-        (
-            LibNativeOrder.RfqOrder memory order,
-            LibSignature.Signature memory signature
-        ) = abi.decode(
-                wrappedCallData,
-                (LibNativeOrder.RfqOrder, LibSignature.Signature)
-            );
+        (LibNativeOrder.RfqOrder memory order, LibSignature.Signature memory signature) = abi.decode(
+            wrappedCallData,
+            (LibNativeOrder.RfqOrder, LibSignature.Signature)
+        );
         // Pre-emptively check if the order is expired.
         if (order.expiry <= uint64(block.timestamp)) {
-            bytes32 orderHash = _getEIP712Hash(
-                LibNativeOrder.getRfqOrderStructHash(order)
-            );
+            bytes32 orderHash = _getEIP712Hash(LibNativeOrder.getRfqOrderStructHash(order));
             emit ExpiredRfqOrder(orderHash, order.maker, order.expiry);
             return;
         }
         // Validate tokens.
         require(
-            order.takerToken == params.inputToken &&
-                order.makerToken == params.outputToken,
+            order.takerToken == params.inputToken && order.makerToken == params.outputToken,
             "MultiplexRfq::_batchSellRfqOrder/RFQ_ORDER_INVALID_TOKENS"
         );
         // Try filling the RFQ order. Swallows reverts.
@@ -69,15 +63,10 @@ abstract contract MultiplexRfq is FixinEIP712 {
                 params.useSelfBalance,
                 params.recipient
             )
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        ) {
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(takerTokenFilledAmount);
-            state.boughtAmount = state.boughtAmount.safeAdd(
-                makerTokenFilledAmount
-            );
+            state.boughtAmount = state.boughtAmount.safeAdd(makerTokenFilledAmount);
         } catch {}
     }
 }

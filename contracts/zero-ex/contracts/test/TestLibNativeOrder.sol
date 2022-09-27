@@ -13,11 +13,7 @@ contract TestLibNativeOrder {
         return LibNativeOrder.getLimitOrderStructHash(order);
     }
 
-    function getRfqOrderStructHash(LibNativeOrder.RfqOrder calldata order)
-        external
-        pure
-        returns (bytes32 structHash)
-    {
+    function getRfqOrderStructHash(LibNativeOrder.RfqOrder calldata order) external pure returns (bytes32 structHash) {
         return LibNativeOrder.getRfqOrderStructHash(order);
     }
 }

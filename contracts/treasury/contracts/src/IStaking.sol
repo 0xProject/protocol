@@ -54,9 +54,7 @@ interface IStaking {
     /// @param operatorShare Portion of rewards owned by the operator, in ppm.
     /// @param addOperatorAsMaker Adds operator to the created pool as a maker for convenience iff true.
     /// @return poolId The unique pool id generated for this pool.
-    function createStakingPool(uint32 operatorShare, bool addOperatorAsMaker)
-        external
-        returns (bytes32 poolId);
+    function createStakingPool(uint32 operatorShare, bool addOperatorAsMaker) external returns (bytes32 poolId);
 
     /// @dev Returns the current staking epoch number.
     /// @return epoch The current epoch.
@@ -64,10 +62,7 @@ interface IStaking {
 
     /// @dev Returns the time (in seconds) at which the current staking epoch started.
     /// @return startTime The start time of the current epoch, in seconds.
-    function currentEpochStartTimeInSeconds()
-        external
-        view
-        returns (uint256 startTime);
+    function currentEpochStartTimeInSeconds() external view returns (uint256 startTime);
 
     /// @dev Returns the duration of an epoch in seconds. This value can be updated.
     /// @return duration The duration of an epoch, in seconds.
@@ -80,10 +75,7 @@ interface IStaking {
     /// @dev Gets global stake for a given status.
     /// @param stakeStatus UNDELEGATED or DELEGATED
     /// @return balance Global stake for given status.
-    function getGlobalStakeByStatus(StakeStatus stakeStatus)
-        external
-        view
-        returns (StoredBalance memory balance);
+    function getGlobalStakeByStatus(StakeStatus stakeStatus) external view returns (StoredBalance memory balance);
 
     /// @dev Gets an owner's stake balances by status.
     /// @param staker Owner of stake.
@@ -98,10 +90,7 @@ interface IStaking {
     ///      across all members.
     /// @param poolId Unique Id of pool.
     /// @return balance Total stake delegated to pool.
-    function getTotalStakeDelegatedToPool(bytes32 poolId)
-        external
-        view
-        returns (StoredBalance memory balance);
+    function getTotalStakeDelegatedToPool(bytes32 poolId) external view returns (StoredBalance memory balance);
 
     /// @dev Returns the stake delegated to a specific staking pool, by a given staker.
     /// @param staker of stake.

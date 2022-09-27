@@ -62,10 +62,7 @@ abstract contract FixinCommon {
     /// @param selector The selector of the function whose implementation
     ///        is at `_implementation`.
     function _registerFeatureFunction(bytes4 selector) internal {
-        ISimpleFunctionRegistryFeature(address(this)).extend(
-            selector,
-            _implementation
-        );
+        ISimpleFunctionRegistryFeature(address(this)).extend(selector, _implementation);
     }
 
     /// @dev Encode a feature version as a `uint256`.
@@ -78,7 +75,6 @@ abstract contract FixinCommon {
         uint32 minor,
         uint32 revision
     ) internal pure returns (uint256 encodedVersion) {
-        return
-            (uint256(major) << 64) | (uint256(minor) << 32) | uint256(revision);
+        return (uint256(major) << 64) | (uint256(minor) << 32) | uint256(revision);
     }
 }

@@ -23,59 +23,41 @@ contract DeploymentConstants {
 
     // Mainnet addresses ///////////////////////////////////////////////////////
     /// @dev Mainnet address of the WETH contract.
-    address private constant WETH_ADDRESS =
-        0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address private constant WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     /// @dev Mainnet address of the KyberNetworkProxy contract.
-    address private constant KYBER_NETWORK_PROXY_ADDRESS =
-        0x9AAb3f75489902f3a48495025729a0AF77d4b11e;
+    address private constant KYBER_NETWORK_PROXY_ADDRESS = 0x9AAb3f75489902f3a48495025729a0AF77d4b11e;
     /// @dev Mainnet address of the KyberHintHandler contract.
-    address private constant KYBER_HINT_HANDLER_ADDRESS =
-        0xa1C0Fa73c39CFBcC11ec9Eb1Afc665aba9996E2C;
+    address private constant KYBER_HINT_HANDLER_ADDRESS = 0xa1C0Fa73c39CFBcC11ec9Eb1Afc665aba9996E2C;
     /// @dev Mainnet address of the `UniswapExchangeFactory` contract.
-    address private constant UNISWAP_EXCHANGE_FACTORY_ADDRESS =
-        0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95;
+    address private constant UNISWAP_EXCHANGE_FACTORY_ADDRESS = 0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95;
     /// @dev Mainnet address of the `UniswapV2Router01` contract.
-    address private constant UNISWAP_V2_ROUTER_01_ADDRESS =
-        0xf164fC0Ec4E93095b804a4795bBe1e041497b92a;
+    address private constant UNISWAP_V2_ROUTER_01_ADDRESS = 0xf164fC0Ec4E93095b804a4795bBe1e041497b92a;
     /// @dev Mainnet address of the Eth2Dai `MatchingMarket` contract.
-    address private constant ETH2DAI_ADDRESS =
-        0x794e6e91555438aFc3ccF1c5076A74F42133d08D;
+    address private constant ETH2DAI_ADDRESS = 0x794e6e91555438aFc3ccF1c5076A74F42133d08D;
     /// @dev Mainnet address of the `ERC20BridgeProxy` contract
-    address private constant ERC20_BRIDGE_PROXY_ADDRESS =
-        0x8ED95d1746bf1E4dAb58d8ED4724f1Ef95B20Db0;
+    address private constant ERC20_BRIDGE_PROXY_ADDRESS = 0x8ED95d1746bf1E4dAb58d8ED4724f1Ef95B20Db0;
     ///@dev Mainnet address of the `Dai` (multi-collateral) contract
-    address private constant DAI_ADDRESS =
-        0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address private constant DAI_ADDRESS = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     /// @dev Mainnet address of the `Chai` contract
-    address private constant CHAI_ADDRESS =
-        0x06AF07097C9Eeb7fD685c692751D5C66dB49c215;
+    address private constant CHAI_ADDRESS = 0x06AF07097C9Eeb7fD685c692751D5C66dB49c215;
     /// @dev Mainnet address of the 0x DevUtils contract.
-    address private constant DEV_UTILS_ADDRESS =
-        0x74134CF88b21383713E096a5ecF59e297dc7f547;
+    address private constant DEV_UTILS_ADDRESS = 0x74134CF88b21383713E096a5ecF59e297dc7f547;
     /// @dev Kyber ETH pseudo-address.
-    address internal constant KYBER_ETH_ADDRESS =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address internal constant KYBER_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev Mainnet address of the dYdX contract.
-    address private constant DYDX_ADDRESS =
-        0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e;
+    address private constant DYDX_ADDRESS = 0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e;
     /// @dev Mainnet address of the GST2 contract
-    address private constant GST_ADDRESS =
-        0x0000000000b3F879cb30FE243b4Dfee438691c04;
+    address private constant GST_ADDRESS = 0x0000000000b3F879cb30FE243b4Dfee438691c04;
     /// @dev Mainnet address of the GST Collector
-    address private constant GST_COLLECTOR_ADDRESS =
-        0x000000D3b08566BE75A6DB803C03C85C0c1c5B96;
+    address private constant GST_COLLECTOR_ADDRESS = 0x000000D3b08566BE75A6DB803C03C85C0c1c5B96;
     /// @dev Mainnet address of the mStable mUSD contract.
-    address private constant MUSD_ADDRESS =
-        0xe2f2a5C287993345a840Db3B0845fbC70f5935a5;
+    address private constant MUSD_ADDRESS = 0xe2f2a5C287993345a840Db3B0845fbC70f5935a5;
     /// @dev Mainnet address of the Mooniswap Registry contract
-    address private constant MOONISWAP_REGISTRY =
-        0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303;
+    address private constant MOONISWAP_REGISTRY = 0x71CD6666064C3A1354a3B4dca5fA1E2D3ee7D303;
     /// @dev Mainnet address of the DODO Registry (ZOO) contract
-    address private constant DODO_REGISTRY =
-        0x3A97247DF274a17C59A3bd12735ea3FcDFb49950;
+    address private constant DODO_REGISTRY = 0x3A97247DF274a17C59A3bd12735ea3FcDFb49950;
     /// @dev Mainnet address of the DODO Helper contract
-    address private constant DODO_HELPER =
-        0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb;
+    address private constant DODO_HELPER = 0x533dA777aeDCE766CEAe696bf90f8541A4bA80Eb;
 
     // // Ropsten addresses ///////////////////////////////////////////////////////
     // /// @dev Mainnet address of the WETH contract.
@@ -169,21 +151,13 @@ contract DeploymentConstants {
 
     /// @dev Overridable way to get the `KyberNetworkProxy` address.
     /// @return kyberAddress The `IKyberNetworkProxy` address.
-    function _getKyberNetworkProxyAddress()
-        internal
-        view
-        returns (address kyberAddress)
-    {
+    function _getKyberNetworkProxyAddress() internal view returns (address kyberAddress) {
         return KYBER_NETWORK_PROXY_ADDRESS;
     }
 
     /// @dev Overridable way to get the `KyberHintHandler` address.
     /// @return kyberAddress The `IKyberHintHandler` address.
-    function _getKyberHintHandlerAddress()
-        internal
-        view
-        returns (address hintHandlerAddress)
-    {
+    function _getKyberHintHandlerAddress() internal view returns (address hintHandlerAddress) {
         return KYBER_HINT_HANDLER_ADDRESS;
     }
 
@@ -195,41 +169,25 @@ contract DeploymentConstants {
 
     /// @dev Overridable way to get the `UniswapExchangeFactory` address.
     /// @return uniswapAddress The `UniswapExchangeFactory` address.
-    function _getUniswapExchangeFactoryAddress()
-        internal
-        view
-        returns (address uniswapAddress)
-    {
+    function _getUniswapExchangeFactoryAddress() internal view returns (address uniswapAddress) {
         return UNISWAP_EXCHANGE_FACTORY_ADDRESS;
     }
 
     /// @dev Overridable way to get the `UniswapV2Router01` address.
     /// @return uniswapRouterAddress The `UniswapV2Router01` address.
-    function _getUniswapV2Router01Address()
-        internal
-        view
-        returns (address uniswapRouterAddress)
-    {
+    function _getUniswapV2Router01Address() internal view returns (address uniswapRouterAddress) {
         return UNISWAP_V2_ROUTER_01_ADDRESS;
     }
 
     /// @dev An overridable way to retrieve the Eth2Dai `MatchingMarket` contract.
     /// @return eth2daiAddress The Eth2Dai `MatchingMarket` contract.
-    function _getEth2DaiAddress()
-        internal
-        view
-        returns (address eth2daiAddress)
-    {
+    function _getEth2DaiAddress() internal view returns (address eth2daiAddress) {
         return ETH2DAI_ADDRESS;
     }
 
     /// @dev An overridable way to retrieve the `ERC20BridgeProxy` contract.
     /// @return erc20BridgeProxyAddress The `ERC20BridgeProxy` contract.
-    function _getERC20BridgeProxyAddress()
-        internal
-        view
-        returns (address erc20BridgeProxyAddress)
-    {
+    function _getERC20BridgeProxyAddress() internal view returns (address erc20BridgeProxyAddress) {
         return ERC20_BRIDGE_PROXY_ADDRESS;
     }
 
@@ -265,11 +223,7 @@ contract DeploymentConstants {
 
     /// @dev An overridable way to retrieve the GST Collector address.
     /// @return collector The GST collector address.
-    function _getGstCollectorAddress()
-        internal
-        view
-        returns (address collector)
-    {
+    function _getGstCollectorAddress() internal view returns (address collector) {
         return GST_COLLECTOR_ADDRESS;
     }
 

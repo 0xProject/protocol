@@ -28,15 +28,7 @@ contract TestFixinProtocolFees is FixinProtocolFees {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    )
-        public
-        FixinProtocolFees(
-            weth,
-            staking,
-            feeCollectorController,
-            protocolFeeMultiplier
-        )
-    {
+    ) public FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
         // solhint-disalbe no-empty-blocks
     }
 
@@ -48,19 +40,11 @@ contract TestFixinProtocolFees is FixinProtocolFees {
         _transferFeesForPool(poolId);
     }
 
-    function getFeeCollector(bytes32 poolId)
-        external
-        view
-        returns (FeeCollector)
-    {
+    function getFeeCollector(bytes32 poolId) external view returns (FeeCollector) {
         return _getFeeCollector(poolId);
     }
 
-    function getSingleProtocolFee()
-        external
-        view
-        returns (uint256 protocolFeeAmount)
-    {
+    function getSingleProtocolFee() external view returns (uint256 protocolFeeAmount) {
         return _getSingleProtocolFee();
     }
 }

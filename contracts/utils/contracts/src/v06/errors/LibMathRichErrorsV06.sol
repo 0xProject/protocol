@@ -36,12 +36,6 @@ library LibMathRichErrorsV06 {
         uint256 denominator,
         uint256 target
     ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSelector(
-                ROUNDING_ERROR_SELECTOR,
-                numerator,
-                denominator,
-                target
-            );
+        return abi.encodeWithSelector(ROUNDING_ERROR_SELECTOR, numerator, denominator, target);
     }
 }

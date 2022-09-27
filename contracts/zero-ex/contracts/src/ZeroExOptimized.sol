@@ -34,9 +34,7 @@ contract ZeroExOptimized {
         // Temporarily create and register the bootstrap feature.
         // It will deregister itself after `bootstrap()` has been called.
         BootstrapFeature bootstrap = new BootstrapFeature(bootstrapper);
-        LibProxyStorage.getStorage().impls[
-            bootstrap.bootstrap.selector
-        ] = address(bootstrap);
+        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] = address(bootstrap);
     }
 
     // solhint-disable state-visibility
@@ -44,9 +42,7 @@ contract ZeroExOptimized {
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
         // This is used in assembly below as impls_slot.
-        mapping(bytes4 => address) storage impls = LibProxyStorage
-            .getStorage()
-            .impls;
+        mapping(bytes4 => address) storage impls = LibProxyStorage.getStorage().impls;
 
         assembly {
             let cdlen := calldatasize()
@@ -58,10 +54,7 @@ contract ZeroExOptimized {
 
             // Store at 0x40, to leave 0x00-0x3F for slot calculation below.
             calldatacopy(0x40, 0, cdlen)
-            let selector := and(
-                mload(0x40),
-                0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
-            )
+            let selector := and(mload(0x40), 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
 
             // Slot for impls[selector] is keccak256(selector . impls_slot).
             mstore(0, selector)
@@ -74,10 +67,7 @@ contract ZeroExOptimized {
                 // abi.encodeWithSelector(
                 //   bytes4(keccak256("NotImplementedError(bytes4)")),
                 //   selector)
-                mstore(
-                    0,
-                    0x734e6e1c00000000000000000000000000000000000000000000000000000000
-                )
+                mstore(0, 0x734e6e1c00000000000000000000000000000000000000000000000000000000)
                 mstore(4, selector)
                 revert(0, 0x24)
             }

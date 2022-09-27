@@ -59,16 +59,13 @@ contract TestCurve {
 
     fallback() external payable {
         bytes4 selector = abi.decode(msg.data, (bytes4));
-        bool shouldReturnBoughtAmount = (selector &
-            RETURN_BOUGHT_AMOUNT_SELECTOR_FLAG) != 0x0;
+        bool shouldReturnBoughtAmount = (selector & RETURN_BOUGHT_AMOUNT_SELECTOR_FLAG) != 0x0;
         bytes4 baseSelector = selector & 0xffff0000;
         require(baseSelector == BASE_SWAP_SELECTOR, "TestCurve/REVERT");
-        (
-            int128 fromCoinIdx,
-            int128 toCoinIdx,
-            uint256 sellAmount,
-            uint256 minBuyAmount
-        ) = abi.decode(msg.data[4:], (int128, int128, uint256, uint256));
+        (int128 fromCoinIdx, int128 toCoinIdx, uint256 sellAmount, uint256 minBuyAmount) = abi.decode(
+            msg.data[4:],
+            (int128, int128, uint256, uint256)
+        );
         if (fromCoinIdx == SELL_TOKEN_COIN_IDX) {
             sellToken.transferFrom(msg.sender, address(this), sellAmount);
         }
@@ -77,14 +74,7 @@ contract TestCurve {
         } else if (toCoinIdx == ETH_COIN_IDX) {
             msg.sender.transfer(buyAmount);
         }
-        emit CurveCalled(
-            msg.value,
-            selector,
-            fromCoinIdx,
-            toCoinIdx,
-            sellAmount,
-            minBuyAmount
-        );
+        emit CurveCalled(msg.value, selector, fromCoinIdx, toCoinIdx, sellAmount, minBuyAmount);
         if (shouldReturnBoughtAmount) {
             assembly {
                 mstore(0, sload(buyAmount_slot))

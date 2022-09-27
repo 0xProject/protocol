@@ -38,13 +38,7 @@ interface IBatchFillNativeOrdersFeature {
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata takerTokenFillAmounts,
         bool revertIfIncomplete
-    )
-        external
-        payable
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+    ) external payable returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 
     /// @dev Fills multiple RFQ orders.
     /// @param orders Array of RFQ orders.
@@ -59,10 +53,5 @@ interface IBatchFillNativeOrdersFeature {
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata takerTokenFillAmounts,
         bool revertIfIncomplete
-    )
-        external
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+    ) external returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 }

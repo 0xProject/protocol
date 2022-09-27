@@ -10,10 +10,7 @@ interface IUniswapV2PoolDeployer {
         IERC20TokenV06 token1;
     }
 
-    function creationParameters()
-        external
-        view
-        returns (CreationParameters memory);
+    function creationParameters() external view returns (CreationParameters memory);
 }
 
 contract TestUniswapV2Pool is IUniswapV2Pair {
@@ -25,9 +22,8 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
     uint32 blockTimestampLast;
 
     constructor() public {
-        IUniswapV2PoolDeployer.CreationParameters
-            memory params = IUniswapV2PoolDeployer(msg.sender)
-                .creationParameters();
+        IUniswapV2PoolDeployer.CreationParameters memory params = IUniswapV2PoolDeployer(msg.sender)
+            .creationParameters();
         (token0, token1) = (params.token0, params.token1);
     }
 

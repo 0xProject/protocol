@@ -41,17 +41,11 @@ library LibFractions {
         uint256 numerator,
         uint256 denominator,
         uint256 maxValue
-    )
-        internal
-        pure
-        returns (uint256 scaledNumerator, uint256 scaledDenominator)
-    {
+    ) internal pure returns (uint256 scaledNumerator, uint256 scaledDenominator) {
         // If either the numerator or the denominator are > `maxValue`,
         // re-scale them by `maxValue` to prevent overflows in future operations.
         if (numerator > maxValue || denominator > maxValue) {
-            uint256 rescaleBase = numerator >= denominator
-                ? numerator
-                : denominator;
+            uint256 rescaleBase = numerator >= denominator ? numerator : denominator;
             rescaleBase = rescaleBase.safeDiv(maxValue);
             scaledNumerator = numerator.safeDiv(rescaleBase);
             scaledDenominator = denominator.safeDiv(rescaleBase);

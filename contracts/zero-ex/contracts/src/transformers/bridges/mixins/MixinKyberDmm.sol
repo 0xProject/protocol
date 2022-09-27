@@ -60,19 +60,10 @@ contract MixinKyberDmm {
         address router;
         address[] memory pools;
         address[] memory path;
-        (router, pools, path) = abi.decode(
-            bridgeData,
-            (address, address[], address[])
-        );
+        (router, pools, path) = abi.decode(bridgeData, (address, address[], address[]));
 
-        require(
-            pools.length >= 1,
-            "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE"
-        );
-        require(
-            path.length == pools.length + 1,
-            "MixinKyberDmm/ARRAY_LENGTH_MISMATCH"
-        );
+        require(pools.length >= 1, "MixinKyberDmm/POOLS_LENGTH_MUST_BE_AT_LEAST_ONE");
+        require(path.length == pools.length + 1, "MixinKyberDmm/ARRAY_LENGTH_MISMATCH");
         require(
             path[path.length - 1] == address(buyToken),
             "MixinKyberDmm/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
@@ -80,20 +71,19 @@ contract MixinKyberDmm {
         // Grant the KyberDmm router an allowance to sell the first token.
         IERC20TokenV06(path[0]).approveIfBelow(address(router), sellAmount);
 
-        uint256[] memory amounts = IKyberDmmRouter(router)
-            .swapExactTokensForTokens(
-                // Sell all tokens we hold.
-                sellAmount,
-                // Minimum buy amount.
-                1,
-                pools,
-                // Convert to `buyToken` along this path.
-                path,
-                // Recipient is `this`.
-                address(this),
-                // Expires after this block.
-                block.timestamp
-            );
+        uint256[] memory amounts = IKyberDmmRouter(router).swapExactTokensForTokens(
+            // Sell all tokens we hold.
+            sellAmount,
+            // Minimum buy amount.
+            1,
+            pools,
+            // Convert to `buyToken` along this path.
+            path,
+            // Recipient is `this`.
+            address(this),
+            // Expires after this block.
+            block.timestamp
+        );
         return amounts[amounts.length - 1];
     }
 }

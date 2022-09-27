@@ -72,14 +72,7 @@ contract MixinBalancerV2Batch {
             IBalancerV2BatchSwapVault vault,
             IBalancerV2BatchSwapVault.BatchSwapStep[] memory swapSteps,
             address[] memory assets_
-        ) = abi.decode(
-                bridgeData,
-                (
-                    IBalancerV2BatchSwapVault,
-                    IBalancerV2BatchSwapVault.BatchSwapStep[],
-                    address[]
-                )
-            );
+        ) = abi.decode(bridgeData, (IBalancerV2BatchSwapVault, IBalancerV2BatchSwapVault.BatchSwapStep[], address[]));
         IERC20TokenV06[] memory assets;
         assembly {
             assets := assets_
@@ -107,10 +100,7 @@ contract MixinBalancerV2Batch {
             limits,
             block.timestamp + 1
         );
-        require(
-            amounts[amounts.length - 1] <= 0,
-            "Unexpected BalancerV2Batch output"
-        );
+        require(amounts[amounts.length - 1] <= 0, "Unexpected BalancerV2Batch output");
         return uint256(amounts[amounts.length - 1] * -1);
     }
 }

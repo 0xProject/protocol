@@ -56,41 +56,22 @@ contract FantomBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurve(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeCurve(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.CURVEV2) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurveV2(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeCurveV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNISWAPV2) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeUniswapV2(
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeBalancerV2(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeBalancerV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.NERVE) {
             if (dryRun) {
                 return (0, true);
@@ -100,40 +81,19 @@ contract FantomBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeAaveV2(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeAaveV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeWOOFi(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.UNKNOWN) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeZeroExBridge(
-                sellToken,
-                buyToken,
-                sellAmount,
-                order.bridgeData
-            );
+            boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
-        emit BridgeFill(
-            order.source,
-            sellToken,
-            buyToken,
-            sellAmount,
-            boughtAmount
-        );
+        emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
 }

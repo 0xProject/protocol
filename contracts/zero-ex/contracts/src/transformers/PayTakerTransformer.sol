@@ -53,20 +53,14 @@ contract PayTakerTransformer is Transformer {
     /// @dev Forwards tokens to the taker.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TransformData memory data = abi.decode(context.data, (TransformData));
 
         // Transfer tokens directly to the taker.
         for (uint256 i = 0; i < data.tokens.length; ++i) {
             // The `amounts` array can be shorter than the `tokens` array.
             // Missing elements are treated as `uint256(-1)`.
-            uint256 amount = data.amounts.length > i
-                ? data.amounts[i]
-                : uint256(-1);
+            uint256 amount = data.amounts.length > i ? data.amounts[i] : uint256(-1);
             if (amount == MAX_UINT256) {
                 amount = data.tokens[i].getTokenBalanceOf(address(this));
             }

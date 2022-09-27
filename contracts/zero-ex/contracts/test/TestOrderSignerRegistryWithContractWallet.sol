@@ -31,10 +31,7 @@ contract TestOrderSignerRegistryWithContractWallet is OwnableV06 {
         zeroex = _zeroex;
     }
 
-    function registerAllowedOrderSigner(address signer, bool allowed)
-        external
-        onlyOwner
-    {
+    function registerAllowedOrderSigner(address signer, bool allowed) external onlyOwner {
         zeroex.registerAllowedOrderSigner(signer, allowed);
     }
 

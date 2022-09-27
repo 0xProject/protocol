@@ -37,24 +37,15 @@ contract MixinCryptoCom {
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (router, _path) = abi.decode(
-                bridgeData,
-                (IUniswapV2Router02, address[])
-            );
+            (router, _path) = abi.decode(bridgeData, (IUniswapV2Router02, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
                 path := _path
             }
         }
 
-        require(
-            path.length >= 2,
-            "MixinCryptoCom/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
-        );
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinCryptoCom/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path.length >= 2, "MixinCryptoCom/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path[path.length - 1] == buyToken, "MixinCryptoCom/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
         // Grant the CryptoCom router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 

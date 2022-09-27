@@ -114,8 +114,7 @@ library LibNativeOrder {
     //       "uint256 salt"
     //     ")"
     // ))
-    uint256 private constant _LIMIT_ORDER_TYPEHASH =
-        0xce918627cb55462ddbb85e73de69a8b322f2bc88f4507c52fcad6d4c33c29d49;
+    uint256 private constant _LIMIT_ORDER_TYPEHASH = 0xce918627cb55462ddbb85e73de69a8b322f2bc88f4507c52fcad6d4c33c29d49;
 
     // The type hash for RFQ orders, which is:
     // keccak256(abi.encodePacked(
@@ -132,8 +131,7 @@ library LibNativeOrder {
     //       "uint256 salt"
     //     ")"
     // ))
-    uint256 private constant _RFQ_ORDER_TYPEHASH =
-        0xe593d3fdfa8b60e5e17a1b2204662ecbe15c23f2084b9ad5bae40359540a7da9;
+    uint256 private constant _RFQ_ORDER_TYPEHASH = 0xe593d3fdfa8b60e5e17a1b2204662ecbe15c23f2084b9ad5bae40359540a7da9;
 
     // The type hash for OTC orders, which is:
     // keccak256(abi.encodePacked(
@@ -148,17 +146,12 @@ library LibNativeOrder {
     //       "uint256 expiryAndNonce"
     //     ")"
     // ))
-    uint256 private constant _OTC_ORDER_TYPEHASH =
-        0x2f754524de756ae72459efbe1ec88c19a745639821de528ac3fb88f9e65e35c8;
+    uint256 private constant _OTC_ORDER_TYPEHASH = 0x2f754524de756ae72459efbe1ec88c19a745639821de528ac3fb88f9e65e35c8;
 
     /// @dev Get the struct hash of a limit order.
     /// @param order The limit order.
     /// @return structHash The struct hash of the order.
-    function getLimitOrderStructHash(LimitOrder memory order)
-        internal
-        pure
-        returns (bytes32 structHash)
-    {
+    function getLimitOrderStructHash(LimitOrder memory order) internal pure returns (bytes32 structHash) {
         // The struct hash is:
         // keccak256(abi.encode(
         //   TYPE_HASH,
@@ -209,11 +202,7 @@ library LibNativeOrder {
     /// @dev Get the struct hash of a RFQ order.
     /// @param order The RFQ order.
     /// @return structHash The struct hash of the order.
-    function getRfqOrderStructHash(RfqOrder memory order)
-        internal
-        pure
-        returns (bytes32 structHash)
-    {
+    function getRfqOrderStructHash(RfqOrder memory order) internal pure returns (bytes32 structHash) {
         // The struct hash is:
         // keccak256(abi.encode(
         //   TYPE_HASH,
@@ -258,11 +247,7 @@ library LibNativeOrder {
     /// @dev Get the struct hash of an OTC order.
     /// @param order The OTC order.
     /// @return structHash The struct hash of the order.
-    function getOtcOrderStructHash(OtcOrder memory order)
-        internal
-        pure
-        returns (bytes32 structHash)
-    {
+    function getOtcOrderStructHash(OtcOrder memory order) internal pure returns (bytes32 structHash) {
         // The struct hash is:
         // keccak256(abi.encode(
         //   TYPE_HASH,
@@ -300,16 +285,12 @@ library LibNativeOrder {
 
     /// @dev Refund any leftover protocol fees in `msg.value` to `msg.sender`.
     /// @param ethProtocolFeePaid How much ETH was paid in protocol fees.
-    function refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid)
-        internal
-    {
+    function refundExcessProtocolFeeToSender(uint256 ethProtocolFeePaid) internal {
         if (msg.value > ethProtocolFeePaid && msg.sender != address(this)) {
             uint256 refundAmount = msg.value.safeSub(ethProtocolFeePaid);
             (bool success, ) = msg.sender.call{value: refundAmount}("");
             if (!success) {
-                LibNativeOrdersRichErrors
-                    .ProtocolFeeRefundFailed(msg.sender, refundAmount)
-                    .rrevert();
+                LibNativeOrdersRichErrors.ProtocolFeeRefundFailed(msg.sender, refundAmount).rrevert();
             }
         }
     }

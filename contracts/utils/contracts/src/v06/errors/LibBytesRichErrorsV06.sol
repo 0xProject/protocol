@@ -40,12 +40,6 @@ library LibBytesRichErrorsV06 {
         uint256 offset,
         uint256 required
     ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSelector(
-                INVALID_BYTE_OPERATION_ERROR_SELECTOR,
-                errorCode,
-                offset,
-                required
-            );
+        return abi.encodeWithSelector(INVALID_BYTE_OPERATION_ERROR_SELECTOR, errorCode, offset, required);
     }
 }

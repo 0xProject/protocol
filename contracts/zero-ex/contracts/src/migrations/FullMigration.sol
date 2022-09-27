@@ -88,10 +88,7 @@ contract FullMigration {
         _initialMigration.initializeZeroEx(
             address(uint160(address(this))),
             zeroEx,
-            InitialMigration.BootstrapFeatures({
-                registry: features.registry,
-                ownable: features.ownable
-            })
+            InitialMigration.BootstrapFeatures({registry: features.registry, ownable: features.ownable})
         );
 
         // Add features.
@@ -130,10 +127,7 @@ contract FullMigration {
             // Register the feature.
             ownable.migrate(
                 address(features.transformERC20),
-                abi.encodeWithSelector(
-                    TransformERC20Feature.migrate.selector,
-                    migrateOpts.transformerDeployer
-                ),
+                abi.encodeWithSelector(TransformERC20Feature.migrate.selector, migrateOpts.transformerDeployer),
                 address(this)
             );
         }
@@ -142,9 +136,7 @@ contract FullMigration {
             // Register the feature.
             ownable.migrate(
                 address(features.metaTransactions),
-                abi.encodeWithSelector(
-                    MetaTransactionsFeature.migrate.selector
-                ),
+                abi.encodeWithSelector(MetaTransactionsFeature.migrate.selector),
                 address(this)
             );
         }

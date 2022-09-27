@@ -30,11 +30,7 @@ library LibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param addressToAppend  Address to append.
     /// @return Array of addresses: [... addressArray, addressToAppend]
-    function append(address[] memory addressArray, address addressToAppend)
-        internal
-        pure
-        returns (address[] memory)
-    {
+    function append(address[] memory addressArray, address addressToAppend) internal pure returns (address[] memory) {
         // Get stats on address array and free memory
         uint256 freeMemPtr = 0;
         uint256 addressArrayBeginPtr = 0;
@@ -52,12 +48,7 @@ library LibAddressArray {
         //  `freeMemPtr` > `addressArrayEndPtr`: Some value occupies memory after `addressArray`
         //  `freeMemPtr` < `addressArrayEndPtr`: Memory has not been managed properly.
         if (freeMemPtr < addressArrayEndPtr) {
-            LibRichErrors.rrevert(
-                LibAddressArrayRichErrors.MismanagedMemoryError(
-                    freeMemPtr,
-                    addressArrayEndPtr
-                )
-            );
+            LibRichErrors.rrevert(LibAddressArrayRichErrors.MismanagedMemoryError(freeMemPtr, addressArrayEndPtr));
         }
 
         // If free memory begins at the end of `addressArray`
@@ -65,11 +56,7 @@ library LibAddressArray {
         // Otherwise, we must copy the array to free memory
         // before appending new values to it.
         if (freeMemPtr > addressArrayEndPtr) {
-            LibBytes.memCopy(
-                freeMemPtr,
-                addressArrayBeginPtr,
-                addressArrayMemSizeInBytes
-            );
+            LibBytes.memCopy(freeMemPtr, addressArrayBeginPtr, addressArrayMemSizeInBytes);
             assembly {
                 addressArray := freeMemPtr
                 addressArrayBeginPtr := addressArray
@@ -96,11 +83,7 @@ library LibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return True if the addressArray contains the target.
-    function contains(address[] memory addressArray, address target)
-        internal
-        pure
-        returns (bool success)
-    {
+    function contains(address[] memory addressArray, address target) internal pure returns (bool success) {
         assembly {
             // Calculate byte length of array
             let arrayByteLen := mul(mload(addressArray), 32)

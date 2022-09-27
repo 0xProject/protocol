@@ -39,8 +39,7 @@ interface IBancorNetwork {
 
 contract MixinBancor {
     /// @dev Bancor ETH pseudo-address.
-    IERC20TokenV06 public constant BANCOR_ETH_ADDRESS =
-        IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    IERC20TokenV06 public constant BANCOR_ETH_ADDRESS = IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
     constructor(IEtherTokenV06 weth) public {
@@ -57,24 +56,16 @@ contract MixinBancor {
         IERC20TokenV06[] memory path;
         {
             address[] memory _path;
-            (bancorNetworkAddress, _path) = abi.decode(
-                bridgeData,
-                (IBancorNetwork, address[])
-            );
+            (bancorNetworkAddress, _path) = abi.decode(bridgeData, (IBancorNetwork, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
                 path := _path
             }
         }
 
+        require(path.length >= 2, "MixinBancor/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
         require(
-            path.length >= 2,
-            "MixinBancor/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
-        );
-        require(
-            path[path.length - 1] == buyToken ||
-                (path[path.length - 1] == BANCOR_ETH_ADDRESS &&
-                    buyToken == WETH),
+            path[path.length - 1] == buyToken || (path[path.length - 1] == BANCOR_ETH_ADDRESS && buyToken == WETH),
             "MixinBancor/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
         );
 
@@ -87,11 +78,7 @@ contract MixinBancor {
             payableAmount = sellAmount;
         } else {
             // Grant an allowance to the Bancor Network.
-            LibERC20TokenV06.approveIfBelow(
-                path[0],
-                address(bancorNetworkAddress),
-                sellAmount
-            );
+            LibERC20TokenV06.approveIfBelow(path[0], address(bancorNetworkAddress), sellAmount);
         }
 
         // Convert the tokens

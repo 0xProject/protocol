@@ -43,14 +43,9 @@ abstract contract MultiplexTransformERC20 {
         args.minOutputTokenAmount = 0;
         args.useSelfBalance = params.useSelfBalance;
         args.recipient = payable(params.recipient);
-        (args.transformations) = abi.decode(
-            wrappedCallData,
-            (ITransformERC20Feature.Transformation[])
-        );
+        (args.transformations) = abi.decode(wrappedCallData, (ITransformERC20Feature.Transformation[]));
         // Execute the transformations and swallow reverts.
-        try
-            ITransformERC20Feature(address(this))._transformERC20(args)
-        returns (uint256 outputTokenAmount) {
+        try ITransformERC20Feature(address(this))._transformERC20(args) returns (uint256 outputTokenAmount) {
             // Increment the sold and bought amounts.
             state.soldAmount = state.soldAmount.safeAdd(sellAmount);
             state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);

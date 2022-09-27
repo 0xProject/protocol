@@ -26,8 +26,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 /// @dev Helpers for moving tokens around.
 abstract contract FixinTokenSpender {
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 private constant ADDRESS_MASK =
-        0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
 
     /// @dev Transfers ERC20 tokens from `owner` to `to`.
     /// @param token The token to spend.
@@ -40,32 +39,18 @@ abstract contract FixinTokenSpender {
         address to,
         uint256 amount
     ) internal {
-        require(
-            address(token) != address(this),
-            "FixinTokenSpender/CANNOT_INVOKE_SELF"
-        );
+        require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
             let ptr := mload(0x40) // free memory pointer
 
             // selector for transferFrom(address,address,uint256)
-            mstore(
-                ptr,
-                0x23b872dd00000000000000000000000000000000000000000000000000000000
-            )
+            mstore(ptr, 0x23b872dd00000000000000000000000000000000000000000000000000000000)
             mstore(add(ptr, 0x04), and(owner, ADDRESS_MASK))
             mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), amount)
 
-            let success := call(
-                gas(),
-                and(token, ADDRESS_MASK),
-                0,
-                ptr,
-                0x64,
-                ptr,
-                32
-            )
+            let success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x64, ptr, 32)
 
             let rdsize := returndatasize()
 
@@ -99,31 +84,17 @@ abstract contract FixinTokenSpender {
         address to,
         uint256 amount
     ) internal {
-        require(
-            address(token) != address(this),
-            "FixinTokenSpender/CANNOT_INVOKE_SELF"
-        );
+        require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
             let ptr := mload(0x40) // free memory pointer
 
             // selector for transfer(address,uint256)
-            mstore(
-                ptr,
-                0xa9059cbb00000000000000000000000000000000000000000000000000000000
-            )
+            mstore(ptr, 0xa9059cbb00000000000000000000000000000000000000000000000000000000)
             mstore(add(ptr, 0x04), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x24), amount)
 
-            let success := call(
-                gas(),
-                and(token, ADDRESS_MASK),
-                0,
-                ptr,
-                0x44,
-                ptr,
-                32
-            )
+            let success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x44, ptr, 32)
 
             let rdsize := returndatasize()
 
@@ -164,15 +135,7 @@ abstract contract FixinTokenSpender {
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
     /// @return amount The amount of tokens that can be pulled.
-    function _getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner)
-        internal
-        view
-        returns (uint256)
-    {
-        return
-            LibSafeMathV06.min256(
-                token.allowance(owner, address(this)),
-                token.balanceOf(owner)
-            );
+    function _getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256) {
+        return LibSafeMathV06.min256(token.allowance(owner, address(this)), token.balanceOf(owner));
     }
 }

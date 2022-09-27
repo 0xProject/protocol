@@ -22,33 +22,27 @@ pragma solidity ^0.6.5;
 library LibMetaTransactionsRichErrors {
     // solhint-disable func-name-mixedcase
 
-    function InvalidMetaTransactionsArrayLengthsError(
-        uint256 mtxCount,
-        uint256 signatureCount
-    ) internal pure returns (bytes memory) {
+    function InvalidMetaTransactionsArrayLengthsError(uint256 mtxCount, uint256 signatureCount)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "InvalidMetaTransactionsArrayLengthsError(uint256,uint256)"
-                    )
-                ),
+                bytes4(keccak256("InvalidMetaTransactionsArrayLengthsError(uint256,uint256)")),
                 mtxCount,
                 signatureCount
             );
     }
 
-    function MetaTransactionUnsupportedFunctionError(
-        bytes32 mtxHash,
-        bytes4 selector
-    ) internal pure returns (bytes memory) {
+    function MetaTransactionUnsupportedFunctionError(bytes32 mtxHash, bytes4 selector)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionUnsupportedFunctionError(bytes32,bytes4)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionUnsupportedFunctionError(bytes32,bytes4)")),
                 mtxHash,
                 selector
             );
@@ -61,11 +55,7 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionWrongSenderError(bytes32,address,address)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionWrongSenderError(bytes32,address,address)")),
                 mtxHash,
                 sender,
                 expectedSender
@@ -79,11 +69,7 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionExpiredError(bytes32,uint256,uint256)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionExpiredError(bytes32,uint256,uint256)")),
                 mtxHash,
                 time,
                 expirationTime
@@ -98,11 +84,7 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionGasPriceError(bytes32,uint256,uint256,uint256)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionGasPriceError(bytes32,uint256,uint256,uint256)")),
                 mtxHash,
                 gasPrice,
                 minGasPrice,
@@ -117,11 +99,7 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionInsufficientEthError(bytes32,uint256,uint256)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionInsufficientEthError(bytes32,uint256,uint256)")),
                 mtxHash,
                 ethBalance,
                 ethRequired
@@ -135,28 +113,21 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionInvalidSignatureError(bytes32,bytes,bytes)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionInvalidSignatureError(bytes32,bytes,bytes)")),
                 mtxHash,
                 signature,
                 errData
             );
     }
 
-    function MetaTransactionAlreadyExecutedError(
-        bytes32 mtxHash,
-        uint256 executedBlockNumber
-    ) internal pure returns (bytes memory) {
+    function MetaTransactionAlreadyExecutedError(bytes32 mtxHash, uint256 executedBlockNumber)
+        internal
+        pure
+        returns (bytes memory)
+    {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionAlreadyExecutedError(bytes32,uint256)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionAlreadyExecutedError(bytes32,uint256)")),
                 mtxHash,
                 executedBlockNumber
             );
@@ -169,11 +140,7 @@ library LibMetaTransactionsRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "MetaTransactionCallFailedError(bytes32,bytes,bytes)"
-                    )
-                ),
+                bytes4(keccak256("MetaTransactionCallFailedError(bytes32,bytes,bytes)")),
                 mtxHash,
                 callData,
                 returnData

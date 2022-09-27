@@ -33,8 +33,7 @@ contract TestLibMath {
         uint256 denominator,
         uint256 target
     ) public pure returns (uint256 partialAmount) {
-        return
-            LibMath.safeGetPartialAmountFloor(numerator, denominator, target);
+        return LibMath.safeGetPartialAmountFloor(numerator, denominator, target);
     }
 
     /// @dev Calculates partial value given a numerator and denominator.

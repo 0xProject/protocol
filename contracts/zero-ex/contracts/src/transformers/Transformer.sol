@@ -45,15 +45,11 @@ abstract contract Transformer is IERC20Transformer {
     function die(address payable ethRecipient) external virtual {
         // Only the deployer can call this.
         if (msg.sender != deployer) {
-            LibTransformERC20RichErrors
-                .OnlyCallableByDeployerError(msg.sender, deployer)
-                .rrevert();
+            LibTransformERC20RichErrors.OnlyCallableByDeployerError(msg.sender, deployer).rrevert();
         }
         // Must be executing our own context.
         if (address(this) != _implementation) {
-            LibTransformERC20RichErrors
-                .InvalidExecutionContextError(address(this), _implementation)
-                .rrevert();
+            LibTransformERC20RichErrors.InvalidExecutionContextError(address(this), _implementation).rrevert();
         }
         selfdestruct(ethRecipient);
     }

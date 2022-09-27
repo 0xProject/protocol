@@ -27,8 +27,5 @@ interface IERC165Feature {
     /// @param interfaceId The interface identifier, as specified in ERC165.
     /// @return isSupported Whether the given interface is supported by the
     ///         0x Exchange Proxy.
-    function supportInterface(bytes4 interfaceId)
-        external
-        pure
-        returns (bool isSupported);
+    function supportInterface(bytes4 interfaceId) external pure returns (bool isSupported);
 }

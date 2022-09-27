@@ -52,26 +52,16 @@ contract Token {
     /// @param _owner The address of the account owning tokens
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowance(address _owner, address _spender)
-        constant
-        returns (uint256 remaining)
-    {}
+    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {}
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _value
-    );
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
 contract ERC20Token is Token {
     function transfer(address _to, uint256 _value) returns (bool) {
         //Default assumes totalSupply can't be over max (2^256 - 1).
-        if (
-            balances[msg.sender] >= _value &&
-            balances[_to] + _value >= balances[_to]
-        ) {
+        if (balances[msg.sender] >= _value && balances[_to] + _value >= balances[_to]) {
             balances[msg.sender] -= _value;
             balances[_to] += _value;
             Transfer(msg.sender, _to, _value);
@@ -87,9 +77,7 @@ contract ERC20Token is Token {
         uint256 _value
     ) returns (bool) {
         if (
-            balances[_from] >= _value &&
-            allowed[_from][msg.sender] >= _value &&
-            balances[_to] + _value >= balances[_to]
+            balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value >= balances[_to]
         ) {
             balances[_to] += _value;
             balances[_from] -= _value;
@@ -111,10 +99,7 @@ contract ERC20Token is Token {
         return true;
     }
 
-    function allowance(address _owner, address _spender)
-        constant
-        returns (uint256)
-    {
+    function allowance(address _owner, address _spender) constant returns (uint256) {
         return allowed[_owner][_spender];
     }
 
@@ -137,11 +122,7 @@ contract UnlimitedAllowanceToken is ERC20Token {
         uint256 _value
     ) public returns (bool) {
         uint256 allowance = allowed[_from][msg.sender];
-        if (
-            balances[_from] >= _value &&
-            allowance >= _value &&
-            balances[_to] + _value >= balances[_to]
-        ) {
+        if (balances[_from] >= _value && allowance >= _value && balances[_to] + _value >= balances[_to]) {
             balances[_to] += _value;
             balances[_from] -= _value;
             if (allowance < MAX_UINT) {

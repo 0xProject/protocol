@@ -37,9 +37,7 @@ contract ReentrancyGuardV06 {
     function _lockMutexOrThrowIfAlreadyLocked() internal {
         // Ensure mutex is unlocked.
         if (_locked) {
-            LibRichErrorsV06.rrevert(
-                LibReentrancyGuardRichErrorsV06.IllegalReentrancyError()
-            );
+            LibRichErrorsV06.rrevert(LibReentrancyGuardRichErrorsV06.IllegalReentrancyError());
         }
         // Lock mutex.
         _locked = true;

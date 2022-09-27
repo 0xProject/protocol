@@ -46,10 +46,7 @@ interface IWooPP {
     /// @param baseToken the base token to sell
     /// @param baseAmount the amount to sell
     /// @return quoteAmount the swapped quote amount
-    function querySellBase(address baseToken, uint256 baseAmount)
-        external
-        view
-        returns (uint256 quoteAmount);
+    function querySellBase(address baseToken, uint256 baseAmount) external view returns (uint256 quoteAmount);
 }
 
 contract MixinWOOFi {
@@ -89,34 +86,13 @@ contract MixinWOOFi {
     ) internal {
         address quoteToken = pool.quoteToken();
         if (_tokenIn == quoteToken) {
-            pool.sellQuote(
-                _tokenOut,
-                _amountIn,
-                1,
-                address(this),
-                rebateAddress
-            );
+            pool.sellQuote(_tokenOut, _amountIn, 1, address(this), rebateAddress);
         } else if (_tokenOut == quoteToken) {
             pool.sellBase(_tokenIn, _amountIn, 1, address(this), rebateAddress);
         } else {
-            uint256 quoteAmount = pool.sellBase(
-                _tokenIn,
-                _amountIn,
-                0,
-                address(this),
-                rebateAddress
-            );
-            IERC20TokenV06(pool.quoteToken()).approveIfBelow(
-                address(pool),
-                quoteAmount
-            );
-            pool.sellQuote(
-                _tokenOut,
-                quoteAmount,
-                1,
-                address(this),
-                rebateAddress
-            );
+            uint256 quoteAmount = pool.sellBase(_tokenIn, _amountIn, 0, address(this), rebateAddress);
+            IERC20TokenV06(pool.quoteToken()).approveIfBelow(address(pool), quoteAmount);
+            pool.sellQuote(_tokenOut, quoteAmount, 1, address(this), rebateAddress);
         }
     }
 }

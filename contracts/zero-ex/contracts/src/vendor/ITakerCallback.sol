@@ -29,7 +29,5 @@ interface ITakerCallback {
     /// @param callbackData Arbitrary data used by this callback.
     /// @return success The selector of this function,
     ///         indicating that the callback succeeded.
-    function zeroExTakerCallback(bytes32 orderHash, bytes calldata callbackData)
-        external
-        returns (bytes4 success);
+    function zeroExTakerCallback(bytes32 orderHash, bytes calldata callbackData) external returns (bytes4 success);
 }

@@ -30,13 +30,7 @@ interface IERC1155Token {
     /// be used by clients and exchanges to be added to the "circulating supply" for a given token ID.
     /// To define a token ID with no initial balance, the contract SHOULD emit the TransferSingle event
     /// from `0x0` to `0x0`, with the token creator as `_operator`.
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 value
-    );
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value);
 
     /// @dev Either TransferSingle or TransferBatch MUST emit when tokens are transferred,
     ///      including zero value transfers as well as minting or burning.
@@ -56,11 +50,7 @@ interface IERC1155Token {
     );
 
     /// @dev MUST emit when an approval is updated.
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     /// @dev MUST emit when the URI is updated for a token ID.
     /// URIs are defined in RFC 3986.
@@ -122,19 +112,13 @@ interface IERC1155Token {
     /// @param owner        The owner of the Tokens
     /// @param operator     Address of authorized operator
     /// @return isApproved  True if the operator is approved, false if not
-    function isApprovedForAll(address owner, address operator)
-        external
-        view
-        returns (bool isApproved);
+    function isApprovedForAll(address owner, address operator) external view returns (bool isApproved);
 
     /// @notice Get the balance of an account's Tokens.
     /// @param owner     The address of the token holder
     /// @param id        ID of the Token
     /// @return balance  The _owner's balance of the Token type requested
-    function balanceOf(address owner, uint256 id)
-        external
-        view
-        returns (uint256 balance);
+    function balanceOf(address owner, uint256 id) external view returns (uint256 balance);
 
     /// @notice Get the balance of multiple account/token pairs
     /// @param owners      The addresses of the token holders

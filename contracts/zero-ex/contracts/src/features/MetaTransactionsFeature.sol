@@ -99,10 +99,7 @@ contract MetaTransactionsFeature is
     /// @dev Refunds up to `msg.value` leftover ETH at the end of the call.
     modifier refundsAttachedEth() {
         _;
-        uint256 remainingBalance = LibSafeMathV06.min256(
-            msg.value,
-            address(this).balance
-        );
+        uint256 remainingBalance = LibSafeMathV06.min256(msg.value, address(this).balance);
         if (remainingBalance > 0) {
             msg.sender.transfer(remainingBalance);
         }
@@ -113,17 +110,10 @@ contract MetaTransactionsFeature is
     modifier doesNotReduceEthBalance() {
         uint256 initialBalance = address(this).balance - msg.value;
         _;
-        require(
-            initialBalance <= address(this).balance,
-            "MetaTransactionsFeature/ETH_LEAK"
-        );
+        require(initialBalance <= address(this).balance, "MetaTransactionsFeature/ETH_LEAK");
     }
 
-    constructor(address zeroExAddress)
-        public
-        FixinCommon()
-        FixinEIP712(zeroExAddress)
-    {
+    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {
         // solhint-disable-next-line no-empty-blocks
     }
 
@@ -134,9 +124,7 @@ contract MetaTransactionsFeature is
         _registerFeatureFunction(this.executeMetaTransaction.selector);
         _registerFeatureFunction(this.batchExecuteMetaTransactions.selector);
         _registerFeatureFunction(this.getMetaTransactionExecutedBlock.selector);
-        _registerFeatureFunction(
-            this.getMetaTransactionHashExecutedBlock.selector
-        );
+        _registerFeatureFunction(this.getMetaTransactionHashExecutedBlock.selector);
         _registerFeatureFunction(this.getMetaTransactionHash.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -145,10 +133,7 @@ contract MetaTransactionsFeature is
     /// @param mtx The meta-transaction.
     /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function executeMetaTransaction(
-        MetaTransactionData memory mtx,
-        LibSignature.Signature memory signature
-    )
+    function executeMetaTransaction(MetaTransactionData memory mtx, LibSignature.Signature memory signature)
         public
         payable
         override
@@ -170,10 +155,7 @@ contract MetaTransactionsFeature is
     /// @param mtxs The meta-transactions.
     /// @param signatures The signature by each respective `mtx.signer`.
     /// @return returnResults The ABI-encoded results of the underlying calls.
-    function batchExecuteMetaTransactions(
-        MetaTransactionData[] memory mtxs,
-        LibSignature.Signature[] memory signatures
-    )
+    function batchExecuteMetaTransactions(MetaTransactionData[] memory mtxs, LibSignature.Signature[] memory signatures)
         public
         payable
         override
@@ -184,10 +166,7 @@ contract MetaTransactionsFeature is
     {
         if (mtxs.length != signatures.length) {
             LibMetaTransactionsRichErrors
-                .InvalidMetaTransactionsArrayLengthsError(
-                    mtxs.length,
-                    signatures.length
-                )
+                .InvalidMetaTransactionsArrayLengthsError(mtxs.length, signatures.length)
                 .rrevert();
         }
         returnResults = new bytes[](mtxs.length);
@@ -217,27 +196,14 @@ contract MetaTransactionsFeature is
     /// @dev Get the block at which a meta-transaction hash has been executed.
     /// @param mtxHash The meta-transaction hash.
     /// @return blockNumber The block height when the meta-transactioin was executed.
-    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash)
-        public
-        view
-        override
-        returns (uint256 blockNumber)
-    {
-        return
-            LibMetaTransactionsStorage
-                .getStorage()
-                .mtxHashToExecutedBlockNumber[mtxHash];
+    function getMetaTransactionHashExecutedBlock(bytes32 mtxHash) public view override returns (uint256 blockNumber) {
+        return LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[mtxHash];
     }
 
     /// @dev Get the EIP712 hash of a meta-transaction.
     /// @param mtx The meta-transaction.
     /// @return mtxHash The EIP712 hash of `mtx`.
-    function getMetaTransactionHash(MetaTransactionData memory mtx)
-        public
-        view
-        override
-        returns (bytes32 mtxHash)
-    {
+    function getMetaTransactionHash(MetaTransactionData memory mtx) public view override returns (bytes32 mtxHash) {
         return
             _getEIP712Hash(
                 keccak256(
@@ -262,116 +228,65 @@ contract MetaTransactionsFeature is
     /// @param state The `ExecuteState` for this metatransaction, with `sender`,
     ///              `hash`, `mtx`, and `signature` fields filled.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function _executeMetaTransactionPrivate(ExecuteState memory state)
-        private
-        returns (bytes memory returnResult)
-    {
+    function _executeMetaTransactionPrivate(ExecuteState memory state) private returns (bytes memory returnResult) {
         _validateMetaTransaction(state);
 
         // Mark the transaction executed by storing the block at which it was executed.
         // Currently the block number just indicates that the mtx was executed and
         // serves no other purpose from within this contract.
-        LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[
-                state.hash
-            ] = block.number;
+        LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash] = block.number;
 
         // Pay the fee to the sender.
         if (state.mtx.feeAmount > 0) {
-            _transferERC20TokensFrom(
-                state.mtx.feeToken,
-                state.mtx.signer,
-                state.sender,
-                state.mtx.feeAmount
-            );
+            _transferERC20TokensFrom(state.mtx.feeToken, state.mtx.signer, state.sender, state.mtx.feeAmount);
         }
 
         // Execute the call based on the selector.
         state.selector = state.mtx.callData.readBytes4(0);
         if (state.selector == ITransformERC20Feature.transformERC20.selector) {
             returnResult = _executeTransformERC20Call(state);
-        } else if (
-            state.selector == INativeOrdersFeature.fillLimitOrder.selector
-        ) {
+        } else if (state.selector == INativeOrdersFeature.fillLimitOrder.selector) {
             returnResult = _executeFillLimitOrderCall(state);
-        } else if (
-            state.selector == INativeOrdersFeature.fillRfqOrder.selector
-        ) {
+        } else if (state.selector == INativeOrdersFeature.fillRfqOrder.selector) {
             returnResult = _executeFillRfqOrderCall(state);
         } else {
-            LibMetaTransactionsRichErrors
-                .MetaTransactionUnsupportedFunctionError(
-                    state.hash,
-                    state.selector
-                )
-                .rrevert();
+            LibMetaTransactionsRichErrors.MetaTransactionUnsupportedFunctionError(state.hash, state.selector).rrevert();
         }
-        emit MetaTransactionExecuted(
-            state.hash,
-            state.selector,
-            state.mtx.signer,
-            state.mtx.sender
-        );
+        emit MetaTransactionExecuted(state.hash, state.selector, state.mtx.signer, state.mtx.sender);
     }
 
     /// @dev Validate that a meta-transaction is executable.
     function _validateMetaTransaction(ExecuteState memory state) private view {
         // Must be from the required sender, if set.
-        if (
-            state.mtx.sender != address(0) && state.mtx.sender != state.sender
-        ) {
+        if (state.mtx.sender != address(0) && state.mtx.sender != state.sender) {
             LibMetaTransactionsRichErrors
-                .MetaTransactionWrongSenderError(
-                    state.hash,
-                    state.sender,
-                    state.mtx.sender
-                )
+                .MetaTransactionWrongSenderError(state.hash, state.sender, state.mtx.sender)
                 .rrevert();
         }
         // Must not be expired.
         if (state.mtx.expirationTimeSeconds <= block.timestamp) {
             LibMetaTransactionsRichErrors
-                .MetaTransactionExpiredError(
-                    state.hash,
-                    block.timestamp,
-                    state.mtx.expirationTimeSeconds
-                )
+                .MetaTransactionExpiredError(state.hash, block.timestamp, state.mtx.expirationTimeSeconds)
                 .rrevert();
         }
         // Must have a valid gas price.
-        if (
-            state.mtx.minGasPrice > tx.gasprice ||
-            state.mtx.maxGasPrice < tx.gasprice
-        ) {
+        if (state.mtx.minGasPrice > tx.gasprice || state.mtx.maxGasPrice < tx.gasprice) {
             LibMetaTransactionsRichErrors
-                .MetaTransactionGasPriceError(
-                    state.hash,
-                    tx.gasprice,
-                    state.mtx.minGasPrice,
-                    state.mtx.maxGasPrice
-                )
+                .MetaTransactionGasPriceError(state.hash, tx.gasprice, state.mtx.minGasPrice, state.mtx.maxGasPrice)
                 .rrevert();
         }
         // Must have enough ETH.
         state.selfBalance = address(this).balance;
         if (state.mtx.value > state.selfBalance) {
             LibMetaTransactionsRichErrors
-                .MetaTransactionInsufficientEthError(
-                    state.hash,
-                    state.selfBalance,
-                    state.mtx.value
-                )
+                .MetaTransactionInsufficientEthError(state.hash, state.selfBalance, state.mtx.value)
                 .rrevert();
         }
 
-        if (
-            LibSignature.getSignerOfHash(state.hash, state.signature) !=
-            state.mtx.signer
-        ) {
+        if (LibSignature.getSignerOfHash(state.hash, state.signature) != state.mtx.signer) {
             LibSignatureRichErrors
                 .SignatureValidationError(
-                    LibSignatureRichErrors
-                        .SignatureValidationErrorCodes
-                        .WRONG_SIGNER,
+                    LibSignatureRichErrors.SignatureValidationErrorCodes.WRONG_SIGNER,
                     state.hash,
                     state.mtx.signer,
                     // TODO: Remove this field from SignatureValidationError
@@ -381,15 +296,10 @@ contract MetaTransactionsFeature is
                 .rrevert();
         }
         // Transaction must not have been already executed.
-        state.executedBlockNumber = LibMetaTransactionsStorage
-            .getStorage()
-            .mtxHashToExecutedBlockNumber[state.hash];
+        state.executedBlockNumber = LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash];
         if (state.executedBlockNumber != 0) {
             LibMetaTransactionsRichErrors
-                .MetaTransactionAlreadyExecutedError(
-                    state.hash,
-                    state.executedBlockNumber
-                )
+                .MetaTransactionAlreadyExecutedError(state.hash, state.executedBlockNumber)
                 .rrevert();
         }
     }
@@ -398,10 +308,7 @@ contract MetaTransactionsFeature is
     ///      by decoding the call args and translating the call to the internal
     ///      `ITransformERC20Feature._transformERC20()` variant, where we can override
     ///      the taker address.
-    function _executeTransformERC20Call(ExecuteState memory state)
-        private
-        returns (bytes memory returnResult)
-    {
+    function _executeTransformERC20Call(ExecuteState memory state) private returns (bytes memory returnResult) {
         // HACK(dorothy-zbornak): `abi.decode()` with the individual args
         // will cause a stack overflow. But we can prefix the call data with an
         // offset to transform it into the encoding for the equivalent single struct arg,
@@ -432,9 +339,7 @@ contract MetaTransactionsFeature is
 
         ExternalTransformERC20Args memory args;
         {
-            bytes memory encodedStructArgs = new bytes(
-                state.mtx.callData.length - 4 + 32
-            );
+            bytes memory encodedStructArgs = new bytes(state.mtx.callData.length - 4 + 32);
             // Copy the args data from the original, after the new struct offset prefix.
             bytes memory fromCallData = state.mtx.callData;
             assert(fromCallData.length >= 160);
@@ -478,11 +383,7 @@ contract MetaTransactionsFeature is
     ///      4-byte selector into a new byte array.
     /// @param callData The call data from which arguments are to be extracted.
     /// @return args The extracted arguments as a byte array.
-    function _extractArgumentsFromCallData(bytes memory callData)
-        private
-        pure
-        returns (bytes memory args)
-    {
+    function _extractArgumentsFromCallData(bytes memory callData) private pure returns (bytes memory args) {
         args = new bytes(callData.length - 4);
         uint256 fromMem;
         uint256 toMem;
@@ -501,10 +402,7 @@ contract MetaTransactionsFeature is
     ///      by decoding the call args and translating the call to the internal
     ///      `INativeOrdersFeature._fillLimitOrder()` variant, where we can override
     ///      the taker address.
-    function _executeFillLimitOrderCall(ExecuteState memory state)
-        private
-        returns (bytes memory returnResult)
-    {
+    function _executeFillLimitOrderCall(ExecuteState memory state) private returns (bytes memory returnResult) {
         LibNativeOrder.LimitOrder memory order;
         LibSignature.Signature memory signature;
         uint128 takerTokenFillAmount;
@@ -534,10 +432,7 @@ contract MetaTransactionsFeature is
     ///      by decoding the call args and translating the call to the internal
     ///      `INativeOrdersFeature._fillRfqOrder()` variant, where we can overrideunimpleme
     ///      the taker address.
-    function _executeFillRfqOrderCall(ExecuteState memory state)
-        private
-        returns (bytes memory returnResult)
-    {
+    function _executeFillRfqOrderCall(ExecuteState memory state) private returns (bytes memory returnResult) {
         LibNativeOrder.RfqOrder memory order;
         LibSignature.Signature memory signature;
         uint128 takerTokenFillAmount;
@@ -574,9 +469,7 @@ contract MetaTransactionsFeature is
         bool success;
         (success, returnResult) = address(this).call{value: value}(callData);
         if (!success) {
-            LibMetaTransactionsRichErrors
-                .MetaTransactionCallFailedError(hash, callData, returnResult)
-                .rrevert();
+            LibMetaTransactionsRichErrors.MetaTransactionCallFailedError(hash, callData, returnResult).rrevert();
         }
     }
 }

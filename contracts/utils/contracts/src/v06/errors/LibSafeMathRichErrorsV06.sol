@@ -46,25 +46,10 @@ library LibSafeMathRichErrorsV06 {
         uint256 a,
         uint256 b
     ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSelector(
-                UINT256_BINOP_ERROR_SELECTOR,
-                errorCode,
-                a,
-                b
-            );
+        return abi.encodeWithSelector(UINT256_BINOP_ERROR_SELECTOR, errorCode, a, b);
     }
 
-    function Uint256DowncastError(DowncastErrorCodes errorCode, uint256 a)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            abi.encodeWithSelector(
-                UINT256_DOWNCAST_ERROR_SELECTOR,
-                errorCode,
-                a
-            );
+    function Uint256DowncastError(DowncastErrorCodes errorCode, uint256 a) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(UINT256_DOWNCAST_ERROR_SELECTOR, errorCode, a);
     }
 }

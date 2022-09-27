@@ -33,16 +33,8 @@ contract LogMetadataTransformer is Transformer {
     /// @dev Emits an event.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
-        emit TransformerMetadata(
-            context.sender,
-            context.recipient,
-            context.data
-        );
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
+        emit TransformerMetadata(context.sender, context.recipient, context.data);
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
 }

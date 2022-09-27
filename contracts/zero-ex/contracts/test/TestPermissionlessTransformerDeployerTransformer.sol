@@ -28,9 +28,6 @@ contract TestPermissionlessTransformerDeployerTransformer {
 
     constructor() public payable {
         deployer = msg.sender;
-        require(
-            msg.value != CONSTRUCTOR_FAIL_VALUE,
-            "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL"
-        );
+        require(msg.value != CONSTRUCTOR_FAIL_VALUE, "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL");
     }
 }

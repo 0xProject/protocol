@@ -39,16 +39,11 @@ contract MixinDodoV2 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IDODOV2 pool, bool isSellBase) = abi.decode(
-            bridgeData,
-            (IDODOV2, bool)
-        );
+        (IDODOV2 pool, bool isSellBase) = abi.decode(bridgeData, (IDODOV2, bool));
 
         // Transfer the tokens into the pool
         sellToken.compatTransfer(address(pool), sellAmount);
 
-        boughtAmount = isSellBase
-            ? pool.sellBase(address(this))
-            : pool.sellQuote(address(this));
+        boughtAmount = isSellBase ? pool.sellBase(address(this)) : pool.sellQuote(address(this));
     }
 }

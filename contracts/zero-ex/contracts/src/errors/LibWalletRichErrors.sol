@@ -31,11 +31,7 @@ library LibWalletRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "WalletExecuteCallFailedError(address,address,bytes,uint256,bytes)"
-                    )
-                ),
+                bytes4(keccak256("WalletExecuteCallFailedError(address,address,bytes,uint256,bytes)")),
                 wallet,
                 callTarget,
                 callData,
@@ -52,11 +48,7 @@ library LibWalletRichErrors {
     ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
-                bytes4(
-                    keccak256(
-                        "WalletExecuteDelegateCallFailedError(address,address,bytes,bytes)"
-                    )
-                ),
+                bytes4(keccak256("WalletExecuteDelegateCallFailedError(address,address,bytes,bytes)")),
                 wallet,
                 callTarget,
                 callData,

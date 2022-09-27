@@ -37,11 +37,9 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
     IEtherTokenV06 private immutable WETH;
 
     // 0xFF + address of the UniswapV2Factory contract.
-    uint256 private constant FF_UNISWAP_FACTORY =
-        0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
+    uint256 private constant FF_UNISWAP_FACTORY = 0xFF5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f0000000000000000000000;
     // 0xFF + address of the (Sushiswap) UniswapV2Factory contract.
-    uint256 private constant FF_SUSHISWAP_FACTORY =
-        0xFFC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac0000000000000000000000;
+    uint256 private constant FF_SUSHISWAP_FACTORY = 0xFFC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac0000000000000000000000;
     // Init code hash of the UniswapV2Pair contract.
     uint256 private constant UNISWAP_PAIR_INIT_CODE_HASH =
         0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f;
@@ -49,11 +47,9 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
     uint256 private constant SUSHISWAP_PAIR_INIT_CODE_HASH =
         0xe18a34eb0e04b04f7a0ac29a6e80748dca96319b42c54d679cb821dca90c6303;
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 private constant ADDRESS_MASK =
-        0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
     // ETH pseudo-token address.
-    uint256 private constant ETH_TOKEN_ADDRESS_32 =
-        0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+    uint256 private constant ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
     // Maximum token quantity that can be swapped against the UniswapV2Pair contract.
     uint256 private constant MAX_SWAP_AMOUNT = 2**112;
 
@@ -143,10 +139,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
                 // buyToken = tokens[i+1]
                 buyToken := loadTokenAddress(add(i, 1))
                 // The canonical ordering of this token pair.
-                let pairOrder := lt(
-                    normalizeToken(sellToken),
-                    normalizeToken(buyToken)
-                )
+                let pairOrder := lt(normalizeToken(sellToken), normalizeToken(buyToken))
 
                 // Compute the pair address if it hasn't already been computed
                 // from the last iteration.
@@ -178,26 +171,14 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
                         sellToken := mload(0xA40) // Re-assign to WETH
                         // Call `WETH.deposit{value: sellAmount}()`
                         mstore(0xB00, WETH_DEPOSIT_CALL_SELECTOR_32)
-                        if iszero(
-                            call(
-                                gas(),
-                                sellToken,
-                                sellAmount,
-                                0xB00,
-                                0x4,
-                                0x00,
-                                0x0
-                            )
-                        ) {
+                        if iszero(call(gas(), sellToken, sellAmount, 0xB00, 0x4, 0x00, 0x0)) {
                             bubbleRevert()
                         }
                         // Call `WETH.transfer(pair, sellAmount)`
                         mstore(0xB00, ERC20_TRANSFER_CALL_SELECTOR_32)
                         mstore(0xB04, pair)
                         mstore(0xB24, sellAmount)
-                        if iszero(
-                            call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)
-                        ) {
+                        if iszero(call(gas(), sellToken, 0, 0xB00, 0x44, 0x00, 0x0)) {
                             bubbleRevert()
                         }
                     }
@@ -240,10 +221,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
                     // buyAmount = (pairSellAmount * 997 * buyReserve) /
                     //     (pairSellAmount * 997 + sellReserve * 1000);
                     let sellAmountWithFee := mul(pairSellAmount, 997)
-                    buyAmount := div(
-                        mul(sellAmountWithFee, buyReserve),
-                        add(sellAmountWithFee, mul(sellReserve, 1000))
-                    )
+                    buyAmount := div(mul(sellAmountWithFee, buyReserve), add(sellAmountWithFee, mul(sellReserve, 1000)))
                 }
 
                 let receiver
@@ -252,10 +230,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
                 case 0 {
                     // Not the last pair contract, so forward bought tokens to
                     // the next pair contract.
-                    nextPair := computePairAddress(
-                        buyToken,
-                        loadTokenAddress(add(i, 2))
-                    )
+                    nextPair := computePairAddress(buyToken, loadTokenAddress(add(i, 2)))
                     receiver := nextPair
                 }
                 default {
@@ -294,15 +269,11 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
                 // Call `WETH.withdraw(buyAmount)`
                 mstore(0xB00, WETH_WITHDRAW_CALL_SELECTOR_32)
                 mstore(0xB04, buyAmount)
-                if iszero(
-                    call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)
-                ) {
+                if iszero(call(gas(), mload(0xA40), 0, 0xB00, 0x24, 0x00, 0x0)) {
                     bubbleRevert()
                 }
                 // Transfer ETH to the caller.
-                if iszero(
-                    call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)
-                ) {
+                if iszero(call(gas(), caller(), buyAmount, 0xB00, 0x0, 0x00, 0x0)) {
                     bubbleRevert()
                 }
             }
@@ -311,10 +282,7 @@ contract UniswapFeature is IFeature, IUniswapFeature, FixinCommon {
 
             // Load a token address from the `tokens` calldata argument.
             function loadTokenAddress(idx) -> addr {
-                addr := and(
-                    ADDRESS_MASK,
-                    calldataload(add(mload(0xA00), mul(idx, 0x20)))
-                )
+                addr := and(ADDRESS_MASK, calldataload(add(mload(0xA00), mul(idx, 0x20))))
             }
 
             // Convert ETH pseudo-token addresses to WETH.

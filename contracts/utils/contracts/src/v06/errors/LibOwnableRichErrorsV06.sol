@@ -26,11 +26,7 @@ library LibOwnableRichErrorsV06 {
     bytes internal constant TRANSFER_OWNER_TO_ZERO_ERROR_BYTES = hex"e69edc3e";
 
     // solhint-disable func-name-mixedcase
-    function OnlyOwnerError(address sender, address owner)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function OnlyOwnerError(address sender, address owner) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(ONLY_OWNER_ERROR_SELECTOR, sender, owner);
     }
 

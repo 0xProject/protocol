@@ -39,15 +39,11 @@ contract ZrxTreasury is IZrxTreasury {
 
     /// The EIP-712 typehash for the contract's domain
     bytes32 private constant DOMAIN_TYPEHASH =
-        keccak256(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        );
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     /// The EIP-712 typehash for the vote struct
     bytes32 private constant VOTE_TYPEHASH =
-        keccak256(
-            "TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)"
-        );
+        keccak256("TreasuryVote(uint256 proposalId,bool support,bytes32[] operatedPoolIds)");
 
     // Immutables
     IStaking public immutable override stakingProxy;
@@ -67,21 +63,14 @@ contract ZrxTreasury is IZrxTreasury {
     ///      staking pool.
     /// @param stakingProxy_ The 0x staking proxy contract.
     /// @param params Immutable treasury parameters.
-    constructor(IStaking stakingProxy_, TreasuryParameters memory params)
-        public
-    {
-        require(
-            params.votingPeriod < stakingProxy_.epochDurationInSeconds(),
-            "VOTING_PERIOD_TOO_LONG"
-        );
+    constructor(IStaking stakingProxy_, TreasuryParameters memory params) public {
+        require(params.votingPeriod < stakingProxy_.epochDurationInSeconds(), "VOTING_PERIOD_TOO_LONG");
         stakingProxy = stakingProxy_;
         votingPeriod = params.votingPeriod;
         proposalThreshold = params.proposalThreshold;
         quorumThreshold = params.quorumThreshold;
         defaultPoolId = params.defaultPoolId;
-        IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(
-            params.defaultPoolId
-        );
+        IStaking.Pool memory defaultPool = stakingProxy_.getStakingPool(params.defaultPoolId);
         defaultPoolOperator = DefaultPoolOperator(defaultPool.operator);
         domainSeparator = keccak256(
             abi.encode(
@@ -106,10 +95,7 @@ contract ZrxTreasury is IZrxTreasury {
     ///      updated via a successful treasury proposal.
     /// @param newProposalThreshold The new value for the proposal threshold.
     /// @param newQuorumThreshold The new value for the quorum threshold.
-    function updateThresholds(
-        uint256 newProposalThreshold,
-        uint256 newQuorumThreshold
-    ) external override {
+    function updateThresholds(uint256 newProposalThreshold, uint256 newQuorumThreshold) external override {
         require(msg.sender == address(this), "updateThresholds/ONLY_SELF");
         proposalThreshold = newProposalThreshold;
         quorumThreshold = newQuorumThreshold;
@@ -138,16 +124,10 @@ contract ZrxTreasury is IZrxTreasury {
         string memory description,
         bytes32[] memory operatedPoolIds
     ) public override returns (uint256 proposalId) {
-        require(
-            getVotingPower(msg.sender, operatedPoolIds) >= proposalThreshold,
-            "propose/INSUFFICIENT_VOTING_POWER"
-        );
+        require(getVotingPower(msg.sender, operatedPoolIds) >= proposalThreshold, "propose/INSUFFICIENT_VOTING_POWER");
         require(actions.length > 0, "propose/NO_ACTIONS_PROPOSED");
         uint256 currentEpoch = stakingProxy.currentEpoch();
-        require(
-            executionEpoch >= currentEpoch + 2,
-            "propose/INVALID_EXECUTION_EPOCH"
-        );
+        require(executionEpoch >= currentEpoch + 2, "propose/INVALID_EXECUTION_EPOCH");
 
         proposalId = proposalCount();
         Proposal storage newProposal = proposals.push();
@@ -155,14 +135,7 @@ contract ZrxTreasury is IZrxTreasury {
         newProposal.executionEpoch = executionEpoch;
         newProposal.voteEpoch = currentEpoch + 2;
 
-        emit ProposalCreated(
-            msg.sender,
-            operatedPoolIds,
-            proposalId,
-            actions,
-            executionEpoch,
-            description
-        );
+        emit ProposalCreated(msg.sender, operatedPoolIds, proposalId, actions, executionEpoch, description);
     }
 
     /// @dev Casts a vote for the given proposal. Only callable
@@ -203,16 +176,9 @@ contract ZrxTreasury is IZrxTreasury {
         bytes32 s
     ) public override {
         bytes32 structHash = keccak256(
-            abi.encode(
-                VOTE_TYPEHASH,
-                proposalId,
-                support,
-                keccak256(abi.encodePacked(operatedPoolIds))
-            )
+            abi.encode(VOTE_TYPEHASH, proposalId, support, keccak256(abi.encodePacked(operatedPoolIds)))
         );
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, structHash)
-        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
 
         return _castVote(signatory, proposalId, support, operatedPoolIds);
@@ -222,11 +188,7 @@ contract ZrxTreasury is IZrxTreasury {
     ///      currently executable.
     /// @param proposalId The ID of the proposal to execute.
     /// @param actions Actions associated with the proposal to execute.
-    function execute(uint256 proposalId, ProposedAction[] memory actions)
-        public
-        payable
-        override
-    {
+    function execute(uint256 proposalId, ProposedAction[] memory actions) public payable override {
         if (proposalId >= proposalCount()) {
             revert("execute/INVALID_PROPOSAL_ID");
         }
@@ -237,9 +199,7 @@ contract ZrxTreasury is IZrxTreasury {
 
         for (uint256 i = 0; i != actions.length; i++) {
             ProposedAction memory action = actions[i];
-            (bool didSucceed, ) = action.target.call{value: action.value}(
-                action.data
-            );
+            (bool didSucceed, ) = action.target.call{value: action.value}(action.data);
             require(didSucceed, "execute/ACTION_EXECUTION_FAILED");
         }
 
@@ -278,25 +238,15 @@ contract ZrxTreasury is IZrxTreasury {
         // Voting power for ZRX delegated to the default pool is not diluted,
         // so we double-count the balance delegated to the default pool before
         // dividing by 2.
-        votingPower = delegatedBalance
-            .safeAdd(balanceDelegatedToDefaultPool)
-            .safeDiv(2);
+        votingPower = delegatedBalance.safeAdd(balanceDelegatedToDefaultPool).safeDiv(2);
 
         // Add voting power for operated staking pools.
         for (uint256 i = 0; i != operatedPoolIds.length; i++) {
             for (uint256 j = 0; j != i; j++) {
-                require(
-                    operatedPoolIds[i] != operatedPoolIds[j],
-                    "getVotingPower/DUPLICATE_POOL_ID"
-                );
+                require(operatedPoolIds[i] != operatedPoolIds[j], "getVotingPower/DUPLICATE_POOL_ID");
             }
-            IStaking.Pool memory pool = stakingProxy.getStakingPool(
-                operatedPoolIds[i]
-            );
-            require(
-                pool.operator == account,
-                "getVotingPower/POOL_NOT_OPERATED_BY_ACCOUNT"
-            );
+            IStaking.Pool memory pool = stakingProxy.getStakingPool(operatedPoolIds[i]);
+            require(pool.operator == account, "getVotingPower/POOL_NOT_OPERATED_BY_ACCOUNT");
             uint96 stakeDelegatedToPool = stakingProxy
                 .getTotalStakeDelegatedToPool(operatedPoolIds[i])
                 .currentEpochBalance;
@@ -310,22 +260,10 @@ contract ZrxTreasury is IZrxTreasury {
     /// @dev Checks whether the given proposal is executable.
     ///      Reverts if not.
     /// @param proposal The proposal to check.
-    function _assertProposalExecutable(
-        Proposal memory proposal,
-        ProposedAction[] memory actions
-    ) private view {
-        require(
-            keccak256(abi.encode(actions)) == proposal.actionsHash,
-            "_assertProposalExecutable/INVALID_ACTIONS"
-        );
-        require(
-            _hasProposalPassed(proposal),
-            "_assertProposalExecutable/PROPOSAL_HAS_NOT_PASSED"
-        );
-        require(
-            !proposal.executed,
-            "_assertProposalExecutable/PROPOSAL_ALREADY_EXECUTED"
-        );
+    function _assertProposalExecutable(Proposal memory proposal, ProposedAction[] memory actions) private view {
+        require(keccak256(abi.encode(actions)) == proposal.actionsHash, "_assertProposalExecutable/INVALID_ACTIONS");
+        require(_hasProposalPassed(proposal), "_assertProposalExecutable/PROPOSAL_HAS_NOT_PASSED");
+        require(!proposal.executed, "_assertProposalExecutable/PROPOSAL_ALREADY_EXECUTED");
         require(
             stakingProxy.currentEpoch() == proposal.executionEpoch,
             "_assertProposalExecutable/CANNOT_EXECUTE_THIS_EPOCH"
@@ -335,11 +273,7 @@ contract ZrxTreasury is IZrxTreasury {
     /// @dev Checks whether the given proposal has passed or not.
     /// @param proposal The proposal to check.
     /// @return hasPassed Whether the proposal has passed.
-    function _hasProposalPassed(Proposal memory proposal)
-        private
-        view
-        returns (bool hasPassed)
-    {
+    function _hasProposalPassed(Proposal memory proposal) private view returns (bool hasPassed) {
         // Proposal is not passed until the vote is over.
         if (!_hasVoteEnded(proposal.voteEpoch)) {
             return false;
@@ -359,11 +293,7 @@ contract ZrxTreasury is IZrxTreasury {
     ///      epoch has ended or not.
     /// @param voteEpoch The epoch at which the vote started.
     /// @return hasEnded Whether the vote has ended.
-    function _hasVoteEnded(uint256 voteEpoch)
-        private
-        view
-        returns (bool hasEnded)
-    {
+    function _hasVoteEnded(uint256 voteEpoch) private view returns (bool hasEnded) {
         uint256 currentEpoch = stakingProxy.currentEpoch();
         if (currentEpoch < voteEpoch) {
             return false;
@@ -373,9 +303,7 @@ contract ZrxTreasury is IZrxTreasury {
         }
         // voteEpoch == currentEpoch
         // Vote ends at currentEpochStartTime + votingPeriod
-        uint256 voteEndTime = stakingProxy
-            .currentEpochStartTimeInSeconds()
-            .safeAdd(votingPeriod);
+        uint256 voteEndTime = stakingProxy.currentEpochStartTimeInSeconds().safeAdd(votingPeriod);
         return block.timestamp > voteEndTime;
     }
 
@@ -396,10 +324,7 @@ contract ZrxTreasury is IZrxTreasury {
         }
 
         Proposal memory proposal = proposals[proposalId];
-        if (
-            proposal.voteEpoch != stakingProxy.currentEpoch() ||
-            _hasVoteEnded(proposal.voteEpoch)
-        ) {
+        if (proposal.voteEpoch != stakingProxy.currentEpoch() || _hasVoteEnded(proposal.voteEpoch)) {
             revert("_castVote/VOTING_IS_CLOSED");
         }
 
@@ -409,13 +334,9 @@ contract ZrxTreasury is IZrxTreasury {
         }
 
         if (support) {
-            proposals[proposalId].votesFor = proposals[proposalId]
-                .votesFor
-                .safeAdd(votingPower);
+            proposals[proposalId].votesFor = proposals[proposalId].votesFor.safeAdd(votingPower);
         } else {
-            proposals[proposalId].votesAgainst = proposals[proposalId]
-                .votesAgainst
-                .safeAdd(votingPower);
+            proposals[proposalId].votesAgainst = proposals[proposalId].votesAgainst.safeAdd(votingPower);
         }
         hasVoted[proposalId][voter] = true;
 

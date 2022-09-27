@@ -23,11 +23,7 @@ interface IERC20TokenV06 {
     // solhint-disable no-simple-event-func-name
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     /// @dev send `value` token to `to` from `msg.sender`
     /// @param to The address of the recipient
@@ -65,10 +61,7 @@ interface IERC20TokenV06 {
     /// @param owner The address of the account owning tokens
     /// @param spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens allowed to spent
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
 
     /// @dev Get the number of decimals this token has.
     function decimals() external view returns (uint8);

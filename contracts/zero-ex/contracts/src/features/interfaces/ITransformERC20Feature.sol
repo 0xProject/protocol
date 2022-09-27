@@ -127,10 +127,7 @@ interface ITransformERC20Feature {
     /// @dev Internal version of `transformERC20()`. Only callable from within.
     /// @param args A `TransformERC20Args` struct.
     /// @return outputTokenAmount The amount of `outputToken` received by the taker.
-    function _transformERC20(TransformERC20Args calldata args)
-        external
-        payable
-        returns (uint256 outputTokenAmount);
+    function _transformERC20(TransformERC20Args calldata args) external payable returns (uint256 outputTokenAmount);
 
     /// @dev Return the current wallet instance that will serve as the execution
     ///      context for transformations.

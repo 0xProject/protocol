@@ -64,10 +64,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
             "MultiplexLiquidityProvider::_batchSellUniswapV2External/ONLY_DELEGATECALL"
         );
 
-        (address[] memory tokens, bool isSushi) = abi.decode(
-            wrappedCallData,
-            (address[], bool)
-        );
+        (address[] memory tokens, bool isSushi) = abi.decode(wrappedCallData, (address[], bool));
         // Validate tokens
         require(
             tokens.length >= 2 &&
@@ -77,38 +74,18 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         );
         // Compute the address of the first Uniswap pair
         // contract that will execute a swap.
-        address firstPairAddress = _computeUniswapPairAddress(
-            tokens[0],
-            tokens[1],
-            isSushi
-        );
+        address firstPairAddress = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
         // `_sellToUniswapV2` assumes the input tokens have been
         // transferred into the pair contract before it is called,
         // so we transfer the tokens in now (either from `msg.sender`
         // or using the Exchange Proxy's balance).
         if (params.useSelfBalance) {
-            _transferERC20Tokens(
-                IERC20TokenV06(tokens[0]),
-                firstPairAddress,
-                sellAmount
-            );
+            _transferERC20Tokens(IERC20TokenV06(tokens[0]), firstPairAddress, sellAmount);
         } else {
-            _transferERC20TokensFrom(
-                IERC20TokenV06(tokens[0]),
-                msg.sender,
-                firstPairAddress,
-                sellAmount
-            );
+            _transferERC20TokensFrom(IERC20TokenV06(tokens[0]), msg.sender, firstPairAddress, sellAmount);
         }
         // Execute the Uniswap/Sushiswap trade.
-        return
-            _sellToUniswapV2(
-                tokens,
-                sellAmount,
-                isSushi,
-                firstPairAddress,
-                params.recipient
-            );
+        return _sellToUniswapV2(tokens, sellAmount, isSushi, firstPairAddress, params.recipient);
     }
 
     function _batchSellUniswapV2(
@@ -119,12 +96,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
     ) internal {
         // Swallow reverts
         (bool success, bytes memory resultData) = _implementation.delegatecall(
-            abi.encodeWithSelector(
-                this._batchSellUniswapV2External.selector,
-                params,
-                wrappedCallData,
-                sellAmount
-            )
+            abi.encodeWithSelector(this._batchSellUniswapV2External.selector, params, wrappedCallData, sellAmount)
         );
         if (success) {
             // Decode the output token amount on success.
@@ -140,10 +112,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory wrappedCallData
     ) internal {
-        (address[] memory tokens, bool isSushi) = abi.decode(
-            wrappedCallData,
-            (address[], bool)
-        );
+        (address[] memory tokens, bool isSushi) = abi.decode(wrappedCallData, (address[], bool));
         // Validate the tokens
         require(
             tokens.length >= 2 &&
@@ -152,13 +121,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
             "MultiplexUniswapV2::_multiHopSellUniswapV2/INVALID_TOKENS"
         );
         // Execute the Uniswap/Sushiswap trade.
-        state.outputTokenAmount = _sellToUniswapV2(
-            tokens,
-            state.outputTokenAmount,
-            isSushi,
-            state.from,
-            state.to
-        );
+        state.outputTokenAmount = _sellToUniswapV2(tokens, state.outputTokenAmount, isSushi, state.from, state.to);
     }
 
     function _sellToUniswapV2(
@@ -171,17 +134,9 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         // Iterate through `tokens` perform a swap against the Uniswap
         // pair contract for each `(tokens[i], tokens[i+1])`.
         for (uint256 i = 0; i < tokens.length - 1; i++) {
-            (address inputToken, address outputToken) = (
-                tokens[i],
-                tokens[i + 1]
-            );
+            (address inputToken, address outputToken) = (tokens[i], tokens[i + 1]);
             // Compute the output token amount
-            outputTokenAmount = _computeUniswapOutputAmount(
-                pairAddress,
-                inputToken,
-                outputToken,
-                sellAmount
-            );
+            outputTokenAmount = _computeUniswapOutputAmount(pairAddress, inputToken, outputToken, sellAmount);
             (uint256 amount0Out, uint256 amount1Out) = inputToken < outputToken
                 ? (uint256(0), outputTokenAmount)
                 : (outputTokenAmount, uint256(0));
@@ -189,19 +144,10 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
             // the next pair contract if there is one, otherwise transfer to
             // `recipient`.
             address to = i < tokens.length - 2
-                ? _computeUniswapPairAddress(
-                    outputToken,
-                    tokens[i + 2],
-                    isSushi
-                )
+                ? _computeUniswapPairAddress(outputToken, tokens[i + 2], isSushi)
                 : recipient;
             // Execute the swap.
-            IUniswapV2Pair(pairAddress).swap(
-                amount0Out,
-                amount1Out,
-                to,
-                new bytes(0)
-            );
+            IUniswapV2Pair(pairAddress).swap(amount0Out, amount1Out, to, new bytes(0));
             // To avoid recomputing the pair address of the next pair, store
             // `to` in `pairAddress`.
             pairAddress = to;
@@ -218,9 +164,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         bool isSushi
     ) internal view returns (address pairAddress) {
         // Tokens are lexicographically sorted in the Uniswap contract.
-        (address token0, address token1) = tokenA < tokenB
-            ? (tokenA, tokenB)
-            : (tokenB, tokenA);
+        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         if (isSushi) {
             // Use the Sushiswap factory address and codehash
             return
@@ -263,18 +207,11 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         uint256 inputAmount
     ) private view returns (uint256 outputAmount) {
         // Input amount should be non-zero.
-        require(
-            inputAmount > 0,
-            "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT"
-        );
+        require(inputAmount > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT");
         // Query the reserves of the pair contract.
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pairAddress)
-            .getReserves();
+        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pairAddress).getReserves();
         // Reserves must be non-zero.
-        require(
-            reserve0 > 0 && reserve1 > 0,
-            "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY"
-        );
+        require(reserve0 > 0 && reserve1 > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY");
         // Tokens are lexicographically sorted in the Uniswap contract.
         (uint256 inputReserve, uint256 outputReserve) = inputToken < outputToken
             ? (reserve0, reserve1)
@@ -282,9 +219,7 @@ abstract contract MultiplexUniswapV2 is FixinCommon, FixinTokenSpender {
         // Compute the output amount.
         uint256 inputAmountWithFee = inputAmount.safeMul(997);
         uint256 numerator = inputAmountWithFee.safeMul(outputReserve);
-        uint256 denominator = inputReserve.safeMul(1000).safeAdd(
-            inputAmountWithFee
-        );
+        uint256 denominator = inputReserve.safeMul(1000).safeAdd(inputAmountWithFee);
         return numerator / denominator;
     }
 }

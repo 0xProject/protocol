@@ -31,9 +31,7 @@ library LibSafeMathV06 {
         if (c / a != b) {
             LibRichErrorsV06.rrevert(
                 LibSafeMathRichErrorsV06.Uint256BinOpError(
-                    LibSafeMathRichErrorsV06
-                        .BinOpErrorCodes
-                        .MULTIPLICATION_OVERFLOW,
+                    LibSafeMathRichErrorsV06.BinOpErrorCodes.MULTIPLICATION_OVERFLOW,
                     a,
                     b
                 )
@@ -60,9 +58,7 @@ library LibSafeMathV06 {
         if (b > a) {
             LibRichErrorsV06.rrevert(
                 LibSafeMathRichErrorsV06.Uint256BinOpError(
-                    LibSafeMathRichErrorsV06
-                        .BinOpErrorCodes
-                        .SUBTRACTION_UNDERFLOW,
+                    LibSafeMathRichErrorsV06.BinOpErrorCodes.SUBTRACTION_UNDERFLOW,
                     a,
                     b
                 )
@@ -101,9 +97,7 @@ library LibSafeMathV06 {
         if (c / a != b) {
             LibRichErrorsV06.rrevert(
                 LibSafeMathRichErrorsV06.Uint256BinOpError(
-                    LibSafeMathRichErrorsV06
-                        .BinOpErrorCodes
-                        .MULTIPLICATION_OVERFLOW,
+                    LibSafeMathRichErrorsV06.BinOpErrorCodes.MULTIPLICATION_OVERFLOW,
                     a,
                     b
                 )
@@ -130,9 +124,7 @@ library LibSafeMathV06 {
         if (b > a) {
             LibRichErrorsV06.rrevert(
                 LibSafeMathRichErrorsV06.Uint256BinOpError(
-                    LibSafeMathRichErrorsV06
-                        .BinOpErrorCodes
-                        .SUBTRACTION_UNDERFLOW,
+                    LibSafeMathRichErrorsV06.BinOpErrorCodes.SUBTRACTION_UNDERFLOW,
                     a,
                     b
                 )
@@ -167,9 +159,7 @@ library LibSafeMathV06 {
         if (a > type(uint128).max) {
             LibRichErrorsV06.rrevert(
                 LibSafeMathRichErrorsV06.Uint256DowncastError(
-                    LibSafeMathRichErrorsV06
-                        .DowncastErrorCodes
-                        .VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128,
+                    LibSafeMathRichErrorsV06.DowncastErrorCodes.VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128,
                     a
                 )
             );

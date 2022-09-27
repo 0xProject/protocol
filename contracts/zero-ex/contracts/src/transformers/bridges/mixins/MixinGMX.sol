@@ -58,10 +58,7 @@ contract MixinGMX {
 
         {
             //decode the bridge data
-            (_router, reader, vault, _path) = abi.decode(
-                bridgeData,
-                (address, address, address, address[])
-            );
+            (_router, reader, vault, _path) = abi.decode(bridgeData, (address, address, address, address[]));
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
                 path := _path
@@ -69,10 +66,7 @@ contract MixinGMX {
         }
 
         require(path.length >= 2, "MixinGMX/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinGMX/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path[path.length - 1] == buyToken, "MixinGMX/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
 
         //connect to the GMX router
         router = IGmxRouter(_router);

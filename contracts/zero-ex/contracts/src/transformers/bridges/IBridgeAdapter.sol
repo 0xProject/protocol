@@ -48,9 +48,7 @@ interface IBridgeAdapter {
         uint256 outputTokenAmount
     );
 
-    function isSupportedSource(bytes32 source)
-        external
-        returns (bool isSupported);
+    function isSupportedSource(bytes32 source) external returns (bool isSupported);
 
     function trade(
         BridgeOrder calldata order,

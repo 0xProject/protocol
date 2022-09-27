@@ -22,16 +22,10 @@ import "./IOwnable.sol";
 
 contract IAuthorizable is IOwnable {
     // Event logged when a new address is authorized.
-    event AuthorizedAddressAdded(
-        address indexed target,
-        address indexed caller
-    );
+    event AuthorizedAddressAdded(address indexed target, address indexed caller);
 
     // Event logged when a currently authorized address is unauthorized.
-    event AuthorizedAddressRemoved(
-        address indexed target,
-        address indexed caller
-    );
+    event AuthorizedAddressRemoved(address indexed target, address indexed caller);
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
@@ -44,8 +38,7 @@ contract IAuthorizable is IOwnable {
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(address target, uint256 index)
-        external;
+    function removeAuthorizedAddressAtIndex(address target, uint256 index) external;
 
     /// @dev Gets all authorized addresses.
     /// @return Array of authorized addresses.

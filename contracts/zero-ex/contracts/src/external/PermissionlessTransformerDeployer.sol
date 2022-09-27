@@ -34,27 +34,12 @@ contract PermissionlessTransformerDeployer {
     mapping(address => bytes32) public toInitCodeHash;
 
     /// @dev Deploy a new contract. Any attached ETH will be forwarded.
-    function deploy(bytes memory bytecode, bytes32 salt)
-        public
-        payable
-        returns (address deployedAddress)
-    {
+    function deploy(bytes memory bytecode, bytes32 salt) public payable returns (address deployedAddress) {
         assembly {
-            deployedAddress := create2(
-                callvalue(),
-                add(bytecode, 32),
-                mload(bytecode),
-                salt
-            )
+            deployedAddress := create2(callvalue(), add(bytecode, 32), mload(bytecode), salt)
         }
-        require(
-            deployedAddress != address(0),
-            "PermissionlessTransformerDeployer/DEPLOY_FAILED"
-        );
-        require(
-            isDelegateCallSafe(deployedAddress),
-            "PermissionlessTransformerDeployer/UNSAFE_CODE"
-        );
+        require(deployedAddress != address(0), "PermissionlessTransformerDeployer/DEPLOY_FAILED");
+        require(isDelegateCallSafe(deployedAddress), "PermissionlessTransformerDeployer/UNSAFE_CODE");
         toDeploymentSalt[deployedAddress] = salt;
         toInitCodeHash[deployedAddress] = keccak256(bytecode);
         emit Deployed(deployedAddress, salt, msg.sender);

@@ -38,16 +38,7 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    )
-        public
-        NativeOrdersSettlement(
-            zeroExAddress,
-            weth,
-            staking,
-            feeCollectorController,
-            protocolFeeMultiplier
-        )
-    {
+    ) public NativeOrdersSettlement(zeroExAddress, weth, staking, feeCollectorController, protocolFeeMultiplier) {
         // solhint-disable no-empty-blocks
     }
 
@@ -69,15 +60,11 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
         _registerFeatureFunction(this.cancelPairLimitOrders.selector);
         _registerFeatureFunction(this.cancelPairLimitOrdersWithSigner.selector);
         _registerFeatureFunction(this.batchCancelPairLimitOrders.selector);
-        _registerFeatureFunction(
-            this.batchCancelPairLimitOrdersWithSigner.selector
-        );
+        _registerFeatureFunction(this.batchCancelPairLimitOrdersWithSigner.selector);
         _registerFeatureFunction(this.cancelPairRfqOrders.selector);
         _registerFeatureFunction(this.cancelPairRfqOrdersWithSigner.selector);
         _registerFeatureFunction(this.batchCancelPairRfqOrders.selector);
-        _registerFeatureFunction(
-            this.batchCancelPairRfqOrdersWithSigner.selector
-        );
+        _registerFeatureFunction(this.batchCancelPairRfqOrdersWithSigner.selector);
         _registerFeatureFunction(this.getLimitOrderInfo.selector);
         _registerFeatureFunction(this.getRfqOrderInfo.selector);
         _registerFeatureFunction(this.getLimitOrderHash.selector);
@@ -86,9 +73,7 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
         _registerFeatureFunction(this.registerAllowedRfqOrigins.selector);
         _registerFeatureFunction(this.getLimitOrderRelevantState.selector);
         _registerFeatureFunction(this.getRfqOrderRelevantState.selector);
-        _registerFeatureFunction(
-            this.batchGetLimitOrderRelevantStates.selector
-        );
+        _registerFeatureFunction(this.batchGetLimitOrderRelevantStates.selector);
         _registerFeatureFunction(this.batchGetRfqOrderRelevantStates.selector);
         _registerFeatureFunction(this.registerAllowedOrderSigner.selector);
         _registerFeatureFunction(this.isValidOrderSigner.selector);

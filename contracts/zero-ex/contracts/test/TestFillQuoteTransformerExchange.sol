@@ -39,11 +39,7 @@ contract TestFillQuoteTransformerExchange {
         LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         // The r field of the signature is the pre-filled amount.
         uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
         if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
@@ -61,26 +57,17 @@ contract TestFillQuoteTransformerExchange {
         );
 
         // Take taker tokens.
-        order.takerToken.transferFrom(
-            msg.sender,
-            order.maker,
-            takerTokenFilledAmount
-        );
+        order.takerToken.transferFrom(msg.sender, order.maker, takerTokenFilledAmount);
 
         // Mint maker tokens.
         makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
-            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) /
-                uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) / uint256(order.takerAmount)
         );
-        TestMintableERC20Token(address(order.makerToken)).mint(
-            msg.sender,
-            makerTokenFilledAmount
-        );
+        TestMintableERC20Token(address(order.makerToken)).mint(msg.sender, makerTokenFilledAmount);
 
         // Take taker token fee.
         uint128 takerFee = LibSafeMathV06.safeDowncastToUint128(
-            (uint256(takerTokenFilledAmount) *
-                uint256(order.takerTokenFeeAmount)) / uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.takerTokenFeeAmount)) / uint256(order.takerAmount)
         );
         order.takerToken.transferFrom(msg.sender, order.feeRecipient, takerFee);
     }
@@ -89,11 +76,7 @@ contract TestFillQuoteTransformerExchange {
         LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         // The r field of the signature is the pre-filled amount.
         uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
         if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
@@ -108,32 +91,20 @@ contract TestFillQuoteTransformerExchange {
         );
 
         // Take taker tokens.
-        order.takerToken.transferFrom(
-            msg.sender,
-            order.maker,
-            takerTokenFilledAmount
-        );
+        order.takerToken.transferFrom(msg.sender, order.maker, takerTokenFilledAmount);
 
         // Mint maker tokens.
         makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
-            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) /
-                uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) / uint256(order.takerAmount)
         );
-        TestMintableERC20Token(address(order.makerToken)).mint(
-            msg.sender,
-            makerTokenFilledAmount
-        );
+        TestMintableERC20Token(address(order.makerToken)).mint(msg.sender, makerTokenFilledAmount);
     }
 
     function getProtocolFeeMultiplier() external pure returns (uint256) {
         return PROTOCOL_FEE_MULTIPLIER;
     }
 
-    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
-        external
-        pure
-        returns (bytes32)
-    {
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order) external pure returns (bytes32) {
         return bytes32(order.salt);
     }
 }

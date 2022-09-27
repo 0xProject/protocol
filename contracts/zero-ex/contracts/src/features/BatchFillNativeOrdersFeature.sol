@@ -34,12 +34,7 @@ import "./libs/LibNativeOrder.sol";
 import "./libs/LibSignature.sol";
 
 /// @dev Feature for batch/market filling limit and RFQ orders.
-contract BatchFillNativeOrdersFeature is
-    IFeature,
-    IBatchFillNativeOrdersFeature,
-    FixinCommon,
-    FixinEIP712
-{
+contract BatchFillNativeOrdersFeature is IFeature, IBatchFillNativeOrdersFeature, FixinCommon, FixinEIP712 {
     using LibSafeMathV06 for uint128;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -79,21 +74,17 @@ contract BatchFillNativeOrdersFeature is
         external
         payable
         override
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        )
+        returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts)
     {
         require(
-            orders.length == signatures.length &&
-                orders.length == takerTokenFillAmounts.length,
+            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
             "BatchFillNativeOrdersFeature::batchFillLimitOrders/MISMATCHED_ARRAY_LENGTHS"
         );
         takerTokenFilledAmounts = new uint128[](orders.length);
         makerTokenFilledAmounts = new uint128[](orders.length);
-        uint256 protocolFee = uint256(
-            INativeOrdersFeature(address(this)).getProtocolFeeMultiplier()
-        ).safeMul(tx.gasprice);
+        uint256 protocolFee = uint256(INativeOrdersFeature(address(this)).getProtocolFeeMultiplier()).safeMul(
+            tx.gasprice
+        );
         uint256 ethProtocolFeePaid;
         for (uint256 i = 0; i != orders.length; i++) {
             try
@@ -104,10 +95,7 @@ contract BatchFillNativeOrdersFeature is
                     msg.sender,
                     msg.sender
                 )
-            returns (
-                uint128 takerTokenFilledAmount,
-                uint128 makerTokenFilledAmount
-            ) {
+            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
                 // Update amounts filled.
                 (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) = (
                     takerTokenFilledAmount,
@@ -116,20 +104,11 @@ contract BatchFillNativeOrdersFeature is
                 ethProtocolFeePaid = ethProtocolFeePaid.safeAdd(protocolFee);
             } catch {}
 
-            if (
-                revertIfIncomplete &&
-                takerTokenFilledAmounts[i] < takerTokenFillAmounts[i]
-            ) {
-                bytes32 orderHash = _getEIP712Hash(
-                    LibNativeOrder.getLimitOrderStructHash(orders[i])
-                );
+            if (revertIfIncomplete && takerTokenFilledAmounts[i] < takerTokenFillAmounts[i]) {
+                bytes32 orderHash = _getEIP712Hash(LibNativeOrder.getLimitOrderStructHash(orders[i]));
                 // Did not fill the amount requested.
                 LibNativeOrdersRichErrors
-                    .BatchFillIncompleteError(
-                        orderHash,
-                        takerTokenFilledAmounts[i],
-                        takerTokenFillAmounts[i]
-                    )
+                    .BatchFillIncompleteError(orderHash, takerTokenFilledAmounts[i], takerTokenFillAmounts[i])
                     .rrevert();
             }
         }
@@ -149,17 +128,9 @@ contract BatchFillNativeOrdersFeature is
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata takerTokenFillAmounts,
         bool revertIfIncomplete
-    )
-        external
-        override
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        )
-    {
+    ) external override returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts) {
         require(
-            orders.length == signatures.length &&
-                orders.length == takerTokenFillAmounts.length,
+            orders.length == signatures.length && orders.length == takerTokenFillAmounts.length,
             "BatchFillNativeOrdersFeature::batchFillRfqOrders/MISMATCHED_ARRAY_LENGTHS"
         );
         takerTokenFilledAmounts = new uint128[](orders.length);
@@ -174,10 +145,7 @@ contract BatchFillNativeOrdersFeature is
                     false,
                     msg.sender
                 )
-            returns (
-                uint128 takerTokenFilledAmount,
-                uint128 makerTokenFilledAmount
-            ) {
+            returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
                 // Update amounts filled.
                 (takerTokenFilledAmounts[i], makerTokenFilledAmounts[i]) = (
                     takerTokenFilledAmount,
@@ -185,20 +153,11 @@ contract BatchFillNativeOrdersFeature is
                 );
             } catch {}
 
-            if (
-                revertIfIncomplete &&
-                takerTokenFilledAmounts[i] < takerTokenFillAmounts[i]
-            ) {
+            if (revertIfIncomplete && takerTokenFilledAmounts[i] < takerTokenFillAmounts[i]) {
                 // Did not fill the amount requested.
-                bytes32 orderHash = _getEIP712Hash(
-                    LibNativeOrder.getRfqOrderStructHash(orders[i])
-                );
+                bytes32 orderHash = _getEIP712Hash(LibNativeOrder.getRfqOrderStructHash(orders[i]));
                 LibNativeOrdersRichErrors
-                    .BatchFillIncompleteError(
-                        orderHash,
-                        takerTokenFilledAmounts[i],
-                        takerTokenFillAmounts[i]
-                    )
+                    .BatchFillIncompleteError(orderHash, takerTokenFilledAmounts[i], takerTokenFillAmounts[i])
                     .rrevert();
             }
         }

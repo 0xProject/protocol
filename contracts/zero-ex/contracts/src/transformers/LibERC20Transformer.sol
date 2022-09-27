@@ -27,11 +27,9 @@ library LibERC20Transformer {
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev ETH pseudo-token address.
-    address internal constant ETH_TOKEN_ADDRESS =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address internal constant ETH_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     /// @dev ETH pseudo-token.
-    IERC20TokenV06 internal constant ETH_TOKEN =
-        IERC20TokenV06(ETH_TOKEN_ADDRESS);
+    IERC20TokenV06 internal constant ETH_TOKEN = IERC20TokenV06(ETH_TOKEN_ADDRESS);
     /// @dev Return value indicating success in `IERC20Transformer.transform()`.
     ///      This is just `keccak256('TRANSFORMER_SUCCESS')`.
     bytes4 internal constant TRANSFORMER_SUCCESS = 0x13c9929e;
@@ -55,11 +53,7 @@ library LibERC20Transformer {
     /// @dev Check if a token is the ETH pseudo-token.
     /// @param token The token to check.
     /// @return isETH `true` if the token is the ETH pseudo-token.
-    function isTokenETH(IERC20TokenV06 token)
-        internal
-        pure
-        returns (bool isETH)
-    {
+    function isTokenETH(IERC20TokenV06 token) internal pure returns (bool isETH) {
         return address(token) == ETH_TOKEN_ADDRESS;
     }
 
@@ -67,11 +61,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param owner Holder of the tokens.
     /// @return tokenBalance The balance of `owner`.
-    function getTokenBalanceOf(IERC20TokenV06 token, address owner)
-        internal
-        view
-        returns (uint256 tokenBalance)
-    {
+    function getTokenBalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256 tokenBalance) {
         if (isTokenETH(token)) {
             return owner.balance;
         }
@@ -81,11 +71,7 @@ library LibERC20Transformer {
     /// @dev RLP-encode a 32-bit or less account nonce.
     /// @param nonce A positive integer in the range 0 <= nonce < 2^32.
     /// @return rlpNonce The RLP encoding.
-    function rlpEncodeNonce(uint32 nonce)
-        internal
-        pure
-        returns (bytes memory rlpNonce)
-    {
+    function rlpEncodeNonce(uint32 nonce) internal pure returns (bytes memory rlpNonce) {
         // See https://github.com/ethereum/wiki/wiki/RLP for RLP encoding rules.
         if (nonce == 0) {
             rlpNonce = new bytes(1);

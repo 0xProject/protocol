@@ -78,12 +78,7 @@ interface INativeOrdersEvents {
     /// @param takerToken The taker token in a pair for the orders cancelled.
     /// @param minValidSalt The new minimum valid salt an order with this pair must
     ///        have.
-    event PairCancelledLimitOrders(
-        address maker,
-        address makerToken,
-        address takerToken,
-        uint256 minValidSalt
-    );
+    event PairCancelledLimitOrders(address maker, address makerToken, address takerToken, uint256 minValidSalt);
 
     /// @dev Emitted whenever RFQ orders are cancelled by pair by a maker.
     /// @param maker The maker of the order.
@@ -91,12 +86,7 @@ interface INativeOrdersEvents {
     /// @param takerToken The taker token in a pair for the orders cancelled.
     /// @param minValidSalt The new minimum valid salt an order with this pair must
     ///        have.
-    event PairCancelledRfqOrders(
-        address maker,
-        address makerToken,
-        address takerToken,
-        uint256 minValidSalt
-    );
+    event PairCancelledRfqOrders(address maker, address makerToken, address takerToken, uint256 minValidSalt);
 
     /// @dev Emitted when new addresses are allowed or disallowed to fill
     ///      orders with a given txOrigin.

@@ -39,11 +39,7 @@ contract TestFillQuoteTransformerHost is TestTransformerHost {
         // Have to make this call externally because transformers aren't payable.
         this.rawExecuteTransform(
             transformer,
-            IERC20Transformer.TransformContext({
-                sender: sender,
-                recipient: recipient,
-                data: data
-            })
+            IERC20Transformer.TransformContext({sender: sender, recipient: recipient, data: data})
         );
     }
 }

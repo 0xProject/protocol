@@ -36,18 +36,12 @@ abstract contract FixinReentrancyGuard {
 
     /// @dev Cannot reenter a function with the same reentrancy guard flags.
     modifier nonReentrant(uint256 reentrancyFlags) virtual {
-        LibReentrancyGuardStorage.Storage
-            storage stor = LibReentrancyGuardStorage.getStorage();
+        LibReentrancyGuardStorage.Storage storage stor = LibReentrancyGuardStorage.getStorage();
         {
             uint256 currentFlags = stor.reentrancyFlags;
             // Revert if any bits in `reentrancyFlags` has already been set.
             if ((currentFlags & reentrancyFlags) != 0) {
-                LibCommonRichErrors
-                    .IllegalReentrancyError(
-                        msg.data.readBytes4(0),
-                        reentrancyFlags
-                    )
-                    .rrevert();
+                LibCommonRichErrors.IllegalReentrancyError(msg.data.readBytes4(0), reentrancyFlags).rrevert();
             }
             // Update reentrancy flags.
             stor.reentrancyFlags = currentFlags | reentrancyFlags;

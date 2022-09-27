@@ -28,10 +28,7 @@ import "../IBridgeAdapter.sol";
 interface IUniswapExchangeFactory {
     /// @dev Get the exchange for a token.
     /// @param token The token contract.
-    function getExchange(IERC20TokenV06 token)
-        external
-        view
-        returns (IUniswapExchange exchange);
+    function getExchange(IERC20TokenV06 token) external view returns (IUniswapExchange exchange);
 }
 
 interface IUniswapExchange {
@@ -108,17 +105,10 @@ contract MixinUniswap {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        IUniswapExchangeFactory exchangeFactory = abi.decode(
-            bridgeData,
-            (IUniswapExchangeFactory)
-        );
+        IUniswapExchangeFactory exchangeFactory = abi.decode(bridgeData, (IUniswapExchangeFactory));
 
         // Get the exchange for the token pair.
-        IUniswapExchange exchange = _getUniswapExchangeForTokenPair(
-            exchangeFactory,
-            sellToken,
-            buyToken
-        );
+        IUniswapExchange exchange = _getUniswapExchangeForTokenPair(exchangeFactory, sellToken, buyToken);
 
         // Convert from WETH to a token.
         if (sellToken == WETH) {
@@ -184,9 +174,7 @@ contract MixinUniswap {
         IERC20TokenV06 buyToken
     ) private view returns (IUniswapExchange exchange) {
         // Whichever isn't WETH is the exchange token.
-        exchange = sellToken == WETH
-            ? exchangeFactory.getExchange(buyToken)
-            : exchangeFactory.getExchange(sellToken);
+        exchange = sellToken == WETH ? exchangeFactory.getExchange(buyToken) : exchangeFactory.getExchange(sellToken);
         require(address(exchange) != address(0), "MixinUniswap/NO_EXCHANGE");
     }
 }

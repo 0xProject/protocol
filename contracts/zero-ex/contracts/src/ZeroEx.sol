@@ -40,9 +40,7 @@ contract ZeroEx {
         // Temporarily create and register the bootstrap feature.
         // It will deregister itself after `bootstrap()` has been called.
         BootstrapFeature bootstrap = new BootstrapFeature(bootstrapper);
-        LibProxyStorage.getStorage().impls[
-            bootstrap.bootstrap.selector
-        ] = address(bootstrap);
+        LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] = address(bootstrap);
     }
 
     // solhint-disable state-visibility
@@ -70,11 +68,7 @@ contract ZeroEx {
     /// @dev Get the implementation contract of a registered function.
     /// @param selector The function selector.
     /// @return impl The implementation contract address.
-    function getFunctionImplementation(bytes4 selector)
-        public
-        view
-        returns (address impl)
-    {
+    function getFunctionImplementation(bytes4 selector) public view returns (address impl) {
         return LibProxyStorage.getStorage().impls[selector];
     }
 

@@ -28,11 +28,7 @@ library LibRichErrors {
     ///      solidity statement. It has the function signature `Error(string)`.
     /// @param message The error string.
     /// @return The ABI encoded error.
-    function StandardError(string memory message)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function StandardError(string memory message) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(STANDARD_ERROR_SELECTOR, bytes(message));
     }
 

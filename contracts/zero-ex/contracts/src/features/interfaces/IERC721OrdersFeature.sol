@@ -205,8 +205,7 @@ interface IERC721OrdersFeature {
     ///      the order, the `PRESIGNED` signature type will become
     ///      valid for that order and signer.
     /// @param order An ERC721 order.
-    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order)
-        external;
+    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order) external;
 
     /// @dev Checks whether the given signature is valid for the
     ///      the given ERC721 order. Reverts if not.
@@ -226,10 +225,7 @@ interface IERC721OrdersFeature {
     ///      an ERC721 asset.
     /// @param order The ERC721 order.
     /// @param erc721TokenId The ID of the ERC721 asset.
-    function validateERC721OrderProperties(
-        LibNFTOrder.ERC721Order calldata order,
-        uint256 erc721TokenId
-    ) external view;
+    function validateERC721OrderProperties(LibNFTOrder.ERC721Order calldata order, uint256 erc721TokenId) external view;
 
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.
@@ -242,10 +238,7 @@ interface IERC721OrdersFeature {
     /// @dev Get the EIP-712 hash of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return orderHash The order hash.
-    function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order)
-        external
-        view
-        returns (bytes32 orderHash);
+    function getERC721OrderHash(LibNFTOrder.ERC721Order calldata order) external view returns (bytes32 orderHash);
 
     /// @dev Get the order status bit vector for the given
     ///      maker address and nonce range.
@@ -256,8 +249,5 @@ interface IERC721OrdersFeature {
     ///        248 bits.
     /// @return bitVector The order status bit vector for the
     ///         given maker and nonce range.
-    function getERC721OrderStatusBitVector(address maker, uint248 nonceRange)
-        external
-        view
-        returns (uint256 bitVector);
+    function getERC721OrderStatusBitVector(address maker, uint248 nonceRange) external view returns (uint256 bitVector);
 }

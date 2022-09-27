@@ -37,15 +37,7 @@ abstract contract NativeOrdersProtocolFees is FixinProtocolFees {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    )
-        internal
-        FixinProtocolFees(
-            weth,
-            staking,
-            feeCollectorController,
-            protocolFeeMultiplier
-        )
-    {
+    ) internal FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
         // solhint-disable no-empty-blocks
     }
 
@@ -61,11 +53,7 @@ abstract contract NativeOrdersProtocolFees is FixinProtocolFees {
     /// @dev Get the protocol fee multiplier. This should be multiplied by the
     ///      gas price to arrive at the required protocol fee to fill a native order.
     /// @return multiplier The protocol fee multiplier.
-    function getProtocolFeeMultiplier()
-        external
-        view
-        returns (uint32 multiplier)
-    {
+    function getProtocolFeeMultiplier() external view returns (uint32 multiplier) {
         return PROTOCOL_FEE_MULTIPLIER;
     }
 }

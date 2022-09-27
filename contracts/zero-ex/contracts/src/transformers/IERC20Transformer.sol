@@ -39,7 +39,5 @@ interface IERC20Transformer {
     ///      delegatecalled in the context of the FlashWallet instance being used.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        returns (bytes4 success);
+    function transform(TransformContext calldata context) external returns (bytes4 success);
 }

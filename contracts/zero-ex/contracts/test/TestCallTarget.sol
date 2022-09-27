@@ -21,12 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 contract TestCallTarget {
-    event CallTargetCalled(
-        address context,
-        address sender,
-        bytes data,
-        uint256 value
-    );
+    event CallTargetCalled(address context, address sender, bytes data, uint256 value);
 
     bytes4 private constant MAGIC_BYTES = 0x12345678;
     bytes private constant REVERTING_DATA = hex"1337";

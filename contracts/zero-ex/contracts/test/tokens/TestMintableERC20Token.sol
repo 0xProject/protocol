@@ -26,19 +26,11 @@ contract TestMintableERC20Token {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    function transfer(address to, uint256 amount)
-        external
-        virtual
-        returns (bool)
-    {
+    function transfer(address to, uint256 amount) external virtual returns (bool) {
         return transferFrom(msg.sender, to, amount);
     }
 
-    function approve(address spender, uint256 amount)
-        external
-        virtual
-        returns (bool)
-    {
+    function approve(address spender, uint256 amount) external virtual returns (bool) {
         allowance[msg.sender][spender] = amount;
         return true;
     }
@@ -57,10 +49,7 @@ contract TestMintableERC20Token {
     }
 
     function burn(address owner, uint256 amount) external virtual {
-        require(
-            balanceOf[owner] >= amount,
-            "TestMintableERC20Token/INSUFFICIENT_FUNDS"
-        );
+        require(balanceOf[owner] >= amount, "TestMintableERC20Token/INSUFFICIENT_FUNDS");
         balanceOf[owner] -= amount;
     }
 
@@ -70,30 +59,17 @@ contract TestMintableERC20Token {
         uint256 amount
     ) public virtual returns (bool) {
         if (from != msg.sender) {
-            require(
-                allowance[from][msg.sender] >= amount,
-                "TestMintableERC20Token/INSUFFICIENT_ALLOWANCE"
-            );
+            require(allowance[from][msg.sender] >= amount, "TestMintableERC20Token/INSUFFICIENT_ALLOWANCE");
             allowance[from][msg.sender] -= amount;
         }
-        require(
-            balanceOf[from] >= amount,
-            "TestMintableERC20Token/INSUFFICIENT_FUNDS"
-        );
+        require(balanceOf[from] >= amount, "TestMintableERC20Token/INSUFFICIENT_FUNDS");
         balanceOf[from] -= amount;
         balanceOf[to] += amount;
         emit Transfer(address(this), from, to, amount);
         return true;
     }
 
-    function getSpendableAmount(address owner, address spender)
-        external
-        view
-        returns (uint256)
-    {
-        return
-            balanceOf[owner] < allowance[owner][spender]
-                ? balanceOf[owner]
-                : allowance[owner][spender];
+    function getSpendableAmount(address owner, address spender) external view returns (uint256) {
+        return balanceOf[owner] < allowance[owner][spender] ? balanceOf[owner] : allowance[owner][spender];
     }
 }

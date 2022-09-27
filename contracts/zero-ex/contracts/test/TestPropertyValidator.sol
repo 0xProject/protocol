@@ -26,9 +26,6 @@ contract TestPropertyValidator {
         uint256 tokenId,
         bytes calldata propertyData
     ) external view {
-        require(
-            propertyData.length > 0,
-            "TestPropertyValidator::validateProperty/REVERT"
-        );
+        require(propertyData.length > 0, "TestPropertyValidator::validateProperty/REVERT");
     }
 }

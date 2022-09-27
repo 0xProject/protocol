@@ -56,18 +56,12 @@ contract WethTransformer is Transformer {
     /// @dev Wraps and unwraps WETH.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         if (!data.token.isTokenETH() && data.token != weth) {
             LibTransformERC20RichErrors
                 .InvalidTransformDataError(
-                    LibTransformERC20RichErrors
-                        .InvalidTransformDataErrorCode
-                        .INVALID_TOKENS,
+                    LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
                     context.data
                 )
                 .rrevert();

@@ -90,10 +90,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external payable override returns (uint256 boughtAmount) {
-        require(
-            !LibERC20Transformer.isTokenETH(outputToken),
-            "MooniswapLiquidityProvider/INVALID_ARGS"
-        );
+        require(!LibERC20Transformer.isTokenETH(outputToken), "MooniswapLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
@@ -117,10 +114,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external override returns (uint256 boughtAmount) {
-        require(
-            !LibERC20Transformer.isTokenETH(inputToken),
-            "MooniswapLiquidityProvider/INVALID_ARGS"
-        );
+        require(!LibERC20Transformer.isTokenETH(inputToken), "MooniswapLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
@@ -150,32 +144,20 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
         IMooniswapPool pool,
         address recipient // Only used to log event
     ) private returns (uint256 boughtAmount) {
-        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(
-            inputToken,
-            address(this)
-        );
+        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
         uint256 ethValue = 0;
         if (inputToken == WETH) {
             // Selling WETH. Unwrap to ETH.
-            require(
-                !_isTokenEthLike(outputToken),
-                "MooniswapLiquidityProvider/ETH_TO_ETH"
-            );
+            require(!_isTokenEthLike(outputToken), "MooniswapLiquidityProvider/ETH_TO_ETH");
             WETH.withdraw(sellAmount);
             ethValue = sellAmount;
         } else if (LibERC20Transformer.isTokenETH(inputToken)) {
             // Selling ETH directly.
             ethValue = sellAmount;
-            require(
-                !_isTokenEthLike(outputToken),
-                "MooniswapLiquidityProvider/ETH_TO_ETH"
-            );
+            require(!_isTokenEthLike(outputToken), "MooniswapLiquidityProvider/ETH_TO_ETH");
         } else {
             // Selling a regular ERC20.
-            require(
-                inputToken != outputToken,
-                "MooniswapLiquidityProvider/SAME_TOKEN"
-            );
+            require(inputToken != outputToken, "MooniswapLiquidityProvider/SAME_TOKEN");
             inputToken.approveIfBelow(address(pool), sellAmount);
         }
 
@@ -204,11 +186,7 @@ contract MooniswapLiquidityProvider is ILiquidityProvider {
     }
 
     /// @dev Check if a token is ETH or WETH.
-    function _isTokenEthLike(IERC20TokenV06 token)
-        private
-        view
-        returns (bool isEthOrWeth)
-    {
+    function _isTokenEthLike(IERC20TokenV06 token) private view returns (bool isEthOrWeth) {
         return LibERC20Transformer.isTokenETH(token) || token == WETH;
     }
 }

@@ -58,13 +58,7 @@ contract LiquidityProviderSandbox is ILiquidityProviderSandbox {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external override onlyOwner {
-        provider.sellTokenForToken(
-            inputToken,
-            outputToken,
-            recipient,
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellTokenForToken(inputToken, outputToken, recipient, minBuyAmount, auxiliaryData);
     }
 
     /// @dev Calls `sellEthForToken` on the given `provider` contract to
@@ -81,12 +75,7 @@ contract LiquidityProviderSandbox is ILiquidityProviderSandbox {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external override onlyOwner {
-        provider.sellEthForToken(
-            outputToken,
-            recipient,
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellEthForToken(outputToken, recipient, minBuyAmount, auxiliaryData);
     }
 
     /// @dev Calls `sellTokenForEth` on the given `provider` contract to
@@ -103,11 +92,6 @@ contract LiquidityProviderSandbox is ILiquidityProviderSandbox {
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
     ) external override onlyOwner {
-        provider.sellTokenForEth(
-            inputToken,
-            payable(recipient),
-            minBuyAmount,
-            auxiliaryData
-        );
+        provider.sellTokenForEth(inputToken, payable(recipient), minBuyAmount, auxiliaryData);
     }
 }

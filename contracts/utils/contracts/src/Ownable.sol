@@ -40,9 +40,7 @@ contract Ownable is IOwnable {
     /// @param newOwner New owner address.
     function transferOwnership(address newOwner) public onlyOwner {
         if (newOwner == address(0)) {
-            LibRichErrors.rrevert(
-                LibOwnableRichErrors.TransferOwnerToZeroError()
-            );
+            LibRichErrors.rrevert(LibOwnableRichErrors.TransferOwnerToZeroError());
         } else {
             owner = newOwner;
             emit OwnershipTransferred(msg.sender, newOwner);
@@ -51,9 +49,7 @@ contract Ownable is IOwnable {
 
     function _assertSenderIsOwner() internal view {
         if (msg.sender != owner) {
-            LibRichErrors.rrevert(
-                LibOwnableRichErrors.OnlyOwnerError(msg.sender, owner)
-            );
+            LibRichErrors.rrevert(LibOwnableRichErrors.OnlyOwnerError(msg.sender, owner));
         }
     }
 }

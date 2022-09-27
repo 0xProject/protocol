@@ -30,10 +30,11 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param addressToAppend  Address to append.
     /// @return Array of addresses: [... addressArray, addressToAppend]
-    function publicAppend(
-        address[] memory addressArray,
-        address addressToAppend
-    ) public pure returns (address[] memory) {
+    function publicAppend(address[] memory addressArray, address addressToAppend)
+        public
+        pure
+        returns (address[] memory)
+    {
         return addressArray.append(addressToAppend);
     }
 
@@ -80,11 +81,7 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return True if the addressArray contains the target.
-    function publicContains(address[] memory addressArray, address target)
-        public
-        pure
-        returns (bool success)
-    {
+    function publicContains(address[] memory addressArray, address target) public pure returns (bool success) {
         return addressArray.contains(target);
     }
 

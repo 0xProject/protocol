@@ -39,10 +39,7 @@ contract TestLibERC20TokenTarget {
         _returnData = returnData;
     }
 
-    function approve(address spender, uint256 allowance)
-        external
-        returns (bool)
-    {
+    function approve(address spender, uint256 allowance) external returns (bool) {
         emit ApproveCalled(spender, allowance);
         _execute();
     }

@@ -55,15 +55,11 @@ contract TestNFTOrderPresigner {
         token.approve(address(zeroEx), uint256(-1));
     }
 
-    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order)
-        external
-    {
+    function preSignERC721Order(LibNFTOrder.ERC721Order calldata order) external {
         zeroEx.preSignERC721Order(order);
     }
 
-    function preSignERC1155Order(LibNFTOrder.ERC1155Order calldata order)
-        external
-    {
+    function preSignERC1155Order(LibNFTOrder.ERC1155Order calldata order) external {
         zeroEx.preSignERC1155Order(order);
     }
 

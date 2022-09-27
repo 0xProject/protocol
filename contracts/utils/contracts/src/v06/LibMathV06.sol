@@ -38,13 +38,7 @@ library LibMathV06 {
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
         if (isRoundingErrorFloor(numerator, denominator, target)) {
-            LibRichErrorsV06.rrevert(
-                LibMathRichErrorsV06.RoundingError(
-                    numerator,
-                    denominator,
-                    target
-                )
-            );
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(numerator, denominator, target));
         }
 
         partialAmount = numerator.safeMul(target).safeDiv(denominator);
@@ -63,22 +57,13 @@ library LibMathV06 {
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
         if (isRoundingErrorCeil(numerator, denominator, target)) {
-            LibRichErrorsV06.rrevert(
-                LibMathRichErrorsV06.RoundingError(
-                    numerator,
-                    denominator,
-                    target
-                )
-            );
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(numerator, denominator, target));
         }
 
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator
-            .safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }
@@ -110,10 +95,7 @@ library LibMathV06 {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator
-            .safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }
@@ -129,9 +111,7 @@ library LibMathV06 {
         uint256 target
     ) internal pure returns (bool isError) {
         if (denominator == 0) {
-            LibRichErrorsV06.rrevert(
-                LibMathRichErrorsV06.DivisionByZeroError()
-            );
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.DivisionByZeroError());
         }
 
         // The absolute rounding error is the difference between the rounded
@@ -176,9 +156,7 @@ library LibMathV06 {
         uint256 target
     ) internal pure returns (bool isError) {
         if (denominator == 0) {
-            LibRichErrorsV06.rrevert(
-                LibMathRichErrorsV06.DivisionByZeroError()
-            );
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.DivisionByZeroError());
         }
 
         // See the comments in `isRoundingError`.

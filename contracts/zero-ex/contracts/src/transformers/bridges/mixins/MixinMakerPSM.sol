@@ -78,10 +78,7 @@ contract MixinMakerPSM {
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data.
-        MakerPsmBridgeData memory data = abi.decode(
-            bridgeData,
-            (MakerPsmBridgeData)
-        );
+        MakerPsmBridgeData memory data = abi.decode(bridgeData, (MakerPsmBridgeData));
         uint256 beforeBalance = buyToken.balanceOf(address(this));
 
         IPSM psm = IPSM(data.psmAddress);
@@ -92,11 +89,8 @@ contract MixinMakerPSM {
             psm.sellGem(address(this), sellAmount);
         } else if (address(buyToken) == data.gemTokenAddres) {
             uint256 feeDivisor = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% fee [tout is in wad];
-            uint256 buyTokenBaseUnit = uint256(10) **
-                uint256(buyToken.decimals());
-            uint256 gemAmount = sellAmount.safeMul(buyTokenBaseUnit).safeDiv(
-                feeDivisor
-            );
+            uint256 buyTokenBaseUnit = uint256(10)**uint256(buyToken.decimals());
+            uint256 gemAmount = sellAmount.safeMul(buyTokenBaseUnit).safeDiv(feeDivisor);
 
             sellToken.approveIfBelow(data.psmAddress, sellAmount);
             psm.buyGem(address(this), gemAmount);

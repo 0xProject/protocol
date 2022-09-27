@@ -34,10 +34,7 @@ interface IUniswapV3Router {
         uint256 amountOutMinimum;
     }
 
-    function exactInput(ExactInputParams memory params)
-        external
-        payable
-        returns (uint256 amountOut);
+    function exactInput(ExactInputParams memory params) external payable returns (uint256 amountOut);
 }
 
 contract MixinUniswapV3 {
@@ -48,10 +45,7 @@ contract MixinUniswapV3 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IUniswapV3Router router, bytes memory path) = abi.decode(
-            bridgeData,
-            (IUniswapV3Router, bytes)
-        );
+        (IUniswapV3Router router, bytes memory path) = abi.decode(bridgeData, (IUniswapV3Router, bytes));
 
         // Grant the Uniswap router an allowance to sell the sell token.
         sellToken.approveIfBelow(address(router), sellAmount);

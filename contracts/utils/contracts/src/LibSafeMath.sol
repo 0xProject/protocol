@@ -12,9 +12,7 @@ library LibSafeMath {
         if (c / a != b) {
             LibRichErrors.rrevert(
                 LibSafeMathRichErrors.Uint256BinOpError(
-                    LibSafeMathRichErrors
-                        .BinOpErrorCodes
-                        .MULTIPLICATION_OVERFLOW,
+                    LibSafeMathRichErrors.BinOpErrorCodes.MULTIPLICATION_OVERFLOW,
                     a,
                     b
                 )
@@ -26,11 +24,7 @@ library LibSafeMath {
     function safeDiv(uint256 a, uint256 b) internal pure returns (uint256) {
         if (b == 0) {
             LibRichErrors.rrevert(
-                LibSafeMathRichErrors.Uint256BinOpError(
-                    LibSafeMathRichErrors.BinOpErrorCodes.DIVISION_BY_ZERO,
-                    a,
-                    b
-                )
+                LibSafeMathRichErrors.Uint256BinOpError(LibSafeMathRichErrors.BinOpErrorCodes.DIVISION_BY_ZERO, a, b)
             );
         }
         uint256 c = a / b;
@@ -54,11 +48,7 @@ library LibSafeMath {
         uint256 c = a + b;
         if (c < a) {
             LibRichErrors.rrevert(
-                LibSafeMathRichErrors.Uint256BinOpError(
-                    LibSafeMathRichErrors.BinOpErrorCodes.ADDITION_OVERFLOW,
-                    a,
-                    b
-                )
+                LibSafeMathRichErrors.Uint256BinOpError(LibSafeMathRichErrors.BinOpErrorCodes.ADDITION_OVERFLOW, a, b)
             );
         }
         return c;

@@ -51,21 +51,14 @@ contract AffiliateFeeTransformer is Transformer {
     /// @dev Transfers tokens to recipients.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TokenFee[] memory fees = abi.decode(context.data, (TokenFee[]));
 
         // Transfer tokens to recipients.
         for (uint256 i = 0; i < fees.length; ++i) {
             uint256 amount = fees[i].amount;
             if (amount == MAX_UINT256) {
-                amount = LibERC20Transformer.getTokenBalanceOf(
-                    fees[i].token,
-                    address(this)
-                );
+                amount = LibERC20Transformer.getTokenBalanceOf(fees[i].token, address(this));
             }
             if (amount != 0) {
                 fees[i].token.transformerTransfer(fees[i].recipient, amount);

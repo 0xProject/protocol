@@ -41,27 +41,16 @@ interface ISynthetix {
 }
 
 contract MixinSynthetix {
-    address private constant rewardAddress =
-        0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
-    bytes32 constant trackingCode =
-        0x3058000000000000000000000000000000000000000000000000000000000000;
+    address private constant rewardAddress = 0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
+    bytes32 constant trackingCode = 0x3058000000000000000000000000000000000000000000000000000000000000;
 
-    function _tradeSynthetix(uint256 sellAmount, bytes memory bridgeData)
-        public
-        returns (uint256 boughtAmount)
-    {
-        (
-            ISynthetix synthetix,
-            bytes32 sourceCurrencyKey,
-            bytes32 destinationCurrencyKey
-        ) = abi.decode(bridgeData, (ISynthetix, bytes32, bytes32));
-
-        boughtAmount = exchange(
-            synthetix,
-            sourceCurrencyKey,
-            destinationCurrencyKey,
-            sellAmount
+    function _tradeSynthetix(uint256 sellAmount, bytes memory bridgeData) public returns (uint256 boughtAmount) {
+        (ISynthetix synthetix, bytes32 sourceCurrencyKey, bytes32 destinationCurrencyKey) = abi.decode(
+            bridgeData,
+            (ISynthetix, bytes32, bytes32)
         );
+
+        boughtAmount = exchange(synthetix, sourceCurrencyKey, destinationCurrencyKey, sellAmount);
     }
 
     function exchange(

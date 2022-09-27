@@ -49,8 +49,7 @@ interface IBancorV3 {
 contract MixinBancorV3 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    IERC20TokenV06 public constant BANCORV3_ETH_ADDRESS =
-        IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+    IERC20TokenV06 public constant BANCORV3_ETH_ADDRESS = IERC20TokenV06(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
     IEtherTokenV06 private immutable WETH;
 
     constructor(IEtherTokenV06 weth) public {
@@ -75,14 +74,8 @@ contract MixinBancorV3 {
             }
         }
 
-        require(
-            path.length >= 2,
-            "MixinBancorV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
-        );
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinBancorV3/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path.length >= 2, "MixinBancorV3/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path[path.length - 1] == buyToken, "MixinBancorV3/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
 
         //swap WETH->ETH as Bancor only deals in ETH
         if (_path[0] == address(WETH)) {

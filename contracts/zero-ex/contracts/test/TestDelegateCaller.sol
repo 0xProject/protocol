@@ -21,9 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 contract TestDelegateCaller {
-    function executeDelegateCall(address target, bytes calldata callData)
-        external
-    {
+    function executeDelegateCall(address target, bytes calldata callData) external {
         (bool success, bytes memory resultData) = target.delegatecall(callData);
         if (!success) {
             assembly {

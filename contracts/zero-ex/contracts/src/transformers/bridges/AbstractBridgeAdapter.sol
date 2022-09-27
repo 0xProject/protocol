@@ -23,42 +23,23 @@ pragma experimental ABIEncoderV2;
 import "./IBridgeAdapter.sol";
 
 abstract contract AbstractBridgeAdapter is IBridgeAdapter {
-    constructor(uint256 expectedChainId, string memory expectedChainName)
-        public
-    {
+    constructor(uint256 expectedChainId, string memory expectedChainName) public {
         uint256 chainId;
         assembly {
             chainId := chainid()
         }
         // Allow testing on Ganache
         if (chainId != expectedChainId && chainId != 1337) {
-            revert(
-                string(
-                    abi.encodePacked(
-                        expectedChainName,
-                        "BridgeAdapter.constructor: wrong chain ID"
-                    )
-                )
-            );
+            revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
         }
     }
 
-    function isSupportedSource(bytes32 source)
-        external
-        override
-        returns (bool isSupported)
-    {
+    function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
         BridgeOrder memory placeholderOrder;
         placeholderOrder.source = source;
         IERC20TokenV06 placeholderToken = IERC20TokenV06(address(0));
 
-        (, isSupported) = _trade(
-            placeholderOrder,
-            placeholderToken,
-            placeholderToken,
-            0,
-            true
-        );
+        (, isSupported) = _trade(placeholderOrder, placeholderToken, placeholderToken, 0, true);
     }
 
     function trade(
@@ -67,13 +48,7 @@ abstract contract AbstractBridgeAdapter is IBridgeAdapter {
         IERC20TokenV06 buyToken,
         uint256 sellAmount
     ) public override returns (uint256 boughtAmount) {
-        (boughtAmount, ) = _trade(
-            order,
-            sellToken,
-            buyToken,
-            sellAmount,
-            false
-        );
+        (boughtAmount, ) = _trade(order, sellToken, buyToken, sellAmount, false);
     }
 
     function _trade(

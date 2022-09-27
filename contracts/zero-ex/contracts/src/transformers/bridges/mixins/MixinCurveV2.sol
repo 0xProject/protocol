@@ -44,10 +44,7 @@ contract MixinCurveV2 {
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data to get the Curve metadata.
-        CurveBridgeDataV2 memory data = abi.decode(
-            bridgeData,
-            (CurveBridgeDataV2)
-        );
+        CurveBridgeDataV2 memory data = abi.decode(bridgeData, (CurveBridgeDataV2));
         sellToken.approveIfBelow(data.curveAddress, sellAmount);
 
         uint256 beforeBalance = buyToken.balanceOf(address(this));

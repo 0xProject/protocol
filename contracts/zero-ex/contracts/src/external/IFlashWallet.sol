@@ -40,10 +40,10 @@ interface IFlashWallet {
     /// @param target The call target.
     /// @param callData The call data.
     /// @return resultData The data returned by the call.
-    function executeDelegateCall(
-        address payable target,
-        bytes calldata callData
-    ) external payable returns (bytes memory resultData);
+    function executeDelegateCall(address payable target, bytes calldata callData)
+        external
+        payable
+        returns (bytes memory resultData);
 
     /// @dev Allows the puppet to receive ETH.
     receive() external payable;

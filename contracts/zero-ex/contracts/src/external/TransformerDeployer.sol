@@ -54,25 +54,13 @@ contract TransformerDeployer is AuthorizableV06 {
 
     /// @dev Deploy a new contract. Only callable by an authority.
     ///      Any attached ETH will also be forwarded.
-    function deploy(bytes memory bytecode)
-        public
-        payable
-        onlyAuthorized
-        returns (address deployedAddress)
-    {
+    function deploy(bytes memory bytecode) public payable onlyAuthorized returns (address deployedAddress) {
         uint256 deploymentNonce = nonce;
         nonce += 1;
         assembly {
-            deployedAddress := create(
-                callvalue(),
-                add(bytecode, 32),
-                mload(bytecode)
-            )
+            deployedAddress := create(callvalue(), add(bytecode, 32), mload(bytecode))
         }
-        require(
-            deployedAddress != address(0),
-            "TransformerDeployer/DEPLOY_FAILED"
-        );
+        require(deployedAddress != address(0), "TransformerDeployer/DEPLOY_FAILED");
         toDeploymentNonce[deployedAddress] = deploymentNonce;
         emit Deployed(deployedAddress, deploymentNonce, msg.sender);
     }
@@ -80,10 +68,7 @@ contract TransformerDeployer is AuthorizableV06 {
     /// @dev Call `die()` on a contract. Only callable by an authority.
     /// @param target The target contract to call `die()` on.
     /// @param ethRecipient The Recipient of any ETH locked in `target`.
-    function kill(IKillable target, address payable ethRecipient)
-        public
-        onlyAuthorized
-    {
+    function kill(IKillable target, address payable ethRecipient) public onlyAuthorized {
         target.die(ethRecipient);
         emit Killed(address(target), msg.sender);
     }

@@ -51,10 +51,7 @@ contract MixinPlatypus {
         address[] memory _path;
 
         {
-            (_router, _pool, _path) = abi.decode(
-                bridgeData,
-                (address, address[], address[])
-            );
+            (_router, _pool, _path) = abi.decode(bridgeData, (address, address[], address[]));
 
             // To get around `abi.decode()` not supporting interface array types.
             assembly {
@@ -65,14 +62,8 @@ contract MixinPlatypus {
         //connect to the ptp router
         router = IPlatypusRouter(_router);
 
-        require(
-            path.length >= 2,
-            "MixinPlatypus/PATH_LENGTH_MUST_BE_AT_LEAST_TWO"
-        );
-        require(
-            path[path.length - 1] == buyToken,
-            "MixinPlatypus/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN"
-        );
+        require(path.length >= 2, "MixinPlatypus/PATH_LENGTH_MUST_BE_AT_LEAST_TWO");
+        require(path[path.length - 1] == buyToken, "MixinPlatypus/LAST_ELEMENT_OF_PATH_MUST_MATCH_OUTPUT_TOKEN");
         // Grant the Platypus router an allowance to sell the first token.
         path[0].approveIfBelow(address(router), sellAmount);
 

@@ -55,14 +55,7 @@ abstract contract FixinEIP712 {
         }
     }
 
-    function _getEIP712Hash(bytes32 structHash)
-        internal
-        view
-        returns (bytes32 eip712Hash)
-    {
-        return
-            keccak256(
-                abi.encodePacked(hex"1901", EIP712_DOMAIN_SEPARATOR, structHash)
-            );
+    function _getEIP712Hash(bytes32 structHash) internal view returns (bytes32 eip712Hash) {
+        return keccak256(abi.encodePacked(hex"1901", EIP712_DOMAIN_SEPARATOR, structHash));
     }
 }

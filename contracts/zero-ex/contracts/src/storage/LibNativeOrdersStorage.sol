@@ -46,9 +46,7 @@ library LibNativeOrdersStorage {
 
     /// @dev Get the storage bucket for this contract.
     function getStorage() internal pure returns (Storage storage stor) {
-        uint256 storageSlot = LibStorage.getStorageSlot(
-            LibStorage.StorageId.NativeOrders
-        );
+        uint256 storageSlot = LibStorage.getStorageSlot(LibStorage.StorageId.NativeOrders);
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries

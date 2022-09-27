@@ -157,10 +157,7 @@ contract FillQuoteTransformer is Transformer {
     /// @dev Create this contract.
     /// @param bridgeAdapter_ The bridge adapter contract.
     /// @param zeroEx_ The Exchange Proxy contract.
-    constructor(IBridgeAdapter bridgeAdapter_, IZeroEx zeroEx_)
-        public
-        Transformer()
-    {
+    constructor(IBridgeAdapter bridgeAdapter_, IZeroEx zeroEx_) public Transformer() {
         bridgeAdapter = bridgeAdapter_;
         zeroEx = zeroEx_;
     }
@@ -170,11 +167,7 @@ contract FillQuoteTransformer is Transformer {
     ///      to this call. `buyToken` and excess ETH will be transferred back to the caller.
     /// @param context Context information.
     /// @return magicBytes The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 magicBytes)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 magicBytes) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         FillState memory state;
 
@@ -182,54 +175,36 @@ contract FillQuoteTransformer is Transformer {
         if (data.sellToken.isTokenETH() || data.buyToken.isTokenETH()) {
             LibTransformERC20RichErrors
                 .InvalidTransformDataError(
-                    LibTransformERC20RichErrors
-                        .InvalidTransformDataErrorCode
-                        .INVALID_TOKENS,
+                    LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_TOKENS,
                     context.data
                 )
                 .rrevert();
         }
 
         if (
-            data.bridgeOrders.length +
-                data.limitOrders.length +
-                data.rfqOrders.length +
-                data.otcOrders.length !=
+            data.bridgeOrders.length + data.limitOrders.length + data.rfqOrders.length + data.otcOrders.length !=
             data.fillSequence.length
         ) {
             LibTransformERC20RichErrors
                 .InvalidTransformDataError(
-                    LibTransformERC20RichErrors
-                        .InvalidTransformDataErrorCode
-                        .INVALID_ARRAY_LENGTH,
+                    LibTransformERC20RichErrors.InvalidTransformDataErrorCode.INVALID_ARRAY_LENGTH,
                     context.data
                 )
                 .rrevert();
         }
 
-        state.takerTokenBalanceRemaining = data.sellToken.getTokenBalanceOf(
-            address(this)
-        );
+        state.takerTokenBalanceRemaining = data.sellToken.getTokenBalanceOf(address(this));
         if (data.side == Side.Sell) {
-            data.fillAmount = _normalizeFillAmount(
-                data.fillAmount,
-                state.takerTokenBalanceRemaining
-            );
+            data.fillAmount = _normalizeFillAmount(data.fillAmount, state.takerTokenBalanceRemaining);
         }
 
         // Approve the exchange proxy to spend our sell tokens if native orders
         // are present.
-        if (
-            data.limitOrders.length +
-                data.rfqOrders.length +
-                data.otcOrders.length !=
-            0
-        ) {
+        if (data.limitOrders.length + data.rfqOrders.length + data.otcOrders.length != 0) {
             data.sellToken.approveIfBelow(address(zeroEx), data.fillAmount);
             // Compute the protocol fee if a limit order is present.
             if (data.limitOrders.length != 0) {
-                state.protocolFee = uint256(zeroEx.getProtocolFeeMultiplier())
-                    .safeMul(tx.gasprice);
+                state.protocolFee = uint256(zeroEx.getProtocolFeeMultiplier()).safeMul(tx.gasprice);
             }
         }
 
@@ -251,52 +226,26 @@ contract FillQuoteTransformer is Transformer {
             }
 
             state.currentOrderType = OrderType(data.fillSequence[i]);
-            uint256 orderIndex = state.currentIndices[
-                uint256(state.currentOrderType)
-            ];
+            uint256 orderIndex = state.currentIndices[uint256(state.currentOrderType)];
             // Fill the order.
             FillOrderResults memory results;
             if (state.currentOrderType == OrderType.Bridge) {
-                results = _fillBridgeOrder(
-                    data.bridgeOrders[orderIndex],
-                    data,
-                    state
-                );
+                results = _fillBridgeOrder(data.bridgeOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Limit) {
-                results = _fillLimitOrder(
-                    data.limitOrders[orderIndex],
-                    data,
-                    state
-                );
+                results = _fillLimitOrder(data.limitOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Rfq) {
-                results = _fillRfqOrder(
-                    data.rfqOrders[orderIndex],
-                    data,
-                    state
-                );
+                results = _fillRfqOrder(data.rfqOrders[orderIndex], data, state);
             } else if (state.currentOrderType == OrderType.Otc) {
-                results = _fillOtcOrder(
-                    data.otcOrders[orderIndex],
-                    data,
-                    state
-                );
+                results = _fillOtcOrder(data.otcOrders[orderIndex], data, state);
             } else {
                 revert("INVALID_ORDER_TYPE");
             }
 
             // Accumulate totals.
-            state.soldAmount = state.soldAmount.safeAdd(
-                results.takerTokenSoldAmount
-            );
-            state.boughtAmount = state.boughtAmount.safeAdd(
-                results.makerTokenBoughtAmount
-            );
-            state.ethRemaining = state.ethRemaining.safeSub(
-                results.protocolFeePaid
-            );
-            state.takerTokenBalanceRemaining = state
-                .takerTokenBalanceRemaining
-                .safeSub(results.takerTokenSoldAmount);
+            state.soldAmount = state.soldAmount.safeAdd(results.takerTokenSoldAmount);
+            state.boughtAmount = state.boughtAmount.safeAdd(results.makerTokenBoughtAmount);
+            state.ethRemaining = state.ethRemaining.safeSub(results.protocolFeePaid);
+            state.takerTokenBalanceRemaining = state.takerTokenBalanceRemaining.safeSub(results.takerTokenSoldAmount);
             state.currentIndices[uint256(state.currentOrderType)]++;
         }
 
@@ -305,22 +254,14 @@ contract FillQuoteTransformer is Transformer {
             // Market sell check.
             if (state.soldAmount < data.fillAmount) {
                 LibTransformERC20RichErrors
-                    .IncompleteFillSellQuoteError(
-                        address(data.sellToken),
-                        state.soldAmount,
-                        data.fillAmount
-                    )
+                    .IncompleteFillSellQuoteError(address(data.sellToken), state.soldAmount, data.fillAmount)
                     .rrevert();
             }
         } else {
             // Market buy check.
             if (state.boughtAmount < data.fillAmount) {
                 LibTransformERC20RichErrors
-                    .IncompleteFillBuyQuoteError(
-                        address(data.buyToken),
-                        state.boughtAmount,
-                        data.fillAmount
-                    )
+                    .IncompleteFillBuyQuoteError(address(data.buyToken), state.boughtAmount, data.fillAmount)
                     .rrevert();
             }
         }
@@ -329,22 +270,13 @@ contract FillQuoteTransformer is Transformer {
         if (state.ethRemaining > 0 && data.refundReceiver != address(0)) {
             bool transferSuccess;
             if (data.refundReceiver == REFUND_RECEIVER_RECIPIENT) {
-                (transferSuccess, ) = context.recipient.call{
-                    value: state.ethRemaining
-                }("");
+                (transferSuccess, ) = context.recipient.call{value: state.ethRemaining}("");
             } else if (data.refundReceiver == REFUND_RECEIVER_SENDER) {
-                (transferSuccess, ) = context.sender.call{
-                    value: state.ethRemaining
-                }("");
+                (transferSuccess, ) = context.sender.call{value: state.ethRemaining}("");
             } else {
-                (transferSuccess, ) = data.refundReceiver.call{
-                    value: state.ethRemaining
-                }("");
+                (transferSuccess, ) = data.refundReceiver.call{value: state.ethRemaining}("");
             }
-            require(
-                transferSuccess,
-                "FillQuoteTransformer/ETHER_TRANSFER_FALIED"
-            );
+            require(transferSuccess, "FillQuoteTransformer/ETHER_TRANSFER_FALIED");
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
@@ -363,16 +295,15 @@ contract FillQuoteTransformer is Transformer {
             0
         );
 
-        (bool success, bytes memory resultData) = address(bridgeAdapter)
-            .delegatecall(
-                abi.encodeWithSelector(
-                    IBridgeAdapter.trade.selector,
-                    order,
-                    data.sellToken,
-                    data.buyToken,
-                    takerTokenFillAmount
-                )
-            );
+        (bool success, bytes memory resultData) = address(bridgeAdapter).delegatecall(
+            abi.encodeWithSelector(
+                IBridgeAdapter.trade.selector,
+                order,
+                data.sellToken,
+                data.buyToken,
+                takerTokenFillAmount
+            )
+        );
         if (success) {
             results.makerTokenBoughtAmount = abi.decode(resultData, (uint256));
             results.takerTokenSoldAmount = takerTokenFillAmount;
@@ -409,10 +340,7 @@ contract FillQuoteTransformer is Transformer {
                 orderInfo.signature,
                 takerTokenFillAmount.safeDowncastToUint128()
             )
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        ) {
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             if (orderInfo.order.takerTokenFeeAmount > 0) {
                 takerTokenFilledAmount = takerTokenFilledAmount.safeAdd128(
                     LibMathV06
@@ -437,26 +365,13 @@ contract FillQuoteTransformer is Transformer {
         FillState memory state
     ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = LibSafeMathV06.min256(
-            _computeTakerTokenFillAmount(
-                data,
-                state,
-                orderInfo.order.takerAmount,
-                orderInfo.order.makerAmount,
-                0
-            ),
+            _computeTakerTokenFillAmount(data, state, orderInfo.order.takerAmount, orderInfo.order.makerAmount, 0),
             orderInfo.maxTakerTokenFillAmount
         );
 
         try
-            zeroEx.fillRfqOrder(
-                orderInfo.order,
-                orderInfo.signature,
-                takerTokenFillAmount.safeDowncastToUint128()
-            )
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        ) {
+            zeroEx.fillRfqOrder(orderInfo.order, orderInfo.signature, takerTokenFillAmount.safeDowncastToUint128())
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
         } catch {}
@@ -469,25 +384,12 @@ contract FillQuoteTransformer is Transformer {
         FillState memory state
     ) private returns (FillOrderResults memory results) {
         uint256 takerTokenFillAmount = LibSafeMathV06.min256(
-            _computeTakerTokenFillAmount(
-                data,
-                state,
-                orderInfo.order.takerAmount,
-                orderInfo.order.makerAmount,
-                0
-            ),
+            _computeTakerTokenFillAmount(data, state, orderInfo.order.takerAmount, orderInfo.order.makerAmount, 0),
             orderInfo.maxTakerTokenFillAmount
         );
         try
-            zeroEx.fillOtcOrder(
-                orderInfo.order,
-                orderInfo.signature,
-                takerTokenFillAmount.safeDowncastToUint128()
-            )
-        returns (
-            uint128 takerTokenFilledAmount,
-            uint128 makerTokenFilledAmount
-        ) {
+            zeroEx.fillOtcOrder(orderInfo.order, orderInfo.signature, takerTokenFillAmount.safeDowncastToUint128())
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
             results.takerTokenSoldAmount = takerTokenFilledAmount;
             results.makerTokenBoughtAmount = makerTokenFilledAmount;
         } catch {
@@ -528,21 +430,13 @@ contract FillQuoteTransformer is Transformer {
     }
 
     // Convert possible proportional values to absolute quantities.
-    function _normalizeFillAmount(uint256 rawAmount, uint256 balance)
-        private
-        pure
-        returns (uint256 normalized)
-    {
+    function _normalizeFillAmount(uint256 rawAmount, uint256 balance) private pure returns (uint256 normalized) {
         if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
             // If the high bit of `rawAmount` is set then the lower 255 bits
             // specify a fraction of `balance`.
             return
                 LibSafeMathV06.min256(
-                    (balance *
-                        LibSafeMathV06.min256(
-                            rawAmount & LOWER_255_BITS,
-                            1e18
-                        )) / 1e18,
+                    (balance * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)) / 1e18,
                     balance
                 );
         }

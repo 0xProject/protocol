@@ -34,10 +34,7 @@ interface IStETH {
     /// @dev Retrieve the current pooled ETH representation of the shares amount
     /// @param _sharesAmount amount of shares
     /// @return amount of pooled ETH represented by the shares amount
-    function getPooledEthByShares(uint256 _sharesAmount)
-        external
-        view
-        returns (uint256);
+    function getPooledEthByShares(uint256 _sharesAmount) external view returns (uint256);
 }
 
 /// @dev Minimal interface for wrapping/unwrapping stETH.
@@ -97,10 +94,7 @@ contract MixinLido {
         IStETH stETH = abi.decode(bridgeData, (IStETH));
         if (address(buyToken) == address(stETH)) {
             WETH.withdraw(sellAmount);
-            return
-                stETH.getPooledEthByShares(
-                    stETH.submit{value: sellAmount}(address(0))
-                );
+            return stETH.getPooledEthByShares(stETH.submit{value: sellAmount}(address(0)));
         }
 
         revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
@@ -112,21 +106,12 @@ contract MixinLido {
         uint256 sellAmount,
         bytes memory bridgeData
     ) private returns (uint256 boughtAmount) {
-        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(
-            bridgeData,
-            (IEtherTokenV06, IWstETH)
-        );
-        if (
-            address(sellToken) == address(stETH) &&
-            address(buyToken) == address(wstETH)
-        ) {
+        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(bridgeData, (IEtherTokenV06, IWstETH));
+        if (address(sellToken) == address(stETH) && address(buyToken) == address(wstETH)) {
             sellToken.approveIfBelow(address(wstETH), sellAmount);
             return wstETH.wrap(sellAmount);
         }
-        if (
-            address(sellToken) == address(wstETH) &&
-            address(buyToken) == address(stETH)
-        ) {
+        if (address(sellToken) == address(wstETH) && address(buyToken) == address(stETH)) {
             return wstETH.unwrap(sellAmount);
         }
 
