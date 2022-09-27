@@ -53,7 +53,7 @@ contract PositiveSlippageFeeTransformer is Transformer {
         uint256 transformerAmount = LibERC20Transformer.getTokenBalanceOf(fee.token, address(this));
         if (transformerAmount > fee.bestCaseAmount) {
             uint256 positiveSlippageAmount = transformerAmount - fee.bestCaseAmount;
-            fee.token.transformerTransfer(fee.recipient, positiveSlippageAmount);
+            fee.token.unsafeTransformerTransfer(fee.recipient, positiveSlippageAmount);
         }
 
         return LibERC20Transformer.TRANSFORMER_SUCCESS;

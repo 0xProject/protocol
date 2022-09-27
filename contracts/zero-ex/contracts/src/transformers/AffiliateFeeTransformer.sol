@@ -61,7 +61,7 @@ contract AffiliateFeeTransformer is Transformer {
                 amount = LibERC20Transformer.getTokenBalanceOf(fees[i].token, address(this));
             }
             if (amount != 0) {
-                fees[i].token.transformerTransfer(fees[i].recipient, amount);
+                fees[i].token.unsafeTransformerTransfer(fees[i].recipient, amount);
             }
         }
 
