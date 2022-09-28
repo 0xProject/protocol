@@ -1,4 +1,4 @@
-import { ValidationErrorItem } from '@0x/api-utils';
+import { pino, ValidationErrorItem } from '@0x/api-utils';
 import { SwapQuoterError } from '@0x/asset-swapper';
 import { MetaTransaction } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
@@ -78,6 +78,7 @@ export async function getQuoteAsync(
         quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
     },
     meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
+    noLiquidityLogger?: pino.LogFn,
 ): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
     const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
 
@@ -139,6 +140,11 @@ export async function getQuoteAsync(
                     .includes(SwapQuoterError.InsufficientAssetLiquidity)
             ) {
                 // Looks like there is no liquidity for the quote...
+                noLiquidityLogger &&
+                    noLiquidityLogger(
+                        { ammQuoteRequestParams: params },
+                        `[MetaTransactionClient] No liquitity returned for pair`,
+                    );
                 return null;
             }
         }
