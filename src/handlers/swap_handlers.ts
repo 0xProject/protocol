@@ -173,29 +173,29 @@ export class SwapHandlers {
                     // makers: quote.orders.map(order => order.makerAddress),
                 },
             });
+        }
 
-            if (quote.extendedQuoteReportSources && kafkaProducer) {
-                const quoteId = getQuoteIdFromSwapQuote(quote);
-                publishQuoteReport(
-                    {
-                        quoteId,
-                        taker: params.takerAddress,
-                        quoteReportSources: quote.extendedQuoteReportSources,
-                        submissionBy: 'taker',
-                        decodedUniqueId: quote.decodedUniqueId,
-                        buyTokenAddress: quote.buyTokenAddress,
-                        sellTokenAddress: quote.sellTokenAddress,
-                        buyAmount: params.buyAmount,
-                        sellAmount: params.sellAmount,
-                        integratorId: params.integrator?.integratorId,
-                        blockNumber: quote.blockNumber,
-                        slippage: params.slippagePercentage,
-                        estimatedGas: quote.estimatedGas,
-                    },
-                    true,
-                    kafkaProducer,
-                );
-            }
+        if (quote.extendedQuoteReportSources && kafkaProducer) {
+            const quoteId = getQuoteIdFromSwapQuote(quote);
+            publishQuoteReport(
+                {
+                    quoteId,
+                    taker: params.takerAddress,
+                    quoteReportSources: quote.extendedQuoteReportSources,
+                    submissionBy: 'taker',
+                    decodedUniqueId: quote.decodedUniqueId,
+                    buyTokenAddress: quote.buyTokenAddress,
+                    sellTokenAddress: quote.sellTokenAddress,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integrator?.integratorId,
+                    blockNumber: quote.blockNumber,
+                    slippage: params.slippagePercentage,
+                    estimatedGas: quote.estimatedGas,
+                },
+                true,
+                kafkaProducer,
+            );
         }
         const response = _.omit(
             {
