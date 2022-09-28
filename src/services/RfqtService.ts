@@ -2,6 +2,12 @@ import { AltRfqMakerAssetOfferings, AssetSwapperContractAddresses } from '@0x/as
 import { OtcOrder } from '@0x/protocol-utils/lib/src/orders';
 import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
 import { Fee } from '@0x/quote-server/lib/src/types';
+import {
+    getTokenMetadataIfExists,
+    nativeTokenSymbol,
+    nativeWrappedTokenSymbol,
+    TokenMetadata,
+} from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
@@ -12,6 +18,10 @@ import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../
 import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes, RfqtV2RequestInternal } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+
+const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
+    return (getTokenMetadataIfExists(symbol, chainId) as TokenMetadata).tokenAddress;
+};
 
 /**
  * Converts the parameters of an RFQt v2 prices request from 0x API
@@ -48,7 +58,7 @@ function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: numb
         sellTokenAddress,
         chainId,
         feeAmount: new BigNumber(0),
-        feeToken: NULL_ADDRESS,
+        feeToken: getTokenAddressFromSymbol(nativeWrappedTokenSymbol(chainId), chainId),
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
@@ -86,6 +96,10 @@ function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: numb
  * from `0x/asset-swapper`.
  */
 export class RfqtService {
+    private readonly _nativeTokenSymbol: string;
+    private readonly _nativeTokenAddress: string;
+    private readonly _nativeWrappedTokenSymbol: string;
+    private readonly _nativeWrappedTokenAddress: string;
     constructor(
         private readonly _chainId: number,
         private readonly _rfqMakerManager: RfqMakerManager,
@@ -97,7 +111,12 @@ export class RfqtService {
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
-    ) {}
+    ) {
+        this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
+        this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
+        this._nativeWrappedTokenSymbol = nativeWrappedTokenSymbol(this._chainId);
+        this._nativeWrappedTokenAddress = getTokenAddressFromSymbol(this._nativeWrappedTokenSymbol, this._chainId);
+    }
 
     /**
      * Pass through to `QuoteRequestor::requestRfqtIndicativeQuotesAsync` to fetch
@@ -284,7 +303,7 @@ export class RfqtService {
         }));
 
         // No fee in place for now
-        const fee: Fee = { token: NULL_ADDRESS, amount: new BigNumber(0), type: 'fixed' };
+        const fee: Fee = { token: this._nativeWrappedTokenAddress, amount: new BigNumber(0), type: 'fixed' };
 
         const pricesAndOrdersAndSignatures = await Promise.all(
             pricesAndOrders.map(async ({ price, order }) => {
