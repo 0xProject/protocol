@@ -9,6 +9,7 @@ import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
 import { artifacts } from '../artifacts';
+import { RfqClient } from '../utils/rfq_client';
 import { ERC20BridgeSamplerContract } from '../wrappers';
 
 import { constants, INVALID_SIGNATURE, KEEP_ALIVE_TTL } from './constants';
@@ -27,7 +28,6 @@ import {
     SwapQuoterRfqOpts,
 } from './types';
 import { assert } from './utils/assert';
-import { IRfqClient } from './utils/irfq_client';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
@@ -253,7 +253,7 @@ export class SwapQuoter {
         assetFillAmount: BigNumber,
         marketOperation: MarketOperation,
         options: Partial<SwapQuoteRequestOpts>,
-        rfqClient?: IRfqClient | undefined,
+        rfqClient?: RfqClient | undefined,
     ): Promise<SwapQuote> {
         assert.isETHAddressHex('makerToken', makerToken);
         assert.isETHAddressHex('takerToken', takerToken);

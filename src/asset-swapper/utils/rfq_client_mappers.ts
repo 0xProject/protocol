@@ -1,8 +1,6 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
-import { SignedNativeOrder } from '../types';
-
-import { RfqClientV1Quote } from './irfq_client';
+import { SignedNativeOrder, RfqClientV1Quote } from '../types';
 
 /**
  * Converts a RfqClientRfqOrderFirmQuote to a SignedNativeOrder

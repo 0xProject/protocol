@@ -6,10 +6,10 @@ import {
 } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { RfqClient } from '../../../utils/rfq_client';
 
 import { NativeOrderWithFillableAmounts, RfqFirmQuoteValidator, RfqRequestOpts } from '../../types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
-import { IRfqClient } from '../irfq_client';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
@@ -425,7 +425,7 @@ export type OptimizedMarketOrder =
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
-    rfqClient?: IRfqClient;
+    rfqClient?: RfqClient;
     quoteRequestor?: QuoteRequestor;
     firmQuoteValidator?: RfqFirmQuoteValidator;
 }

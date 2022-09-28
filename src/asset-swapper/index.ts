@@ -35,16 +35,13 @@ export {
     SwapQuoterError,
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
-} from './types';
-export {
-    IRfqClient,
     RfqClientV1Price,
     RfqClientV1PriceRequest,
     RfqClientV1PriceResponse,
     RfqClientV1Quote,
     RfqClientV1QuoteRequest,
     RfqClientV1QuoteResponse,
-} from './utils/irfq_client';
+} from './types';
 export {
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
     DEFAULT_GAS_SCHEDULE,

@@ -3,6 +3,7 @@ import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-w
 import {
     FillQuoteTransformerOrderType,
     LimitOrderFields,
+    OtcOrder,
     RfqOrder,
     RfqOrderFields,
     Signature,
@@ -457,4 +458,77 @@ export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
         '0xv4order': V4SignedRfqOrder;
     };
     status: 'active' | 'rejected';
+}
+
+export interface RfqtV2Request {
+    assetFillAmount: BigNumber;
+    chainId: number;
+    integratorId: string;
+    intentOnFilling: boolean;
+    makerToken: string;
+    marketOperation: 'Sell' | 'Buy';
+    takerAddress: string;
+    takerToken: string;
+    txOrigin: string;
+}
+
+export type RfqtV2Prices = {
+    expiry: BigNumber;
+    makerAddress: string;
+    makerAmount: BigNumber;
+    makerId: string;
+    makerToken: string;
+    makerUri: string;
+    takerAmount: BigNumber;
+    takerToken: string;
+}[];
+
+export type RfqtV2Quotes = {
+    fillableMakerAmount: BigNumber;
+    fillableTakerAmount: BigNumber;
+    fillableTakerFeeAmount: BigNumber;
+    makerId: string;
+    makerUri: string;
+    order: OtcOrder;
+    signature: Signature;
+}[];
+
+export interface RfqClientV1PriceRequest {
+    altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
+    assetFillAmount: BigNumber;
+    chainId: number;
+    comparisonPrice: BigNumber | undefined;
+    integratorId: string;
+    intentOnFilling: boolean;
+    makerToken: string;
+    marketOperation: 'Sell' | 'Buy';
+    takerAddress: string;
+    takerToken: string;
+    txOrigin: string;
+}
+
+export type RfqClientV1QuoteRequest = RfqClientV1PriceRequest;
+
+export interface RfqClientV1Price {
+    expiry: BigNumber;
+    kind: 'rfq' | 'otc';
+    makerAmount: BigNumber;
+    makerToken: string;
+    makerUri: string;
+    takerAmount: BigNumber;
+    takerToken: string;
+}
+
+export interface RfqClientV1PriceResponse {
+    prices: RfqClientV1Price[];
+}
+
+export interface RfqClientV1Quote {
+    makerUri: string;
+    order: RfqOrder;
+    signature: Signature;
+}
+
+export interface RfqClientV1QuoteResponse {
+    quotes: RfqClientV1Quote[];
 }
