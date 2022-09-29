@@ -324,7 +324,7 @@
     "42161": {
         "zrxToken": "0x0000000000000000000000000000000000000000",
         "etherToken": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
-        "zeroExGovernor": "0x0000000000000000000000000000000000000000",
+        "zeroExGovernor": "0x1fe80d5ad9464dba2d60b88e449305f184823f8a",
         "zrxVault": "0x0000000000000000000000000000000000000000",
         "staking": "0x0000000000000000000000000000000000000000",
         "stakingProxy": "0x0000000000000000000000000000000000000000",
@@ -340,7 +340,7 @@
             "wethTransformer": "0x10e968968f49dd66a5efeebbb2edcb9c49c4fc49",
             "payTakerTransformer": "0xae3e8cf7bf340d7084f312dfae2aa8b01c885b02",
             "affiliateFeeTransformer": "0x05a24978471869327904ea13da3c4322128e2aaa",
-            "fillQuoteTransformer": "0x542c7dfc7959d8d03c5b738478213885ab3f214e",
+            "fillQuoteTransformer": "0x466b00a77662245c2cc7b093a7102a687afc16f3",
             "positiveSlippageFeeTransformer": "0xd56b9c014b45ed95e2a048a0c28121db30265f13"
         }
     }

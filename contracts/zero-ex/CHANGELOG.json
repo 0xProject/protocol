@@ -1,5 +1,32 @@
 [
     {
+        "version": "0.37.5",
+        "changes": [
+            {
+                "note": "Migrate from TSLint to ESLint and fix linting errors",
+                "pr": 587
+            }
+        ]
+    },
+    {
+        "timestamp": 1663786955,
+        "version": "0.37.4",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "timestamp": 1662998180,
+        "version": "0.37.3",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
         "timestamp": 1662559804,
         "version": "0.37.2",
         "changes": [

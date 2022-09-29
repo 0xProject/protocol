@@ -105,8 +105,8 @@ export enum FillQuoteTransformerSide {
 export enum FillQuoteTransformerOrderType {
     Bridge,
     Limit,
-    Otc,
     Rfq,
+    Otc,
 }
 
 /**
@@ -125,7 +125,6 @@ export interface FillQuoteTransformerData {
     refundReceiver: string;
 }
 
-// tslint:disable: enum-naming
 /**
  * Identifies the DEX protocol used to fill a bridge order.
  * Note: These need to correspond exactly with BridgeProtocols.sol!
@@ -164,7 +163,6 @@ export enum BridgeProtocol {
     Synthetix,
     WOOFi,
 }
-// tslint:enable: enum-naming
 
 /**
  * `FillQuoteTransformer.BridgeOrder`
@@ -338,11 +336,7 @@ export function decodeAffiliateFeeTransformerData(encoded: string): AffiliateFee
  * Find the nonce for a transformer given its deployer.
  * If `deployer` is the null address, zero will always be returned.
  */
-export function findTransformerNonce(
-    transformer: string,
-    deployer: string = NULL_ADDRESS,
-    maxGuesses: number = 1024,
-): number {
+export function findTransformerNonce(transformer: string, deployer: string = NULL_ADDRESS, maxGuesses = 1024): number {
     if (deployer === NULL_ADDRESS) {
         return 0;
     }
@@ -361,10 +355,7 @@ export function findTransformerNonce(
  * Compute the deployed address for a transformer given a deployer and nonce.
  */
 export function getTransformerAddress(deployer: string, nonce: number): string {
-    return ethjs.bufferToHex(
-        // tslint:disable-next-line: custom-no-magic-numbers
-        ethjs.rlphash([deployer, nonce] as any).slice(12),
-    );
+    return ethjs.bufferToHex(ethjs.rlphash([deployer, nonce] as any).slice(12));
 }
 
 /**

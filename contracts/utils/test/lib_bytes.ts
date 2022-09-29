@@ -748,15 +748,7 @@ blockchainTests('LibBytes', env => {
             const result = await libBytes
                 .publicWriteLength(byteArrayLongerThan32Bytes, newLen, constants.NULL_BYTES)
                 .callAsync();
-            expect(result).to.eq(
-                byteArrayLongerThan32Bytes.slice(
-                    0,
-                    newLen
-                        .multipliedBy(2)
-                        .plus(2)
-                        .toNumber(),
-                ),
-            );
+            expect(result).to.eq(byteArrayLongerThan32Bytes.slice(0, newLen.multipliedBy(2).plus(2).toNumber()));
         });
         it("should right pad with 0's if new length is greater than original and no extra bytes are appended", async () => {
             const byteLen = fromHex(byteArrayLongerThan32Bytes).length;

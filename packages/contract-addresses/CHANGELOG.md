@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.23.4 - _September 21, 2022_
+
+    * New FQT for Arbitrum with Nerve (#581)
+
+## v6.23.3 - _September 12, 2022_
+
+    * New FQT for Optimism with BalV2 (#577)
+
 ## v6.23.2 - _September 7, 2022_
 
     * New FQT for arbitrum again (#574)

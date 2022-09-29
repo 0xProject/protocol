@@ -242,7 +242,7 @@ export class LimitOrder extends OrderBase {
         };
     }
 
-    public willExpire(secondsFromNow: number = 0): boolean {
+    public willExpire(secondsFromNow = 0): boolean {
         const millisecondsInSecond = 1000;
         const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
         return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
@@ -338,7 +338,7 @@ export class RfqOrder extends OrderBase {
         };
     }
 
-    public willExpire(secondsFromNow: number = 0): boolean {
+    public willExpire(secondsFromNow = 0): boolean {
         const millisecondsInSecond = 1000;
         const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
         return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));
@@ -368,9 +368,7 @@ export class OtcOrder extends OrderBase {
     public nonceBucket: BigNumber;
     public nonce: BigNumber;
 
-    public static parseExpiryAndNonce(
-        expiryAndNonce: BigNumber,
-    ): {
+    public static parseExpiryAndNonce(expiryAndNonce: BigNumber): {
         expiry: BigNumber;
         nonceBucket: BigNumber;
         nonce: BigNumber;
@@ -468,7 +466,7 @@ export class OtcOrder extends OrderBase {
         };
     }
 
-    public willExpire(secondsFromNow: number = 0): boolean {
+    public willExpire(secondsFromNow = 0): boolean {
         const millisecondsInSecond = 1000;
         const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
         const expiryRightShift = new BigNumber(2).pow(192);

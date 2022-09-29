@@ -1,5 +1,24 @@
 [
     {
+        "version": "6.24.0",
+        "changes": [
+            {
+                "note": "Add missing zeroExGovernor for Arbitrum",
+                "pr": 583
+            }
+        ]
+    },
+    {
+        "version": "6.23.4",
+        "changes": [
+            {
+                "note": "New FQT for Arbitrum with Nerve",
+                "pr": 581
+            }
+        ],
+        "timestamp": 1663786955
+    },
+    {
         "version": "6.23.3",
         "changes": [
             {
@@ -10,7 +29,8 @@
                 "note": "Add balV2/batch to opt bridge adapter code",
                 "pr": 578
             }
-        ]
+        ],
+        "timestamp": 1662998180
     },
     {
         "version": "6.23.2",

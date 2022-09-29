@@ -19,12 +19,10 @@ import {
     SignatureType,
 } from './signature_utils';
 
-// tslint:disable:enum-naming
 export enum TradeDirection {
     SellNFT = 0,
     BuyNFT = 1,
 }
-// tslint:enable:enum-naming
 
 export enum OrderStatus {
     Invalid = 0,
@@ -136,7 +134,7 @@ export abstract class NFTOrder {
     public abstract getEIP712TypedData(): EIP712TypedData;
     protected abstract _getProperties(): Property[];
 
-    public willExpire(secondsFromNow: number = 0): boolean {
+    public willExpire(secondsFromNow = 0): boolean {
         const millisecondsInSecond = 1000;
         const currentUnixTimestampSec = new BigNumber(Date.now() / millisecondsInSecond).integerValue();
         return this.expiry.isLessThan(currentUnixTimestampSec.plus(secondsFromNow));

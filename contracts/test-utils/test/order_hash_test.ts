@@ -55,7 +55,7 @@ describe('Order hashing', () => {
         it('throws a readable error message if taker format is invalid', async () => {
             const orderWithInvalidtakerFormat = {
                 ...order,
-                takerAddress: (null as any) as string,
+                takerAddress: null as any as string,
             };
             const expectedErrorMessage = `Expected order to conform to schema`;
             expect(() => orderHashUtils.getOrderHashHex(orderWithInvalidtakerFormat)).to.throw(expectedErrorMessage);

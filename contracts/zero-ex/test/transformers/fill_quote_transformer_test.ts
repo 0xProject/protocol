@@ -334,17 +334,13 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
     async function getBalancesAsync(owner: string): Promise<Balances> {
         const balances = { ...ZERO_BALANCES };
-        [
-            balances.makerTokenBalance,
-            balances.takerTokensBalance,
-            balances.takerFeeBalance,
-            balances.ethBalance,
-        ] = await Promise.all([
-            makerToken.balanceOf(owner).callAsync(),
-            takerToken.balanceOf(owner).callAsync(),
-            takerFeeToken.balanceOf(owner).callAsync(),
-            env.web3Wrapper.getBalanceInWeiAsync(owner),
-        ]);
+        [balances.makerTokenBalance, balances.takerTokensBalance, balances.takerFeeBalance, balances.ethBalance] =
+            await Promise.all([
+                makerToken.balanceOf(owner).callAsync(),
+                takerToken.balanceOf(owner).callAsync(),
+                takerFeeToken.balanceOf(owner).callAsync(),
+                env.web3Wrapper.getBalanceInWeiAsync(owner),
+            ]);
         return balances;
     }
 
@@ -365,11 +361,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
 
     function normalizeFillAmount(raw: BigNumber, balance: BigNumber): BigNumber {
         if (raw.gte(HIGH_BIT)) {
-            return raw
-                .minus(HIGH_BIT)
-                .div('1e18')
-                .times(balance)
-                .integerValue(BigNumber.ROUND_DOWN);
+            return raw.minus(HIGH_BIT).div('1e18').times(balance).integerValue(BigNumber.ROUND_DOWN);
         }
         return raw;
     }

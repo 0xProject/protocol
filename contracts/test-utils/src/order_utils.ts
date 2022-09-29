@@ -8,10 +8,7 @@ import { BatchMatchOrder, CancelOrder, MatchOrder } from './types';
 
 export const orderUtils = {
     getPartialAmountFloor(numerator: BigNumber, denominator: BigNumber, target: BigNumber): BigNumber {
-        const partialAmount = numerator
-            .multipliedBy(target)
-            .div(denominator)
-            .integerValue(BigNumber.ROUND_FLOOR);
+        const partialAmount = numerator.multipliedBy(target).div(denominator).integerValue(BigNumber.ROUND_FLOOR);
         return partialAmount;
     },
     createFill: (signedOrder: SignedOrder, takerAssetFillAmount?: BigNumber) => {

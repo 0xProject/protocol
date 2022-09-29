@@ -34,7 +34,7 @@ interface RfqOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
     takerTokenFilledAmount: BigNumber;
 }
-interface OtcOrderFilledAmounts extends RfqOrderFilledAmounts {}
+type OtcOrderFilledAmounts = RfqOrderFilledAmounts;
 
 interface LimitOrderFilledAmounts {
     makerTokenFilledAmount: BigNumber;
@@ -52,7 +52,7 @@ export class NativeOrdersTestEnvironment {
     public static async createAsync(
         env: BlockchainTestsEnvironment,
         gasPrice: BigNumber = new BigNumber('123e9'),
-        protocolFeeMultiplier: number = 70e3,
+        protocolFeeMultiplier = 70e3,
     ): Promise<NativeOrdersTestEnvironment> {
         const [owner, maker, taker] = await env.getAccountAddressesAsync();
         const [makerToken, takerToken] = await Promise.all(
@@ -153,7 +153,7 @@ export class NativeOrdersTestEnvironment {
         order: OtcOrder,
         fillAmount: BigNumber | number = order.takerAmount,
         taker: string = this.taker,
-        unwrapWeth: boolean = false,
+        unwrapWeth = false,
     ): Promise<TransactionReceiptWithDecodedLogs> {
         await this.prepareBalancesForOrdersAsync([order], taker);
         if (unwrapWeth) {
@@ -179,7 +179,7 @@ export class NativeOrdersTestEnvironment {
         order: OtcOrder,
         origin: string = order.txOrigin,
         taker: string = order.taker,
-        unwrapWeth: boolean = false,
+        unwrapWeth = false,
     ): Promise<TransactionReceiptWithDecodedLogs> {
         await this.prepareBalancesForOrdersAsync([order], taker);
         if (unwrapWeth) {
@@ -217,11 +217,8 @@ export class NativeOrdersTestEnvironment {
         takerTokenFillAmount: BigNumber = order.takerAmount,
         takerTokenAlreadyFilledAmount: BigNumber = ZERO,
     ): IZeroExLimitOrderFilledEventArgs {
-        const {
-            makerTokenFilledAmount,
-            takerTokenFilledAmount,
-            takerTokenFeeFilledAmount,
-        } = computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
+        const { makerTokenFilledAmount, takerTokenFilledAmount, takerTokenFeeFilledAmount } =
+            computeLimitOrderFilledAmounts(order, takerTokenFillAmount, takerTokenAlreadyFilledAmount);
         const protocolFee = order.taker !== NULL_ADDRESS ? ZERO : this.protocolFee;
         return {
             takerTokenFilledAmount,
@@ -354,7 +351,7 @@ export function assertOrderInfoEquals(actual: OrderInfo, expected: OrderInfo): v
 /**
  * Creates an order expiry field.
  */
-export function createExpiry(deltaSeconds: number = 60): BigNumber {
+export function createExpiry(deltaSeconds = 60): BigNumber {
     return new BigNumber(Math.floor(Date.now() / 1000) + deltaSeconds);
 }
 
