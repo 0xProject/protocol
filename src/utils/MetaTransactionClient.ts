@@ -68,6 +68,7 @@ export async function getQuoteAsync(
     axiosInstance: AxiosInstance,
     url: URL,
     params: {
+        affiliateAddress?: string;
         buyAmount?: BigNumber;
         buyToken: string;
         integratorId: string;
@@ -97,12 +98,14 @@ export async function getQuoteAsync(
                     integratorId: data.integratorId,
                 });
                 const {
+                    affiliateAddress,
                     buyAmount: buyAmountData,
                     sellAmount: sellAmountData,
                     slippagePercentage,
                     quoteUniqueId,
                 } = data;
 
+                affiliateAddress && result.append('affiliateAddress', affiliateAddress);
                 buyAmountData && result.append('buyAmount', buyAmountData.toString());
                 sellAmountData && result.append('sellAmount', sellAmountData.toString());
                 slippagePercentage && result.append('slippagePercentage', slippagePercentage.toString());

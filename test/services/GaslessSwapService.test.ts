@@ -418,6 +418,45 @@ describe('GaslessSwapService', () => {
             `);
         });
 
+        it('adds an affiliate address if one is included in the integrator configuration but not in the quote request', async () => {
+            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
+
+            await gaslessSwapService.fetchQuoteAsync({
+                buyAmount: new BigNumber(1800054805473),
+                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                buyTokenDecimals: 6,
+                integrator: { affiliateAddress: '0xaffiliateAddress' } as Integrator,
+                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                sellTokenDecimals: 18,
+                takerAddress: '0xtaker',
+                checkApproval: false,
+            });
+            expect(getMetaTransactionQuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
+                '0xaffiliateAddress',
+            );
+        });
+
+        it('uses the affiliate address in the quote request even if one is present in integrator configuration', async () => {
+            getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce({ metaTransaction, price });
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
+
+            await gaslessSwapService.fetchQuoteAsync({
+                affiliateAddress: '0xaffiliateAddressShouldUse',
+                buyAmount: new BigNumber(1800054805473),
+                buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                buyTokenDecimals: 6,
+                integrator: { affiliateAddress: '0xaffiliateAddressShouldntUse' } as Integrator,
+                sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                sellTokenDecimals: 18,
+                takerAddress: '0xtaker',
+                checkApproval: false,
+            });
+            expect(getMetaTransactionQuoteAsyncMock.mock.calls[0][/* params */ 2]['affiliateAddress']).toEqual(
+                '0xaffiliateAddressShouldUse',
+            );
+        });
+
         it('returns `null` if no liquidity is available', async () => {
             mockRfqmService.fetchFirmQuoteAsync.mockResolvedValueOnce({ quote: null, quoteReportId: null });
             getMetaTransactionQuoteAsyncMock.mockResolvedValueOnce(null);

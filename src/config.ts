@@ -159,6 +159,7 @@ export const DEFAULT_FEE_MODEL_CONFIGURATION: FeeModelConfiguration = { marginRa
  * A taker-integrator of the 0x API.
  */
 export interface Integrator {
+    affiliateAddress?: string; // Used if present and no affiliate address is sent in the quote request
     apiKeys: string[];
     integratorId: string;
     /* IDs for chains the integrator is allowed to access RFQ liquidity on */

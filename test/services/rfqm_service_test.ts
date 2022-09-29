@@ -13,7 +13,7 @@ import { constants } from 'ethers';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import _ from 'lodash';
 import { Producer } from 'sqs-producer';
-import { anything, instance, mock, spy, verify, when } from 'ts-mockito';
+import { anything, capture, instance, mock, spy, verify, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
 import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/constants';
@@ -1019,6 +1019,109 @@ describe('RfqmService HTTP Logic', () => {
 
     describe('fetchFirmQuoteAsync', () => {
         const takerAddress = '0xf003A9418DE2620f935181259C0Fa1595E871234';
+
+        it.only('should use an affiliate address provided in the quote request even if one is present in configuration', async () => {
+            const sellAmount = new BigNumber(100);
+            const contractAddresses = getContractAddressesForChainOrThrow(1);
+            const quote: IndicativeQuote = {
+                maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                makerToken: contractAddresses.zrxToken,
+                makerAmount: new BigNumber(101),
+                takerToken: contractAddresses.etherToken,
+                takerAmount: new BigNumber(100),
+                expiry: NEVER_EXPIRES,
+                makerUri: MOCK_MM_URI,
+            };
+
+            const cacheClientMock = mock(CacheClient);
+            when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+            when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve([]);
+
+            // Mock out the dbUtils
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
+            const dbUtils = instance(dbUtilsMock);
+
+            const quoteServerClientMock = mock(QuoteServerClient);
+            when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([quote]);
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(150),
+            ]);
+
+            const service = buildRfqmServiceForUnitTest({
+                quoteServerClient: instance(quoteServerClientMock),
+                dbUtils,
+                cacheClient: instance(cacheClientMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
+            });
+
+            await service.fetchFirmQuoteAsync({
+                affiliateAddress: '0xaffiliateAddress',
+                buyToken: contractAddresses.zrxToken,
+                buyTokenDecimals: 18,
+                checkApproval: false,
+                integrator: { ...MOCK_INTEGRATOR, affiliateAddress: '0xaffiliateAddressNotThisOne' },
+                sellAmount,
+                sellToken: contractAddresses.etherToken,
+                sellTokenDecimals: 18,
+                takerAddress,
+            });
+
+            const writeV2QuoteArgs = capture(dbUtilsMock.writeV2QuoteAsync).last();
+            expect(writeV2QuoteArgs[0]['affiliateAddress']).to.equal('0xaffiliateAddress');
+        });
+
+        it('should use a configured affiliate address when none is provide in the quote request', async () => {
+            const sellAmount = new BigNumber(100);
+            const contractAddresses = getContractAddressesForChainOrThrow(1);
+            const quote: IndicativeQuote = {
+                maker: '0x64B92f5d9E5b5f20603de8498385c3a3d3048E22',
+                makerToken: contractAddresses.zrxToken,
+                makerAmount: new BigNumber(101),
+                takerToken: contractAddresses.etherToken,
+                takerAmount: new BigNumber(100),
+                expiry: NEVER_EXPIRES,
+                makerUri: MOCK_MM_URI,
+            };
+
+            const cacheClientMock = mock(CacheClient);
+            when(cacheClientMock.getNextOtcOrderBucketAsync(1337)).thenResolve(420);
+            when(cacheClientMock.getMakersInCooldownForPairAsync(anything(), anything(), anything())).thenResolve([]);
+
+            // Mock out the dbUtils
+            const dbUtilsMock = mock(RfqmDbUtils);
+            when(dbUtilsMock.writeV2QuoteAsync(anything())).thenResolve();
+            const dbUtils = instance(dbUtilsMock);
+
+            const quoteServerClientMock = mock(QuoteServerClient);
+            when(quoteServerClientMock.batchGetPriceV2Async(anything(), anything(), anything())).thenResolve([quote]);
+            const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);
+            when(rfqMakerBalanceCacheServiceMock.getERC20OwnerBalancesAsync(anything(), anything())).thenResolve([
+                new BigNumber(150),
+            ]);
+
+            const service = buildRfqmServiceForUnitTest({
+                quoteServerClient: instance(quoteServerClientMock),
+                dbUtils,
+                cacheClient: instance(cacheClientMock),
+                rfqMakerBalanceCacheService: instance(rfqMakerBalanceCacheServiceMock),
+            });
+
+            await service.fetchFirmQuoteAsync({
+                buyToken: contractAddresses.zrxToken,
+                buyTokenDecimals: 18,
+                checkApproval: false,
+                integrator: { ...MOCK_INTEGRATOR, affiliateAddress: '0xaffiliateAddress' },
+                sellAmount,
+                sellToken: contractAddresses.etherToken,
+                sellTokenDecimals: 18,
+                takerAddress,
+            });
+
+            const writeV2QuoteArgs = capture(dbUtilsMock.writeV2QuoteAsync).last();
+            expect(writeV2QuoteArgs[0]['affiliateAddress']).to.equal('0xaffiliateAddress');
+        });
 
         describe('sells', () => {
             it('should fetch a firm quote', async () => {

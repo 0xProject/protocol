@@ -240,6 +240,7 @@ export class GaslessSwapService {
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
                     ...params,
+                    affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
                     integratorId: params.integrator.integratorId,
                     quoteUniqueId: rfqQuoteReportId ?? undefined,
                 },

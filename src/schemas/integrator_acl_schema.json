@@ -1,6 +1,9 @@
 {
     "id": "/integratorAclSchema",
     "properties": {
+        "affiliateAddress": {
+            "type": "string"
+        },
         "apiKeys": {
             "items": {
                 "type": "string"

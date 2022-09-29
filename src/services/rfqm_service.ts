@@ -240,8 +240,10 @@ export class RfqmService {
         params: FetchIndicativeQuoteParams,
         extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
     ): Promise<FetchIndicativeQuoteResponse | null> {
+        const affiliateAddress = params.affiliateAddress ?? params.integrator.affiliateAddress;
+
         // Retrieve quote context
-        const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ false);
+        const quoteContext = this._retrieveQuoteContext({ ...params, affiliateAddress }, /* isFirm */ false);
         const {
             isFirm,
             takerAmount,
@@ -341,8 +343,9 @@ export class RfqmService {
         params: FetchFirmQuoteParams,
         extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'rfqm',
     ): Promise<{ quote: OtcOrderRfqmQuoteResponse | null; quoteReportId: string | null }> {
+        const affiliateAddress = params.affiliateAddress ?? params.integrator.affiliateAddress;
         // Retrieve quote context
-        const quoteContext = this._retrieveQuoteContext(params, /* isFirm */ true);
+        const quoteContext = this._retrieveQuoteContext({ ...params, affiliateAddress }, /* isFirm */ true);
         const {
             isFirm,
             takerAmount,
@@ -354,7 +357,6 @@ export class RfqmService {
             makerTokenDecimals,
             takerAddress,
             integrator,
-            affiliateAddress,
             isUnwrap,
             isSelling,
             assetFillAmount,
