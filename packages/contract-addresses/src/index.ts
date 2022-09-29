@@ -40,6 +40,7 @@ export enum ChainId {
     Optimism = 10,
     Arbitrum = 42161,
     ArbitrumRinkeby = 421611,
+    Amaterasu = 100337, // @note XXX: Amaterasu chain
 }
 
 /**
