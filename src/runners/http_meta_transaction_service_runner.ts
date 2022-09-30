@@ -55,6 +55,20 @@ async function runHttpServiceAsync(
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
+
+    if (dependencies.hasSentry) {
+        const options: SentryOptions = {
+            app: app,
+            dsn: SENTRY_DSN,
+            environment: SENTRY_ENVIRONMENT,
+            paths: [META_TRANSACTION_PATH],
+            sampleRate: SENTRY_SAMPLE_RATE,
+            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+        };
+
+        SentryInit(options);
+    }
+
     const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
 
     app.get('/', rootHandler);
@@ -64,19 +78,6 @@ async function runHttpServiceAsync(
     } else {
         logger.error(`Could not run meta transaction service, exiting`);
         process.exit(1);
-    }
-
-    if (dependencies.hasSentry) {
-        const options: SentryOptions = {
-            app,
-            dsn: SENTRY_DSN,
-            environment: SENTRY_ENVIRONMENT,
-            paths: [META_TRANSACTION_PATH],
-            sampleRate: SENTRY_SAMPLE_RATE,
-            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
-        };
-
-        SentryInit(options);
     }
 
     app.use(errorHandler);

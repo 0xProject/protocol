@@ -57,6 +57,20 @@ async function runHttpServiceAsync(
     _app?: core.Express,
 ): Promise<Server> {
     const app = _app || express();
+
+    if (dependencies.hasSentry) {
+        const options: SentryOptions = {
+            app: app,
+            dsn: SENTRY_DSN,
+            environment: SENTRY_ENVIRONMENT,
+            paths: [SRA_PATH, ORDERBOOK_PATH],
+            sampleRate: SENTRY_SAMPLE_RATE,
+            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
+        };
+
+        SentryInit(options);
+    }
+
     app.use(addressNormalizer);
     app.use(cacheControl(DEFAULT_CACHE_AGE_SECONDS));
     const server = createDefaultServer(config, app, logger, destroyCallback(dependencies));
@@ -77,19 +91,6 @@ async function runHttpServiceAsync(
     } else {
         logger.error('Could not establish kafka connection, exiting');
         process.exit(1);
-    }
-
-    if (dependencies.hasSentry) {
-        const options: SentryOptions = {
-            app,
-            dsn: SENTRY_DSN,
-            environment: SENTRY_ENVIRONMENT,
-            paths: [SRA_PATH, ORDERBOOK_PATH],
-            sampleRate: SENTRY_SAMPLE_RATE,
-            tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
-        };
-
-        SentryInit(options);
     }
 
     server.listen(config.httpPort);

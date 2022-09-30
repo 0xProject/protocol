@@ -22,7 +22,6 @@ export function SentryInit(options: SentryOptions): void {
         dsn: options.dsn,
         environment: options.environment,
         sampleRate: options.sampleRate,
-        tracesSampleRate: options.tracesSampleRate,
         integrations: [
             new Sentry.Integrations.Http({
                 tracing: true,
@@ -31,23 +30,24 @@ export function SentryInit(options: SentryOptions): void {
                 app: options.app,
             }),
         ],
-        tracesSampler: (context: SamplingContext) => {
+        // TODO
+        // This naive whitelisting should be removed after we apply whitelisting
+        // on the ingress controller side.
+        //
+        tracesSampler: (context: SamplingContext): number => {
             // Do not trace health check endpoint.
             //
             if (context?.transactionContext?.name.includes(HEALTHCHECK_PATH)) {
-                return false;
+                return 0;
             }
 
-            // By whitelisting endpoints, we will avoid a situation when
-            // someone tries to brute force request paths.
-            //
             for (const path of options.paths) {
                 if (context?.transactionContext?.name.includes(path)) {
-                    return true;
+                    return options.tracesSampleRate;
                 }
             }
 
-            return false;
+            return 0;
         },
     });
 
