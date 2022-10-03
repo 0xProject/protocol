@@ -248,6 +248,7 @@ export class GaslessSwapService {
                     requestDurationSummary: ZEROG_META_TRANSACTION_QUOTE_REQUEST_DURATION_SECONDS,
                     chainId: this._chainId,
                 },
+                logger.warn.bind(this),
             );
 
             if (ammQuote) {
