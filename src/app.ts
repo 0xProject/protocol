@@ -97,7 +97,7 @@ export async function getContractAddressesForNetworkOrThrowAsync(
     if (contractAddresses_) {
         return contractAddresses_;
     }
-    let contractAddresses = getContractAddressesForChainOrThrow(chainId.toString() as any);
+    let contractAddresses = getContractAddressesForChainOrThrow(chainId);
     // In a testnet where the environment does not support overrides
     // so we deploy the latest sampler
     if (chainId === ChainId.Ganache) {

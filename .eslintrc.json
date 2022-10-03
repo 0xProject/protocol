@@ -19,5 +19,12 @@
         "test/generated-wrappers/**/*",
         "test/generated-artifacts/**/*"
     ],
-    "rules": {}
+    "rules": {
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ]
+    }
 }
