@@ -1020,7 +1020,7 @@ describe('RfqmService HTTP Logic', () => {
     describe('fetchFirmQuoteAsync', () => {
         const takerAddress = '0xf003A9418DE2620f935181259C0Fa1595E871234';
 
-        it.only('should use an affiliate address provided in the quote request even if one is present in configuration', async () => {
+        it('should use an affiliate address provided in the quote request even if one is present in configuration', async () => {
             const sellAmount = new BigNumber(100);
             const contractAddresses = getContractAddressesForChainOrThrow(1);
             const quote: IndicativeQuote = {
