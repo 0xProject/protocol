@@ -25,9 +25,10 @@
     toposort "^2.0.2"
     yargs "^17.5.1"
 
-"@0x/api-utils@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@0x/api-utils/-/api-utils-0.0.2.tgz#731f9a46f4701572286db0be85dba12794622f31"
+"@0x/api-utils@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@0x/api-utils/-/api-utils-0.0.3.tgz#bb84183edb2b730cc5f1f4c930af04558fb69b13"
+  integrity sha512-aIM12+G3kkZGWwbakkN1z5pbYiXqND+o5cASV7ArM3pwYpYgnQLNk5adHZReuEnDKmVqxnc4KKmDahQIvyfk+w==
   dependencies:
     "@0x/json-schemas" "^5.4.1"
     "@0x/types" "^3.3.1"
