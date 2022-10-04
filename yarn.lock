@@ -173,6 +173,21 @@
     ethereum-types "^3.7.1"
     ethers "~4.0.4"
 
+"@0x/contract-wrappers@^13.22.3":
+  version "13.22.3"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.22.3.tgz#859a2e56e3157e566128eea8a47afa9cefe785f3"
+  integrity sha512-3aFh00ROw2qy9baRP4hRQKmLr4SJ4Smhr87JLclloM3l5UDx6QwHeG1qPn/BYM/36envHiL+xHncqxxrzAu5IA==
+  dependencies:
+    "@0x/assert" "^3.0.35"
+    "@0x/base-contract" "^7.0.0"
+    "@0x/contract-addresses" "^6.23.3"
+    "@0x/json-schemas" "^6.4.4"
+    "@0x/types" "^3.3.6"
+    "@0x/utils" "^7.0.0"
+    "@0x/web3-wrapper" "^8.0.0"
+    ethereum-types "^3.7.1"
+    ethers "~4.0.4"
+
 "@0x/contracts-erc20@^3.3.37":
   version "3.3.37"
   resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.37.tgz#05fcea32f8533df6b55428ee9584008f2957b286"
@@ -374,6 +389,23 @@
     "@0x/assert" "^3.0.35"
     "@0x/contract-addresses" "^6.20.1"
     "@0x/contract-wrappers" "^13.21.1"
+    "@0x/json-schemas" "^6.4.4"
+    "@0x/subproviders" "^7.0.0"
+    "@0x/utils" "^7.0.0"
+    "@0x/web3-wrapper" "^8.0.0"
+    chai "^4.0.1"
+    ethereumjs-util "^7.0.10"
+    ethers "~4.0.4"
+    lodash "^4.17.11"
+
+"@0x/protocol-utils@^11.16.7":
+  version "11.16.10"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.16.10.tgz#702715fa80ca9eaf35713d7540ff6c33474b47f8"
+  integrity sha512-chqu89kXRpPIM7ihjA8YxuVVtIqJCreykRdUb5r+RDcdEAeOZXN5Ip4L07vu6X9iNMfvZKMnpvW4qfs932Jk4w==
+  dependencies:
+    "@0x/assert" "^3.0.35"
+    "@0x/contract-addresses" "^6.23.3"
+    "@0x/contract-wrappers" "^13.22.3"
     "@0x/json-schemas" "^6.4.4"
     "@0x/subproviders" "^7.0.0"
     "@0x/utils" "^7.0.0"
