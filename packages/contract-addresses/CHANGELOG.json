@@ -6,7 +6,8 @@
                 "note": "Add missing zeroExGovernor for Arbitrum",
                 "pr": 583
             }
-        ]
+        ],
+        "timestamp": 1665013355
     },
     {
         "version": "6.23.4",

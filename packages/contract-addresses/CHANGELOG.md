@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.24.0 - _October 5, 2022_
+
+    * Add missing zeroExGovernor for Arbitrum (#583)
+
 ## v6.23.4 - _September 21, 2022_
 
     * New FQT for Arbitrum with Nerve (#581)
@@ -12,6 +16,7 @@ CHANGELOG
 ## v6.23.3 - _September 12, 2022_
 
     * New FQT for Optimism with BalV2 (#577)
+    * Add balV2/batch to opt bridge adapter code (#578)
 
 ## v6.23.2 - _September 7, 2022_
 
