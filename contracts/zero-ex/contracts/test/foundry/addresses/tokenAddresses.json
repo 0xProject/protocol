@@ -1,0 +1,44 @@
+{
+    "1": {
+        "WrappedNativeToken": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "DAI": "0x6b175474e89094c44da98b954eedeac495271d0f",
+        "USDC": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "USDT": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    },
+    "56": {
+        "WrappedNativeToken": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+        "DAI": "0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3",
+        "USDC": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+        "USDT": "0x55d398326f99059ff775485246999027b3197955"
+    },
+    "137": {
+        "WrappedNativeToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+        "DAI": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+        "USDC": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+        "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+    },
+    "43114": {
+        "WrappedNativeToken": "0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7",
+        "DAI": "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
+        "USDC": "0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664",
+        "USDT": "0xc7198437980c041c805A1EDcbA50c1Ce5db95118"
+    },
+    "250": {
+        "WrappedNativeToken": "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+        "DAI": "0x8d11ec38a3eb5e956b052f67da8bdc9bef8abf3e",
+        "USDC": "0x04068da6c83afcfa0e13ba15a6696662335d5b75",
+        "USDT": "0x049d68029688eabf473097a2fc38ef61633a3c7a"
+    },
+    "10": {
+        "WrappedNativeToken": "0x4200000000000000000000000000000000000006",
+        "DAI": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+        "USDC": "0x7f5c764cbc14f9669b88837ca1490cca17c31607",
+        "USDT": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58"
+    },
+    "42161": {
+        "WrappedNativeToken": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+        "DAI": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+        "USDC": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+        "USDT": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+    }
+}
