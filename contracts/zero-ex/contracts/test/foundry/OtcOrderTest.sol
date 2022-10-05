@@ -49,7 +49,7 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
     function testSwapEthForERC20OnUniswap() public {
         log_string("SwapEthForERC20OnUniswap");
         for (uint256 i = 0; i < chains.length; i++) {
-            //skip fantom failing test
+            //skip fantom/avax failing test
             if( i == 3 || i == 4 ){
                 continue;
             }
@@ -135,6 +135,7 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
             // list of transform
             transformations
         );
+        
         log_named_uint("        NativeAsset balance before", balanceETHBefore);
         log_named_uint("        ERC-20 balance before",  balanceERC20Before);
         log_named_uint("        NativeAsset balance after", balanceETHBefore - address(this).balance);
