@@ -53,8 +53,6 @@ contract transformERC20Tests is Test, ForkUtils, TestUtils {
             vm.selectFork(forkIds[chains[i]]);
             log_named_string("  Selecting Fork On", chains[i]);
             _wrapNativeToken(chains[i], indexChainsByChain[chains[i]]);
-            _swapERC20ForERC20(chains[i], indexChainsByChain[chains[i]]);
-            //_transformERC20Forked(chains[i], indexChainsByChain[chains[i]]);
         }
     }
     function logAddresses(string memory chainName, string memory chainId) public {
