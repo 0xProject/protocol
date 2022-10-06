@@ -8,7 +8,7 @@ import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { Integrator } from '../../src/config';
-import { ONE_SECOND_MS } from '../../src/constants';
+import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../src/services/RfqtService';
@@ -559,7 +559,7 @@ describe('Rfqt Service', () => {
                     intentOnFilling: true,
                     makerToken,
                     marketOperation: MarketOperation.Buy,
-                    takerAddress,
+                    takerAddress: NULL_ADDRESS,
                     takerToken,
                     txOrigin: takerAddress,
                 };

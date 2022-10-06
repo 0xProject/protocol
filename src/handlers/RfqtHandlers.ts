@@ -214,11 +214,13 @@ export class RfqtHandlers {
     ): Promise<void> {
         let parsedParameters: RfqtV2RequestInternal;
         let service: RfqtService;
+        let txOrigin: string;
         try {
             parsedParameters = this._parseV2RequestParameters(req);
             if (parsedParameters.txOrigin === undefined) {
                 throw new Error('Received request with missing parameter txOrigin');
             }
+            txOrigin = parsedParameters.txOrigin;
             service = this._getServiceForChain(parsedParameters.chainId);
         } catch (error) {
             RFQT_V2_QUOTE_REQUEST_FAILED.inc();
@@ -228,7 +230,10 @@ export class RfqtHandlers {
         }
 
         try {
-            const quotes = await service.getV2QuotesAsync(parsedParameters);
+            const quotes = await service.getV2QuotesAsync({
+                ...parsedParameters,
+                txOrigin,
+            });
             RFQT_V2_QUOTE_REQUEST_SUCCEEDED.inc();
             logger.info('Rfqt V2 quote request succeeded');
             res.status(HttpStatus.OK).json({

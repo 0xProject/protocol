@@ -290,7 +290,10 @@ export class RfqtService {
      *  2. Valid prices are then sent to the market makers' `/sign`
      *     endpoint to get a signed quote
      */
-    public async getV2QuotesAsync(parameters: RfqtV2RequestInternal, now: Date = new Date()): Promise<RfqtV2Quotes> {
+    public async getV2QuotesAsync(
+        parameters: RfqtV2RequestInternal & { txOrigin: string },
+        now: Date = new Date(),
+    ): Promise<RfqtV2Quotes> {
         // TODO (rhinodavid): put a meter on this response time
         const prices = await this.getV2PricesAsync(parameters);
 
@@ -298,7 +301,7 @@ export class RfqtService {
         // all have unique nonces. Otherwise they'll be rejected by the smart contract.
         const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
         const pricesAndOrders = prices.map((price, i) => ({
-            order: this._v2priceToOrder(price, parameters.takerAddress, baseNonce.plus(i)),
+            order: this._v2priceToOrder(price, parameters.txOrigin, baseNonce.plus(i)),
             price,
         }));
 
@@ -352,7 +355,7 @@ export class RfqtService {
      */
     private _v2priceToOrder(
         price: RfqtV2Prices[0],
-        takerAddress: string,
+        txOrigin: string,
         nonce: BigNumber,
         nonceBucket: BigNumber = new BigNumber(0),
     ): OtcOrder {
@@ -365,7 +368,7 @@ export class RfqtService {
             taker: NULL_ADDRESS,
             takerAmount: price.takerAmount,
             takerToken: price.takerToken,
-            txOrigin: takerAddress,
+            txOrigin,
             verifyingContract: this._contractAddresses.exchangeProxy,
         });
     }
