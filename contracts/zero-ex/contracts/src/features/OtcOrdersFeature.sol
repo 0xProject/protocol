@@ -371,19 +371,91 @@ contract OtcOrdersFeature is
     }
 
     function matchOtcOrders(
-        LibNativeOrder.OtcOrder memory takerOrder,
-        LibSignature.Signature memory takerSignature,
+        LibNativeOrder.OtcOrder calldata takerOrder,
+        LibSignature.Signature calldata takerSignature,
         MatchingRfqLiquidity[] calldata rfqLiquidity
     )
         external 
         override
     {
-        // require(1 == 2, "Muahahahah its working");
-        LibNativeOrder.OtcOrderInfo memory orderInfo = getOtcOrderInfo(takerOrder);
-        console.log('got order info');
-        address taker = LibSignature.getSignerOfHash(orderInfo.orderHash, takerSignature);
-        console.log('got taker from sig');
-        console.log(taker);
+        // Validate the takerOrder
+        LibNativeOrder.OtcOrderInfo memory takerOrderInfo = getOtcOrderInfo(takerOrder);
+        _validateOtcOrder(
+            takerOrder, 
+            takerOrderInfo,
+            takerSignature,
+            takerOrder.taker
+        );
+        // {
+        //     address taker = LibSignature.getSignerOfHash(
+        //         getOtcOrderInfo(takerOrder).orderHash,
+        //         takerSignature
+        //     );
+        //     require(taker == takerOrder.maker, "Signer of the takerOrder is incorrect");
+        // }
+
+        // price in terms of maker token per taker token
+        uint128 takerPrice = takerOrder.takerAmount * 1000 / takerOrder.makerAmount; 
+        uint128 takerAmountToFill = takerOrder.makerAmount;
+
+        for (uint256 i = 0; i != rfqLiquidity.length; i++) {
+            LibNativeOrder.OtcOrder calldata makerOrder = rfqLiquidity[i].makerOrder;
+            require(takerOrder.makerToken == makerOrder.takerToken && 
+                takerOrder.takerToken == makerOrder.makerToken, "orders do not match");
+
+            // Validate the maker
+            {
+                address maker = LibSignature.getSignerOfHash(
+                    getOtcOrderInfo(makerOrder).orderHash,
+                    rfqLiquidity[i].makerSignature
+                );
+                require(maker == takerOrder.maker, "Signer of the makerOrder is not maker");
+            }
+
+            // Find the midpoint amounts
+            // TODO - logic will be different for buy and sell amount targets - or we can only support one side :(
+            uint128 makerAmount;
+            uint128 takerAmount = LibSafeMathV06.min128(
+                takerAmountToFill, 
+                makerOrder.takerAmount
+            );
+            {
+                uint128 makerPrice = makerOrder.makerAmount * 1000 / makerOrder.takerAmount;
+                require(takerPrice <= makerPrice, "maker price is less than taker price");
+                uint128 midpointPrice = (takerPrice + makerPrice) / 2; // TODO make this safe
+                // console.log("takerPrice");
+                // console.log(takerPrice);
+                // console.log("makerPrice");
+                // console.log(makerPrice);
+                // console.log("midpointPrice");
+                // console.log(midpointPrice);
+                makerAmount = (takerAmount * midpointPrice) / 1000;
+            }
+
+
+
+
+            // // TODO - scale the taker amount to the maker amount
+            // uint128 takerTokenFillAmount = takerOrder.makerAmount;
+            // uint128 makerTokenFillAmount = makerOrder.makerAmount;
+
+            takerAmountToFill -= takerAmount; // TODO is this safe? is there a re-entrancy attack vector here?
+            address taker = takerOrder.maker;
+            _matchSettleOtcOrder(
+                takerOrder,
+                makerOrder,
+                takerAmount,
+                makerAmount,
+                taker,
+                taker
+                // takerOrder.maker,
+                // takerOrder.maker
+            );
+        }
+
+
+
+
 
     }
 
@@ -454,6 +526,7 @@ contract OtcOrdersFeature is
     {
         // Must be fillable.
         if (orderInfo.status != LibNativeOrder.OrderStatus.FILLABLE) {
+            console.log("OrderNotFillable");
             LibNativeOrdersRichErrors.OrderNotFillableError(
                 orderInfo.orderHash,
                 uint8(orderInfo.status)
@@ -462,6 +535,7 @@ contract OtcOrdersFeature is
 
         // Must be a valid taker for the order.
         if (order.taker != address(0) && order.taker != taker) {
+            console.log("OrderNotFillableByTaker");
             LibNativeOrdersRichErrors.OrderNotFillableByTakerError(
                 orderInfo.orderHash,
                 taker,
@@ -477,6 +551,9 @@ contract OtcOrdersFeature is
             order.txOrigin != tx.origin &&
             !stor.originRegistry[order.txOrigin][tx.origin]
         ) {
+            console.log("OrderNotFillableByOrigin");
+            console.log(tx.origin);
+            console.log(order.txOrigin);
             LibNativeOrdersRichErrors.OrderNotFillableByOriginError(
                 orderInfo.orderHash,
                 tx.origin,
@@ -490,6 +567,9 @@ contract OtcOrdersFeature is
             makerSigner != order.maker &&
             !stor.orderSignerRegistry[order.maker][makerSigner]
         ) {
+            console.log("OrderNotSignedByMaker");
+            console.log(makerSigner);
+            console.log(order.maker);
             LibNativeOrdersRichErrors.OrderNotSignedByMakerError(
                 orderInfo.orderHash,
                 makerSigner,
@@ -573,6 +653,104 @@ contract OtcOrdersFeature is
         );
     }
 
+
+    /// @dev Match two OTC orders and settle.
+    /// @param takerOrder The taker's OTC order.
+    /// @param makerOrder The maker's OTC order.
+    /// @param takerTokenFillAmount Maximum taker token amount to fill this
+    ///        order with.
+    /// @param payer The address holding the taker tokens.
+    /// @param recipient The recipient of the maker tokens.
+    /// @return takerTokenFilledAmount How much taker token was filled.
+    /// @return makerTokenFilledAmount How much maker token was filled.
+    function _matchSettleOtcOrder(
+        LibNativeOrder.OtcOrder memory takerOrder,
+        LibNativeOrder.OtcOrder memory makerOrder,
+        uint128 takerTokenFillAmount,
+        uint128 makerTokenFillAmount,
+        address payer,
+        address recipient
+    )
+        private
+        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
+    {
+        // Handle the takerOrder (should only be done once at the end....)
+        {
+            // Unpack nonce fields
+            uint64 nonceBucket = uint64(takerOrder.expiryAndNonce >> 128);
+            uint128 nonce = uint128(takerOrder.expiryAndNonce);
+            // Update tx origin nonce for the order
+            LibOtcOrdersStorage.getStorage().txOriginNonces
+                [takerOrder.txOrigin][nonceBucket] = nonce;
+        }
+
+        // Handle the makerOrder
+        {
+            // Unpack nonce fields
+            uint64 nonceBucket = uint64(makerOrder.expiryAndNonce >> 128);
+            uint128 nonce = uint128(makerOrder.expiryAndNonce);
+            // Update tx origin nonce for the order
+            LibOtcOrdersStorage.getStorage().txOriginNonces
+                [makerOrder.txOrigin][nonceBucket] = nonce;
+        }
+
+        address maker = makerOrder.maker;
+        address taker = takerOrder.maker;
+        console.log("transfer between");
+        console.log(maker);
+        console.log(taker);
+        IERC20TokenV06 makerToken = makerOrder.makerToken;
+        IERC20TokenV06 takerToken = takerOrder.makerToken;
+
+        // TODO
+        // validate the orders are both good (i.e. going in opposite directions)
+
+        // TODO: do we need to do this here, or should it be done outside?
+        // if (takerTokenFillAmount == order.takerAmount) {
+        //     takerTokenFilledAmount = order.takerAmount;
+        //     makerTokenFilledAmount = order.makerAmount;
+        // } else {
+        //     // Clamp the taker token fill amount to the fillable amount.
+        //     takerTokenFilledAmount = LibSafeMathV06.min128(
+        //         takerTokenFillAmount,
+        //         order.takerAmount
+        //     );
+        //     // Compute the maker token amount.
+        //     // This should never overflow because the values are all clamped to
+        //     // (2^128-1).
+        //     makerTokenFilledAmount = uint128(LibMathV06.getPartialAmountFloor(
+        //         uint256(takerTokenFilledAmount),
+        //         uint256(order.takerAmount),
+        //         uint256(order.makerAmount)
+        //     ));
+        // }
+
+
+        if (payer == address(this)) {
+            // Transfer this -> maker.
+            _transferERC20Tokens(
+                takerToken,
+                taker,
+                takerTokenFilledAmount
+            );                
+        } else {
+            // Transfer taker -> maker
+            _transferERC20TokensFrom(
+                takerToken,
+                payer,
+                maker,
+                takerTokenFillAmount
+            );
+        }
+        // Transfer maker -> recipient 
+        _transferERC20TokensFrom(
+            makerToken,
+            maker,
+            recipient,
+            makerTokenFillAmount
+        );
+    }
+
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.
@@ -598,12 +776,14 @@ contract OtcOrdersFeature is
             [order.txOrigin]
             [nonceBucket];
         if (nonce <= lastNonce) {
+            console.log("tx origin nonce is invalid");
             orderInfo.status = LibNativeOrder.OrderStatus.INVALID;
             return orderInfo;
         }
 
         // Check for expiration.
         if (expiry <= uint64(block.timestamp)) {
+            console.log("expired");
             orderInfo.status = LibNativeOrder.OrderStatus.EXPIRED;
             return orderInfo;
         }
