@@ -1,10 +1,5 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
-import {
-    getTokenMetadataIfExists,
-    isNativeSymbolOrAddress,
-    isNativeWrappedSymbolOrAddress,
-    TokenMetadatasForChains,
-} from '@0x/token-metadata';
+import { getTokenMetadataIfExists, isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -93,16 +88,6 @@ export class SwapHandlers {
     public static root(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Swap API. Visit ${SWAP_DOCS_URL} for details about this API.`;
         res.status(HttpStatus.OK).send({ message });
-    }
-    public static getTokens(_req: express.Request, res: express.Response): void {
-        const tokens = TokenMetadatasForChains.map((tm) => ({
-            symbol: tm.symbol,
-            address: tm.tokenAddresses[CHAIN_ID],
-            name: tm.name,
-            decimals: tm.decimals,
-        }));
-        const filteredTokens = tokens.filter((t) => t.address !== NULL_ADDRESS);
-        res.status(HttpStatus.OK).send({ records: filteredTokens });
     }
 
     public static getLiquiditySources(_req: express.Request, res: express.Response): void {
