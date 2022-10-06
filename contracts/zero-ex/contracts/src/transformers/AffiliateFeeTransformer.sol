@@ -28,11 +28,8 @@ import "../errors/LibTransformERC20RichErrors.sol";
 import "./Transformer.sol";
 import "./LibERC20Transformer.sol";
 
-
 /// @dev A transformer that transfers tokens to arbitrary addresses.
-contract AffiliateFeeTransformer is
-    Transformer
-{
+contract AffiliateFeeTransformer is Transformer {
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;
@@ -54,11 +51,7 @@ contract AffiliateFeeTransformer is
     /// @dev Transfers tokens to recipients.
     /// @param context Context information.
     /// @return success The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
-    function transform(TransformContext calldata context)
-        external
-        override
-        returns (bytes4 success)
-    {
+    function transform(TransformContext calldata context) external override returns (bytes4 success) {
         TokenFee[] memory fees = abi.decode(context.data, (TokenFee[]));
 
         // Transfer tokens to recipients.

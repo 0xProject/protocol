@@ -20,26 +20,15 @@ pragma solidity ^0.5.5;
 
 import "./DummyERC20Token.sol";
 
-
 // solhint-disable no-empty-blocks
 // solhint-disable no-unused-vars
-contract UntransferrableDummyERC20Token is
-    DummyERC20Token
-{
-    constructor (
+contract UntransferrableDummyERC20Token is DummyERC20Token {
+    constructor(
         string memory _name,
         string memory _symbol,
         uint256 _decimals,
         uint256 _totalSupply
-    )
-        public
-        DummyERC20Token(
-            _name,
-            _symbol,
-            _decimals,
-            _totalSupply
-        )
-    {}
+    ) public DummyERC20Token(_name, _symbol, _decimals, _totalSupply) {}
 
     /// @dev send `value` token to `to` from `from` on the condition it is approved by `from`
     /// @param _from The address of the sender
@@ -49,14 +38,7 @@ contract UntransferrableDummyERC20Token is
         address _from,
         address _to,
         uint256 _value
-    )
-        external
-        returns (bool)
-    {
-        require(
-            false,
-            "TRANSFER_DISABLED"
-        );
+    ) external returns (bool) {
+        require(false, "TRANSFER_DISABLED");
     }
 }
-

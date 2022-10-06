@@ -36,7 +36,6 @@ import "./MultiplexTransformERC20.sol";
 import "./MultiplexUniswapV2.sol";
 import "./MultiplexUniswapV3.sol";
 
-
 /// @dev This feature enables efficient batch and multi-hop trades
 ///      using different liquidity sources.
 contract MultiplexFeature is
@@ -55,7 +54,7 @@ contract MultiplexFeature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(2, 0, 0);
     /// @dev The highest bit of a uint256 value.
-    uint256 private constant HIGH_BIT = 2 ** 255;
+    uint256 private constant HIGH_BIT = 2**255;
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
@@ -74,12 +73,7 @@ contract MultiplexFeature is
         public
         FixinEIP712(zeroExAddress)
         MultiplexLiquidityProvider(sandbox)
-        MultiplexUniswapV2(
-            uniswapFactory,
-            sushiswapFactory,
-            uniswapPairInitCodeHash,
-            sushiswapPairInitCodeHash
-        )
+        MultiplexUniswapV2(uniswapFactory, sushiswapFactory, uniswapPairInitCodeHash, sushiswapPairInitCodeHash)
     {
         WETH = weth;
     }
@@ -87,10 +81,7 @@ contract MultiplexFeature is
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.multiplexBatchSellEthForToken.selector);
         _registerFeatureFunction(this.multiplexBatchSellTokenForEth.selector);
         _registerFeatureFunction(this.multiplexBatchSellTokenForToken.selector);
@@ -111,27 +102,23 @@ contract MultiplexFeature is
         IERC20TokenV06 outputToken,
         BatchSellSubcall[] memory calls,
         uint256 minBuyAmount
-    )
-        public
-        override
-        payable
-        returns (uint256 boughtAmount)
-    {
+    ) public payable override returns (uint256 boughtAmount) {
         // Wrap ETH.
         WETH.deposit{value: msg.value}();
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
-        return _multiplexBatchSell(
-            BatchSellParams({
-                inputToken: WETH,
-                outputToken: outputToken,
-                sellAmount: msg.value,
-                calls: calls,
-                useSelfBalance: true,
-                recipient: msg.sender
-            }),
-            minBuyAmount
-        );
+        return
+            _multiplexBatchSell(
+                BatchSellParams({
+                    inputToken: WETH,
+                    outputToken: outputToken,
+                    sellAmount: msg.value,
+                    calls: calls,
+                    useSelfBalance: true,
+                    recipient: msg.sender
+                }),
+                minBuyAmount
+            );
     }
 
     /// @dev Sells `sellAmount` of the given `inputToken` for ETH
@@ -147,11 +134,7 @@ contract MultiplexFeature is
         BatchSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
-    )
-        public
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) public override returns (uint256 boughtAmount) {
         // The outputToken is implicitly WETH. The `recipient`
         // of the WETH is set to  this contract, since we
         // must unwrap the WETH and transfer the resulting ETH.
@@ -187,22 +170,19 @@ contract MultiplexFeature is
         BatchSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
-    )
-        public
-        override
-        returns (uint256 boughtAmount)
-    {
-        return _multiplexBatchSell(
-            BatchSellParams({
-                inputToken: inputToken,
-                outputToken: outputToken,
-                sellAmount: sellAmount,
-                calls: calls,
-                useSelfBalance: false,
-                recipient: msg.sender
-            }),
-            minBuyAmount
-        );
+    ) public override returns (uint256 boughtAmount) {
+        return
+            _multiplexBatchSell(
+                BatchSellParams({
+                    inputToken: inputToken,
+                    outputToken: outputToken,
+                    sellAmount: sellAmount,
+                    calls: calls,
+                    useSelfBalance: false,
+                    recipient: msg.sender
+                }),
+                minBuyAmount
+            );
     }
 
     /// @dev Executes a batch sell and checks that at least
@@ -211,10 +191,7 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of `outputToken` that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
-    function _multiplexBatchSell(
-        BatchSellParams memory params,
-        uint256 minBuyAmount
-    )
+    function _multiplexBatchSell(BatchSellParams memory params, uint256 minBuyAmount)
         private
         returns (uint256 boughtAmount)
     {
@@ -223,16 +200,12 @@ contract MultiplexFeature is
         // Execute the batch sell.
         BatchSellState memory state = _executeBatchSell(params);
         // Compute the change in balance of the output token.
-        uint256 balanceDelta = params.outputToken.balanceOf(params.recipient)
-            .safeSub(balanceBefore);
+        uint256 balanceDelta = params.outputToken.balanceOf(params.recipient).safeSub(balanceBefore);
         // Use the minimum of the balanceDelta and the returned bought
         // amount in case of weird tokens and whatnot.
         boughtAmount = LibSafeMathV06.min256(balanceDelta, state.boughtAmount);
         // Enforce `minBuyAmount`.
-        require(
-            boughtAmount >= minBuyAmount,
-            "MultiplexFeature::_multiplexBatchSell/UNDERBOUGHT"
-        );
+        require(boughtAmount >= minBuyAmount, "MultiplexFeature::_multiplexBatchSell/UNDERBOUGHT");
     }
 
     /// @dev Sells attached ETH via the given sequence of tokens
@@ -250,31 +223,24 @@ contract MultiplexFeature is
         address[] memory tokens,
         MultiHopSellSubcall[] memory calls,
         uint256 minBuyAmount
-    )
-        public
-        override
-        payable
-        returns (uint256 boughtAmount)
-    {
+    ) public payable override returns (uint256 boughtAmount) {
         // First token must be WETH.
-        require(
-            tokens[0] == address(WETH),
-            "MultiplexFeature::multiplexMultiHopSellEthForToken/NOT_WETH"
-        );
+        require(tokens[0] == address(WETH), "MultiplexFeature::multiplexMultiHopSellEthForToken/NOT_WETH");
         // Wrap ETH.
         WETH.deposit{value: msg.value}();
         // WETH is now held by this contract,
         // so `useSelfBalance` is true.
-        return _multiplexMultiHopSell(
-            MultiHopSellParams({
-                tokens: tokens,
-                sellAmount: msg.value,
-                calls: calls,
-                useSelfBalance: true,
-                recipient: msg.sender
-            }),
-            minBuyAmount
-        );
+        return
+            _multiplexMultiHopSell(
+                MultiHopSellParams({
+                    tokens: tokens,
+                    sellAmount: msg.value,
+                    calls: calls,
+                    useSelfBalance: true,
+                    recipient: msg.sender
+                }),
+                minBuyAmount
+            );
     }
 
     /// @dev Sells `sellAmount` of the input token (`tokens[0]`)
@@ -293,11 +259,7 @@ contract MultiplexFeature is
         MultiHopSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
-    )
-        public
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) public override returns (uint256 boughtAmount) {
         // Last token must be WETH.
         require(
             tokens[tokens.length - 1] == address(WETH),
@@ -338,21 +300,18 @@ contract MultiplexFeature is
         MultiHopSellSubcall[] memory calls,
         uint256 sellAmount,
         uint256 minBuyAmount
-    )
-        public
-        override
-        returns (uint256 boughtAmount)
-    {
-        return _multiplexMultiHopSell(
-            MultiHopSellParams({
-                tokens: tokens,
-                sellAmount: sellAmount,
-                calls: calls,
-                useSelfBalance: false,
-                recipient: msg.sender
-            }),
-            minBuyAmount
-        );
+    ) public override returns (uint256 boughtAmount) {
+        return
+            _multiplexMultiHopSell(
+                MultiHopSellParams({
+                    tokens: tokens,
+                    sellAmount: sellAmount,
+                    calls: calls,
+                    useSelfBalance: false,
+                    recipient: msg.sender
+                }),
+                minBuyAmount
+            );
     }
 
     /// @dev Executes a multi-hop sell and checks that at least
@@ -361,10 +320,7 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
-    function _multiplexMultiHopSell(
-        MultiHopSellParams memory params,
-        uint256 minBuyAmount
-    )
+    function _multiplexMultiHopSell(MultiHopSellParams memory params, uint256 minBuyAmount)
         private
         returns (uint256 boughtAmount)
     {
@@ -376,24 +332,18 @@ contract MultiplexFeature is
             "MultiplexFeature::_multiplexMultiHopSell/MISMATCHED_ARRAY_LENGTHS"
         );
         // The output token is the last token in the path.
-        IERC20TokenV06 outputToken = IERC20TokenV06(
-            params.tokens[params.tokens.length - 1]
-        );
+        IERC20TokenV06 outputToken = IERC20TokenV06(params.tokens[params.tokens.length - 1]);
         // Cache the recipient's balance of the output token.
         uint256 balanceBefore = outputToken.balanceOf(params.recipient);
         // Execute the multi-hop sell.
         MultiHopSellState memory state = _executeMultiHopSell(params);
         // Compute the change in balance of the output token.
-        uint256 balanceDelta = outputToken.balanceOf(params.recipient)
-            .safeSub(balanceBefore);
+        uint256 balanceDelta = outputToken.balanceOf(params.recipient).safeSub(balanceBefore);
         // Use the minimum of the balanceDelta and the returned bought
         // amount in case of weird tokens and whatnot.
         boughtAmount = LibSafeMathV06.min256(balanceDelta, state.outputTokenAmount);
         // Enforce `minBuyAmount`.
-        require(
-            boughtAmount >= minBuyAmount,
-            "MultiplexFeature::_multiplexMultiHopSell/UNDERBOUGHT"
-        );
+        require(boughtAmount >= minBuyAmount, "MultiplexFeature::_multiplexMultiHopSell/UNDERBOUGHT");
     }
 
     /// @dev Iterates through the constituent calls of a batch
@@ -402,87 +352,41 @@ contract MultiplexFeature is
     /// @param params Batch sell parameters.
     /// @return state A struct containing the amounts of `inputToken`
     ///         sold and `outputToken` bought.
-    function _executeBatchSell(BatchSellParams memory params)
-        private
-        returns (BatchSellState memory state)
-    {
+    function _executeBatchSell(BatchSellParams memory params) private returns (BatchSellState memory state) {
         // Iterate through the calls and execute each one
         // until the full amount has been sold.
         for (uint256 i = 0; i != params.calls.length; i++) {
             // Check if we've hit our target.
-            if (state.soldAmount >= params.sellAmount) { break; }
+            if (state.soldAmount >= params.sellAmount) {
+                break;
+            }
             BatchSellSubcall memory subcall = params.calls[i];
             // Compute the input token amount.
-            uint256 inputTokenAmount = _normalizeSellAmount(
-                subcall.sellAmount,
-                params.sellAmount,
-                state.soldAmount
-            );
+            uint256 inputTokenAmount = _normalizeSellAmount(subcall.sellAmount, params.sellAmount, state.soldAmount);
             if (subcall.id == MultiplexSubcall.RFQ) {
-                _batchSellRfqOrder(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellRfqOrder(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.OTC) {
-                _batchSellOtcOrder(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellOtcOrder(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.UniswapV2) {
-                _batchSellUniswapV2(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellUniswapV2(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.UniswapV3) {
-                _batchSellUniswapV3(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellUniswapV3(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.LiquidityProvider) {
-                _batchSellLiquidityProvider(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellLiquidityProvider(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.TransformERC20) {
-                _batchSellTransformERC20(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _batchSellTransformERC20(state, params, subcall.data, inputTokenAmount);
             } else if (subcall.id == MultiplexSubcall.MultiHopSell) {
-                _nestedMultiHopSell(
-                    state,
-                    params,
-                    subcall.data,
-                    inputTokenAmount
-                );
+                _nestedMultiHopSell(state, params, subcall.data, inputTokenAmount);
             } else {
                 revert("MultiplexFeature::_executeBatchSell/INVALID_SUBCALL");
             }
         }
-        require(
-            state.soldAmount == params.sellAmount,
-            "MultiplexFeature::_executeBatchSell/INCORRECT_AMOUNT_SOLD"
-        );
+        require(state.soldAmount == params.sellAmount, "MultiplexFeature::_executeBatchSell/INCORRECT_AMOUNT_SOLD");
     }
 
     // This function executes a sequence of fills "hopping" through the
     // path of tokens given by `params.tokens`.
-    function _executeMultiHopSell(MultiHopSellParams memory params)
-        private
-        returns (MultiHopSellState memory state)
-    {
+    function _executeMultiHopSell(MultiHopSellParams memory params) private returns (MultiHopSellState memory state) {
         // This variable is used for the input and output amounts of
         // each hop. After the final hop, this will contain the output
         // amount of the multi-hop fill.
@@ -495,21 +399,12 @@ contract MultiplexFeature is
         // If the input tokens are currently held by `msg.sender` but
         // the first hop expects them elsewhere, perform a `transferFrom`.
         if (!params.useSelfBalance && state.from != msg.sender) {
-            _transferERC20TokensFrom(
-                IERC20TokenV06(params.tokens[0]),
-                msg.sender,
-                state.from,
-                params.sellAmount
-            );
+            _transferERC20TokensFrom(IERC20TokenV06(params.tokens[0]), msg.sender, state.from, params.sellAmount);
         }
         // If the input tokens are currently held by `address(this)` but
         // the first hop expects them elsewhere, perform a `transfer`.
         if (params.useSelfBalance && state.from != address(this)) {
-            _transferERC20Tokens(
-                IERC20TokenV06(params.tokens[0]),
-                state.from,
-                params.sellAmount
-            );
+            _transferERC20Tokens(IERC20TokenV06(params.tokens[0]), state.from, params.sellAmount);
         }
         // Iterate through the calls and execute each one.
         for (state.hopIndex = 0; state.hopIndex != params.calls.length; state.hopIndex++) {
@@ -519,25 +414,13 @@ contract MultiplexFeature is
             state.to = _computeHopTarget(params, state.hopIndex + 1);
 
             if (subcall.id == MultiplexSubcall.UniswapV2) {
-                _multiHopSellUniswapV2(
-                    state,
-                    params,
-                    subcall.data
-                );
+                _multiHopSellUniswapV2(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.UniswapV3) {
                 _multiHopSellUniswapV3(state, subcall.data);
             } else if (subcall.id == MultiplexSubcall.LiquidityProvider) {
-                _multiHopSellLiquidityProvider(
-                    state,
-                    params,
-                    subcall.data
-                );
+                _multiHopSellLiquidityProvider(state, params, subcall.data);
             } else if (subcall.id == MultiplexSubcall.BatchSell) {
-                _nestedBatchSell(
-                    state,
-                    params,
-                    subcall.data
-                );
+                _nestedBatchSell(state, params, subcall.data);
             } else {
                 revert("MultiplexFeature::_executeMultiHopSell/INVALID_SUBCALL");
             }
@@ -552,19 +435,11 @@ contract MultiplexFeature is
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory data,
         uint256 sellAmount
-    )
-        private
-    {
+    ) private {
         MultiHopSellParams memory multiHopParams;
         // Decode the tokens and calls for the nested
         // multi-hop sell.
-        (
-            multiHopParams.tokens,
-            multiHopParams.calls
-        ) = abi.decode(
-            data,
-            (address[], MultiHopSellSubcall[])
-        );
+        (multiHopParams.tokens, multiHopParams.calls) = abi.decode(data, (address[], MultiHopSellSubcall[]));
         multiHopParams.sellAmount = sellAmount;
         // If the batch sell is using input tokens held by
         // `address(this)`, then so should the nested
@@ -574,8 +449,7 @@ contract MultiplexFeature is
         // equal to the recipient of its containing batch sell.
         multiHopParams.recipient = params.recipient;
         // Execute the nested multi-hop sell.
-        uint256 outputTokenAmount =
-            _executeMultiHopSell(multiHopParams).outputTokenAmount;
+        uint256 outputTokenAmount = _executeMultiHopSell(multiHopParams).outputTokenAmount;
         // Increment the sold and bought amounts.
         state.soldAmount = state.soldAmount.safeAdd(sellAmount);
         state.boughtAmount = state.boughtAmount.safeAdd(outputTokenAmount);
@@ -585,24 +459,15 @@ contract MultiplexFeature is
         IMultiplexFeature.MultiHopSellState memory state,
         IMultiplexFeature.MultiHopSellParams memory params,
         bytes memory data
-    )
-        private
-    {
+    ) private {
         BatchSellParams memory batchSellParams;
         // Decode the calls for the nested batch sell.
-        batchSellParams.calls = abi.decode(
-            data,
-            (BatchSellSubcall[])
-        );
+        batchSellParams.calls = abi.decode(data, (BatchSellSubcall[]));
         // The input and output tokens of the batch
         // sell are the current and next tokens in
         // `params.tokens`, respectively.
-        batchSellParams.inputToken = IERC20TokenV06(
-            params.tokens[state.hopIndex]
-        );
-        batchSellParams.outputToken = IERC20TokenV06(
-            params.tokens[state.hopIndex + 1]
-        );
+        batchSellParams.inputToken = IERC20TokenV06(params.tokens[state.hopIndex]);
+        batchSellParams.outputToken = IERC20TokenV06(params.tokens[state.hopIndex + 1]);
         // The `sellAmount` for the batch sell is the
         // `outputTokenAmount` from the previous hop.
         batchSellParams.sellAmount = state.outputTokenAmount;
@@ -618,8 +483,7 @@ contract MultiplexFeature is
         // batch sell.
         batchSellParams.recipient = state.to;
         // Execute the nested batch sell.
-        state.outputTokenAmount =
-            _executeBatchSell(batchSellParams).boughtAmount;
+        state.outputTokenAmount = _executeBatchSell(batchSellParams).boughtAmount;
     }
 
     // This function computes the "target" address of hop index `i` within
@@ -627,14 +491,7 @@ contract MultiplexFeature is
     // If `i == 0`, the target is the address which should hold the input
     // tokens prior to executing `calls[0]`. Otherwise, it is the address
     // that should receive `tokens[i]` upon executing `calls[i-1]`.
-    function _computeHopTarget(
-        MultiHopSellParams memory params,
-        uint256 i
-    )
-        private
-        view
-        returns (address target)
-    {
+    function _computeHopTarget(MultiHopSellParams memory params, uint256 i) private view returns (address target) {
         if (i == params.calls.length) {
             // The last call should send the output tokens to the
             // multi-hop sell recipient.
@@ -645,28 +502,15 @@ contract MultiplexFeature is
                 // UniswapV2 (and Sushiswap) allow tokens to be
                 // transferred into the pair contract before `swap`
                 // is called, so we compute the pair contract's address.
-                (address[] memory tokens, bool isSushi) = abi.decode(
-                    subcall.data,
-                    (address[], bool)
-                );
-                target = _computeUniswapPairAddress(
-                    tokens[0],
-                    tokens[1],
-                    isSushi
-                );
+                (address[] memory tokens, bool isSushi) = abi.decode(subcall.data, (address[], bool));
+                target = _computeUniswapPairAddress(tokens[0], tokens[1], isSushi);
             } else if (subcall.id == MultiplexSubcall.LiquidityProvider) {
                 // Similar to UniswapV2, LiquidityProvider contracts
                 // allow tokens to be transferred in before the swap
                 // is executed, so we the target is the address encoded
                 // in the subcall data.
-                (target,) = abi.decode(
-                    subcall.data,
-                    (address, bytes)
-                );
-            } else if (
-                subcall.id == MultiplexSubcall.UniswapV3 ||
-                subcall.id == MultiplexSubcall.BatchSell
-            ) {
+                (target, ) = abi.decode(subcall.data, (address, bytes));
+            } else if (subcall.id == MultiplexSubcall.UniswapV3 || subcall.id == MultiplexSubcall.BatchSell) {
                 // UniswapV3 uses a callback to pull in the tokens being
                 // sold to it. The callback implemented in `UniswapV3Feature`
                 // can either:
@@ -696,10 +540,7 @@ contract MultiplexFeature is
                 revert("MultiplexFeature::_computeHopTarget/INVALID_SUBCALL");
             }
         }
-        require(
-            target != address(0),
-            "MultiplexFeature::_computeHopTarget/TARGET_IS_NULL"
-        );
+        require(target != address(0), "MultiplexFeature::_computeHopTarget/TARGET_IS_NULL");
     }
 
     // If `rawAmount` encodes a proportion of `totalSellAmount`, this function
@@ -709,25 +550,17 @@ contract MultiplexFeature is
         uint256 rawAmount,
         uint256 totalSellAmount,
         uint256 soldAmount
-    )
-        private
-        pure
-        returns (uint256 normalized)
-    {
+    ) private pure returns (uint256 normalized) {
         if ((rawAmount & HIGH_BIT) == HIGH_BIT) {
             // If the high bit of `rawAmount` is set then the lower 255 bits
             // specify a fraction of `totalSellAmount`.
-            return LibSafeMathV06.min256(
-                totalSellAmount
-                    * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)
-                    / 1e18,
-                totalSellAmount.safeSub(soldAmount)
-            );
+            return
+                LibSafeMathV06.min256(
+                    (totalSellAmount * LibSafeMathV06.min256(rawAmount & LOWER_255_BITS, 1e18)) / 1e18,
+                    totalSellAmount.safeSub(soldAmount)
+                );
         } else {
-            return LibSafeMathV06.min256(
-                rawAmount,
-                totalSellAmount.safeSub(soldAmount)
-            );
+            return LibSafeMathV06.min256(rawAmount, totalSellAmount.safeSub(soldAmount));
         }
     }
 }

@@ -21,5 +21,10 @@ pragma solidity ^0.6.5;
 
 interface IStaking {
     function joinStakingPoolAsMaker(bytes32) external;
-    function payProtocolFee(address, address, uint256) external payable;
+
+    function payProtocolFee(
+        address,
+        address,
+        uint256
+    ) external payable;
 }

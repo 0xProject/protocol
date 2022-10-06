@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 /// @dev VIP uniswap fill functions.
 interface IUniswapFeature {
-
     /// @dev Efficiently sell directly to uniswap/sushiswap.
     /// @param tokens Sell path.
     /// @param sellAmount of `tokens[0]` Amount to sell.
@@ -37,8 +35,5 @@ interface IUniswapFeature {
         uint256 sellAmount,
         uint256 minBuyAmount,
         bool isSushi
-    )
-        external
-        payable
-        returns (uint256 buyAmount);
+    ) external payable returns (uint256 buyAmount);
 }

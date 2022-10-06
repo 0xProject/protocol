@@ -20,18 +20,14 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 contract TestFeeRecipient {
-    bytes4 constant private SUCCESS = this.receiveZeroExFeeCallback.selector;
-    bytes4 constant private FAILURE = 0xdeadbeef;
+    bytes4 private constant SUCCESS = this.receiveZeroExFeeCallback.selector;
+    bytes4 private constant FAILURE = 0xdeadbeef;
 
-    uint256 constant private TRIGGER_REVERT = 333;
-    uint256 constant private TRIGGER_FAILURE = 666;
+    uint256 private constant TRIGGER_REVERT = 333;
+    uint256 private constant TRIGGER_FAILURE = 666;
 
-    event FeeReceived(
-        address tokenAddress,
-        uint256 amount
-    );
+    event FeeReceived(address tokenAddress, uint256 amount);
 
     receive() external payable {}
 
@@ -39,10 +35,7 @@ contract TestFeeRecipient {
         address tokenAddress,
         uint256 amount,
         bytes calldata /* feeData */
-    )
-        external
-        returns (bytes4 success)
-    {
+    ) external returns (bytes4 success) {
         emit FeeReceived(tokenAddress, amount);
         if (amount == TRIGGER_REVERT) {
             revert("TestFeeRecipient::receiveZeroExFeeCallback/REVERT");

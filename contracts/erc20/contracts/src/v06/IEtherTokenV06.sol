@@ -21,10 +21,7 @@ pragma solidity ^0.6.5;
 
 import "./IERC20TokenV06.sol";
 
-
-interface IEtherTokenV06 is
-    IERC20TokenV06
-{
+interface IEtherTokenV06 is IERC20TokenV06 {
     /// @dev Wrap ether.
     function deposit() external payable;
 

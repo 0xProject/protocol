@@ -24,9 +24,7 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../../../vendor/ILiquidityProvider.sol";
 
-
 contract MixinZeroExBridge {
-
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
 
@@ -35,17 +33,10 @@ contract MixinZeroExBridge {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
-        (ILiquidityProvider provider, bytes memory lpData) =
-            abi.decode(bridgeData, (ILiquidityProvider, bytes));
+    ) internal returns (uint256 boughtAmount) {
+        (ILiquidityProvider provider, bytes memory lpData) = abi.decode(bridgeData, (ILiquidityProvider, bytes));
         // Trade the good old fashioned way
-        sellToken.compatTransfer(
-            address(provider),
-            sellAmount
-        );
+        sellToken.compatTransfer(address(provider), sellAmount);
         boughtAmount = provider.sellTokenForToken(
             sellToken,
             buyToken,

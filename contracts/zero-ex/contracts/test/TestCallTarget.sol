@@ -20,15 +20,8 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 contract TestCallTarget {
-
-    event CallTargetCalled(
-        address context,
-        address sender,
-        bytes data,
-        uint256 value
-    );
+    event CallTargetCalled(address context, address sender, bytes data, uint256 value);
 
     bytes4 private constant MAGIC_BYTES = 0x12345678;
     bytes private constant REVERTING_DATA = hex"1337";
@@ -37,12 +30,7 @@ contract TestCallTarget {
         if (keccak256(msg.data) == keccak256(REVERTING_DATA)) {
             revert("TestCallTarget/REVERT");
         }
-        emit CallTargetCalled(
-            address(this),
-            msg.sender,
-            msg.data,
-            msg.value
-        );
+        emit CallTargetCalled(address(this), msg.sender, msg.data, msg.value);
         bytes4 rval = MAGIC_BYTES;
         assembly {
             mstore(0, rval)

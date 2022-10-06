@@ -25,17 +25,15 @@ import "@0x/contracts-utils/contracts/src/v06/errors/LibOwnableRichErrorsV06.sol
 import "../errors/LibWalletRichErrors.sol";
 import "./IFlashWallet.sol";
 
-
 /// @dev A contract that can execute arbitrary calls from its owner.
-contract FlashWallet is
-    IFlashWallet
-{
+contract FlashWallet is IFlashWallet {
     // solhint-disable no-unused-vars,indent,no-empty-blocks
     using LibRichErrorsV06 for bytes;
 
     // solhint-disable
     /// @dev Store the owner/deployer as an immutable to make this contract stateless.
-    address public override immutable owner;
+    address public immutable override owner;
+
     // solhint-enable
 
     constructor() public {
@@ -46,10 +44,7 @@ contract FlashWallet is
     /// @dev Allows only the (immutable) owner to call a function.
     modifier onlyOwner() virtual {
         if (msg.sender != owner) {
-            LibOwnableRichErrorsV06.OnlyOwnerError(
-                msg.sender,
-                owner
-            ).rrevert();
+            LibOwnableRichErrorsV06.OnlyOwnerError(msg.sender, owner).rrevert();
         }
         _;
     }
@@ -63,24 +58,12 @@ contract FlashWallet is
         address payable target,
         bytes calldata callData,
         uint256 value
-    )
-        external
-        payable
-        override
-        onlyOwner
-        returns (bytes memory resultData)
-    {
+    ) external payable override onlyOwner returns (bytes memory resultData) {
         bool success;
         (success, resultData) = target.call{value: value}(callData);
         if (!success) {
             LibWalletRichErrors
-                .WalletExecuteCallFailedError(
-                    address(this),
-                    target,
-                    callData,
-                    value,
-                    resultData
-                )
+                .WalletExecuteCallFailedError(address(this), target, callData, value, resultData)
                 .rrevert();
         }
     }
@@ -90,10 +73,7 @@ contract FlashWallet is
     /// @param target The call target.
     /// @param callData The call data.
     /// @return resultData The data returned by the call.
-    function executeDelegateCall(
-        address payable target,
-        bytes calldata callData
-    )
+    function executeDelegateCall(address payable target, bytes calldata callData)
         external
         payable
         override
@@ -104,32 +84,25 @@ contract FlashWallet is
         (success, resultData) = target.delegatecall(callData);
         if (!success) {
             LibWalletRichErrors
-                .WalletExecuteDelegateCallFailedError(
-                    address(this),
-                    target,
-                    callData,
-                    resultData
-                )
+                .WalletExecuteDelegateCallFailedError(address(this), target, callData, resultData)
                 .rrevert();
         }
     }
 
     // solhint-disable
     /// @dev Allows this contract to receive ether.
-    receive() external override payable {}
+    receive() external payable override {}
+
     // solhint-enable
 
     /// @dev Signal support for receiving ERC1155 tokens.
     /// @param interfaceID The interface ID, as per ERC-165 rules.
     /// @return hasSupport `true` if this contract supports an ERC-165 interface.
-    function supportsInterface(bytes4 interfaceID)
-        external
-        pure
-        returns (bool hasSupport)
-    {
-        return  interfaceID == this.supportsInterface.selector ||
-                interfaceID == this.onERC1155Received.selector ^ this.onERC1155BatchReceived.selector ||
-                interfaceID == this.tokenFallback.selector;
+    function supportsInterface(bytes4 interfaceID) external pure returns (bool hasSupport) {
+        return
+            interfaceID == this.supportsInterface.selector ||
+            interfaceID == this.onERC1155Received.selector ^ this.onERC1155BatchReceived.selector ||
+            interfaceID == this.tokenFallback.selector;
     }
 
     ///  @dev Allow this contract to receive ERC1155 tokens.
@@ -140,11 +113,7 @@ contract FlashWallet is
         uint256, // id,
         uint256, // value,
         bytes calldata //data
-    )
-        external
-        pure
-        returns (bytes4 success)
-    {
+    ) external pure returns (bytes4 success) {
         return this.onERC1155Received.selector;
     }
 
@@ -156,11 +125,7 @@ contract FlashWallet is
         uint256[] calldata, // ids,
         uint256[] calldata, // values,
         bytes calldata // data
-    )
-        external
-        pure
-        returns (bytes4 success)
-    {
+    ) external pure returns (bytes4 success) {
         return this.onERC1155BatchReceived.selector;
     }
 
@@ -169,8 +134,5 @@ contract FlashWallet is
         address, // from,
         uint256, // value,
         bytes calldata // value
-    )
-        external
-        pure
-    {}
+    ) external pure {}
 }

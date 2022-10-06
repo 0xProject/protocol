@@ -5,9 +5,7 @@ pragma experimental ABIEncoderV2;
 import "../src/features/NativeOrdersFeature.sol";
 import "./TestFeeCollectorController.sol";
 
-contract TestNativeOrdersFeature is
-    NativeOrdersFeature
-{
+contract TestNativeOrdersFeature is NativeOrdersFeature {
     constructor(
         address zeroExAddress,
         IEtherTokenV06 weth,

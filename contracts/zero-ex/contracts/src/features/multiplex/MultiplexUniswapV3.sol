@@ -26,10 +26,7 @@ import "../../fixins/FixinTokenSpender.sol";
 import "../interfaces/IMultiplexFeature.sol";
 import "../interfaces/IUniswapV3Feature.sol";
 
-
-abstract contract MultiplexUniswapV3 is
-    FixinTokenSpender
-{
+abstract contract MultiplexUniswapV3 is FixinTokenSpender {
     using LibSafeMathV06 for uint256;
 
     function _batchSellUniswapV3(
@@ -37,9 +34,7 @@ abstract contract MultiplexUniswapV3 is
         IMultiplexFeature.BatchSellParams memory params,
         bytes memory wrappedCallData,
         uint256 sellAmount
-    )
-        internal
-    {
+    ) internal {
         bool success;
         bytes memory resultData;
         if (params.useSelfBalance) {
@@ -78,10 +73,7 @@ abstract contract MultiplexUniswapV3 is
         }
     }
 
-    function _multiHopSellUniswapV3(
-        IMultiplexFeature.MultiHopSellState memory state,
-        bytes memory wrappedCallData
-    )
+    function _multiHopSellUniswapV3(IMultiplexFeature.MultiHopSellState memory state, bytes memory wrappedCallData)
         internal
     {
         bool success;

@@ -22,10 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 /// @dev VIP PancakeSwap (and forks) fill functions.
 interface IPancakeSwapFeature {
-
     enum ProtocolFork {
         PancakeSwap,
         PancakeSwapV2,
@@ -48,8 +46,5 @@ interface IPancakeSwapFeature {
         uint256 sellAmount,
         uint256 minBuyAmount,
         ProtocolFork fork
-    )
-        external
-        payable
-        returns (uint256 buyAmount);
+    ) external payable returns (uint256 buyAmount);
 }

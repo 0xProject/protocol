@@ -20,9 +20,7 @@ pragma solidity ^0.5.5;
 
 import "../src/LibAddressArray.sol";
 
-
 contract TestLibAddressArray {
-
     using LibAddressArray for address[];
 
     /// @dev Append a new address to an array of addresses.
@@ -83,11 +81,7 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return True if the addressArray contains the target.
-    function publicContains(address[] memory addressArray, address target)
-        public
-        pure
-        returns (bool success)
-    {
+    function publicContains(address[] memory addressArray, address target) public pure returns (bool success) {
         return addressArray.contains(target);
     }
 
@@ -102,5 +96,4 @@ contract TestLibAddressArray {
     {
         (success, index) = addressArray.indexOf(target);
     }
-
 }

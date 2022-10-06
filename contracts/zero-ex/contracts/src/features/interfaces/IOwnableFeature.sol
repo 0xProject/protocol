@@ -22,12 +22,9 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/interfaces/IOwnableV06.sol";
 
-
 // solhint-disable no-empty-blocks
 /// @dev Owner management and migration features.
-interface IOwnableFeature is
-    IOwnableV06
-{
+interface IOwnableFeature is IOwnableV06 {
     /// @dev Emitted when `migrate()` is called.
     /// @param caller The caller of `migrate()`.
     /// @param migrator The migration contract.
@@ -42,5 +39,9 @@ interface IOwnableFeature is
     /// @param target The migrator contract address.
     /// @param newOwner The address of the new owner.
     /// @param data The call data.
-    function migrate(address target, bytes calldata data, address newOwner) external;
+    function migrate(
+        address target,
+        bytes calldata data,
+        address newOwner
+    ) external;
 }

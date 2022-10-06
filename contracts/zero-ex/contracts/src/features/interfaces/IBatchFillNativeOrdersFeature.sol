@@ -23,10 +23,8 @@ pragma experimental ABIEncoderV2;
 import "../libs/LibNativeOrder.sol";
 import "../libs/LibSignature.sol";
 
-
 /// @dev Feature for batch/market filling limit and RFQ orders.
 interface IBatchFillNativeOrdersFeature {
-
     /// @dev Fills multiple limit orders.
     /// @param orders Array of limit orders.
     /// @param signatures Array of signatures corresponding to each order.
@@ -40,13 +38,7 @@ interface IBatchFillNativeOrdersFeature {
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata takerTokenFillAmounts,
         bool revertIfIncomplete
-    )
-        external
-        payable
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+    ) external payable returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 
     /// @dev Fills multiple RFQ orders.
     /// @param orders Array of RFQ orders.
@@ -61,10 +53,5 @@ interface IBatchFillNativeOrdersFeature {
         LibSignature.Signature[] calldata signatures,
         uint128[] calldata takerTokenFillAmounts,
         bool revertIfIncomplete
-    )
-        external
-        returns (
-            uint128[] memory takerTokenFilledAmounts,
-            uint128[] memory makerTokenFilledAmounts
-        );
+    ) external returns (uint128[] memory takerTokenFilledAmounts, uint128[] memory makerTokenFilledAmounts);
 }

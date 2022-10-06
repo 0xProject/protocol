@@ -20,16 +20,10 @@ pragma solidity ^0.5.9;
 
 import "../src/LibAddress.sol";
 
-
 contract TestLibAddress {
-
     using LibAddress for address;
 
-    function externalIsContract(address account)
-        external
-        view
-        returns (bool)
-    {
+    function externalIsContract(address account) external view returns (bool) {
         return account.isContract();
     }
 }

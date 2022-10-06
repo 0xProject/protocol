@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 interface IERC20Bridge {
-
     /// @dev Emitted when a trade occurs.
     /// @param inputToken The token the bridge is converting from.
     /// @param outputToken The token the bridge is converting to.
@@ -50,7 +49,5 @@ interface IERC20Bridge {
         address to,
         uint256 amount,
         bytes calldata bridgeData
-    )
-        external
-        returns (bytes4 success);
+    ) external returns (bytes4 success);
 }

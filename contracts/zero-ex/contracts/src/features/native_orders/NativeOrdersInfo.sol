@@ -29,12 +29,8 @@ import "../../storage/LibNativeOrdersStorage.sol";
 import "../libs/LibSignature.sol";
 import "../libs/LibNativeOrder.sol";
 
-
 /// @dev Feature for getting info about limit and RFQ orders.
-abstract contract NativeOrdersInfo is
-    FixinEIP712,
-    FixinTokenSpender
-{
+abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -50,12 +46,7 @@ abstract contract NativeOrdersInfo is
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 
-    constructor(
-        address zeroExAddress
-    )
-        internal
-        FixinEIP712(zeroExAddress)
-    {
+    constructor(address zeroExAddress) internal FixinEIP712(zeroExAddress) {
         // solhint-disable no-empty-blocks
     }
 
@@ -69,18 +60,12 @@ abstract contract NativeOrdersInfo is
     {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getLimitOrderHash(order);
-        uint256 minValidSalt = LibNativeOrdersStorage.getStorage()
-            .limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-                [order.maker]
-                [address(order.makerToken)]
-                [address(order.takerToken)];
-        _populateCommonOrderInfoFields(
-            orderInfo,
-            order.takerAmount,
-            order.expiry,
-            order.salt,
-            minValidSalt
-        );
+        uint256 minValidSalt = LibNativeOrdersStorage
+            .getStorage()
+            .limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt[order.maker][address(order.makerToken)][
+                address(order.takerToken)
+            ];
+        _populateCommonOrderInfoFields(orderInfo, order.takerAmount, order.expiry, order.salt, minValidSalt);
     }
 
     /// @dev Get the order info for an RFQ order.
@@ -93,18 +78,12 @@ abstract contract NativeOrdersInfo is
     {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getRfqOrderHash(order);
-        uint256 minValidSalt = LibNativeOrdersStorage.getStorage()
-            .rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt
-                [order.maker]
-                [address(order.makerToken)]
-                [address(order.takerToken)];
-        _populateCommonOrderInfoFields(
-            orderInfo,
-            order.takerAmount,
-            order.expiry,
-            order.salt,
-            minValidSalt
-        );
+        uint256 minValidSalt = LibNativeOrdersStorage
+            .getStorage()
+            .rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt[order.maker][address(order.makerToken)][
+                address(order.takerToken)
+            ];
+        _populateCommonOrderInfoFields(orderInfo, order.takerAmount, order.expiry, order.salt, minValidSalt);
 
         // Check for missing txOrigin.
         if (order.txOrigin == address(0)) {
@@ -115,27 +94,15 @@ abstract contract NativeOrdersInfo is
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
     /// @return orderHash The order hash.
-    function getLimitOrderHash(LibNativeOrder.LimitOrder memory order)
-        public
-        view
-        returns (bytes32 orderHash)
-    {
-        return _getEIP712Hash(
-            LibNativeOrder.getLimitOrderStructHash(order)
-        );
+    function getLimitOrderHash(LibNativeOrder.LimitOrder memory order) public view returns (bytes32 orderHash) {
+        return _getEIP712Hash(LibNativeOrder.getLimitOrderStructHash(order));
     }
 
     /// @dev Get the canonical hash of an RFQ order.
     /// @param order The RFQ order.
     /// @return orderHash The order hash.
-    function getRfqOrderHash(LibNativeOrder.RfqOrder memory order)
-        public
-        view
-        returns (bytes32 orderHash)
-    {
-        return _getEIP712Hash(
-            LibNativeOrder.getRfqOrderStructHash(order)
-        );
+    function getRfqOrderHash(LibNativeOrder.RfqOrder memory order) public view returns (bytes32 orderHash) {
+        return _getEIP712Hash(LibNativeOrder.getRfqOrderStructHash(order));
     }
 
     /// @dev Get order info, fillable amount, and signature validity for a limit order.
@@ -169,9 +136,7 @@ abstract contract NativeOrdersInfo is
             })
         );
         address signerOfHash = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
-        isSignatureValid =
-            (order.maker == signerOfHash) ||
-            isValidOrderSigner(order.maker, signerOfHash);
+        isSignatureValid = (order.maker == signerOfHash) || isValidOrderSigner(order.maker, signerOfHash);
     }
 
     /// @dev Get order info, fillable amount, and signature validity for an RFQ order.
@@ -182,10 +147,7 @@ abstract contract NativeOrdersInfo is
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getRfqOrderRelevantState(
-        LibNativeOrder.RfqOrder memory order,
-        LibSignature.Signature memory signature
-    )
+    function getRfqOrderRelevantState(LibNativeOrder.RfqOrder memory order, LibSignature.Signature memory signature)
         public
         view
         returns (
@@ -205,9 +167,7 @@ abstract contract NativeOrdersInfo is
             })
         );
         address signerOfHash = LibSignature.getSignerOfHash(orderInfo.orderHash, signature);
-        isSignatureValid =
-            (order.maker == signerOfHash) ||
-            isValidOrderSigner(order.maker, signerOfHash);
+        isSignatureValid = (order.maker == signerOfHash) || isValidOrderSigner(order.maker, signerOfHash);
     }
 
     /// @dev Batch version of `getLimitOrderRelevantState()`, without reverting.
@@ -231,27 +191,20 @@ abstract contract NativeOrdersInfo is
             bool[] memory isSignatureValids
         )
     {
-        require(
-            orders.length == signatures.length,
-            "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS"
-        );
+        require(orders.length == signatures.length, "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS");
         orderInfos = new LibNativeOrder.OrderInfo[](orders.length);
         actualFillableTakerTokenAmounts = new uint128[](orders.length);
         isSignatureValids = new bool[](orders.length);
         for (uint256 i = 0; i < orders.length; ++i) {
-            try
-                this.getLimitOrderRelevantState(orders[i], signatures[i])
-                    returns (
-                        LibNativeOrder.OrderInfo memory orderInfo,
-                        uint128 actualFillableTakerTokenAmount,
-                        bool isSignatureValid
-                    )
-            {
+            try this.getLimitOrderRelevantState(orders[i], signatures[i]) returns (
+                LibNativeOrder.OrderInfo memory orderInfo,
+                uint128 actualFillableTakerTokenAmount,
+                bool isSignatureValid
+            ) {
                 orderInfos[i] = orderInfo;
                 actualFillableTakerTokenAmounts[i] = actualFillableTakerTokenAmount;
                 isSignatureValids[i] = isSignatureValid;
-            }
-            catch {}
+            } catch {}
         }
     }
 
@@ -276,27 +229,20 @@ abstract contract NativeOrdersInfo is
             bool[] memory isSignatureValids
         )
     {
-        require(
-            orders.length == signatures.length,
-            "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS"
-        );
+        require(orders.length == signatures.length, "NativeOrdersFeature/MISMATCHED_ARRAY_LENGTHS");
         orderInfos = new LibNativeOrder.OrderInfo[](orders.length);
         actualFillableTakerTokenAmounts = new uint128[](orders.length);
         isSignatureValids = new bool[](orders.length);
         for (uint256 i = 0; i < orders.length; ++i) {
-            try
-                this.getRfqOrderRelevantState(orders[i], signatures[i])
-                    returns (
-                        LibNativeOrder.OrderInfo memory orderInfo,
-                        uint128 actualFillableTakerTokenAmount,
-                        bool isSignatureValid
-                    )
-            {
+            try this.getRfqOrderRelevantState(orders[i], signatures[i]) returns (
+                LibNativeOrder.OrderInfo memory orderInfo,
+                uint128 actualFillableTakerTokenAmount,
+                bool isSignatureValid
+            ) {
                 orderInfos[i] = orderInfo;
                 actualFillableTakerTokenAmounts[i] = actualFillableTakerTokenAmount;
                 isSignatureValids[i] = isSignatureValid;
-            }
-            catch {}
+            } catch {}
         }
     }
 
@@ -314,19 +260,14 @@ abstract contract NativeOrdersInfo is
         uint64 expiry,
         uint256 salt,
         uint256 minValidSalt
-    )
-        private
-        view
-    {
-        LibNativeOrdersStorage.Storage storage stor =
-            LibNativeOrdersStorage.getStorage();
+    ) private view {
+        LibNativeOrdersStorage.Storage storage stor = LibNativeOrdersStorage.getStorage();
 
         // Get the filled and direct cancel state.
         {
             // The high bit of the raw taker token filled amount will be set
             // if the order was cancelled.
-            uint256 rawTakerTokenFilledAmount =
-                stor.orderHashToTakerTokenFilledAmount[orderInfo.orderHash];
+            uint256 rawTakerTokenFilledAmount = stor.orderHashToTakerTokenFilledAmount[orderInfo.orderHash];
             orderInfo.takerTokenFilledAmount = uint128(rawTakerTokenFilledAmount);
             if (orderInfo.takerTokenFilledAmount >= takerAmount) {
                 orderInfo.status = LibNativeOrder.OrderStatus.FILLED;
@@ -354,9 +295,7 @@ abstract contract NativeOrdersInfo is
 
     /// @dev Calculate the actual fillable taker token amount of an order
     ///      based on maker allowance and balances.
-    function _getActualFillableTakerTokenAmount(
-        GetActualFillableTakerTokenAmountParams memory params
-    )
+    function _getActualFillableTakerTokenAmount(GetActualFillableTakerTokenAmountParams memory params)
         private
         view
         returns (uint128 actualFillableTakerTokenAmount)
@@ -373,10 +312,7 @@ abstract contract NativeOrdersInfo is
         // Get the fillable maker amount based on the order quantities and
         // previously filled amount
         uint256 fillableMakerTokenAmount = LibMathV06.getPartialAmountFloor(
-            uint256(
-                params.orderTakerAmount
-                - params.orderInfo.takerTokenFilledAmount
-            ),
+            uint256(params.orderTakerAmount - params.orderInfo.takerTokenFilledAmount),
             uint256(params.orderTakerAmount),
             uint256(params.orderMakerAmount)
         );
@@ -387,28 +323,21 @@ abstract contract NativeOrdersInfo is
             _getSpendableERC20BalanceOf(params.makerToken, params.maker)
         );
         // Convert to taker token amount.
-        return LibMathV06.getPartialAmountCeil(
-            fillableMakerTokenAmount,
-            uint256(params.orderMakerAmount),
-            uint256(params.orderTakerAmount)
-        ).safeDowncastToUint128();
+        return
+            LibMathV06
+                .getPartialAmountCeil(
+                    fillableMakerTokenAmount,
+                    uint256(params.orderMakerAmount),
+                    uint256(params.orderTakerAmount)
+                )
+                .safeDowncastToUint128();
     }
 
     /// @dev checks if a given address is registered to sign on behalf of a maker address
     /// @param maker The maker address encoded in an order (can be a contract)
     /// @param signer The address that is providing a signature
-    function isValidOrderSigner(
-        address maker,
-        address signer
-    )
-        public
-        view
-        returns (bool isValid)
-    {
+    function isValidOrderSigner(address maker, address signer) public view returns (bool isValid) {
         // returns false if it the mapping doesn't exist
-        return LibNativeOrdersStorage.getStorage()
-            .orderSignerRegistry
-                [maker]
-                [signer];
+        return LibNativeOrdersStorage.getStorage().orderSignerRegistry[maker][signer];
     }
 }

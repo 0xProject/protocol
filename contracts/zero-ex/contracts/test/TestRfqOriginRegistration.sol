@@ -27,9 +27,7 @@ contract TestRfqOriginRegistration {
         INativeOrdersFeature feature,
         address[] memory origins,
         bool allowed
-    )
-        external
-    {
+    ) external {
         feature.registerAllowedRfqOrigins(origins, allowed);
     }
 }

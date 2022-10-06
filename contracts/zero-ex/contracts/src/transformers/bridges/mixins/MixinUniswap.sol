@@ -26,17 +26,12 @@ import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "../IBridgeAdapter.sol";
 
 interface IUniswapExchangeFactory {
-
     /// @dev Get the exchange for a token.
     /// @param token The token contract.
-    function getExchange(IERC20TokenV06 token)
-        external
-        view
-        returns (IUniswapExchange exchange);
+    function getExchange(IERC20TokenV06 token) external view returns (IUniswapExchange exchange);
 }
 
 interface IUniswapExchange {
-
     /// @dev Buys at least `minTokensBought` tokens with ETH and transfer them
     ///      to `recipient`.
     /// @param minTokensBought The minimum number of tokens to buy.
@@ -47,10 +42,7 @@ interface IUniswapExchange {
         uint256 minTokensBought,
         uint256 deadline,
         address recipient
-    )
-        external
-        payable
-        returns (uint256 tokensBought);
+    ) external payable returns (uint256 tokensBought);
 
     /// @dev Buys at least `minEthBought` ETH with tokens.
     /// @param tokensSold Amount of tokens to sell.
@@ -61,9 +53,7 @@ interface IUniswapExchange {
         uint256 tokensSold,
         uint256 minEthBought,
         uint256 deadline
-    )
-        external
-        returns (uint256 ethBought);
+    ) external returns (uint256 ethBought);
 
     /// @dev Buys at least `minTokensBought` tokens with the exchange token
     ///      and transfer them to `recipient`.
@@ -81,9 +71,7 @@ interface IUniswapExchange {
         uint256 deadline,
         address recipient,
         IERC20TokenV06 buyToken
-    )
-        external
-        returns (uint256 tokensBought);
+    ) external returns (uint256 tokensBought);
 
     /// @dev Buys at least `minTokensBought` tokens with the exchange token.
     /// @param tokensSold Amount of tokens to sell.
@@ -98,21 +86,16 @@ interface IUniswapExchange {
         uint256 minEthBought,
         uint256 deadline,
         IERC20TokenV06 buyToken
-    )
-        external
-        returns (uint256 tokensBought);
+    ) external returns (uint256 tokensBought);
 }
 
 contract MixinUniswap {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     /// @dev Mainnet address of the WETH contract.
     IEtherTokenV06 private immutable WETH;
 
-    constructor(IEtherTokenV06 weth)
-        public
-    {
+    constructor(IEtherTokenV06 weth) public {
         WETH = weth;
     }
 
@@ -121,26 +104,18 @@ contract MixinUniswap {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
-        IUniswapExchangeFactory exchangeFactory =
-            abi.decode(bridgeData, (IUniswapExchangeFactory));
+    ) internal returns (uint256 boughtAmount) {
+        IUniswapExchangeFactory exchangeFactory = abi.decode(bridgeData, (IUniswapExchangeFactory));
 
         // Get the exchange for the token pair.
-        IUniswapExchange exchange = _getUniswapExchangeForTokenPair(
-            exchangeFactory,
-            sellToken,
-            buyToken
-        );
+        IUniswapExchange exchange = _getUniswapExchangeForTokenPair(exchangeFactory, sellToken, buyToken);
 
         // Convert from WETH to a token.
         if (sellToken == WETH) {
             // Unwrap the WETH.
             WETH.withdraw(sellAmount);
             // Buy as much of `buyToken` token with ETH as possible
-            boughtAmount = exchange.ethToTokenTransferInput{ value: sellAmount }(
+            boughtAmount = exchange.ethToTokenTransferInput{value: sellAmount}(
                 // Minimum buy amount.
                 1,
                 // Expires after this block.
@@ -149,13 +124,10 @@ contract MixinUniswap {
                 address(this)
             );
 
-        // Convert from a token to WETH.
+            // Convert from a token to WETH.
         } else if (buyToken == WETH) {
             // Grant the exchange an allowance.
-            sellToken.approveIfBelow(
-                address(exchange),
-                sellAmount
-            );
+            sellToken.approveIfBelow(address(exchange), sellAmount);
             // Buy as much ETH with `sellToken` token as possible.
             boughtAmount = exchange.tokenToEthSwapInput(
                 // Sell all tokens we hold.
@@ -166,14 +138,11 @@ contract MixinUniswap {
                 block.timestamp
             );
             // Wrap the ETH.
-            WETH.deposit{ value: boughtAmount }();
-        // Convert from one token to another.
+            WETH.deposit{value: boughtAmount}();
+            // Convert from one token to another.
         } else {
             // Grant the exchange an allowance.
-            sellToken.approveIfBelow(
-                address(exchange),
-                sellAmount
-            );
+            sellToken.approveIfBelow(address(exchange), sellAmount);
             // Buy as much `buyToken` token with `sellToken` token
             boughtAmount = exchange.tokenToTokenSwapInput(
                 // Sell all tokens we hold.
@@ -203,15 +172,9 @@ contract MixinUniswap {
         IUniswapExchangeFactory exchangeFactory,
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken
-    )
-        private
-        view
-        returns (IUniswapExchange exchange)
-    {
+    ) private view returns (IUniswapExchange exchange) {
         // Whichever isn't WETH is the exchange token.
-        exchange = sellToken == WETH
-            ? exchangeFactory.getExchange(buyToken)
-            : exchangeFactory.getExchange(sellToken);
+        exchange = sellToken == WETH ? exchangeFactory.getExchange(buyToken) : exchangeFactory.getExchange(sellToken);
         require(address(exchange) != address(0), "MixinUniswap/NO_EXCHANGE");
     }
 }

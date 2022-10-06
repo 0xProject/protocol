@@ -85,4 +85,3 @@ lib
 package.json
 packages/*/docs
 docs/
-*.sol

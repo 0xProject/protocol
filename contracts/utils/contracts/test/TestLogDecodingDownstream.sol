@@ -18,31 +18,20 @@
 
 pragma solidity ^0.5.5;
 
-
 contract ITestLogDecodingDownstream {
-
     /// @dev Emits a local event
     function emitEvent() external;
 }
 
-
-contract TestLogDecodingDownstream is
-    ITestLogDecodingDownstream
-{
-
+contract TestLogDecodingDownstream is ITestLogDecodingDownstream {
     /// @dev event with fields different than those in `TestLogDecoding.TestEvent`
     /// Note: do not include this in the interface
     /// For testing, we want to emit an event that is
     /// not known by the calling contract.
-    event TestEvent2(
-        uint256 lorem,
-        string ipsum
-    );
+    event TestEvent2(uint256 lorem, string ipsum);
 
     /// @dev Emits a local event
-    function emitEvent()
-        external
-    {
+    function emitEvent() external {
         emit TestEvent2(256, "4321");
     }
 }

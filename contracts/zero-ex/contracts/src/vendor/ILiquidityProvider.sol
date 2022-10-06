@@ -21,9 +21,7 @@ pragma solidity ^0.6.5;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 interface ILiquidityProvider {
-
     /// @dev An optional event an LP can emit for each fill against a source.
     /// @param inputToken The input token.
     /// @param outputToken The output token.
@@ -61,9 +59,7 @@ interface ILiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        returns (uint256 boughtAmount);
+    ) external returns (uint256 boughtAmount);
 
     /// @dev Trades ETH for token. ETH must either be attached to this function
     ///      call or sent to the contract prior to calling this function to
@@ -78,10 +74,7 @@ interface ILiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        payable
-        returns (uint256 boughtAmount);
+    ) external payable returns (uint256 boughtAmount);
 
     /// @dev Trades token for ETH. The token must be sent to the contract prior
     ///      to calling this function to trigger the trade.
@@ -95,9 +88,7 @@ interface ILiquidityProvider {
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        returns (uint256 boughtAmount);
+    ) external returns (uint256 boughtAmount);
 
     /// @dev Quotes the amount of `outputToken` that would be obtained by
     ///      selling `sellAmount` of `inputToken`.
@@ -111,8 +102,5 @@ interface ILiquidityProvider {
         IERC20TokenV06 inputToken,
         IERC20TokenV06 outputToken,
         uint256 sellAmount
-    )
-        external
-        view
-        returns (uint256 outputTokenAmount);
+    ) external view returns (uint256 outputTokenAmount);
 }

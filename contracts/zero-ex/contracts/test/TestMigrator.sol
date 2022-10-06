@@ -23,26 +23,16 @@ pragma experimental ABIEncoderV2;
 import "../src/migrations/LibMigrate.sol";
 import "../src/features/interfaces/IOwnableFeature.sol";
 
-
 contract TestMigrator {
-    event TestMigrateCalled(
-        bytes callData,
-        address owner
-    );
+    event TestMigrateCalled(bytes callData, address owner);
 
     function succeedingMigrate() external returns (bytes4 success) {
-        emit TestMigrateCalled(
-            msg.data,
-            IOwnableFeature(address(this)).owner()
-        );
+        emit TestMigrateCalled(msg.data, IOwnableFeature(address(this)).owner());
         return LibMigrate.MIGRATE_SUCCESS;
     }
 
     function failingMigrate() external returns (bytes4 success) {
-        emit TestMigrateCalled(
-            msg.data,
-            IOwnableFeature(address(this)).owner()
-        );
+        emit TestMigrateCalled(msg.data, IOwnableFeature(address(this)).owner());
         return 0xdeadbeef;
     }
 

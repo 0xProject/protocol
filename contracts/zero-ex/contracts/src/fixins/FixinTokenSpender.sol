@@ -23,12 +23,10 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
-
 /// @dev Helpers for moving tokens around.
 abstract contract FixinTokenSpender {
-
     // Mask of the lower 20 bytes of a bytes32.
-    uint256 constant private ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
+    uint256 private constant ADDRESS_MASK = 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff;
 
     /// @dev Transfers ERC20 tokens from `owner` to `to`.
     /// @param token The token to spend.
@@ -40,9 +38,7 @@ abstract contract FixinTokenSpender {
         address owner,
         address to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
@@ -54,15 +50,7 @@ abstract contract FixinTokenSpender {
             mstore(add(ptr, 0x24), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x44), amount)
 
-            let success := call(
-                gas(),
-                and(token, ADDRESS_MASK),
-                0,
-                ptr,
-                0x64,
-                ptr,
-                32
-            )
+            let success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x64, ptr, 32)
 
             let rdsize := returndatasize()
 
@@ -70,12 +58,12 @@ abstract contract FixinTokenSpender {
             // but some don't. We accept 0-length return data as success, or at
             // least 32 bytes that starts with a 32-byte boolean true.
             success := and(
-                success,                             // call itself succeeded
+                success, // call itself succeeded
                 or(
-                    iszero(rdsize),                  // no return data, or
+                    iszero(rdsize), // no return data, or
                     and(
-                        iszero(lt(rdsize, 32)),      // at least 32 bytes
-                        eq(mload(ptr), 1)            // starts with uint256(1)
+                        iszero(lt(rdsize, 32)), // at least 32 bytes
+                        eq(mload(ptr), 1) // starts with uint256(1)
                     )
                 )
             )
@@ -95,9 +83,7 @@ abstract contract FixinTokenSpender {
         IERC20TokenV06 token,
         address to,
         uint256 amount
-    )
-        internal
-    {
+    ) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
@@ -108,15 +94,7 @@ abstract contract FixinTokenSpender {
             mstore(add(ptr, 0x04), and(to, ADDRESS_MASK))
             mstore(add(ptr, 0x24), amount)
 
-            let success := call(
-                gas(),
-                and(token, ADDRESS_MASK),
-                0,
-                ptr,
-                0x44,
-                ptr,
-                32
-            )
+            let success := call(gas(), and(token, ADDRESS_MASK), 0, ptr, 0x44, ptr, 32)
 
             let rdsize := returndatasize()
 
@@ -124,12 +102,12 @@ abstract contract FixinTokenSpender {
             // but some don't. We accept 0-length return data as success, or at
             // least 32 bytes that starts with a 32-byte boolean true.
             success := and(
-                success,                             // call itself succeeded
+                success, // call itself succeeded
                 or(
-                    iszero(rdsize),                  // no return data, or
+                    iszero(rdsize), // no return data, or
                     and(
-                        iszero(lt(rdsize, 32)),      // at least 32 bytes
-                        eq(mload(ptr), 1)            // starts with uint256(1)
+                        iszero(lt(rdsize, 32)), // at least 32 bytes
+                        eq(mload(ptr), 1) // starts with uint256(1)
                     )
                 )
             )
@@ -141,16 +119,13 @@ abstract contract FixinTokenSpender {
         }
     }
 
-
     /// @dev Transfers some amount of ETH to the given recipient and
     ///      reverts if the transfer fails.
     /// @param recipient The recipient of the ETH.
     /// @param amount The amount of ETH to transfer.
-    function _transferEth(address payable recipient, uint256 amount)
-        internal
-    {
+    function _transferEth(address payable recipient, uint256 amount) internal {
         if (amount > 0) {
-            (bool success,) = recipient.call{value: amount}("");
+            (bool success, ) = recipient.call{value: amount}("");
             require(success, "FixinTokenSpender::_transferEth/TRANSFER_FAILED");
         }
     }
@@ -160,17 +135,7 @@ abstract contract FixinTokenSpender {
     /// @param token The token to spend.
     /// @param owner The owner of the tokens.
     /// @return amount The amount of tokens that can be pulled.
-    function _getSpendableERC20BalanceOf(
-        IERC20TokenV06 token,
-        address owner
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        return LibSafeMathV06.min256(
-            token.allowance(owner, address(this)),
-            token.balanceOf(owner)
-        );
+    function _getSpendableERC20BalanceOf(IERC20TokenV06 token, address owner) internal view returns (uint256) {
+        return LibSafeMathV06.min256(token.allowance(owner, address(this)), token.balanceOf(owner));
     }
 }

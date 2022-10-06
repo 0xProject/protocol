@@ -22,9 +22,7 @@ import "./LibAddressArrayRichErrors.sol";
 import "./LibBytes.sol";
 import "./LibRichErrors.sol";
 
-
 library LibAddressArray {
-
     /// @dev Append a new address to an array of addresses.
     ///      The `addressArray` may need to be reallocated to make space
     ///      for the new address. Because of this we return the resulting
@@ -32,11 +30,7 @@ library LibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param addressToAppend  Address to append.
     /// @return Array of addresses: [... addressArray, addressToAppend]
-    function append(address[] memory addressArray, address addressToAppend)
-        internal
-        pure
-        returns (address[] memory)
-    {
+    function append(address[] memory addressArray, address addressToAppend) internal pure returns (address[] memory) {
         // Get stats on address array and free memory
         uint256 freeMemPtr = 0;
         uint256 addressArrayBeginPtr = 0;
@@ -54,10 +48,7 @@ library LibAddressArray {
         //  `freeMemPtr` > `addressArrayEndPtr`: Some value occupies memory after `addressArray`
         //  `freeMemPtr` < `addressArrayEndPtr`: Memory has not been managed properly.
         if (freeMemPtr < addressArrayEndPtr) {
-            LibRichErrors.rrevert(LibAddressArrayRichErrors.MismanagedMemoryError(
-                freeMemPtr,
-                addressArrayEndPtr
-            ));
+            LibRichErrors.rrevert(LibAddressArrayRichErrors.MismanagedMemoryError(freeMemPtr, addressArrayEndPtr));
         }
 
         // If free memory begins at the end of `addressArray`
@@ -92,13 +83,8 @@ library LibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return True if the addressArray contains the target.
-    function contains(address[] memory addressArray, address target)
-        internal
-        pure
-        returns (bool success)
-    {
+    function contains(address[] memory addressArray, address target) internal pure returns (bool success) {
         assembly {
-
             // Calculate byte length of array
             let arrayByteLen := mul(mload(addressArray), 32)
             // Calculate beginning of array contents
@@ -107,8 +93,11 @@ library LibAddressArray {
             let arrayContentsEnd := add(arrayContentsStart, arrayByteLen)
 
             // Loop through array
-            for {let i:= arrayContentsStart} lt(i, arrayContentsEnd) {i := add(i, 32)} {
-
+            for {
+                let i := arrayContentsStart
+            } lt(i, arrayContentsEnd) {
+                i := add(i, 32)
+            } {
                 // Load array element
                 let arrayElement := mload(i)
 
@@ -134,7 +123,6 @@ library LibAddressArray {
         returns (bool success, uint256 index)
     {
         assembly {
-
             // Calculate byte length of array
             let arrayByteLen := mul(mload(addressArray), 32)
             // Calculate beginning of array contents
@@ -143,8 +131,11 @@ library LibAddressArray {
             let arrayContentsEnd := add(arrayContentsStart, arrayByteLen)
 
             // Loop through array
-            for {let i:= arrayContentsStart} lt(i, arrayContentsEnd) {i := add(i, 32)} {
-
+            for {
+                let i := arrayContentsStart
+            } lt(i, arrayContentsEnd) {
+                i := add(i, 32)
+            } {
                 // Load array element
                 let arrayElement := mload(i)
 

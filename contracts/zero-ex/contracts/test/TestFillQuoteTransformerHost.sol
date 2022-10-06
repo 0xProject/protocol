@@ -24,10 +24,7 @@ import "../src/transformers/IERC20Transformer.sol";
 import "./tokens/TestMintableERC20Token.sol";
 import "./TestTransformerHost.sol";
 
-
-contract TestFillQuoteTransformerHost is
-    TestTransformerHost
-{
+contract TestFillQuoteTransformerHost is TestTransformerHost {
     function executeTransform(
         IERC20Transformer transformer,
         TestMintableERC20Token inputToken,
@@ -35,21 +32,14 @@ contract TestFillQuoteTransformerHost is
         address payable sender,
         address payable recipient,
         bytes calldata data
-    )
-        external
-        payable
-    {
+    ) external payable {
         if (inputTokenAmount != 0) {
             inputToken.mint(address(this), inputTokenAmount);
         }
         // Have to make this call externally because transformers aren't payable.
         this.rawExecuteTransform(
             transformer,
-            IERC20Transformer.TransformContext({
-                sender: sender,
-                recipient: recipient,
-                data: data
-            })
+            IERC20Transformer.TransformContext({sender: sender, recipient: recipient, data: data})
         );
     }
 }

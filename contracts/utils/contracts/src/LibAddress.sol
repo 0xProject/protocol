@@ -18,12 +18,10 @@
 
 pragma solidity ^0.5.9;
 
-
 /**
  * Utility library of inline functions on addresses
  */
 library LibAddress {
-
     /**
      * Returns whether the target address is a contract
      * @dev This function will return false if invoked during the constructor of a contract,
@@ -40,8 +38,9 @@ library LibAddress {
         // TODO Check this again before the Serenity release, because all addresses will be
         // contracts then.
         // solium-disable-next-line security/no-inline-assembly
-        assembly { size := extcodesize(account) }
+        assembly {
+            size := extcodesize(account)
+        }
         return size > 0;
     }
-
 }

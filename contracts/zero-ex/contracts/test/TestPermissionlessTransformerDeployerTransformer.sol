@@ -22,16 +22,12 @@ pragma experimental ABIEncoderV2;
 
 import "../src/transformers/LibERC20Transformer.sol";
 
-
 contract TestPermissionlessTransformerDeployerTransformer {
     uint256 public constant CONSTRUCTOR_FAIL_VALUE = 3333;
     address payable public immutable deployer;
 
     constructor() public payable {
         deployer = msg.sender;
-        require(
-            msg.value != CONSTRUCTOR_FAIL_VALUE,
-            "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL"
-        );
+        require(msg.value != CONSTRUCTOR_FAIL_VALUE, "TestTransformerDeployerTransformer/CONSTRUCTOR_FAIL");
     }
 }

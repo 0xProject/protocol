@@ -20,16 +20,11 @@ pragma solidity ^0.5.9;
 
 import "./TestRefundable.sol";
 
-
 contract TestRefundableReceiver {
-
     /// @dev A payable fallback function is necessary to receive refunds from the `TestRefundable` contract.
     ///      This function ensures that zero value is not sent to the contract, which tests the feature of
     ///      of the `refundNonzeroBalance` that doesn't transfer if the balance is zero.
-    function ()
-        external
-        payable
-    {
+    function() external payable {
         // Ensure that a value of zero was not transferred to the contract.
         require(msg.value != 0, "Zero value should not be sent to this contract.");
     }
@@ -37,10 +32,7 @@ contract TestRefundableReceiver {
     /// @dev This function tests the behavior of the `refundNonzeroBalance` function by checking whether or
     ///      not the `callCounter` state variable changes after the `refundNonzeroBalance` is called.
     /// @param testRefundable The TestRefundable that should be tested against.
-    function testRefundNonZeroBalance(TestRefundable testRefundable)
-        external
-        payable
-    {
+    function testRefundNonZeroBalance(TestRefundable testRefundable) external payable {
         // Call `refundNonzeroBalance()` and forward all of the eth sent to the contract.
         testRefundable.refundNonZeroBalanceExternal.value(msg.value)();
 
@@ -58,13 +50,7 @@ contract TestRefundableReceiver {
     ///      remains unaltered after the function call.
     /// @param testRefundable The TestRefundable that should be tested against.
     /// @param shouldNotRefund The value that shouldNotRefund should be set to before the call to TestRefundable.
-    function testRefundFinalBalance(
-        TestRefundable testRefundable,
-        bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    function testRefundFinalBalance(TestRefundable testRefundable, bool shouldNotRefund) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -82,13 +68,7 @@ contract TestRefundableReceiver {
     ///      remains unaltered after the function call.
     /// @param testRefundable The TestRefundable that should be tested against.
     /// @param shouldNotRefund The value that shouldNotRefund should be set to before the call to TestRefundable.
-    function testDisableRefundUntilEnd(
-        TestRefundable testRefundable,
-        bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    function testDisableRefundUntilEnd(TestRefundable testRefundable, bool shouldNotRefund) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -105,13 +85,7 @@ contract TestRefundableReceiver {
     ///      to verify that both the inner and outer modifiers worked correctly.
     /// @param testRefundable The TestRefundable that should be tested against.
     /// @param shouldNotRefund The value that shouldNotRefund should be set to before the call to TestRefundable.
-    function testNestedDisableRefundUntilEnd(
-        TestRefundable testRefundable,
-        bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    function testNestedDisableRefundUntilEnd(TestRefundable testRefundable, bool shouldNotRefund) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -132,13 +106,7 @@ contract TestRefundableReceiver {
     ///      to verify that both the inner and outer modifiers worked correctly.
     /// @param testRefundable The TestRefundable that should be tested against.
     /// @param shouldNotRefund The value that shouldNotRefund should be set to before the call to TestRefundable.
-    function testMixedRefunds(
-        TestRefundable testRefundable,
-        bool shouldNotRefund
-    )
-        external
-        payable
-    {
+    function testMixedRefunds(TestRefundable testRefundable, bool shouldNotRefund) external payable {
         // Set `shouldNotRefund` to the specified bool.
         testRefundable.setShouldNotRefund(shouldNotRefund);
 
@@ -158,12 +126,7 @@ contract TestRefundableReceiver {
     ///      refundable contract and verifies that the `shouldNotRefund` value remains unaltered.
     /// @param testRefundable The TestRefundable that should be tested against.
     /// @param shouldNotRefund The value that shouldNotRefund was set to before the call to TestRefundable.
-    function requireCorrectFinalBalancesAndState(
-        TestRefundable testRefundable,
-        bool shouldNotRefund
-    )
-        internal
-    {
+    function requireCorrectFinalBalancesAndState(TestRefundable testRefundable, bool shouldNotRefund) internal {
         // If `shouldNotRefund` was true, then this contract should have a balance of zero,
         // and `testRefundable` should have a balance of `msg.value`. Otherwise, the opposite
         // should be true.

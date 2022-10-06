@@ -20,59 +20,29 @@ pragma solidity ^0.5.9;
 
 import "../src/Refundable.sol";
 
-
-contract TestRefundable is
-    Refundable
-{
-    function refundNonZeroBalanceExternal()
-        external
-        payable
-    {
+contract TestRefundable is Refundable {
+    function refundNonZeroBalanceExternal() external payable {
         _refundNonZeroBalance();
     }
 
-    function setShouldNotRefund(bool shouldNotRefundNew)
-        external
-    {
+    function setShouldNotRefund(bool shouldNotRefundNew) external {
         _shouldNotRefund = shouldNotRefundNew;
     }
 
-    function getShouldNotRefund()
-        external
-        view
-        returns (bool)
-    {
+    function getShouldNotRefund() external view returns (bool) {
         return _shouldNotRefund;
     }
 
-    function refundFinalBalanceFunction()
-        public
-        payable
-        refundFinalBalance
-    {} // solhint-disable-line no-empty-blocks
+    function refundFinalBalanceFunction() public payable refundFinalBalance {} // solhint-disable-line no-empty-blocks
 
-    function disableRefundUntilEndFunction()
-        public
-        payable
-        disableRefundUntilEnd
-    {} // solhint-disable-line no-empty-blocks
+    function disableRefundUntilEndFunction() public payable disableRefundUntilEnd {} // solhint-disable-line no-empty-blocks
 
-    function nestedDisableRefundUntilEndFunction()
-        public
-        payable
-        disableRefundUntilEnd
-        returns (uint256)
-    {
+    function nestedDisableRefundUntilEndFunction() public payable disableRefundUntilEnd returns (uint256) {
         disableRefundUntilEndFunction();
         return address(this).balance;
     }
 
-    function mixedRefundModifierFunction()
-        public
-        payable
-        disableRefundUntilEnd
-        returns (uint256)
-    {
+    function mixedRefundModifierFunction() public payable disableRefundUntilEnd returns (uint256) {
         refundFinalBalanceFunction();
         return address(this).balance;
     }

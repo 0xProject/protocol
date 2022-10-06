@@ -22,9 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "../src/features/libs/LibSignature.sol";
 
-
 contract TestLibSignature {
-
     function getSignerOfHash(bytes32 hash, LibSignature.Signature calldata signature)
         external
         pure

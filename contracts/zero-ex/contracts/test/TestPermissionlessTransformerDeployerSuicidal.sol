@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-
 contract TestPermissionlessTransformerDeployerSuicidal {
     function kill() external {
         selfdestruct(msg.sender);

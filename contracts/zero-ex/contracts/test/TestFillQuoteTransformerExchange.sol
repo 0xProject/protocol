@@ -27,10 +27,9 @@ import "./tokens/TestMintableERC20Token.sol";
 import "../src/features/libs/LibNativeOrder.sol";
 import "../src/features/libs/LibSignature.sol";
 
-
 contract TestFillQuoteTransformerExchange {
-
-    bytes32 public constant EIP712_EXCHANGE_DOMAIN_HASH = 0xaa81d881b1adbbf115e15b849cb9cdc643cad3c6a90f30eb505954af943247e6;
+    bytes32 public constant EIP712_EXCHANGE_DOMAIN_HASH =
+        0xaa81d881b1adbbf115e15b849cb9cdc643cad3c6a90f30eb505954af943247e6;
     uint256 private constant REVERT_AMOUNT = 0xdeadbeef;
     uint256 private constant PROTOCOL_FEE_MULTIPLIER = 1337;
 
@@ -40,18 +39,14 @@ contract TestFillQuoteTransformerExchange {
         LibNativeOrder.LimitOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         // The r field of the signature is the pre-filled amount.
         uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
         if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
             revert("REVERT_AMOUNT");
         }
         if (takerTokenPreFilledAmount >= order.takerAmount) {
-            revert('FILLED');
+            revert("FILLED");
         }
         uint256 protocolFee = PROTOCOL_FEE_MULTIPLIER * tx.gasprice;
         // Return excess protocol fee.
@@ -62,26 +57,17 @@ contract TestFillQuoteTransformerExchange {
         );
 
         // Take taker tokens.
-        order.takerToken.transferFrom(
-            msg.sender,
-            order.maker,
-            takerTokenFilledAmount
-        );
+        order.takerToken.transferFrom(msg.sender, order.maker, takerTokenFilledAmount);
 
         // Mint maker tokens.
         makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
-            uint256(takerTokenFilledAmount)
-            * uint256(order.makerAmount)
-            / uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) / uint256(order.takerAmount)
         );
-        TestMintableERC20Token(address(order.makerToken))
-            .mint(msg.sender, makerTokenFilledAmount);
+        TestMintableERC20Token(address(order.makerToken)).mint(msg.sender, makerTokenFilledAmount);
 
         // Take taker token fee.
         uint128 takerFee = LibSafeMathV06.safeDowncastToUint128(
-            uint256(takerTokenFilledAmount)
-            * uint256(order.takerTokenFeeAmount)
-            / uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.takerTokenFeeAmount)) / uint256(order.takerAmount)
         );
         order.takerToken.transferFrom(msg.sender, order.feeRecipient, takerFee);
     }
@@ -90,18 +76,14 @@ contract TestFillQuoteTransformerExchange {
         LibNativeOrder.RfqOrder calldata order,
         LibSignature.Signature calldata signature,
         uint128 takerTokenFillAmount
-    )
-        external
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         // The r field of the signature is the pre-filled amount.
         uint128 takerTokenPreFilledAmount = uint128(uint256(signature.r));
         if (REVERT_AMOUNT == takerTokenPreFilledAmount) {
             revert("REVERT_AMOUNT");
         }
         if (takerTokenPreFilledAmount >= order.takerAmount) {
-            revert('FILLED');
+            revert("FILLED");
         }
         takerTokenFilledAmount = LibSafeMathV06.min128(
             order.takerAmount - takerTokenPreFilledAmount,
@@ -109,35 +91,20 @@ contract TestFillQuoteTransformerExchange {
         );
 
         // Take taker tokens.
-        order.takerToken.transferFrom(
-            msg.sender,
-            order.maker,
-            takerTokenFilledAmount
-        );
+        order.takerToken.transferFrom(msg.sender, order.maker, takerTokenFilledAmount);
 
         // Mint maker tokens.
         makerTokenFilledAmount = LibSafeMathV06.safeDowncastToUint128(
-            uint256(takerTokenFilledAmount)
-            * uint256(order.makerAmount)
-            / uint256(order.takerAmount)
+            (uint256(takerTokenFilledAmount) * uint256(order.makerAmount)) / uint256(order.takerAmount)
         );
-        TestMintableERC20Token(address(order.makerToken))
-            .mint(msg.sender, makerTokenFilledAmount);
+        TestMintableERC20Token(address(order.makerToken)).mint(msg.sender, makerTokenFilledAmount);
     }
 
-    function getProtocolFeeMultiplier()
-        external
-        pure
-        returns (uint256)
-    {
+    function getProtocolFeeMultiplier() external pure returns (uint256) {
         return PROTOCOL_FEE_MULTIPLIER;
     }
 
-    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order)
-        external
-        pure
-        returns (bytes32)
-    {
+    function getLimitOrderHash(LibNativeOrder.LimitOrder calldata order) external pure returns (bytes32) {
         return bytes32(order.salt);
     }
 }

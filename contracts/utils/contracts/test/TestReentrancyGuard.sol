@@ -20,18 +20,11 @@ pragma solidity ^0.5.9;
 
 import "../src/ReentrancyGuard.sol";
 
-
-contract TestReentrancyGuard is
-    ReentrancyGuard
-{
+contract TestReentrancyGuard is ReentrancyGuard {
     /// @dev Exposes the nonReentrant modifier publicly.
     /// @param shouldBeAttacked True if the contract should be attacked.
     /// @return True if successful.
-    function guarded(bool shouldBeAttacked)
-        external
-        nonReentrant
-        returns (bool)
-    {
+    function guarded(bool shouldBeAttacked) external nonReentrant returns (bool) {
         if (shouldBeAttacked) {
             return this.exploitive();
         } else {
@@ -41,20 +34,13 @@ contract TestReentrancyGuard is
 
     /// @dev This is a function that will reenter the current contract.
     /// @return True if successful.
-    function exploitive()
-        external
-        returns (bool)
-    {
+    function exploitive() external returns (bool) {
         return this.guarded(true);
     }
 
     /// @dev This is a function that will not reenter the current contract.
     /// @return True if successful.
-    function nonExploitive()
-        external
-        pure
-        returns (bool)
-    {
+    function nonExploitive() external pure returns (bool) {
         return true;
     }
 }

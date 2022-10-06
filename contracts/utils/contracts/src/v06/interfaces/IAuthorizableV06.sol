@@ -21,47 +21,29 @@ pragma solidity ^0.6.5;
 
 import "./IOwnableV06.sol";
 
-
-interface IAuthorizableV06 is
-    IOwnableV06
-{
+interface IAuthorizableV06 is IOwnableV06 {
     // Event logged when a new address is authorized.
-    event AuthorizedAddressAdded(
-        address indexed target,
-        address indexed caller
-    );
+    event AuthorizedAddressAdded(address indexed target, address indexed caller);
 
     // Event logged when a currently authorized address is unauthorized.
-    event AuthorizedAddressRemoved(
-        address indexed target,
-        address indexed caller
-    );
+    event AuthorizedAddressRemoved(address indexed target, address indexed caller);
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function addAuthorizedAddress(address target)
-        external;
+    function addAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
-    function removeAuthorizedAddress(address target)
-        external;
+    function removeAuthorizedAddress(address target) external;
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
-        external;
+    function removeAuthorizedAddressAtIndex(address target, uint256 index) external;
 
     /// @dev Gets all authorized addresses.
     /// @return authorizedAddresses Array of authorized addresses.
-    function getAuthorizedAddresses()
-        external
-        view
-        returns (address[] memory authorizedAddresses);
+    function getAuthorizedAddresses() external view returns (address[] memory authorizedAddresses);
 
     /// @dev Whether an adderss is authorized to call privileged functions.
     /// @param addr Address to query.
@@ -72,5 +54,4 @@ interface IAuthorizableV06 is
     /// @param idx Index of authorized address.
     /// @return addr Authorized address.
     function authorities(uint256 idx) external view returns (address addr);
-
 }

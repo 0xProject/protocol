@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-
 contract TestLiquidityProvider {
     event SellTokenForToken(
         address inputToken,
@@ -32,19 +31,9 @@ contract TestLiquidityProvider {
         uint256 inputTokenBalance
     );
 
-    event SellEthForToken(
-        address outputToken,
-        address recipient,
-        uint256 minBuyAmount,
-        uint256 ethBalance
-    );
+    event SellEthForToken(address outputToken, address recipient, uint256 minBuyAmount, uint256 ethBalance);
 
-    event SellTokenForEth(
-        address inputToken,
-        address recipient,
-        uint256 minBuyAmount,
-        uint256 inputTokenBalance
-    );
+    event SellTokenForEth(address inputToken, address recipient, uint256 minBuyAmount, uint256 inputTokenBalance);
 
     receive() external payable {}
 
@@ -62,10 +51,7 @@ contract TestLiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
+    ) external returns (uint256) {
         emit SellTokenForToken(
             inputToken,
             outputToken,
@@ -88,16 +74,8 @@ contract TestLiquidityProvider {
         address recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
-        emit SellEthForToken(
-            outputToken,
-            recipient,
-            minBuyAmount,
-            address(this).balance
-        );
+    ) external returns (uint256) {
+        emit SellEthForToken(outputToken, recipient, minBuyAmount, address(this).balance);
         uint256 outputTokenBalance = IERC20TokenV06(outputToken).balanceOf(address(this));
         IERC20TokenV06(outputToken).transfer(recipient, outputTokenBalance);
     }
@@ -113,16 +91,8 @@ contract TestLiquidityProvider {
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata // auxiliaryData
-    )
-        external
-        returns (uint256)
-    {
-        emit SellTokenForEth(
-            inputToken,
-            recipient,
-            minBuyAmount,
-            IERC20TokenV06(inputToken).balanceOf(address(this))
-        );
+    ) external returns (uint256) {
+        emit SellTokenForEth(inputToken, recipient, minBuyAmount, IERC20TokenV06(inputToken).balanceOf(address(this)));
         recipient.transfer(address(this).balance);
     }
 }

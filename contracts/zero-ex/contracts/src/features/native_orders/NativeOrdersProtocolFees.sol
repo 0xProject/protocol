@@ -27,11 +27,8 @@ import "../../fixins/FixinProtocolFees.sol";
 import "../../errors/LibNativeOrdersRichErrors.sol";
 import "../../vendor/v3/IStaking.sol";
 
-
 /// @dev Mixin for protocol fee utility functions.
-abstract contract NativeOrdersProtocolFees is
-    FixinProtocolFees
-{
+abstract contract NativeOrdersProtocolFees is FixinProtocolFees {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -40,19 +37,14 @@ abstract contract NativeOrdersProtocolFees is
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    )
-        internal
-        FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
-    {
+    ) internal FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
         // solhint-disable no-empty-blocks
     }
 
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.
     /// @param poolIds Staking pool IDs
-    function transferProtocolFeesForPools(bytes32[] calldata poolIds)
-        external
-    {
+    function transferProtocolFeesForPools(bytes32[] calldata poolIds) external {
         for (uint256 i = 0; i < poolIds.length; ++i) {
             _transferFeesForPool(poolIds[i]);
         }
@@ -61,11 +53,7 @@ abstract contract NativeOrdersProtocolFees is
     /// @dev Get the protocol fee multiplier. This should be multiplied by the
     ///      gas price to arrive at the required protocol fee to fill a native order.
     /// @return multiplier The protocol fee multiplier.
-    function getProtocolFeeMultiplier()
-        external
-        view
-        returns (uint32 multiplier)
-    {
+    function getProtocolFeeMultiplier() external view returns (uint32 multiplier) {
         return PROTOCOL_FEE_MULTIPLIER;
     }
 }

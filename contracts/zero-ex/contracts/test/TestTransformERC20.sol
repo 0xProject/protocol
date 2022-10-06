@@ -22,10 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "../src/features/TransformERC20Feature.sol";
 
-
-contract TestTransformERC20 is
-    TransformERC20Feature
-{
+contract TestTransformERC20 is TransformERC20Feature {
     modifier onlySelf() override {
         _;
     }

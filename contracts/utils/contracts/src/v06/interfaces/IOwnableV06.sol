@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.5;
 
-
 interface IOwnableV06 {
-
     /// @dev Emitted by Ownable when ownership is transferred.
     /// @param previousOwner The previous owner of the contract.
     /// @param newOwner The new owner of the contract.

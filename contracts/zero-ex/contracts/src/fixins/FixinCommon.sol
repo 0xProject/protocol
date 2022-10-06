@@ -26,10 +26,8 @@ import "../errors/LibOwnableRichErrors.sol";
 import "../features/interfaces/IOwnableFeature.sol";
 import "../features/interfaces/ISimpleFunctionRegistryFeature.sol";
 
-
 /// @dev Common feature utilities.
 abstract contract FixinCommon {
-
     using LibRichErrorsV06 for bytes;
 
     /// @dev The implementation address of this feature.
@@ -48,10 +46,7 @@ abstract contract FixinCommon {
         {
             address owner = IOwnableFeature(address(this)).owner();
             if (msg.sender != owner) {
-                LibOwnableRichErrors.OnlyOwnerError(
-                    msg.sender,
-                    owner
-                ).rrevert();
+                LibOwnableRichErrors.OnlyOwnerError(msg.sender, owner).rrevert();
             }
         }
         _;
@@ -66,9 +61,7 @@ abstract contract FixinCommon {
     ///      Can and should only be called within a `migrate()`.
     /// @param selector The selector of the function whose implementation
     ///        is at `_implementation`.
-    function _registerFeatureFunction(bytes4 selector)
-        internal
-    {
+    function _registerFeatureFunction(bytes4 selector) internal {
         ISimpleFunctionRegistryFeature(address(this)).extend(selector, _implementation);
     }
 
@@ -77,11 +70,11 @@ abstract contract FixinCommon {
     /// @param minor The minor version number of the feature.
     /// @param revision The revision number of the feature.
     /// @return encodedVersion The encoded version number.
-    function _encodeVersion(uint32 major, uint32 minor, uint32 revision)
-        internal
-        pure
-        returns (uint256 encodedVersion)
-    {
+    function _encodeVersion(
+        uint32 major,
+        uint32 minor,
+        uint32 revision
+    ) internal pure returns (uint256 encodedVersion) {
         return (uint256(major) << 64) | (uint256(minor) << 32) | uint256(revision);
     }
 }

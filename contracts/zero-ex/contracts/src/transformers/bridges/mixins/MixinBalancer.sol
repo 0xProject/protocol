@@ -34,15 +34,14 @@ interface IBalancerPool {
     ///         token pair for this pool.
     function swapExactAmountIn(
         IERC20TokenV06 tokenIn,
-        uint tokenAmountIn,
+        uint256 tokenAmountIn,
         IERC20TokenV06 tokenOut,
-        uint minAmountOut,
-        uint maxPrice
-    ) external returns (uint tokenAmountOut, uint spotPriceAfter);
+        uint256 minAmountOut,
+        uint256 maxPrice
+    ) external returns (uint256 tokenAmountOut, uint256 spotPriceAfter);
 }
 
 contract MixinBalancer {
-
     using LibERC20TokenV06 for IERC20TokenV06;
 
     function _tradeBalancer(
@@ -50,25 +49,16 @@ contract MixinBalancer {
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
-    )
-        internal
-        returns (uint256 boughtAmount)
-    {
+    ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data.
-        (IBalancerPool pool) = abi.decode(
-            bridgeData,
-            (IBalancerPool)
-        );
-        sellToken.approveIfBelow(
-            address(pool),
-            sellAmount
-        );
+        IBalancerPool pool = abi.decode(bridgeData, (IBalancerPool));
+        sellToken.approveIfBelow(address(pool), sellAmount);
         // Sell all of this contract's `sellToken` token balance.
-        (boughtAmount,) = pool.swapExactAmountIn(
-            sellToken,  // tokenIn
+        (boughtAmount, ) = pool.swapExactAmountIn(
+            sellToken, // tokenIn
             sellAmount, // tokenAmountIn
-            buyToken,   // tokenOut
-            1,          // minAmountOut
+            buyToken, // tokenOut
+            1, // minAmountOut
             uint256(-1) // maxPrice
         );
         return boughtAmount;

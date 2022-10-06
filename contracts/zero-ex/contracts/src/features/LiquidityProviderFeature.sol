@@ -34,13 +34,7 @@ import "../transformers/LibERC20Transformer.sol";
 import "./interfaces/IFeature.sol";
 import "./interfaces/ILiquidityProviderFeature.sol";
 
-
-contract LiquidityProviderFeature is
-    IFeature,
-    ILiquidityProviderFeature,
-    FixinCommon,
-    FixinTokenSpender
-{
+contract LiquidityProviderFeature is IFeature, ILiquidityProviderFeature, FixinCommon, FixinTokenSpender {
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
 
@@ -52,20 +46,14 @@ contract LiquidityProviderFeature is
     /// @dev The sandbox contract address.
     ILiquidityProviderSandbox public immutable sandbox;
 
-    constructor(LiquidityProviderSandbox sandbox_)
-        public
-        FixinCommon()
-    {
+    constructor(LiquidityProviderSandbox sandbox_) public FixinCommon() {
         sandbox = sandbox_;
     }
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.
     /// @return success `LibMigrate.SUCCESS` on success.
-    function migrate()
-        external
-        returns (bytes4 success)
-    {
+    function migrate() external returns (bytes4 success) {
         _registerFeatureFunction(this.sellToLiquidityProvider.selector);
         return LibMigrate.MIGRATE_SUCCESS;
     }
@@ -91,12 +79,7 @@ contract LiquidityProviderFeature is
         uint256 sellAmount,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        payable
-        returns (uint256 boughtAmount)
-    {
+    ) external payable override returns (uint256 boughtAmount) {
         if (recipient == address(0)) {
             recipient = msg.sender;
         }
@@ -108,65 +91,36 @@ contract LiquidityProviderFeature is
 
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             // Transfer input ERC20 tokens to the provider.
-            _transferERC20TokensFrom(
-                inputToken,
-                msg.sender,
-                address(provider),
-                sellAmount
-            );
+            _transferERC20TokensFrom(inputToken, msg.sender, address(provider), sellAmount);
         }
 
         if (LibERC20Transformer.isTokenETH(inputToken)) {
             uint256 balanceBefore = outputToken.balanceOf(recipient);
-            sandbox.executeSellEthForToken(
-                provider,
-                outputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
+            sandbox.executeSellEthForToken(provider, outputToken, recipient, minBuyAmount, auxiliaryData);
             boughtAmount = IERC20TokenV06(outputToken).balanceOf(recipient).safeSub(balanceBefore);
         } else if (LibERC20Transformer.isTokenETH(outputToken)) {
             uint256 balanceBefore = recipient.balance;
-            sandbox.executeSellTokenForEth(
-                provider,
-                inputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
+            sandbox.executeSellTokenForEth(provider, inputToken, recipient, minBuyAmount, auxiliaryData);
             boughtAmount = recipient.balance.safeSub(balanceBefore);
         } else {
             uint256 balanceBefore = outputToken.balanceOf(recipient);
-            sandbox.executeSellTokenForToken(
-                provider,
-                inputToken,
-                outputToken,
-                recipient,
-                minBuyAmount,
-                auxiliaryData
-            );
+            sandbox.executeSellTokenForToken(provider, inputToken, outputToken, recipient, minBuyAmount, auxiliaryData);
             boughtAmount = outputToken.balanceOf(recipient).safeSub(balanceBefore);
         }
 
         if (boughtAmount < minBuyAmount) {
-            LibLiquidityProviderRichErrors.LiquidityProviderIncompleteSellError(
-                address(provider),
-                address(outputToken),
-                address(inputToken),
-                sellAmount,
-                boughtAmount,
-                minBuyAmount
-            ).rrevert();
+            LibLiquidityProviderRichErrors
+                .LiquidityProviderIncompleteSellError(
+                    address(provider),
+                    address(outputToken),
+                    address(inputToken),
+                    sellAmount,
+                    boughtAmount,
+                    minBuyAmount
+                )
+                .rrevert();
         }
 
-        emit LiquidityProviderSwap(
-            inputToken,
-            outputToken,
-            sellAmount,
-            boughtAmount,
-            provider,
-            recipient
-        );
+        emit LiquidityProviderSwap(inputToken, outputToken, sellAmount, boughtAmount, provider, recipient);
     }
 }

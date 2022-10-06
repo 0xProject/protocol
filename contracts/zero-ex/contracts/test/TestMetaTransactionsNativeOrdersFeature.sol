@@ -24,10 +24,7 @@ import "../src/features/interfaces/IMetaTransactionsFeature.sol";
 import "../src/features/NativeOrdersFeature.sol";
 import "./TestFeeCollectorController.sol";
 
-
-contract TestMetaTransactionsNativeOrdersFeature is
-    NativeOrdersFeature
-{
+contract TestMetaTransactionsNativeOrdersFeature is NativeOrdersFeature {
     constructor()
         public
         NativeOrdersFeature(
@@ -56,12 +53,7 @@ contract TestMetaTransactionsNativeOrdersFeature is
         uint128 takerTokenFillAmount,
         address taker,
         address sender
-    )
-        public
-        override
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) public payable override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         emit FillLimitOrderCalled(
             order,
             signature.signatureType,
@@ -90,13 +82,9 @@ contract TestMetaTransactionsNativeOrdersFeature is
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker,
-        bool /* useSelfBalance */,
+        bool, /* useSelfBalance */
         address /* recipient */
-    )
-        public
-        override
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    ) public override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         emit FillRfqOrderCalled(
             order,
             signature.signatureType,

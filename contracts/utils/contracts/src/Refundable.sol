@@ -20,27 +20,23 @@ pragma solidity ^0.5.9;
 
 import "./ReentrancyGuard.sol";
 
-
-contract Refundable is
-    ReentrancyGuard
-{
-
+contract Refundable is ReentrancyGuard {
     // This bool is used by the refund modifier to allow for lazily evaluated refunds.
     bool internal _shouldNotRefund;
 
-    modifier refundFinalBalance {
+    modifier refundFinalBalance() {
         _;
         _refundNonZeroBalanceIfEnabled();
     }
 
-    modifier refundFinalBalanceNoReentry {
+    modifier refundFinalBalanceNoReentry() {
         _lockMutexOrThrowIfAlreadyLocked();
         _;
         _refundNonZeroBalanceIfEnabled();
         _unlockMutex();
     }
 
-    modifier disableRefundUntilEnd {
+    modifier disableRefundUntilEnd() {
         if (_areRefundsDisabled()) {
             _;
         } else {
@@ -50,41 +46,29 @@ contract Refundable is
         }
     }
 
-    function _refundNonZeroBalanceIfEnabled()
-        internal
-    {
+    function _refundNonZeroBalanceIfEnabled() internal {
         if (!_areRefundsDisabled()) {
             _refundNonZeroBalance();
         }
     }
 
-    function _refundNonZeroBalance()
-        internal
-    {
+    function _refundNonZeroBalance() internal {
         uint256 balance = address(this).balance;
         if (balance > 0) {
             msg.sender.transfer(balance);
         }
     }
 
-    function _disableRefund()
-        internal
-    {
+    function _disableRefund() internal {
         _shouldNotRefund = true;
     }
 
-    function _enableAndRefundNonZeroBalance()
-        internal
-    {
+    function _enableAndRefundNonZeroBalance() internal {
         _shouldNotRefund = false;
         _refundNonZeroBalance();
     }
 
-    function _areRefundsDisabled()
-        internal
-        view
-        returns (bool)
-    {
+    function _areRefundsDisabled() internal view returns (bool) {
         return _shouldNotRefund;
     }
 }

@@ -23,14 +23,10 @@ import "./LibAuthorizableRichErrors.sol";
 import "./LibRichErrors.sol";
 import "./Ownable.sol";
 
-
 // solhint-disable no-empty-blocks
-contract Authorizable is
-    Ownable,
-    IAuthorizable
-{
+contract Authorizable is Ownable, IAuthorizable {
     /// @dev Only authorized addresses can invoke functions with this modifier.
-    modifier onlyAuthorized {
+    modifier onlyAuthorized() {
         _assertSenderIsAuthorized();
         _;
     }
@@ -38,33 +34,24 @@ contract Authorizable is
     /// @dev Whether an adderss is authorized to call privileged functions.
     /// @param 0 Address to query.
     /// @return 0 Whether the address is authorized.
-    mapping (address => bool) public authorized;
+    mapping(address => bool) public authorized;
     /// @dev Whether an adderss is authorized to call privileged functions.
     /// @param 0 Index of authorized address.
     /// @return 0 Authorized address.
     address[] public authorities;
 
     /// @dev Initializes the `owner` address.
-    constructor()
-        public
-        Ownable()
-    {}
+    constructor() public Ownable() {}
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function addAuthorizedAddress(address target)
-        external
-        onlyOwner
-    {
+    function addAuthorizedAddress(address target) external onlyOwner {
         _addAuthorizedAddress(target);
     }
 
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
-    function removeAuthorizedAddress(address target)
-        external
-        onlyOwner
-    {
+    function removeAuthorizedAddress(address target) external onlyOwner {
         if (!authorized[target]) {
             LibRichErrors.rrevert(LibAuthorizableRichErrors.TargetNotAuthorizedError(target));
         }
@@ -79,31 +66,18 @@ contract Authorizable is
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
-        external
-        onlyOwner
-    {
+    function removeAuthorizedAddressAtIndex(address target, uint256 index) external onlyOwner {
         _removeAuthorizedAddressAtIndex(target, index);
     }
 
     /// @dev Gets all authorized addresses.
     /// @return Array of authorized addresses.
-    function getAuthorizedAddresses()
-        external
-        view
-        returns (address[] memory)
-    {
+    function getAuthorizedAddresses() external view returns (address[] memory) {
         return authorities;
     }
 
     /// @dev Reverts if msg.sender is not authorized.
-    function _assertSenderIsAuthorized()
-        internal
-        view
-    {
+    function _assertSenderIsAuthorized() internal view {
         if (!authorized[msg.sender]) {
             LibRichErrors.rrevert(LibAuthorizableRichErrors.SenderNotAuthorizedError(msg.sender));
         }
@@ -111,9 +85,7 @@ contract Authorizable is
 
     /// @dev Authorizes an address.
     /// @param target Address to authorize.
-    function _addAuthorizedAddress(address target)
-        internal
-    {
+    function _addAuthorizedAddress(address target) internal {
         // Ensure that the target is not the zero address.
         if (target == address(0)) {
             LibRichErrors.rrevert(LibAuthorizableRichErrors.ZeroCantBeAuthorizedError());
@@ -132,26 +104,15 @@ contract Authorizable is
     /// @dev Removes authorizion of an address.
     /// @param target Address to remove authorization from.
     /// @param index Index of target in authorities array.
-    function _removeAuthorizedAddressAtIndex(
-        address target,
-        uint256 index
-    )
-        internal
-    {
+    function _removeAuthorizedAddressAtIndex(address target, uint256 index) internal {
         if (!authorized[target]) {
             LibRichErrors.rrevert(LibAuthorizableRichErrors.TargetNotAuthorizedError(target));
         }
         if (index >= authorities.length) {
-            LibRichErrors.rrevert(LibAuthorizableRichErrors.IndexOutOfBoundsError(
-                index,
-                authorities.length
-            ));
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.IndexOutOfBoundsError(index, authorities.length));
         }
         if (authorities[index] != target) {
-            LibRichErrors.rrevert(LibAuthorizableRichErrors.AuthorizedAddressMismatchError(
-                authorities[index],
-                target
-            ));
+            LibRichErrors.rrevert(LibAuthorizableRichErrors.AuthorizedAddressMismatchError(authorities[index], target));
         }
 
         delete authorized[target];

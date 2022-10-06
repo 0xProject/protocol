@@ -22,32 +22,21 @@ pragma experimental ABIEncoderV2;
 
 import "./TestMintableERC20Token.sol";
 
-
-contract TestWeth is
-    TestMintableERC20Token
-{
+contract TestWeth is TestMintableERC20Token {
     event Deposit(address owner, uint256 value);
     event Withdrawal(address owner, uint256 value);
 
-    function deposit()
-        external
-        payable
-    {
+    function deposit() external payable {
         this.mint(msg.sender, msg.value);
         emit Deposit(msg.sender, msg.value);
     }
 
-    function depositTo(address owner)
-        external
-        payable
-    {
+    function depositTo(address owner) external payable {
         this.mint(owner, msg.value);
         emit Deposit(owner, msg.value);
     }
 
-    function withdraw(uint256 amount)
-        external
-    {
+    function withdraw(uint256 amount) external {
         require(balanceOf[msg.sender] >= amount, "TestWeth/INSUFFICIENT_FUNDS");
         balanceOf[msg.sender] -= amount;
         msg.sender.transfer(amount);

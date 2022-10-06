@@ -8,10 +8,7 @@ contract TestUniswapV3Feature is UniswapV3Feature {
         IEtherTokenV06 weth,
         address uniFactory,
         bytes32 poolInitCodeHash
-    )
-        UniswapV3Feature(weth, uniFactory, poolInitCodeHash)
-        public
-    {}
+    ) public UniswapV3Feature(weth, uniFactory, poolInitCodeHash) {}
 
     receive() external payable {}
 }

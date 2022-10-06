@@ -21,9 +21,7 @@ pragma experimental ABIEncoderV2;
 
 import "../src/LibMath.sol";
 
-
 contract TestLibMath {
-
     /// @dev Calculates partial value given a numerator and denominator.
     ///      Reverts if rounding error is >= 0.1%
     /// @param numerator Numerator.
@@ -34,11 +32,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) public pure returns (uint256 partialAmount) {
         return LibMath.safeGetPartialAmountFloor(numerator, denominator, target);
     }
 
@@ -52,11 +46,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) public pure returns (uint256 partialAmount) {
         return LibMath.safeGetPartialAmountCeil(numerator, denominator, target);
     }
 
@@ -69,11 +59,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) public pure returns (uint256 partialAmount) {
         return LibMath.getPartialAmountFloor(numerator, denominator, target);
     }
 
@@ -86,11 +72,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) public pure returns (uint256 partialAmount) {
         return LibMath.getPartialAmountCeil(numerator, denominator, target);
     }
 
@@ -103,11 +85,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (bool isError)
-    {
+    ) public pure returns (bool isError) {
         return LibMath.isRoundingErrorFloor(numerator, denominator, target);
     }
 
@@ -120,11 +98,7 @@ contract TestLibMath {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        public
-        pure
-        returns (bool isError)
-    {
+    ) public pure returns (bool isError) {
         return LibMath.isRoundingErrorCeil(numerator, denominator, target);
     }
 }

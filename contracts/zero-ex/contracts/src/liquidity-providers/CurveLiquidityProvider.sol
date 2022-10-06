@@ -27,10 +27,7 @@ import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 import "../transformers/LibERC20Transformer.sol";
 import "../vendor/ILiquidityProvider.sol";
 
-
-contract CurveLiquidityProvider is
-    ILiquidityProvider
-{
+contract CurveLiquidityProvider is ILiquidityProvider {
     using LibERC20TokenV06 for IERC20TokenV06;
     using LibSafeMathV06 for uint256;
     using LibRichErrorsV06 for bytes;
@@ -61,14 +58,9 @@ contract CurveLiquidityProvider is
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        returns (uint256 boughtAmount)
-    {
+    ) external override returns (uint256 boughtAmount) {
         require(
-            !LibERC20Transformer.isTokenETH(inputToken)
-                && !LibERC20Transformer.isTokenETH(outputToken),
+            !LibERC20Transformer.isTokenETH(inputToken) && !LibERC20Transformer.isTokenETH(outputToken),
             "CurveLiquidityProvider/INVALID_ARGS"
         );
         boughtAmount = _executeSwap(
@@ -96,16 +88,8 @@ contract CurveLiquidityProvider is
         address recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        payable
-        override
-        returns (uint256 boughtAmount)
-    {
-        require(
-            !LibERC20Transformer.isTokenETH(outputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
-        );
+    ) external payable override returns (uint256 boughtAmount) {
+        require(!LibERC20Transformer.isTokenETH(outputToken), "CurveLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             LibERC20Transformer.ETH_TOKEN,
             outputToken,
@@ -130,15 +114,8 @@ contract CurveLiquidityProvider is
         address payable recipient,
         uint256 minBuyAmount,
         bytes calldata auxiliaryData
-    )
-        external
-        override
-        returns (uint256 boughtAmount)
-    {
-        require(
-            !LibERC20Transformer.isTokenETH(inputToken),
-            "CurveLiquidityProvider/INVALID_ARGS"
-        );
+    ) external override returns (uint256 boughtAmount) {
+        require(!LibERC20Transformer.isTokenETH(inputToken), "CurveLiquidityProvider/INVALID_ARGS");
         boughtAmount = _executeSwap(
             inputToken,
             LibERC20Transformer.ETH_TOKEN,
@@ -154,15 +131,10 @@ contract CurveLiquidityProvider is
     /// @dev Quotes the amount of `outputToken` that would be obtained by
     ///      selling `sellAmount` of `inputToken`.
     function getSellQuote(
-        IERC20TokenV06 /* inputToken */,
-        IERC20TokenV06 /* outputToken */,
+        IERC20TokenV06, /* inputToken */
+        IERC20TokenV06, /* outputToken */
         uint256 /* sellAmount */
-    )
-        external
-        view
-        override
-        returns (uint256)
-    {
+    ) external view override returns (uint256) {
         revert("CurveLiquidityProvider/NOT_IMPLEMENTED");
     }
 
@@ -174,28 +146,25 @@ contract CurveLiquidityProvider is
         uint256 minBuyAmount,
         CurveData memory data,
         address recipient // Only used to log event.
-    )
-        private
-        returns (uint256 boughtAmount)
-    {
-        uint256 sellAmount =
-            LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
+    ) private returns (uint256 boughtAmount) {
+        uint256 sellAmount = LibERC20Transformer.getTokenBalanceOf(inputToken, address(this));
         if (!LibERC20Transformer.isTokenETH(inputToken)) {
             inputToken.approveIfBelow(data.curveAddress, sellAmount);
         }
 
-        (bool success, bytes memory resultData) =
-            data.curveAddress.call
-                { value: LibERC20Transformer.isTokenETH(inputToken) ? sellAmount : 0 }
-                (abi.encodeWithSelector(
-                    data.exchangeFunctionSelector,
-                    data.fromCoinIdx,
-                    data.toCoinIdx,
-                    // dx
-                    sellAmount,
-                    // min dy
-                    minBuyAmount
-                ));
+        (bool success, bytes memory resultData) = data.curveAddress.call{
+            value: LibERC20Transformer.isTokenETH(inputToken) ? sellAmount : 0
+        }(
+            abi.encodeWithSelector(
+                data.exchangeFunctionSelector,
+                data.fromCoinIdx,
+                data.toCoinIdx,
+                // dx
+                sellAmount,
+                // min dy
+                minBuyAmount
+            )
+        );
         if (!success) {
             resultData.rrevert();
         }
@@ -205,8 +174,7 @@ contract CurveLiquidityProvider is
         } else {
             // Not all pool contracts return a `boughtAmount`, so we return
             // our balance of the output token if it wasn't returned.
-            boughtAmount = LibERC20Transformer
-                .getTokenBalanceOf(outputToken, address(this));
+            boughtAmount = LibERC20Transformer.getTokenBalanceOf(outputToken, address(this));
         }
 
         emit LiquidityProviderFill(

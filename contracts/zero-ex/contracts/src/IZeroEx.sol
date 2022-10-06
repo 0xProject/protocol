@@ -38,7 +38,6 @@ import "./features/interfaces/IERC721OrdersFeature.sol";
 import "./features/interfaces/IERC1155OrdersFeature.sol";
 import "./features/interfaces/IERC165Feature.sol";
 
-
 /// @dev Interface for a fully featured Exchange Proxy.
 interface IZeroEx is
     IOwnableFeature,

@@ -15,7 +15,7 @@ export const artifacts = {
     DummyERC20Token: DummyERC20Token as ContractArtifact,
     ERC20Token: ERC20Token as ContractArtifact,
     WETH9: WETH9 as ContractArtifact,
-    ZRXToken: (ZRXToken as any) as ContractArtifact,
+    ZRXToken: ZRXToken as any as ContractArtifact,
     DummyNoReturnERC20Token: DummyNoReturnERC20Token as ContractArtifact,
     DummyMultipleReturnERC20Token: DummyMultipleReturnERC20Token as ContractArtifact,
 };

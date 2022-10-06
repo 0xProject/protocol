@@ -26,10 +26,8 @@ import "../features/SimpleFunctionRegistryFeature.sol";
 import "../features/OwnableFeature.sol";
 import "./LibBootstrap.sol";
 
-
 /// @dev A contract for deploying and configuring a minimal ZeroEx contract.
 contract InitialMigration {
-
     /// @dev Features to bootstrap into the the proxy contract.
     struct BootstrapFeatures {
         SimpleFunctionRegistryFeature registry;
@@ -62,11 +60,7 @@ contract InitialMigration {
         address payable owner,
         ZeroEx zeroEx,
         BootstrapFeatures memory features
-    )
-        public
-        virtual
-        returns (ZeroEx _zeroEx)
-    {
+    ) public virtual returns (ZeroEx _zeroEx) {
         // Must be called by the allowed initializeCaller.
         require(msg.sender == initializeCaller, "InitialMigration/INVALID_SENDER");
 
@@ -88,28 +82,20 @@ contract InitialMigration {
     /// @param owner The new owner of the ZeroEx contract.
     /// @param features Features to bootstrap into the proxy.
     /// @return success Magic bytes if successful.
-    function bootstrap(address owner, BootstrapFeatures memory features)
-        public
-        virtual
-        returns (bytes4 success)
-    {
+    function bootstrap(address owner, BootstrapFeatures memory features) public virtual returns (bytes4 success) {
         // Deploy and migrate the initial features.
         // Order matters here.
 
         // Initialize Registry.
         LibBootstrap.delegatecallBootstrapFunction(
             address(features.registry),
-            abi.encodeWithSelector(
-                SimpleFunctionRegistryFeature.bootstrap.selector
-            )
+            abi.encodeWithSelector(SimpleFunctionRegistryFeature.bootstrap.selector)
         );
 
         // Initialize OwnableFeature.
         LibBootstrap.delegatecallBootstrapFunction(
             address(features.ownable),
-            abi.encodeWithSelector(
-                OwnableFeature.bootstrap.selector
-            )
+            abi.encodeWithSelector(OwnableFeature.bootstrap.selector)
         );
 
         // De-register `SimpleFunctionRegistryFeature._extendSelf`.

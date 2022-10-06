@@ -23,9 +23,7 @@ import "./LibSafeMathV06.sol";
 import "./errors/LibRichErrorsV06.sol";
 import "./errors/LibMathRichErrorsV06.sol";
 
-
 library LibMathV06 {
-
     using LibSafeMathV06 for uint256;
 
     /// @dev Calculates partial value given a numerator and denominator rounded down.
@@ -38,21 +36,9 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (uint256 partialAmount)
-    {
-        if (isRoundingErrorFloor(
-                numerator,
-                denominator,
-                target
-        )) {
-            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(
-                numerator,
-                denominator,
-                target
-            ));
+    ) internal pure returns (uint256 partialAmount) {
+        if (isRoundingErrorFloor(numerator, denominator, target)) {
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(numerator, denominator, target));
         }
 
         partialAmount = numerator.safeMul(target).safeDiv(denominator);
@@ -69,29 +55,15 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (uint256 partialAmount)
-    {
-        if (isRoundingErrorCeil(
-                numerator,
-                denominator,
-                target
-        )) {
-            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(
-                numerator,
-                denominator,
-                target
-            ));
+    ) internal pure returns (uint256 partialAmount) {
+        if (isRoundingErrorCeil(numerator, denominator, target)) {
+            LibRichErrorsV06.rrevert(LibMathRichErrorsV06.RoundingError(numerator, denominator, target));
         }
 
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator.safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }
@@ -105,11 +77,7 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) internal pure returns (uint256 partialAmount) {
         partialAmount = numerator.safeMul(target).safeDiv(denominator);
         return partialAmount;
     }
@@ -123,17 +91,11 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (uint256 partialAmount)
-    {
+    ) internal pure returns (uint256 partialAmount) {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator.safeMul(target)
-            .safeAdd(denominator.safeSub(1))
-            .safeDiv(denominator);
+        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
 
         return partialAmount;
     }
@@ -147,11 +109,7 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (bool isError)
-    {
+    ) internal pure returns (bool isError) {
         if (denominator == 0) {
             LibRichErrorsV06.rrevert(LibMathRichErrorsV06.DivisionByZeroError());
         }
@@ -182,11 +140,7 @@ library LibMathV06 {
         //        1000 * remainder  <  numerator * target
         // so we have a rounding error iff:
         //        1000 * remainder  >=  numerator * target
-        uint256 remainder = mulmod(
-            target,
-            numerator,
-            denominator
-        );
+        uint256 remainder = mulmod(target, numerator, denominator);
         isError = remainder.safeMul(1000) >= numerator.safeMul(target);
         return isError;
     }
@@ -200,11 +154,7 @@ library LibMathV06 {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        pure
-        returns (bool isError)
-    {
+    ) internal pure returns (bool isError) {
         if (denominator == 0) {
             LibRichErrorsV06.rrevert(LibMathRichErrorsV06.DivisionByZeroError());
         }
@@ -217,11 +167,7 @@ library LibMathV06 {
             return false;
         }
         // Compute remainder as before
-        uint256 remainder = mulmod(
-            target,
-            numerator,
-            denominator
-        );
+        uint256 remainder = mulmod(target, numerator, denominator);
         remainder = denominator.safeSub(remainder) % denominator;
         isError = remainder.safeMul(1000) >= numerator.safeMul(target);
         return isError;

@@ -23,10 +23,7 @@ pragma experimental ABIEncoderV2;
 import "../src/ZeroEx.sol";
 import "../src/migrations/FullMigration.sol";
 
-
-contract TestFullMigration is
-    FullMigration
-{
+contract TestFullMigration is FullMigration {
     address public dieRecipient;
 
     // solhint-disable-next-line no-empty-blocks

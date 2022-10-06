@@ -19,9 +19,7 @@
 
 pragma solidity ^0.6.12;
 
-
 interface IUniswapV3Pool {
-
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
     /// @param recipient The address to receive the output of the swap
@@ -38,7 +36,5 @@ interface IUniswapV3Pool {
         int256 amountSpecified,
         uint160 sqrtPriceLimitX96,
         bytes calldata data
-    )
-        external
-        returns (int256 amount0, int256 amount1);
+    ) external returns (int256 amount0, int256 amount1);
 }

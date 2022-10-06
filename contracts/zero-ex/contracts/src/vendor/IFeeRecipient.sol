@@ -20,9 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-
 interface IFeeRecipient {
-
     /// @dev A callback function invoked in the ERC721Feature for each ERC721
     ///      order fee that get paid. Integrators can make use of this callback
     ///      to implement arbitrary fee-handling logic, e.g. splitting the fee
@@ -38,7 +36,5 @@ interface IFeeRecipient {
         address tokenAddress,
         uint256 amount,
         bytes calldata feeData
-    )
-        external
-        returns (bytes4 success);
+    ) external returns (bytes4 success);
 }

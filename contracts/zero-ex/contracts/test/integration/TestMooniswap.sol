@@ -24,7 +24,6 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../tokens/TestMintableERC20Token.sol";
 
 contract TestMooniswap {
-
     event MooniswapCalled(
         uint256 value,
         IERC20TokenV06 sellToken,
@@ -36,10 +35,7 @@ contract TestMooniswap {
 
     uint256 public nextBuyAmount;
 
-    function setNextBoughtAmount(uint256 amt)
-        external
-        payable
-    {
+    function setNextBoughtAmount(uint256 amt) external payable {
         nextBuyAmount = amt;
     }
 
@@ -49,11 +45,7 @@ contract TestMooniswap {
         uint256 sellAmount,
         uint256 minBuyAmount,
         address referral
-    )
-        external
-        payable
-        returns(uint256 boughtAmount)
-    {
+    ) external payable returns (uint256 boughtAmount) {
         emit MooniswapCalled(
             msg.value,
             sellToken,
@@ -64,11 +56,11 @@ contract TestMooniswap {
         );
         boughtAmount = nextBuyAmount;
         nextBuyAmount = 0;
-        require(boughtAmount >= minBuyAmount, 'UNDERBOUGHT');
+        require(boughtAmount >= minBuyAmount, "UNDERBOUGHT");
         if (sellToken != IERC20TokenV06(0)) {
             sellToken.transferFrom(msg.sender, address(this), sellAmount);
         } else {
-            require(sellAmount == msg.value, 'NOT_ENOUGH_ETH');
+            require(sellAmount == msg.value, "NOT_ENOUGH_ETH");
         }
         if (address(buyToken) == address(0)) {
             msg.sender.transfer(boughtAmount);
