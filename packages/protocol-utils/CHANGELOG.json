@@ -1,10 +1,18 @@
 [
     {
+<<<<<<< HEAD
         "timestamp": 1665531940,
         "version": "11.16.13",
         "changes": [
             {
                 "note": "Dependencies updated"
+=======
+        "version": "11.16.13",
+        "changes": [
+            {
+                "note": "Fix FQT Otc encoding logic",
+                "pr": "596"
+>>>>>>> 40521c122 (changelog)
             }
         ]
     },
