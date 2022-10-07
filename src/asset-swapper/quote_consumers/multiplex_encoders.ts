@@ -1,4 +1,4 @@
-import { OtcOrder, RfqOrder, SIGNATURE_ABI } from '@0x/protocol-utils';
+import { RfqOrder, SIGNATURE_ABI } from '@0x/protocol-utils';
 import { AbiEncoder } from '@0x/utils';
 
 export enum MultiplexSubcall {
@@ -24,10 +24,6 @@ export const multiplexTransformERC20Encoder = AbiEncoder.create([
 ]);
 export const multiplexRfqEncoder = AbiEncoder.create([
     { name: 'order', type: 'tuple', components: RfqOrder.STRUCT_ABI },
-    { name: 'signature', type: 'tuple', components: SIGNATURE_ABI },
-]);
-export const multiplexOtcOrder = AbiEncoder.create([
-    { name: 'order', type: 'tuple', components: OtcOrder.STRUCT_ABI },
     { name: 'signature', type: 'tuple', components: SIGNATURE_ABI },
 ]);
 export const multiplexUniswapEncoder = AbiEncoder.create([

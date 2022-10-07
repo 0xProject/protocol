@@ -3,7 +3,6 @@ import {
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerRfqOrderInfo,
-    FillQuoteTransformerOtcOrderInfo,
 } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
@@ -178,8 +177,7 @@ export interface FillData {}
 // `FillData` for native fills. Represents a single native order
 export type NativeRfqOrderFillData = FillQuoteTransformerRfqOrderInfo;
 export type NativeLimitOrderFillData = FillQuoteTransformerLimitOrderInfo;
-export type NativeOtcOrderFillData = FillQuoteTransformerOtcOrderInfo;
-export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData | NativeOtcOrderFillData;
+export type NativeFillData = NativeRfqOrderFillData | NativeLimitOrderFillData;
 
 // Represents an individual DEX sample from the sampler contract
 export interface DexSample<TFillData extends FillData = FillData> {
@@ -418,18 +416,13 @@ export interface OptimizedRfqOrder extends OptimizedMarketOrderBase<NativeRfqOrd
     type: FillQuoteTransformerOrderType.Rfq;
 }
 
-export interface OptimizedOtcOrder extends OptimizedMarketOrderBase<NativeOtcOrderFillData> {
-    type: FillQuoteTransformerOrderType.Otc;
-}
-
 /**
  * Optimized orders to fill.
  */
 export type OptimizedMarketOrder =
     | OptimizedMarketBridgeOrder<FillData>
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
-    | OptimizedMarketOrderBase<NativeOtcOrderFillData>;
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>;
 
 export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
     rfqClient?: RfqClient;
