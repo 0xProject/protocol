@@ -81,6 +81,32 @@ interface IFQT{
 >>>>>>> 725dfe4db (working bridge Fills through weth transformer)
 
 contract ForkUtils is Test {
+<<<<<<< HEAD
+=======
+  
+    using stdJson for string;
+    //forked providers for each chain
+    mapping(string => uint256) public forkIds;
+
+    IZeroEx IZERO_EX;
+
+    IBridgeAdapter bridgeAdapter;
+    FillQuoteTransformer fillQuoteTransformer;
+
+    TokenAddresses tokens;
+    Addresses addresses;
+    LiquiditySources sources;
+
+    uint256 forkBlock = 15_000_000;
+
+    string[] chains = ["mainnet", "bsc", "polygon", "avalanche", "fantom", "optimism", "arbitrum"];
+    string[] indexChainIds = [".1", ".56", ".137", ".43114", ".250", ".10", ".42161"];
+    string[] chainIds = ["1", "56", "137", "43114", "250", "10", "42161"];
+    uint256[] chainId = [1, 56, 137, 43114, 250, 10, 42161];
+
+    //special fork block number for fantom since it produces blocks faster and more frequently
+    uint256[] blockNumber = [forkBlock, forkBlock, 33447149, forkBlock, 32000000, forkBlock, forkBlock];
+>>>>>>> 06f73f9d5 (added working otc fill through transformERC20 in FQT)
     /// Only run this function if the block number
     // is greater than some constant for Ethereum Mainnet
 <<<<<<< HEAD
@@ -101,8 +127,19 @@ contract ForkUtils is Test {
     function createForks() public returns (uint256[] memory) {
       for (uint256 i = 0; i < chains.length; i++) {
           forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
+          //forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
       }
     }
+    function getSigner() public returns (address, uint){
+      string memory mnemonic = "test test test test test test test test test test test junk";
+      uint256 privateKey = vm.deriveKey(mnemonic, 0);
+      
+      
+      vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
+      return (vm.addr(privateKey), privateKey);
+    }
+
+               
 
     function readLiquiditySourceAddresses() public returns (string memory) {
       string memory root = vm.projectRoot();
@@ -166,7 +203,7 @@ contract ForkUtils is Test {
     // log_named_address("     zeroEx/payTakerTransformer",addresses.payTakerTransformer);
     // log_named_address("     zeroEx/positiveSlippageFeeTransformer",addresses.positiveSlippageFeeTransformer);
     // log_named_address("     zeroEx/wethTransformer",addresses.wethTransformer);
-    // vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
+    vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
     vm.label(addresses.erc20BridgeProxy, "zeroEx/erc20BridgeProxy");
     vm.label(addresses.erc20BridgeSampler, "zeroEx/erc20BridgeSampler");
     vm.label(addresses.etherToken, "zeroEx/etherToken");
