@@ -697,6 +697,8 @@ export const ARBITRUM_TOKENS = {
     VST: '0x64343594ab9b56e99087bfa6f2335db24c2d1f17',
 };
 
+export const REBASING_TOKENS = new Set<string>([MAINNET_TOKENS.stETH]);
+
 export const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead

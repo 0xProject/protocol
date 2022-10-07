@@ -45,6 +45,7 @@ import {
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     NULL_ADDRESS,
     PLATYPUS_ROUTER_BY_CHAIN_ID,
+    REBASING_TOKENS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID,
     SYNTHETIX_READ_PROXY_BY_CHAIN_ID,
@@ -1525,6 +1526,12 @@ export class SamplerOperations {
                     case ERC20BridgeSource.MDex:
                     case ERC20BridgeSource.KnightSwap:
                     case ERC20BridgeSource.MeshSwap: {
+                        // Skip sampling when it involves a known rebasing token as it results in high revert rate.
+                        // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/common-errors#rebasing-tokens
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
+
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
