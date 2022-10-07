@@ -236,11 +236,16 @@ export class RfqtService {
      */
     public async getV2PricesAsync(parameters: RfqtV2RequestInternal): Promise<RfqtV2Prices> {
         const { integrator, makerToken, takerToken } = parameters;
-
         // Fetch the makers active on this pair
-        const makers = this._rfqMakerManager
-            .getRfqtV2MakersForPair(makerToken, takerToken)
-            .filter((m) => m.rfqtUri !== null);
+        const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
+            if (m.rfqtUri === null) {
+                return false;
+            }
+            if (integrator.whitelistMakerIds && !integrator.whitelistMakerIds.includes(m.makerId)) {
+                return false;
+            }
+            return true;
+        });
 
         // Short circuit if no makers are active
         if (!makers.length) {

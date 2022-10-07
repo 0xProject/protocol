@@ -406,6 +406,70 @@ describe('Rfqt Service', () => {
                   }
                 `);
             });
+            it('gets prices from whitelisted makers only', async () => {
+                const request = {
+                    assetFillAmount: new BigNumber(1000),
+                    chainId: 1337,
+                    integrator: {
+                        ...integrator,
+                        whitelistMakerIds: ['maker1'],
+                    },
+                    intentOnFilling: true,
+                    makerToken: '0x1',
+                    marketOperation: MarketOperation.Sell,
+                    takerAddress: '0x0',
+                    takerToken: '0x2',
+                    txOrigin: '0xtakeraddress',
+                };
+
+                const price: IndicativeQuote = {
+                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+                    expiry: new BigNumber(9999999999999999),
+                    maker: '0xmakeraddress',
+                    makerAmount: new BigNumber(1000),
+                    makerToken: '0x1',
+                    makerUri: 'maker.uri',
+                    takerAmount: new BigNumber(1001),
+                    takerToken: '0x2',
+                };
+
+                mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([
+                    {
+                        ...maker,
+                        makerId: 'maker1',
+                    },
+                    {
+                        ...maker,
+                        makerId: 'maker2',
+                    },
+                ]);
+                mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([price]);
+
+                const rfqtService = new RfqtService(
+                    1337, // tslint:disable-line: custom-no-magic-numbers
+                    mockRfqMakerManager,
+                    mockQuoteRequestor,
+                    mockQuoteServerClient,
+                    mockContractAddresses,
+                );
+
+                const result = await rfqtService.getV2PricesAsync(request);
+                expect(result.length).toEqual(1);
+                expect(result[0].makerId).toEqual('maker1');
+                expect(result[0]).toMatchInlineSnapshot(`
+                  Object {
+                    "expiry": "10000000000000000",
+                    "makerAddress": "0xmakeraddress",
+                    "makerAmount": "1000",
+                    "makerId": "maker1",
+                    "makerToken": "0x1",
+                    "makerUri": "maker.uri",
+                    "takerAmount": "1001",
+                    "takerToken": "0x2",
+                  }
+                `);
+            });
         });
         describe('getV2QuotesAsync', () => {
             const makerToken = '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE';
