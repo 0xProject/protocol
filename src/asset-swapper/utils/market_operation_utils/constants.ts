@@ -1010,6 +1010,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
             CELO_TOKENS.WETHv1,
             CELO_TOKENS.amCUSD,
             CELO_TOKENS.WBTC,
+            CELO_TOKENS.cUSD,
         ],
         [ChainId.Optimism]: [
             OPTIMISM_TOKENS.WETH,
