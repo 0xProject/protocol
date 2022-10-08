@@ -1685,6 +1685,10 @@ export class SamplerOperations {
                         return this.getMakerPsmSellQuotes(psmInfo, makerToken, takerToken, takerFillAmounts);
                     }
                     case ERC20BridgeSource.UniswapV3: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
                         const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(router) || !isValidAddress(quoter)) {
                             return [];
@@ -1868,6 +1872,11 @@ export class SamplerOperations {
                     case ERC20BridgeSource.MDex:
                     case ERC20BridgeSource.KnightSwap:
                     case ERC20BridgeSource.MeshSwap: {
+                        // Skip sampling when it involves a known rebasing token as it results in high revert rate.
+                        // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/common-errors#rebasing-tokens
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
                         const uniLikeRouter = uniswapV2LikeRouterAddress(this.chainId, source);
                         if (!isValidAddress(uniLikeRouter)) {
                             return [];
@@ -2021,6 +2030,10 @@ export class SamplerOperations {
                         return this.getMakerPsmBuyQuotes(psmInfo, makerToken, takerToken, makerFillAmounts);
                     }
                     case ERC20BridgeSource.UniswapV3: {
+                        // Rebasing tokens lead to a high revert rate.
+                        if (REBASING_TOKENS.has(takerToken) || REBASING_TOKENS.has(makerToken)) {
+                            return [];
+                        }
                         const { quoter, router } = UNISWAPV3_CONFIG_BY_CHAIN_ID[this.chainId];
                         if (!isValidAddress(router) || !isValidAddress(quoter)) {
                             return [];
