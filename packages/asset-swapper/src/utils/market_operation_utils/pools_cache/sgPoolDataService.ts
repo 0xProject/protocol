@@ -7,73 +7,44 @@ const queryWithLinear = gql`
     query fetchTopPoolsWithLinear($maxPoolsFetched: Int!) {
         pools: pools(
             first: $maxPoolsFetched
-            where: { swapEnabled: true }
+            where: { swapEnabled: true, totalShares_gt: "0" }
             orderBy: totalLiquidity
             orderDirection: desc
         ) {
-            id
+          id
+          address
+          poolType
+          swapFee
+          totalShares
+          tokens {
             address
-            poolType
-            swapFee
-            totalShares
-            tokens {
-                address
-                balance
-                decimals
-                weight
-                priceRate
-            }
-            tokensList
-            totalWeight
-            amp
-            expiryTime
-            unitSeconds
-            principalToken
-            baseToken
-            swapEnabled
-            wrappedIndex
-            mainIndex
-            lowerTarget
-            upperTarget
-        }
-    }
-`;
-
-const queryWithOutLinear = gql`
-    query fetchTopPoolsWithoutLinear($maxPoolsFetched: Int!) {
-        pools: pools(
-            first: $maxPoolsFetched
-            where: { swapEnabled: true }
-            orderBy: totalLiquidity
-            orderDirection: desc
-        ) {
-            id
-            address
-            poolType
-            swapFee
-            totalShares
-            tokens {
-                address
-                balance
-                decimals
-                weight
-                priceRate
-            }
-            tokensList
-            totalWeight
-            amp
-            expiryTime
-            unitSeconds
-            principalToken
-            baseToken
-            swapEnabled
+            balance
+            decimals
+            weight
+            priceRate
+          }
+          tokensList
+          totalWeight
+          amp
+          expiryTime
+          unitSeconds
+          principalToken
+          baseToken
+          swapEnabled
+          wrappedIndex
+          mainIndex
+          lowerTarget
+          upperTarget
+          sqrtAlpha
+          sqrtBeta
+          root3Alpha
         }
     }
 `;
 
 const QUERY_BY_CHAIN_ID: { [chainId: number]: string } = {
     [ChainId.Mainnet]: queryWithLinear,
-    [ChainId.Polygon]: queryWithOutLinear,
+    [ChainId.Polygon]: queryWithLinear,
 };
 
 const DEFAULT_MAX_POOLS_FETCHED = 96;
