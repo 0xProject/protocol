@@ -1,6 +1,7 @@
 [![Version](https://img.shields.io/github/package-json/v/0xProject/0x-api)](https://github.com/0xProject/0x-api/releases)
 [![Docs](https://img.shields.io/badge/docs-website-yellow.svg)](https://0x.org/docs/api)
 [![Chat with us on Discord](https://img.shields.io/badge/chat-Discord-blueViolet.svg)](https://discord.com/invite/d3FTX3M)
+[![Twitter](https://img.shields.io/badge/follow-twitter-brightgreen)](https://twitter.com/0xProject)
 [![Continuous Integration](https://github.com/0xProject/0x-api/workflows/Build%20and%20Test/badge.svg)](https://github.com/0xProject/0x-api/actions?query=workflow%3A%22Build+and+Test%22+branch%3Amaster)
 
 ![alt text](https://raw.githubusercontent.com/0xProject/0x-api/master/0x-api.png '0x API')
@@ -86,7 +87,7 @@ To get a local development version of `0x-api` running:
 | `ENABLE_PROMETHEUS_METRICS`            | Default: `false`                                                | A boolean determining whether to enable prometheus monitoring.                                                                                                                         |
 | `PROMETHEUS_PORT`                      | Default: `8080`                                                 | The port from which prometheus metrics should be served.                                                                                                                               |
 | `KAFKA_BROKERS`                        | Optional. No default.                                           | A comma separated list of Kafka broker servers                                                                                                                                         |
-| `KAFKA_TOPIC_QUOTE_REPORT`             | Optional. No default                                            | The name of the Kafka topic to publish quote reports on. Setting this and `KAFKA_BROKERS` enable publirhing.                                                                           |
+| `KAFKA_TOPIC_QUOTE_REPORT`             | Optional. No default                                            | The name of the Kafka topic to publish quote reports on. Setting this and `KAFKA_BROKERS` enable publishing.                                                                           |
 
 3. Install the dependencies:
 
