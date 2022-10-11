@@ -482,6 +482,26 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             if (sellTokenFeeAmount.isGreaterThan(0)) {
                 throw new Error('Affiliate fees denominated in sell token are not yet supported');
             }
+        } else if (feeType === AffiliateFeeType.GaslessFee && feeRecipient !== NULL_ADDRESS) {
+            if (buyTokenFeeAmount.isGreaterThan(0)) {
+                transforms.push({
+                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
+                    data: encodeAffiliateFeeTransformerData({
+                        fees: [
+                            {
+                                token: buyToken,
+                                amount: buyTokenFeeAmount,
+                                recipient: feeRecipient,
+                            },
+                        ],
+                    }),
+                });
+                // Adjust the minimum buy amount by the fee.
+                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
+            }
+            if (sellTokenFeeAmount.isGreaterThan(0)) {
+                throw new Error('Affiliate fees denominated in sell token are not yet supported');
+            }
         }
 
         // Return any unspent sell tokens.

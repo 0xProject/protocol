@@ -161,6 +161,8 @@ export const parseUtils = {
             feeType = AffiliateFeeType.PositiveSlippageFee;
         } else if (buyTokenPercentageFee > 0) {
             feeType = AffiliateFeeType.PercentageFee;
+        } else if (req.query.feeType === FeeParamTypes.GASLESS_FEE) {
+            feeType = AffiliateFeeType.GaslessFee;
         }
 
         if (feeType === AffiliateFeeType.PositiveSlippageFee) {

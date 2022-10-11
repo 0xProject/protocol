@@ -165,6 +165,7 @@ export interface TokenMetadata {
 export enum FeeParamTypes {
     POSITIVE_SLIPPAGE = 'POSITIVE_SLIPPAGE',
     FIXED = 'FIXED',
+    GASLESS_FEE = 'GASLESS_FEE',
 }
 
 export interface AffiliateFeeAmounts {
@@ -218,12 +219,14 @@ export interface SourceComparison {
     expectedSlippage: BigNumber | null;
 }
 
-export interface AffiliateFee {
-    feeType: AffiliateFeeType;
-    recipient: string;
-    sellTokenPercentageFee: number;
-    buyTokenPercentageFee: number;
-}
+export type AffiliateFee =
+    | { feeType: AffiliateFeeType.GaslessFee | AffiliateFeeType.PositiveSlippageFee; recipient: string }
+    | {
+          feeType: AffiliateFeeType.None | AffiliateFeeType.PercentageFee;
+          recipient: string;
+          sellTokenPercentageFee: number;
+          buyTokenPercentageFee: number;
+      };
 
 interface SwapQuoteParamsBase {
     sellAmount?: BigNumber;

@@ -68,7 +68,7 @@ import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
 import { RfqClient } from '../utils/rfq_client';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
-import { serviceUtils } from '../utils/service_utils';
+import { serviceUtils, getBuyTokenPercentageFeeOrZero } from '../utils/service_utils';
 import { SlippageModelFillAdjustor } from '../utils/slippage_model_fill_adjustor';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
 import { utils } from '../utils/utils';
@@ -150,7 +150,9 @@ export class SwapService {
         const unitTakerAmount = Web3Wrapper.toUnitAmount(totalTakerAmount, sellTokenDecimals);
         const guaranteedUnitMakerAmount = Web3Wrapper.toUnitAmount(guaranteedMakerAmount, buyTokenDecimals);
         const guaranteedUnitTakerAmount = Web3Wrapper.toUnitAmount(guaranteedTotalTakerAmount, sellTokenDecimals);
-        const affiliateFeeUnitMakerAmount = guaranteedUnitMakerAmount.times(affiliateFee.buyTokenPercentageFee);
+        const affiliateFeeUnitMakerAmount = guaranteedUnitMakerAmount.times(
+            getBuyTokenPercentageFeeOrZero(affiliateFee),
+        );
 
         const isSelling = buyAmount === undefined;
         // NOTE: In order to not communicate a price better than the actual quote we
@@ -314,7 +316,7 @@ export class SwapService {
         const amount =
             marketSide === MarketOperation.Sell
                 ? sellAmount
-                : buyAmount!.times(affiliateFee.buyTokenPercentageFee + 1).integerValue(BigNumber.ROUND_DOWN);
+                : buyAmount!.times(getBuyTokenPercentageFeeOrZero(affiliateFee) + 1).integerValue(BigNumber.ROUND_DOWN);
 
         // Fetch the Swap quote
         const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
