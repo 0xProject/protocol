@@ -1,8 +1,8 @@
 import * as chai from 'chai';
+import { bufferToHex, rlphash } from 'ethereumjs-util';
 import 'mocha';
 
 import { ChainId, getContractAddressesForChainOrThrow } from '../src';
-import { bufferToHex, rlphash } from 'ethereumjs-util';
 
 const expect = chai.expect;
 
