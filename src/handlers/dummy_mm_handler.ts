@@ -27,10 +27,6 @@ const RFQ1_MUMBAI = '0xbea1bca733a6f58c363d9eccfc62a806fa1afee7';
 const RFQ2_MUMBAI = '0x72115b83bb0dc128785f3a66ad7d2dc484852d0c';
 const RFQ3_MUMBAI = '0xb0a53dd97d672486f35787d23dc285a621537f21';
 
-const EXCHANGE_PROXY_OVERRIDE: { [key: number]: string } = {
-    80001: '0x924dd2bf617863ae94c44ba804cc09aefac82b9d', // 0x contract that we deployed on Mumbai for load testing.
-};
-
 const MM_PRIVATE_KEY =
     process.env.MM_PRIVATE_KEY || '0xf0d8f376ca991256ddb256fb7cd28d68d971b07f5c0cf62cf0294c1ff8078a90';
 const MM_ADDRESS = new Wallet(MM_PRIVATE_KEY).address;
@@ -490,9 +486,7 @@ export class DummyMMHandlers {
         const nowSeconds = Math.floor(Date.now() / ONE_SECOND_MS);
 
         // Get Exchange Proxy contract address
-        const exchangeProxyContractAddress: string = EXCHANGE_PROXY_OVERRIDE[chainId]
-            ? EXCHANGE_PROXY_OVERRIDE[chainId]
-            : getContractAddressesForChainOrThrow(chainId).exchangeProxy;
+        const exchangeProxyContractAddress: string = getContractAddressesForChainOrThrow(chainId).exchangeProxy;
 
         const otcOrder = new OtcOrder({
             txOrigin,
