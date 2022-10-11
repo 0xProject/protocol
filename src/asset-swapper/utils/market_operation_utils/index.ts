@@ -204,6 +204,13 @@ export class MarketOperationUtils {
             ],
         ] = await Promise.all([samplerPromise]);
 
+        if (outputAmountPerEth.isZero()) {
+            DEFAULT_INFO_LOGGER({ token: makerToken }, 'output conversion to native token is zero');
+        }
+        if (inputAmountPerEth.isZero()) {
+            DEFAULT_INFO_LOGGER({ token: takerToken }, 'input conversion to native token is zero');
+        }
+
         // Log the gas metrics
         SAMPLER_METRICS.logGasDetails({ side: 'sell', gasBefore, gasAfter });
         SAMPLER_METRICS.logBlockNumber(blockNumber);
