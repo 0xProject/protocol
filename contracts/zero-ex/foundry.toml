@@ -1,4 +1,4 @@
-[default]
+[profile.default]
 src = 'contracts/src'
 out = 'foundry-artifacts'
 test = 'contracts/test/foundry'
