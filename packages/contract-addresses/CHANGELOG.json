@@ -6,7 +6,8 @@
                 "note": "Remove Ropsten and Rinkeby addresses",
                 "pr": 597
             }
-        ]
+        ],
+        "timestamp": 1665531940
     },
     {
         "version": "6.24.0",

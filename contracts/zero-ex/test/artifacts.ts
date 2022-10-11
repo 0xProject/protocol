@@ -389,8 +389,7 @@ export const artifacts = {
     TestNoEthRecipient: TestNoEthRecipient as ContractArtifact,
     TestOrderSignerRegistryWithContractWallet: TestOrderSignerRegistryWithContractWallet as ContractArtifact,
     TestPermissionlessTransformerDeployerSuicidal: TestPermissionlessTransformerDeployerSuicidal as ContractArtifact,
-    TestPermissionlessTransformerDeployerTransformer:
-        TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
+    TestPermissionlessTransformerDeployerTransformer: TestPermissionlessTransformerDeployerTransformer as ContractArtifact,
     TestPropertyValidator: TestPropertyValidator as ContractArtifact,
     TestRfqOriginRegistration: TestRfqOriginRegistration as ContractArtifact,
     TestSimpleFunctionRegistryFeatureImpl1: TestSimpleFunctionRegistryFeatureImpl1 as ContractArtifact,

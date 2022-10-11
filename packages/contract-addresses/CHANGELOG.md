@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v6.25.0 - _October 11, 2022_
+
+    * Remove Ropsten and Rinkeby addresses (#597)
+
 ## v6.24.0 - _October 5, 2022_
 
     * Add missing zeroExGovernor for Arbitrum (#583)

@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v5.4.37 - _October 11, 2022_
+
+    * Dependencies updated
+
 ## v5.4.36 - _October 5, 2022_
 
     * Migrate from TSLint to ESLint and fix linting errors (#589)

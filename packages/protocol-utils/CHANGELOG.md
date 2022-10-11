@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.13 - _October 11, 2022_
+
+    * Dependencies updated
+
 ## v11.16.12 - _October 5, 2022_
 
     * tslint -> eslint (#582)
