@@ -111,8 +111,8 @@ contract UniswapV3Sampler {
             // Pick the best result from the pool paths.
             uint256 topBuyAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
-                if (address(poolPaths[j][0]) == address(0)) {
-                    break;
+                if (!isValidPoolPath(poolPaths[j])) {
+                    continue;
                 }
 
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
@@ -175,8 +175,8 @@ contract UniswapV3Sampler {
             // Pick the best result from the pool paths.
             uint256 topSellAmount = 0;
             for (uint256 j = 0; j < poolPaths.length; ++j) {
-                if (address(poolPaths[j][0]) == address(0)) {
-                    break;
+                if (!isValidPoolPath(poolPaths[j])) {
+                    continue;
                 }
 
                 // quoter requires path to be reversed for buys.
@@ -361,6 +361,15 @@ contract UniswapV3Sampler {
         }
         if (pool.token1().balanceOf(address(pool)) == 0) {
             return false;
+        }
+        return true;
+    }
+
+    function isValidPoolPath(IUniswapV3Pool[] memory poolPaths) private pure returns (bool) {
+        for (uint256 i = 0; i < poolPaths.length; i++) {
+            if (address(poolPaths[i]) == address(0)) {
+                return false;
+            }
         }
         return true;
     }
