@@ -28,7 +28,7 @@ export const artifacts = {
     MintableERC20Token: MintableERC20Token as ContractArtifact,
     UnlimitedAllowanceERC20Token: UnlimitedAllowanceERC20Token as ContractArtifact,
     WETH9: WETH9 as ContractArtifact,
-    ZRXToken: (ZRXToken as any) as ContractArtifact,
+    ZRXToken: ZRXToken as any as ContractArtifact,
     IERC20Token: IERC20Token as ContractArtifact,
     IEtherToken: IEtherToken as ContractArtifact,
     IERC20TokenV06: IERC20TokenV06 as ContractArtifact,

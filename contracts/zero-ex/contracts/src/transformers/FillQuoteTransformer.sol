@@ -90,8 +90,6 @@ contract FillQuoteTransformer is Transformer {
         IBridgeAdapter.BridgeOrder[] bridgeOrders;
         // Native limit orders. Sorted by fill sequence.
         LimitOrderInfo[] limitOrders;
-        // Otc orders. Sorted by fill sequence.
-        OtcOrderInfo[] otcOrders;
         // Native RFQ orders. Sorted by fill sequence.
         RfqOrderInfo[] rfqOrders;
         // The sequence to fill the orders in. Each item will fill the next
@@ -110,6 +108,8 @@ contract FillQuoteTransformer is Transformer {
         // `address(1)`: Send to the taker.
         // `address(2)`: Send to the sender (caller of `transformERC20()`).
         address payable refundReceiver;
+        // Otc orders. Sorted by fill sequence.
+        OtcOrderInfo[] otcOrders;
     }
 
     struct FillOrderResults {
