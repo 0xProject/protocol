@@ -489,7 +489,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     data: encodeAffiliateFeeTransformerData({
                         fees: [
                             {
-                                token: buyToken,
+                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
                                 amount: buyTokenFeeAmount,
                                 recipient: feeRecipient,
                             },
