@@ -79,14 +79,14 @@ export const fillQuoteTransformerDataEncoder = AbiEncoder.create([
                 type: 'tuple[]',
                 components: RFQ_ORDER_INFO_ABI_COMPONENTS,
             },
+            { name: 'fillSequence', type: 'uint8[]' },
+            { name: 'fillAmount', type: 'uint256' },
+            { name: 'refundReceiver', type: 'address' },
             {
                 name: 'otcOrders',
                 type: 'tuple[]',
                 components: OTC_ORDER_INFO_ABI_COMPONENTS,
             },
-            { name: 'fillSequence', type: 'uint8[]' },
-            { name: 'fillAmount', type: 'uint256' },
-            { name: 'refundReceiver', type: 'address' },
         ],
     },
 ]);
