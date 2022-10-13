@@ -840,6 +840,23 @@
     prettier "^1.16.3"
     to-snake-case "^1.0.0"
 
+"@0x/contracts-gen@^2.0.48":
+  version "2.0.48"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-gen/-/contracts-gen-2.0.48.tgz#fa308099246e0b694f4ee5a2d26a83445d2cc945"
+  integrity sha512-tTtrkD0Z28k8Y9feJ45LUXRhQKgwtQqgYMgPSbqBY+IOvXXKaNNmXHe/sy7n1RKJLo171ez6fM6NehA3ls57iw==
+  dependencies:
+    "@0x/sol-compiler" "^4.8.2"
+    "@0x/sol-resolver" "^3.1.13"
+    "@0x/types" "^3.3.7"
+    "@0x/typescript-typings" "^5.3.2"
+    "@0x/utils" "^7.0.0"
+    "@types/node" "12.12.54"
+    ethereum-types "^3.7.1"
+    lodash "^4.17.21"
+    mkdirp "^0.5.1"
+    prettier "^2.7.1"
+    to-snake-case "^1.0.0"
+
 "@0x/contracts-staking@^2.0.45":
   version "2.0.45"
   resolved "https://registry.yarnpkg.com/@0x/contracts-staking/-/contracts-staking-2.0.45.tgz#48a495d7ab1240cb4859e7a2ae6c1c78511bb6ed"
@@ -14011,7 +14028,7 @@ prettier-plugin-solidity@^1.0.0-beta.24:
     solidity-comments-extractor "^0.0.7"
     string-width "^4.2.3"
 
-prettier@2.7.1, prettier@^2.3.1:
+prettier@2.7.1, prettier@^2.3.1, prettier@^2.7.1:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"
   integrity sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==
