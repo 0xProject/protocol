@@ -143,21 +143,6 @@
     ethereum-types "^3.6.0"
     ethers "~4.0.4"
 
-"@0x/contract-wrappers@^13.21.1":
-  version "13.21.1"
-  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.21.1.tgz#717fcb08fc8a296dd4bccaf437bf81fae09c3699"
-  integrity sha512-WMc2szxU7Y2Ikh+Ir0vqnvhXps/lU/bW17ZZsLg6xKIUJjXwNs15piNTsiT1NmviGFaiwtIusDIjFiwslVqm0Q==
-  dependencies:
-    "@0x/assert" "^3.0.35"
-    "@0x/base-contract" "^7.0.0"
-    "@0x/contract-addresses" "^6.20.1"
-    "@0x/json-schemas" "^6.4.4"
-    "@0x/types" "^3.3.6"
-    "@0x/utils" "^7.0.0"
-    "@0x/web3-wrapper" "^8.0.0"
-    ethereum-types "^3.7.1"
-    ethers "~4.0.4"
-
 "@0x/contract-wrappers@^13.22.2":
   version "13.22.2"
   resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.22.2.tgz#519db94243db5b1791b36eb179edb4b281d5b888"
@@ -173,10 +158,25 @@
     ethereum-types "^3.7.1"
     ethers "~4.0.4"
 
-"@0x/contracts-erc20@^3.3.37":
-  version "3.3.37"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.37.tgz#05fcea32f8533df6b55428ee9584008f2957b286"
-  integrity sha512-icfQ6sP79Z6fBVHivflP6ZxiJuKRXCts1zPwq6UnbQN8UEMlCVX1SJzu7RumWExW0tIu7NJg6hi/kgiIJTKWFw==
+"@0x/contract-wrappers@^13.22.6":
+  version "13.22.6"
+  resolved "https://registry.yarnpkg.com/@0x/contract-wrappers/-/contract-wrappers-13.22.6.tgz#72858843977a9b37b3f1c6142b98fa85895728a0"
+  integrity sha512-dLdSHxQSd0ZQHoNha1dzH+j5gBE4AuTMD72yiu3wSEXK9frJD529+Qo3DLp64esdph3DKyOj43zZfQZ0VBhhCQ==
+  dependencies:
+    "@0x/assert" "^3.0.35"
+    "@0x/base-contract" "^7.0.0"
+    "@0x/contract-addresses" "^6.25.0"
+    "@0x/json-schemas" "^6.4.4"
+    "@0x/types" "^3.3.6"
+    "@0x/utils" "^7.0.0"
+    "@0x/web3-wrapper" "^8.0.0"
+    ethereum-types "^3.7.1"
+    ethers "~4.0.4"
+
+"@0x/contracts-erc20@^3.3.47":
+  version "3.3.47"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-erc20/-/contracts-erc20-3.3.47.tgz#ba83b09e89a872a725020e05be03c6220e90effe"
+  integrity sha512-lrMbk/j68nT1id+WAPIbieyn/w8yDDIaa7C8i54SR2mB9IGzqhT8DviGfi4Wii/lkZcFucFG9ngkwdX7X54yEg==
   dependencies:
     "@0x/base-contract" "^7.0.0"
     ethers "~4.0.4"
@@ -236,10 +236,10 @@
     make-promises-safe "^1.1.0"
     mocha "^6.2.0"
 
-"@0x/contracts-utils@^4.8.18":
-  version "4.8.18"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-utils/-/contracts-utils-4.8.18.tgz#769fa1120af5062879a674973a8516646308d050"
-  integrity sha512-ZGkysXpIty16Gp1LAgguL+BHI2n33+lspO9nZ//y/vJLQIj+ZlejgxDi8rEU+m4nzkaSXVjOy3y02NsXZRPaeA==
+"@0x/contracts-utils@^4.8.28":
+  version "4.8.28"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-utils/-/contracts-utils-4.8.28.tgz#4cb36a044bb80218c7ee5f828eec2fe4c6497e49"
+  integrity sha512-CPfDCzM7bf/R3QCCPBgsL2O6TRHTaW+qdg53H/QDw+SA+vNP7dpTn2b6icmS5XyCDDNdPzGI1vij46hml48GNg==
   dependencies:
     "@0x/base-contract" "^7.0.0"
     "@0x/typescript-typings" "^5.3.1"
@@ -247,13 +247,13 @@
     bn.js "^4.11.8"
     ethereum-types "^3.7.1"
 
-"@0x/contracts-zero-ex@^0.36.4":
-  version "0.36.4"
-  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.36.4.tgz#6a9a9f50f3547d1d7d70def9af02f04ad65ef936"
-  integrity sha512-772ZF8crH70yYtfcppiUm37ht8sxs5Po5PTZ1FghGo5jp6ZC/27V8Ng+SHOyk9kISJDOfrEG/19+YzEJQfatYw==
+"@0x/contracts-zero-ex@^0.37.7":
+  version "0.37.7"
+  resolved "https://registry.yarnpkg.com/@0x/contracts-zero-ex/-/contracts-zero-ex-0.37.7.tgz#5d616a823999a62287aa509f3163b9feff478700"
+  integrity sha512-pYMvT11ImZ33jU0x+qmm+kenptYfUKLJQyj9G3MYf7sRXUgxoRhftzZNGPzOHor8z4Gnq3EVZro/EKG5YD5buA==
   dependencies:
     "@0x/base-contract" "^7.0.0"
-    "@0x/protocol-utils" "^11.16.4"
+    "@0x/protocol-utils" "^11.16.14"
     "@0x/subproviders" "^7.0.0"
     "@0x/types" "^3.3.6"
     "@0x/typescript-typings" "^5.3.1"
@@ -366,18 +366,19 @@
     ethers "~4.0.4"
     lodash "^4.17.11"
 
-"@0x/protocol-utils@^11.16.4":
-  version "11.16.4"
-  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.16.4.tgz#5250f5cd6d567e4aba820b1e17c170c466d2ad4c"
-  integrity sha512-u5oG0hZEjTpFkvuRevE1klt0yR1yyYMEA6+QKQcjQB1jigAKJBZkXmRFV5PuueXVrNGwCJaBR2MwhoxAVxuGZg==
+"@0x/protocol-utils@^11.16.14":
+  version "11.16.14"
+  resolved "https://registry.yarnpkg.com/@0x/protocol-utils/-/protocol-utils-11.16.14.tgz#3071f2eb9cfbc5490789018a35902aabaaaf1d3d"
+  integrity sha512-kL4bnGV+cWSWjCbVB7cvdazScxEmKhZsPLhO5DgDw153vxyKLkMXv3ae0snLZ5P0jnHwSen9BzIcysxeGIq0yg==
   dependencies:
     "@0x/assert" "^3.0.35"
-    "@0x/contract-addresses" "^6.20.1"
-    "@0x/contract-wrappers" "^13.21.1"
+    "@0x/contract-addresses" "^6.25.0"
+    "@0x/contract-wrappers" "^13.22.6"
     "@0x/json-schemas" "^6.4.4"
     "@0x/subproviders" "^7.0.0"
     "@0x/utils" "^7.0.0"
     "@0x/web3-wrapper" "^8.0.0"
+    "@typescript-eslint/parser" "^5.38.0"
     chai "^4.0.1"
     ethereumjs-util "^7.0.10"
     ethers "~4.0.4"
@@ -2452,6 +2453,16 @@
     "@typescript-eslint/typescript-estree" "5.35.1"
     debug "^4.3.4"
 
+"@typescript-eslint/parser@^5.38.0":
+  version "5.40.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.40.0.tgz#432bddc1fe9154945660f67c1ba6d44de5014840"
+  integrity sha512-Ah5gqyX2ySkiuYeOIDg7ap51/b63QgWZA7w6AHtFrag7aH0lRQPbLzUjk0c9o5/KZ6JRkTTDKShL4AUrQa6/hw==
+  dependencies:
+    "@typescript-eslint/scope-manager" "5.40.0"
+    "@typescript-eslint/types" "5.40.0"
+    "@typescript-eslint/typescript-estree" "5.40.0"
+    debug "^4.3.4"
+
 "@typescript-eslint/scope-manager@5.35.1":
   version "5.35.1"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.35.1.tgz#ccb69d54b7fd0f2d0226a11a75a8f311f525ff9e"
@@ -2459,6 +2470,14 @@
   dependencies:
     "@typescript-eslint/types" "5.35.1"
     "@typescript-eslint/visitor-keys" "5.35.1"
+
+"@typescript-eslint/scope-manager@5.40.0":
+  version "5.40.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.40.0.tgz#d6ea782c8e3a2371ba3ea31458dcbdc934668fc4"
+  integrity sha512-d3nPmjUeZtEWRvyReMI4I1MwPGC63E8pDoHy0BnrYjnJgilBD3hv7XOiETKLY/zTwI7kCnBDf2vWTRUVpYw0Uw==
+  dependencies:
+    "@typescript-eslint/types" "5.40.0"
+    "@typescript-eslint/visitor-keys" "5.40.0"
 
 "@typescript-eslint/type-utils@5.35.1":
   version "5.35.1"
@@ -2474,6 +2493,11 @@
   resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.35.1.tgz#af355fe52a0cc88301e889bc4ada72f279b63d61"
   integrity sha512-FDaujtsH07VHzG0gQ6NDkVVhi1+rhq0qEvzHdJAQjysN+LHDCKDKCBRlZFFE0ec0jKxiv0hN63SNfExy0KrbQQ==
 
+"@typescript-eslint/types@5.40.0":
+  version "5.40.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.40.0.tgz#8de07e118a10b8f63c99e174a3860f75608c822e"
+  integrity sha512-V1KdQRTXsYpf1Y1fXCeZ+uhjW48Niiw0VGt4V8yzuaDTU8Z1Xl7yQDyQNqyAFcVhpYXIVCEuxSIWTsLDpHgTbw==
+
 "@typescript-eslint/typescript-estree@5.35.1":
   version "5.35.1"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.35.1.tgz#db878a39a0dbdc9bb133f11cdad451770bfba211"
@@ -2481,6 +2505,19 @@
   dependencies:
     "@typescript-eslint/types" "5.35.1"
     "@typescript-eslint/visitor-keys" "5.35.1"
+    debug "^4.3.4"
+    globby "^11.1.0"
+    is-glob "^4.0.3"
+    semver "^7.3.7"
+    tsutils "^3.21.0"
+
+"@typescript-eslint/typescript-estree@5.40.0":
+  version "5.40.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.40.0.tgz#e305e6a5d65226efa5471ee0f12e0ffaab6d3075"
+  integrity sha512-b0GYlDj8TLTOqwX7EGbw2gL5EXS2CPEWhF9nGJiGmEcmlpNBjyHsTwbqpyIEPVpl6br4UcBOYlcI2FJVtJkYhg==
+  dependencies:
+    "@typescript-eslint/types" "5.40.0"
+    "@typescript-eslint/visitor-keys" "5.40.0"
     debug "^4.3.4"
     globby "^11.1.0"
     is-glob "^4.0.3"
@@ -2505,6 +2542,14 @@
   integrity sha512-cEB1DvBVo1bxbW/S5axbGPE6b7FIMAbo3w+AGq6zNDA7+NYJOIkKj/sInfTv4edxd4PxJSgdN4t6/pbvgA+n5g==
   dependencies:
     "@typescript-eslint/types" "5.35.1"
+    eslint-visitor-keys "^3.3.0"
+
+"@typescript-eslint/visitor-keys@5.40.0":
+  version "5.40.0"
+  resolved "https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-5.40.0.tgz#dd2d38097f68e0d2e1e06cb9f73c0173aca54b68"
+  integrity sha512-ijJ+6yig+x9XplEpG2K6FUdJeQGGj/15U3S56W9IqXKJqleuD7zJ2AX/miLezwxpd7ZxDAqO87zWufKg+RPZyQ==
+  dependencies:
+    "@typescript-eslint/types" "5.40.0"
     eslint-visitor-keys "^3.3.0"
 
 "@xmldom/xmldom@^0.7.5":
