@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.16.14 - _October 13, 2022_
+
+    * Fix FQT Otc encoding logic (#596)
+
 ## v11.16.13 - _October 11, 2022_
 
     * Dependencies updated
