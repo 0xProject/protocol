@@ -8,7 +8,7 @@ import {
     SwapQuote,
     SwapQuoteOrdersBreakdown,
 } from '../asset-swapper';
-import { CHAIN_ID, FEE_RECIPIENT_ADDRESS } from '../config';
+import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, GASLESS_SWAP_FEE_ENABLED } from '../config';
 import {
     AFFILIATE_FEE_TRANSFORMER_GAS,
     HEX_BASE,
@@ -125,10 +125,12 @@ export const serviceUtils = {
         }
 
         if (fee.feeType === AffiliateFeeType.GaslessFee) {
-            const buyTokenFeeAmount = quote.makerAmountPerEth
-                .times(quote.gasPrice)
-                .times(quote.worstCaseQuoteInfo.gas)
-                .integerValue(BigNumber.ROUND_DOWN);
+            const buyTokenFeeAmount = GASLESS_SWAP_FEE_ENABLED
+                ? quote.makerAmountPerEth
+                      .times(quote.gasPrice)
+                      .times(quote.worstCaseQuoteInfo.gas)
+                      .integerValue(BigNumber.ROUND_DOWN)
+                : ZERO;
             return {
                 sellTokenFeeAmount: ZERO,
                 buyTokenFeeAmount,
