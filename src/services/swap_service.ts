@@ -475,6 +475,10 @@ export class SwapService {
             blockNumber: swapQuote.blockNumber,
         };
 
+        if (apiSwapQuote.buyAmount.lte(new BigNumber(0))) {
+            throw new InsufficientFundsError();
+        }
+
         // If the slippage Model is forced on for the integrator, or if they have opted in to slippage protection
         if (integrator?.slippageModel === true || enableSlippageProtection) {
             if (this.slippageModelManager) {
