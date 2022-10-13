@@ -1,6 +1,6 @@
 {
     "name": "@0x/asset-swapper",
-    "version": "16.66.13",
+    "version": "16.66.14",
     "private": true,
     "engines": {
         "node": ">=6.12"
@@ -35,13 +35,13 @@
         "@0x/base-contract": "^7.0.0",
         "@0x/contract-addresses": "^6.25.0",
         "@0x/contract-wrappers": "^13.22.6",
-        "@0x/contracts-erc20": "^3.3.46",
-        "@0x/contracts-zero-ex": "^0.37.6",
+        "@0x/contracts-erc20": "^3.3.47",
+        "@0x/contracts-zero-ex": "^0.37.7",
         "@0x/dev-utils": "^5.0.0",
         "@0x/fast-abi": "^0.0.5",
         "@0x/json-schemas": "^6.4.4",
         "@0x/neon-router": "^0.3.5",
-        "@0x/protocol-utils": "^11.16.13",
+        "@0x/protocol-utils": "^11.16.14",
         "@0x/quote-server": "^8.0.0",
         "@0x/types": "^3.3.6",
         "@0x/utils": "^7.0.0",
