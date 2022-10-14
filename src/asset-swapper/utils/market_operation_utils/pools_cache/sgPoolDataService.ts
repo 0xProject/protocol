@@ -1,13 +1,13 @@
 import { ChainId } from '@0x/contract-addresses';
 import { logUtils } from '@0x/utils';
-import { PoolDataService, SubgraphPoolBase } from '@balancer-labs/sdk';
+import { PoolDataService, SubgraphPoolBase } from '@balancer-labs/sor';
 import { gql, request } from 'graphql-request';
 
 const queryWithLinear = gql`
     query fetchTopPoolsWithLinear($maxPoolsFetched: Int!) {
         pools: pools(
             first: $maxPoolsFetched
-            where: { swapEnabled: true }
+            where: { swapEnabled: true, totalShares_not_in: ["0", "0.000000000001"] }
             orderBy: totalLiquidity
             orderDirection: desc
         ) {
@@ -35,45 +35,16 @@ const queryWithLinear = gql`
             mainIndex
             lowerTarget
             upperTarget
-        }
-    }
-`;
-
-const queryWithOutLinear = gql`
-    query fetchTopPoolsWithoutLinear($maxPoolsFetched: Int!) {
-        pools: pools(
-            first: $maxPoolsFetched
-            where: { swapEnabled: true }
-            orderBy: totalLiquidity
-            orderDirection: desc
-        ) {
-            id
-            address
-            poolType
-            swapFee
-            totalShares
-            tokens {
-                address
-                balance
-                decimals
-                weight
-                priceRate
-            }
-            tokensList
-            totalWeight
-            amp
-            expiryTime
-            unitSeconds
-            principalToken
-            baseToken
-            swapEnabled
+            sqrtAlpha
+            sqrtBeta
+            root3Alpha
         }
     }
 `;
 
 const QUERY_BY_CHAIN_ID: { [chainId: number]: string } = {
     [ChainId.Mainnet]: queryWithLinear,
-    [ChainId.Polygon]: queryWithOutLinear,
+    [ChainId.Polygon]: queryWithLinear,
     [ChainId.Arbitrum]: queryWithLinear,
 };
 

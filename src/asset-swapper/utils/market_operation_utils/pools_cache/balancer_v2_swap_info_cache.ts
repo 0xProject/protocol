@@ -1,8 +1,6 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import {
-    BalancerSDK,
-    BalancerSdkConfig,
     formatSequence,
     getTokenAddressesForSwap,
     NewPath,
@@ -10,7 +8,11 @@ import {
     PoolDictionary,
     RouteProposer,
     SwapTypes,
-} from '@balancer-labs/sdk';
+    SorConfig,
+    TokenPriceService,
+    SOR,
+} from '@balancer-labs/sor';
+import { JsonRpcProvider } from '@ethersproject/providers';
 
 import { DEFAULT_WARNING_LOGGER } from '../../../constants';
 import { LogFunction } from '../../../types';
@@ -21,6 +23,41 @@ import { CacheValue, EMPTY_BALANCER_SWAPS, SwapInfoCache } from './pair_swaps_ca
 import { SubgraphPoolDataService } from './sgPoolDataService';
 
 const ONE_DAY_MS = 24 * 60 * 60 * ONE_SECOND_MS;
+
+type BalancerChains = ChainId.Mainnet | ChainId.Polygon | ChainId.Arbitrum | ChainId.Goerli;
+
+const SOR_CONFIG: Record<BalancerChains, SorConfig> = {
+    [ChainId.Mainnet]: {
+        chainId: ChainId.Mainnet,
+        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+        weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        wETHwstETH: {
+            id: '0x32296969ef14eb0c6d29669c550d4a0449130230000200000000000000000080',
+            address: '0x32296969ef14eb0c6d29669c550d4a0449130230',
+        },
+    },
+    [ChainId.Polygon]: {
+        chainId: ChainId.Polygon,
+        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+        weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+    },
+    [ChainId.Arbitrum]: {
+        chainId: ChainId.Arbitrum,
+        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+        weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+    },
+    [ChainId.Goerli]: {
+        chainId: ChainId.Goerli,
+        vault: '0x65748E8287Ce4B9E6D83EE853431958851550311',
+        weth: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
+    },
+};
+
+class MockTokenPriceService implements TokenPriceService {
+    public async getNativeAssetPriceInToken(): Promise<string> {
+        return '';
+    }
+}
 
 export class BalancerV2SwapInfoCache extends SwapInfoCache {
     private static readonly _MAX_POOLS_PER_PATH = 4;
@@ -35,18 +72,22 @@ export class BalancerV2SwapInfoCache extends SwapInfoCache {
         cache: { [key: string]: CacheValue } = {},
     ) {
         super(cache);
-        const config: BalancerSdkConfig = {
-            network: chainId as number, // wtf TS
-            rpcUrl: '', // Not actually used by SDK for this.
-        };
-        const balancerSdk = new BalancerSDK(config);
-        // The RouteProposer finds paths between a token pair using direct/multihop/linearPool routes
-        this._routeProposer = balancerSdk.sor.routeProposer;
-        // Uses Subgraph to retrieve up to date pool data required for routeProposer
+        const provider = new JsonRpcProvider('');
         this._poolDataService = new SubgraphPoolDataService({
             chainId,
             subgraphUrl,
         });
+        const sor = new SOR(
+            provider,
+            SOR_CONFIG[chainId as BalancerChains],
+            this._poolDataService,
+            new MockTokenPriceService(),
+        );
+
+        // The RouteProposer finds paths between a token pair using direct/multihop/linearPool routes
+        this._routeProposer = sor.routeProposer;
+        // Uses Subgraph to retrieve up to date pool data required for routeProposer
+
         void this._loadTopPoolsAsync();
         // Reload the top pools every 12 hours
         setInterval(async () => void this._loadTopPoolsAsync(), ONE_DAY_MS / 2);

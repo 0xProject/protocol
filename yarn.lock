@@ -809,21 +809,10 @@
     "@babel/helper-validator-identifier" "^7.18.6"
     to-fast-properties "^2.0.0"
 
-"@balancer-labs/sdk@0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@balancer-labs/sdk/-/sdk-0.1.6.tgz#1a6f0aacfada7b0afbdf02259ef40ed37d3ecbcb"
-  integrity sha512-r9s7Y2XJks+8V53kqwaqHDAETipgFSEQxI7TFHYigoOtWp/sUaZnlu0kDMv3NuDvya0+t9gp5a0VxbztLwcn+g==
-  dependencies:
-    "@balancer-labs/sor" "^4.0.0-beta.2"
-    axios "^0.24.0"
-    graphql "^15.6.1"
-    graphql-request "^3.5.0"
-    lodash "^4.17.21"
-
-"@balancer-labs/sor@^4.0.0-beta.2":
-  version "4.0.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-4.0.0-beta.6.tgz#1ee214b49184702ff10c73bfdd2e7c9b58be2950"
-  integrity sha512-tdnBIUf+NlHulMvCSh2FguE59z7o863mjtp6oWxz1PF3G5L3V4TCF39FrIho+z2/+J2iPqMXNBWRnF7luOBIDw==
+"@balancer-labs/sor@^4.0.1-beta.5":
+  version "4.0.1-beta.5"
+  resolved "https://registry.yarnpkg.com/@balancer-labs/sor/-/sor-4.0.1-beta.5.tgz#a65efd0cbfbf9ce41694387f9c89e617f5c3d07a"
+  integrity sha512-HRww8+5MtV+cTNiAVgpeEBAHCFrsXApibkkKZxB9Lazv5imhM/f0/RYDie+I9S+p57m82njQOr1L0k5MSUSrPw==
   dependencies:
     isomorphic-fetch "^2.2.1"
 
@@ -1390,7 +1379,7 @@
   dependencies:
     "@ethersproject/logger" "^5.7.0"
 
-"@ethersproject/networks@^5.5.0", "@ethersproject/networks@^5.6.0":
+"@ethersproject/networks@^5.6.0":
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/networks/-/networks-5.6.1.tgz#7a21ed1f83e86121737b16841961ec99ccf5c9c7"
   dependencies:
@@ -1463,27 +1452,29 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
-"@ethersproject/providers@^5.0.4":
-  version "5.5.2"
-  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.5.2.tgz#131ccf52dc17afd0ab69ed444b8c0e3a27297d99"
+"@ethersproject/providers@^5.7.1":
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.7.1.tgz#b0799b616d5579cd1067a8ebf1fc1ec74c1e122c"
+  integrity sha512-vZveG/DLyo+wk4Ga1yx6jSEHrLPgmTt+dFv0dv8URpVCRf0jVhalps1jq/emN/oXnMRsC7cQgAF32DcXLL7BPQ==
   dependencies:
-    "@ethersproject/abstract-provider" "^5.5.0"
-    "@ethersproject/abstract-signer" "^5.5.0"
-    "@ethersproject/address" "^5.5.0"
-    "@ethersproject/basex" "^5.5.0"
-    "@ethersproject/bignumber" "^5.5.0"
-    "@ethersproject/bytes" "^5.5.0"
-    "@ethersproject/constants" "^5.5.0"
-    "@ethersproject/hash" "^5.5.0"
-    "@ethersproject/logger" "^5.5.0"
-    "@ethersproject/networks" "^5.5.0"
-    "@ethersproject/properties" "^5.5.0"
-    "@ethersproject/random" "^5.5.0"
-    "@ethersproject/rlp" "^5.5.0"
-    "@ethersproject/sha2" "^5.5.0"
-    "@ethersproject/strings" "^5.5.0"
-    "@ethersproject/transactions" "^5.5.0"
-    "@ethersproject/web" "^5.5.0"
+    "@ethersproject/abstract-provider" "^5.7.0"
+    "@ethersproject/abstract-signer" "^5.7.0"
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/base64" "^5.7.0"
+    "@ethersproject/basex" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/bytes" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/hash" "^5.7.0"
+    "@ethersproject/logger" "^5.7.0"
+    "@ethersproject/networks" "^5.7.0"
+    "@ethersproject/properties" "^5.7.0"
+    "@ethersproject/random" "^5.7.0"
+    "@ethersproject/rlp" "^5.7.0"
+    "@ethersproject/sha2" "^5.7.0"
+    "@ethersproject/strings" "^5.7.0"
+    "@ethersproject/transactions" "^5.7.0"
+    "@ethersproject/web" "^5.7.0"
     bech32 "1.1.4"
     ws "7.4.6"
 
@@ -1494,13 +1485,6 @@
   dependencies:
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/logger" "^5.7.0"
-
-"@ethersproject/random@^5.5.0":
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/@ethersproject/random/-/random-5.5.1.tgz#7cdf38ea93dc0b1ed1d8e480ccdaf3535c555415"
-  dependencies:
-    "@ethersproject/bytes" "^5.5.0"
-    "@ethersproject/logger" "^5.5.0"
 
 "@ethersproject/rlp@5.7.0", "@ethersproject/rlp@^5.7.0":
   version "5.7.0"
@@ -1708,7 +1692,7 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@ethersproject/web@^5.5.0", "@ethersproject/web@^5.6.0":
+"@ethersproject/web@^5.6.0":
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/web/-/web-5.6.0.tgz#4bf8b3cbc17055027e1a5dd3c357e37474eaaeb8"
   dependencies:
@@ -2962,12 +2946,6 @@ axios@^0.21.1:
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
   dependencies:
     follow-redirects "^1.14.0"
-
-axios@^0.24.0:
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.24.0.tgz#804e6fa1e4b9c5288501dd9dff56a7a0940d20d6"
-  dependencies:
-    follow-redirects "^1.14.4"
 
 babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -6432,7 +6410,7 @@ flow-stoplight@^1.0.0:
   resolved "https://registry.yarnpkg.com/flow-stoplight/-/flow-stoplight-1.0.0.tgz#4a292c5bcff8b39fa6cc0cb1a853d86f27eeff7b"
   integrity sha512-rDjbZUKpN8OYhB0IE/vY/I8UWO/602IIJEU/76Tv4LvYnwHCk0BCsvz4eRr9n+FQcri7L5cyaXOo0+/Kh4HisA==
 
-follow-redirects@^1.12.1, follow-redirects@^1.14.0, follow-redirects@^1.14.4:
+follow-redirects@^1.12.1, follow-redirects@^1.14.0:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.1.tgz#0ca6a452306c9b276e4d3127483e29575e207ad5"
   integrity sha512-yLAMQs+k0b2m7cVxpS1VKJVvoz7SS9Td1zss3XRwXj+ZDH00RJgnuLx7E44wx02kQLrdM3aOOy+FpzS7+8OizA==
@@ -6902,7 +6880,7 @@ grapheme-splitter@^1.0.4:
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
 
-graphql-request@^3.4.0, graphql-request@^3.5.0:
+graphql-request@^3.4.0:
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-3.7.0.tgz#c7406e537084f8b9788541e3e6704340ca13055b"
   dependencies:
@@ -6910,7 +6888,7 @@ graphql-request@^3.4.0, graphql-request@^3.5.0:
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
-graphql@^15.4.0, graphql@^15.6.1:
+graphql@^15.4.0:
   version "15.8.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.8.0.tgz#33410e96b012fa3bdb1091cc99a94769db212b38"
 
