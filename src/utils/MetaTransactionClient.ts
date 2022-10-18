@@ -1,4 +1,4 @@
-import { pino, ValidationErrorItem } from '@0x/api-utils';
+import { pino, ValidationError, ValidationErrorCodes, ValidationErrorItem } from '@0x/api-utils';
 import { SwapQuoterError } from '@0x/asset-swapper';
 import { MetaTransaction } from '@0x/protocol-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
@@ -6,6 +6,7 @@ import { BigNumber } from '@0x/utils';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { BAD_REQUEST } from 'http-status-codes';
 import { Summary } from 'prom-client';
+import { APIErrorCodes } from '../errors';
 
 import { FetchIndicativeQuoteResponse } from '../services/types';
 
@@ -150,8 +151,37 @@ export async function getQuoteAsync(
                     );
                 return null;
             }
+
+            // The response for insufficient fund error (primarily caused by trading amount is less than the fee)
+            // is a 400 status and with a body like:
+            // {
+            //      "code": 109,
+            //      "reason": "Insufficient funds for transaction"
+            // }
+            if (
+                axiosError.response?.status === BAD_REQUEST &&
+                axiosError.response?.data?.code === APIErrorCodes.InsufficientFundsError
+            ) {
+                if (params.sellAmount) {
+                    throw new ValidationError([
+                        {
+                            field: 'sellAmount',
+                            code: ValidationErrorCodes.FieldInvalid,
+                            reason: 'sellAmount too small',
+                        },
+                    ]);
+                }
+
+                throw new ValidationError([
+                    {
+                        field: 'buyAmount',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: 'buyAmount too small',
+                    },
+                ]);
+            }
         }
-        // This error is not the standard no liquidity error
+        // This error is neither the standard no liquidity error nor the insufficient fund error
         throw e;
     }
 

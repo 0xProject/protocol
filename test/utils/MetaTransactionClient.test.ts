@@ -1,8 +1,10 @@
+import { ValidationError } from '@0x/api-utils';
 import { MetaTransaction } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { BAD_REQUEST, NOT_ACCEPTABLE, OK } from 'http-status-codes';
+import { APIErrorCodes, apiErrorCodesToReasons } from '../../src/errors';
 
 import { getQuoteAsync } from '../../src/utils/MetaTransactionClient';
 
@@ -124,7 +126,40 @@ describe('MetaTransactionClient', () => {
             expect(response).toBeNull();
         });
 
-        it("should throw an error if the response doesn't match the no liquidity response", async () => {
+        it('should throw validation error when meta-trnsaction server returns the insufficient fund error', async () => {
+            const exampleInsufficientFundErrorResponse = {
+                code: APIErrorCodes.InsufficientFundsError,
+                reason: apiErrorCodesToReasons[APIErrorCodes.InsufficientFundsError],
+            };
+
+            const url = new URL('https://quoteserver.pizza/quote');
+
+            axiosMock.onGet(url.toString()).reply(BAD_REQUEST, exampleInsufficientFundErrorResponse);
+
+            await expect(() =>
+                getQuoteAsync(axiosClient, url, {
+                    buyToken: 'USDC',
+                    integratorId: 'integrator-id',
+                    sellToken: '0x0000000000000000000000000000000000000000',
+                    sellAmount: new BigNumber(1000000000000000000000),
+                    takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                    slippagePercentage: new BigNumber(0.2),
+                }),
+            ).rejects.toThrow(ValidationError);
+
+            await expect(() =>
+                getQuoteAsync(axiosClient, url, {
+                    buyToken: 'USDC',
+                    integratorId: 'integrator-id',
+                    sellToken: '0x0000000000000000000000000000000000000000',
+                    buyAmount: new BigNumber(1000000000000000000000),
+                    takerAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+                    slippagePercentage: new BigNumber(0.2),
+                }),
+            ).rejects.toThrow(ValidationError);
+        });
+
+        it("should throw an error if the response doesn't match the no liquidity response + the insufficient fund error", async () => {
             const url = new URL('https://quoteserver.pizza/quote');
 
             axiosMock.onGet(url.toString()).replyOnce(NOT_ACCEPTABLE);

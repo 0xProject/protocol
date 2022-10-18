@@ -1,5 +1,5 @@
 // tslint:disable: max-file-line-count
-import { ValidationError } from '@0x/api-utils';
+import { ValidationError, ValidationErrorCodes } from '@0x/api-utils';
 import { AssetSwapperContractAddresses as ContractAddresses, SupportedProvider } from '@0x/asset-swapper';
 import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
@@ -315,6 +315,43 @@ describe('GaslessSwapService', () => {
                 }),
             ).rejects.toThrow('Error fetching price');
         });
+
+        it('throws validation error if AMM quote throws validation error', async () => {
+            getMetaTransactionQuoteAsyncMock.mockImplementation(() => {
+                throw new ValidationError([
+                    {
+                        field: 'sellAmount',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: 'sellAmount too small',
+                    },
+                ]);
+            });
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValue({ quote: null, quoteReportId: null });
+
+            await expect(() =>
+                gaslessSwapService.fetchPriceAsync({
+                    buyAmount: new BigNumber(1800054805473),
+                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyTokenDecimals: 6,
+                    integrator: {} as Integrator,
+                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    sellTokenDecimals: 18,
+                    takerAddress: '0xtaker',
+                }),
+            ).rejects.toThrow(ValidationError);
+
+            await expect(() =>
+                gaslessSwapService.fetchPriceAsync({
+                    sellAmount: new BigNumber(1800054805473),
+                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyTokenDecimals: 6,
+                    integrator: {} as Integrator,
+                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    sellTokenDecimals: 18,
+                    takerAddress: '0xtaker',
+                }),
+            ).rejects.toThrow(ValidationError);
+        });
     });
     describe('fetchQuoteAsync', () => {
         it('gets an RFQ quote if available', async () => {
@@ -416,6 +453,45 @@ describe('GaslessSwapService', () => {
                   "type": "metatransaction",
                 }
             `);
+        });
+
+        it('throws validation error if AMM quote throws validation error', async () => {
+            getMetaTransactionQuoteAsyncMock.mockImplementation(() => {
+                throw new ValidationError([
+                    {
+                        field: 'sellAmount',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: 'sellAmount too small',
+                    },
+                ]);
+            });
+            mockRfqmService.fetchFirmQuoteAsync.mockResolvedValue({ quote: null, quoteReportId: null });
+
+            await expect(() =>
+                gaslessSwapService.fetchQuoteAsync({
+                    buyAmount: new BigNumber(1800054805473),
+                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyTokenDecimals: 6,
+                    integrator: {} as Integrator,
+                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    sellTokenDecimals: 18,
+                    takerAddress: '0xtaker',
+                    checkApproval: false,
+                }),
+            ).rejects.toThrow(ValidationError);
+
+            await expect(() =>
+                gaslessSwapService.fetchQuoteAsync({
+                    sellAmount: new BigNumber(1800054805473),
+                    buyToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                    buyTokenDecimals: 6,
+                    integrator: {} as Integrator,
+                    sellToken: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
+                    sellTokenDecimals: 18,
+                    takerAddress: '0xtaker',
+                    checkApproval: false,
+                }),
+            ).rejects.toThrow(ValidationError);
         });
 
         it('adds an affiliate address if one is included in the integrator configuration but not in the quote request', async () => {

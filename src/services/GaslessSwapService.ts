@@ -183,6 +183,9 @@ export class GaslessSwapService {
                 };
             }
         } catch (e) {
+            if (e instanceof ValidationError) {
+                throw e;
+            }
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
                 this._chainId.toString(),
                 GaslessSwapServiceErrorReason.AmmPriceError,
@@ -271,6 +274,10 @@ export class GaslessSwapService {
                 };
             }
         } catch (e) {
+            if (e instanceof ValidationError) {
+                throw e;
+            }
+
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
                 this._chainId.toString(),
                 GaslessSwapServiceErrorReason.AmmQuoteError,
