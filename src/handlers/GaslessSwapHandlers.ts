@@ -89,7 +89,7 @@ export class GaslessSwapHandlers {
                 integratorLabel: params.integrator.label,
                 endpoint: '/price',
             });
-            throw new InternalServerError('Unexpected error encountered');
+            throw err;
         }
 
         // Result
@@ -121,7 +121,7 @@ export class GaslessSwapHandlers {
                 integratorLabel: params.integrator.label,
                 endpoint: '/quote',
             });
-            throw new InternalServerError('Unexpected error encountered');
+            throw err;
         }
         // Result
         res.status(HttpStatus.OK).send({
