@@ -21,7 +21,7 @@
         "dev:service:processor": "nodemon -r dotenv/config src/runners/background/processor_runner.ts | pino-pretty",
         "dev:service:bull_board": "nodemon -r dotenv/config src/runners/background/bull_board_runner.ts | pino-pretty",
         "fix": "eslint . --ext .ts --fix && yarn prettier",
-        "lint": "eslint . --ext .ts --format stylish && yarn prettier:ci",
+        "lint": "eslint . --ext .ts && yarn prettier:ci",
         "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
         "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
         "start:service:dummy_mm_http": "nodemon -r dotenv/config lib/src/runners/http_dummy_mm_runner.js",
