@@ -32,7 +32,6 @@ import {
 import { AbstractPoolsCache } from '../../src/asset-swapper/utils/market_operation_utils/pools_cache';
 import { DexOrderSampler } from '../../src/asset-swapper/utils/market_operation_utils/sampler';
 import { BATCH_SOURCE_FILTERS } from '../../src/asset-swapper/utils/market_operation_utils/sampler_operations';
-import { SourceFilters } from '../../src/asset-swapper/utils/market_operation_utils/source_filters';
 import {
     AggregationError,
     DexSample,
@@ -157,9 +156,9 @@ describe('MarketOperationUtils tests', () => {
     };
 
     function getMockedQuoteRequestor(
-        type: 'indicative' | 'firm',
-        results: SignedNativeOrder[],
-        verifiable: TypeMoq.Times,
+        _type: 'indicative' | 'firm',
+        _results: SignedNativeOrder[],
+        _verifiable: TypeMoq.Times,
     ): TypeMoq.IMock<QuoteRequestor> {
         const args: [any, any, any, any, any, any] = [
             TypeMoq.It.isAny(),

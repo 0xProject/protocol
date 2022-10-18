@@ -7,11 +7,11 @@ import {
 } from '../utils/market_operation_utils/orders';
 import {
     ERC20BridgeSource,
-    NativeLimitOrderFillData,
-    NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
-    OptimizedMarketOrderBase,
+    OptimizedOtcOrder,
+    OptimizedRfqOrder,
+    OptimizedLimitOrder,
 } from '../utils/market_operation_utils/types';
 
 const MULTIPLEX_BATCH_FILL_SOURCES = [
@@ -99,12 +99,16 @@ function isOptimizedBridgeOrder(x: OptimizedMarketOrder): x is OptimizedMarketBr
     return x.type === FillQuoteTransformerOrderType.Bridge;
 }
 
-function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeLimitOrderFillData> {
+function isOptimizedLimitOrder(x: OptimizedMarketOrder): x is OptimizedLimitOrder {
     return x.type === FillQuoteTransformerOrderType.Limit;
 }
 
-function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedRfqOrder {
     return x.type === FillQuoteTransformerOrderType.Rfq;
+}
+
+function isOptimizedOtcOrder(x: OptimizedMarketOrder): x is OptimizedOtcOrder {
+    return x.type === FillQuoteTransformerOrderType.Otc;
 }
 
 /**
@@ -113,11 +117,15 @@ function isOptimizedRfqOrder(x: OptimizedMarketOrder): x is OptimizedMarketOrder
  */
 export function getFQTTransformerDataFromOptimizedOrders(
     orders: OptimizedMarketOrder[],
-): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> {
-    const fqtData: Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'fillSequence'> = {
+): Pick<FillQuoteTransformerData, 'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'> {
+    const fqtData: Pick<
+        FillQuoteTransformerData,
+        'bridgeOrders' | 'limitOrders' | 'rfqOrders' | 'otcOrders' | 'fillSequence'
+    > = {
         bridgeOrders: [],
         limitOrders: [],
         rfqOrders: [],
+        otcOrders: [],
         fillSequence: [],
     };
 
@@ -137,6 +145,12 @@ export function getFQTTransformerDataFromOptimizedOrders(
             });
         } else if (isOptimizedRfqOrder(order)) {
             fqtData.rfqOrders.push({
+                order: order.fillData.order,
+                signature: order.fillData.signature,
+                maxTakerTokenFillAmount: order.takerAmount,
+            });
+        } else if (isOptimizedOtcOrder(order)) {
+            fqtData.otcOrders.push({
                 order: order.fillData.order,
                 signature: order.fillData.signature,
                 maxTakerTokenFillAmount: order.takerAmount,
