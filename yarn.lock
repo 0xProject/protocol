@@ -7319,6 +7319,11 @@ globrex@^0.1.2:
   resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
   integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
 
+google-protobuf@^3.21.0:
+  version "3.21.2"
+  resolved "https://registry.yarnpkg.com/google-protobuf/-/google-protobuf-3.21.2.tgz#4580a2bea8bbb291ee579d1fefb14d6fa3070ea4"
+  integrity sha512-3MSOYFO5U9mPGikIYCzK0SaThypfGgS6bHqrUGXG3DPHCrb+txNqeEcns1W0lkGfk0rCyNXm7xB9rMxnCiZOoA==
+
 got@9.6.0:
   version "9.6.0"
   resolved "https://registry.yarnpkg.com/got/-/got-9.6.0.tgz#edf45e7d67f99545705de1f7bbeeeb121765ed85"
@@ -10876,6 +10881,11 @@ prettier@^2.3.1:
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.2.tgz#e26d71a18a74c3d0f0597f55f01fb6c06c206032"
   integrity sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==
 
+prettier@^2.7.1:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.7.1.tgz#e235806850d057f97bb08368a4f7d899f7760c64"
+  integrity sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==
+
 pretty-format@^27.0.0, pretty-format@^27.5.1:
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/pretty-format/-/pretty-format-27.5.1.tgz#2181879fdea51a7a5851fb39d920faa63f01d88e"
@@ -10927,6 +10937,14 @@ prompts@^2.0.1:
   dependencies:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
+
+protoscript@0.0.13:
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/protoscript/-/protoscript-0.0.13.tgz#28f98d53c375262f5eb0181abb418c9fabf4f52e"
+  integrity sha512-NzpseKcnlFsAU2JjTfv97r875P4uEu4gGslKeoW/iT9rBh4tWU+8/xj1WlLbatafAIO6AyF+4VccUKeWlJPIcQ==
+  dependencies:
+    google-protobuf "^3.21.0"
+    prettier "^2.7.1"
 
 proxy-addr@~2.0.7:
   version "2.0.7"
@@ -12865,6 +12883,13 @@ tweetnacl@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.3.tgz#ac0af71680458d8a6378d0d0d050ab1407d35596"
   integrity sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==
+
+twirpscript@^0.0.65:
+  version "0.0.65"
+  resolved "https://registry.yarnpkg.com/twirpscript/-/twirpscript-0.0.65.tgz#237010b419428ae16e533a389dd45a64e71349cf"
+  integrity sha512-XXdYeXW3tSQY7yob5t1N/kt8pXczKzFIQmlCIwNTzIQ0tflguNTYOWJKOre616efX1yWB1XRalJAsMU/C899QQ==
+  dependencies:
+    protoscript "0.0.13"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"

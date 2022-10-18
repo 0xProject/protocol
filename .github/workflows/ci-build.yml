@@ -28,9 +28,16 @@ jobs:
         path: node_modules
         key: ${{ runner.os }}-build-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v1
+
     - run: yarn install --frozen-lockfile
     - run: yarn build
     # Pull the docker images so that they don't need to be pulled in the tests.
+
+    - run: yarn build:proto
+    - run: git diff --exit-code # Make CI fail if there are any file changes from proto build
+
     - run: docker-compose pull
     - run: yarn lint
     - run: yarn test

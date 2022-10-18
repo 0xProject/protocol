@@ -7,6 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "tsc -p tsconfig.json",
+        "build:proto": "shx rm src/proto-ts/*.pb.ts && twirpscript",
         "clean": "shx rm -rf lib",
         "db:migrate": "./node_modules/.bin/typeorm migration:run --dataSource ./lib/src/ormconfig.js",
         "db:migration:create": "./node_modules/.bin/typeorm migration:create",
@@ -130,6 +131,7 @@
         "redis": "^4.2.0",
         "sqs-producer": "^2.1.0",
         "swagger-ui-express": "^4.2.0",
+        "twirpscript": "^0.0.65",
         "typeorm": "0.3.6",
         "uuid": "^7.0.3",
         "uuid-validate": "^0.0.3",
