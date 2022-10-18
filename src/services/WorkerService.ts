@@ -6,9 +6,6 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { retry } from '@lifeomic/attempt';
 import delay from 'delay';
-// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as _ from 'lodash';
 import { Counter, Gauge, Summary } from 'prom-client';
 
 import { ENABLE_LLR_COOLDOWN, Integrator, LLR_COOLDOWN_DURATION_SECONDS } from '../config';
@@ -281,8 +278,6 @@ export class WorkerService {
                     jobIdentifier = job.id;
                     break;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never): never => {
                         throw new Error('Unreachable');
                     })(kind);
@@ -360,8 +355,6 @@ export class WorkerService {
                     job = await this._dbUtils.findMetaTransactionJobByIdAsync(identifier);
                     break;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(kind);
@@ -441,8 +434,6 @@ export class WorkerService {
                 identifier = job.id;
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -474,8 +465,6 @@ export class WorkerService {
                     tradeCalldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress, false);
                     break;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(kind);
@@ -519,8 +508,6 @@ export class WorkerService {
                 calldata = await this.prepareMetaTransactionTradeAsync(job, workerAddress);
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -567,8 +554,6 @@ export class WorkerService {
                 errorStatus = WorkerService.validateMetaTransactionJob(job, now);
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -641,8 +626,6 @@ export class WorkerService {
                 );
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -674,8 +657,6 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -821,8 +802,6 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -966,8 +945,6 @@ export class WorkerService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -1096,8 +1073,6 @@ export class WorkerService {
                         delay: ONE_SECOND_MS,
                         factor: 2,
                         maxAttempts: 3,
-                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         handleError: (error, context, _options) => {
                             const { attemptNum: attemptNumber, attemptsRemaining } = context;
                             logger.warn(
@@ -1362,8 +1337,6 @@ export class WorkerService {
                 );
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -1654,8 +1627,6 @@ export class WorkerService {
                 case SubmissionContextStatus.SucceededConfirmed:
                     return newSubmissionContextStatus;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(newSubmissionContextStatus);
@@ -1700,8 +1671,6 @@ export class WorkerService {
                             SubmissionContext.tradeSubmissionContextStatusToJobStatus(newSubmissionContextStatus);
                         break;
                     default:
-                        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         ((_x: never) => {
                             throw new Error('unreachable');
                         })(submissionType);
@@ -1865,8 +1834,6 @@ export class WorkerService {
                 transactionSubmissionEntity = await this._dbUtils.writeMetaTransactionSubmissionAsync(partialEntity);
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -1925,8 +1892,6 @@ export class WorkerService {
                 updatedEntity = updatedSubmissionEntities[0];
                 break;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);

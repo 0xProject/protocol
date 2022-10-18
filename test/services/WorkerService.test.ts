@@ -5076,8 +5076,6 @@ describe('WorkerService', () => {
                     nonce: 0,
                     type: 2,
                     value: EthersBigNumber.from(0),
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
                 };
                 const mockMinedBlock: providers.Block = {
@@ -5899,8 +5897,6 @@ describe('WorkerService', () => {
                     nonce: 0,
                     type: 2,
                     value: EthersBigNumber.from(0),
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     wait: (_confirmations: number | undefined) => Promise.resolve(mockTransactionReceipt),
                 };
                 const mockMinedBlock: providers.Block = {

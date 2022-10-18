@@ -8,7 +8,7 @@ import { RfqBlockedAddressUtils } from './rfq_blocked_address_utils';
  */
 export class RfqDynamicBlacklist implements Set<string> {
     public size: number;
-    public [Symbol.toStringTag]: string;
+    public [Symbol.toStringTag]!: string;
     private readonly _rfqBlockedAddressUtils: RfqBlockedAddressUtils;
 
     constructor(connection: Connection, initialBlockedSet: Set<string>, ttlMs: number) {
@@ -35,8 +35,8 @@ export class RfqDynamicBlacklist implements Set<string> {
     }
 
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any
-    public forEach(callbackfn: (value: string, value2: string, set: Set<string>) => void, thisArg?: any): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public forEach(callbackfn: (value: string, value2: string, set: Set<string>) => void, _thisArg?: any): void {
         this._rfqBlockedAddressUtils._blocked.forEach(callbackfn);
     }
 

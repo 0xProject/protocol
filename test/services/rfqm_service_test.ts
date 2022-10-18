@@ -9,9 +9,6 @@ import { eip712SignHashWithKey, ethSignHashWithKey, MetaTransaction, OtcOrder } 
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { constants } from 'ethers';
-// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, instance, mock, spy, verify, when } from 'ts-mockito';
 

@@ -169,8 +169,6 @@ export class RfqmDbUtils {
                 await this._connection.getRepository(MetaTransactionJobEntity).save(job);
                 return;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);
@@ -231,8 +229,6 @@ export class RfqmDbUtils {
                     .save(entities as Partial<MetaTransactionSubmissionEntity>[]);
                 return;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(kind);

@@ -57,8 +57,6 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
                 // would still keep the job in pending submitted status
                 return RfqmJobStatus.PendingSubmitted;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(submissionContextStatus);
@@ -88,8 +86,6 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
             case SubmissionContextStatus.SucceededUnconfirmed:
                 return RfqmJobStatus.SucceededUnconfirmed;
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(submissionContextStatus);
@@ -269,8 +265,6 @@ export class SubmissionContext<T extends RfqmV2TransactionSubmissionEntity[] | M
                 case RfqmTransactionSubmissionStatus.SucceededUnconfirmed:
                     return RfqmJobStatus.SucceededUnconfirmed;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(transaction.status);

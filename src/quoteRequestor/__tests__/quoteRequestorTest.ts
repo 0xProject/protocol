@@ -428,9 +428,7 @@ describe('QuoteRequestor', () => {
                 responseData: successfulQuote1,
                 callback: async () => {
                     // tslint:disable-next-line:no-inferred-empty-object-type
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    return new Promise((resolve, reject) => {
+                    return new Promise((resolve, _reject) => {
                         setTimeout(() => {
                             resolve([StatusCodes.Success, successfulQuote1]);
                         }, exceedTimeoutMs);

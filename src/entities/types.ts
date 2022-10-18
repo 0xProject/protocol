@@ -83,8 +83,6 @@ function isJobResolved(status: RfqmJobStatus): boolean {
         case RfqmJobStatus.SucceededUnconfirmed:
             return false;
         default:
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             ((_x: never) => {
                 throw new Error('unreachable');
             })(status);

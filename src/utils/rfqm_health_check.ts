@@ -133,12 +133,8 @@ export function transformResultToShortResponse(result: HealthCheckResult): RfqmH
         isOperational: result.status === HealthCheckStatus.Operational || result.status === HealthCheckStatus.Degraded,
         pairs: Object.entries(result.pairs)
             .filter(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ([_pair, status]) => status === HealthCheckStatus.Operational || status === HealthCheckStatus.Degraded,
             )
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .map(([pair, _status]) => {
                 const [tokenA, tokenB] = pair.split('-');
                 return [tokenA, tokenB];

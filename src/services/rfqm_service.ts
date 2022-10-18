@@ -683,8 +683,6 @@ export class RfqmService {
                     }),
                 };
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never): never => {
                     throw new Error('Unreachable');
                 })(status);
@@ -774,8 +772,6 @@ export class RfqmService {
                     delay: ONE_SECOND_MS,
                     factor: 1,
                     maxAttempts: 3,
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     handleError: (error, context, _options) => {
                         const { attemptNum: attemptNumber, attemptsRemaining } = context;
                         logger.warn(
@@ -1269,8 +1265,6 @@ export class RfqmService {
                     : PermitApproval;
             }
             default:
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ((_x: never) => {
                     throw new Error('unreachable');
                 })(primaryType);

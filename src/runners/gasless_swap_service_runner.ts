@@ -214,9 +214,7 @@ export async function runGaslessSwapServiceAsync(
                 ['/status/.*', '/status/#orderHash'], // converts all /status/0xdeadbeef... => /status/#orderHash
                 ['/api-docs.*', '/api-docs'], // converts all /api-docs/favicon... => /api-docs
             ],
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            transformLabels: (labels, req, res) => {
+            transformLabels: (labels, req, _res) => {
                 Object.assign(labels, { chainId: req.header('0x-chain-id') || 1 });
             },
             // buckets used for the http_request_duration_seconds histogram. All numbers (in seconds) represents boundaries of buckets.

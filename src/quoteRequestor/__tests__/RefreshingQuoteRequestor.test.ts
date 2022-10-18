@@ -15,9 +15,7 @@ const mockRequestRfqtIndicativeQuotesAsync = jest.fn().mockResolvedValue([]);
 const mockRequestRfqtFirmQuotesAsync = jest.fn().mockResolvedValue([]);
 jest.mock('../QuoteRequestor', () => {
     return {
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        QuoteRequestor: jest.fn().mockImplementation((...args) => {
+        QuoteRequestor: jest.fn().mockImplementation((..._args) => {
             return {
                 requestRfqtIndicativeQuotesAsync: mockRequestRfqtIndicativeQuotesAsync,
                 requestRfqtFirmQuotesAsync: mockRequestRfqtFirmQuotesAsync,
@@ -28,9 +26,7 @@ jest.mock('../QuoteRequestor', () => {
 
 jest.mock('../../utils/rfq_maker_manager', () => {
     return {
-        // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        RfqMakerManager: jest.fn().mockImplementation((...args) => {
+        RfqMakerManager: jest.fn().mockImplementation((..._args) => {
             const rmm = new EventEmitter() as unknown as jest.MockedObject<RfqMakerManager>;
             rmm.getRfqtV1MakerOfferings = jest.fn().mockReturnValue([]);
             return rmm;

@@ -1,6 +1,4 @@
-// $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 /**
  * Update the Rfqm Worker Heartbeats table so that the `balance` column

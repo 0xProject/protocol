@@ -382,8 +382,8 @@ export async function buildRfqmServicesAsync(
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager = new ConfigManager(),
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types,@typescript-eslint/no-unused-vars
-    workerIndex: number = 0,
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+    _workerIndex: number = 0,
 ): Promise<RfqmServices> {
     const services = await Promise.all(
         chainConfigurations.map(async (chain) => {

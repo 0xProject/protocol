@@ -195,8 +195,6 @@ export function createGaslessSwapWorker(
                     kind = 'meta_transaction_job';
                     break;
                 default:
-                    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     ((_x: never) => {
                         throw new Error('unreachable');
                     })(type);

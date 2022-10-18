@@ -12,6 +12,7 @@ module.exports = {
     rules: {
         "jest/no-focused-tests": "error",
         "import/no-cycle": "error",
+        "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     },
     // Instructions from https://github.com/import-js/eslint-plugin-import and https://github.com/import-js/eslint-import-resolver-typescript#configuration
     "settings": {

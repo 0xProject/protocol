@@ -7,8 +7,6 @@ import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { OK } from 'http-status-codes';
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as _ from 'lodash';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 

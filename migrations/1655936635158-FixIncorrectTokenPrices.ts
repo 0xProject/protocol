@@ -10,11 +10,11 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *
  */
 export class FixIncorrectTokenPrices1655936635158 implements MigrationInterface {
-    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-    public async up(queryRunner: QueryRunner): Promise<void> {}
+    public async up(_queryRunner: QueryRunner): Promise<void> {
+        // no-op
+    }
 
-    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-    public async down(queryRunner: QueryRunner): Promise<void> {}
+    public async down(_queryRunner: QueryRunner): Promise<void> {
+        // no-op
+    }
 }
