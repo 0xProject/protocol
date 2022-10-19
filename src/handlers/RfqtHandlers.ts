@@ -10,7 +10,8 @@ import { Integrator } from '../config';
 import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
-import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request, RfqtV2RequestInternal } from '../types';
+import { FirmQuoteContext, QuoteContext } from '../services/types';
+import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
 
@@ -176,11 +177,11 @@ export class RfqtHandlers {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ prices: RfqtV2Prices } | { error: any }>,
     ): Promise<void> {
-        let parsedParameters: RfqtV2RequestInternal;
+        let quoteContext: QuoteContext;
         let service: RfqtService;
         try {
-            parsedParameters = this._parseV2RequestParameters(req);
-            service = this._getServiceForChain(parsedParameters.chainId);
+            quoteContext = this._extractQuoteContext(req, false);
+            service = this._getServiceForChain(quoteContext.chainId);
         } catch (error) {
             RFQT_V2_PRICE_REQUEST_FAILED.inc();
             logger.error({ error: error.message }, 'Rfqt V2 price request failed');
@@ -189,7 +190,7 @@ export class RfqtHandlers {
         }
 
         try {
-            const prices = await service.getV2PricesAsync(parsedParameters);
+            const prices = await service.getV2PricesAsync(quoteContext);
             RFQT_V2_PRICE_REQUEST_SUCCEEDED.inc();
             logger.info('Rfqt V2 price request succeeded');
             res.status(HttpStatus.OK).json({
@@ -212,16 +213,11 @@ export class RfqtHandlers {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         res: express.Response<{ quotes: RfqtV2Quotes } | { error: any }>,
     ): Promise<void> {
-        let parsedParameters: RfqtV2RequestInternal;
+        let quoteContext: FirmQuoteContext;
         let service: RfqtService;
-        let txOrigin: string;
         try {
-            parsedParameters = this._parseV2RequestParameters(req);
-            if (parsedParameters.txOrigin === undefined) {
-                throw new Error('Received request with missing parameter txOrigin');
-            }
-            txOrigin = parsedParameters.txOrigin;
-            service = this._getServiceForChain(parsedParameters.chainId);
+            quoteContext = this._extractQuoteContext(req, true) as FirmQuoteContext;
+            service = this._getServiceForChain(quoteContext.chainId);
         } catch (error) {
             RFQT_V2_QUOTE_REQUEST_FAILED.inc();
             logger.error({ error }, 'Rfqt V2 quote request failed');
@@ -230,10 +226,7 @@ export class RfqtHandlers {
         }
 
         try {
-            const quotes = await service.getV2QuotesAsync({
-                ...parsedParameters,
-                txOrigin,
-            });
+            const quotes = await service.getV2QuotesAsync(quoteContext);
             RFQT_V2_QUOTE_REQUEST_SUCCEEDED.inc();
             logger.info('Rfqt V2 quote request succeeded');
             res.status(HttpStatus.OK).json({
@@ -303,12 +296,13 @@ export class RfqtHandlers {
     }
 
     /**
-     * Parses and runtime-checks request parameters. After running the method, the parameters
+     * Extract quote context from request parameters. After running the method, the parameters
      * should match their TypeScript types.
      */
-    private _parseV2RequestParameters<TRequest extends TypedRequest<RfqtV2Request>>(
+    private _extractQuoteContext<TRequest extends TypedRequest<RfqtV2Request>>(
         request: TRequest,
-    ): RfqtV2RequestInternal {
+        isFirm: boolean,
+    ): QuoteContext {
         const { body } = request;
 
         // Doing this before destructuring the body, otherwise the error
@@ -327,7 +321,16 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameters');
         }
 
-        const { assetFillAmount, chainId, marketOperation, integratorId } = request.body;
+        const {
+            chainId,
+            takerToken,
+            makerToken,
+            takerAddress,
+            txOrigin,
+            assetFillAmount,
+            marketOperation,
+            integratorId,
+        } = request.body;
 
         const parsedChainId = parseInt(chainId.toString(), 10);
         if (Number.isNaN(parsedChainId)) {
@@ -348,12 +351,31 @@ export class RfqtHandlers {
             throw new Error('No integrator found for integrator ID');
         }
 
+        if (isFirm && txOrigin === undefined) {
+            throw new Error('Received request with missing parameter txOrigin');
+        }
+
         return {
-            ...request.body,
-            assetFillAmount: new BigNumber(assetFillAmount),
+            workflow: 'rfqt',
             chainId: parsedChainId,
+            isFirm,
+            takerToken,
+            makerToken,
+            originalMakerToken: makerToken,
+            takerAddress,
+            txOrigin,
+            // TODO (Xinxing): figure out token decimals at runtime
+            // Ticket: https://linear.app/0xproject/issue/RFQ-726/rfqt-figure-out-token-decimals-at-runtime
+            takerTokenDecimals: 18,
+            makerTokenDecimals: 18,
             integrator,
-        };
+            isUnwrap: false,
+            isSelling: (marketOperation as string) === MarketOperation.Sell.toString(),
+            assetFillAmount: new BigNumber(assetFillAmount),
+            // TODO (Xinxing): inject fee model version
+            // Ticket: https://linear.app/0xproject/issue/RFQ-727/rfqt-use-configurable-fee-model-version
+            feeModelVersion: 1,
+        } as QuoteContext;
     }
 
     /**

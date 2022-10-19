@@ -12,7 +12,7 @@ import {
     reviseQuoteWithFees,
     RfqmFeeService,
 } from '../../src/services/rfqm_fee_service';
-import { FeeWithDetails } from '../../src/services/types';
+import { FeeWithDetails, QuoteContext } from '../../src/services/types';
 import { IndicativeQuote, TokenMetadata } from '../../src/types';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
@@ -71,6 +71,8 @@ const buildRfqmFeeService = (overrides: {
 };
 
 describe('RfqmFeeService', () => {
+    const workflow = 'rfqm';
+    const txOrigin = 'registryAddress';
     const makerToken = 'UsdcAddress';
     const makerTokenDecimals = 6;
     const makerTokenPrice = new BigNumber(1e-6);
@@ -121,7 +123,10 @@ describe('RfqmFeeService', () => {
 
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
+                txOrigin,
                 makerToken,
                 takerToken,
                 originalMakerToken: makerToken,
@@ -175,7 +180,10 @@ describe('RfqmFeeService', () => {
 
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
+                txOrigin,
                 makerToken,
                 takerToken,
                 originalMakerToken: makerToken,
@@ -236,6 +244,8 @@ describe('RfqmFeeService', () => {
 
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
                 makerToken,
                 takerToken,
@@ -292,6 +302,8 @@ describe('RfqmFeeService', () => {
 
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
                 makerToken,
                 takerToken,
@@ -347,7 +359,10 @@ describe('RfqmFeeService', () => {
 
             // When
             const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
+                txOrigin,
                 makerToken,
                 takerToken,
                 originalMakerToken: makerToken,
@@ -435,8 +450,12 @@ describe('RfqmFeeService', () => {
                 ammQuote,
             });
 
-            const quoteContex = {
+            const quoteContext: QuoteContext = {
+                workflow,
+                chainId: 1337,
+                isFirm: true,
                 feeModelVersion,
+                txOrigin,
                 makerToken,
                 takerToken,
                 originalMakerToken: makerToken,
@@ -446,7 +465,6 @@ describe('RfqmFeeService', () => {
                 isSelling,
                 assetFillAmount,
                 takerAmount: assetFillAmount,
-                isFirm: true,
                 takerAddress,
                 integrator,
             };
@@ -454,7 +472,7 @@ describe('RfqmFeeService', () => {
             // When
             jest.useFakeTimers().setSystemTime(1650000000000);
             const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await feeService.calculateFeeAsync(
-                quoteContex,
+                quoteContext,
                 async () => {
                     return Promise.resolve(mmQuotes);
                 },
@@ -498,7 +516,7 @@ describe('RfqmFeeService', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 quotesWithGasFee!,
                 expectedZeroExFeeAmount,
-                quoteContex,
+                quoteContext,
             );
 
             // Then
@@ -561,7 +579,9 @@ describe('RfqmFeeService', () => {
                 ammQuote,
             });
 
-            const quoteContext = {
+            const quoteContext: QuoteContext = {
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
                 makerToken,
                 takerToken,
@@ -679,8 +699,11 @@ describe('RfqmFeeService', () => {
                 ammQuote,
             });
 
-            const quoteContext = {
+            const quoteContext: QuoteContext = {
+                workflow,
+                chainId: 1337,
                 feeModelVersion,
+                txOrigin,
                 makerToken,
                 takerToken,
                 originalMakerToken: makerToken,
@@ -808,7 +831,10 @@ describe('RfqmFeeService', () => {
             jest.useFakeTimers().setSystemTime(1650000000000);
             const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await feeService.calculateFeeAsync(
                 {
+                    workflow,
+                    chainId: 1337,
                     feeModelVersion,
+                    txOrigin,
                     makerToken,
                     takerToken,
                     originalMakerToken: makerToken,
@@ -902,7 +928,10 @@ describe('RfqmFeeService', () => {
             jest.useFakeTimers().setSystemTime(1650000000000);
             const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await feeService.calculateFeeAsync(
                 {
+                    workflow,
+                    chainId: 1337,
                     feeModelVersion,
+                    txOrigin,
                     makerToken,
                     takerToken,
                     originalMakerToken: makerToken,

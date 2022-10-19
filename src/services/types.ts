@@ -164,6 +164,8 @@ export interface CleanupJobsResponse {
  * variables, and configuration information.
  */
 interface QuoteContextBase {
+    workflow: 'rfqm' | 'rfqt';
+    chainId: number;
     isFirm: boolean;
     takerAmount?: BigNumber;
     makerAmount?: BigNumber;
@@ -186,14 +188,16 @@ interface QuoteContextBase {
 interface IndicativeQuoteContext extends QuoteContextBase {
     isFirm: false;
     takerAddress?: string;
+    txOrigin?: string;
 }
 
 /**
  * Context for firm quote
  */
-interface FirmQuoteContext extends QuoteContextBase {
+export interface FirmQuoteContext extends QuoteContextBase {
     isFirm: true;
     takerAddress: string;
+    txOrigin: string;
 }
 
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;

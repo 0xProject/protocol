@@ -994,6 +994,8 @@ export class RfqmService {
         }
 
         return {
+            workflow: 'rfqm',
+            chainId: this._chainId,
             isFirm,
             takerAmount,
             makerAmount,
@@ -1003,6 +1005,7 @@ export class RfqmService {
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             takerAddress: takerAddress!,
+            txOrigin: this._registryAddress,
             takerTokenDecimals,
             makerTokenDecimals,
             integrator,

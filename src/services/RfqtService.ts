@@ -15,9 +15,10 @@ import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes, RfqtV2RequestInternal } from '../types';
+import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+import { FirmQuoteContext, QuoteContext } from './types';
 
 const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
     return (getTokenMetadataIfExists(symbol, chainId) as TokenMetadata).tokenAddress;
@@ -27,7 +28,7 @@ const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
  * Converts the parameters of an RFQt v2 prices request from 0x API
  * into the format needed for `QuoteServerClient` to call the market makers
  */
-function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: number): QuoteServerPriceParams {
+function transformRfqtV2PricesParameters(p: QuoteContext, chainId: number): QuoteServerPriceParams {
     const buyTokenAddress = p.makerToken;
     const sellTokenAddress = p.takerToken;
     // Typescript gymnastics with `baseUnits` to caputure the "oneof" nature--
@@ -41,7 +42,7 @@ function transformRfqtV2PricesParameters(p: RfqtV2RequestInternal, chainId: numb
     // buyAmountBaseUnits: BigNumber | undefined
     // sellAmountBaseUnits: BigNumber | undefined
     const baseUnits =
-        p.marketOperation === MarketOperation.Buy
+        p.isSelling === false
             ? {
                   buyAmountBaseUnits: p.assetFillAmount,
                   sellAmountBaseUnits: undefined,
@@ -234,8 +235,8 @@ export class RfqtService {
      * Note that by this point, 0x API should be sending the null address
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
-    public async getV2PricesAsync(parameters: RfqtV2RequestInternal): Promise<RfqtV2Prices> {
-        const { integrator, makerToken, takerToken } = parameters;
+    public async getV2PricesAsync(quoteContext: QuoteContext): Promise<RfqtV2Prices> {
+        const { integrator, makerToken, takerToken } = quoteContext;
         // Fetch the makers active on this pair
         const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
             if (m.rfqtUri === null) {
@@ -260,7 +261,7 @@ export class RfqtService {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 makers.map((m) => /* won't be null because of previous `filter` operation */ m.rfqtUri!),
                 integrator,
-                transformRfqtV2PricesParameters(parameters, this._chainId),
+                transformRfqtV2PricesParameters(quoteContext, this._chainId),
                 (url) => `${url}/rfqt/v2/price`,
             )
         ).map((price) => {
@@ -295,18 +296,15 @@ export class RfqtService {
      *  2. Valid prices are then sent to the market makers' `/sign`
      *     endpoint to get a signed quote
      */
-    public async getV2QuotesAsync(
-        parameters: RfqtV2RequestInternal & { txOrigin: string },
-        now: Date = new Date(),
-    ): Promise<RfqtV2Quotes> {
+    public async getV2QuotesAsync(quoteContext: FirmQuoteContext, now: Date = new Date()): Promise<RfqtV2Quotes> {
         // TODO (rhinodavid): put a meter on this response time
-        const prices = await this.getV2PricesAsync(parameters);
+        const prices = await this.getV2PricesAsync(quoteContext);
 
         // If multiple quotes are aggregated into the final order, they must
         // all have unique nonces. Otherwise they'll be rejected by the smart contract.
         const baseNonce = new BigNumber(Math.floor(now.getTime() / ONE_SECOND_MS));
         const pricesAndOrders = prices.map((price, i) => ({
-            order: this._v2priceToOrder(price, parameters.txOrigin, baseNonce.plus(i)),
+            order: this._v2priceToOrder(price, quoteContext.txOrigin, baseNonce.plus(i)),
             price,
         }));
 
@@ -319,7 +317,7 @@ export class RfqtService {
                 try {
                     signature = await this._quoteServerClient.signV2Async(
                         price.makerUri,
-                        parameters.integrator.integratorId,
+                        quoteContext.integrator.integratorId,
                         { order, orderHash: order.getHash(), expiry: price.expiry, fee },
                         (u: string) => `${u}/rfqt/v2/sign`,
                         /* requireProceedWithFill */ false,

@@ -527,7 +527,7 @@ describe('RfqtHandlers', () => {
         });
     });
 
-    describe('parameter verification with _parseV2RequestParameters', () => {
+    describe('parameter verification with _retrieveQuoteContext', () => {
         it('throws if a required parameter is missing', async () => {
             const response = await supertest(
                 express()
@@ -742,6 +742,7 @@ describe('RfqtHandlers', () => {
                   Object {
                     "assetFillAmount": "100",
                     "chainId": 1337,
+                    "feeModelVersion": 1,
                     "integrator": Object {
                       "allowedChainIds": Array [
                         1337,
@@ -753,13 +754,17 @@ describe('RfqtHandlers', () => {
                       "rfqm": false,
                       "rfqt": true,
                     },
-                    "integratorId": "uuid-polygon-swap-machine",
-                    "intentOnFilling": false,
+                    "isFirm": false,
+                    "isSelling": false,
+                    "isUnwrap": false,
                     "makerToken": "0xmakertoken",
-                    "marketOperation": "Buy",
+                    "makerTokenDecimals": 18,
+                    "originalMakerToken": "0xmakertoken",
                     "takerAddress": "0xtakeraddress",
                     "takerToken": "0xtakertoken",
+                    "takerTokenDecimals": 18,
                     "txOrigin": "0xtxorigin",
+                    "workflow": "rfqt",
                   },
                 ]
             `);
@@ -900,6 +905,7 @@ describe('RfqtHandlers', () => {
                   Object {
                     "assetFillAmount": "100",
                     "chainId": 1337,
+                    "feeModelVersion": 1,
                     "integrator": Object {
                       "allowedChainIds": Array [
                         1337,
@@ -911,13 +917,17 @@ describe('RfqtHandlers', () => {
                       "rfqm": false,
                       "rfqt": true,
                     },
-                    "integratorId": "uuid-polygon-swap-machine",
-                    "intentOnFilling": true,
+                    "isFirm": true,
+                    "isSelling": false,
+                    "isUnwrap": false,
                     "makerToken": "0xmakertoken",
-                    "marketOperation": "Buy",
+                    "makerTokenDecimals": 18,
+                    "originalMakerToken": "0xmakertoken",
                     "takerAddress": "0xtakeraddress",
                     "takerToken": "0xtakertoken",
+                    "takerTokenDecimals": 18,
                     "txOrigin": "0xtxorigin",
+                    "workflow": "rfqt",
                   },
                 ]
             `);

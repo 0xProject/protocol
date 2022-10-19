@@ -2,8 +2,6 @@ import { OtcOrder, Signature } from '@0x/protocol-utils';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
-import { Integrator } from './config';
-
 export type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
     {
         [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
@@ -120,13 +118,6 @@ export interface RfqtV2Request {
     intentOnFilling: boolean;
     integratorId: string;
 }
-
-/**
- * Parsed RFQt v2 request type for internal use
- */
-export type RfqtV2RequestInternal = Omit<RfqtV2Request, 'integratorId'> & {
-    integrator: Integrator;
-};
 
 /**
  * Format of response payload which is sent to 0x API

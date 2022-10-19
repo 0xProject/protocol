@@ -12,6 +12,7 @@ import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../src/services/RfqtService';
+import { FirmQuoteContext, QuoteContext } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
@@ -243,13 +244,19 @@ describe('Rfqt Service', () => {
         };
         describe('getV2PricesAsync', () => {
             it('transforms the API request into a quote server client request for buys', async () => {
-                const request = {
+                const quoteContext: QuoteContext = {
+                    isFirm: false,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken: '0x1',
-                    marketOperation: MarketOperation.Buy,
+                    isSelling: false,
                     takerAddress: '0x0',
                     takerToken: '0x2',
                     txOrigin: '0xtakeraddress',
@@ -265,7 +272,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                await rfqtService.getV2PricesAsync(request);
+                await rfqtService.getV2PricesAsync(quoteContext);
 
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
                   Array [
@@ -299,18 +306,23 @@ describe('Rfqt Service', () => {
                 `);
             });
             it('transforms the API request into a quote server client request for sells', async () => {
-                const request = {
+                const quoteContext: QuoteContext = {
+                    isFirm: false,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken: '0x1',
-                    marketOperation: MarketOperation.Sell,
+                    isSelling: true,
                     takerAddress: '0x0',
                     takerToken: '0x2',
                     txOrigin: '0xtakeraddress',
                 };
-
                 mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
 
                 const rfqtService = new RfqtService(
@@ -321,7 +333,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                await rfqtService.getV2PricesAsync(request);
+                await rfqtService.getV2PricesAsync(quoteContext);
 
                 expect(mockQuoteServerClient.batchGetPriceV2Async.mock.calls[0]).toMatchInlineSnapshot(`
                   Array [
@@ -355,13 +367,19 @@ describe('Rfqt Service', () => {
               `);
             });
             it('gets prices', async () => {
-                const request = {
+                const quoteContext: QuoteContext = {
+                    isFirm: false,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken: '0x1',
-                    marketOperation: MarketOperation.Sell,
+                    isSelling: true,
                     takerAddress: '0x0',
                     takerToken: '0x2',
                     txOrigin: '0xtakeraddress',
@@ -390,7 +408,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2PricesAsync(request);
+                const result = await rfqtService.getV2PricesAsync(quoteContext);
                 expect(result.length).toEqual(1);
                 expect(result[0].makerId).toEqual('maker-id');
                 expect(result[0]).toMatchInlineSnapshot(`
@@ -407,16 +425,22 @@ describe('Rfqt Service', () => {
                 `);
             });
             it('gets prices from whitelisted makers only', async () => {
-                const request = {
+                const quoteContext: QuoteContext = {
+                    isFirm: false,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator: {
                         ...integrator,
                         whitelistMakerIds: ['maker1'],
                     },
-                    intentOnFilling: true,
                     makerToken: '0x1',
-                    marketOperation: MarketOperation.Sell,
+                    isSelling: true,
                     takerAddress: '0x0',
                     takerToken: '0x2',
                     txOrigin: '0xtakeraddress',
@@ -454,7 +478,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2PricesAsync(request);
+                const result = await rfqtService.getV2PricesAsync(quoteContext);
                 expect(result.length).toEqual(1);
                 expect(result[0].makerId).toEqual('maker1');
                 expect(result[0]).toMatchInlineSnapshot(`
@@ -480,13 +504,19 @@ describe('Rfqt Service', () => {
             const expiry = new BigNumber(fakeNow.getTime() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
 
             it('filters out quotes with no signatures', async () => {
-                const request = {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken,
-                    marketOperation: MarketOperation.Buy,
+                    isSelling: false,
                     takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
@@ -514,19 +544,25 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2QuotesAsync(request);
+                const result = await rfqtService.getV2QuotesAsync(quoteContext);
 
                 expect(result.length).toEqual(0);
             });
 
             it("doesn't blow up if a sign request fails", async () => {
-                const request = {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken,
-                    marketOperation: MarketOperation.Buy,
+                    isSelling: false,
                     takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
@@ -554,19 +590,25 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2QuotesAsync(request);
+                const result = await rfqtService.getV2QuotesAsync(quoteContext);
 
                 expect(result.length).toEqual(0);
             });
 
             it('gets creates orders with unique nonces', async () => {
-                const request = {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken,
-                    marketOperation: MarketOperation.Buy,
+                    isSelling: false,
                     takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
@@ -605,7 +647,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2QuotesAsync(request, fakeNow);
+                const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
 
                 const [{ nonce: nonce1 }, { nonce: nonce2 }] = [
                     OtcOrder.parseExpiryAndNonce(result[0].order.expiryAndNonce),
@@ -616,13 +658,19 @@ describe('Rfqt Service', () => {
             });
 
             it('gets a signed quote', async () => {
-                const request = {
+                const quoteContext: FirmQuoteContext = {
+                    isFirm: true,
+                    workflow: 'rfqt',
+                    isUnwrap: false,
+                    originalMakerToken: '0x1',
+                    takerTokenDecimals: 18,
+                    makerTokenDecimals: 18,
+                    feeModelVersion: 1,
                     assetFillAmount: new BigNumber(1000),
                     chainId: 1337,
                     integrator,
-                    intentOnFilling: true,
                     makerToken,
-                    marketOperation: MarketOperation.Buy,
+                    isSelling: false,
                     takerAddress: NULL_ADDRESS,
                     takerToken,
                     txOrigin: takerAddress,
@@ -651,7 +699,7 @@ describe('Rfqt Service', () => {
                     mockContractAddresses,
                 );
 
-                const result = await rfqtService.getV2QuotesAsync(request, fakeNow);
+                const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
 
                 expect(result.length).toEqual(1);
                 expect(result[0]).toMatchObject({
