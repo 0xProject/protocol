@@ -552,6 +552,8 @@ export class MarketOperationUtils {
 
         // If there is no optimal path AND we didn't return a MultiHop quote, then throw
         if (optimalPath === undefined) {
+            //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
+            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath thrown in _generateOptimizedOrdersAsync');
             throw new Error(AggregationError.NoOptimalPath);
         }
 
@@ -617,6 +619,8 @@ export class MarketOperationUtils {
             if (e.message !== AggregationError.NoOptimalPath) {
                 throw e;
             }
+            //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
+            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath caught in phase 1 routing');
         }
 
         // Calculate a suggested price. For now, this is simply the overall price of the aggregation.
@@ -849,6 +853,8 @@ export class MarketOperationUtils {
         // At this point we should have at least one valid optimizer result, therefore we manually raise
         // `NoOptimalPath` if no optimizer result was ever set.
         if (optimizerResult === undefined) {
+            //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
+            DEFAULT_INFO_LOGGER({}, 'NoOptimalPath thrown in phase 2 routing');
             throw new Error(AggregationError.NoOptimalPath);
         }
 
