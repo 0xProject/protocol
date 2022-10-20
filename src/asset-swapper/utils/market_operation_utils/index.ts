@@ -44,7 +44,7 @@ import {
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { getBestTwoHopQuote } from './multihop_utils';
 import { createOrdersFromTwoHopSample } from './orders';
-import { Path, PathPenaltyOpts } from './path';
+import { PathPenaltyOpts } from './path';
 import { findOptimalPathFromSamples } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
@@ -187,22 +187,20 @@ export class MarketOperationUtils {
         );
 
         // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+        this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
 
         const [
-            [
-                blockNumber,
-                gasBefore,
-                tokenDecimals,
-                orderFillableTakerAmounts,
-                outputAmountPerEth,
-                inputAmountPerEth,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-                gasAfter,
-            ],
-        ] = await Promise.all([samplerPromise]);
+            blockNumber,
+            gasBefore,
+            tokenDecimals,
+            orderFillableTakerAmounts,
+            outputAmountPerEth,
+            inputAmountPerEth,
+            dexQuotes,
+            rawTwoHopQuotes,
+            isTxOriginContract,
+            gasAfter,
+        ] = await samplerPromise;
 
         if (outputAmountPerEth.isZero()) {
             DEFAULT_INFO_LOGGER({ token: makerToken }, 'output conversion to native token is zero');
@@ -308,22 +306,20 @@ export class MarketOperationUtils {
         );
 
         // Refresh the cached pools asynchronously if required
-        void this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
+        this._refreshPoolCacheIfRequiredAsync(takerToken, makerToken);
 
         const [
-            [
-                blockNumber,
-                gasBefore,
-                tokenDecimals,
-                orderFillableMakerAmounts,
-                ethToMakerAssetRate,
-                ethToTakerAssetRate,
-                dexQuotes,
-                rawTwoHopQuotes,
-                isTxOriginContract,
-                gasAfter,
-            ],
-        ] = await Promise.all([samplerPromise]);
+            blockNumber,
+            gasBefore,
+            tokenDecimals,
+            orderFillableMakerAmounts,
+            ethToMakerAssetRate,
+            ethToTakerAssetRate,
+            dexQuotes,
+            rawTwoHopQuotes,
+            isTxOriginContract,
+            gasAfter,
+        ] = await samplerPromise;
 
         SAMPLER_METRICS.logGasDetails({ side: 'buy', gasBefore, gasAfter });
         SAMPLER_METRICS.logBlockNumber(blockNumber);
@@ -519,7 +515,7 @@ export class MarketOperationUtils {
         const takerAmountPerEth = side === MarketOperation.Sell ? inputAmountPerEth : outputAmountPerEth;
         const makerAmountPerEth = side === MarketOperation.Sell ? outputAmountPerEth : inputAmountPerEth;
 
-        // Find the optimal path using Rust router if enabled, otherwise fallback to JS Router
+        // Find the optimal path using Rust router.
         const optimalPath = findOptimalPathFromSamples(
             side,
             dexQuotes,
@@ -599,11 +595,12 @@ export class MarketOperationUtils {
         }
 
         // Compute an optimized path for on-chain DEX and open-orderbook. This should not include RFQ liquidity.
-        const marketLiquidityFnAsync =
-            side === MarketOperation.Sell
-                ? this.getMarketSellLiquidityAsync.bind(this)
-                : this.getMarketBuyLiquidityAsync.bind(this);
-        const marketSideLiquidity: MarketSideLiquidity = await marketLiquidityFnAsync(nativeOrders, amount, _opts);
+        let marketSideLiquidity: MarketSideLiquidity;
+        if (side === MarketOperation.Sell) {
+            marketSideLiquidity = await this.getMarketSellLiquidityAsync(nativeOrders, amount, _opts);
+        } else {
+            marketSideLiquidity = await this.getMarketBuyLiquidityAsync(nativeOrders, amount, _opts);
+        }
 
         // Phase 1 Routing
         // We find an optimized path for ALL the DEX and open-orderbook liquidity

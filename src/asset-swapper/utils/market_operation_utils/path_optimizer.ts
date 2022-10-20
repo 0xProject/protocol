@@ -35,7 +35,7 @@ function nativeOrderToNormalizedAmounts(
     return { input, output };
 }
 
-function calculateOuputFee(
+function calculateOutputFee(
     side: MarketOperation,
     sampleOrNativeOrder: DexSample | NativeOrderWithFillableAmounts,
     outputAmountPerEth: BigNumber,
@@ -288,7 +288,7 @@ function findRoutesAndCreateOptimalPath(
         if (normalizedOrderInput.isLessThanOrEqualTo(0) || normalizedOrderOutput.isLessThanOrEqualTo(0)) {
             continue;
         }
-        const fee = calculateOuputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
+        const fee = calculateOutputFee(side, nativeOrder, opts.outputAmountPerEth, opts.inputAmountPerEth, fees)
             .integerValue()
             .toNumber();
 
