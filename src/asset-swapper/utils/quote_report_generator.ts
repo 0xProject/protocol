@@ -106,6 +106,7 @@ export interface ExtendedQuoteReport {
     blockNumber: number | undefined;
     estimatedGas: string;
     enableSlippageProtection?: boolean;
+    expectedSlippage?: string;
 }
 
 export interface PriceComparisonsReport {

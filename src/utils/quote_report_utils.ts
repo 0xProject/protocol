@@ -24,6 +24,7 @@ interface QuoteReportLogOptionsBase {
     blockNumber: number | undefined;
     estimatedGas: BigNumber;
     enableSlippageProtection: boolean | undefined;
+    expectedSlippage?: BigNumber | null;
 }
 
 interface ExtendedQuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
@@ -89,6 +90,7 @@ export function publishQuoteReport(
             blockNumber: logOpts.blockNumber,
             estimatedGas: logOpts.estimatedGas.toString(),
             enableSlippageProtection: logOpts.enableSlippageProtection,
+            expectedSlippage: logOpts.expectedSlippage?.toString(),
         };
         kafkaProducer
             .send({
