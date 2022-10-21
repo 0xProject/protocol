@@ -68,6 +68,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 await rfqtService.getV1PricesAsync({
@@ -150,6 +151,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 await rfqtService.getV1QuotesAsync({
@@ -270,6 +272,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -331,6 +334,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -406,6 +410,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -476,6 +481,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -542,6 +548,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -588,6 +595,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -645,6 +653,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -697,6 +706,7 @@ describe('Rfqt Service', () => {
                     mockQuoteRequestor,
                     mockQuoteServerClient,
                     mockContractAddresses,
+                    1,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);

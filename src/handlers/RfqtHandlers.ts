@@ -11,7 +11,7 @@ import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { FirmQuoteContext, QuoteContext } from '../services/types';
-import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
+import { FeeModelVersion, RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
 
@@ -180,8 +180,9 @@ export class RfqtHandlers {
         let quoteContext: QuoteContext;
         let service: RfqtService;
         try {
-            quoteContext = this._extractQuoteContext(req, false);
-            service = this._getServiceForChain(quoteContext.chainId);
+            const chainId = this._extractChainId(req);
+            service = this._getServiceForChain(chainId);
+            quoteContext = this._extractQuoteContext(req, chainId, false, service.feeModelVersion);
         } catch (error) {
             RFQT_V2_PRICE_REQUEST_FAILED.inc();
             logger.error({ error: error.message }, 'Rfqt V2 price request failed');
@@ -216,8 +217,9 @@ export class RfqtHandlers {
         let quoteContext: FirmQuoteContext;
         let service: RfqtService;
         try {
-            quoteContext = this._extractQuoteContext(req, true) as FirmQuoteContext;
-            service = this._getServiceForChain(quoteContext.chainId);
+            const chainId = this._extractChainId(req);
+            service = this._getServiceForChain(chainId);
+            quoteContext = this._extractQuoteContext(req, chainId, true, service.feeModelVersion) as FirmQuoteContext;
         } catch (error) {
             RFQT_V2_QUOTE_REQUEST_FAILED.inc();
             logger.error({ error }, 'Rfqt V2 quote request failed');
@@ -296,12 +298,37 @@ export class RfqtHandlers {
     }
 
     /**
+     * Extract chainId from request parameters.
+     */
+    private _extractChainId<TRequest extends TypedRequest<RfqtV2Request>>(request: TRequest): number {
+        const { body } = request;
+
+        // Doing this before destructuring the body, otherwise the error
+        // thrown will be something like:
+        // 'Cannot destructure property 'chainId' of 'request.body' as it is undefined.'
+        if (!body.chainId) {
+            throw new Error('Received request with missing parameter chainId ');
+        }
+
+        const { chainId } = request.body;
+
+        const parsedChainId = parseInt(chainId.toString(), 10);
+        if (Number.isNaN(parsedChainId)) {
+            throw new Error('Chain ID is invalid');
+        }
+
+        return parsedChainId;
+    }
+
+    /**
      * Extract quote context from request parameters. After running the method, the parameters
      * should match their TypeScript types.
      */
     private _extractQuoteContext<TRequest extends TypedRequest<RfqtV2Request>>(
         request: TRequest,
+        chainId: number,
         isFirm: boolean,
+        feeModelVersion: FeeModelVersion,
     ): QuoteContext {
         const { body } = request;
 
@@ -310,7 +337,6 @@ export class RfqtHandlers {
         // 'Cannot destructure property 'assetFillAmount' of 'request.body' as it is undefined.'
         if (
             !body.assetFillAmount ||
-            !body.chainId ||
             !body.makerToken ||
             !body.marketOperation ||
             !body.takerToken ||
@@ -321,21 +347,8 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameters');
         }
 
-        const {
-            chainId,
-            takerToken,
-            makerToken,
-            takerAddress,
-            txOrigin,
-            assetFillAmount,
-            marketOperation,
-            integratorId,
-        } = request.body;
-
-        const parsedChainId = parseInt(chainId.toString(), 10);
-        if (Number.isNaN(parsedChainId)) {
-            throw new Error('Chain ID is invalid');
-        }
+        const { takerToken, makerToken, takerAddress, txOrigin, assetFillAmount, marketOperation, integratorId } =
+            request.body;
 
         if (
             (marketOperation as string) !== MarketOperation.Buy.toString() &&
@@ -357,7 +370,7 @@ export class RfqtHandlers {
 
         return {
             workflow: 'rfqt',
-            chainId: parsedChainId,
+            chainId,
             isFirm,
             takerToken,
             makerToken,
@@ -372,9 +385,7 @@ export class RfqtHandlers {
             isUnwrap: false,
             isSelling: (marketOperation as string) === MarketOperation.Sell.toString(),
             assetFillAmount: new BigNumber(assetFillAmount),
-            // TODO (Xinxing): inject fee model version
-            // Ticket: https://linear.app/0xproject/issue/RFQ-727/rfqt-use-configurable-fee-model-version
-            feeModelVersion: 1,
+            feeModelVersion,
         } as QuoteContext;
     }
 

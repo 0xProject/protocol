@@ -28,6 +28,7 @@ import {
     Eip712DataField,
     ExecuteMetaTransactionApproval,
     ExecuteMetaTransactionEip712Context,
+    FeeModelVersion,
     FirmOtcQuote,
     GaslessApprovalTypes,
     IndicativeQuote,
@@ -187,7 +188,7 @@ export class RfqmService {
     constructor(
         private readonly _chainId: number,
         private readonly _rfqmFeeService: RfqmFeeService,
-        private readonly _feeModelVersion: number,
+        private readonly _feeModelVersion: FeeModelVersion,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
         private readonly _blockchainUtils: RfqBlockchainUtils,

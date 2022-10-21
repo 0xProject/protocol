@@ -45,8 +45,18 @@ jest.mock('../../utils/config_manager', () => {
 
 // tslint:disable: no-object-literal-type-assertion
 const mockRfqtService = jest.mocked(
-    new RfqtService(0, {} as RfqMakerManager, {} as QuoteRequestor, {} as QuoteServerClient, {} as ContractAddresses),
+    new RfqtService(
+        0,
+        {} as RfqMakerManager,
+        {} as QuoteRequestor,
+        {} as QuoteServerClient,
+        {} as ContractAddresses,
+        1,
+    ),
 );
+// Jest workaround for getter
+mockRfqtService.feeModelVersion = 1;
+
 const mockConfigManager = jest.mocked(new ConfigManager());
 // tslint:enable: no-object-literal-type-assertion
 
@@ -538,7 +548,7 @@ describe('RfqtHandlers', () => {
                 .set('Content-type', 'application/json')
                 .send({ makerToken: '0xmakertoken' });
 
-            expect(response.body.error).toContain('missing parameters');
+            expect(response.body.error).toContain('missing parameter');
             expect(response.statusCode).toEqual(HttpStatus.BAD_REQUEST);
         });
 

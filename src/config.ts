@@ -23,6 +23,7 @@ import {
     ONE_MINUTE_MS,
 } from './constants';
 import { schemas } from './schemas';
+import { FeeModelVersion } from './types';
 import { toPairString } from './utils/pair_utils';
 import { schemaUtils } from './utils/schema_utils';
 
@@ -71,7 +72,8 @@ export interface ChainConfiguration {
     enableAccessList?: boolean;
     // Enables caching for maker balances on observed tokens
     enableMakerBalanceCache?: boolean;
-    feeModelVersion?: number;
+    feeModelVersion?: FeeModelVersion;
+    rfqtFeeModelVersion?: FeeModelVersion;
     // Use this config to override the 0x Exchange Proxy contract address.
     // There might be a case when we want a different exchange
     // proxy contract than what is defined from @0x/contract-addresses repo.

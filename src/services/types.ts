@@ -3,7 +3,12 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../types';
+import {
+    ExecuteMetaTransactionEip712Context,
+    FeeModelVersion,
+    GaslessApprovalTypes,
+    PermitEip712Context,
+} from '../types';
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',
@@ -179,7 +184,7 @@ interface QuoteContextBase {
     isUnwrap: boolean;
     isSelling: boolean;
     assetFillAmount: BigNumber;
-    feeModelVersion: number;
+    feeModelVersion: FeeModelVersion;
 }
 
 /**
@@ -219,7 +224,7 @@ interface FeeBreakdownBase {
      * will use all three of them: `gasOnly` for margin detection, `margin` if margin detection
      * succeeded, and `default` if margin detection failed.
      */
-    feeModelVersion: number;
+    feeModelVersion: FeeModelVersion;
     gasFeeAmount: BigNumber;
     gasPrice: BigNumber;
 }

@@ -32,6 +32,7 @@ import {
 } from '../../src/services/types';
 import {
     ExecuteMetaTransactionEip712Context,
+    FeeModelVersion,
     GaslessApprovalTypes,
     IndicativeQuote,
     PermitEip712Context,
@@ -66,7 +67,7 @@ const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
         rfqmFeeService?: RfqmFeeService;
-        feeModelVersion?: number;
+        feeModelVersion?: FeeModelVersion;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
         producer?: Producer;
@@ -696,7 +697,7 @@ describe('RfqmService HTTP Logic', () => {
 
                 const service = buildRfqmServiceForUnitTest({
                     quoteServerClient: instance(quoteServerClientMock),
-                    feeModelVersion: 4,
+                    feeModelVersion: 0,
                 });
 
                 const res = await service.fetchIndicativeQuoteAsync({

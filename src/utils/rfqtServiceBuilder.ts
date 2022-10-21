@@ -58,6 +58,7 @@ export async function buildRfqtServicesAsync(
                 quoteRequestor,
                 quoteServerClient,
                 contractAddresses,
+                chain.rfqtFeeModelVersion || 0,
             );
         }),
     );

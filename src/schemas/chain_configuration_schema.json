@@ -37,6 +37,9 @@
         "feeModelVersion": {
             "type": "number"
         },
+        "rfqtFeeModelVersion": {
+            "type": "number"
+        },
         "exchangeProxyContractAddressOverride": {
             "type": "string"
         },

@@ -15,7 +15,7 @@ import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import { QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
+import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { FirmQuoteContext, QuoteContext } from './types';
@@ -112,6 +112,7 @@ export class RfqtService {
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
+        private readonly _feeModelVersion: FeeModelVersion,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
@@ -350,6 +351,10 @@ export class RfqtService {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 signature: signature!, // `null` signatures already filtered out
             }));
+    }
+
+    public get feeModelVersion(): FeeModelVersion {
+        return this._feeModelVersion;
     }
 
     /**
