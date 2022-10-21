@@ -41,8 +41,6 @@ import { schemas } from './schemas';
 import { HttpServiceConfig } from './types';
 import { schemaUtils } from './utils/schema_utils';
 
-const SHOULD_USE_RUST_ROUTER = process.env.RUST_ROUTER === 'true';
-
 enum EnvVarType {
     AddressList,
     StringList,
@@ -552,7 +550,11 @@ export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
 
 const NEON_ROUTER_NUM_SAMPLES = 14;
 // TODO(kimpers): Due to an issue with the Rust router we want to use equidistant samples when using the Rust router
-const SAMPLE_DISTRIBUTION_BASE = SHOULD_USE_RUST_ROUTER ? 1 : 1.05;
+const DEFAULT_SAMPLE_DISTRIBUTION_BASE = 1;
+
+export const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTION_BASE)
+    ? DEFAULT_SAMPLE_DISTRIBUTION_BASE
+    : assertEnvVarType('SAMPLE_DISTRIBUTION_BASE', process.env.SAMPLE_DISTRIBUTION_BASE, EnvVarType.Float);
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
@@ -563,7 +565,6 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     sampleDistributionBase: SAMPLE_DISTRIBUTION_BASE,
     neonRouterNumSamples: NEON_ROUTER_NUM_SAMPLES,
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED,
-    runLimit: 2 ** 8,
     shouldGenerateQuoteReport: true,
 };
 

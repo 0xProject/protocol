@@ -464,11 +464,6 @@ export interface GetMarketOrdersOpts {
      */
     includedSources: ERC20BridgeSource[];
     /**
-     * Complexity limit on the search algorithm, i.e., maximum number of
-     * nodes to visit. Default is 1024.
-     */
-    runLimit: number;
-    /**
      * When generating bridge orders, we use
      * sampled rate * (1 - bridgeSlippage)
      * as the rate for calculating maker/taker asset amounts.
@@ -492,7 +487,7 @@ export interface GetMarketOrdersOpts {
      * A value of 1 will result in evenly spaced samples.
      * > 1 will result in more samples at lower sizes.
      * < 1 will result in more samples at higher sizes.
-     * Default: 1.25.
+     * Default: 1
      */
     sampleDistributionBase: number;
     /**
