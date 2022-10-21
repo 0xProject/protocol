@@ -5,6 +5,11 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.0.0 - _October 21, 2022_
+
+    * Updated Ethereum FQT to enable RFQT V2 (#604)
+    * updated changelog (#605)
+
 ## v6.25.0 - _October 11, 2022_
 
     * Remove Ropsten and Rinkeby addresses (#597)

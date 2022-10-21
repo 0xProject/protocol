@@ -10,7 +10,8 @@
                 "note": "updated changelog",
                 "pr": 605
             }
-        ]
+        ],
+        "timestamp": 1666381417
     },
     {
         "version": "6.25.0",
