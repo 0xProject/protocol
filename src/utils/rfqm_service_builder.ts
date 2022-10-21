@@ -340,6 +340,7 @@ export async function buildWorkerServiceAsync(
         rfqMakerBalanceCacheService,
         rfqMakerManager,
         chain.initialMaxPriorityFeePerGasGwei,
+        chain.maxFeePerGasCapGwei,
         chain.enableAccessList,
     );
 }

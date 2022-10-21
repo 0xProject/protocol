@@ -13,6 +13,9 @@
         "initialMaxPriorityFeePerGasGwei": {
             "type": "number"
         },
+        "maxFeePerGasCapGwei": {
+            "type": "number"
+        },
         "name": {
             "type": "string"
         },
@@ -44,6 +47,7 @@
     "required": [
         "gasStationUrl",
         "initialMaxPriorityFeePerGasGwei",
+        "maxFeePerGasCapGwei",
         "name",
         "registryAddress",
         "rpcUrl",

@@ -139,7 +139,6 @@ const PRICE_DECIMAL_PLACES = 6;
 
 const MIN_GAS_PRICE_INCREASE = 0.1;
 
-const MAX_PRIORITY_FEE_PER_GAS_CAP = new BigNumber(128e9); // The maximum tip we're willing to pay
 // Retrying an EIP 1559 transaction: https://docs.alchemy.com/alchemy/guides/eip-1559/retry-eip-1559-tx
 const MAX_PRIORITY_FEE_PER_GAS_MULTIPLIER = 1.5; // Increase multiplier for tip with each resubmission cycle
 const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per gas with each cycle; limitation of geth node
@@ -239,6 +238,7 @@ export class WorkerService {
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
+        private readonly _maxFeePerGasCapGwei: number,
         private readonly _enableAccessList?: boolean,
     ) {}
 
@@ -1353,6 +1353,7 @@ export class WorkerService {
         const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
             Math.pow(10, GWEI_DECIMALS),
         );
+        const maxFeePerGasCap = new BigNumber(this._maxFeePerGasCapGwei).times(Math.pow(10, GWEI_DECIMALS));
 
         let gasFees: GasFees = {
             maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
@@ -1536,10 +1537,13 @@ export class WorkerService {
                     const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
                         submissionContext.maxGasFees;
 
-                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(MAX_PRIORITY_FEE_PER_GAS_CAP)) {
-                        // If we've reached the max priority fee per gas we'd like to pay, just
+                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(maxFeePerGasCap)) {
+                        // If we've reached the max fee per gas we'd like to pay, just
                         // continue watching the transactions to see if one gets mined.
-                        logger.info({ kind, submissionType, oldMaxFeePerGas }, 'Exceeds max priority fee per gas');
+                        logger.info(
+                            { kind, submissionType, oldMaxFeePerGas, maxFeePerGasCap },
+                            'Exceeds max fee per gas',
+                        );
                         continue;
                     }
 

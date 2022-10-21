@@ -65,6 +65,8 @@ export interface ChainConfiguration {
     // The value of the "tip" the worker will use when it starts
     // submitting transactions
     initialMaxPriorityFeePerGasGwei: number;
+    // The max fee per gas (in gwei) the worker is willing to pay for a transaction
+    maxFeePerGasCapGwei: number;
     quoteReportTopic?: string;
     enableAccessList?: boolean;
     // Enables caching for maker balances on observed tokens

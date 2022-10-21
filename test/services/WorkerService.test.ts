@@ -72,6 +72,7 @@ const buildWorkerServiceForUnitTest = (
         quoteServerClient?: QuoteServerClient;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         initialMaxPriorityFeePerGasGwei?: number;
+        maxFeePerGasGwei?: number;
         enableAccessList?: boolean;
     } = {},
 ): WorkerService => {
@@ -126,6 +127,7 @@ const buildWorkerServiceForUnitTest = (
         overrides.rfqMakerBalanceCacheService || instance(rfqMakerBalanceCacheServiceMock),
         overrides.rfqMakerManager || rfqMakerManagerMock,
         overrides.initialMaxPriorityFeePerGasGwei || 2,
+        overrides.maxFeePerGasGwei || 128,
         overrides.enableAccessList,
     );
 };
