@@ -26,6 +26,10 @@ const MULTIPLEX_BATCH_FILL_SOURCES = [
  * Returns true iff a quote can be filled via `MultiplexFeature.batchFill`.
  */
 export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeProxyContractOpts): boolean {
+    // Temporarily avoid Multiplex for OtcOrder types
+    if (quote.orders.some((o) => o.type === FillQuoteTransformerOrderType.Otc)) {
+        return false;
+    }
     if (requiresTransformERC20(opts)) {
         return false;
     }
@@ -52,6 +56,10 @@ const MULTIPLEX_MULTIHOP_FILL_SOURCES = [
  * Returns true iff a quote can be filled via `MultiplexFeature.multiHopFill`.
  */
 export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: ExchangeProxyContractOpts): boolean {
+    // Temporarily avoid Multiplex for OtcOrder types
+    if (quote.orders.some((o) => o.type === FillQuoteTransformerOrderType.Otc)) {
+        return false;
+    }
     if (requiresTransformERC20(opts)) {
         return false;
     }

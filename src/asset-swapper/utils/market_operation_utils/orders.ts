@@ -30,6 +30,7 @@ import {
     MultiHopFillData,
     NativeFillData,
     NativeLimitOrderFillData,
+    NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
@@ -551,7 +552,10 @@ function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, Big
 export function createNativeOptimizedOrder(
     fill: Fill<NativeFillData>,
     side: MarketOperation,
-): OptimizedMarketOrderBase<NativeLimitOrderFillData> | OptimizedMarketOrderBase<NativeRfqOrderFillData> {
+):
+    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
+    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
+    | OptimizedMarketOrderBase<NativeOtcOrderFillData> {
     const fillData = fill.fillData;
     const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
     const base = {
@@ -564,9 +568,24 @@ export function createNativeOptimizedOrder(
         fillData,
         fill: cleanFillForExport(fill),
     };
-    return fill.type === FillQuoteTransformerOrderType.Rfq
-        ? { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData }
-        : { ...base, type: FillQuoteTransformerOrderType.Limit, fillData: fillData as NativeLimitOrderFillData };
+    switch (fill.type) {
+        case FillQuoteTransformerOrderType.Rfq:
+            return { ...base, type: FillQuoteTransformerOrderType.Rfq, fillData: fillData as NativeRfqOrderFillData };
+        case FillQuoteTransformerOrderType.Limit:
+            return {
+                ...base,
+                type: FillQuoteTransformerOrderType.Limit,
+                fillData: fillData as NativeLimitOrderFillData,
+            };
+        case FillQuoteTransformerOrderType.Otc:
+            return { ...base, type: FillQuoteTransformerOrderType.Otc, fillData: fillData as NativeOtcOrderFillData };
+        case FillQuoteTransformerOrderType.Bridge:
+            throw new Error('BridgeOrder is not a Native Order');
+        default:
+            ((_x: never) => {
+                throw new Error('unreachable');
+            })(fill.type);
+    }
 }
 
 export function createBridgeOrder(

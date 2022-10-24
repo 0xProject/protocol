@@ -9,7 +9,7 @@ import {
     RfqClientV1QuoteRequest,
     RfqClientV1QuoteResponse,
 } from '../asset-swapper';
-import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../asset-swapper/types';
+import { RfqtV2Price, RfqtV2Quote, RfqtV2Request } from '../asset-swapper/types';
 import { RFQT_REQUEST_MAX_RESPONSE_MS, RFQ_CLIENT_ROLLOUT_PERCENT } from '../config';
 import { logger } from '../logger';
 import { isHashSmallEnough } from './hash_utils';
@@ -127,7 +127,7 @@ export class RfqClient {
     /**
      * Communicates to an RFQ Client to fetch available v2 prices
      */
-    public async getV2PricesAsync(request: RfqtV2Request): Promise<RfqtV2Prices> {
+    public async getV2PricesAsync(request: RfqtV2Request): Promise<RfqtV2Price[]> {
         // Short circuit if not rolled out
         if (!RfqClient.isRolledOut(request)) {
             return [];
@@ -163,7 +163,7 @@ export class RfqClient {
     /**
      * Communicates to an RFQ Client to fetch available signed v2 quotes
      */
-    public async getV2QuotesAsync(request: RfqtV2Request): Promise<RfqtV2Quotes> {
+    public async getV2QuotesAsync(request: RfqtV2Request): Promise<RfqtV2Quote[]> {
         // Short circuit if not rolled out
         if (!RfqClient.isRolledOut(request)) {
             return [];
@@ -181,7 +181,7 @@ export class RfqClient {
                 return [];
             }
 
-            const quotes: RfqtV2Quotes = response.data?.quotes?.map((q: any) => {
+            const quotes: RfqtV2Quote[] = response.data?.quotes?.map((q: any) => {
                 return {
                     fillableMakerAmount: new BigNumber(q.fillableMakerAmount),
                     fillableTakerAmount: new BigNumber(q.fillableTakerAmount),

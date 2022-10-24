@@ -13,7 +13,7 @@ import {
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
-import { toSignedNativeOrder } from '../rfq_client_mappers';
+import { toSignedNativeOrder, toSignedNativeOrderWithFillableAmounts } from '../rfq_client_mappers';
 import {
     getNativeAdjustedFillableAmountsFromMakerAmount,
     getNativeAdjustedFillableAmountsFromTakerAmount,
@@ -780,11 +780,16 @@ export class MarketOperationUtils {
 
                 DEFAULT_INFO_LOGGER({ v2Quotes, isEmpty: v2Quotes?.length === 0 }, 'v2Quotes from RFQ Client');
 
-                const firmQuotes = v1Quotes.map((quote) => {
-                    DEFAULT_INFO_LOGGER({ ...quote, txOrigin: rfqt.txOrigin }, 'results from RFQ Client');
+                const v1FirmQuotes = v1Quotes.map((quote) => {
                     // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
                     rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
                     return toSignedNativeOrder(quote);
+                });
+
+                const v2QuotesWithOrderFillableAmounts = v2Quotes.map((quote) => {
+                    // HACK: set the signature on quoteRequestor for future lookup (i.e. in Quote Report)
+                    rfqt.quoteRequestor?.setMakerUriForSignature(quote.signature, quote.makerUri);
+                    return toSignedNativeOrderWithFillableAmounts(quote);
                 });
 
                 const deltaTime = new Date().getTime() - timeStart;
@@ -792,29 +797,34 @@ export class MarketOperationUtils {
                     rfqQuoteType: 'firm',
                     deltaTime,
                 });
-                if (firmQuotes.length > 0) {
+                if (v1FirmQuotes.length > 0 || v2QuotesWithOrderFillableAmounts.length > 0) {
                     // Compute the RFQ order fillable amounts. This is done by performing a "soft" order
                     // validation and by checking order balances that are monitored by our worker.
                     // If a firm quote validator does not exist, then we assume that all orders are valid.
-                    const rfqTakerFillableAmounts =
+                    const v1RfqTakerFillableAmounts =
                         rfqt.firmQuoteValidator === undefined
-                            ? firmQuotes.map((signedOrder) => signedOrder.order.takerAmount)
+                            ? v1FirmQuotes.map((signedOrder) => signedOrder.order.takerAmount)
                             : await rfqt.firmQuoteValidator.getRfqtTakerFillableAmountsAsync(
-                                  firmQuotes.map((q) => new RfqOrder(q.order)),
+                                  v1FirmQuotes.map((q) => new RfqOrder(q.order)),
                               );
 
-                    const quotesWithOrderFillableAmounts: NativeOrderWithFillableAmounts[] = firmQuotes.map(
+                    const v1QuotesWithOrderFillableAmounts: NativeOrderWithFillableAmounts[] = v1FirmQuotes.map(
                         (order, i) => ({
                             ...order,
-                            fillableTakerAmount: rfqTakerFillableAmounts[i],
+                            fillableTakerAmount: v1RfqTakerFillableAmounts[i],
                             // Adjust the maker amount by the available taker fill amount
                             fillableMakerAmount: getNativeAdjustedMakerFillAmount(
                                 order.order,
-                                rfqTakerFillableAmounts[i],
+                                v1RfqTakerFillableAmounts[i],
                             ),
                             fillableTakerFeeAmount: ZERO_AMOUNT,
                         }),
                     );
+
+                    const quotesWithOrderFillableAmounts = [
+                        ...v1QuotesWithOrderFillableAmounts,
+                        ...v2QuotesWithOrderFillableAmounts,
+                    ];
 
                     // Attach the firm RFQt quotes to the market side liquidity
                     marketSideLiquidity.quotes.nativeOrders = [

@@ -1,4 +1,6 @@
+import { OtcOrder, OtcOrderFields } from '@0x/protocol-utils';
 import { BigNumber, SignedNativeOrder, V4RFQIndicativeQuote } from '../asset-swapper';
+import { SignedOrder } from '../asset-swapper/types';
 import { ONE_SECOND_MS } from '../constants';
 
 /**
@@ -79,6 +81,10 @@ const getMakerAmount = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNum
 
 const getExpiry = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNumber => {
     if (isSignedNativeOrder(quote)) {
+        if (isOtcOrder(quote)) {
+            const { expiry } = OtcOrder.parseExpiryAndNonce(quote.order.expiryAndNonce);
+            return expiry;
+        }
         return quote.order.expiry;
     }
 
@@ -87,4 +93,8 @@ const getExpiry = (quote: V4RFQIndicativeQuote | SignedNativeOrder): BigNumber =
 
 const isSignedNativeOrder = (quote: V4RFQIndicativeQuote | SignedNativeOrder): quote is SignedNativeOrder => {
     return (quote as SignedNativeOrder).order !== undefined;
+};
+
+const isOtcOrder = (order: SignedNativeOrder): order is SignedOrder<OtcOrderFields> => {
+    return (order as SignedOrder<OtcOrderFields>).order.expiryAndNonce !== undefined;
 };
