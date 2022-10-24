@@ -1,5 +1,14 @@
 [
     {
+        "version": "7.1.0",
+        "changes": [
+            {
+                "note": "Add `BalancerV2Batch` support in `FantomBridgeAdapter`",
+                "pr": 607
+            }
+        ]
+    },
+    {
         "version": "7.0.0",
         "changes": [
             {
