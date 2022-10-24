@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.1.0 - _October 24, 2022_
+
+    * Add `BalancerV2Batch` support in `FantomBridgeAdapter` (#607)
+
 ## v7.0.0 - _October 21, 2022_
 
     * Updated Ethereum FQT to enable RFQT V2 (#604)

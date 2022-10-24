@@ -6,7 +6,8 @@
                 "note": "Add `BalancerV2Batch` support in `FantomBridgeAdapter`",
                 "pr": 607
             }
-        ]
+        ],
+        "timestamp": 1666645023
     },
     {
         "version": "7.0.0",
