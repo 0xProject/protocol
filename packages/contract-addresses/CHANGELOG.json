@@ -1,5 +1,19 @@
 [
     {
+        "version": "7.0.0",
+        "changes": [
+            {
+                "note": "Updated Ethereum FQT to enable RFQT V2",
+                "pr": 604
+            },
+            {
+                "note": "updated changelog",
+                "pr": 605
+            }
+        ],
+        "timestamp": 1666381417
+    },
+    {
         "version": "6.25.0",
         "changes": [
             {
