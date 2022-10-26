@@ -5,12 +5,7 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../../src/constants';
-import {
-    DefaultFeeBreakdown,
-    FeeWithDetails,
-    GasOnlyFeeBreakdown,
-    MarginBasedFeeBreakDown,
-} from '../../src/services/types';
+import { DefaultFeeDetails, FeeWithDetails, GasOnlyFeeDetails, MarginBasedFeeDetails } from '../../src/services/types';
 import { feeToStoredFee, otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';
 
 describe('RFQM DB utils', () => {
@@ -53,9 +48,9 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details).toEqual(undefined);
         });
 
-        it('should convert Fee with gasOnly breakdown correctly', () => {
+        it('should convert Fee with gasOnly details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: GasOnlyFeeBreakdown } = {
+            const fee: FeeWithDetails & { details: GasOnlyFeeDetails } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',
@@ -80,9 +75,9 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.gasPrice).toEqual(fee.details.gasPrice.toString());
         });
 
-        it('should convert Fee with default breakdown correctly', () => {
+        it('should convert Fee with default details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: DefaultFeeBreakdown } = {
+            const fee: FeeWithDetails & { details: DefaultFeeDetails } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',
@@ -125,9 +120,9 @@ describe('RFQM DB utils', () => {
             );
         });
 
-        it('should convert Fee with margin based breakdown correctly', () => {
+        it('should convert Fee with margin based details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: MarginBasedFeeBreakDown } = {
+            const fee: FeeWithDetails & { details: MarginBasedFeeDetails } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',

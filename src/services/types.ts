@@ -208,11 +208,11 @@ export interface FirmQuoteContext extends QuoteContextBase {
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;
 
 /**
- * Base interface for FeeBreakdown type.
+ * Base interface for FeeDetails type.
  */
-interface FeeBreakdownBase {
+interface FeeDetailsBase {
     /**
-     * `kind` is used to mark the type of FeeBreakdown.
+     * `kind` is used to mark the type of FeeDetails.
      */
     kind: 'gasOnly' | 'default' | 'margin';
     /**
@@ -220,7 +220,7 @@ interface FeeBreakdownBase {
      *   * Version 0 includes estimated gas cost only.
      *   * Version 1 charge an additional bps as 0x fee, based on trade size, on top of gas.
      *   * Version 2 charge 0x fee based on detected margin of RFQm with AMMs.
-     * While Verion 0 will use `gasOnly` FeeBreakdown, and Version 1 will use `default`, Version 2
+     * While Verion 0 will use `gasOnly` FeeDetails, and Version 1 will use `default`, Version 2
      * will use all three of them: `gasOnly` for margin detection, `margin` if margin detection
      * succeeded, and `default` if margin detection failed.
      */
@@ -230,10 +230,10 @@ interface FeeBreakdownBase {
 }
 
 /**
- * Interface for `margin` FeeBreakdown type. In this case the Fee is
+ * Interface for `margin` FeeDetails type. In this case the Fee is
  * calculated using margin based method
  */
-export interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
+export interface MarginBasedFeeDetails extends FeeDetailsBase {
     kind: 'margin';
     margin: BigNumber;
     marginRakeRatio: number;
@@ -249,11 +249,11 @@ export interface MarginBasedFeeBreakDown extends FeeBreakdownBase {
 }
 
 /**
- * Interface for `default` FeeBreakdown type. In this case the Fee is
+ * Interface for `default` FeeDetails type. In this case the Fee is
  * calculated using default method, based on trade size and bps of underlying
  * pairs.
  */
-export interface DefaultFeeBreakdown extends FeeBreakdownBase {
+export interface DefaultFeeDetails extends FeeDetailsBase {
     kind: 'default';
     tradeSizeBps: number;
     zeroExFeeAmount: BigNumber;
@@ -263,18 +263,18 @@ export interface DefaultFeeBreakdown extends FeeBreakdownBase {
 }
 
 /**
- * Interface for `gasOnly` FeeBreakdown type. Only gas related information
+ * Interface for `gasOnly` FeeDetails type. Only gas related information
  * is included.
  */
-export interface GasOnlyFeeBreakdown extends FeeBreakdownBase {
+export interface GasOnlyFeeDetails extends FeeDetailsBase {
     kind: 'gasOnly';
 }
 
 /**
- * Extends Fee data schema to include a detailed breakdown session, which could
- * be one of `gasOnly`, `default` or `margin` type, depending on the approach used
+ * Extends Fee data schema to include a details session, which could be one
+ * of `gasOnly`, `default` or `margin` type, depending on the approach used
  * to calculate the Fee.
  */
 export interface FeeWithDetails extends Fee {
-    details: GasOnlyFeeBreakdown | DefaultFeeBreakdown | MarginBasedFeeBreakDown;
+    details: GasOnlyFeeDetails | DefaultFeeDetails | MarginBasedFeeDetails;
 }

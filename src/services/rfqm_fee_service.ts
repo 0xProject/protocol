@@ -12,13 +12,7 @@ import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 import { AmmQuote, ZeroExApiClient } from '../utils/ZeroExApiClient';
 
-import {
-    DefaultFeeBreakdown,
-    FeeWithDetails,
-    GasOnlyFeeBreakdown,
-    MarginBasedFeeBreakDown,
-    QuoteContext,
-} from './types';
+import { DefaultFeeDetails, FeeWithDetails, GasOnlyFeeDetails, MarginBasedFeeDetails, QuoteContext } from './types';
 
 /**
  * Interface for the response of CalculateFeeAsync() method. Including `feeWithDetails` object, and two optional fields for fee model v2:
@@ -233,7 +227,7 @@ export class RfqmFeeService {
      */
     private async _calculateGasFeeAsync(
         quoteContext: QuoteContext,
-    ): Promise<FeeWithDetails & { details: GasOnlyFeeBreakdown }> {
+    ): Promise<FeeWithDetails & { details: GasOnlyFeeDetails }> {
         const { takerToken, makerToken, isUnwrap, feeModelVersion } = quoteContext;
 
         const gasPrice: BigNumber = await this.getGasPriceEstimationAsync();
@@ -262,7 +256,7 @@ export class RfqmFeeService {
      */
     private async _calculateFeeV1Async(
         quoteContext: QuoteContext,
-    ): Promise<FeeWithDetails & { details: DefaultFeeBreakdown | GasOnlyFeeBreakdown }> {
+    ): Promise<FeeWithDetails & { details: DefaultFeeDetails | GasOnlyFeeDetails }> {
         const {
             takerToken,
             makerToken,
@@ -416,7 +410,7 @@ export class RfqmFeeService {
                 feeTokenBaseUnitPriceUsd,
             );
 
-            const details: DefaultFeeBreakdown = {
+            const details: DefaultFeeDetails = {
                 kind: 'default',
                 feeModelVersion,
                 gasFeeAmount: gasFee.amount,
@@ -458,7 +452,7 @@ export class RfqmFeeService {
                     : ZERO;
             zeroExFeeAmount = margin.times(marginRakeRatio).integerValue();
 
-            const details: MarginBasedFeeBreakDown = {
+            const details: MarginBasedFeeDetails = {
                 kind: 'margin',
                 feeModelVersion,
                 gasFeeAmount: gasFee.amount,
