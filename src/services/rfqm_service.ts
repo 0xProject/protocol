@@ -45,6 +45,7 @@ import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
+import { TokenMetadataManager } from '../utils/TokenMetadataManager';
 
 import { RfqmFeeService } from './rfqm_fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
@@ -103,7 +104,6 @@ const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
  * RfqmService is the coordination layer for HTTP based RFQM flows.
  */
 export class RfqmService {
-    private readonly _tokenDecimalsCache: Map<string, number> = new Map();
     private readonly _nativeTokenAddress: string;
     private readonly _nativeTokenSymbol: string;
     private readonly _nativeWrappedTokenSymbol: string;
@@ -198,6 +198,7 @@ export class RfqmService {
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
+        private readonly _tokenMetadataManager: TokenMetadataManager,
         private readonly _kafkaProducer?: KafkaProducer,
         private readonly _quoteReportTopic?: string,
     ) {
@@ -208,30 +209,10 @@ export class RfqmService {
     }
 
     /**
-     * Utility function to get the decimals for an ERC20 token by its address.
-     * First checks 0x/token-metadata for the information, and if not present,
-     * queries the data from the blockchain.
-     *
-     * Uses an in-memory cache to store previously-fetched values.
-     *
-     * Throws if there is a problem fetching the data from on chain.
+     * Passthrough to TokenMetadataManager's `getTokenDecimalsAsync` method
      */
     public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
-        const localMetadata = getTokenMetadataIfExists(tokenAddress, this._chainId);
-        if (localMetadata) {
-            return localMetadata.decimals;
-        }
-        const cachedDecimals = this._tokenDecimalsCache.get(tokenAddress);
-        if (cachedDecimals) {
-            return cachedDecimals;
-        }
-        const onchainDecimals = await this._blockchainUtils.getTokenDecimalsAsync(tokenAddress);
-        logger.info(
-            { tokenAddress, decimals: onchainDecimals, cacheSize: this._tokenDecimalsCache.size },
-            'Token decimals fetched from blockchain',
-        );
-        this._tokenDecimalsCache.set(tokenAddress, onchainDecimals);
-        return onchainDecimals;
+        return this._tokenMetadataManager.getTokenDecimalsAsync(tokenAddress);
     }
 
     /**

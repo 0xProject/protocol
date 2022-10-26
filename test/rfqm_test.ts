@@ -39,6 +39,7 @@ import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../src/utils/rfq_maker_manager';
 import { BLOCK_FINALITY_THRESHOLD } from '../src/utils/SubmissionContext';
+import { TokenMetadataManager } from '../src/utils/TokenMetadataManager';
 
 import {
     CONTRACT_ADDRESSES,
@@ -249,6 +250,10 @@ describe('RFQM Integration', () => {
         );
         const rfqBlockchainUtils = instance(rfqBlockchainUtilsMock);
 
+        const tokenMetadataManagerMock = mock(TokenMetadataManager);
+        when(tokenMetadataManagerMock.getTokenDecimalsAsync(anything())).thenResolve(18);
+        const tokenMetadataManager = instance(tokenMetadataManagerMock);
+
         interface SqsResponse {
             Id: string;
             MD5OfMessageBody: string;
@@ -312,6 +317,7 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerBalanceCacheService,
             rfqMakerManager,
+            tokenMetadataManager,
         );
 
         // Create another RFQM Service for chain ID 3 that returns 0 offering
@@ -333,6 +339,7 @@ describe('RFQM Integration', () => {
             cacheClient,
             rfqMakerBalanceCacheService,
             rfqMakerManagerChainId3,
+            tokenMetadataManager,
         );
 
         const rfqAdminService = buildRfqAdminService(dbUtils);

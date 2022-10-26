@@ -52,6 +52,7 @@ import { RfqmDbUtils } from './rfqm_db_utils';
 import { RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
+import { TokenMetadataManager } from './TokenMetadataManager';
 import { TokenPriceOracle } from './TokenPriceOracle';
 import { ZeroExApiClient } from './ZeroExApiClient';
 
@@ -214,6 +215,8 @@ export async function buildRfqmServiceAsync(
         ethersProvider,
     );
 
+    const tokenMetadataManager = new TokenMetadataManager(chain.chainId, rfqBlockchainUtils);
+
     const sqsProducer = Producer.create({
         queueUrl: chain.sqsUrl,
     });
@@ -259,6 +262,7 @@ export async function buildRfqmServiceAsync(
         cacheClient,
         rfqMakerBalanceCacheService,
         rfqMakerManager,
+        tokenMetadataManager,
         kafkaProducer,
         chain.quoteReportTopic,
     );

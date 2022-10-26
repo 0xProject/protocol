@@ -30,6 +30,7 @@ import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 
 jest.mock('../../src/services/rfqm_service', () => {
     return {
@@ -118,6 +119,7 @@ const mockRfqmService = jest.mocked(
         {} as CacheClient,
         {} as RfqMakerBalanceCacheService,
         {} as RfqMakerManager,
+        {} as TokenMetadataManager,
     ),
 );
 

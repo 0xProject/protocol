@@ -43,6 +43,7 @@ import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../../src/utils/rfqm_db_u
 import { HealthCheckStatus } from '../../src/utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 import { MOCK_EXECUTE_META_TRANSACTION_APPROVAL } from '../constants';
 
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
@@ -75,6 +76,7 @@ const buildRfqmServiceForUnitTest = (
         cacheClient?: CacheClient;
         rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService;
         rfqMakerManager?: RfqMakerManager;
+        tokenMetadataManager?: TokenMetadataManager;
     } = {},
 ): RfqmService => {
     const contractAddresses = getContractAddressesForChainOrThrow(1);
@@ -143,6 +145,10 @@ const buildRfqmServiceForUnitTest = (
     const rfqMakerBalanceCacheService = mock(RfqMakerBalanceCacheService);
     const rfqMakerManagerMock = mock(RfqMakerManager);
 
+    const tokenMetadataManagerMock = mock(TokenMetadataManager);
+    when(tokenMetadataManagerMock.getTokenDecimalsAsync(anything())).thenResolve(18);
+    const tokenMetadataManager = instance(tokenMetadataManagerMock);
+
     return new RfqmService(
         overrides.chainId || 1337,
         overrides.rfqmFeeService || rfqmFeeServiceInstance,
@@ -156,6 +162,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.cacheClient || instance(cacheClientMock),
         overrides.rfqMakerBalanceCacheService || rfqMakerBalanceCacheService,
         overrides.rfqMakerManager || rfqMakerManagerMock,
+        overrides.tokenMetadataManager || tokenMetadataManager,
     );
 };
 
