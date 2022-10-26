@@ -1,6 +1,7 @@
 import { FillQuoteTransformerOrderType, RfqOrder } from '@0x/protocol-utils';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
+import { Counter } from 'prom-client';
 
 import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
 import { DEFAULT_INFO_LOGGER, INVALID_SIGNATURE } from '../../constants';
@@ -58,6 +59,11 @@ import {
     OptimizerResult,
     OptimizerResultWithReport,
 } from './types';
+
+const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
+    name: 'no_conversion_to_native_found',
+    help: 'unable to get conversion to native token',
+});
 
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
@@ -204,9 +210,11 @@ export class MarketOperationUtils {
 
         if (outputAmountPerEth.isZero()) {
             DEFAULT_INFO_LOGGER({ token: makerToken }, 'output conversion to native token is zero');
+            NO_CONVERSION_TO_NATIVE_FOUND.inc();
         }
         if (inputAmountPerEth.isZero()) {
             DEFAULT_INFO_LOGGER({ token: takerToken }, 'input conversion to native token is zero');
+            NO_CONVERSION_TO_NATIVE_FOUND.inc();
         }
 
         // Log the gas metrics
