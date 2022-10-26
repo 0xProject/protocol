@@ -93,7 +93,7 @@ function findRoutesAndCreateOptimalPath(
         return adjustedFills[0];
     };
 
-    const createPathFromStrategy = (optimalRouteInputs: Float64Array, optimalRouteOutputs: Float64Array) => {
+    const createPathFromRoute = (route: Route) => {
         /**
          * inputs are the amounts to fill at each source index
          * e.g fill 2076 at index 4
@@ -108,34 +108,34 @@ function findRoutesAndCreateOptimalPath(
          */
 
         const routesAndSamplesAndOutputs = _.zip(
-            optimalRouteInputs,
-            optimalRouteOutputs,
+            route.inputAmounts,
+            route.outputAmounts,
             samplesAndNativeOrdersWithResults,
             sampleSourcePathIds,
         );
         const adjustedFills: Fill[] = [];
-        const totalRoutedAmount = BigNumber.sum(...optimalRouteInputs);
+        const totalRoutedAmount = BigNumber.sum(...route.inputAmounts);
 
         // Due to precision errors we can end up with a totalRoutedAmount that is not exactly equal to the input
         const precisionErrorScalar = input.dividedBy(totalRoutedAmount);
 
         for (const [
-            routeInput,
+            routeInputAmount,
             outputAmount,
             routeSamplesAndNativeOrders,
             sourcePathId,
         ] of routesAndSamplesAndOutputs) {
             if (!Number.isFinite(outputAmount)) {
-                DEFAULT_WARNING_LOGGER(rustArgs, `neon-router: invalid route outputAmount ${outputAmount}`);
+                DEFAULT_WARNING_LOGGER(optimizerCapture, `neon-router: invalid route outputAmount ${outputAmount}`);
                 return undefined;
             }
-            if (!routeInput || !routeSamplesAndNativeOrders || !outputAmount) {
+            if (!routeInputAmount || !routeSamplesAndNativeOrders || !outputAmount) {
                 continue;
             }
             // TODO: [TKR-241] amounts are sometimes clipped in the router due to precision loss for number/f64
             // we can work around it by scaling it and rounding up. However now we end up with a total amount of a couple base units too much
             const routeInputCorrected = BigNumber.min(
-                precisionErrorScalar.multipliedBy(routeInput).integerValue(BigNumber.ROUND_CEIL),
+                precisionErrorScalar.multipliedBy(routeInputAmount).integerValue(BigNumber.ROUND_CEIL),
                 input,
             );
 
@@ -342,44 +342,18 @@ function findRoutesAndCreateOptimalPath(
         return undefined;
     }
 
-    const rustArgs: OptimizerCapture = {
+    const optimizerCapture: OptimizerCapture = {
         side,
         targetInput: input.toNumber(),
         pathsIn: serializedPaths,
     };
+    const { allSourcesRoute, vipSourcesRoute } = routeFromNeonRouter({
+        optimizerCapture,
+        numSamples: neonRouterNumSamples,
+    });
 
-    const allSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
-    const allSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
-    const vipSourcesRustRoute = new Float64Array(rustArgs.pathsIn.length);
-    const vipSourcesOutputAmounts = new Float64Array(rustArgs.pathsIn.length);
-
-    route(
-        rustArgs,
-        allSourcesRustRoute,
-        allSourcesOutputAmounts,
-        vipSourcesRustRoute,
-        vipSourcesOutputAmounts,
-        neonRouterNumSamples,
-    );
-    assert.assert(
-        rustArgs.pathsIn.length === allSourcesRustRoute.length,
-        'different number of sources in the Router output than the input',
-    );
-    assert.assert(
-        rustArgs.pathsIn.length === allSourcesOutputAmounts.length,
-        'different number of sources in the Router output amounts results than the input',
-    );
-    assert.assert(
-        rustArgs.pathsIn.length === vipSourcesRustRoute.length,
-        'different number of sources in the Router output than the input',
-    );
-    assert.assert(
-        rustArgs.pathsIn.length === vipSourcesOutputAmounts.length,
-        'different number of sources in the Router output amounts results than the input',
-    );
-
-    const allSourcesPath = createPathFromStrategy(allSourcesRustRoute, allSourcesOutputAmounts);
-    const vipSourcesPath = createPathFromStrategy(vipSourcesRustRoute, vipSourcesOutputAmounts);
+    const allSourcesPath = createPathFromRoute(allSourcesRoute);
+    const vipSourcesPath = createPathFromRoute(vipSourcesRoute);
 
     return {
         allSourcesPath,
@@ -433,4 +407,67 @@ export function findOptimalPathFromSamples(
 
     sendMetrics();
     return allSourcesPath;
+}
+
+interface NeonRouterParams {
+    optimizerCapture: OptimizerCapture;
+    numSamples: number;
+}
+
+interface NeonRouterOutput {
+    allSourcesRoute: Route;
+    vipSourcesRoute: Route;
+}
+
+interface Route {
+    inputAmounts: Float64Array;
+    outputAmounts: Float64Array;
+}
+
+function routeFromNeonRouter(params: NeonRouterParams): NeonRouterOutput {
+    const { optimizerCapture, numSamples } = params;
+    const numPathsIn = optimizerCapture.pathsIn.length;
+
+    // Output holders:
+    const allSourcesInputAmounts = new Float64Array(numPathsIn);
+    const allSourcesOutputAmounts = new Float64Array(numPathsIn);
+    const vipSourcesInputAmounts = new Float64Array(numPathsIn);
+    const vipSourcesOutputAmounts = new Float64Array(numPathsIn);
+
+    route(
+        optimizerCapture,
+        allSourcesInputAmounts,
+        allSourcesOutputAmounts,
+        vipSourcesInputAmounts,
+        vipSourcesOutputAmounts,
+        numSamples,
+    );
+
+    assert.assert(
+        numPathsIn === allSourcesInputAmounts.length,
+        'different number of sources in the Router output than the input',
+    );
+    assert.assert(
+        numPathsIn === allSourcesOutputAmounts.length,
+        'different number of sources in the Router output amounts results than the input',
+    );
+    assert.assert(
+        numPathsIn === vipSourcesInputAmounts.length,
+        'different number of sources in the Router output than the input',
+    );
+    assert.assert(
+        numPathsIn === vipSourcesOutputAmounts.length,
+        'different number of sources in the Router output amounts results than the input',
+    );
+
+    return {
+        allSourcesRoute: {
+            inputAmounts: allSourcesInputAmounts,
+            outputAmounts: allSourcesOutputAmounts,
+        },
+        vipSourcesRoute: {
+            inputAmounts: vipSourcesInputAmounts,
+            outputAmounts: vipSourcesOutputAmounts,
+        },
+    };
 }
