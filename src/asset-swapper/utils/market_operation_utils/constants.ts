@@ -2615,10 +2615,24 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.Native]: (fillData) => {
         // TODO jacob re-order imports so there is no circular rependency with SignedNativeOrder
         const nativeFillData = fillData as { type: FillQuoteTransformerOrderType };
-        return nativeFillData && nativeFillData.type === FillQuoteTransformerOrderType.Limit
-            ? PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber()
-            : // TODO jacob revisit wth v4 LimitOrders
-              100e3;
+        if (!nativeFillData || nativeFillData.type === undefined) {
+            return 100e3;
+        }
+        switch (nativeFillData.type) {
+            case FillQuoteTransformerOrderType.Limit:
+                // TODO jacob revisit wth v4 LimitOrders
+                return PROTOCOL_FEE_MULTIPLIER.plus(100e3).toNumber();
+            case FillQuoteTransformerOrderType.Rfq:
+            case FillQuoteTransformerOrderType.Bridge:
+                // Should never hit a Bridge order, but if it does, set it to the same as RfqOrder to preserve old logic
+                return 100e3;
+            case FillQuoteTransformerOrderType.Otc:
+                return 85e3;
+            default:
+                ((_: never) => {
+                    throw new Error('unreachable');
+                })(nativeFillData.type);
+        }
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
     [ERC20BridgeSource.LiquidityProvider]: (fillData) => {
