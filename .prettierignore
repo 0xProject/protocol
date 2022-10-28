@@ -60,6 +60,7 @@ lib
 /contracts/dev-utils/test/generated-wrappers
 /contracts/dev-utils/generated-artifacts
 /contracts/dev-utils/test/generated-artifacts
+/contracts/zero-ex/foundry-artifacts
 /contracts/zero-ex/generated-wrappers
 /contracts/zero-ex/test/generated-wrappers
 /contracts/zero-ex/generated-artifacts

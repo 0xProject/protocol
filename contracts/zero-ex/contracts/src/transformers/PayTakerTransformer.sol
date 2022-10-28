@@ -65,7 +65,7 @@ contract PayTakerTransformer is Transformer {
                 amount = data.tokens[i].getTokenBalanceOf(address(this));
             }
             if (amount != 0) {
-                data.tokens[i].transformerTransfer(context.recipient, amount);
+                data.tokens[i].unsafeTransformerTransfer(context.recipient, amount);
             }
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
