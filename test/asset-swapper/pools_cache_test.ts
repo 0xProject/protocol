@@ -45,7 +45,8 @@ describe('Pools Caches for Balancer-based sampling', () => {
     });
 
     describe('BalancerV2PoolsCache', () => {
-        it('fetches pools (Beethoven X - Fantom)', async () => {
+        // TODO: revisit its flakiness
+        it.skip('fetches pools (Beethoven X - Fantom)', async () => {
             const cache = BalancerV2PoolsCache.createBeethovenXPoolCache(ChainId.Fantom);
             const wftmAddress = '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83';
             const beetsAddress = '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e';
