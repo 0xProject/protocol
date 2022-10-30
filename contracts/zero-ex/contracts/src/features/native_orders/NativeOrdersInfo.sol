@@ -47,7 +47,6 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     uint256 private constant HIGH_BIT = 1 << 255;
 
     constructor(address zeroExAddress) internal FixinEIP712(zeroExAddress) {
-        // solhint-disable no-empty-blocks
     }
 
     /// @dev Get the order info for a limit order.

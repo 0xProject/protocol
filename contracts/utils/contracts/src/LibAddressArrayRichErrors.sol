@@ -22,7 +22,6 @@ library LibAddressArrayRichErrors {
     // bytes4(keccak256("MismanagedMemoryError(uint256,uint256)"))
     bytes4 internal constant MISMANAGED_MEMORY_ERROR_SELECTOR = 0x5fc83722;
 
-    // solhint-disable func-name-mixedcase
     function MismanagedMemoryError(uint256 freeMemPtr, uint256 addressArrayEndPtr)
         internal
         pure

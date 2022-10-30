@@ -37,7 +37,6 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     uint256 private constant HIGH_BIT = 1 << 255;
 
     constructor(address zeroExAddress) internal NativeOrdersInfo(zeroExAddress) {
-        // solhint-disable no-empty-blocks
     }
 
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.

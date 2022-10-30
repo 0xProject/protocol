@@ -83,11 +83,8 @@ contract ZrxTreasury is IZrxTreasury {
         );
     }
 
-    // solhint-disable
     /// @dev Allows this contract to receive ether.
     receive() external payable {}
-
-    // solhint-enable
 
     /// @dev Updates the proposal and quorum thresholds to the given
     ///      values. Note that this function is only callable by the

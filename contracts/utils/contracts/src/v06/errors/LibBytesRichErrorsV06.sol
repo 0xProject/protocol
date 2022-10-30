@@ -34,7 +34,6 @@ library LibBytesRichErrorsV06 {
     // bytes4(keccak256("InvalidByteOperationError(uint8,uint256,uint256)"))
     bytes4 internal constant INVALID_BYTE_OPERATION_ERROR_SELECTOR = 0x28006595;
 
-    // solhint-disable func-name-mixedcase
     function InvalidByteOperationError(
         InvalidByteOperationErrorCodes errorCode,
         uint256 offset,

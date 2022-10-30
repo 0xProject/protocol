@@ -26,10 +26,7 @@ import "./TestTransformerHost.sol";
 import "./tokens/TestWeth.sol";
 
 contract TestWethTransformerHost is TestTransformerHost {
-    // solhint-disable
     TestWeth private immutable _weth;
-
-    // solhint-enable
 
     constructor(TestWeth weth) public {
         _weth = weth;

@@ -39,7 +39,6 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
     ) public NativeOrdersSettlement(zeroExAddress, weth, staking, feeCollectorController, protocolFeeMultiplier) {
-        // solhint-disable no-empty-blocks
     }
 
     /// @dev Initialize and register this feature.

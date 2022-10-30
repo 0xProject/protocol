@@ -57,7 +57,6 @@ interface IZeroEx is
     IERC1155OrdersFeature,
     IERC165Feature
 {
-    // solhint-disable state-visibility
 
     /// @dev Fallback for just receiving ether.
     receive() external payable;

@@ -38,7 +38,6 @@ library LibAuthorizableRichErrorsV06 {
     // bytes4(keccak256("ZeroCantBeAuthorizedError()"))
     bytes internal constant ZERO_CANT_BE_AUTHORIZED_ERROR_BYTES = hex"57654fe4";
 
-    // solhint-disable func-name-mixedcase
     function AuthorizedAddressMismatchError(address authorized, address target) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(AUTHORIZED_ADDRESS_MISMATCH_ERROR_SELECTOR, authorized, target);
     }

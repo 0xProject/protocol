@@ -37,8 +37,6 @@ contract ZeroExOptimized {
         LibProxyStorage.getStorage().impls[bootstrap.bootstrap.selector] = address(bootstrap);
     }
 
-    // solhint-disable state-visibility
-
     /// @dev Forwards calls to the appropriate implementation contract.
     fallback() external payable {
         // This is used in assembly below as impls_slot.

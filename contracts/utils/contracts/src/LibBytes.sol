@@ -105,7 +105,6 @@ library LibBytes {
                     // Copy whole words front to back
                     // Note: the first check is always true,
                     // this could have been a do-while loop.
-                    // solhint-disable-next-line no-empty-blocks
                     for {
 
                     } lt(source, sEnd) {
@@ -140,7 +139,6 @@ library LibBytes {
                     // 2**255, so they can be safely re-interpreted as signed.
                     // Note: the first check is always true,
                     // this could have been a do-while loop.
-                    // solhint-disable-next-line no-empty-blocks
                     for {
 
                     } slt(dest, dEnd) {

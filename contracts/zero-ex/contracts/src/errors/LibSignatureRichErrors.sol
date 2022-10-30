@@ -29,8 +29,6 @@ library LibSignatureRichErrors {
         BAD_SIGNATURE_DATA
     }
 
-    // solhint-disable func-name-mixedcase
-
     function SignatureValidationError(
         SignatureValidationErrorCodes code,
         bytes32 hash,

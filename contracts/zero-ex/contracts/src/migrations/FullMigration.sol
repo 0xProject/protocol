@@ -30,7 +30,6 @@ import "./InitialMigration.sol";
 
 /// @dev A contract for deploying and configuring the full ZeroEx contract.
 contract FullMigration {
-    // solhint-disable no-empty-blocks,indent
 
     /// @dev Features to add the the proxy contract.
     struct Features {

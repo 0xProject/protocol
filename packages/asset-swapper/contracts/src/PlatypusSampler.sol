@@ -83,7 +83,7 @@ contract PlatypusSampler is
         if(!success) {
             return 0;
         }
-        // solhint-disable-next-line indent
+
         return abi.decode(resultData, (uint256[]))[0];
     }
 }

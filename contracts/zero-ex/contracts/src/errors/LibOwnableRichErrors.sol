@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibOwnableRichErrors {
-    // solhint-disable func-name-mixedcase
 
     function OnlyOwnerError(address sender, address owner) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(bytes4(keccak256("OnlyOwnerError(address,address)")), sender, owner);

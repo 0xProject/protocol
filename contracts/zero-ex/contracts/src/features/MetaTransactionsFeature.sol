@@ -114,7 +114,6 @@ contract MetaTransactionsFeature is
     }
 
     constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {
-        // solhint-disable-next-line no-empty-blocks
     }
 
     /// @dev Initialize and register this feature.

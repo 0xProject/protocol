@@ -119,7 +119,6 @@ abstract contract NativeOrdersSettlement is
         NativeOrdersCancellation(zeroExAddress)
         NativeOrdersProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
     {
-        // solhint-disable no-empty-blocks
     }
 
     /// @dev Fill a limit order. The taker and sender will be the caller.

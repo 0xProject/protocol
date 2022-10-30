@@ -34,6 +34,7 @@
         "watch:ts": "tsc -b -w",
         "clean": "wsrun --fast-exit -r --parallel --exclude-missing -p $PKG -c clean",
         "contracts:watch": "wsrun --parallel --exclude-missing -p $PKG -c watch",
+        "lint:contracts": "npx solhint contracts/**/*.sol",
         "remove_node_modules": "lerna clean --yes; rm -rf node_modules",
         "rebuild": "run-s clean build",
         "test": "wsrun --fast-exit --serial --exclude-missing -p $(echo $(echo ${npm_package_config_contractsPackages} ${npm_package_config_nonContractPackages} | tr ' ' '\n' | sort | uniq) ${npm_package_config_ignoreTestsForPackages} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ') -c test",

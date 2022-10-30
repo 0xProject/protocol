@@ -137,13 +137,10 @@ contract UnlimitedAllowanceToken is ERC20Token {
 }
 
 contract ZRXToken is UnlimitedAllowanceToken {
-    // solhint-disable const-name-snakecase
     uint8 public constant decimals = 18;
     uint256 public totalSupply = 10**27; // 1 billion tokens, 18 decimal places
     string public constant name = "0x Protocol Token";
     string public constant symbol = "ZRX";
-
-    // solhint-enableconst-name-snakecase
 
     function ZRXToken() public {
         balances[msg.sender] = totalSupply;

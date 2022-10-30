@@ -22,7 +22,6 @@ contract TestNativeOrdersFeature is NativeOrdersFeature {
             protocolFeeMultiplier
         )
     {
-        // solhint-disable no-empty-blocks
     }
 
     modifier onlySelf() override {

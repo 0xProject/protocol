@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibNFTOrdersRichErrors {
-    // solhint-disable func-name-mixedcase
 
     function OverspentEthError(uint256 ethSpent, uint256 ethAvailable) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(bytes4(keccak256("OverspentEthError(uint256,uint256)")), ethSpent, ethAvailable);

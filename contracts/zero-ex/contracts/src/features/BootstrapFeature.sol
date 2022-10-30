@@ -27,7 +27,6 @@ import "./interfaces/IBootstrapFeature.sol";
 
 /// @dev Detachable `bootstrap()` feature.
 contract BootstrapFeature is IBootstrapFeature {
-    // solhint-disable state-visibility,indent
     /// @dev The ZeroEx contract.
     ///      This has to be immutable to persist across delegatecalls.
     address private immutable _deployer;
@@ -37,7 +36,6 @@ contract BootstrapFeature is IBootstrapFeature {
     /// @dev The deployer.
     ///      This has to be immutable to persist across delegatecalls.
     address private immutable _bootstrapCaller;
-    // solhint-enable state-visibility,indent
 
     using LibRichErrorsV06 for bytes;
 

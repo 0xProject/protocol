@@ -19,7 +19,6 @@
 pragma solidity ^0.5.9;
 
 contract DeploymentConstants {
-    // solhint-disable separate-by-one-line-in-contract
 
     // Mainnet addresses ///////////////////////////////////////////////////////
     /// @dev Mainnet address of the WETH contract.

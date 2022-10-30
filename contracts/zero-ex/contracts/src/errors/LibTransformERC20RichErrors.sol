@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibTransformERC20RichErrors {
-    // solhint-disable func-name-mixedcase,separate-by-one-line-in-contract
 
     function InsufficientEthAttachedError(uint256 ethAttached, uint256 ethNeeded) internal pure returns (bytes memory) {
         return

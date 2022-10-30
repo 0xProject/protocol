@@ -23,7 +23,6 @@ import "./LibAuthorizableRichErrors.sol";
 import "./LibRichErrors.sol";
 import "./Ownable.sol";
 
-// solhint-disable no-empty-blocks
 contract Authorizable is Ownable, IAuthorizable {
     /// @dev Only authorized addresses can invoke functions with this modifier.
     modifier onlyAuthorized() {
