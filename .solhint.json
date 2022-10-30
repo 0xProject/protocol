@@ -1,6 +1,8 @@
 {
     "extends": "solhint:recommended",
+    "plugins": ["prettier"],
     "rules": {
+        "prettier/prettier": "error",
         "avoid-low-level-calls": "off",
         "avoid-tx-origin": "warn",
         "code-complexity": "off",
