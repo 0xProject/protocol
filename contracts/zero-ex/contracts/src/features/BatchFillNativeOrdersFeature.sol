@@ -44,8 +44,7 @@ contract BatchFillNativeOrdersFeature is IFeature, IBatchFillNativeOrdersFeature
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(1, 1, 0);
 
-    constructor(address zeroExAddress) public FixinEIP712(zeroExAddress) {
-    }
+    constructor(address zeroExAddress) public FixinEIP712(zeroExAddress) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

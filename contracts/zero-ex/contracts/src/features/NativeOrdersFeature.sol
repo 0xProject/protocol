@@ -38,8 +38,7 @@ contract NativeOrdersFeature is IFeature, NativeOrdersSettlement {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    ) public NativeOrdersSettlement(zeroExAddress, weth, staking, feeCollectorController, protocolFeeMultiplier) {
-    }
+    ) public NativeOrdersSettlement(zeroExAddress, weth, staking, feeCollectorController, protocolFeeMultiplier) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

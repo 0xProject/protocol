@@ -28,8 +28,7 @@ contract TestFixinProtocolFees is FixinProtocolFees {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    ) public FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
-    }
+    ) public FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {}
 
     function collectProtocolFee(bytes32 poolId) external payable {
         _collectProtocolFee(poolId);

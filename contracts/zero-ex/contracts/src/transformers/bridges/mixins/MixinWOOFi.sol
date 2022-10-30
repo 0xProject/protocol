@@ -54,15 +54,17 @@ contract MixinWOOFi {
     using LibERC20TokenV06 for IEtherTokenV06;
     using LibSafeMathV06 for uint256;
 
+    // solhint-disable-next-line const-name-snakecase
     address constant rebateAddress = 0xBfdcBB4C05843163F491C24f9c0019c510786304;
 
-    /// @dev Swaps an exact amount of input tokens for as many output tokens as possible.
-    /// @param _amountIn Amount of input tokens to send
-    /// @param _minAmountOut The minimum amount of output tokens that must be received for the transaction not to revert
-    /// @param _tokenIn Input token
-    /// @param _tokenOut Output token
-    /// @param _to recipient of tokens
-    /// @param pool WOOFi pool where the swap will happen
+    // /// @dev Swaps an exact amount of input tokens for as many output tokens as possible.
+    // /// @param _amountIn Amount of input tokens to send
+    // /// @param _minAmountOut The minimum amount of output tokens that must be received for the transaction
+    // /// not to revert
+    // /// @param _tokenIn Input token
+    // /// @param _tokenOut Output token
+    // /// @param _to recipient of tokens
+    // /// @param pool WOOFi pool where the swap will happen
     function _tradeWOOFi(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,

@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibWalletRichErrors {
-
     function WalletExecuteCallFailedError(
         address wallet,
         address callTarget,

@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibMetaTransactionsRichErrors {
-
     function InvalidMetaTransactionsArrayLengthsError(uint256 mtxCount, uint256 signatureCount)
         internal
         pure

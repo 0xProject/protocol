@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibSimpleFunctionRegistryRichErrors {
-
     function NotInRollbackHistoryError(bytes4 selector, address targetImpl) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(

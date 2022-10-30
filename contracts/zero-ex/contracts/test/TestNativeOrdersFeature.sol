@@ -21,8 +21,7 @@ contract TestNativeOrdersFeature is NativeOrdersFeature {
             FeeCollectorController(address(new TestFeeCollectorController())),
             protocolFeeMultiplier
         )
-    {
-    }
+    {}
 
     modifier onlySelf() override {
         _;

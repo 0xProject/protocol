@@ -118,8 +118,7 @@ abstract contract NativeOrdersSettlement is
         public
         NativeOrdersCancellation(zeroExAddress)
         NativeOrdersProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
-    {
-    }
+    {}
 
     /// @dev Fill a limit order. The taker and sender will be the caller.
     /// @param order The limit order. ETH protocol fees can be

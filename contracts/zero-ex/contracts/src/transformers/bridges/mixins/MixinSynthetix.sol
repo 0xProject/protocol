@@ -41,7 +41,9 @@ interface ISynthetix {
 }
 
 contract MixinSynthetix {
+    // solhint-disable-next-line const-name-snakecase
     address private constant rewardAddress = 0x5C80239D97E1eB216b5c3D8fBa5DE5Be5d38e4C9;
+    // solhint-disable-next-line const-name-snakecase
     bytes32 constant trackingCode = 0x3058000000000000000000000000000000000000000000000000000000000000;
 
     function _tradeSynthetix(uint256 sellAmount, bytes memory bridgeData) public returns (uint256 boughtAmount) {

@@ -46,8 +46,7 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 
-    constructor(address zeroExAddress) internal FixinEIP712(zeroExAddress) {
-    }
+    constructor(address zeroExAddress) internal FixinEIP712(zeroExAddress) {}
 
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.

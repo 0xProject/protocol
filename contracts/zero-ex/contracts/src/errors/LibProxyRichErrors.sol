@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibProxyRichErrors {
-
     function NotImplementedError(bytes4 selector) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(bytes4(keccak256("NotImplementedError(bytes4)")), selector);
     }

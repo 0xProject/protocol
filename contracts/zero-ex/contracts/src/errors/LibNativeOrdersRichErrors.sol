@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibNativeOrdersRichErrors {
-
     function ProtocolFeeRefundFailed(address receiver, uint256 refundAmount) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(

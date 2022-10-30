@@ -32,7 +32,7 @@ interface IGmxRouter {
     /// must exist and have liquidity.
     /// @param _amountIn The amount of input tokens to send.
     /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
-    /// @param _reciever Recipient of the output tokens.
+    /// @param _receiver Recipient of the output tokens.
     function swap(
         address[] calldata _path,
         uint256 _amountIn,

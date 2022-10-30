@@ -31,11 +31,11 @@ library LibNativeOrdersStorage {
         // The high bit will be `1` if the order was directly cancelled.
         mapping(bytes32 => uint256) orderHashToTakerTokenFilledAmount;
         // The minimum valid order salt for a given maker and order pair (maker, taker) for limit orders.
-        mapping(address => mapping(address => mapping(address => uint256)))
-            limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        // solhint-disable-next-line max-line-length
+        mapping(address => mapping(address => mapping(address => uint256))) limitOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
         // The minimum valid order salt for a given maker and order pair (maker, taker) for RFQ orders.
-        mapping(address => mapping(address => mapping(address => uint256)))
-            rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
+        // solhint-disable-next-line max-line-length
+        mapping(address => mapping(address => mapping(address => uint256))) rfqOrdersMakerToMakerTokenToTakerTokenToMinValidOrderSalt;
         // For a given order origin, which tx.origin addresses are allowed to fill the order.
         mapping(address => mapping(address => bool)) originRegistry;
         // For a given maker address, which addresses are allowed to

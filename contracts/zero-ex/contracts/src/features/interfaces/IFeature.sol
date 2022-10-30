@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 /// @dev Basic interface for a feature contract.
 interface IFeature {
-
     /// @dev The name of this feature set.
     function FEATURE_NAME() external view returns (string memory name);
 

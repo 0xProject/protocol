@@ -36,8 +36,7 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @dev Highest bit of a uint256, used to flag cancelled orders.
     uint256 private constant HIGH_BIT = 1 << 255;
 
-    constructor(address zeroExAddress) internal NativeOrdersInfo(zeroExAddress) {
-    }
+    constructor(address zeroExAddress) internal NativeOrdersInfo(zeroExAddress) {}
 
     /// @dev Cancel a single limit order. The caller must be the maker or a valid order signer.
     ///      Silently succeeds if the order has already been cancelled.

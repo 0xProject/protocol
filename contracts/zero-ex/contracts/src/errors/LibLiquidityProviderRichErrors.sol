@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibLiquidityProviderRichErrors {
-
     function LiquidityProviderIncompleteSellError(
         address providerAddress,
         address makerToken,

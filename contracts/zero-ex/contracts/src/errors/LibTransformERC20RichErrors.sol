@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 library LibTransformERC20RichErrors {
-
     function InsufficientEthAttachedError(uint256 ethAttached, uint256 ethNeeded) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(

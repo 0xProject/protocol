@@ -19,7 +19,6 @@
 pragma solidity ^0.5.9;
 
 contract DeploymentConstants {
-
     // Mainnet addresses ///////////////////////////////////////////////////////
     /// @dev Mainnet address of the WETH contract.
     address private constant WETH_ADDRESS = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;

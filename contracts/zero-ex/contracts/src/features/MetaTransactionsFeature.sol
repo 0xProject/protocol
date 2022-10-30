@@ -113,8 +113,7 @@ contract MetaTransactionsFeature is
         require(initialBalance <= address(this).balance, "MetaTransactionsFeature/ETH_LEAK");
     }
 
-    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {
-    }
+    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

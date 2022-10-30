@@ -8,7 +8,6 @@
         "code-complexity": "off",
         "const-name-snakecase": "error",
         "function-max-lines": "off",
-        "ordering": "error",
         "max-line-length": ["error", 120],
         "no-inline-assembly": "off",
         "quotes": ["error", "double"],
