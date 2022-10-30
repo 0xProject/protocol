@@ -39,7 +39,8 @@ contract DummyMultipleReturnERC20Token is DummyERC20Token {
     ) external returns (bool) {
         emit Transfer(_from, _to, _value);
 
-        // HACK: This contract will not compile if we remove `returns (bool)`, so we manually return 64 bytes (equiavalent to true, true)
+        // HACK: This contract will not compile if we remove `returns (bool)`, so we manually return 64 bytes
+        // (equiavalent to true, true)
         assembly {
             mstore(0, 1)
             mstore(32, 1)

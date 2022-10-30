@@ -500,6 +500,7 @@ abstract contract NativeOrdersSettlement is
         }
 
         // Update filled state for the order.
+        // solhint-disable-next-line max-line-length
         LibNativeOrdersStorage.getStorage().orderHashToTakerTokenFilledAmount[settleInfo.orderHash] = settleInfo // function if the order is cancelled. // OK to overwrite the whole word because we shouldn't get to this
             .takerTokenFilledAmount
             .safeAdd128(takerTokenFilledAmount);

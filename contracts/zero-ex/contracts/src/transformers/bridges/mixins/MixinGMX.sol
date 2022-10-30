@@ -25,13 +25,14 @@ import "../IBridgeAdapter.sol";
     UniswapV2
 */
 interface IGmxRouter {
-    // /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
-    // ///      The first element of path is the input token, the last is the output token, and any intermediate elements represent
-    // ///      intermediate pairs to trade through (if, for example, a direct pair does not exist).
-    // /// @param _path An array of token addresses. path.length must be >= 2. Pools for each consecutive pair of addresses must exist and have liquidity.
-    // /// @param _amountIn The amount of input tokens to send.
-    // /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
-    // /// @param _reciever Recipient of the output tokens.
+    /// @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by
+    /// the path. The first element of path is the input token, the last is the output token, and any intermediate
+    /// elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
+    /// @param _path An array of token addresses. path.length must be >= 2. Pools for each consecutive pair of addresses
+    /// must exist and have liquidity.
+    /// @param _amountIn The amount of input tokens to send.
+    /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
+    /// @param _reciever Recipient of the output tokens.
     function swap(
         address[] calldata _path,
         uint256 _amountIn,

@@ -41,7 +41,7 @@ interface IBalancerV2Vault {
      * Internal Balance usage and the recipient are determined by the `funds` struct.
      *
      * Emits a `Swap` event.
-     * For full documentation see https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
+     * For full documentation see https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol // solhint-disable-line max-line-length
      */
     function swap(
         SingleSwap calldata request,
