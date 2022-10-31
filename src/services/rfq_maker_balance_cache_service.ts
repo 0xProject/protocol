@@ -133,4 +133,16 @@ export class RfqMakerBalanceCacheService {
             timerStopFunction();
         }
     }
+
+    /**
+     * Safely close the maker balance cache service to avoid potential memory leak.
+     */
+    public async closeAsync(): Promise<void> {
+        try {
+            return this._cacheClient.closeAsync();
+        } catch (e) {
+            logger.error({ message: e.message, stack: e.stack }, 'Failed to close RFQm maker balance cache service');
+            throw e;
+        }
+    }
 }

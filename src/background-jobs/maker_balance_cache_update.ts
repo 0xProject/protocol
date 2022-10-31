@@ -102,6 +102,7 @@ async function processAsync(
     // Perform update on maker balance cache
     try {
         await rfqMakerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
+        await rfqMakerBalanceCacheService.closeAsync();
         MAKER_BALANCE_CACHE_UPDATE_PROCESS_COUNT.inc();
     } catch (error) {
         logger.error(

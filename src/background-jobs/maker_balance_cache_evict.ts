@@ -102,6 +102,7 @@ async function processAsync(
     let numEvicted;
     try {
         numEvicted = await rfqMakerBalanceCacheService.evictZeroBalancesAsync(chainId);
+        await rfqMakerBalanceCacheService.closeAsync();
         MAKER_BALANCE_CACHE_EVICT_PROCESS_COUNT.inc();
     } catch (error) {
         logger.error(
