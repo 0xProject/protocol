@@ -46,7 +46,8 @@
         "diff_md_docs:ci": "wsrun --exclude-missing -c diff_docs",
         "test:generate_docs:circleci": "for i in ${npm_package_config_packagesWithDocPages}; do yarn generate_doc --package $i || break -1; done;",
         "bundlewatch": "bundlewatch",
-        "lint": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
+        "lint:ts": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
+        "lint": "yarn lint:ts && yarn lint:contracts",
         "upgrade_tools": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/abi-gen|@0x/assert|@0x/base-contract|@0x/contracts-gen|@0x/dev-utils|@0x/json-schemas|@0x/monorepo-scripts|@0x/sol-compiler|@0x/sol-coverage|@0x/sol-doc|@0x/sol-profiler|@0x/sol-resolver|@0x/sol-trace|@0x/sol-tracing-utils|@0x/subproviders|@0x/tslint-config|@0x/types|@0x/typescript-typings|@0x/utils|@0x/verdaccio|@0x/web3-wrapper|ethereum-types'",
         "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
