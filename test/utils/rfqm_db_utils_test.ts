@@ -5,7 +5,12 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../../src/constants';
-import { DefaultFeeDetails, FeeWithDetails, GasOnlyFeeDetails, MarginBasedFeeDetails } from '../../src/services/types';
+import {
+    DefaultFeeDetailsDeprecated,
+    FeeWithDetails,
+    GasOnlyFeeDetailsDeprecated,
+    MarginBasedFeeDetailsDeprecated,
+} from '../../src/services/types';
 import { feeToStoredFee, otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';
 
 describe('RFQM DB utils', () => {
@@ -50,7 +55,7 @@ describe('RFQM DB utils', () => {
 
         it('should convert Fee with gasOnly details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: GasOnlyFeeDetails } = {
+            const fee: FeeWithDetails & { details: GasOnlyFeeDetailsDeprecated } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',
@@ -59,6 +64,21 @@ describe('RFQM DB utils', () => {
                     feeModelVersion: 0,
                     gasFeeAmount: new BigNumber(5),
                     gasPrice: new BigNumber(50),
+                },
+                breakdown: {
+                    gas: {
+                        amount: new BigNumber(100),
+                        details: {
+                            gasPrice: new BigNumber(50),
+                            estimatedGas: new BigNumber(1),
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
                 },
             };
 
@@ -77,7 +97,7 @@ describe('RFQM DB utils', () => {
 
         it('should convert Fee with default details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: DefaultFeeDetails } = {
+            const fee: FeeWithDetails & { details: DefaultFeeDetailsDeprecated } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',
@@ -88,6 +108,28 @@ describe('RFQM DB utils', () => {
                     gasPrice: new BigNumber(50),
                     tradeSizeBps: 4,
                     zeroExFeeAmount: new BigNumber(10),
+                    feeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: new BigNumber(1e-18),
+                },
+                breakdown: {
+                    gas: {
+                        amount: new BigNumber(5),
+                        details: {
+                            gasPrice: new BigNumber(50),
+                            estimatedGas: new BigNumber(1),
+                        },
+                    },
+                    zeroEx: {
+                        amount: new BigNumber(10),
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps: 4,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
                     feeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: new BigNumber(1e-18),
@@ -122,7 +164,7 @@ describe('RFQM DB utils', () => {
 
         it('should convert Fee with margin based details correctly', () => {
             // Given
-            const fee: FeeWithDetails & { details: MarginBasedFeeDetails } = {
+            const fee: FeeWithDetails & { details: MarginBasedFeeDetailsDeprecated } = {
                 token: '0xatoken',
                 amount: new BigNumber(5),
                 type: 'fixed',
@@ -134,6 +176,29 @@ describe('RFQM DB utils', () => {
                     margin: new BigNumber(4570),
                     marginRakeRatio: 0.35,
                     zeroExFeeAmount: new BigNumber(10),
+                    feeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
+                    takerTokenBaseUnitPriceUsd: new BigNumber(1e-18),
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+                breakdown: {
+                    gas: {
+                        amount: new BigNumber(5),
+                        details: {
+                            gasPrice: new BigNumber(50),
+                            estimatedGas: new BigNumber(1),
+                        },
+                    },
+                    zeroEx: {
+                        amount: new BigNumber(10),
+                        details: {
+                            kind: 'price_improvement',
+                            priceImprovement: new BigNumber(4570),
+                            rakeRatio: 0.35,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
                     feeTokenBaseUnitPriceUsd: new BigNumber(3e-15),
                     takerTokenBaseUnitPriceUsd: new BigNumber(1e-18),
                     makerTokenBaseUnitPriceUsd: null,

@@ -119,6 +119,28 @@ const buildRfqmServiceForUnitTest = (
                 takerTokenBaseUnitPriceUsd: null,
                 makerTokenBaseUnitPriceUsd: new BigNumber(20),
             },
+            breakdown: {
+                gas: {
+                    amount: new BigNumber(100),
+                    details: {
+                        gasPrice: MOCK_GAS_PRICE,
+                        estimatedGas: new BigNumber(1),
+                    },
+                },
+                zeroEx: {
+                    amount: new BigNumber(200),
+                    details: {
+                        kind: 'volume',
+                        tradeSizeBps: 4,
+                    },
+                },
+            },
+            conversionRates: {
+                nativeTokenBaseUnitPriceUsd: new BigNumber(30),
+                feeTokenBaseUnitPriceUsd: new BigNumber(30),
+                takerTokenBaseUnitPriceUsd: null,
+                makerTokenBaseUnitPriceUsd: new BigNumber(20),
+            },
         },
     });
     const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);

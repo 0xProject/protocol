@@ -8,7 +8,7 @@ import { DEFAULT_FEE_MODEL_CONFIGURATION, FeeModelConfiguration } from '../../sr
 import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../../src/constants';
 import {
     calculateDefaultFeeAmount,
-    calculateMarginAmount,
+    calculatePriceImprovementAmount,
     reviseQuoteWithFees,
     RfqmFeeService,
 } from '../../src/services/rfqm_fee_service';
@@ -154,6 +154,21 @@ describe('RfqmFeeService', () => {
                     gasFeeAmount: expectedGasFeeAmount,
                     gasPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
             };
             expect(fee).toMatchObject(expectedFee);
         });
@@ -222,6 +237,28 @@ describe('RfqmFeeService', () => {
                     takerTokenBaseUnitPriceUsd: takerTokenPrice,
                     makerTokenBaseUnitPriceUsd: null,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: takerTokenPrice,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
             };
             expect(fee).toMatchObject(expectedFee);
         });
@@ -285,6 +322,28 @@ describe('RfqmFeeService', () => {
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: makerTokenPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: makerTokenPrice,
+                },
             };
             expect(fee).toMatchObject(expectedFee);
         });
@@ -333,6 +392,28 @@ describe('RfqmFeeService', () => {
                     gasPrice,
                     zeroExFeeAmount: new BigNumber(0),
                     tradeSizeBps: 0,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: new BigNumber(0),
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps: 0,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
                     feeTokenBaseUnitPriceUsd: null,
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: null,
@@ -390,6 +471,21 @@ describe('RfqmFeeService', () => {
                     gasFeeAmount: expectedGasFeeAmount,
                     gasPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
             };
             expect(fee).toMatchObject(expectedFee);
         });
@@ -397,7 +493,7 @@ describe('RfqmFeeService', () => {
 
     describe('calculateFeeAsync v2', () => {
         const feeModelVersion = 2;
-        it('should calculate v2 `margin` based fee for sell correctly if margin detection succeeded', async () => {
+        it('should calculate v2 `price improvement` based fee for sell correctly if price improvement detection succeeded', async () => {
             // Given
             const isSelling = true;
             const isUnwrap = false;
@@ -505,6 +601,29 @@ describe('RfqmFeeService', () => {
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: makerTokenPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'price_improvement',
+                            priceImprovement: expectedMargin,
+                            rakeRatio: marginRakeRatio,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: makerTokenPrice,
+                },
             };
             expect(feeWithDetails).toMatchObject(expectedFee);
             expect(quotesWithGasFee).toMatchObject(mmQuotes);
@@ -526,7 +645,7 @@ describe('RfqmFeeService', () => {
 
             expect(revisedQuotes).toMatchObject(expectedRevisedQuotes);
         });
-        it('should calculate v2 `margin` based fee for buy correctly if margin detection succeeded', async () => {
+        it('should calculate v2 `price improvement` based fee for buy correctly if price improvement detection succeeded', async () => {
             // Given
             const isSelling = false;
             const isUnwrap = false;
@@ -630,6 +749,29 @@ describe('RfqmFeeService', () => {
                     zeroExFeeAmount: expectedZeroExFeeAmount,
                     margin: expectedMargin,
                     marginRakeRatio,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: takerTokenPrice,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'price_improvement',
+                            priceImprovement: expectedMargin,
+                            rakeRatio: marginRakeRatio,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
                     feeTokenBaseUnitPriceUsd: feeTokenPrice,
                     takerTokenBaseUnitPriceUsd: takerTokenPrice,
                     makerTokenBaseUnitPriceUsd: null,
@@ -752,6 +894,28 @@ describe('RfqmFeeService', () => {
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: makerTokenPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: makerTokenPrice,
+                },
             };
             expect(feeWithDetails).toMatchObject(expectedFee);
             expect(quotesWithGasFee).toMatchObject(mmQuotes);
@@ -866,12 +1030,27 @@ describe('RfqmFeeService', () => {
                     gasFeeAmount: expectedGasFeeAmount,
                     gasPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
             };
             expect(feeWithDetails).toMatchObject(expectedFee);
             expect(quotesWithGasFee).toMatchObject(mmQuotes);
             expect(ammQuoteUniqueId).toBe(decodedUniqueId);
         });
-        it('should calculate v2 `margin` based fee with zero zeroExFee if margin is zero', async () => {
+        it('should calculate v2 `price improvement` based fee with zero zeroExFee if price improvement is zero', async () => {
             // Given
             const isSelling = true;
             const isUnwrap = false;
@@ -969,6 +1148,29 @@ describe('RfqmFeeService', () => {
                     takerTokenBaseUnitPriceUsd: null,
                     makerTokenBaseUnitPriceUsd: makerTokenPrice,
                 },
+                breakdown: {
+                    gas: {
+                        amount: expectedGasFeeAmount,
+                        details: {
+                            gasPrice,
+                            estimatedGas: new BigNumber(gasEstimate),
+                        },
+                    },
+                    zeroEx: {
+                        amount: ZERO,
+                        details: {
+                            kind: 'price_improvement',
+                            priceImprovement: ZERO,
+                            rakeRatio: marginRakeRatio,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: makerTokenPrice,
+                },
             };
             expect(feeWithDetails).toMatchObject(expectedFee);
             expect(quotesWithGasFee).toMatchObject(mmQuotes);
@@ -1040,8 +1242,8 @@ describe('RfqmFeeService', () => {
             expect(defaultFeeAmount2).toMatchObject(ZERO);
         });
     });
-    describe('pure function calculateMarginAmount()', () => {
-        it('should calculate margin amount for selling correctly', async () => {
+    describe('pure function calculatePriceImprovementAmount()', () => {
+        it('should calculate price improvement amount for selling correctly', async () => {
             // Given
             const isSelling = true;
             const assetFillAmount = new BigNumber(3e17);
@@ -1066,7 +1268,7 @@ describe('RfqmFeeService', () => {
             const feeTokenBaseUnitPriceUsd = new BigNumber(3e-15);
 
             // When
-            const marginAmount = calculateMarginAmount(
+            const priceImprovementAmount = calculatePriceImprovementAmount(
                 makerQuoteWithGasFee,
                 ammQuote,
                 isSelling,
@@ -1075,10 +1277,10 @@ describe('RfqmFeeService', () => {
             );
 
             // Then
-            const expectedMarginAmount = new BigNumber(50e15);
-            expect(marginAmount).toMatchObject(expectedMarginAmount);
+            const expectedPriceImprovementAmount = new BigNumber(50e15);
+            expect(priceImprovementAmount).toMatchObject(expectedPriceImprovementAmount);
         });
-        it('should calculate margin amount for buying correctly', async () => {
+        it('should calculate price improvement amount for buying correctly', async () => {
             // Given
             const isSelling = false;
             const assetFillAmount = new BigNumber(3e17);
@@ -1103,7 +1305,7 @@ describe('RfqmFeeService', () => {
             const feeTokenBaseUnitPriceUsd = new BigNumber(3e-15);
 
             // When
-            const marginAmount = calculateMarginAmount(
+            const priceImprovementAmount = calculatePriceImprovementAmount(
                 makerQuoteWithGasFee,
                 ammQuote,
                 isSelling,
@@ -1112,10 +1314,10 @@ describe('RfqmFeeService', () => {
             );
 
             // Then
-            const expectedMarginAmount = new BigNumber(50e15);
-            expect(marginAmount).toMatchObject(expectedMarginAmount);
+            const expectedPriceImprovementAmount = new BigNumber(50e15);
+            expect(priceImprovementAmount).toMatchObject(expectedPriceImprovementAmount);
         });
-        it('should return zero if there is no margin', async () => {
+        it('should return zero if there is no price improvement', async () => {
             // Given
             const isSelling = false;
             const assetFillAmount = new BigNumber(3e17);
@@ -1140,7 +1342,7 @@ describe('RfqmFeeService', () => {
             const feeTokenBaseUnitPriceUsd = new BigNumber(3e-15);
 
             // When
-            const marginAmount = calculateMarginAmount(
+            const priceImprovementAmount = calculatePriceImprovementAmount(
                 makerQuoteWithGasFee,
                 ammQuote,
                 isSelling,
@@ -1149,7 +1351,7 @@ describe('RfqmFeeService', () => {
             );
 
             // Then
-            expect(marginAmount).toMatchObject(ZERO);
+            expect(priceImprovementAmount).toMatchObject(ZERO);
         });
     });
     describe('pure function reviseQuoteWithZeroExFee()', () => {

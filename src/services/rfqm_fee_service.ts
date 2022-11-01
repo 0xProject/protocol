@@ -12,7 +12,15 @@ import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 import { AmmQuote, ZeroExApiClient } from '../utils/ZeroExApiClient';
 
-import { DefaultFeeDetails, FeeWithDetails, GasOnlyFeeDetails, MarginBasedFeeDetails, QuoteContext } from './types';
+import {
+    ConversionRates,
+    DefaultFeeDetailsDeprecated,
+    FeeBreakdown,
+    FeeWithDetails,
+    GasOnlyFeeDetailsDeprecated,
+    MarginBasedFeeDetailsDeprecated,
+    QuoteContext,
+} from './types';
 
 /**
  * Interface for the response of CalculateFeeAsync() method. Including `feeWithDetails` object, and two optional fields for fee model v2:
@@ -52,7 +60,7 @@ export const calculateDefaultFeeAmount = (
 };
 
 /**
- * Pure function to calculate the margin based on given MM quote and AMM quote.
+ * Pure function to calculate the price improvement based on given MM quote and AMM quote.
  *
  * @param makerQuoteWithGasFee maker quote with gas fee taken into account.
  * @param ammQuote Amm quote from 0x-api, with only AMM liquidity sources considered.
@@ -60,9 +68,9 @@ export const calculateDefaultFeeAmount = (
  * and `quoteToken` is `makerToken`. Otherwise taker specifies `makerAmount` and `quoteToken` is `takerToken`.
  * @param quoteTokenBaseUnitPriceUsd USD price of 1 base unit of quote token.
  * @param feeTokenBaseUnitPriceUsd USD price of 1 base unit of fee token.
- * @returns margin of MM quote comparing with AMM quote, in base unit of fee token.
+ * @returns price improvement of MM quote comparing with AMM quote, in base unit of fee token.
  */
-export const calculateMarginAmount = (
+export const calculatePriceImprovementAmount = (
     makerQuoteWithGasFee: IndicativeQuote,
     ammQuote: AmmQuote,
     isSelling: boolean,
@@ -227,7 +235,7 @@ export class RfqmFeeService {
      */
     private async _calculateGasFeeAsync(
         quoteContext: QuoteContext,
-    ): Promise<FeeWithDetails & { details: GasOnlyFeeDetails }> {
+    ): Promise<FeeWithDetails & { details: GasOnlyFeeDetailsDeprecated }> {
         const { takerToken, makerToken, isUnwrap, feeModelVersion } = quoteContext;
 
         const gasPrice: BigNumber = await this.getGasPriceEstimationAsync();
@@ -244,6 +252,21 @@ export class RfqmFeeService {
                 gasFeeAmount,
                 gasPrice,
             },
+            breakdown: {
+                gas: {
+                    amount: gasFeeAmount,
+                    details: {
+                        gasPrice,
+                        estimatedGas: new BigNumber(gasEstimate),
+                    },
+                },
+            },
+            conversionRates: {
+                nativeTokenBaseUnitPriceUsd: null,
+                feeTokenBaseUnitPriceUsd: null,
+                takerTokenBaseUnitPriceUsd: null,
+                makerTokenBaseUnitPriceUsd: null,
+            },
         };
     }
 
@@ -256,7 +279,7 @@ export class RfqmFeeService {
      */
     private async _calculateFeeV1Async(
         quoteContext: QuoteContext,
-    ): Promise<FeeWithDetails & { details: DefaultFeeDetails | GasOnlyFeeDetails }> {
+    ): Promise<FeeWithDetails & { details: DefaultFeeDetailsDeprecated | GasOnlyFeeDetailsDeprecated }> {
         const {
             takerToken,
             makerToken,
@@ -315,16 +338,33 @@ export class RfqmFeeService {
                 takerTokenBaseUnitPriceUsd: isSelling ? tradeTokenBaseUnitPriceUsd : null,
                 makerTokenBaseUnitPriceUsd: isSelling ? null : tradeTokenBaseUnitPriceUsd,
             },
+            breakdown: {
+                gas: gasFee.breakdown.gas,
+                zeroEx: {
+                    amount: zeroExFeeAmount,
+                    details: {
+                        kind: 'volume',
+                        tradeSizeBps,
+                    },
+                },
+            },
+            conversionRates: {
+                nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
+                feeTokenBaseUnitPriceUsd,
+                takerTokenBaseUnitPriceUsd: isSelling ? tradeTokenBaseUnitPriceUsd : null,
+                makerTokenBaseUnitPriceUsd: isSelling ? null : tradeTokenBaseUnitPriceUsd,
+            },
         };
     }
 
     /**
-     * Calculate fee with fee model v2, including gas fee and zeroExFee. If margin detection
-     * is successful, zeroExFee will be based on margin. If not:
+     * Calculate fee with fee model v2, including gas fee and zeroExFee. If price improvement detection
+     * is successful, zeroExFee will be based on price improvement. If not:
      *     * Fall back to `default` fee if maker query and token prices query are both successful.
      *     * Fall back to `gasOnly` fee if either maker query and token prices query failed.
      *
-     * @returns fee with `margin` | `default` | `gasOnly` details
+     * @returns fee with `margin` (price improvement) | `default` | `gasOnly` details (legacy fee breakdown)
+     * and a breakdown including gas fee and zeroEx fee details.
      */
     private async _calculateFeeV2Async(
         quoteContext: QuoteContext,
@@ -340,7 +380,7 @@ export class RfqmFeeService {
             feeModelVersion,
         } = quoteContext;
 
-        const { marginRakeRatio, tradeSizeBps } = this._configManager.getFeeModelConfiguration(
+        const { marginRakeRatio: rakeRatio, tradeSizeBps } = this._configManager.getFeeModelConfiguration(
             this._chainId,
             makerToken,
             takerToken,
@@ -351,7 +391,7 @@ export class RfqmFeeService {
         const quoteTokenDecimal = isSelling ? makerTokenDecimals : takerTokenDecimals;
 
         /**
-         * Send all queries in parallel. Bypass AMM query and token price query if marginRakeRatio > 0.
+         * Send all queries in parallel. Bypass AMM query and token price query if rakeRatio > 0.
          */
         const [
             { gasFee, quotes: quotesWithGasFee },
@@ -359,8 +399,8 @@ export class RfqmFeeService {
             { feeTokenBaseUnitPriceUsd, tradeTokenBaseUnitPriceUsd: quoteTokenBaseUnitPriceUsd },
         ] = await Promise.all([
             this._fetchGasFeeAndIndicativeQuotesAsync(quoteContext, fetchMmQuotesAsync),
-            marginRakeRatio > 0 ? this._zeroExApiClient.fetchAmmQuoteAsync(quoteContext) : null,
-            marginRakeRatio > 0
+            rakeRatio > 0 ? this._zeroExApiClient.fetchAmmQuoteAsync(quoteContext) : null,
+            rakeRatio > 0
                 ? this._fetchTokenPricesAsync(quoteToken, quoteTokenDecimal)
                 : { feeTokenBaseUnitPriceUsd: null, tradeTokenBaseUnitPriceUsd: null },
         ]);
@@ -379,8 +419,8 @@ export class RfqmFeeService {
 
         const wasUnableToFetchMakerQuote: boolean = bestMakerQuoteWithGasFee === null;
         const wasUnableToFetchTokenPrices: boolean =
-            marginRakeRatio > 0 && (feeTokenBaseUnitPriceUsd === null || quoteTokenBaseUnitPriceUsd === null);
-        const wasUnableToFetchAmmQuote: boolean = marginRakeRatio > 0 && ammQuote === null;
+            rakeRatio > 0 && (feeTokenBaseUnitPriceUsd === null || quoteTokenBaseUnitPriceUsd === null);
+        const wasUnableToFetchAmmQuote: boolean = rakeRatio > 0 && ammQuote === null;
 
         let zeroExFeeAmount: BigNumber;
         let feeWithDetails: FeeWithDetails;
@@ -410,7 +450,7 @@ export class RfqmFeeService {
                 feeTokenBaseUnitPriceUsd,
             );
 
-            const details: DefaultFeeDetails = {
+            const details: DefaultFeeDetailsDeprecated = {
                 kind: 'default',
                 feeModelVersion,
                 gasFeeAmount: gasFee.amount,
@@ -422,19 +462,39 @@ export class RfqmFeeService {
                 makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
             };
 
+            const breakdown: FeeBreakdown = {
+                gas: gasFee.breakdown.gas,
+                zeroEx: {
+                    amount: zeroExFeeAmount,
+                    details: {
+                        kind: 'volume',
+                        tradeSizeBps,
+                    },
+                },
+            };
+
+            const conversionRates: ConversionRates = {
+                nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
+                feeTokenBaseUnitPriceUsd,
+                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+            };
+
             feeWithDetails = {
                 type: 'fixed',
                 token: this._feeTokenMetadata.tokenAddress,
                 amount: gasFee.amount.plus(zeroExFeeAmount),
                 details,
+                breakdown,
+                conversionRates,
             };
         } else {
             /**
-             * If all queries are successful: return `margin` based fee, calculated from `magin` and `marginRakeRatio`.
+             * If all queries are successful: return `priceImprovement` based fee, calculated from `priceImprovement` and `rakeRatio`.
              */
-            const margin =
-                marginRakeRatio > 0
-                    ? calculateMarginAmount(
+            const priceImprovement =
+                rakeRatio > 0
+                    ? calculatePriceImprovementAmount(
                           // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           bestMakerQuoteWithGasFee!,
@@ -450,16 +510,35 @@ export class RfqmFeeService {
                           feeTokenBaseUnitPriceUsd!,
                       )
                     : ZERO;
-            zeroExFeeAmount = margin.times(marginRakeRatio).integerValue();
+            zeroExFeeAmount = priceImprovement.times(rakeRatio).integerValue();
 
-            const details: MarginBasedFeeDetails = {
+            const details: MarginBasedFeeDetailsDeprecated = {
                 kind: 'margin',
                 feeModelVersion,
                 gasFeeAmount: gasFee.amount,
                 gasPrice: gasFee.details.gasPrice,
                 zeroExFeeAmount,
-                margin,
-                marginRakeRatio,
+                margin: priceImprovement, // legacy field name `margin`
+                marginRakeRatio: rakeRatio, // legacy field name `marginRakeRatio`
+                feeTokenBaseUnitPriceUsd,
+                takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
+                makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
+            };
+
+            const breakdown: FeeBreakdown = {
+                gas: gasFee.breakdown.gas,
+                zeroEx: {
+                    amount: zeroExFeeAmount,
+                    details: {
+                        kind: 'price_improvement',
+                        priceImprovement,
+                        rakeRatio,
+                    },
+                },
+            };
+
+            const conversionRates: ConversionRates = {
+                nativeTokenBaseUnitPriceUsd: feeTokenBaseUnitPriceUsd,
                 feeTokenBaseUnitPriceUsd,
                 takerTokenBaseUnitPriceUsd: isSelling ? null : quoteTokenBaseUnitPriceUsd,
                 makerTokenBaseUnitPriceUsd: isSelling ? quoteTokenBaseUnitPriceUsd : null,
@@ -470,6 +549,8 @@ export class RfqmFeeService {
                 token: this._feeTokenMetadata.tokenAddress,
                 amount: zeroExFeeAmount.plus(gasFee.amount),
                 details,
+                breakdown,
+                conversionRates,
             };
         }
 

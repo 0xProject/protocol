@@ -208,9 +208,9 @@ export interface FirmQuoteContext extends QuoteContextBase {
 export type QuoteContext = IndicativeQuoteContext | FirmQuoteContext;
 
 /**
- * Base interface for FeeDetails type.
+ * (Deprecated) base interface for FeeDetails type.
  */
-interface FeeDetailsBase {
+interface FeeDetailsBaseDeprecated {
     /**
      * `kind` is used to mark the type of FeeDetails.
      */
@@ -230,10 +230,10 @@ interface FeeDetailsBase {
 }
 
 /**
- * Interface for `margin` FeeDetails type. In this case the Fee is
+ * (Deprecated) interface for `margin` FeeDetails type. In this case the Fee is
  * calculated using margin based method
  */
-export interface MarginBasedFeeDetails extends FeeDetailsBase {
+export interface MarginBasedFeeDetailsDeprecated extends FeeDetailsBaseDeprecated {
     kind: 'margin';
     margin: BigNumber;
     marginRakeRatio: number;
@@ -249,11 +249,11 @@ export interface MarginBasedFeeDetails extends FeeDetailsBase {
 }
 
 /**
- * Interface for `default` FeeDetails type. In this case the Fee is
+ * (Deprecated) interface for `default` FeeDetails type. In this case the Fee is
  * calculated using default method, based on trade size and bps of underlying
  * pairs.
  */
-export interface DefaultFeeDetails extends FeeDetailsBase {
+export interface DefaultFeeDetailsDeprecated extends FeeDetailsBaseDeprecated {
     kind: 'default';
     tradeSizeBps: number;
     zeroExFeeAmount: BigNumber;
@@ -263,11 +263,45 @@ export interface DefaultFeeDetails extends FeeDetailsBase {
 }
 
 /**
- * Interface for `gasOnly` FeeDetails type. Only gas related information
+ * (Deprecated) interface for `gasOnly` FeeDetails type. Only gas related information
  * is included.
  */
-export interface GasOnlyFeeDetails extends FeeDetailsBase {
+export interface GasOnlyFeeDetailsDeprecated extends FeeDetailsBaseDeprecated {
     kind: 'gasOnly';
+}
+
+interface GasFeeBreakdownDetails {
+    gasPrice: BigNumber;
+    estimatedGas: BigNumber;
+}
+
+interface VolumeBasedFeeBreakdownDetails {
+    kind: 'volume';
+    tradeSizeBps: number;
+}
+
+interface PriceImprovementBasedFeeBreakdownDetails {
+    kind: 'price_improvement';
+    priceImprovement: BigNumber;
+    rakeRatio: number;
+}
+
+export interface FeeBreakdown {
+    gas?: {
+        amount: BigNumber;
+        details: GasFeeBreakdownDetails;
+    };
+    zeroEx?: {
+        amount: BigNumber;
+        details: VolumeBasedFeeBreakdownDetails | PriceImprovementBasedFeeBreakdownDetails;
+    };
+}
+
+export interface ConversionRates {
+    nativeTokenBaseUnitPriceUsd: BigNumber | null;
+    feeTokenBaseUnitPriceUsd: BigNumber | null;
+    takerTokenBaseUnitPriceUsd: BigNumber | null;
+    makerTokenBaseUnitPriceUsd: BigNumber | null;
 }
 
 /**
@@ -276,5 +310,7 @@ export interface GasOnlyFeeDetails extends FeeDetailsBase {
  * to calculate the Fee.
  */
 export interface FeeWithDetails extends Fee {
-    details: GasOnlyFeeDetails | DefaultFeeDetails | MarginBasedFeeDetails;
+    details: GasOnlyFeeDetailsDeprecated | DefaultFeeDetailsDeprecated | MarginBasedFeeDetailsDeprecated;
+    breakdown: FeeBreakdown;
+    conversionRates: ConversionRates;
 }
