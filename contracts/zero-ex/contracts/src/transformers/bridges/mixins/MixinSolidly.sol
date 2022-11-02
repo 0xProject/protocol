@@ -23,7 +23,7 @@ pragma experimental ABIEncoderV2;
 import "@0x/contracts-erc20/contracts/src/v06/LibERC20TokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 
-interface IVelodromeRouter {
+interface ISolidlyRouter {
     function swapExactTokensForTokensSimple(
         uint256 amountIn,
         uint256 amountOutMin,
@@ -35,16 +35,16 @@ interface IVelodromeRouter {
     ) external returns (uint256[] memory amounts);
 }
 
-contract MixinVelodrome {
+contract MixinSolidly {
     using LibERC20TokenV06 for IERC20TokenV06;
 
-    function _tradeVelodrome(
+    function _tradeSolidly(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256 boughtAmount) {
-        (IVelodromeRouter router, bool stable) = abi.decode(bridgeData, (IVelodromeRouter, bool));
+        (ISolidlyRouter router, bool stable) = abi.decode(bridgeData, (ISolidlyRouter, bool));
         sellToken.approveIfBelow(address(router), sellAmount);
 
         boughtAmount = router.swapExactTokensForTokensSimple(

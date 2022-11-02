@@ -32,6 +32,7 @@ import "./mixins/MixinDodoV2.sol";
 import "./mixins/MixinKyberDmm.sol";
 import "./mixins/MixinMStable.sol";
 import "./mixins/MixinNerve.sol";
+import "./mixins/MixinSolidly.sol";
 import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinWOOFi.sol";
@@ -51,6 +52,7 @@ contract PolygonBridgeAdapter is
     MixinNerve,
     MixinUniswapV2,
     MixinUniswapV3,
+    MixinSolidly,
     MixinWOOFi,
     MixinZeroExBridge
 {
@@ -124,6 +126,11 @@ contract PolygonBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeAaveV2(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.SOLIDLY) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeSolidly(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
