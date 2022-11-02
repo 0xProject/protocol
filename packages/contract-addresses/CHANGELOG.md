@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.2.0 - _November 2, 2022_
+
+    * Add RFQTV2 to Mumbai (#611)
+
 ## v7.1.0 - _October 24, 2022_
 
     * Add `BalancerV2Batch` support in `FantomBridgeAdapter` (#607)
