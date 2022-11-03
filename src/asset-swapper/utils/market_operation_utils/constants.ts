@@ -2599,17 +2599,17 @@ export const SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID = valueByChainId<Map<string, st
     new Map(),
 );
 
-export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
+export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<Set<ERC20BridgeSource>>(
     {
-        [ChainId.Mainnet]: [
+        [ChainId.Mainnet]: new Set([
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
-        ],
-        [ChainId.BSC]: [
+        ]),
+        [ChainId.BSC]: new Set([
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.BakerySwap,
@@ -2617,9 +2617,9 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSo
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
-        ],
+        ]),
     },
-    [],
+    new Set(),
 );
 
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
