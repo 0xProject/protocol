@@ -33,16 +33,25 @@ export interface OrderPrunerOpts {
     permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
 }
 
-export interface SignedOrder<T> {
-    order: T;
-    type: FillQuoteTransformerOrderType.Limit | FillQuoteTransformerOrderType.Rfq | FillQuoteTransformerOrderType.Otc;
+export interface SignedLimitOrder {
+    order: LimitOrderFields;
+    type: FillQuoteTransformerOrderType.Limit;
     signature: Signature;
 }
 
-export type SignedNativeOrder =
-    | SignedOrder<LimitOrderFields>
-    | SignedOrder<RfqOrderFields>
-    | SignedOrder<OtcOrderFields>;
+export interface SignedRfqOrder {
+    order: RfqOrderFields;
+    type: FillQuoteTransformerOrderType.Rfq;
+    signature: Signature;
+}
+
+export interface SignedOtcOrder {
+    order: OtcOrderFields;
+    type: FillQuoteTransformerOrderType.Otc;
+    signature: Signature;
+}
+
+export type SignedNativeOrder = SignedLimitOrder | SignedRfqOrder | SignedOtcOrder;
 export type NativeOrderWithFillableAmounts = SignedNativeOrder & NativeOrderFillableAmountFields;
 
 /**

@@ -10,8 +10,8 @@ import {
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
+import { SignedLimitOrder } from '../../src/asset-swapper/types';
 
-import { SignedOrder } from '../../src/asset-swapper/types';
 import { DexOrderSampler, getSampleAmounts } from '../../src/asset-swapper/utils/market_operation_utils/sampler';
 import { ERC20BridgeSource } from '../../src/asset-swapper/utils/market_operation_utils/types';
 import { TokenAdjacencyGraphBuilder } from '../../src/asset-swapper/utils/token_adjacency_graph';
@@ -66,8 +66,8 @@ describe('DexSampler tests', () => {
         });
     });
 
-    function createOrder(overrides?: Partial<LimitOrderFields>): SignedOrder<LimitOrderFields> {
-        const o: SignedOrder<LimitOrderFields> = {
+    function createOrder(overrides?: Partial<LimitOrderFields>): SignedLimitOrder {
+        const o: SignedLimitOrder = {
             order: {
                 salt: generatePseudoRandomSalt(),
                 expiry: getRandomInteger(0, 2 ** 64),

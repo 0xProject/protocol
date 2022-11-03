@@ -8,15 +8,16 @@ import {
     SignedNativeOrder,
     V4RFQIndicativeQuote,
 } from '../../src/asset-swapper';
+import { SignedRfqOrder } from '../../src/asset-swapper/types';
 import { ONE_SECOND_MS } from '../../src/asset-swapper/utils/market_operation_utils/constants';
 import { ONE_MINUTE_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
 const NEVER_EXPIRES = new BigNumber('9999999999999999');
 
-function createBaseOrder(): SignedNativeOrder {
+function createBaseOrder(): SignedRfqOrder {
     return {
-        type: FillQuoteTransformerOrderType.Limit,
+        type: FillQuoteTransformerOrderType.Rfq,
         order: {
             ...new RfqOrder({
                 makerAmount: ZERO,

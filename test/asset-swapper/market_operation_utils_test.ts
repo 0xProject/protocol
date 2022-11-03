@@ -7,13 +7,7 @@ import {
     Numberish,
     randomAddress,
 } from '@0x/contracts-test-utils';
-import {
-    FillQuoteTransformerOrderType,
-    LimitOrder,
-    LimitOrderFields,
-    RfqOrder,
-    SignatureType,
-} from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, LimitOrder, RfqOrder, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import { Pool } from 'balancer-labs-sor-v1/dist/types';
 import * as _ from 'lodash';
@@ -27,7 +21,7 @@ import {
     SignedNativeOrder,
     TokenAdjacencyGraph,
 } from '../../src/asset-swapper';
-import { Integrator, SignedOrder } from '../../src/asset-swapper/types';
+import { Integrator, SignedLimitOrder } from '../../src/asset-swapper/types';
 import { MarketOperationUtils } from '../../src/asset-swapper/utils/market_operation_utils/';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -111,7 +105,7 @@ async function getMarketBuyOrdersAsync(
     return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
 }
 
-function toRfqClientV1Price(order: SignedOrder<LimitOrderFields>): RfqClientV1Price {
+function toRfqClientV1Price(order: SignedLimitOrder): RfqClientV1Price {
     return {
         expiry: order.order.expiry,
         kind: 'rfq',
@@ -182,7 +176,7 @@ describe('MarketOperationUtils tests', () => {
         return requestor;
     }
 
-    function createOrdersFromSellRates(takerAmount: BigNumber, rates: Numberish[]): SignedOrder<LimitOrderFields>[] {
+    function createOrdersFromSellRates(takerAmount: BigNumber, rates: Numberish[]): SignedLimitOrder[] {
         const singleTakerAmount = takerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map((r) => {
             const o: SignedNativeOrder = {
@@ -199,7 +193,7 @@ describe('MarketOperationUtils tests', () => {
         });
     }
 
-    function createOrdersFromBuyRates(makerAmount: BigNumber, rates: Numberish[]): SignedOrder<LimitOrderFields>[] {
+    function createOrdersFromBuyRates(makerAmount: BigNumber, rates: Numberish[]): SignedLimitOrder[] {
         const singleMakerAmount = makerAmount.div(rates.length).integerValue(BigNumber.ROUND_UP);
         return rates.map((r) => {
             const o: SignedNativeOrder = {

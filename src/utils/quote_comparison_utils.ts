@@ -1,6 +1,6 @@
-import { OtcOrder, OtcOrderFields } from '@0x/protocol-utils';
+import { FillQuoteTransformerOrderType, OtcOrder } from '@0x/protocol-utils';
 import { BigNumber, SignedNativeOrder, V4RFQIndicativeQuote } from '../asset-swapper';
-import { SignedOrder } from '../asset-swapper/types';
+import { SignedOtcOrder } from '../asset-swapper/types';
 import { ONE_SECOND_MS } from '../constants';
 
 /**
@@ -95,6 +95,6 @@ const isSignedNativeOrder = (quote: V4RFQIndicativeQuote | SignedNativeOrder): q
     return (quote as SignedNativeOrder).order !== undefined;
 };
 
-const isOtcOrder = (order: SignedNativeOrder): order is SignedOrder<OtcOrderFields> => {
-    return (order as SignedOrder<OtcOrderFields>).order.expiryAndNonce !== undefined;
+const isOtcOrder = (order: SignedNativeOrder): order is SignedOtcOrder => {
+    return order.type === FillQuoteTransformerOrderType.Otc;
 };
