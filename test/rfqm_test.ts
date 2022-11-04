@@ -11,7 +11,7 @@ import { TransactionReceiptStatus } from 'ethereum-types';
 import { BigNumber as EthersBigNumber, ethers } from 'ethers';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
-import * as redis from 'redis';
+import Redis from 'ioredis';
 import { Producer } from 'sqs-producer';
 import * as request from 'supertest';
 import { anyString, anything, deepEqual, instance, mock, when } from 'ts-mockito';
@@ -303,9 +303,8 @@ describe('RFQM Integration', () => {
         const quoteServerClient = new QuoteServerClient(axiosClient);
 
         // Create the CacheClient
-        const redisClient: redis.RedisClientType = redis.createClient();
-        await redisClient.connect();
-        cacheClient = new CacheClient(redisClient);
+        const redis = new Redis();
+        cacheClient = new CacheClient(redis);
 
         // Create the maker balance cache service
         const rfqMakerBalanceCacheServiceMock = mock(RfqMakerBalanceCacheService);

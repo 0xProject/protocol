@@ -5,11 +5,10 @@ import Axios from 'axios';
 import { providers } from 'ethers';
 import * as express from 'express';
 import * as promBundle from 'express-prom-bundle';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
-import * as redis from 'redis';
+import Redis from 'ioredis';
 import { Producer } from 'sqs-producer';
 import { DataSource } from 'typeorm';
 
@@ -46,7 +45,7 @@ import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { closeRedisConnectionsAsync } from '../utils/runner_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 
-const redisClients: redis.RedisClientType[] = [];
+const redisInstances: Redis[] = [];
 
 process.on('uncaughtException', (e) => {
     const finalLogger = pino.final(logger);
@@ -64,7 +63,7 @@ process.on('unhandledRejection', (e) => {
 process.on('SIGTERM', async () => {
     const finalLogger = pino.final(logger);
     finalLogger.info('Received SIGTERM. Start to shutdown gasless swap service');
-    await closeRedisConnectionsAsync(redisClients);
+    await closeRedisConnectionsAsync(redisInstances);
     process.exit(0);
 });
 
@@ -72,7 +71,7 @@ process.on('SIGTERM', async () => {
 process.on('SIGINT', async () => {
     const finalLogger = pino.final(logger);
     finalLogger.info('Received SIGINT. Start to shutdown gasless swap service');
-    await closeRedisConnectionsAsync(redisClients);
+    await closeRedisConnectionsAsync(redisInstances);
     process.exit(0);
 });
 
@@ -87,9 +86,8 @@ if (require.main === module) {
         if (!REDIS_URI) {
             throw new Error('No redis URI provided to gasless swap service');
         }
-        const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
-        await redisClient.connect();
-        redisClients.push(redisClient);
+        const redis = new Redis(REDIS_URI);
+        redisInstances.push(redis);
 
         const chainsConfigurationsWithGaslessSwap = CHAIN_CONFIGURATIONS.filter(
             (c) => c.gaslessSwapServiceConfiguration,
@@ -141,7 +139,7 @@ if (require.main === module) {
                     rfqmService,
                     new URL(gaslessSwapServiceConfiguration.metaTransactionServiceUrl),
                     axiosInstance,
-                    redisClient,
+                    redis,
                     rfqmDbUtils,
                     rfqBlockchainUtils,
                     sqsProducer,

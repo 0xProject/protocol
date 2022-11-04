@@ -5,7 +5,7 @@ import { ethSignHashWithKey, MetaTransaction, OtcOrder, SignatureType } from '@0
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { providers } from 'ethers';
-import * as redis from 'redis';
+import Redis from 'ioredis';
 import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
 
@@ -50,17 +50,6 @@ jest.mock('../../src/utils/MetaTransactionClient', () => {
     };
 });
 
-jest.mock('redis', () => {
-    return {
-        createClient: jest.fn().mockImplementation(() => {
-            return {
-                set: jest.fn(),
-                get: jest.fn(),
-            };
-        }),
-    };
-});
-
 jest.mock('../../src/utils/rfq_blockchain_utils', () => {
     return {
         RfqBlockchainUtils: jest.fn().mockImplementation(() => {
@@ -79,6 +68,17 @@ jest.mock('../../src/utils/rfqm_db_utils', () => {
             return {
                 findMetaTransactionJobsWithStatusesAsync: jest.fn().mockResolvedValue([]),
                 writeMetaTransactionJobAsync: jest.fn(),
+            };
+        }),
+    };
+});
+
+jest.mock('ioredis', () => {
+    return {
+        default: jest.fn().mockImplementation(() => {
+            return {
+                set: jest.fn(),
+                get: jest.fn(),
             };
         }),
     };
@@ -123,14 +123,14 @@ const mockRfqmService = jest.mocked(
     ),
 );
 
-const mockRedisClient: redis.RedisClientType = redis.createClient();
+const mockRedis = jest.mocked(new Redis());
 
 const gaslessSwapService = new GaslessSwapService(
     /* chainId */ 1337, // tslint:disable-line: custom-no-magic-numbers
     mockRfqmService,
     new URL('https://hokiesports.com/quote'),
     {} as AxiosInstance,
-    mockRedisClient,
+    mockRedis,
     mockDbUtils,
     mockBlockchainUtils,
     mockSqsProducer,
@@ -590,9 +590,7 @@ describe('GaslessSwapService', () => {
                 checkApproval: false,
             });
 
-            expect(mockRedisClient.set).toBeCalledWith(`metaTransactionHash.${metaTransaction.getHash()}`, 0, {
-                EX: 900,
-            });
+            expect(mockRedis.set).toBeCalledWith(`metaTransactionHash.${metaTransaction.getHash()}`, 0, 'EX', 900);
         });
 
         it('gets the approval object', async () => {
@@ -659,7 +657,7 @@ describe('GaslessSwapService', () => {
         });
 
         it("fails if the metatransaction hash doesn't exist in the redis store", async () => {
-            mockRedisClient.get = jest.fn().mockResolvedValueOnce(null);
+            mockRedis.get = jest.fn().mockResolvedValueOnce(null);
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
@@ -678,11 +676,11 @@ describe('GaslessSwapService', () => {
                     'integratorId',
                 ),
             ).rejects.toThrowError('MetaTransaction hash not found');
-            expect(mockRedisClient.get).toBeCalledWith(`metaTransactionHash.${metaTransaction.getHash()}`);
+            expect(mockRedis.get).toBeCalledWith(`metaTransactionHash.${metaTransaction.getHash()}`);
         });
 
         it('fails if there is already a pending transaction for the taker/taker token', async () => {
-            mockRedisClient.get = jest.fn().mockResolvedValueOnce({});
+            mockRedis.get = jest.fn().mockResolvedValueOnce({});
             mockDbUtils.findMetaTransactionJobsWithStatusesAsync.mockResolvedValueOnce([
                 new MetaTransactionJobEntity({
                     chainId: 1337,
@@ -726,7 +724,7 @@ describe('GaslessSwapService', () => {
 
         it('fails if the signature is invalid', async () => {
             const otherPrivateKey = '0xae4536e2cdee8f32adc77ebe86977a01c6526a32eee7c4c2ccfb1d5ddcddaaa2';
-            mockRedisClient.get = jest.fn().mockResolvedValueOnce({});
+            mockRedis.get = jest.fn().mockResolvedValueOnce({});
             mockDbUtils.findMetaTransactionJobsWithStatusesAsync.mockResolvedValueOnce([]);
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
@@ -744,7 +742,7 @@ describe('GaslessSwapService', () => {
         });
 
         it('fails if taker balance is too low', async () => {
-            mockRedisClient.get = jest.fn().mockResolvedValueOnce({});
+            mockRedis.get = jest.fn().mockResolvedValueOnce({});
             mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync.mockResolvedValueOnce([new BigNumber(21)]);
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
@@ -762,7 +760,7 @@ describe('GaslessSwapService', () => {
         });
 
         it('creates a metatransaction job', async () => {
-            mockRedisClient.get = jest.fn().mockResolvedValueOnce({});
+            mockRedis.get = jest.fn().mockResolvedValueOnce({});
             mockBlockchainUtils.getMinOfBalancesAndAllowancesAsync = jest
                 .fn()
                 .mockResolvedValueOnce([price.sellAmount]);

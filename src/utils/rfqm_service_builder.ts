@@ -13,8 +13,8 @@ import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import Redis from 'ioredis';
 import { Kafka, Producer as KafkaProducer } from 'kafkajs';
-import * as redis from 'redis';
 import { Producer } from 'sqs-producer';
 
 import {
@@ -223,9 +223,11 @@ export async function buildRfqmServiceAsync(
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
-    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
-    await redisClient.connect();
-    const cacheClient = new CacheClient(redisClient);
+    if (!REDIS_URI) {
+        throw new Error('No redis URI provided to RFQm Service');
+    }
+    const redis = new Redis(REDIS_URI);
+    const cacheClient = new CacheClient(redis);
 
     const kafkaProducer = getKafkaProducer();
 
@@ -319,9 +321,11 @@ export async function buildWorkerServiceAsync(
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
-    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
-    await redisClient.connect();
-    const cacheClient = new CacheClient(redisClient);
+    if (!REDIS_URI) {
+        throw new Error('No redis URI provided to RFQm Worker Service');
+    }
+    const redis = new Redis(REDIS_URI);
+    const cacheClient = new CacheClient(redis);
 
     const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
 
@@ -367,9 +371,11 @@ export async function buildRfqMakerBalanceCacheServiceAsync(
         ethersProvider,
     );
 
-    const redisClient: redis.RedisClientType = redis.createClient({ url: REDIS_URI });
-    await redisClient.connect();
-    const cacheClient = new CacheClient(redisClient);
+    if (!REDIS_URI) {
+        throw new Error('No redis URI provided to maker balance cache service');
+    }
+    const redis = new Redis(REDIS_URI);
+    const cacheClient = new CacheClient(redis);
 
     return new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
 }

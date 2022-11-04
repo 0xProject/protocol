@@ -4,8 +4,8 @@ import { ITransformERC20Contract } from '@0x/contract-wrappers';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { utils as ethersUtils } from 'ethers';
+import Redis from 'ioredis';
 import { Counter, Summary } from 'prom-client';
-import { RedisClientType } from 'redis';
 import { Producer } from 'sqs-producer';
 
 import { ONE_MINUTE_S, ONE_SECOND_MS } from '../constants';
@@ -119,7 +119,7 @@ export class GaslessSwapService {
         private readonly _rfqmService: RfqmService,
         private readonly _metaTransactionServiceBaseUrl: URL,
         private readonly _axiosInstance: AxiosInstance,
-        private readonly _redisClient: RedisClientType,
+        private readonly _redis: Redis,
         private readonly _dbUtils: RfqmDbUtils,
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _sqsProducer: Producer,
@@ -532,12 +532,10 @@ export class GaslessSwapService {
     }
 
     private async _doesMetaTransactionHashExistAsync(hash: string): Promise<boolean> {
-        return this._redisClient.get(metaTransactionHashRedisKey(hash)).then((r) => !!r);
+        return this._redis.get(metaTransactionHashRedisKey(hash)).then((r) => !!r);
     }
 
     private async _storeMetaTransactionHashAsync(hash: string): Promise<void> {
-        await this._redisClient.set(metaTransactionHashRedisKey(hash), /* value */ 0, {
-            EX: META_TRANSACTION_HASH_TTL_S,
-        });
+        await this._redis.set(metaTransactionHashRedisKey(hash), /* value */ 0, 'EX', META_TRANSACTION_HASH_TTL_S);
     }
 }

@@ -1,6 +1,6 @@
 import { ZERO } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import { RedisClientType } from 'redis';
+import Redis from 'ioredis';
 
 import { MAKER_TOKEN_BALANCE_EXPIRY_SECONDS } from '../constants';
 import { ERC20Owner } from '../types';
@@ -18,18 +18,18 @@ const LLR_COOLDOWN_SET_KEY = (chainId: number, tokenA: string, tokenB: string) =
     `coolingdown.makers.chain.${chainId}.pair.${toPairString(tokenA, tokenB)}`;
 
 export class CacheClient {
-    constructor(private readonly _redisClient: RedisClientType) {}
+    constructor(private readonly _redis: Redis) {}
 
     // Shut down the CacheClient safely
-    public async closeAsync(): Promise<void> {
-        return this._redisClient.quit();
+    public async closeAsync(): Promise<'OK'> {
+        return this._redis.quit();
     }
 
     // Get the next OtcOrder Bucket
     // NOTE: unliklely to ever hit this, but the node library we use tries to cast the response from Redis as a number.
     // However, MAX_INT for js is lower than MAX_INT for Redis. We also need to be aware of if Redis' MAX_INT ever gets hit (error)
     public async getNextOtcOrderBucketAsync(chainId: number): Promise<number> {
-        return this._redisClient.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY(chainId));
+        return this._redis.incr(OTC_ORDER_NONCE_BUCKET_COUNTER_KEY(chainId));
     }
 
     /**
@@ -37,7 +37,7 @@ export class CacheClient {
      * Token addresses set stores unique erc20Owners as balance cache keys.
      */
     public async getERC20OwnersAsync(chainId: number): Promise<ERC20Owner[]> {
-        const cacheKeys = await this._redisClient.sMembers(ERC20_OWNERS_KEY(chainId));
+        const cacheKeys = await this._redis.smembers(ERC20_OWNERS_KEY(chainId));
         // parse cache keys into ERC20Owner objects
         // cache key follows the format of `prefix.${chainId}.${owner}.${token}`
         return cacheKeys.map((cacheKey) => {
@@ -56,7 +56,7 @@ export class CacheClient {
      */
     public async addERC20OwnerAsync(chainId: number, erc20Owner: ERC20Owner): Promise<void> {
         const { owners, tokens } = splitAddresses(erc20Owner);
-        await this._redisClient.sAdd(ERC20_OWNERS_KEY(chainId), ERC20_OWNER_BALANCE_KEY(chainId, owners[0], tokens[0]));
+        await this._redis.sadd(ERC20_OWNERS_KEY(chainId), ERC20_OWNER_BALANCE_KEY(chainId, owners[0], tokens[0]));
     }
 
     /**
@@ -65,11 +65,11 @@ export class CacheClient {
      */
     public async evictZeroBalancesAsync(chainId: number): Promise<number> {
         const setKey = ERC20_OWNERS_KEY(chainId);
-        const cacheKeys = await this._redisClient.sMembers(setKey);
+        const cacheKeys = await this._redis.smembers(setKey);
         if (cacheKeys.length === 0) {
             return 0;
         }
-        const balances = await this._redisClient.mGet(cacheKeys);
+        const balances = await this._redis.mget(cacheKeys);
         const evictedKeys = cacheKeys.filter((_, idx) => {
             const balance = balances[idx];
             return balance != null && ZERO.eq(new BigNumber(balance));
@@ -77,7 +77,7 @@ export class CacheClient {
         if (evictedKeys.length === 0) {
             return 0;
         }
-        return this._redisClient.sRem(setKey, evictedKeys);
+        return this._redis.srem(setKey, evictedKeys);
     }
 
     /**
@@ -93,7 +93,7 @@ export class CacheClient {
         if (cacheKeys.length === 0) {
             return [];
         }
-        const balances = await this._redisClient.mGet(cacheKeys);
+        const balances = await this._redis.mget(cacheKeys);
         return balances.map((balance) => (balance ? new BigNumber(balance) : null));
     }
 
@@ -111,7 +111,7 @@ export class CacheClient {
         const cacheKeys = this._validateAndGetBalanceCacheKeys(chainId, erc20Owners, balances);
         await Promise.all(
             cacheKeys.map(async (cacheKey, i) =>
-                this._redisClient.set(cacheKey, balances[i].toString(), { EX: MAKER_TOKEN_BALANCE_EXPIRY_SECONDS }),
+                this._redis.set(cacheKey, balances[i].toString(), 'EX', MAKER_TOKEN_BALANCE_EXPIRY_SECONDS),
             ),
         );
     }
@@ -134,13 +134,12 @@ export class CacheClient {
         tokenA: string,
         tokenB: string,
     ): Promise<boolean> {
-        const changedMemberCount = await this._redisClient.ZADD(
+        const changedMemberCount = await this._redis.zadd(
             LLR_COOLDOWN_SET_KEY(chainId, tokenA, tokenB),
-            { score: endTime, value: makerId },
-            {
-                GT: true, // Only update if setting a higher score
-                CH: true, // return number of set members get changed (added and updated)
-            },
+            'GT', // only update if setting a higher score
+            'CH', // return number of set members get changed (added and updated)
+            endTime, // score to be sorted by
+            makerId, // value of the entry
         );
         return changedMemberCount > 0;
     }
@@ -151,16 +150,20 @@ export class CacheClient {
      * @param chainId chainId of the pair
      * @param tokenA address of one trading token
      * @param tokenB address of the other trading token
+     * @param now current timestamp (for testing)
      * @returns array of maker IDs
      */
-    public async getMakersInCooldownForPairAsync(chainId: number, tokenA: string, tokenB: string): Promise<string[]> {
+    public async getMakersInCooldownForPairAsync(
+        chainId: number,
+        tokenA: string,
+        tokenB: string,
+        now: number = Date.now(),
+    ): Promise<string[]> {
         // Sorted set members use cooldown expiration time as scores, so selecting members with scores larger than `Date.now()`
         // will give a complete list of makers in cooldown.
-        const minScore = Date.now();
+        const minScore = now;
         const maxScore = '+inf';
-        return this._redisClient.ZRANGE(LLR_COOLDOWN_SET_KEY(chainId, tokenA, tokenB), minScore, maxScore, {
-            BY: 'SCORE',
-        });
+        return this._redis.zrangebyscore(LLR_COOLDOWN_SET_KEY(chainId, tokenA, tokenB), minScore, maxScore);
     }
 
     /**

@@ -1,7 +1,7 @@
 import { ChainId } from '@0x/contract-addresses';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
-import * as redis from 'redis';
+import Redis from 'ioredis';
 
 import { ONE_MINUTE_MS } from '../../src/constants';
 import { ERC20Owner } from '../../src/types';
@@ -12,7 +12,7 @@ jest.setTimeout(ONE_MINUTE_MS * 2);
 let teardownDependencies: TeardownDependenciesFunctionHandle;
 
 describe('CacheClient', () => {
-    let redisClient: redis.RedisClientType;
+    let redis: Redis;
     let cacheClient: CacheClient;
 
     const chainId = ChainId.Ganache;
@@ -30,9 +30,8 @@ describe('CacheClient', () => {
 
     beforeAll(async () => {
         teardownDependencies = await setupDependenciesAsync(['redis']);
-        redisClient = redis.createClient();
-        await redisClient.connect();
-        cacheClient = new CacheClient(redisClient);
+        redis = new Redis();
+        cacheClient = new CacheClient(redis);
     });
 
     afterAll(async () => {
@@ -43,7 +42,7 @@ describe('CacheClient', () => {
     });
 
     afterEach(async () => {
-        await redisClient.flushDb();
+        await redis.flushdb();
     });
 
     describe('addERC20OwnerAsync', () => {
@@ -246,7 +245,7 @@ describe('CacheClient', () => {
             const oneMinuteLater = now + ONE_MINUTE_MS;
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
-            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
             expect(result).to.deep.eq([makerId1, makerId2]);
         });
 
@@ -256,7 +255,7 @@ describe('CacheClient', () => {
             const oneMinuteLater = now + ONE_MINUTE_MS;
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteEarlier, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, takerToken, makerToken);
-            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
             expect(result).to.deep.eq([makerId2]);
         });
 
@@ -265,7 +264,7 @@ describe('CacheClient', () => {
             const oneMinuteLater = now + ONE_MINUTE_MS;
             await cacheClient.addMakerToCooldownAsync(makerId1, oneMinuteLater, chainId, takerToken, makerToken);
             await cacheClient.addMakerToCooldownAsync(makerId2, oneMinuteLater, chainId, otherTakerToken, makerToken);
-            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken);
+            const result = await cacheClient.getMakersInCooldownForPairAsync(chainId, takerToken, makerToken, now);
             expect(result).to.deep.eq([makerId1]);
         });
     });

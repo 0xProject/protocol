@@ -137,7 +137,7 @@ export class RfqMakerBalanceCacheService {
     /**
      * Safely close the maker balance cache service to avoid potential memory leak.
      */
-    public async closeAsync(): Promise<void> {
+    public async closeAsync(): Promise<'OK'> {
         try {
             return this._cacheClient.closeAsync();
         } catch (e) {

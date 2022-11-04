@@ -102,7 +102,6 @@ async function processAsync(
     // Perform update on maker balance cache
     try {
         await rfqMakerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
-        await rfqMakerBalanceCacheService.closeAsync();
         MAKER_BALANCE_CACHE_UPDATE_PROCESS_COUNT.inc();
     } catch (error) {
         logger.error(
@@ -110,6 +109,8 @@ async function processAsync(
             'Failed to update maker balance cache while running scheduled background job',
         );
         throw new Error('Failed to update maker balance cache while running scheduled background job');
+    } finally {
+        await rfqMakerBalanceCacheService.closeAsync();
     }
 
     await job.updateProgress(100);

@@ -5,8 +5,8 @@ import { AxiosInstance } from 'axios';
 import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 import * as HttpStatus from 'http-status-codes';
+import Redis from 'ioredis';
 import { mapValues } from 'lodash';
-import { RedisClientType } from 'redis';
 import { Producer } from 'sqs-producer';
 import * as supertest from 'supertest';
 
@@ -73,7 +73,7 @@ const mockGaslessSwapService = jest.mocked(
         {} as RfqmService,
         new URL('http://meta.transaction.service'),
         {} as AxiosInstance,
-        {} as RedisClientType,
+        {} as Redis,
         {} as RfqmDbUtils,
         {} as RfqBlockchainUtils,
         {} as Producer,
