@@ -22,6 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
+import "./mixins/MixinAaveV3.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinGMX.sol";
@@ -35,6 +36,7 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract AvalancheBridgeAdapter is
     AbstractBridgeAdapter(43114, "Avalanche"),
+    MixinAaveV3,
     MixinCurve,
     MixinCurveV2,
     MixinGMX,
@@ -106,6 +108,11 @@ contract AvalancheBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.AAVEV3) {
+            if (dryRun) {
+                return (0, true);
+            }
+            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
