@@ -3,6 +3,7 @@ import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
+import { JobFailureReason } from '../entities/types';
 import {
     ExecuteMetaTransactionEip712Context,
     FeeModelVersion,
@@ -144,12 +145,10 @@ export interface TransactionDetails {
     timestamp: number /* unix ms */;
 }
 
-export interface StatusResponse {
-    status: 'pending' | 'submitted' | 'failed' | 'succeeded' | 'confirmed';
-    // For pending, expect no transactions. For successful transactions, expect just the mined transaction.
+export type StatusResponse = {
     transactions: TransactionDetails[];
     approvalTransactions?: TransactionDetails[];
-}
+} & ({ status: 'pending' | 'submitted' | 'succeeded' | 'confirmed' } | { status: 'failed'; reason?: JobFailureReason });
 
 /**
  * Result type used by the cleanup jobs functionality of the

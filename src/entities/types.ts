@@ -51,6 +51,17 @@ export enum RfqmJobStatus {
     SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
+// From https://0xproject.quip.com/ixNbA6mmn1KT/Error-reason-on-RFQm-zerog-status
+export enum JobFailureReason {
+    TransactionSimulationFailed = 'transaction_simulation_failed',
+    OrderExpired = 'order_expired',
+    LastLookDeclined = 'last_look_declined',
+    TransactionReverted = 'transaction_reverted',
+    MarketMakerSignatureError = 'market_maker_sigature_error',
+    InvalidBalance = 'invalid_balance',
+    InternalError = 'internal_error', // fallback error reason
+}
+
 /**
  * Determines whether or not a given `RfqmJobStatus` indicates
  * the associated job has been processed to completion or not.

@@ -1365,6 +1365,23 @@ describe('RFQM Integration', () => {
             // Response details are covered by the service test, but do one small check for sanity
             expect(response.body.status).to.equal('submitted');
         });
+
+        it('should return status reason for failures', async () => {
+            await dbUtils.writeV2JobAsync({
+                ...MOCK_RFQM_JOB,
+                status: RfqmJobStatus.FailedRevertedConfirmed,
+            });
+
+            const response = await request(app)
+                .get(`${RFQM_PATH}/status/${MOCK_RFQM_JOB.orderHash}`)
+                .set('0x-api-key', API_KEY)
+                .set('0x-chain-id', '1337')
+                .expect(HttpStatus.OK)
+                .expect('Content-Type', /json/);
+
+            // Response details are covered by the service test, but do one small check for sanity
+            expect(response.body.reason).to.equal('transaction_reverted');
+        });
     });
 
     describe('/admin/v1/cleanup', () => {

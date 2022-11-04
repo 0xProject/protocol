@@ -21,7 +21,13 @@ import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_NUM_BUCKETS } from '../constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
-import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../entities/types';
+import {
+    JobFailureReason,
+    RfqmJobStatus,
+    RfqmTransactionSubmissionStatus,
+    RfqmTransactionSubmissionType,
+} from '../entities/types';
+import { REASON_ON_STATUS_ERROR_RESPONSE_ENABLED } from '../config';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
 import {
@@ -183,6 +189,22 @@ export class RfqmService {
         }
 
         return successfulTransactionSubmissionDetails;
+    }
+
+    private static _jobFailureStatusToReason(failureStatus: RfqmJobStatus): JobFailureReason {
+        switch (failureStatus) {
+            case RfqmJobStatus.FailedEthCallFailed:
+                return JobFailureReason.TransactionSimulationFailed;
+            case RfqmJobStatus.FailedExpired:
+                return JobFailureReason.OrderExpired;
+            case RfqmJobStatus.FailedLastLookDeclined:
+                return JobFailureReason.LastLookDeclined;
+            case RfqmJobStatus.FailedRevertedConfirmed:
+            case RfqmJobStatus.FailedRevertedUnconfirmed:
+                return JobFailureReason.TransactionReverted;
+            default:
+                return JobFailureReason.InternalError;
+        }
     }
 
     constructor(
@@ -581,6 +603,9 @@ export class RfqmService {
             return {
                 status: 'failed',
                 transactions: [],
+                ...(REASON_ON_STATUS_ERROR_RESPONSE_ENABLED && {
+                    reason: JobFailureReason.OrderExpired,
+                }),
             };
         }
 
@@ -641,6 +666,9 @@ export class RfqmService {
                     transactions: transformSubmissions(tradeTransactionSubmissions),
                     ...(shouldIncludeApproval && {
                         approvalTransactions: transformSubmissions(approvalTransactionSubmissions),
+                    }),
+                    ...(REASON_ON_STATUS_ERROR_RESPONSE_ENABLED && {
+                        reason: RfqmService._jobFailureStatusToReason(status),
                     }),
                 };
             case RfqmJobStatus.SucceededConfirmed:

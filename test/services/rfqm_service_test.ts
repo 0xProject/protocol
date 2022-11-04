@@ -2185,6 +2185,37 @@ describe('RfqmService HTTP Logic', () => {
                 });
             });
 
+            it('should return declined for a job that was declined on the last look', async () => {
+                const job = new RfqmV2JobEntity({
+                    ...BASE_JOB,
+                    status: RfqmJobStatus.FailedLastLookDeclined,
+                });
+
+                const dbUtilsMock = mock(RfqmDbUtils);
+                //what is this dummy first attempt?
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve();
+                when(dbUtilsMock.findV2JobByOrderHashAsync(anything())).thenResolve(job);
+                when(
+                    dbUtilsMock.findV2TransactionSubmissionsByOrderHashAsync(
+                        job.orderHash,
+                        RfqmTransactionSubmissionType.Trade,
+                    ),
+                ).thenResolve([]);
+                const service = buildRfqmServiceForUnitTest({ dbUtils: instance(dbUtilsMock) });
+
+                const jobStatus = await service.getStatusAsync('0x00');
+
+                if (jobStatus === null) {
+                    expect.fail('Status should exist');
+                    throw new Error();
+                }
+
+                expect(jobStatus.status).to.eq('failed');
+                if (jobStatus.status == 'failed') {
+                    expect(jobStatus.reason).to.eq('last_look_declined');
+                }
+            });
+
             it('should return succeeded for a successful job, with the succeeded job and include correct `transactions` and `approvalTransactions`', async () => {
                 const now = Date.now();
                 const approvalTransaction1Time = now + 3;

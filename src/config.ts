@@ -376,6 +376,16 @@ export const ADMIN_API_KEY: string | undefined = _.isEmpty(process.env.ADMIN_API
     ? undefined
     : assertEnvVarType('ADMIN_API_KEY', process.env.ADMIN_API_KEY, EnvVarType.NonEmptyString);
 
+export const REASON_ON_STATUS_ERROR_RESPONSE_ENABLED: boolean = _.isEmpty(
+    process.env.REASON_ON_STATUS_ERROR_RESPONSE_ENABLED,
+)
+    ? false
+    : assertEnvVarType(
+          'REASON_ON_STATUS_ERROR_RESPONSE_ENABLED',
+          process.env.REASON_ON_STATUS_ERROR_RESPONSE_ENABLED,
+          EnvVarType.Boolean,
+      );
+
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
 export const RFQT_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqt');
 export const RFQT_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqt');
