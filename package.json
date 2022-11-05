@@ -96,7 +96,7 @@
         "@0x/api-utils": "^0.0.3",
         "@0x/assert": "^3.0.35",
         "@0x/base-contract": "^7.0.0",
-        "@0x/contract-addresses": "^7.1.0",
+        "@0x/contract-addresses": "^7.3.0",
         "@0x/contract-wrappers": "^13.22.2",
         "@0x/contracts-zero-ex": "^0.37.7",
         "@0x/fast-abi": "^0.0.5",
