@@ -1,6 +1,6 @@
 {
     "name": "@0x/asset-swapper",
-    "version": "16.66.17",
+    "version": "16.66.18",
     "private": true,
     "engines": {
         "node": ">=6.12"
@@ -33,15 +33,15 @@
     "dependencies": {
         "@0x/assert": "^3.0.35",
         "@0x/base-contract": "^7.0.0",
-        "@0x/contract-addresses": "^7.2.0",
-        "@0x/contract-wrappers": "^13.22.9",
-        "@0x/contracts-erc20": "^3.3.50",
-        "@0x/contracts-zero-ex": "^0.37.10",
+        "@0x/contract-addresses": "^7.3.0",
+        "@0x/contract-wrappers": "^13.22.10",
+        "@0x/contracts-erc20": "^3.3.51",
+        "@0x/contracts-zero-ex": "^0.38.0",
         "@0x/dev-utils": "^5.0.0",
         "@0x/fast-abi": "^0.0.5",
         "@0x/json-schemas": "^6.4.4",
         "@0x/neon-router": "^0.3.5",
-        "@0x/protocol-utils": "^11.16.17",
+        "@0x/protocol-utils": "^11.17.0",
         "@0x/quote-server": "^8.0.0",
         "@0x/types": "^3.3.6",
         "@0x/utils": "^7.0.0",
@@ -66,7 +66,7 @@
     "devDependencies": {
         "@0x/abi-gen": "^5.8.1",
         "@0x/contracts-gen": "^2.0.47",
-        "@0x/contracts-test-utils": "^5.4.40",
+        "@0x/contracts-test-utils": "^5.4.41",
         "@0x/sol-compiler": "^4.8.2",
         "@0x/subproviders": "^7.0.0",
         "@0x/ts-doc-gen": "^0.0.28",
