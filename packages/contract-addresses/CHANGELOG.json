@@ -6,7 +6,8 @@
                 "note": "Upgrade `AffiliateFeeTransformer`, `PayTakerTransformer`, and `PositiveSlippageFeeTransformer` to support smart contract wallets",
                 "pr": 615
             }
-        ]
+        ],
+        "timestamp": 1667607537
     },
     {
         "version": "7.2.0",
