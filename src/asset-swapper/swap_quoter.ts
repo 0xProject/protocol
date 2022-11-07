@@ -158,7 +158,7 @@ export class SwapQuoter {
         makerTokens: string[],
         targetTakerToken: string,
         makerTokenBuyAmounts: BigNumber[],
-        options: Partial<SwapQuoteRequestOpts> = {},
+        options: Partial<SwapQuoteRequestOpts>,
     ): Promise<MarketBuySwapQuote[]> {
         makerTokenBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
         let gasPrice: BigNumber;

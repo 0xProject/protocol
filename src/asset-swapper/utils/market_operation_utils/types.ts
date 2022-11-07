@@ -598,14 +598,8 @@ export interface LiquidityProviderRegistry {
 }
 
 export interface GenerateOptimizedOrdersOpts {
-    runLimit?: number;
-    bridgeSlippage?: number;
-    maxFallbackSlippage?: number;
-    excludedSources?: ERC20BridgeSource[];
     feeSchedule: FeeSchedule;
-    exchangeProxyOverhead?: ExchangeProxyOverhead;
-    allowFallback?: boolean;
-    shouldBatchBridgeOrders?: boolean;
+    exchangeProxyOverhead: ExchangeProxyOverhead;
     gasPrice: BigNumber;
     neonRouterNumSamples: number;
     fillAdjustor: FillAdjustor;

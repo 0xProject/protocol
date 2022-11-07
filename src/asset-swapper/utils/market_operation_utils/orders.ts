@@ -50,7 +50,6 @@ export interface CreateOrderFromPathOpts {
     inputToken: string;
     outputToken: string;
     contractAddresses: AssetSwapperContractAddresses;
-    bridgeSlippage: number;
 }
 
 export function createOrdersFromTwoHopSample(

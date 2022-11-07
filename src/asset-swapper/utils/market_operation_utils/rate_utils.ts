@@ -5,7 +5,6 @@ import { MarketOperation } from '../../types';
 
 import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { adjustOutput } from './fills';
-import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import {
     DexSample,
     ERC20BridgeSource,
@@ -25,9 +24,9 @@ export function getTwoHopAdjustedRate(
     twoHopQuote: DexSample<MultiHopFillData>,
     targetInput: BigNumber,
     outputAmountPerEth: BigNumber,
-    fees: FeeSchedule = {},
-    exchangeProxyOverhead: ExchangeProxyOverhead = () => ZERO_AMOUNT,
-    fillAdjustor: FillAdjustor = new IdentityFillAdjustor(),
+    fees: FeeSchedule,
+    exchangeProxyOverhead: ExchangeProxyOverhead,
+    fillAdjustor: FillAdjustor,
 ): BigNumber {
     const { output, input, fillData } = twoHopQuote;
     if (input.isLessThan(targetInput) || output.isZero()) {

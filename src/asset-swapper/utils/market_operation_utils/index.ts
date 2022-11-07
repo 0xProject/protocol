@@ -462,16 +462,7 @@ export class MarketOperationUtils {
                             isRfqSupported: false,
                             blockNumber,
                         },
-                        {
-                            bridgeSlippage: _opts.bridgeSlippage,
-                            maxFallbackSlippage: _opts.maxFallbackSlippage,
-                            excludedSources: _opts.excludedSources,
-                            feeSchedule: _opts.feeSchedule,
-                            allowFallback: _opts.allowFallback,
-                            gasPrice: _opts.gasPrice,
-                            neonRouterNumSamples: _opts.neonRouterNumSamples,
-                            fillAdjustor: _opts.fillAdjustor,
-                        },
+                        _opts,
                     );
                     return optimizerResult;
                 } catch (e) {
@@ -496,7 +487,6 @@ export class MarketOperationUtils {
             inputToken,
             outputToken,
             contractAddresses: this.contractAddresses,
-            bridgeSlippage: opts.bridgeSlippage || 0,
         };
 
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(
@@ -591,11 +581,7 @@ export class MarketOperationUtils {
     ): Promise<OptimizerResultWithReport> {
         const _opts: GetMarketOrdersOpts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
         const optimizerOpts: GenerateOptimizedOrdersOpts = {
-            bridgeSlippage: _opts.bridgeSlippage,
-            maxFallbackSlippage: _opts.maxFallbackSlippage,
-            excludedSources: _opts.excludedSources,
             feeSchedule: _opts.feeSchedule,
-            allowFallback: _opts.allowFallback,
             exchangeProxyOverhead: _opts.exchangeProxyOverhead,
             gasPrice: _opts.gasPrice,
             neonRouterNumSamples: _opts.neonRouterNumSamples,

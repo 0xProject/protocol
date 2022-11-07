@@ -19,9 +19,9 @@ import {
  */
 export function getBestTwoHopQuote(
     marketSideLiquidity: Omit<MarketSideLiquidity, 'makerTokenDecimals' | 'takerTokenDecimals'>,
-    feeSchedule?: FeeSchedule,
-    exchangeProxyOverhead?: ExchangeProxyOverhead,
-    fillAdjustor?: FillAdjustor,
+    feeSchedule: FeeSchedule,
+    exchangeProxyOverhead: ExchangeProxyOverhead,
+    fillAdjustor: FillAdjustor,
 ): { quote: DexSample<MultiHopFillData> | undefined; adjustedRate: BigNumber } {
     const { side, inputAmount, outputAmountPerEth, quotes } = marketSideLiquidity;
     const { twoHopQuotes } = quotes;
