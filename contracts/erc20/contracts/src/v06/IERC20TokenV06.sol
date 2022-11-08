@@ -20,7 +20,6 @@
 pragma solidity ^0.6.5;
 
 interface IERC20TokenV06 {
-    // solhint-disable no-simple-event-func-name
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     event Approval(address indexed owner, address indexed spender, uint256 value);

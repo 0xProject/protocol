@@ -28,7 +28,6 @@ contract TestInitialMigration is InitialMigration {
     address public bootstrapFeature;
     address public dieRecipient;
 
-    // solhint-disable-next-line no-empty-blocks
     constructor(address deployer) public InitialMigration(deployer) {}
 
     function callBootstrap(ZeroEx zeroEx) external {

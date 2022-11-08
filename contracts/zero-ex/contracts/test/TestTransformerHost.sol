@@ -44,7 +44,5 @@ contract TestTransformerHost {
         );
     }
 
-    // solhint-disable
     receive() external payable {}
-    // solhint-enable
 }

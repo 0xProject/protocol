@@ -27,14 +27,10 @@ import "./IFlashWallet.sol";
 
 /// @dev A contract that can execute arbitrary calls from its owner.
 contract FlashWallet is IFlashWallet {
-    // solhint-disable no-unused-vars,indent,no-empty-blocks
     using LibRichErrorsV06 for bytes;
 
-    // solhint-disable
     /// @dev Store the owner/deployer as an immutable to make this contract stateless.
     address public immutable override owner;
-
-    // solhint-enable
 
     constructor() public {
         // The deployer is the owner.
@@ -89,11 +85,8 @@ contract FlashWallet is IFlashWallet {
         }
     }
 
-    // solhint-disable
     /// @dev Allows this contract to receive ether.
     receive() external payable override {}
-
-    // solhint-enable
 
     /// @dev Signal support for receiving ERC1155 tokens.
     /// @param interfaceID The interface ID, as per ERC-165 rules.

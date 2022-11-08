@@ -19,8 +19,6 @@
 
 pragma solidity ^0.6;
 
-
-// solhint-disable func-name-mixedcase
 interface ICurve {
 
     /// @dev Sell `sellAmount` of `fromToken` token and receive `toToken` token.

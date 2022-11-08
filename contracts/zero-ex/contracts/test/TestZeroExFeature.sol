@@ -35,7 +35,6 @@ contract TestZeroExFeature is FixinCommon {
         emit NotPayableFnCalled();
     }
 
-    // solhint-disable no-empty-blocks
     function unimplmentedFn() external {}
 
     function internalFn() external onlySelf {}

@@ -20,7 +20,6 @@ pragma solidity ^0.5.5;
 
 import "./DummyERC20Token.sol";
 
-// solhint-disable no-empty-blocks
 contract DummyNoReturnERC20Token is DummyERC20Token {
     constructor(
         string memory _name,

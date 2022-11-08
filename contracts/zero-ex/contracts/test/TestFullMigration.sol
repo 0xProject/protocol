@@ -26,7 +26,6 @@ import "../src/migrations/FullMigration.sol";
 contract TestFullMigration is FullMigration {
     address public dieRecipient;
 
-    // solhint-disable-next-line no-empty-blocks
     constructor(address payable deployer) public FullMigration(deployer) {}
 
     function die(address payable ethRecipient) external override {

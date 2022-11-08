@@ -20,7 +20,6 @@ library LibSafeMathRichErrors {
         VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT96
     }
 
-    // solhint-disable func-name-mixedcase
     function Uint256BinOpError(
         BinOpErrorCodes errorCode,
         uint256 a,

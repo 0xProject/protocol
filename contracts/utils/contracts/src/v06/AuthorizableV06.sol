@@ -24,7 +24,6 @@ import "./errors/LibRichErrorsV06.sol";
 import "./errors/LibAuthorizableRichErrorsV06.sol";
 import "./OwnableV06.sol";
 
-// solhint-disable no-empty-blocks
 contract AuthorizableV06 is OwnableV06, IAuthorizableV06 {
     /// @dev Only authorized addresses can invoke functions with this modifier.
     modifier onlyAuthorized() {

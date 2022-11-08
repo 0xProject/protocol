@@ -21,9 +21,7 @@ contract TestNativeOrdersFeature is NativeOrdersFeature {
             FeeCollectorController(address(new TestFeeCollectorController())),
             protocolFeeMultiplier
         )
-    {
-        // solhint-disable no-empty-blocks
-    }
+    {}
 
     modifier onlySelf() override {
         _;

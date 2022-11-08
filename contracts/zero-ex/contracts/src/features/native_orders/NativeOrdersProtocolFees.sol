@@ -37,9 +37,7 @@ abstract contract NativeOrdersProtocolFees is FixinProtocolFees {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    ) internal FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
-        // solhint-disable no-empty-blocks
-    }
+    ) internal FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {}
 
     /// @dev Transfers protocol fees from the `FeeCollector` pools into
     ///      the staking contract.

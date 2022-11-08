@@ -35,6 +35,7 @@ library LibOwnableStorage {
         uint256 storageSlot = LibStorage.getStorageSlot(LibStorage.StorageId.Ownable);
         // Dip into assembly to change the slot pointed to by the local
         // variable `stor`.
+        // solhint-disable-next-line max-line-length
         // See https://solidity.readthedocs.io/en/v0.6.8/assembly.html?highlight=slot#access-to-external-variables-functions-and-libraries
         assembly {
             stor_slot := storageSlot
