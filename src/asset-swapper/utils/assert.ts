@@ -1,5 +1,4 @@
 import { assert as sharedAssert } from '@0x/assert';
-import * as _ from 'lodash';
 
 import { Orderbook } from '../swap_quoter';
 

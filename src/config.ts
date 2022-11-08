@@ -704,7 +704,10 @@ function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): 
     return assertEnvVarType(envVar, process.env[envVar], envVarType);
 }
 
-function assertEnvVarType(name: string, value: any, expectedType: EnvVarType): any {
+function assertEnvVarType(name: string, value: string | undefined, expectedType: EnvVarType): any {
+    if (value === undefined) {
+        throw new Error(`${name} is not defined`);
+    }
     let returnValue;
     switch (expectedType) {
         case EnvVarType.Port: {

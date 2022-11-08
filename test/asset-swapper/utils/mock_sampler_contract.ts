@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ContractTxFunctionObj } from '@0x/base-contract';
 import { constants } from '@0x/contracts-test-utils';
 import { LimitOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { ERC20BridgeSamplerContract } from '../../../src/asset-swapp../../wrappers';
+import { ERC20BridgeSamplerContract } from '../../../src/asset-swapper/../wrappers';
 import { SamplerCallResult } from '../../../src/asset-swapper/types';
 
 export type GetOrderFillableAssetAmountResult = BigNumber[];
@@ -193,7 +194,7 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
                 const args = this.getABIDecodedTransactionData<any>(name, callData);
                 const result = (handler as any)(...args);
                 const encoder = this._lookupAbiEncoder(this.getFunctionSignature(name));
-                if (encoder.getReturnValueDataItem().components!.length === 1) {
+                if (encoder.getReturnValueDataItem().components?.length === 1) {
                     return encoder.encodeReturnValues([result]);
                 } else {
                     return encoder.encodeReturnValues(result);

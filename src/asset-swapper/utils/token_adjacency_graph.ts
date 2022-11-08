@@ -51,6 +51,8 @@ export class TokenAdjacencyGraphBuilder {
             this._graph.set(fromLower, [...this._defaultTokens]);
         }
 
+        // `fromLower` must present
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const toTokens = this._graph.get(fromLower)!;
         if (!toTokens.includes(toLower)) {
             toTokens.push(toLower);

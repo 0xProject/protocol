@@ -129,6 +129,7 @@ export class SwapQuoter {
             {},
             undefined,
             {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
                 decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
             },

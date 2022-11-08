@@ -1,6 +1,4 @@
-import type { PinoLogger } from '@0x/api-utils';
 import { Producer } from 'kafkajs';
-import _ = require('lodash');
 
 import {
     BigNumber,

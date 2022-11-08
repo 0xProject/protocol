@@ -59,7 +59,9 @@ export class SwapQuoteConsumer implements SwapQuoteConsumerBase {
         return consumer.executeSwapQuoteOrThrowAsync(quote, opts);
     }
 
-    private async _getConsumerForSwapQuoteAsync(opts: Partial<SwapQuoteGetOutputOpts>): Promise<SwapQuoteConsumerBase> {
+    private async _getConsumerForSwapQuoteAsync(
+        _opts: Partial<SwapQuoteGetOutputOpts>,
+    ): Promise<SwapQuoteConsumerBase> {
         return this._exchangeProxyConsumer;
     }
 }

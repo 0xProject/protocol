@@ -160,14 +160,6 @@ describe('MarketOperationUtils tests', () => {
         _results: SignedNativeOrder[],
         _verifiable: TypeMoq.Times,
     ): TypeMoq.IMock<QuoteRequestor> {
-        const args: [any, any, any, any, any, any] = [
-            TypeMoq.It.isAny(),
-            TypeMoq.It.isAny(),
-            TypeMoq.It.isAny(),
-            TypeMoq.It.isAny(),
-            TypeMoq.It.isAny(),
-            TypeMoq.It.isAny(),
-        ];
         const requestor = TypeMoq.Mock.ofType(QuoteRequestor, TypeMoq.MockBehavior.Loose, true);
         requestor.setup((r) => r.getMakerUriForSignature(TypeMoq.It.isValue(SIGNATURE))).returns(() => MAKER_URI);
         requestor
@@ -1390,72 +1382,7 @@ describe('MarketOperationUtils tests', () => {
                 }
             });
 
-            // TODO: disabled as this is not supported by neon-router
-            it.skip('can mix convex sources', async () => {
-                const rates: RatesBySource = { ...ZERO_RATES };
-                rates[ERC20BridgeSource.Native] = [0.4, 0.3, 0.2, 0.1];
-                rates[ERC20BridgeSource.Uniswap] = [0.5, 0.05, 0.05, 0.05];
-                rates[ERC20BridgeSource.SushiSwap] = [0.6, 0.05, 0.05, 0.05];
-                replaceSamplerOps({
-                    getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                });
-                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
-                    marketOperationUtils,
-                    createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
-                    FILL_AMOUNT,
-                    { ...DEFAULT_OPTS, numSamples: 4 },
-                );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map((o) => o.source);
-                const expectedSources = [
-                    ERC20BridgeSource.SushiSwap,
-                    ERC20BridgeSource.Uniswap,
-                    ERC20BridgeSource.Native,
-                    ERC20BridgeSource.Native,
-                ];
-                expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
-            });
-
             const ETH_TO_TAKER_RATE = 1.5;
-
-            // TODO: disabled as this is not supported by neon-router
-            it.skip('factors in fees for native orders', async () => {
-                // Native orders will have the best rates but have fees,
-                // dropping their effective rates.
-                const nativeFeeRate = 0.06;
-                const rates: RatesBySource = {
-                    ...ZERO_RATES,
-                    [ERC20BridgeSource.Native]: [1, 0.99, 0.98, 0.97], // Effectively [0.94, ~0.93, ~0.92, ~0.91]
-                    [ERC20BridgeSource.Uniswap]: [0.96, 0.1, 0.1, 0.1],
-                    [ERC20BridgeSource.SushiSwap]: [0.95, 0.1, 0.1, 0.1],
-                    [ERC20BridgeSource.Curve]: [0.1, 0.1, 0.1, 0.1],
-                };
-                const feeSchedule = {
-                    [ERC20BridgeSource.Native]: _.constant({
-                        gas: 1,
-                        fee: FILL_AMOUNT.div(4).times(nativeFeeRate).dividedToIntegerBy(ETH_TO_TAKER_RATE),
-                    }),
-                };
-                replaceSamplerOps({
-                    getBuyQuotes: createGetMultipleBuyQuotesOperationFromRates(rates),
-                    getBestNativeTokenSellRate: createGetBestNativeSellRate(ETH_TO_TAKER_RATE),
-                });
-                const improvedOrdersResponse = await getMarketBuyOrdersAsync(
-                    marketOperationUtils,
-                    createOrdersFromBuyRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
-                    FILL_AMOUNT,
-                    { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
-                );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const orderSources = improvedOrders.map((o) => o.source);
-                const expectedSources = [
-                    ERC20BridgeSource.Uniswap,
-                    ERC20BridgeSource.SushiSwap,
-                    ERC20BridgeSource.Native,
-                    ERC20BridgeSource.Native,
-                ];
-                expect(orderSources.sort()).to.deep.eq(expectedSources.sort());
-            });
 
             it('factors in fees for dexes', async () => {
                 // Uniswap will have the best rates but will have fees,

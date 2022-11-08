@@ -1,7 +1,6 @@
 import { Web3Wrapper } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { MarketOperation } from '../../types';
 
