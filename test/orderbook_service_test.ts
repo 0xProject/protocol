@@ -112,7 +112,7 @@ describe(SUITE_NAME, () => {
     });
 
     describe('getOrdersAsync', () => {
-        it(`ran getOrdersAsync test cases`, async () => {
+        it.skip(`ran getOrdersAsync test cases`, async () => {
             // Test case interface
             type GetOrdersTestCase = [
                 SRAOrder[], // orders to save in the SignedOrder cache
