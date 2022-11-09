@@ -18,7 +18,7 @@
         "db:revert": "./node_modules/.bin/typeorm migration:revert --config ./lib/src/ormconfig.js ",
         "test_": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe --timeout 200000 --exit --bail",
         "test": "yarn test:rest && yarn test:asset-swapper && yarn test:rfqt",
-        "test:rest": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/*/!(rfqt*)_test.js' 'lib/test/!(asset-swapper)/**/!(rfqt*)_test.js' --timeout 200000 --exit --bail",
+        "test:rest": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/!(rfqt*)_test.js' 'lib/test/!(asset-swapper)/**/!(rfqt*)_test.js' --timeout 200000 --exit --bail",
         "test:rfqt": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/rfqt_*.js' --timeout 200000 --exit --bail",
         "test:asset-swapper": "env-cmd -f ./test/test_env mocha --require source-map-support/register --require make-promises-safe 'lib/test/asset-swapper/**/*_test.js' --timeout 250000 --exit --bail",
         "test:integration": "mocha --require source-map-support/register --require make-promises-safe 'lib/integration-test/**/*_test.js' --timeout 200000 --exit",

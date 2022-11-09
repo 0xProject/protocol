@@ -9,7 +9,7 @@ let connection: Connection;
  */
 export async function getDBConnectionAsync(): Promise<Connection> {
     if (!connection) {
-        connection = await createConnection(config as any as ConnectionOptions);
+        connection = await createConnection(config as ConnectionOptions);
     }
     return connection;
 }

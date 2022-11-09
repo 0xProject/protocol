@@ -14,7 +14,7 @@ interface GasOracleResponse {
 }
 
 export class ProtocolFeeUtils {
-    private static _instance: ProtocolFeeUtils;
+    private static _instances = new Map<string, ProtocolFeeUtils>();
     private readonly _zeroExGasApiUrl: string;
     private readonly _gasPriceHeart: any;
     private _gasPriceEstimation: BigNumber = constants.ZERO_AMOUNT;
@@ -23,16 +23,21 @@ export class ProtocolFeeUtils {
     public static getInstance(
         gasPricePollingIntervalInMs: number,
         zeroExGasApiUrl: string = constants.ZERO_EX_GAS_API_URL,
-        initialGasPrice: BigNumber = constants.ZERO_AMOUNT,
     ): ProtocolFeeUtils {
-        if (!ProtocolFeeUtils._instance) {
-            ProtocolFeeUtils._instance = new ProtocolFeeUtils(
-                gasPricePollingIntervalInMs,
+        if (!ProtocolFeeUtils._instances.has(zeroExGasApiUrl)) {
+            ProtocolFeeUtils._instances.set(
                 zeroExGasApiUrl,
-                initialGasPrice,
+                new ProtocolFeeUtils(gasPricePollingIntervalInMs, zeroExGasApiUrl),
             );
         }
-        return ProtocolFeeUtils._instance;
+
+        const instance = ProtocolFeeUtils._instances.get(zeroExGasApiUrl);
+        if (instance === undefined) {
+            // should not be reachable
+            throw new Error(`Singleton for ${zeroExGasApiUrl} was not initialized`);
+        }
+
+        return instance;
     }
 
     /** @returns gas price (in wei) */
@@ -54,13 +59,8 @@ export class ProtocolFeeUtils {
         this._gasPriceHeart.kill();
     }
 
-    private constructor(
-        gasPricePollingIntervalInMs: number,
-        zeroExGasApiUrl: string = constants.ZERO_EX_GAS_API_URL,
-        initialGasPrice: BigNumber = constants.ZERO_AMOUNT,
-    ) {
+    private constructor(gasPricePollingIntervalInMs: number, zeroExGasApiUrl: string) {
         this._gasPriceHeart = heartbeats.createHeart(gasPricePollingIntervalInMs);
-        this._gasPriceEstimation = initialGasPrice;
         this._zeroExGasApiUrl = zeroExGasApiUrl;
         this._initializeHeartBeat();
     }
