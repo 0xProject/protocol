@@ -37,7 +37,8 @@ export class RfqDynamicBlacklist implements Set<string> {
         return this._rfqBlockedAddressUtils._blocked.delete(value);
     }
 
-    public forEach(callbackfn: (value: string, value2: string, set: Set<string>) => void, thisArg?: any): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public forEach(callbackfn: (value: string, value2: string, set: Set<string>) => void, _thisArg?: any): void {
         this._rfqBlockedAddressUtils._blocked.forEach(callbackfn);
     }
 

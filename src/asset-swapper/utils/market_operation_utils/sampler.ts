@@ -165,6 +165,7 @@ export class DexOrderSampler extends SamplerOperations {
     /**
      * Run a series of operations from `DexOrderSampler.ops` in a single transaction.
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async executeAsync(...ops: any[]): Promise<any[]> {
         return this.executeBatchAsync(ops);
     }
@@ -173,6 +174,7 @@ export class DexOrderSampler extends SamplerOperations {
      * Run a series of operations from `DexOrderSampler.ops` in a single transaction.
      * Takes an arbitrary length array, but is not typesafe.
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public async executeBatchAsync<T extends BatchedOperation<any>[]>(ops: T): Promise<any[]> {
         const callDatas = ops.map((o) => o.encodeCall());
         const { overrides, block } = this._samplerOverrides

@@ -13,7 +13,7 @@ export class S3Client {
     public async hasFileAsync(
         bucket: string,
         fileName: string,
-    ): Promise<{ exists: boolean; lastModified: Date | undefined }> {
+    ): Promise<{ exists: true; lastModified: Date } | { exists: false; lastModified: undefined }> {
         const bucketParams = {
             Bucket: bucket,
             Key: fileName,

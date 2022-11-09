@@ -1,5 +1,4 @@
 import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { Omit } from '../../types';
 

@@ -12,7 +12,7 @@ export class SlippageModelFillAdjustor implements FillAdjustor {
         private readonly maxSlippageRate: number,
     ) {}
 
-    public adjustFills(side: MarketOperation, fills: Fill<FillData>[], amount: BigNumber): Fill<FillData>[] {
+    public adjustFills(side: MarketOperation, fills: Fill<FillData>[], _amount: BigNumber): Fill<FillData>[] {
         return fills.map((f) => {
             // Mostly negative, as in the trade experiences a worst price
             // e.g -0.02938

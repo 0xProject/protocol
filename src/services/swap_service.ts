@@ -545,7 +545,7 @@ export class SwapService {
             .reduce((acc, x) => acc.concat(x), []); // flatten
 
         const prices = allResults
-            .map((quote, i) => {
+            .map((quote) => {
                 const buyTokenDecimals = new BigNumber(quote.makerTokenDecimals).toNumber();
                 const sellTokenDecimals = new BigNumber(quote.takerTokenDecimals).toNumber();
                 const symbol = queryTokenData.find(

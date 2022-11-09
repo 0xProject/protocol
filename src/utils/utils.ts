@@ -1,10 +1,7 @@
-import { intervalUtils } from '@0x/utils';
-import * as _ from 'lodash';
-
 import { TX_BASE_GAS } from '../constants';
 
 export const utils = {
-    isNil: (value: any): boolean => {
+    isNil: (value: unknown): boolean => {
         // undefined == null => true
         // undefined == undefined => true
         return value == null;

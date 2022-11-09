@@ -1,5 +1,4 @@
 import { AbiEncoder, BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
 
 import {
     AffiliateFeeType,
@@ -102,9 +101,9 @@ export const serviceUtils = {
             let obj;
             if (source === ERC20BridgeSource.MultiHop && !BigNumber.isBigNumber(breakdown)) {
                 obj = {
-                    ...breakdown!,
+                    ...breakdown,
                     name: ERC20BridgeSource.MultiHop,
-                    proportion: new BigNumber(breakdown!.proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
+                    proportion: new BigNumber(breakdown.proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
                 };
             } else {
                 obj = {

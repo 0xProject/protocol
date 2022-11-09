@@ -1,7 +1,6 @@
 import { artifacts as erc20Artifacts, DummyERC20TokenContract } from '@0x/contracts-erc20';
 import { blockchainTests, constants, expect, web3Wrapper } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { artifacts } from '../../artifacts';
 import { BalanceCheckerContract } from '../../wrappers';

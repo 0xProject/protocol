@@ -103,7 +103,7 @@ export class WebsocketService {
         await this._orderWatcherKafkaEventConsumer.subscribe({ topic: this._orderWatcherKafkaEventTopic });
 
         await this._orderWatcherKafkaEventConsumer.run({
-            eachMessage: async ({ topic, partition, message }) => {
+            eachMessage: async ({ message }) => {
                 // do nothing if no value present
                 if (!message.value) {
                     return;
