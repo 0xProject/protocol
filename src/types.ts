@@ -286,12 +286,6 @@ export interface GetSwapQuoteParams extends SwapQuoteParamsBase {
 // GET /swap/price
 export type GetSwapPriceResponse = BasePriceResponse;
 
-// GET /swap/prices
-export interface Price {
-    symbol: string;
-    price: BigNumber;
-}
-
 /**
  * Response type for /meta_transaction/v1/quote endpoint
  */

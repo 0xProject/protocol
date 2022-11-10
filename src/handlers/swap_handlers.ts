@@ -1,5 +1,5 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
-import { getTokenMetadataIfExists, isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/token-metadata';
+import { isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
@@ -44,7 +44,6 @@ import { SwapService } from '../services/swap_service';
 import { GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { estimateArbitrumL1CalldataGasCost } from '../utils/l2_gas_utils';
-import { paginationUtils } from '../utils/pagination_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { publishQuoteReport } from '../utils/quote_report_utils';
@@ -116,24 +115,6 @@ export class SwapHandlers {
 
     constructor(swapService: SwapService) {
         this._swapService = swapService;
-    }
-
-    public async getTokenPricesAsync(req: express.Request, res: express.Response): Promise<void> {
-        const symbolOrAddress = (req.query.sellToken as string) || 'WETH';
-        const baseAsset = getTokenMetadataIfExists(symbolOrAddress, CHAIN_ID);
-        if (!baseAsset) {
-            throw new ValidationError([
-                {
-                    field: 'sellToken',
-                    code: ValidationErrorCodes.ValueOutOfRange,
-                    reason: `Could not find token ${symbolOrAddress}`,
-                },
-            ]);
-        }
-        const { page, perPage } = paginationUtils.parsePaginationConfig(req);
-        const unitAmount = new BigNumber(1);
-        const tokenPrices = await this._swapService.getTokenPricesAsync(baseAsset, unitAmount, page, perPage);
-        res.status(HttpStatus.OK).send(tokenPrices);
     }
 
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {

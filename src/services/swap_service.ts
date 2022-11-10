@@ -1,7 +1,7 @@
 import { WETH9Contract } from '@0x/contract-wrappers';
 import { ETH_TOKEN_ADDRESS, RevertError } from '@0x/protocol-utils';
-import { getTokenMetadataIfExists, TokenMetadatasForChains } from '@0x/token-metadata';
-import { MarketOperation, PaginatedCollection } from '@0x/types';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
+import { MarketOperation } from '@0x/types';
 import { BigNumber, decodeThrownErrorAsRevertError } from '@0x/utils';
 import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import axios from 'axios';
@@ -54,16 +54,8 @@ import {
 } from '../constants';
 import { GasEstimationError, InsufficientFundsError } from '../errors';
 import { logger } from '../logger';
-import {
-    AffiliateFee,
-    GetSwapQuoteParams,
-    GetSwapQuoteResponse,
-    Price,
-    SwapQuoteResponsePartialTransaction,
-    TokenMetadata,
-} from '../types';
+import { AffiliateFee, GetSwapQuoteParams, GetSwapQuoteResponse, SwapQuoteResponsePartialTransaction } from '../types';
 import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
-import { paginationUtils } from '../utils/pagination_utils';
 import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
 import { RfqClient } from '../utils/rfq_client';
@@ -503,73 +495,6 @@ export class SwapService {
 
     public async getSwapQuoteForUnwrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
         return this._getSwapQuoteForNativeWrappedAsync(params, true);
-    }
-
-    public async getTokenPricesAsync(
-        sellToken: TokenMetadata,
-        unitAmount: BigNumber,
-        page: number,
-        perPage: number,
-    ): Promise<PaginatedCollection<Price>> {
-        // Gets the price for buying 1 unit (not base unit as this is different between tokens with differing decimals)
-        // returns price in sellToken units, e.g What is the price of 1 ZRX (in DAI)
-        // Equivalent to performing multiple swap quotes selling sellToken and buying 1 whole buy token
-        const takerToken = sellToken.tokenAddress;
-        const queryTokenData = TokenMetadatasForChains.filter((m) => m.symbol !== sellToken.symbol).filter(
-            (m) => m.tokenAddresses[CHAIN_ID] !== NULL_ADDRESS,
-        );
-        const paginatedTokens = paginationUtils.paginate(queryTokenData, page, perPage);
-        const chunkSize = 20;
-        const queryTokenChunks = _.chunk(paginatedTokens.records, chunkSize);
-        const allResults = (
-            await Promise.all(
-                queryTokenChunks.map(async (tokens) => {
-                    const makerTokens = tokens.map((t) => t.tokenAddresses[CHAIN_ID]);
-                    const amounts = tokens.map((t) => Web3Wrapper.toBaseUnitAmount(unitAmount, t.decimals));
-                    const quotes = await this._swapQuoter.getBatchMarketBuySwapQuoteAsync(
-                        makerTokens,
-                        takerToken,
-                        amounts,
-                        {
-                            ...ASSET_SWAPPER_MARKET_ORDERS_OPTS,
-                            bridgeSlippage: 0,
-                            maxFallbackSlippage: 0,
-                            numSamples: 1,
-                        },
-                    );
-                    return quotes;
-                }),
-            )
-        )
-            .filter((x) => x !== undefined)
-            .reduce((acc, x) => acc.concat(x), []); // flatten
-
-        const prices = allResults
-            .map((quote) => {
-                const buyTokenDecimals = new BigNumber(quote.makerTokenDecimals).toNumber();
-                const sellTokenDecimals = new BigNumber(quote.takerTokenDecimals).toNumber();
-                const symbol = queryTokenData.find(
-                    (data) => data.tokenAddresses[CHAIN_ID] === quote.makerToken,
-                )?.symbol;
-                const { makerAmount, totalTakerAmount } = quote.bestCaseQuoteInfo;
-                const unitMakerAmount = Web3Wrapper.toUnitAmount(makerAmount, buyTokenDecimals);
-                const unitTakerAmount = Web3Wrapper.toUnitAmount(totalTakerAmount, sellTokenDecimals);
-                const price = unitTakerAmount
-                    .dividedBy(unitMakerAmount)
-                    .decimalPlaces(sellTokenDecimals, BigNumber.ROUND_CEIL);
-                return {
-                    symbol,
-                    price,
-                };
-            })
-            .filter((p) => p) as Price[];
-
-        // Add ETH into the prices list as it is not a token
-        const wethData = prices.find((p: Price) => p.symbol === 'WETH');
-        if (wethData) {
-            prices.push({ ...wethData, symbol: 'ETH' });
-        }
-        return { ...paginatedTokens, records: prices };
     }
 
     private async _getSwapQuoteForNativeWrappedAsync(
