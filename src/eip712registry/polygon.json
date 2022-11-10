@@ -558,5 +558,35 @@
             "verifyingContract": "0x5c947eb80d096a5e332bf79bfdc9feb3d0a201d7"
         },
         "domainSeparator": "0xce0ccd319046c79e1db11e8e30bb37f98eb3f6882895139ea6ce54c5bad5f6fe"
+    },
+    "0xb7b31a6bc18e48888545ce79e83e06003be70930": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "ApeCoin (PoS)",
+            "version": "1",
+            "verifyingContract": "0xb7b31a6bc18e48888545ce79e83e06003be70930",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0xc3595b6cd581d4e653e2d7876ac4680d9c5e948699ed31aa8d27451fe662a037"
+    },
+    "0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "SHIBA INU (PoS)",
+            "version": "1",
+            "verifyingContract": "0x6f8a06447ff6fcf75d803135a7de15ce88c1d4ec",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x3aa34ba878312962756591cb070fb54843383fd5fb3bce5e419976ab83258733"
+    },
+    "0xe0339c80ffde91f3e20494df88d4206d86024cdf": {
+        "kind": "executeMetaTransaction::approve",
+        "domain": {
+            "name": "Dogelon (PoS)",
+            "version": "1",
+            "verifyingContract": "0xe0339c80ffde91f3e20494df88d4206d86024cdf",
+            "salt": "0x0000000000000000000000000000000000000000000000000000000000000089"
+        },
+        "domainSeparator": "0x62775d9ed528f25949f8cef6482e4eca7234886837557efa6f669c0c3c831357"
     }
 }
