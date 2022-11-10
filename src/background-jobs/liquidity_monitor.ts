@@ -334,6 +334,7 @@ async function processAsync(
             { checkerFunction: createCheckMarketMakerRfqm('Jump', dataSource), source: 'jump' },
             { checkerFunction: createCheckMarketMakerRfqm('OneBitQuant', dataSource), source: 'onebitquant' },
             { checkerFunction: createCheckMarketMakerRfqm('RavenDAO', dataSource), source: 'ravendao' },
+            { checkerFunction: createCheckMarketMakerRfqm('Sixtant', dataSource), source: 'sixtant' },
             { checkerFunction: createCheckMarketMakerRfqm('Wintermute', dataSource), source: 'wintermute' },
         ],
         feeAmount: '0',
