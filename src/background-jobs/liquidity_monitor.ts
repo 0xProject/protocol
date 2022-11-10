@@ -170,7 +170,7 @@ function createCheckProduct(url: string): CheckerFunction {
  * Creates a checker function to check a market maker's rfqm
  * quote server
  */
-function createCheckMarketMaker(label: string, dataSource: DataSource): CheckerFunction {
+function createCheckMarketMakerRfqm(label: string, dataSource: DataSource): CheckerFunction {
     const maker = RFQ_MAKER_CONFIGS.find((m) => m.label.toLowerCase() === label.toLowerCase());
     if (!maker) {
         throw new Error(`Unable to find maker configuration with label ${label}`);
@@ -307,16 +307,41 @@ async function processAsync(
                 checkerFunction: createCheckProduct('https://polygon.api.0x.org/zero-gas/swap/v1/quote'),
                 source: 'zero/g',
             },
-            { checkerFunction: createCheckMarketMaker('Altonomy', dataSource), source: 'altonomy' },
-            { checkerFunction: createCheckMarketMaker('Jump', dataSource), source: 'jump' },
-            { checkerFunction: createCheckMarketMaker('Wintermute', dataSource), source: 'wintermute' },
+            { checkerFunction: createCheckMarketMakerRfqm('Altonomy', dataSource), source: 'altonomy' },
+            { checkerFunction: createCheckMarketMakerRfqm('Jump', dataSource), source: 'jump' },
+            { checkerFunction: createCheckMarketMakerRfqm('Wintermute', dataSource), source: 'wintermute' },
         ],
         feeAmount: '0',
         pair: 'WMATIC-USDC',
         sellToken: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
     };
 
-    const pairChecks: PairCheck[] = [wmaticUsdcPolygonCheck];
+    const wethUsdcMainnetRfqmCheck = {
+        buyAmount: '100000000000000000', // 0.1 WETH | 18 decimals
+        buyToken: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        chainId: 1,
+        checks: [
+            {
+                checkerFunction: createCheckProduct('https://api.0x.org/rfqm/v1/quote'),
+                source: 'rfqm',
+            },
+            {
+                checkerFunction: createCheckProduct('https://api.0x.org/zero-gas/swap/v1/quote'),
+                source: 'zero/g',
+            },
+            { checkerFunction: createCheckMarketMakerRfqm('AlphaLab', dataSource), source: 'alphalab' },
+            { checkerFunction: createCheckMarketMakerRfqm('Altonomy', dataSource), source: 'altonomy' },
+            { checkerFunction: createCheckMarketMakerRfqm('Jump', dataSource), source: 'jump' },
+            { checkerFunction: createCheckMarketMakerRfqm('OneBitQuant', dataSource), source: 'onebitquant' },
+            { checkerFunction: createCheckMarketMakerRfqm('RavenDAO', dataSource), source: 'ravendao' },
+            { checkerFunction: createCheckMarketMakerRfqm('Wintermute', dataSource), source: 'wintermute' },
+        ],
+        feeAmount: '0',
+        pair: 'WETH-USDC',
+        sellToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    };
+
+    const pairChecks: PairCheck[] = [wmaticUsdcPolygonCheck, wethUsdcMainnetRfqmCheck];
 
     /////////////////////////////////////////////////////
 
