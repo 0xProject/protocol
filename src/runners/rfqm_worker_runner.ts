@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/node';
 // Workaround for Sentry tracing to work: https://github.com/getsentry/sentry-javascript/issues/4731
 import '@sentry/tracing';
 import { SQS } from 'aws-sdk';
+import Redis from 'ioredis';
 import { Counter } from 'prom-client';
 
 import {
@@ -13,6 +14,7 @@ import {
     CHAIN_CONFIGURATIONS,
     CHAIN_ID,
     META_TX_WORKER_MNEMONIC,
+    REDIS_URI,
     RFQM_WORKER_GROUP_INDEX,
     RFQM_WORKER_GROUP_SIZE,
     SENTRY_DSN,
@@ -30,7 +32,7 @@ import { buildWorkerServiceAsync } from '../utils/rfqm_service_builder';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
-import { startMetricsServer } from '../utils/runner_utils';
+import { closeRedisConnectionsAsync, startMetricsServer } from '../utils/runner_utils';
 import { SqsClient } from '../utils/sqs_client';
 import { SqsConsumer } from '../utils/sqs_consumer';
 
@@ -39,6 +41,8 @@ const RFQM_JOB_DEQUEUED = new Counter({
     help: 'An Rfqm Job was pulled from the queue',
     labelNames: ['address', 'chain_id'],
 });
+
+const redisInstances: Redis[] = [];
 
 process.on(
     'uncaughtException',
@@ -106,18 +110,23 @@ if (require.main === module) {
         if (RFQM_WORKER_GROUP_SIZE === undefined) {
             throw new Error(`RFQM_WORKER_GROUP_SIZE must be defined to use RFQM worker runner`);
         }
+        if (!REDIS_URI) {
+            throw new Error('No redis URI provided to RFQM worker');
+        }
         const workers: SqsConsumer[] = [];
         for (let i = 0; i < RFQM_WORKER_GROUP_SIZE; i += 1) {
-            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const workerIndex: number = RFQM_WORKER_GROUP_INDEX! * RFQM_WORKER_GROUP_SIZE! + i;
-            const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                META_TX_WORKER_MNEMONIC!,
+            const workerIndex: number = RFQM_WORKER_GROUP_INDEX * RFQM_WORKER_GROUP_SIZE + i;
+            const workerAddress = RfqBlockchainUtils.getAddressFromIndexAndPhrase(META_TX_WORKER_MNEMONIC, workerIndex);
+            // create Redis connection for each worker
+            const redis = new Redis(REDIS_URI);
+            redisInstances.push(redis);
+            const workerService = await buildWorkerServiceAsync(
+                rfqmDbUtils,
+                rfqMakerManager,
+                chain,
+                redis,
                 workerIndex,
             );
-            const workerService = await buildWorkerServiceAsync(rfqmDbUtils, rfqMakerManager, chain, workerIndex);
             workers.push(createGaslessSwapWorker(workerService, workerIndex, workerAddress, chain));
         }
 
@@ -143,6 +152,7 @@ if (require.main === module) {
             // Wait to finish processing current queue message
             await Promise.all(consumeLoops);
             logger.info({ workerGroupIndex: RFQM_WORKER_GROUP_INDEX }, 'Worker group has stopped consuming.');
+            await closeRedisConnectionsAsync(redisInstances);
         });
 
         // Wait for pulling loops

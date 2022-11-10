@@ -6,7 +6,7 @@ import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import { ERC20Owner } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
-import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
+import { RfqBalanceCheckUtils } from '../../src/utils/rfq_blockchain_utils';
 
 describe('RfqMakerBalanceCacheService', () => {
     const chainId = ChainId.Ganache;
@@ -33,10 +33,10 @@ describe('RfqMakerBalanceCacheService', () => {
                 new BigNumber(2),
                 new BigNumber(3),
             ]);
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
@@ -44,7 +44,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 new BigNumber(2),
                 new BigNumber(3),
             ]);
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
         });
 
         it('should fetch balances through balance check for addresses not found in the cache', async () => {
@@ -61,14 +61,14 @@ describe('RfqMakerBalanceCacheService', () => {
                 null,
             ]);
             when(cacheClientMock.addERC20OwnerAsync(chainId, anything())).thenResolve();
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
+            when(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
                 new BigNumber(1),
                 new BigNumber(3),
             ]);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
@@ -76,7 +76,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 new BigNumber(2),
                 new BigNumber(3),
             ]);
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
         });
 
         it('should get zero addresses if balance check returns malformed results', async () => {
@@ -93,11 +93,11 @@ describe('RfqMakerBalanceCacheService', () => {
                 null,
             ]);
             when(cacheClientMock.addERC20OwnerAsync(chainId, anything())).thenResolve();
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([]);
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
+            when(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([]);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, addresses)).to.deep.eq([
@@ -105,7 +105,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 new BigNumber(2),
                 new BigNumber(0),
             ]);
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
         });
 
         it('should throw an error if reading entries from the cache fails', async () => {
@@ -119,10 +119,10 @@ describe('RfqMakerBalanceCacheService', () => {
             when(cacheClientMock.getERC20OwnerBalancesAsync(anything(), addresses)).thenReject(
                 new Error('Failed to read entries from maker balance cache'),
             );
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             try {
@@ -130,7 +130,7 @@ describe('RfqMakerBalanceCacheService', () => {
                 expect.fail();
             } catch (error) {
                 expect(error.message).to.contain('maker balance cache');
-                verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
+                verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
             }
         });
 
@@ -139,14 +139,14 @@ describe('RfqMakerBalanceCacheService', () => {
 
             const cacheClientMock = mock(CacheClient);
             when(cacheClientMock.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).thenResolve([]);
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             expect(await makerBalanceCacheService.getERC20OwnerBalancesAsync(chainId, emptyAddresses)).to.deep.eq([]);
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).never();
         });
     });
 
@@ -160,20 +160,20 @@ describe('RfqMakerBalanceCacheService', () => {
             const cacheClientMock = mock(CacheClient);
             when(cacheClientMock.getERC20OwnersAsync(chainId)).thenResolve(addresses);
             when(cacheClientMock.setERC20OwnerBalancesAsync(chainId, addresses, anything())).thenResolve();
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
-            when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(addresses)).thenResolve([
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
+            when(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(addresses)).thenResolve([
                 new BigNumber(1),
                 new BigNumber(2),
                 new BigNumber(3),
             ]);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             try {
                 await makerBalanceCacheService.updateERC20OwnerBalancesAsync(chainId);
-                verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
+                verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
             } catch (error) {
                 expect.fail();
             }
@@ -191,15 +191,15 @@ describe('RfqMakerBalanceCacheService', () => {
         when(cacheClientMock.setERC20OwnerBalancesAsync(chainId, addresses, anything())).thenReject(
             new Error('Failed to update entries for maker balance cache'),
         );
-        const blockchainUtilsMock = mock(RfqBlockchainUtils);
-        when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(addresses)).thenResolve([
+        const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
+        when(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(addresses)).thenResolve([
             new BigNumber(1),
             new BigNumber(2),
             new BigNumber(3),
         ]);
         const makerBalanceCacheService = new RfqMakerBalanceCacheService(
             instance(cacheClientMock),
-            instance(blockchainUtilsMock),
+            instance(balanceCheckUtilsMock),
         );
 
         try {
@@ -207,7 +207,7 @@ describe('RfqMakerBalanceCacheService', () => {
             expect.fail();
         } catch (error) {
             expect(error.message).to.contain('maker balance cache');
-            verify(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
+            verify(balanceCheckUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).once();
         }
     });
 
@@ -215,10 +215,10 @@ describe('RfqMakerBalanceCacheService', () => {
         it('should evict entries from the cache', async () => {
             const cacheClientMock = mock(CacheClient);
             when(cacheClientMock.evictZeroBalancesAsync(chainId)).thenResolve(1);
-            const blockchainUtilsMock = mock(RfqBlockchainUtils);
+            const balanceCheckUtilsMock = mock(RfqBalanceCheckUtils);
             const makerBalanceCacheService = new RfqMakerBalanceCacheService(
                 instance(cacheClientMock),
-                instance(blockchainUtilsMock),
+                instance(balanceCheckUtilsMock),
             );
 
             try {

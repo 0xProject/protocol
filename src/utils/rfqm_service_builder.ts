@@ -49,7 +49,7 @@ import { GasStationAttendantRopsten } from './GasStationAttendantRopsten';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqmDbUtils } from './rfqm_db_utils';
-import { RfqBlockchainUtils } from './rfq_blockchain_utils';
+import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 import { TokenMetadataManager } from './TokenMetadataManager';
@@ -192,6 +192,7 @@ export async function buildRfqmServiceAsync(
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager,
     chain: ChainConfiguration,
+    redis: Redis,
 ): Promise<RfqmService> {
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
     const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
@@ -223,10 +224,6 @@ export async function buildRfqmServiceAsync(
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
-    if (!REDIS_URI) {
-        throw new Error('No redis URI provided to RFQm Service');
-    }
-    const redis = new Redis(REDIS_URI);
     const cacheClient = new CacheClient(redis);
 
     const kafkaProducer = getKafkaProducer();
@@ -249,7 +246,10 @@ export async function buildRfqmServiceAsync(
         zeroExApiClient,
     );
 
-    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
+    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(
+        cacheClient,
+        rfqBlockchainUtils.balanceCheckUtils,
+    );
 
     return new RfqmService(
         chain.chainId,
@@ -277,6 +277,7 @@ export async function buildWorkerServiceAsync(
     rfqmDbUtils: RfqmDbUtils,
     rfqMakerManager: RfqMakerManager,
     chain: ChainConfiguration,
+    redis: Redis,
     workerIndex: number,
 ): Promise<WorkerService> {
     let provider: SupportedProvider;
@@ -321,10 +322,6 @@ export async function buildWorkerServiceAsync(
 
     const quoteServerClient = new QuoteServerClient(axiosInstance);
 
-    if (!REDIS_URI) {
-        throw new Error('No redis URI provided to RFQm Worker Service');
-    }
-    const redis = new Redis(REDIS_URI);
     const cacheClient = new CacheClient(redis);
 
     const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
@@ -334,7 +331,10 @@ export async function buildWorkerServiceAsync(
         throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
     }
 
-    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
+    const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(
+        cacheClient,
+        rfqBlockchainUtils.balanceCheckUtils,
+    );
 
     return new WorkerService(
         chain.chainId,
@@ -361,15 +361,9 @@ export async function buildRfqMakerBalanceCacheServiceAsync(
     chain: ChainConfiguration,
 ): Promise<RfqMakerBalanceCacheService> {
     const provider = providerUtils.createWeb3Provider(chain.rpcUrl);
-    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, chain);
     const balanceChecker = new BalanceChecker(provider);
-    const rfqBlockchainUtils = new RfqBlockchainUtils(
-        provider,
-        contractAddresses.exchangeProxy,
-        balanceChecker,
-        ethersProvider,
-    );
+    const balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, contractAddresses.exchangeProxy);
 
     if (!REDIS_URI) {
         throw new Error('No redis URI provided to maker balance cache service');
@@ -377,7 +371,7 @@ export async function buildRfqMakerBalanceCacheServiceAsync(
     const redis = new Redis(REDIS_URI);
     const cacheClient = new CacheClient(redis);
 
-    return new RfqMakerBalanceCacheService(cacheClient, rfqBlockchainUtils);
+    return new RfqMakerBalanceCacheService(cacheClient, balanceCheckUtils);
 }
 
 /**
@@ -392,6 +386,7 @@ export async function buildRfqmServicesAsync(
     chainConfigurations: ChainConfigurations,
     tokenPriceOracle: TokenPriceOracle,
     configManager: ConfigManager = new ConfigManager(),
+    redis: Redis,
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
     // eslint-disable-next-line @typescript-eslint/no-inferrable-types
     _workerIndex: number = 0,
@@ -400,7 +395,7 @@ export async function buildRfqmServicesAsync(
         chainConfigurations.map(async (chain) => {
             const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
             await rfqMakerManager.initializeAsync();
-            return buildRfqmServiceAsync(rfqmDbUtils, rfqMakerManager, tokenPriceOracle, configManager, chain);
+            return buildRfqmServiceAsync(rfqmDbUtils, rfqMakerManager, tokenPriceOracle, configManager, chain, redis);
         }),
     );
     return new Map(services.map((s, i) => [chainConfigurations[i].chainId, s]));

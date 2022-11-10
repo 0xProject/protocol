@@ -100,6 +100,7 @@ if (require.main === module) {
             chainsConfigurationsWithGaslessSwap,
             tokenPriceOracle,
             configManager,
+            redis,
         );
 
         const gaslessSwapServices = await chainsConfigurationsWithGaslessSwap.reduce(

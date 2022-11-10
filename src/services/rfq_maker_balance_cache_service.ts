@@ -4,7 +4,7 @@ import { Counter, Gauge, Summary } from 'prom-client';
 import { logger } from '../logger';
 import { ERC20Owner } from '../types';
 import { CacheClient } from '../utils/cache_client';
-import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
+import { RfqBalanceCheckUtils } from '../utils/rfq_blockchain_utils';
 
 const RFQ_BALANCE_CACHE_CHECKED = new Counter({
     name: 'rfq_balance_cache_checked',
@@ -36,7 +36,10 @@ const RFQ_BALANCE_CACHE_NUM_ADDRESSES = new Gauge({
  * It maintains a balance cache that is periodically updated via on-chain balance checks.
  */
 export class RfqMakerBalanceCacheService {
-    constructor(private readonly _cacheClient: CacheClient, private readonly _blockchainUtils: RfqBlockchainUtils) {}
+    constructor(
+        private readonly _cacheClient: CacheClient,
+        private readonly _balanceCheckUtils: RfqBalanceCheckUtils,
+    ) {}
 
     /**
      * Gets token balances for supplied maker and token addresses from the maker balance cache.
@@ -77,7 +80,7 @@ export class RfqMakerBalanceCacheService {
         // and will be subject to eviction.
         let balances: BigNumber[];
         if (pendingIndices.length !== 0) {
-            const fetchedBalances = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(
+            const fetchedBalances = await this._balanceCheckUtils.getMinOfBalancesAndAllowancesAsync(
                 erc20OwnersArr.filter((_, i) => pendingIndices.includes(i)),
             );
             balances = cachedBalances.map((balance) => {
@@ -107,7 +110,7 @@ export class RfqMakerBalanceCacheService {
             const erc20Owners = await this._cacheClient.getERC20OwnersAsync(chainId);
             if (erc20Owners.length > 0) {
                 RFQ_BALANCE_CACHE_NUM_ADDRESSES.set(erc20Owners.length);
-                const balances = await this._blockchainUtils.getMinOfBalancesAndAllowancesAsync(erc20Owners);
+                const balances = await this._balanceCheckUtils.getMinOfBalancesAndAllowancesAsync(erc20Owners);
 
                 await this._cacheClient.setERC20OwnerBalancesAsync(chainId, erc20Owners, balances);
             }

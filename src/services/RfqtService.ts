@@ -18,6 +18,7 @@ import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../
 import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from './types';
 
 const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
@@ -113,6 +114,7 @@ export class RfqtService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _feeModelVersion: FeeModelVersion,
+        private readonly _rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);

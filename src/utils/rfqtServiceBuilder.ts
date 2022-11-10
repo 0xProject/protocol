@@ -2,6 +2,7 @@ import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
+import Redis from 'ioredis';
 
 import {
     ALT_RFQ_MM_API_KEY,
@@ -13,9 +14,14 @@ import {
 import { KEEP_ALIVE_TTL } from '../constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
+import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
+import { BalanceChecker } from './balance_checker';
+import { CacheClient } from './cache_client';
 
 import { ConfigManager } from './config_manager';
+import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
+import { RfqBalanceCheckUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 
@@ -31,6 +37,7 @@ const DEFAULT_AXIOS_TIMEOUT = 600; // ms
 export async function buildRfqtServicesAsync(
     chainConfigurations: ChainConfigurations,
     rfqMakerDbUtils: RfqMakerDbUtils,
+    redis: Redis,
 ): Promise<RfqtServices> {
     const axiosInstance = Axios.create(getAxiosRequestConfig());
     const configManager = new ConfigManager();
@@ -52,6 +59,13 @@ export async function buildRfqtServicesAsync(
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
             const quoteServerClient = new QuoteServerClient(axiosInstance);
             const contractAddresses = getContractAddressesForChainOrThrow(chain.chainId);
+
+            const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
+            const balanceChecker = new BalanceChecker(rpcProvider);
+            const balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, contractAddresses.exchangeProxy);
+            const cacheClient = new CacheClient(redis);
+            const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, balanceCheckUtils);
+
             return new RfqtService(
                 chain.chainId,
                 rfqMakerManager,
@@ -59,6 +73,7 @@ export async function buildRfqtServicesAsync(
                 quoteServerClient,
                 contractAddresses,
                 chain.rfqtFeeModelVersion || 0,
+                rfqMakerBalanceCacheService,
             );
         }),
     );

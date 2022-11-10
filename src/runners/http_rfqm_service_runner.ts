@@ -11,6 +11,7 @@ import * as promBundle from 'express-prom-bundle';
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 import * as HttpStatus from 'http-status-codes';
+import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
 
 import {
@@ -18,6 +19,7 @@ import {
     defaultHttpServiceConfig,
     DEFINED_FI_API_KEY,
     DEFINED_FI_ENDPOINT,
+    REDIS_URI,
     SENTRY_DSN,
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
@@ -40,7 +42,10 @@ import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { buildRfqmServicesAsync, getAxiosRequestConfig, RfqmServices } from '../utils/rfqm_service_builder';
 import { buildRfqtServicesAsync, RfqtServices } from '../utils/rfqtServiceBuilder';
 import { RfqMakerDbUtils } from '../utils/rfq_maker_db_utils';
+import { closeRedisConnectionsAsync } from '../utils/runner_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
+
+const redisInstances: Redis[] = [];
 
 process.on('uncaughtException', (err) => {
     logger.error(err);
@@ -51,6 +56,19 @@ process.on('unhandledRejection', (err) => {
     if (err) {
         logger.error(err as Error);
     }
+});
+
+process.on('SIGTERM', async () => {
+    logger.info('Received SIGTERM. Start to shutdown RFQ services');
+    await closeRedisConnectionsAsync(redisInstances);
+    process.exit(0);
+});
+
+// Used for shutting down locally
+process.on('SIGINT', async () => {
+    logger.info('Received SIGINT. Start to shutdown RFQ services');
+    await closeRedisConnectionsAsync(redisInstances);
+    process.exit(0);
 });
 
 if (require.main === module) {
@@ -66,6 +84,12 @@ if (require.main === module) {
         const axiosInstance = Axios.create(getAxiosRequestConfig(TOKEN_PRICE_ORACLE_TIMEOUT));
         const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
 
+        if (!REDIS_URI) {
+            throw new Error('No redis URI provided to RFQ Service');
+        }
+        const redis = new Redis(REDIS_URI);
+        redisInstances.push(redis);
+
         const rfqmServices = await buildRfqmServicesAsync(
             /* asWorker = */ false,
             rfqmDbUtils,
@@ -73,9 +97,10 @@ if (require.main === module) {
             CHAIN_CONFIGURATIONS,
             tokenPriceOracle,
             configManager,
+            redis,
         );
 
-        const rfqtServices = await buildRfqtServicesAsync(CHAIN_CONFIGURATIONS, rfqMakerDbUtils);
+        const rfqtServices = await buildRfqtServicesAsync(CHAIN_CONFIGURATIONS, rfqMakerDbUtils, redis);
 
         const rfqAdminService = buildRfqAdminService(rfqmDbUtils);
         const rfqMakerService = buildRfqMakerService(rfqMakerDbUtils, configManager);

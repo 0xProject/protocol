@@ -75,6 +75,8 @@ function toBigNumber(ethersBigNumber: EthersBigNumber): BigNumber {
 }
 
 export class RfqBlockchainUtils {
+    public readonly balanceCheckUtils: RfqBalanceCheckUtils;
+
     private readonly _exchangeProxy: IZeroExContract;
     private readonly _abiDecoder: AbiDecoder;
     // An ethers.js provider.
@@ -118,11 +120,12 @@ export class RfqBlockchainUtils {
     constructor(
         provider: SupportedProvider,
         private readonly _exchangeProxyAddress: string,
-        private readonly _balanceChecker: BalanceChecker,
+        balanceChecker: BalanceChecker,
         ethersProvider: providers.JsonRpcProvider,
         ethersWallet?: Wallet,
     ) {
         this._abiDecoder = new AbiDecoder([ZERO_EX_FILL_EVENT_ABI]);
+        this.balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, _exchangeProxyAddress);
         this._ethersProvider = ethersProvider;
         this._ethersWallet = ethersWallet;
         this._exchangeProxy = new IZeroExContract(this._exchangeProxyAddress, provider);
@@ -133,8 +136,7 @@ export class RfqBlockchainUtils {
      * an address in `addresses` must correspond with the index of a token in `tokens`.
      */
     public async getMinOfBalancesAndAllowancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
-        const { owners, tokens } = splitAddresses(erc20Owners);
-        return this._balanceChecker.getMinOfBalancesAndAllowancesAsync(owners, tokens, this._exchangeProxyAddress);
+        return this.balanceCheckUtils.getMinOfBalancesAndAllowancesAsync(erc20Owners);
     }
 
     /**
@@ -142,8 +144,7 @@ export class RfqBlockchainUtils {
      * an address in `addresses` must correspond with the index of a token in `tokens`.
      */
     public async getTokenBalancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
-        const { owners, tokens } = splitAddresses(erc20Owners);
-        return this._balanceChecker.getTokenBalancesAsync(owners, tokens);
+        return this.balanceCheckUtils.getTokenBalancesAsync(erc20Owners);
     }
 
     // for use when 0x API operator submits an order on-chain on behalf of taker
@@ -747,5 +748,27 @@ export class RfqBlockchainUtils {
             default:
                 throw new Error(`Gasless approval kind ${kind} is not implemented yet`);
         }
+    }
+}
+
+export class RfqBalanceCheckUtils {
+    constructor(private readonly _balanceChecker: BalanceChecker, private readonly _exchangeProxyAddress: string) {}
+
+    /**
+     * Fetches min value between balance for a list of addresses against the specified tokens. The index of
+     * an address in `addresses` must correspond with the index of a token in `tokens`.
+     */
+    public async getMinOfBalancesAndAllowancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
+        const { owners, tokens } = splitAddresses(erc20Owners);
+        return this._balanceChecker.getMinOfBalancesAndAllowancesAsync(owners, tokens, this._exchangeProxyAddress);
+    }
+
+    /**
+     * Fetches the balances for a list of addresses against the specified tokens. The index of
+     * an address in `addresses` must correspond with the index of a token in `tokens`.
+     */
+    public async getTokenBalancesAsync(erc20Owners: ERC20Owner | ERC20Owner[]): Promise<BigNumber[]> {
+        const { owners, tokens } = splitAddresses(erc20Owners);
+        return this._balanceChecker.getTokenBalancesAsync(owners, tokens);
     }
 }
