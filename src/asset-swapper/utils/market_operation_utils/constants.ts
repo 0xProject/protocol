@@ -1352,11 +1352,12 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
         pool: CURVE_POOLS.USDP,
         gasSchedule: 374e3,
     }),
-    [CURVE_POOLS.ib]: createCurveExchangeUnderlyingPool({
-        tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
-        pool: CURVE_POOLS.ib,
-        gasSchedule: 646e3,
-    }),
+    //@todo investigate Underlying tokens not being able to support swap
+    // [CURVE_POOLS.ib]: createCurveExchangeUnderlyingPool({
+    //     tokens: [MAINNET_TOKENS.DAI, MAINNET_TOKENS.USDC, MAINNET_TOKENS.USDT],
+    //     pool: CURVE_POOLS.ib,
+    //     gasSchedule: 646e3,
+    // }),
     [CURVE_POOLS.link]: createCurveExchangePool({
         tokens: [MAINNET_TOKENS.LINK, MAINNET_TOKENS.sLINK],
         pool: CURVE_POOLS.link,
