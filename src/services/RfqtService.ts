@@ -12,12 +12,14 @@ import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS } from '../constants';
+import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../constants';
 import { logger } from '../logger';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';
+import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from './types';
 
@@ -114,7 +116,7 @@ export class RfqtService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _feeModelVersion: FeeModelVersion,
-        private readonly _rfqMakerBalanceCacheService?: RfqMakerBalanceCacheService,
+        private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
@@ -238,7 +240,7 @@ export class RfqtService {
      * Note that by this point, 0x API should be sending the null address
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
-    public async getV2PricesAsync(quoteContext: QuoteContext): Promise<RfqtV2Prices> {
+    public async getV2PricesAsync(quoteContext: QuoteContext, now: Date = new Date()): Promise<RfqtV2Prices> {
         const { integrator, makerToken, takerToken } = quoteContext;
         // Fetch the makers active on this pair
         const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
@@ -284,9 +286,10 @@ export class RfqtService {
             };
         });
 
-        // TODO (byeongminP): filter out invalid prices (firm quote validator)
+        // Filter out invalid prices
+        const validatedPrices = validateV2Prices(prices, quoteContext, RFQT_MINIMUM_EXPIRY_DURATION_MS, now);
 
-        return prices;
+        return validatedPrices;
     }
 
     /**
@@ -301,7 +304,7 @@ export class RfqtService {
      */
     public async getV2QuotesAsync(quoteContext: FirmQuoteContext, now: Date = new Date()): Promise<RfqtV2Quotes> {
         // TODO (rhinodavid): put a meter on this response time
-        const prices = await this.getV2PricesAsync(quoteContext);
+        const prices = await this.getV2PricesAsync(quoteContext, now);
 
         // If multiple quotes are aggregated into the final order, they must
         // all have unique nonces. Otherwise they'll be rejected by the smart contract.
@@ -339,12 +342,33 @@ export class RfqtService {
             }),
         );
 
-        // TODO (rhinodavid): check fillable amounts
+        // (Maker Balance Cache) Fetch maker balances to calculate fillable amounts
+        let quotedMakerBalances: BigNumber[] | undefined;
+        const quotedERC20Owners = prices.map((price) => ({
+            owner: price.makerAddress,
+            token: price.makerToken,
+        }));
+        try {
+            quotedMakerBalances = await this._rfqMakerBalanceCacheService.getERC20OwnerBalancesAsync(
+                this._chainId,
+                quotedERC20Owners,
+            );
+        } catch (e) {
+            logger.error(
+                { chainId: this._chainId, quotedERC20Owners, errorMessage: e.message },
+                'Failed to fetch maker balances to calculate fillable amounts',
+            );
+        }
+
+        // TODO: remove line below to calculate fillable amounts
+        quotedMakerBalances = undefined;
+
+        const fillableAmounts = getRfqtV2FillableAmounts(prices, this._chainId, quotedMakerBalances);
+
         return pricesAndOrdersAndSignatures
             .filter((pos) => pos.signature)
-            .map(({ price, order, signature }) => ({
-                fillableMakerAmount: order.makerAmount,
-                fillableTakerAmount: order.takerAmount,
+            .map(({ price, order, signature }, i) => ({
+                ...fillableAmounts[i],
                 fillableTakerFeeAmount: new BigNumber(0),
                 makerId: price.makerId,
                 makerUri: price.makerUri,

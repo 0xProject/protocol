@@ -12,10 +12,13 @@ import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../src/services/RfqtService';
+import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
+import { CacheClient } from '../../src/utils/cache_client';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
+import { RfqBalanceCheckUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 
@@ -44,13 +47,22 @@ jest.mock('../../src/utils/quote_server_client', () => ({
     }),
 }));
 
+jest.mock('../../src/services/rfq_maker_balance_cache_service', () => ({
+    RfqMakerBalanceCacheService: jest.fn().mockImplementation(() => {
+        return {
+            getERC20OwnerBalancesAsync: jest.fn().mockResolvedValue([]),
+        };
+    }),
+}));
+
 // TODO (rhinodavid): Find a better way to initialize mocked classes
-// tslint:disable: no-object-literal-type-assertion
 const mockQuoteRequestor = jest.mocked(new QuoteRequestor({} as RfqMakerAssetOfferings, {} as AxiosInstance));
 const mockRfqMakerManager = jest.mocked(new RfqMakerManager({} as ConfigManager, {} as RfqMakerDbUtils, 0));
 const mockQuoteServerClient = jest.mocked(new QuoteServerClient({} as AxiosInstance));
-// tslint:enable: no-object-literal-type-assertion
 const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
+const mockRfqMakerBalanceCacheService = jest.mocked(
+    new RfqMakerBalanceCacheService({} as CacheClient, {} as RfqBalanceCheckUtils),
+);
 
 describe('Rfqt Service', () => {
     beforeEach(() => {
@@ -58,6 +70,7 @@ describe('Rfqt Service', () => {
         mockQuoteRequestor.requestRfqtIndicativeQuotesAsync.mockClear();
         mockQuoteServerClient.batchGetPriceV2Async.mockClear();
         mockRfqMakerManager.getRfqtV2MakersForPair.mockClear();
+        mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync.mockClear();
     });
     describe('v1', () => {
         describe('getV1PricesAsync', () => {
@@ -69,6 +82,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 await rfqtService.getV1PricesAsync({
@@ -152,6 +166,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 await rfqtService.getV1QuotesAsync({
@@ -273,6 +288,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -335,6 +351,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 await rfqtService.getV2PricesAsync(quoteContext);
@@ -411,6 +428,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -482,6 +500,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2PricesAsync(quoteContext);
@@ -549,6 +568,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -596,6 +616,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext);
@@ -654,6 +675,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);
@@ -707,6 +729,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockContractAddresses,
                     1,
+                    mockRfqMakerBalanceCacheService,
                 );
 
                 const result = await rfqtService.getV2QuotesAsync(quoteContext, fakeNow);

@@ -48,10 +48,12 @@ export const DEFAULT_EXPECTED_MINED_SEC = 120 * 1.5;
 export const ETH_DECIMALS = 18;
 export const GWEI_DECIMALS = 9;
 
-// RFQ Quote Validator expiration threshold
-export const RFQ_FIRM_QUOTE_CACHE_EXPIRY = ONE_MINUTE_MS * 2;
-export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
+// RFQ quote minimum expiry
+// TODO: make threshold configurable by chain
 export const RFQM_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
+export const RFQT_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
+
+export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
 export const RFQM_TX_GAS_ESTIMATE = 165e3;
 export const RFQM_TX_OTC_ORDER_GAS_ESTIMATE = 100e3;
 export const ZEROG_METATX_GAS_ESTIMATE = 500e3;

@@ -14,6 +14,7 @@ import * as supertest from 'supertest';
 import { Integrator } from '../../config';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../../services/RfqtService';
+import { RfqMakerBalanceCacheService } from '../../services/rfq_maker_balance_cache_service';
 import { RfqtV2Prices, RfqtV2Quotes } from '../../types';
 import { ConfigManager } from '../../utils/config_manager';
 import { QuoteServerClient } from '../../utils/quote_server_client';
@@ -52,6 +53,7 @@ const mockRfqtService = jest.mocked(
         {} as QuoteServerClient,
         {} as ContractAddresses,
         1,
+        {} as RfqMakerBalanceCacheService,
     ),
 );
 // Jest workaround for getter
