@@ -287,7 +287,12 @@ export class WorkerService {
             await this.processJobAsync(jobIdentifier, workerAddress, kind);
         }
 
-        const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(workerAddress, balance, gasPrice);
+        const isWorkerReady = await this._blockchainUtils.isWorkerReadyAsync(
+            this._chainId,
+            workerAddress,
+            balance,
+            gasPrice,
+        );
         if (!isWorkerReady) {
             RFQM_WORKER_NOT_READY.labels(workerAddress, this._chainId.toString()).inc();
             return false;

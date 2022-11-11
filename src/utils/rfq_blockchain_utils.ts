@@ -19,7 +19,9 @@ import {
     ONE_MINUTE_MS,
     ONE_SECOND_MS,
     PERMIT_EIP_712_TYPES,
+    RFQM_TX_GAS_ESTIMATE,
     ZERO,
+    ZEROG_METATX_GAS_ESTIMATE,
 } from '../constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
@@ -458,8 +460,34 @@ export class RfqBlockchainUtils {
         return this._ethersProvider.getBalance(accountAddress).then((r) => toBigNumber(r));
     }
 
-    public async isWorkerReadyAsync(workerAddress: string, balance: BigNumber, gasPrice: BigNumber): Promise<boolean> {
-        return isWorkerReadyAndAbleAsync(this._ethersProvider, workerAddress, balance, gasPrice);
+    /**
+     * Check if a worker is ready to pick up a new job:
+     * - the worker has enough balance
+     * - the worker has no pending transactions
+     *
+     * @param chainId Id of the chain.
+     * @param workerAddress Address of the worker to check.
+     * @param balance Balance of the worker to check.
+     * @param gasPrice Current gas price.
+     * @returns True if a worker is ready to pick up a new job and false otherwise.
+     */
+    public async isWorkerReadyAsync(
+        chainId: ChainId,
+        workerAddress: string,
+        balance: BigNumber,
+        gasPrice: BigNumber,
+    ): Promise<boolean> {
+        let gasEstimate;
+        switch (chainId) {
+            case ChainId.Polygon:
+                gasEstimate = ZEROG_METATX_GAS_ESTIMATE;
+                break;
+            default:
+                gasEstimate = RFQM_TX_GAS_ESTIMATE;
+                break;
+        }
+
+        return isWorkerReadyAndAbleAsync(this._ethersProvider, workerAddress, balance, gasPrice, gasEstimate);
     }
 
     /**

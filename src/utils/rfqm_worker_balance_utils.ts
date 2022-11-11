@@ -2,7 +2,6 @@ import { BigNumber } from '@0x/utils';
 import { BlockParamLiteral } from 'ethereum-types';
 import { providers } from 'ethers';
 
-import { RFQM_TX_GAS_ESTIMATE } from '../constants';
 import { logger } from '../logger';
 
 const MIN_NUM_TRADES_FOR_HEALTHCHECK = 3;
@@ -17,6 +16,8 @@ const MIN_NUM_TRADES_FOR_HEALTHCHECK = 3;
  * @param accountAddress the EOA address of the worker
  * @param accountBalance the balance of the worker
  * @param gasPriceBaseUnits the current gas price
+ * @param gasEstimatePerTx the gas estimate for a transaction. If a chain supports different types of trades (for example, RFQm and metatxn),
+ *                        this value should be the max gas estimate among different types.
  * @returns true if the metatransaction worker can pick up work.
  */
 export async function isWorkerReadyAndAbleAsync(
@@ -24,9 +25,10 @@ export async function isWorkerReadyAndAbleAsync(
     accountAddress: string,
     accountBalance: BigNumber,
     gasPriceBaseUnits: BigNumber,
+    gasEstimatePerTx: number,
 ): Promise<boolean> {
     // Check worker has enough ETH to support 3 trades
-    const minimumCostToTrade = gasPriceBaseUnits.times(RFQM_TX_GAS_ESTIMATE).times(MIN_NUM_TRADES_FOR_HEALTHCHECK);
+    const minimumCostToTrade = gasPriceBaseUnits.times(gasEstimatePerTx).times(MIN_NUM_TRADES_FOR_HEALTHCHECK);
     const hasEnoughBalance = accountBalance.gte(minimumCostToTrade);
     if (!hasEnoughBalance) {
         logger.error(

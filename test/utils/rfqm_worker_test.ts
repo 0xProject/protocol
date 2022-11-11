@@ -9,7 +9,7 @@ import { BlockParamLiteral } from 'ethereum-types';
 import { providers } from 'ethers';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { NULL_ADDRESS } from '../../src/constants';
+import { NULL_ADDRESS, RFQM_TX_GAS_ESTIMATE } from '../../src/constants';
 import { isWorkerReadyAndAbleAsync } from '../../src/utils/rfqm_worker_balance_utils';
 
 let providerMock: providers.Provider;
@@ -29,9 +29,15 @@ describe('RFQM Worker balance utils', () => {
             ];
             for (const test of tests) {
                 const [balance, gasPrice, isSuccessful] = test;
-                expect(await isWorkerReadyAndAbleAsync(instance(providerMock), NULL_ADDRESS, balance, gasPrice)).to.eql(
-                    isSuccessful,
-                );
+                expect(
+                    await isWorkerReadyAndAbleAsync(
+                        instance(providerMock),
+                        NULL_ADDRESS,
+                        balance,
+                        gasPrice,
+                        RFQM_TX_GAS_ESTIMATE,
+                    ),
+                ).to.eql(isSuccessful);
             }
         });
         it('should fail with an outstanding transaction', async () => {
@@ -44,6 +50,7 @@ describe('RFQM Worker balance utils', () => {
                     NULL_ADDRESS,
                     Web3Wrapper.toBaseUnitAmount(10, 18),
                     Web3Wrapper.toBaseUnitAmount(120, 9),
+                    RFQM_TX_GAS_ESTIMATE,
                 ),
             ).to.eql(false);
         });
