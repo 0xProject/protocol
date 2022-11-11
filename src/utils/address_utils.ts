@@ -9,6 +9,7 @@ import { ChainId } from '../asset-swapper';
  * and normalizes the address by turning it to lowercase
  */
 export const objectETHAddressNormalizer = <T>(obj: T) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     const normalized: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(obj)) {
         if (value && addressUtils.isAddress(value as string)) {

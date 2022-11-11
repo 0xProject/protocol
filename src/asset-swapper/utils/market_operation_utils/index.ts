@@ -113,6 +113,7 @@ export class MarketOperationUtils {
         const nativeSources = quotes.nativeOrders.map((order) =>
             nativeOrderToReportEntry(
                 order.type,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
                 order as any,
                 order.fillableTakerAmount,
                 comparisonPrice,

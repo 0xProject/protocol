@@ -101,6 +101,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
         PG_LATENCY_READ.labels(this._workerId).observe(new Date().getTime() - timeStart);
         const nowUnix = new Date().getTime();
         for (const result of cacheResults) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             makerLookup[result.makerAddress!] = this._calculateMakerBalanceFromResult(result, makerToken, nowUnix);
         }
 

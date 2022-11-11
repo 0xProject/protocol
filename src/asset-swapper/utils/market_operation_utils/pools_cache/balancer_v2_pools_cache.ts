@@ -38,8 +38,11 @@ export class BalancerV2PoolsCache extends AbstractPoolsCache {
         return new BalancerV2PoolsCache(subgraphUrl);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     private static _parseSubgraphPoolData(pool: any, takerToken: string, makerToken: string): Pool {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
         const tToken = pool.tokens.find((t: any) => t.address === takerToken);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
         const mToken = pool.tokens.find((t: any) => t.address === makerToken);
         const swap = pool.swaps && pool.swaps[0];
         const tokenAmountOut = swap ? swap.tokenAmountOut : undefined;
@@ -126,6 +129,7 @@ export class BalancerV2PoolsCache extends AbstractPoolsCache {
 
                     try {
                         // The list of pools must be relevant to `from` and `to`  for `parsePoolData`
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
                         const [poolData] = parsePoolData({ [pool.id]: pool as any }, from, to);
                         fromToPools[from][to].push(
                             BalancerV2PoolsCache._parseSubgraphPoolData(poolData[pool.id], from, to),
@@ -172,6 +176,7 @@ export class BalancerV2PoolsCache extends AbstractPoolsCache {
           `;
         try {
             const { pools } = await request(this.subgraphUrl, query);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             return pools.map((pool: any) => BalancerV2PoolsCache._parseSubgraphPoolData(pool, takerToken, makerToken));
         } catch (e) {
             return [];

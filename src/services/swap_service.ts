@@ -74,6 +74,7 @@ export class SwapService {
     private readonly _contractAddresses: ContractAddresses;
     private readonly _firmQuoteValidator: RfqFirmQuoteValidator | undefined;
     private readonly _swapQuoterOpts: Partial<SwapQuoterOpts>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     private _altRfqMarketsCache: any;
     private _swapQuoter: SwapQuoter;
 
@@ -190,6 +191,7 @@ export class SwapService {
         this._swapQuoterOpts = {
             ...SWAP_QUOTER_OPTS,
             rfqt: {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 ...SWAP_QUOTER_OPTS.rfqt!,
                 warningLogger: logger.warn.bind(logger),
             },
@@ -259,10 +261,12 @@ export class SwapService {
             _rfqt = {
                 ...rfqt,
                 intentOnFilling: rfqt && rfqt.intentOnFilling ? true : false,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 integrator: integrator!,
                 makerEndpointMaxResponseTimeMs: RFQT_REQUEST_MAX_RESPONSE_MS,
                 // Note 0xAPI maps takerAddress query parameter to txOrigin as takerAddress is always Exchange Proxy or a VIP
                 takerAddress: NULL_ADDRESS,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 txOrigin: takerAddress!,
                 firmQuoteValidator: this._firmQuoteValidator,
                 altRfqAssetOfferings,
@@ -308,12 +312,14 @@ export class SwapService {
         const amount =
             marketSide === MarketOperation.Sell
                 ? sellAmount
-                : buyAmount!.times(getBuyTokenPercentageFeeOrZero(affiliateFee) + 1).integerValue(BigNumber.ROUND_DOWN);
+                : // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
+                  buyAmount!.times(getBuyTokenPercentageFeeOrZero(affiliateFee) + 1).integerValue(BigNumber.ROUND_DOWN);
 
         // Fetch the Swap quote
         const swapQuote = await this._swapQuoter.getSwapQuoteAsync(
             buyToken,
             sellToken,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             amount!, // was validated earlier
             marketSide,
             assetSwapperOpts,
@@ -421,6 +427,7 @@ export class SwapService {
         const { takerAmountPerEth: takerTokenToEthRate, makerAmountPerEth: makerTokenToEthRate } = swapQuote;
 
         // Convert into unit amounts
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         const wethToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
         const sellTokenToEthRate = takerTokenToEthRate
             .times(new BigNumber(10).pow(wethToken.decimals - takerTokenDecimals))
@@ -480,6 +487,7 @@ export class SwapService {
                     apiSwapQuote.buyAmount,
                     apiSwapQuote.sellAmount,
                     apiSwapQuote.sources,
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                     slippagePercentage!,
                 );
             } else {
@@ -580,14 +588,17 @@ export class SwapService {
             } else {
                 // Split out the `to` and `data` so it doesn't override
                 const { data, to, ...rest } = txData;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                 callResult = await this._fakeTaker.execute(to!, data!).callAsync({
                     ...rest,
                     // Set the `to` to be the user address with a fake contract at that address
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                     to: txData.from!,
                     // TODO jacob this has issues with protocol fees, but a gas amount is needed to use gasPrice
                     gasPrice: 0,
                     overrides: {
                         // Override the user address with the Fake Taker contract
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
                         [txData.from!]: {
                             code: _.get(artifacts.FakeTaker, 'compilerOutput.evm.deployedBytecode.object'),
                         },
@@ -622,6 +633,7 @@ export class SwapService {
         try {
             if (callResultGanacheRaw) {
                 revertError = RevertError.decode(callResultGanacheRaw, false);
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             } else if (callResult! && !callResult.success) {
                 revertError = RevertError.decode(callResult.resultData, false);
             }
@@ -632,6 +644,7 @@ export class SwapService {
             throw revertError;
         }
         // Add in the overhead of call data
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         gasEstimate = callResult.gasUsed.plus(utils.calculateCallDataGas(txData.data!));
         // If there's a revert and we still are unable to decode it, just throw it.
         // This can happen in VIPs where there are no real revert reasons

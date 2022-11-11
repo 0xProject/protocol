@@ -17,6 +17,7 @@ blockchainTests.skip('Mainnet Sampler Tests', (env) => {
     };
     before(async () => {
         const provider = new Web3ProviderEngine();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         provider.addProvider(new RPCSubprovider(process.env.RPC_URL!));
         providerUtils.startProviderEngine(provider);
         testContract = new ERC20BridgeSamplerContract(fakeSamplerAddress, provider, {

@@ -1403,7 +1403,8 @@ export class SamplerOperations {
 
                     // Fee is already gas * gasPrice
                     const fee = feeSchedule[subOps[i].source]
-                        ? feeSchedule[subOps[i].source]!(subOps[i].fillData).fee
+                        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
+                          feeSchedule[subOps[i].source]!(subOps[i].fillData).fee
                         : ZERO_AMOUNT;
                     const adjustedNativeAmount = nativeFillAmount.plus(fee);
                     const adjustedPrice = v.div(adjustedNativeAmount);

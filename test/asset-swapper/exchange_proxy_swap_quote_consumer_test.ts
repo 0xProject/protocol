@@ -122,6 +122,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             orders: [order],
             makerTokenDecimals: 18,
             takerTokenDecimals: 18,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             sourceBreakdown: {} as any,
             isTwoHop: false,
             bestCaseQuoteInfo: {
@@ -159,6 +160,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 getRandomOptimizedMarketOrder({ takerToken: INTERMEDIATE_TOKEN }, { takerToken: INTERMEDIATE_TOKEN }),
             ],
             isTwoHop: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
         } as any;
     }
 
@@ -181,6 +183,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                         order: _.omit((o.fillData as FillQuoteTransformerLimitOrderInfo).order, [
                             'chainId',
                             'verifyingContract',
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
                         ]) as any,
                     },
                     [

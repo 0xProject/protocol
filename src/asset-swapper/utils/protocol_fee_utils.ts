@@ -16,6 +16,7 @@ interface GasOracleResponse {
 export class ProtocolFeeUtils {
     private static _instances = new Map<string, ProtocolFeeUtils>();
     private readonly _zeroExGasApiUrl: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     private readonly _gasPriceHeart: any;
     private _gasPriceEstimation: BigNumber = constants.ZERO_AMOUNT;
     private _errorCount = 0;

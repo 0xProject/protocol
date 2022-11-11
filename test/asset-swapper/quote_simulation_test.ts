@@ -628,6 +628,7 @@ describe('quote_simulation tests', async () => {
         const makerScaling = side === MarketOperation.Sell ? 1 - orderSlippage : 1;
         const takerScaling = side === MarketOperation.Sell ? 1 : orderSlippage + 1;
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         const nativeFillData = order.fillData!;
         const slippedFillData = {
             order: {

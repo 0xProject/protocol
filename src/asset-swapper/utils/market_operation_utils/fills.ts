@@ -47,6 +47,7 @@ export function nativeOrderToFill(
     const input = side === MarketOperation.Sell ? takerAmount : makerAmount;
     const output = side === MarketOperation.Sell ? makerAmount : takerAmount;
     const { fee, gas } =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         fees[ERC20BridgeSource.Native] === undefined ? DEFAULT_FEE_ESTIMATE : fees[ERC20BridgeSource.Native]!(order);
     const outputPenalty = ethToOutputAmount({
         input,
@@ -97,6 +98,7 @@ export function dexSampleToFill(
     const input = sample.input;
     const output = sample.output;
     const { fee, gas } =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         fees[source] === undefined ? DEFAULT_FEE_ESTIMATE : fees[source]!(sample.fillData) || DEFAULT_FEE_ESTIMATE;
 
     const penalty = ethToOutputAmount({

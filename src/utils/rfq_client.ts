@@ -15,6 +15,7 @@ import { logger } from '../logger';
 import { isHashSmallEnough } from './hash_utils';
 
 // A mapper function to return a serialized RfqOrder into one with BigNumbers
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 const toRfqOrder = (obj: any): RfqOrder => {
     return new RfqOrder({
         makerToken: obj.makerToken,
@@ -33,6 +34,7 @@ const toRfqOrder = (obj: any): RfqOrder => {
 };
 
 // A mapper function to return a serialized OtcOrder into one with BigNumbers
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 const toOtcOrder = (obj: any): OtcOrder => {
     return new OtcOrder({
         makerToken: obj.makerToken,
@@ -106,6 +108,7 @@ export class RfqClient {
                 };
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             const updatedQuotes = response.data?.quotes.map((q: any) => {
                 return {
                     signature: q.signature,
@@ -146,6 +149,7 @@ export class RfqClient {
                 return [];
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             return response.data?.prices?.map((q: any) => {
                 return {
                     ...q,
@@ -181,6 +185,7 @@ export class RfqClient {
                 return [];
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             const quotes: RfqtV2Quote[] = response.data?.quotes?.map((q: any) => {
                 return {
                     fillableMakerAmount: new BigNumber(q.fillableMakerAmount),

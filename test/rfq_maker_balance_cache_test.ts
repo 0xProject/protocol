@@ -111,7 +111,9 @@ describe(SUITE_NAME, () => {
                 )
                 .getOne();
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             expect(maker1!.balance).to.be.deep.equal(new BigNumber(100));
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             expect(maker2!.balance).to.be.deep.equal(new BigNumber(125));
         });
     });

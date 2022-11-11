@@ -168,6 +168,7 @@ export class SwapHandlers {
         const response = _.omit(
             {
                 ...quote,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
                 orders: quote.orders.map((o: any) => _.omit(o, 'fills')),
             },
             'quoteReport',
@@ -356,6 +357,7 @@ export class SwapHandlers {
 
 const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | 'quote'): GetSwapQuoteParams => {
     // HACK typescript typing does not allow this valid json-schema
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     schemaUtils.validateSchema(req.query, schemas.swapQuoteRequestSchema as any);
     const apiKey: string | undefined = req.header('0x-api-key');
     const origin: string | undefined = req.header('origin');

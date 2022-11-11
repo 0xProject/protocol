@@ -150,6 +150,7 @@ export function fillQuoteOrders(
             break;
         }
         const { source, fillData } = fo.order;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
         result.gas += new BigNumber(gas).toNumber();
         result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
@@ -303,6 +304,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
 function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: GasSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);
         gasUsed += new BigNumber(fee).toNumber();
     }

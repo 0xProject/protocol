@@ -4,6 +4,7 @@ import * as HttpStatus from 'http-status-codes';
 import { APIErrorCodes, apiErrorCodesToReasons } from '../errors';
 
 class ErrorUtils extends BaseErrorUtils {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     public generateError(err: Error): any {
         // handle error codes that are specific to 0x API
         if (

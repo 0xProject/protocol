@@ -182,6 +182,7 @@ async function getMakerTokensAsync(connection: Connection, workerId: string): Pr
     const start = new Date().getTime();
 
     if (!MAKER_TOKEN_CACHE) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
         MAKER_TOKEN_CACHE = createResultCache<any[]>(
             () =>
                 connection
@@ -205,7 +206,9 @@ function splitValues(makerTokens: MakerBalanceChainCacheEntity[]): BalancesCallI
 
     return makerTokens.reduce(({ addresses, tokens }, makerToken) => {
         return {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             addresses: addresses.concat(makerToken.makerAddress!),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             tokens: tokens.concat(makerToken.tokenAddress!),
         };
     }, functionInputs);
@@ -245,14 +248,18 @@ async function getErc20BalancesAsync(
                   }
                 : {};
 
-            return balanceCheckerContractInterface
-                .getMinOfBalancesOrAllowances(addressesChunk!, tokensChunk!, RFQ_ALLOWANCE_TARGET)
-                .callAsync(txOpts, BlockParamLiteral.Latest);
+            return (
+                balanceCheckerContractInterface
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
+                    .getMinOfBalancesOrAllowances(addressesChunk!, tokensChunk!, RFQ_ALLOWANCE_TARGET)
+                    .callAsync(txOpts, BlockParamLiteral.Latest)
+            );
         }),
     );
 
     const balancesFlattened = Array.prototype.concat.apply([], balances);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     return balancesFlattened.map((bal: any) => bal.toString());
 }
 

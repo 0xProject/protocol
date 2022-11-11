@@ -14,6 +14,7 @@ import { ONE_SECOND_MS } from './constants';
 
 const httpAgent = new http.Agent({ keepAlive: true });
 const httpsAgent = new https.Agent({ keepAlive: true });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 const agent = (_parsedURL: any) => (_parsedURL.protocol === 'http:' ? httpAgent : httpsAgent);
 
 const ETH_RPC_RESPONSE_TIME = new Histogram({
@@ -86,12 +87,14 @@ export class RPCSubprovider extends Subprovider {
             ...(this._shouldCompressRequest ? { 'Content-Encoding': 'gzip' } : {}),
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         ETH_RPC_REQUESTS.labels(finalPayload.method!).inc();
         const begin = Date.now();
 
         let response: Response;
         const rpcUrl = this._rpcUrls[Math.floor(Math.random() * this._rpcUrls.length)];
         const body = await this._encodeRequestPayloadAsync(finalPayload);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         ETH_RPC_REQUEST_SIZE_SUMMARY.labels(finalPayload.method!).observe(Buffer.byteLength(body, 'utf8'));
         try {
             response = await fetch(rpcUrl, {
@@ -103,17 +106,20 @@ export class RPCSubprovider extends Subprovider {
                 agent,
             });
         } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(new JsonRpcError.InternalError(err));
             return;
         } finally {
             const duration = (Date.now() - begin) / ONE_SECOND_MS;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             ETH_RPC_RESPONSE_TIME.labels(finalPayload.method!).observe(duration);
         }
 
         const text = await response.text();
 
         if (!response.ok) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             const statusCode = response.status;
             switch (statusCode) {
@@ -137,16 +143,19 @@ export class RPCSubprovider extends Subprovider {
         try {
             data = JSON.parse(text);
         } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(new JsonRpcError.InternalError(err));
             return;
         }
 
         if (data.error) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
             end(data.error);
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
         ETH_RPC_REQUEST_SUCCESS.labels(finalPayload.method!).inc();
         end(null, data.result);
     }

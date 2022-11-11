@@ -35,6 +35,7 @@ const generateAssetOfferings = (
 ): RfqMakerAssetOfferings => {
     return makerPairsList.reduce((offering: RfqMakerAssetOfferings, pairs: RfqMakerPairs) => {
         if (makerConfigMap.has(pairs.makerId)) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             const makerConfig: RfqMakerConfig = makerConfigMap.get(pairs.makerId)!;
             offering[makerConfig[RfqMakerUrlField]] = pairs.pairs;
         }

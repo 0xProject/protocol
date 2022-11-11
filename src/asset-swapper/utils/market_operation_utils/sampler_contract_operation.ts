@@ -5,9 +5,11 @@ import { ERC20BridgeSamplerContract } from '../../../wrappers';
 
 import { ERC20BridgeSource, FillData, SourceQuoteOperation } from './types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 export type Parameters<T> = T extends (...args: infer TArgs) => any ? TArgs : never;
 
 export interface SamplerContractCall<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     TFunc extends (...args: any[]) => ContractFunctionObj<any>,
     TFillData extends FillData = FillData,
 > {
@@ -18,6 +20,7 @@ export interface SamplerContractCall<
 }
 
 export class SamplerContractOperation<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     TFunc extends (...args: any[]) => ContractFunctionObj<any>,
     TFillData extends FillData = FillData,
 > implements SourceQuoteOperation<TFillData>

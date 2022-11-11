@@ -7,8 +7,11 @@ import { ChainId, ERC20BridgeSource } from '../src/asset-swapper';
 import { ZERO } from '../src/constants';
 import { priceComparisonUtils } from '../src/utils/price_comparison_utils';
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
 const WETH = getTokenMetadataIfExists('WETH', ChainId.Mainnet)!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
 const DAI = getTokenMetadataIfExists('DAI', ChainId.Mainnet)!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
 const USDC = getTokenMetadataIfExists('USDC', ChainId.Mainnet)!;
 const buyAmount = new BigNumber('23318242912334152626');
 const sellAmount = new BigNumber('70100000000000000');

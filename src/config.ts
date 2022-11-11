@@ -704,6 +704,7 @@ function resolveEnvVar<T>(envVar: string, envVarType: EnvVarType, fallback: T): 
     return assertEnvVarType(envVar, process.env[envVar], envVarType);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 function assertEnvVarType(name: string, value: string | undefined, expectedType: EnvVarType): any {
     if (value === undefined) {
         throw new Error(`${name} is not defined`);

@@ -159,6 +159,7 @@ export async function returnQuoteFromAltMMAsync<ResponseT>(
         profile,
         side,
         meta: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
             txOrigin: takerRequestQueryParams.txOrigin!,
             taker: takerRequestQueryParams.takerAddress,
             client: integratorKey,

@@ -143,6 +143,7 @@ function validateAssetTokenOrThrow(allowedTokens: string[], tokenAddress: string
 }
 
 // As the order come in as JSON they need to be turned into the correct types such as BigNumber
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 function unmarshallOrder(signedOrderRaw: any): SignedLimitOrder {
     const signedOrder: SignedLimitOrder = {
         // Defaults...
@@ -163,6 +164,7 @@ function unmarshallOrder(signedOrderRaw: any): SignedLimitOrder {
 }
 
 // As the orders come in as JSON they need to be turned into the correct types such as BigNumber
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
 function unmarshallOrders(signedOrdersRaw: any[]): SignedLimitOrder[] {
     return signedOrdersRaw.map((signedOrderRaw) => {
         return unmarshallOrder(signedOrderRaw);

@@ -40,6 +40,7 @@ export function getTwoHopAdjustedRate(
         SOURCE_FLAGS[fillData.secondHopSource.source];
 
     // Penalty of going to those sources in terms of output
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
     const sourcePenalty = outputAmountPerEth.times(fees[ERC20BridgeSource.MultiHop]!(fillData).fee).integerValue();
 
     // Create a Fill so it can be adjusted by the `FillAdjustor`
