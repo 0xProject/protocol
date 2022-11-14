@@ -5,9 +5,22 @@ import { MarketOperation } from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
-import { createBridgeOrder, createNativeOptimizedOrder, CreateOrderFromPathOpts, getMakerTakerTokens } from './orders';
+import {
+    createBridgeOrder,
+    createNativeOptimizedOrder,
+    CreateOrderFromPathOpts,
+    createOrdersFromTwoHopSample,
+    getMakerTakerTokens,
+} from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
-import { ERC20BridgeSource, ExchangeProxyOverhead, Fill, NativeFillData, OptimizedMarketOrder } from './types';
+import {
+    ERC20BridgeSource,
+    ExchangeProxyOverhead,
+    Fill,
+    MultiHopFillData,
+    NativeFillData,
+    OptimizedMarketOrder,
+} from './types';
 
 export interface PathSize {
     input: BigNumber;
@@ -68,6 +81,13 @@ export class Path {
             const normalizedFill = _.omit(fill, 'flags') as Fill;
             if (fill.source === ERC20BridgeSource.Native) {
                 this.orders.push(createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, opts.side));
+            } else if (fill.source === ERC20BridgeSource.MultiHop) {
+                const [firstHopOrder, secondHopOrder] = createOrdersFromTwoHopSample(
+                    normalizedFill as Fill<MultiHopFillData>,
+                    opts,
+                );
+                this.orders.push(firstHopOrder);
+                this.orders.push(secondHopOrder);
             } else {
                 this.orders.push(createBridgeOrder(normalizedFill, makerToken, takerToken, opts.side));
             }

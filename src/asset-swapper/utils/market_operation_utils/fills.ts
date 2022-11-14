@@ -4,7 +4,7 @@ import { BigNumber, hexUtils } from '@0x/utils';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { DEFAULT_FEE_ESTIMATE, POSITIVE_INF, SOURCE_FLAGS } from './constants';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill } from './types';
+import { DexSample, ERC20BridgeSource, FeeEstimate, FeeSchedule, Fill, MultiHopFillData } from './types';
 
 /**
  * Converts the ETH value to an amount in output tokens.
@@ -119,6 +119,33 @@ export function dexSampleToFill(
         type: FillQuoteTransformerOrderType.Bridge,
         flags: SOURCE_FLAGS[source],
         gas,
+    };
+}
+
+export function twoHopSampleToFill(
+    side: MarketOperation,
+    twoHopSample: DexSample<MultiHopFillData>,
+    outputAmountPerEth: BigNumber,
+    multihopFeeEstimate: FeeEstimate,
+): Fill {
+    const { fillData } = twoHopSample;
+
+    // Flags to indicate which sources are used
+    const flags =
+        SOURCE_FLAGS.MultiHop |
+        SOURCE_FLAGS[fillData.firstHopSource.source] |
+        SOURCE_FLAGS[fillData.secondHopSource.source];
+
+    // Penalty of going to those sources in terms of output
+    const sourcePenalty = outputAmountPerEth.times(multihopFeeEstimate(fillData).fee).integerValue();
+    return {
+        ...twoHopSample,
+        flags,
+        type: FillQuoteTransformerOrderType.Bridge,
+        adjustedOutput: adjustOutput(side, twoHopSample.output, sourcePenalty),
+        sourcePathId: `${ERC20BridgeSource.MultiHop}-${fillData.firstHopSource.source}-${fillData.secondHopSource.source}`,
+        // We don't have this information at this stage
+        gas: 0,
     };
 }
 

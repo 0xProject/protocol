@@ -55,7 +55,7 @@ export interface CreateOrderFromPathOpts {
 export function createOrdersFromTwoHopSample(
     sample: DexSample<MultiHopFillData>,
     opts: CreateOrderFromPathOpts,
-): OptimizedMarketOrder[] {
+): [OptimizedMarketOrder, OptimizedMarketOrder] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
     const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
     const firstHopFill: Fill = {

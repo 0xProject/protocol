@@ -11,9 +11,9 @@ import { DEFAULT_WARNING_LOGGER } from '../../constants';
 import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
-import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill } from './fills';
+import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill, twoHopSampleToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData } from './types';
+import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, MultiHopFillData } from './types';
 
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
@@ -70,6 +70,7 @@ export class PathOptimizer {
 
     public findOptimalPathFromSamples(
         samples: DexSample[][],
+        twoHopQuotes: DexSample<MultiHopFillData>[],
         nativeOrders: NativeOrderWithFillableAmounts[],
     ): Path | undefined {
         const beforeTimeMs = performance.now();
@@ -80,7 +81,7 @@ export class PathOptimizer {
                 timingMs: performance.now() - beforeTimeMs,
             });
         };
-        const paths = this.findRoutesAndCreateOptimalPath(samples, nativeOrders);
+        const paths = this.findRoutesAndCreateOptimalPath(samples, twoHopQuotes, nativeOrders);
 
         if (!paths) {
             sendMetrics();
@@ -100,6 +101,7 @@ export class PathOptimizer {
 
     private findRoutesAndCreateOptimalPath(
         samples: DexSample[][],
+        twoHopSamples: DexSample<MultiHopFillData>[],
         nativeOrders: NativeOrderWithFillableAmounts[],
     ): { allSourcesPath: Path | undefined; vipSourcesPath: Path | undefined } | undefined {
         // Currently the rust router is unable to handle 1 base unit sized quotes and will error out
@@ -111,9 +113,10 @@ export class PathOptimizer {
         }
 
         const singleSourceRoutablePaths = this.singleSourceSamplesToRoutablePaths(samples);
+        const twoHopRoutablePaths = this.twoHopSamplesToRoutablePaths(twoHopSamples);
         const nativeOrderRoutablePaths = this.nativeOrdersToRoutablePaths(nativeOrders);
 
-        const allRoutablePaths = [...singleSourceRoutablePaths, ...nativeOrderRoutablePaths];
+        const allRoutablePaths = [...singleSourceRoutablePaths, ...twoHopRoutablePaths, ...nativeOrderRoutablePaths];
         const serializedPaths = allRoutablePaths.map((path) => path.serializedPath);
 
         if (serializedPaths.length === 0) {
@@ -199,6 +202,26 @@ export class PathOptimizer {
         return routablePaths;
     }
 
+    private twoHopSamplesToRoutablePaths(twoHopSamples: DexSample<MultiHopFillData>[]): RoutablePath[] {
+        return twoHopSamples.map((twoHopSample, i) => {
+            const fill = this.createFillFromTwoHopSample(twoHopSample);
+            const outputFee = fill.output.minus(fill.adjustedOutput).absoluteValue().integerValue().toNumber();
+
+            const serializedPath: SerializedPath = {
+                ids: [fill.sourcePathId],
+                inputs: [fill.input.integerValue().toNumber()],
+                outputs: [fill.output.integerValue().toNumber()],
+                outputFees: [outputFee],
+                isVip: false,
+            };
+            return {
+                pathId: `two-hop-${i}`,
+                samplesOrNativeOrders: [twoHopSample],
+                serializedPath,
+            };
+        });
+    }
+
     private nativeOrdersToRoutablePaths(nativeOrders: NativeOrderWithFillableAmounts[]): RoutablePath[] {
         const routablePaths: RoutablePath[] = [];
         const nativeOrderSourcePathId = hexUtils.random();
@@ -228,6 +251,8 @@ export class PathOptimizer {
             // If the order is smaller we don't need to scale anything, we will just end up
             // with trailing duplicate samples for the order input as we cannot go higher
             const scaleToInput = BigNumber.min(this.inputAmount.dividedBy(normalizedOrderInput), 1);
+
+            // TODO: replace constant with a proper sample size.
             for (let i = 1; i <= 13; i++) {
                 const fraction = i / 13;
                 const currentInput = BigNumber.min(
@@ -305,6 +330,49 @@ export class PathOptimizer {
         );
         const adjustedFills = this.fillAdjustor.adjustFills(this.side, [fill], inputAmount);
         return adjustedFills[0];
+    }
+
+    private createFillFromTwoHopSample(sample: DexSample<MultiHopFillData>): Fill {
+        const { fillData } = sample;
+
+        // TODO: remove below once `FeeSchedule` become non-Partial.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const multihopFeeEstimate = this.feeSchedule[ERC20BridgeSource.MultiHop]!;
+        const fill = twoHopSampleToFill(
+            this.side,
+            sample,
+            this.pathPenaltyOpts.outputAmountPerEth,
+            multihopFeeEstimate,
+        );
+        const side = this.side;
+        const fillAdjustor = this.fillAdjustor;
+
+        // Adjust the individual Fill
+        // HACK: Chose the worst of slippage between the two sources in multihop
+        const adjustedFillFirstHop = fillAdjustor.adjustFills(
+            side,
+            [{ ...fill, source: fillData.firstHopSource.source }],
+            this.inputAmount,
+        )[0];
+        const adjustedFillSecondHop = fillAdjustor.adjustFills(
+            side,
+            [{ ...fill, source: fillData.secondHopSource.source }],
+            this.inputAmount,
+        )[0];
+
+        // In Sells, output smaller is worse (you're getting less out)
+        if (side === MarketOperation.Sell) {
+            if (adjustedFillFirstHop.adjustedOutput.lt(adjustedFillSecondHop.adjustedOutput)) {
+                return adjustedFillFirstHop;
+            }
+            return adjustedFillSecondHop;
+        }
+
+        // In Buys, output larger is worse (it's costing you more)
+        if (adjustedFillFirstHop.adjustedOutput.lt(adjustedFillSecondHop.adjustedOutput)) {
+            return adjustedFillSecondHop;
+        }
+        return adjustedFillFirstHop;
     }
 
     // TODO: `optimizerCapture` is only used for logging -- consider removing it.

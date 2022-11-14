@@ -39,12 +39,9 @@ import {
     NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    SOURCE_FLAGS,
     ZERO_AMOUNT,
 } from './constants';
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
-import { getBestTwoHopQuote } from './multihop_utils';
-import { createOrdersFromTwoHopSample } from './orders';
 import { PathPenaltyOpts } from './path';
 import { PathOptimizer } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
@@ -481,7 +478,7 @@ export class MarketOperationUtils {
     ): Promise<OptimizerResult> {
         const { inputToken, outputToken, side, inputAmount, quotes, outputAmountPerEth, inputAmountPerEth } =
             marketSideLiquidity;
-        const { nativeOrders, rfqtIndicativeQuotes, dexQuotes } = quotes;
+        const { nativeOrders, rfqtIndicativeQuotes, dexQuotes, twoHopQuotes } = quotes;
 
         const orderOpts = {
             side,
@@ -524,34 +521,14 @@ export class MarketOperationUtils {
             pathPenaltyOpts,
             inputAmount,
         });
-        const optimalPath = pathOptimizer.findOptimalPathFromSamples(dexQuotes, [
+        const optimalPath = pathOptimizer.findOptimalPathFromSamples(dexQuotes, twoHopQuotes, [
             ...nativeOrders,
             ...augmentedRfqtIndicativeQuotes,
         ]);
 
         const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
 
-        const { adjustedRate: bestTwoHopAdjustedRate, quote: bestTwoHopQuote } = getBestTwoHopQuote(
-            marketSideLiquidity,
-            opts.feeSchedule,
-            opts.exchangeProxyOverhead,
-            opts.fillAdjustor,
-        );
-
-        if (bestTwoHopQuote && bestTwoHopAdjustedRate.isGreaterThan(optimalPathAdjustedRate)) {
-            const twoHopOrders = createOrdersFromTwoHopSample(bestTwoHopQuote, orderOpts);
-            return {
-                optimizedOrders: twoHopOrders,
-                liquidityDelivered: bestTwoHopQuote,
-                sourceFlags: SOURCE_FLAGS[ERC20BridgeSource.MultiHop],
-                marketSideLiquidity,
-                adjustedRate: bestTwoHopAdjustedRate,
-                takerAmountPerEth,
-                makerAmountPerEth,
-            };
-        }
-
-        // If there is no optimal path AND we didn't return a MultiHop quote, then throw
+        // If there is no optimal path then throw.
         if (optimalPath === undefined) {
             //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
             DEFAULT_INFO_LOGGER({}, 'NoOptimalPath thrown in _generateOptimizedOrdersAsync');

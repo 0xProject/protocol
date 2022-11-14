@@ -438,6 +438,7 @@ export interface GetMarketOrdersRfqOpts extends RfqRequestOpts {
 }
 
 export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
+// TODO:  Remove `Partial` from `FeeSchedule`
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
 
 export type GasEstimate = (fillData: FillData) => number;
