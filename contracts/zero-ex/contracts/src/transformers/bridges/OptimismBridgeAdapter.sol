@@ -41,7 +41,7 @@ contract OptimismBridgeAdapter is
     MixinVelodrome,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
 
     function _trade(
         BridgeOrder memory order,

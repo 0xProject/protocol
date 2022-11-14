@@ -46,7 +46,7 @@ contract FantomBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) {}
 
     function _trade(
         BridgeOrder memory order,

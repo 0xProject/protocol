@@ -61,8 +61,69 @@ interface IPool {
     ) external returns (uint256);
 }
 
+// Minimal Aave V3 L2Pool interface
+interface IL2Pool {
+    /**
+     * @notice Calldata efficient wrapper of the supply function on behalf of the caller
+     * @param args Arguments for the supply function packed in one bytes32
+     *    96 bits       16 bits         128 bits      16 bits
+     * | 0-padding | referralCode | shortenedAmount | assetId |
+     * @dev the shortenedAmount is cast to 256 bits at decode time, if type(uint128).max the value will be expanded to
+     * type(uint256).max
+     * @dev assetId is the index of the asset in the reservesList.
+     */
+    function supply(bytes32 args) external;
+
+    /**
+     * @notice Calldata efficient wrapper of the withdraw function, withdrawing to the caller
+     * @param args Arguments for the withdraw function packed in one bytes32
+     *    112 bits       128 bits      16 bits
+     * | 0-padding | shortenedAmount | assetId |
+     * @dev the shortenedAmount is cast to 256 bits at decode time, if type(uint128).max the value will be expanded to
+     * type(uint256).max
+     * @dev assetId is the index of the asset in the reservesList.
+     */
+    function withdraw(bytes32 args) external;
+}
+
+// Minimal Aave V3 L2Encoder interface
+interface IL2Encoder {
+    /**
+     * @notice Encodes supply parameters from standard input to compact representation of 1 bytes32
+     * @dev Without an onBehalfOf parameter as the compact calls to L2Pool will use msg.sender as onBehalfOf
+     * @param asset The address of the underlying asset to supply
+     * @param amount The amount to be supplied
+     * @param referralCode referralCode Code used to register the integrator originating the operation, for potential rewards.
+     *   0 if the action is executed directly by the user, without any middle-man
+     * @return compact representation of supply parameters
+     */
+    function encodeSupplyParams(
+        address asset,
+        uint256 amount,
+        uint16 referralCode
+    ) external view returns (bytes32);
+
+    /**
+     * @notice Encodes withdraw parameters from standard input to compact representation of 1 bytes32
+     * @dev Without a to parameter as the compact calls to L2Pool will use msg.sender as to
+     * @param asset The address of the underlying asset to withdraw
+     * @param amount The underlying amount to be withdrawn
+     * @return compact representation of withdraw parameters
+     */
+    function encodeWithdrawParams(
+        address asset,
+        uint256 amount
+    ) external view returns (bytes32);
+}
+
 contract MixinAaveV3 {
     using LibERC20TokenV06 for IERC20TokenV06;
+
+    bool private immutable _isL2;
+
+    constructor(bool isL2) public {
+        _isL2 = isL2;
+    }
 
     function _tradeAaveV3(
         IERC20TokenV06 sellToken,
@@ -70,7 +131,25 @@ contract MixinAaveV3 {
         uint256 sellAmount,
         bytes memory bridgeData
     ) internal returns (uint256) {
-        (IPool pool, address aToken) = abi.decode(bridgeData, (IPool, address));
+        if (_isL2) {
+            (IL2Pool pool, IL2Encoder encoder, address aToken) = abi.decode(bridgeData, (IL2Pool, IL2Encoder, address));
+
+            sellToken.approveIfBelow(address(pool), sellAmount);
+
+            if (address(buyToken) == aToken) {
+                bytes32 supplyParams = encoder.encodeSupplyParams(address(sellToken), sellAmount, 0);
+                pool.supply(supplyParams);
+                // 1:1 mapping token --> aToken and have the same number of decimals as the underlying token
+                return sellAmount;
+            } else if (address(sellToken) == aToken) {
+                bytes32 withdrawParams = encoder.encodeWithdrawParams(address(buyToken), sellAmount);
+                pool.withdraw(withdrawParams);
+                return sellAmount;
+            }
+
+            revert("MixinAaveV3/UNSUPPORTED_TOKEN_PAIR");
+        }
+        (IPool pool,, address aToken) = abi.decode(bridgeData, (IPool, IL2Encoder, address));
 
         sellToken.approveIfBelow(address(pool), sellAmount);
 
