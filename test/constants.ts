@@ -2,13 +2,13 @@ import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/cont
 import { IZeroExRfqOrderFilledEventArgs } from '@0x/contract-wrappers';
 import { web3Factory, Web3ProviderEngine } from '@0x/dev-utils';
 import { ETH_TOKEN_ADDRESS, MetaTransaction } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { ObjectMap } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { LogWithDecodedArgs } from 'ethereum-types';
 import { providers } from 'ethers';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../src/constants';
+import { Fee } from '../src/quote-server/types';
 import { ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../src/types';
 
 export const CHAIN_ID = 1337;

@@ -3,14 +3,13 @@
 // tslint:disable: prefer-function-over-method
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { ethSignHashWithKey, OtcOrder, RfqOrder, Signature } from '@0x/protocol-utils';
-import { SubmitRequest } from '@0x/quote-server';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Wallet } from 'ethers';
 import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../constants';
+import { SubmitRequest, Fee } from '../quote-server/types';
 import { QuoteServerPriceParams } from '../types';
 import { stringsToOtcOrderFields, stringsToSignature } from '../utils/rfqm_request_utils';
 

@@ -1,8 +1,8 @@
 import { MetaTransaction, OtcOrder, Signature } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { Integrator } from '../config';
+import { Fee } from '../quote-server/types';
 import { JobFailureReason } from '../entities/types';
 import {
     ExecuteMetaTransactionEip712Context,

@@ -1,0 +1,13 @@
+{
+    "id": "/OtcQuoteResponseSchema",
+    "properties": {
+        "order": {
+            "$ref": "/v4OtcOrderSchema"
+        },
+        "signature": {
+            "$ref": "/v4SignatureSchema"
+        }
+    },
+    "required": ["order"],
+    "type": "object"
+}

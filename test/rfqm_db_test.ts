@@ -1,5 +1,4 @@
 import { MetaTransaction, MetaTransactionFields, OtcOrder, Signature } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
@@ -9,6 +8,7 @@ import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../
 import { MetaTransactionSubmissionEntityConstructorOpts } from '../src/entities/MetaTransactionSubmissionEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../src/entities/types';
+import { Fee } from '../src/quote-server/types';
 import { ExecuteMetaTransactionApproval, GaslessApprovalTypes } from '../src/types';
 import {
     feeToStoredFee,

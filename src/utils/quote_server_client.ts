@@ -1,8 +1,8 @@
 import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import { schemas as quoteServerSchemas } from '@0x/quote-server';
-import { Fee, SignRequest } from '@0x/quote-server/lib/src/types';
+import { Fee, SignRequest } from '../quote-server/types';
+import { schemas as quoteServerSchemas } from '../quote-server/schemas';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { OK } from 'http-status-codes';

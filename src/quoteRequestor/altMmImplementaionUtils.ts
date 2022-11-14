@@ -9,11 +9,11 @@ import {
     AltRfqMakerAssetOfferings,
 } from '@0x/asset-swapper/lib/src/types';
 import { Web3Wrapper } from '@0x/dev-utils';
-import { TakerRequestQueryParamsUnnested, V4RFQFirmQuote, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance, CancelToken } from 'axios';
 
 import { logger } from '../logger';
+import { TakerRequestQueryParamsUnnested, V4RFQFirmQuote, V4RFQIndicativeQuote } from '../quote-server/types';
 
 const SUCCESS_CODE = 201;
 

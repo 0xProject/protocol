@@ -93,7 +93,6 @@
         "@0x/contracts-zero-ex": "^0.29.3",
         "@0x/json-schemas": "^6.4.0",
         "@0x/protocol-utils": "^1.9.3",
-        "@0x/quote-server": "^8.0.0",
         "@0x/subproviders": "~6.6.5",
         "@0x/token-metadata": "^0.1.16",
         "@0x/types": "^3.3.4",

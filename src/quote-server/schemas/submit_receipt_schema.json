@@ -1,0 +1,19 @@
+{
+    "id": "/SubmitReceiptSchema",
+    "properties": {
+        "proceedWithFill": {
+            "type": "boolean"
+        },
+        "fee": {
+            "$ref": "/feeSchema"
+        },
+        "signedOrderHash": {
+            "type": "string"
+        },
+        "takerTokenFillAmount": {
+            "$ref": "/wholeNumberSchema"
+        }
+    },
+    "required": ["proceedWithFill", "fee", "signedOrderHash", "takerTokenFillAmount"],
+    "type": "object"
+}

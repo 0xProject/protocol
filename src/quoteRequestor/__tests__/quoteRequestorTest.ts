@@ -11,7 +11,6 @@ import {
 } from '@0x/asset-swapper/lib/src/types';
 import { tokenUtils } from '@0x/dev-utils';
 import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils';
-import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '@0x/quote-server';
 import { StatusCodes } from '@0x/types';
 import { BigNumber, logUtils } from '@0x/utils';
 import Axios from 'axios';
@@ -21,6 +20,7 @@ import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
 import { NULL_ADDRESS } from '../../constants';
+import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '../../quote-server/types';
 import { QuoteRequestor } from '../QuoteRequestor';
 
 import { RfqQuoteEndpoint, testHelpers } from './testHelpers';

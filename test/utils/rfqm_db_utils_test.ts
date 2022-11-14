@@ -1,10 +1,10 @@
 // tslint:disable:custom-no-magic-numbers
 
 import { OtcOrder } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../../src/constants';
+import { Fee } from '../../src/quote-server/types';
 import {
     DefaultFeeDetailsDeprecated,
     FeeWithDetails,

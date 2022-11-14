@@ -1,0 +1,16 @@
+{
+    "id": "/SignResponseSchema",
+    "properties": {
+        "fee": {
+            "$ref": "/feeSchema"
+        },
+        "makerSignature": {
+            "$ref": "/v4SignatureSchema"
+        },
+        "proceedWithFill": {
+            "type": "boolean"
+        }
+    },
+    "required": ["proceedWithFill"],
+    "type": "object"
+}

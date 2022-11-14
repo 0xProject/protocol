@@ -1,7 +1,6 @@
 import { AltRfqMakerAssetOfferings, AssetSwapperContractAddresses } from '@0x/asset-swapper/lib/src/types';
 import { OtcOrder } from '@0x/protocol-utils/lib/src/orders';
 import { Signature } from '@0x/protocol-utils/lib/src/signature_utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import {
     getTokenMetadataIfExists,
     nativeTokenSymbol,
@@ -14,6 +13,7 @@ import { BigNumber } from '@0x/utils';
 import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../constants';
 import { logger } from '../logger';
+import { Fee } from '../quote-server/types';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
 import { QuoteServerClient } from '../utils/quote_server_client';

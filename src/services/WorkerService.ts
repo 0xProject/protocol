@@ -1,7 +1,6 @@
 // tslint:disable:max-file-line-count
 import { MarketOperation } from '@0x/asset-swapper';
 import { OtcOrder, Signature } from '@0x/protocol-utils';
-import { SignRequest } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { retry } from '@lifeomic/attempt';
@@ -30,6 +29,7 @@ import {
     SubmissionContextStatus,
 } from '../entities/types';
 import { logger } from '../logger';
+import { SignRequest } from '../quote-server/types';
 import { Approval } from '../types';
 import { CacheClient } from '../utils/cache_client';
 import { GasStationAttendant } from '../utils/GasStationAttendant';

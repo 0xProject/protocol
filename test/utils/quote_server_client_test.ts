@@ -4,14 +4,13 @@
 
 import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { ethSignHashWithKey, OtcOrder } from '@0x/protocol-utils';
-import { SignRequest } from '@0x/quote-server';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import Axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
+import { Fee, SignRequest } from '../../src/quote-server/types';
 import { QuoteServerPriceParams } from '../../src/types';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { CHAIN_ID, CONTRACT_ADDRESSES } from '../constants';

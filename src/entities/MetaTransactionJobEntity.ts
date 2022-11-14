@@ -1,7 +1,7 @@
 import { MetaTransaction, Signature } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Fee } from '../quote-server/types';
 
 import { Approval } from '../types';
 

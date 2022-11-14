@@ -2,7 +2,6 @@
 import { TooManyRequestsError } from '@0x/api-utils';
 import { AssetSwapperContractAddresses, MarketOperation } from '@0x/asset-swapper';
 import { OtcOrder, ZERO } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import {
     getTokenMetadataIfExists,
     nativeTokenSymbol,
@@ -30,6 +29,7 @@ import {
 import { REASON_ON_STATUS_ERROR_RESPONSE_ENABLED } from '../config';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { logger } from '../logger';
+import { Fee } from '../quote-server/types';
 import {
     Eip712DataField,
     ExecuteMetaTransactionApproval,

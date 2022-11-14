@@ -13,19 +13,19 @@ import {
 } from '@0x/asset-swapper/lib/src/types';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { FillQuoteTransformerOrderType, Signature } from '@0x/protocol-utils';
-import {
-    TakerRequestQueryParamsUnnested,
-    V4RFQFirmQuote,
-    V4RFQIndicativeQuote,
-    V4SignedRfqOrder,
-} from '@0x/quote-server';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 
 import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { ONE_SECOND_MS } from '../constants';
 import { logger } from '../logger';
+import {
+    Fee,
+    TakerRequestQueryParamsUnnested,
+    V4RFQFirmQuote,
+    V4SignedRfqOrder,
+    V4RFQIndicativeQuote,
+} from '../quote-server/types';
 
 import { returnQuoteFromAltMMAsync } from './altMmImplementaionUtils';
 import { RfqMakerBlacklist } from './rfqMakerBlacklist';

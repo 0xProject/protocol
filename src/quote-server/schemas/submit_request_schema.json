@@ -1,0 +1,19 @@
+{
+    "id": "/SubmitRequestSchema",
+    "properties": {
+        "orderHash": {
+            "$ref": "/hexSchema"
+        },
+        "order": {
+            "$ref": "/v4RfqOrderSchema"
+        },
+        "takerTokenFillAmount": {
+            "$ref": "/wholeNumberSchema"
+        },
+        "fee": {
+            "$ref": "/feeSchema"
+        }
+    },
+    "required": ["orderHash", "order", "fee", "takerTokenFillAmount"],
+    "type": "object"
+}

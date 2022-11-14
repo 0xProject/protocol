@@ -1,6 +1,5 @@
 // tslint:disable:max-file-line-count
 import { OtcOrder } from '@0x/protocol-utils';
-import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { FindOptionsWhere, In } from 'typeorm';
 import { Connection } from 'typeorm/connection/Connection';
@@ -27,6 +26,7 @@ import {
     StoredOtcOrder,
     UnresolvedRfqmJobStatuses,
 } from '../entities/types';
+import { Fee } from '../quote-server/types';
 import { FeeWithDetails } from '../services/types';
 
 import { toPairString } from './pair_utils';
