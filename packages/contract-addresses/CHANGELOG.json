@@ -1,5 +1,14 @@
 [
     {
+        "version": "7.4.0",
+        "changes": [
+            {
+                "note": "Upgrade Polygon FillQuoteTransformer to support Solidly (and its forks).",
+                "pr": 616
+            }
+        ]
+    },
+    {
         "version": "7.3.0",
         "changes": [
             {
