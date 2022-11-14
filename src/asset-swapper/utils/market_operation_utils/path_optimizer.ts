@@ -171,7 +171,7 @@ export class PathOptimizer {
                 (memo, sample, sampleIdx) => {
                     // Use the fill from createFillFromDexSample to apply
                     // any user supplied adjustments
-                    const f = this.createFillFromDexSample(sample, this.inputAmount);
+                    const f = this.createFillFromDexSample(sample);
                     memo.ids.push(`${f.source}-${routablePaths.length}-${sampleIdx}`);
                     memo.inputs.push(f.input.integerValue().toNumber());
                     memo.outputs.push(f.output.integerValue().toNumber());
@@ -320,7 +320,7 @@ export class PathOptimizer {
 
     // Create a `Fill` from a dex sample and adjust it with any passed in
     // adjustor
-    private createFillFromDexSample(sample: DexSample, inputAmount: BigNumber): Fill {
+    private createFillFromDexSample(sample: DexSample): Fill {
         const fill = dexSampleToFill(
             this.side,
             sample,
@@ -328,7 +328,7 @@ export class PathOptimizer {
             this.pathPenaltyOpts.inputAmountPerEth,
             this.feeSchedule,
         );
-        const adjustedFills = this.fillAdjustor.adjustFills(this.side, [fill], inputAmount);
+        const adjustedFills = this.fillAdjustor.adjustFills(this.side, [fill]);
         return adjustedFills[0];
     }
 
@@ -349,16 +349,12 @@ export class PathOptimizer {
 
         // Adjust the individual Fill
         // HACK: Chose the worst of slippage between the two sources in multihop
-        const adjustedFillFirstHop = fillAdjustor.adjustFills(
-            side,
-            [{ ...fill, source: fillData.firstHopSource.source }],
-            this.inputAmount,
-        )[0];
-        const adjustedFillSecondHop = fillAdjustor.adjustFills(
-            side,
-            [{ ...fill, source: fillData.secondHopSource.source }],
-            this.inputAmount,
-        )[0];
+        const adjustedFillFirstHop = fillAdjustor.adjustFills(side, [
+            { ...fill, source: fillData.firstHopSource.source },
+        ])[0];
+        const adjustedFillSecondHop = fillAdjustor.adjustFills(side, [
+            { ...fill, source: fillData.secondHopSource.source },
+        ])[0];
 
         // In Sells, output smaller is worse (you're getting less out)
         if (side === MarketOperation.Sell) {
@@ -437,7 +433,7 @@ export class PathOptimizer {
             }
 
             // NOTE: For DexSamples only
-            let fill = this.createFillFromDexSample(current, inputAmount);
+            let fill = this.createFillFromDexSample(current);
             if (!fill) {
                 continue;
             }
@@ -452,24 +448,21 @@ export class PathOptimizer {
             for (let k = routeSamples.length - 1; k >= 0; k--) {
                 // If we're at the last remaining sample that's all we have left to use
                 if (k === 0) {
-                    fill = this.createFillFromDexSample(routeSamples[0], inputAmount) ?? fill;
+                    fill = this.createFillFromDexSample(routeSamples[0]) ?? fill;
                 }
                 if (routeInputCorrected.isGreaterThan(routeSamples[k].input)) {
                     const left = routeSamples[k];
                     const right = routeSamples[k + 1];
                     if (left && right) {
                         fill =
-                            this.createFillFromDexSample(
-                                {
-                                    ...right, // default to the greater (for gas used)
-                                    input: routeInputCorrected,
-                                    output: new BigNumber(outputAmount).integerValue(),
-                                },
-                                inputAmount,
-                            ) ?? fill;
+                            this.createFillFromDexSample({
+                                ...right, // default to the greater (for gas used)
+                                input: routeInputCorrected,
+                                output: new BigNumber(outputAmount).integerValue(),
+                            }) ?? fill;
                     } else {
                         assert.assert(Boolean(left || right), 'No valid sample to use');
-                        fill = this.createFillFromDexSample(left || right, inputAmount) ?? fill;
+                        fill = this.createFillFromDexSample(left || right) ?? fill;
                     }
                     break;
                 }

@@ -611,5 +611,5 @@ export interface ComparisonPrice {
 }
 
 export interface FillAdjustor {
-    adjustFills: (side: MarketOperation, fills: Fill[], amount: BigNumber) => Fill[];
+    adjustFills: (side: MarketOperation, fills: Fill[]) => Fill[];
 }
