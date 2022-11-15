@@ -112,8 +112,20 @@ export class PathOptimizer {
             return undefined;
         }
 
+        // Ensure the expected data we require exists. In the case where all hops reverted
+        // or there were no sources included that allowed for multi hop,
+        // we can end up with an empty, but not undefined, fill data.
+        const validTwoHopSamples = twoHopSamples.filter(
+            (sample) =>
+                sample &&
+                sample.fillData &&
+                sample.fillData.firstHopSource &&
+                sample.fillData.secondHopSource &&
+                sample.output.isGreaterThan(ZERO_AMOUNT),
+        );
+
         const singleSourceRoutablePaths = this.singleSourceSamplesToRoutablePaths(samples);
-        const twoHopRoutablePaths = this.twoHopSamplesToRoutablePaths(twoHopSamples);
+        const twoHopRoutablePaths = this.twoHopSamplesToRoutablePaths(validTwoHopSamples);
         const nativeOrderRoutablePaths = this.nativeOrdersToRoutablePaths(nativeOrders);
 
         const allRoutablePaths = [...singleSourceRoutablePaths, ...twoHopRoutablePaths, ...nativeOrderRoutablePaths];
