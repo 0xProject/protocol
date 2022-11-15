@@ -436,8 +436,6 @@ const balancerV2Encoder = AbiEncoder.create([
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
-const gmxAddressPathEncoder = AbiEncoder.create('(address,address,address,address[])');
-const platypusAddressPathEncoder = AbiEncoder.create('(address,address[],address[])');
 
 export const BRIDGE_ENCODERS: {
     [key in Exclude<
@@ -445,19 +443,6 @@ export const BRIDGE_ENCODERS: {
         ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop | ERC20BridgeSource.MultiBridge
     >]: AbiEncoder.DataType;
 } = {
-    [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
-        { name: 'provider', type: 'address' },
-        { name: 'data', type: 'bytes' },
-    ]),
-    [ERC20BridgeSource.Dodo]: AbiEncoder.create([
-        { name: 'helper', type: 'address' },
-        { name: 'poolAddress', type: 'address' },
-        { name: 'isSellBase', type: 'bool' },
-    ]),
-    [ERC20BridgeSource.DodoV2]: AbiEncoder.create([
-        { name: 'poolAddress', type: 'address' },
-        { name: 'isSellBase', type: 'bool' },
-    ]),
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,
     [ERC20BridgeSource.CurveV2]: curveEncoder,
@@ -487,18 +472,12 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.KnightSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Yoshi]: routerAddressPathEncoder,
     [ERC20BridgeSource.MeshSwap]: routerAddressPathEncoder,
-    // Avalanche
-    [ERC20BridgeSource.GMX]: gmxAddressPathEncoder,
-    [ERC20BridgeSource.Platypus]: platypusAddressPathEncoder,
-    // Celo
     [ERC20BridgeSource.UbeSwap]: routerAddressPathEncoder,
-    // BSC
     [ERC20BridgeSource.PancakeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.PancakeSwapV2]: routerAddressPathEncoder,
     [ERC20BridgeSource.BakerySwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.ApeSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.WaultSwap]: routerAddressPathEncoder,
-    // Polygon
     [ERC20BridgeSource.QuickSwap]: routerAddressPathEncoder,
     [ERC20BridgeSource.Dfyn]: routerAddressPathEncoder,
     // Generic pools
@@ -509,6 +488,21 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
+    [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
+        { name: 'provider', type: 'address' },
+        { name: 'data', type: 'bytes' },
+    ]),
+    [ERC20BridgeSource.Dodo]: AbiEncoder.create([
+        { name: 'helper', type: 'address' },
+        { name: 'poolAddress', type: 'address' },
+        { name: 'isSellBase', type: 'bool' },
+    ]),
+    [ERC20BridgeSource.DodoV2]: AbiEncoder.create([
+        { name: 'poolAddress', type: 'address' },
+        { name: 'isSellBase', type: 'bool' },
+    ]),
+    [ERC20BridgeSource.GMX]: AbiEncoder.create('(address,address,address,address[])'),
+    [ERC20BridgeSource.Platypus]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.MakerPsm]: makerPsmEncoder,
     [ERC20BridgeSource.BalancerV2]: AbiEncoder.create([
         { name: 'vault', type: 'address' },
