@@ -6,8 +6,6 @@
 
 # https://git-scm.com/docs/gitignore#_pattern_format
 
-packages/asset-swapper/ @dekz @dextracker @kyu-c
-
 # Dev tools & setup
 
 .circleci/ @dekz
