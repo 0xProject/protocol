@@ -35,7 +35,6 @@ export enum ERC20BridgeSource {
     UniswapV2 = 'Uniswap_V2',
     Curve = 'Curve',
     LiquidityProvider = 'LiquidityProvider',
-    MultiBridge = 'MultiBridge',
     Balancer = 'Balancer',
     BalancerV2 = 'Balancer_V2',
     Bancor = 'Bancor',

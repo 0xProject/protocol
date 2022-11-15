@@ -346,7 +346,6 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     ethereumRpcUrl?: string;
     contractAddresses?: AssetSwapperContractAddresses;
     samplerGasLimit?: number;
-    multiBridgeAddress?: string;
     zeroExGasApiUrl?: string;
     rfqt?: SwapQuoterRfqOpts;
     samplerOverrides?: SamplerOverrides;

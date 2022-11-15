@@ -455,7 +455,7 @@ const EXCLUDED_SOURCES = (() => {
     const allERC20BridgeSources = Object.values(ERC20BridgeSource);
     switch (CHAIN_ID) {
         case ChainId.Mainnet:
-            return [ERC20BridgeSource.MultiBridge];
+            return [];
         case ChainId.Kovan:
             return allERC20BridgeSources.filter(
                 (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
@@ -472,7 +472,7 @@ const EXCLUDED_SOURCES = (() => {
         case ChainId.PolygonMumbai:
         case ChainId.ArbitrumRinkeby:
         case ChainId.Arbitrum:
-            return [ERC20BridgeSource.MultiBridge, ERC20BridgeSource.Native];
+            return [ERC20BridgeSource.Native];
         default:
             throw new Error(`Excluded sources not specified for ${CHAIN_ID}`);
     }

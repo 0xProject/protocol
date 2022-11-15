@@ -25,7 +25,6 @@ export * from '../test/generated-wrappers/i_bancor_v3';
 export * from '../test/generated-wrappers/i_curve';
 export * from '../test/generated-wrappers/i_m_stable';
 export * from '../test/generated-wrappers/i_mooniswap';
-export * from '../test/generated-wrappers/i_multi_bridge';
 export * from '../test/generated-wrappers/i_platypus';
 export * from '../test/generated-wrappers/i_shell';
 export * from '../test/generated-wrappers/i_uniswap_exchange_quotes';

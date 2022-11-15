@@ -46,7 +46,6 @@
         "test/generated-artifacts/IGMX.json",
         "test/generated-artifacts/IMStable.json",
         "test/generated-artifacts/IMooniswap.json",
-        "test/generated-artifacts/IMultiBridge.json",
         "test/generated-artifacts/IPlatypus.json",
         "test/generated-artifacts/IShell.json",
         "test/generated-artifacts/IUniswapExchangeQuotes.json",

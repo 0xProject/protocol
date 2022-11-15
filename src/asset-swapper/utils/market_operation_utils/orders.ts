@@ -210,11 +210,7 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
 
 export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder): string {
     let bridgeData: string;
-    if (
-        order.source === ERC20BridgeSource.MultiHop ||
-        order.source === ERC20BridgeSource.MultiBridge ||
-        order.source === ERC20BridgeSource.Native
-    ) {
+    if (order.source === ERC20BridgeSource.MultiHop || order.source === ERC20BridgeSource.Native) {
         throw new Error('Invalid order to encode for Bridge Data');
     }
     const encoder = BRIDGE_ENCODERS[order.source];
@@ -438,10 +434,7 @@ const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
 export const BRIDGE_ENCODERS: {
-    [key in Exclude<
-        ERC20BridgeSource,
-        ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop | ERC20BridgeSource.MultiBridge
-    >]: AbiEncoder.DataType;
+    [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop>]: AbiEncoder.DataType;
 } = {
     // Curve like
     [ERC20BridgeSource.Curve]: curveEncoder,

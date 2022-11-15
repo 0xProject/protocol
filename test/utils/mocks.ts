@@ -33,7 +33,6 @@ export const liquiditySources0xOnly = [
     { name: 'Kyber', proportion: '0' },
     { name: 'Curve', proportion: '0' },
     { name: 'LiquidityProvider', proportion: '0' },
-    { name: 'MultiBridge', proportion: '0' },
     { name: 'Balancer', proportion: '0' },
     { name: 'CREAM', proportion: '0' },
     { name: 'Bancor', proportion: '0' },

@@ -28,7 +28,6 @@ import * as ICurve from '../test/generated-artifacts/ICurve.json';
 import * as IGMX from '../test/generated-artifacts/IGMX.json';
 import * as IMooniswap from '../test/generated-artifacts/IMooniswap.json';
 import * as IMStable from '../test/generated-artifacts/IMStable.json';
-import * as IMultiBridge from '../test/generated-artifacts/IMultiBridge.json';
 import * as IPlatypus from '../test/generated-artifacts/IPlatypus.json';
 import * as IShell from '../test/generated-artifacts/IShell.json';
 import * as IUniswapExchangeQuotes from '../test/generated-artifacts/IUniswapExchangeQuotes.json';
@@ -94,7 +93,6 @@ export const artifacts = {
     IGMX: IGMX as ContractArtifact,
     IMStable: IMStable as ContractArtifact,
     IMooniswap: IMooniswap as ContractArtifact,
-    IMultiBridge: IMultiBridge as ContractArtifact,
     IPlatypus: IPlatypus as ContractArtifact,
     IShell: IShell as ContractArtifact,
     IUniswapExchangeQuotes: IUniswapExchangeQuotes as ContractArtifact,

@@ -43,7 +43,6 @@
         "./contracts/src/interfaces/IGMX.sol",
         "./contracts/src/interfaces/IMStable.sol",
         "./contracts/src/interfaces/IMooniswap.sol",
-        "./contracts/src/interfaces/IMultiBridge.sol",
         "./contracts/src/interfaces/IPlatypus.sol",
         "./contracts/src/interfaces/IShell.sol",
         "./contracts/src/interfaces/IUniswapExchangeQuotes.sol",

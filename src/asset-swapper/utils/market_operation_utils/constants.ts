@@ -2678,7 +2678,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.IronSwap]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.FirebirdOneSwap]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.MobiusMoney]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
-    [ERC20BridgeSource.MultiBridge]: () => 350e3,
     [ERC20BridgeSource.UniswapV2]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SushiSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.CryptoCom]: uniswapV2CloneGasSchedule,
