@@ -6,7 +6,8 @@
                 "note": "Upgrade Polygon FillQuoteTransformer to support Solidly (and its forks).",
                 "pr": 616
             }
-        ]
+        ],
+        "timestamp": 1668477029
     },
     {
         "version": "7.3.0",
