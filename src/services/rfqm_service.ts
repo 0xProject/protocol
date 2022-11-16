@@ -199,6 +199,8 @@ export class RfqmService {
                 return JobFailureReason.OrderExpired;
             case RfqmJobStatus.FailedLastLookDeclined:
                 return JobFailureReason.LastLookDeclined;
+            case RfqmJobStatus.FailedSignFailed:
+                return JobFailureReason.MarketMakerSignatureError;
             case RfqmJobStatus.FailedRevertedConfirmed:
             case RfqmJobStatus.FailedRevertedUnconfirmed:
                 return JobFailureReason.TransactionReverted;
