@@ -130,7 +130,7 @@ describe('CacheClient', () => {
         });
 
         it('returns null balances if addresses from a different chain are supplied', async () => {
-            expect(await cacheClient.getERC20OwnerBalancesAsync(ChainId.Ropsten, addresses)).to.deep.eq([
+            expect(await cacheClient.getERC20OwnerBalancesAsync(ChainId.PolygonMumbai, addresses)).to.deep.eq([
                 null,
                 null,
                 null,

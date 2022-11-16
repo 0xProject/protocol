@@ -87,14 +87,14 @@
     "dependencies": {
         "@0x/api-utils": "^0.0.1",
         "@0x/assert": "^3.0.30",
-        "@0x/asset-swapper": "~16.46.0",
-        "@0x/contract-addresses": "^6.8.0",
+        "@0x/asset-swapper": "~16.66.0",
+        "@0x/contract-addresses": "6.22.0",
         "@0x/contract-wrappers": "^13.18.1",
         "@0x/contracts-zero-ex": "^0.29.3",
         "@0x/json-schemas": "^6.4.0",
         "@0x/protocol-utils": "^1.9.3",
         "@0x/subproviders": "~6.6.5",
-        "@0x/token-metadata": "^0.1.16",
+        "@0x/token-metadata": "^0.2.1",
         "@0x/types": "^3.3.4",
         "@0x/utils": "^6.5.3",
         "@0x/web3-wrapper": "^7.6.1",
@@ -137,6 +137,8 @@
         "ws": "^7.4.6"
     },
     "resolutions": {
-        "fast-abi": "^0.0.3"
+        "fast-abi": "^0.0.3",
+        "@0x/asset-swapper/@0x/contract-addresses": "6.22.0",
+        "@0x/token-metadata/@0x/contract-addresses": "6.22.0"
     }
 }
