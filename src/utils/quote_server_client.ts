@@ -223,6 +223,7 @@ export class QuoteServerClient {
         const validationResult = schemaValidator.validate(response.data, schemas.indicativeOtcQuoteResponseSchema);
         if (validationResult.errors && validationResult.errors.length > 0) {
             const errorsMsg = validationResult.errors.map((err) => err.message).join(',');
+            logger.error({ response: response.data, makerUri, status: response.status }, 'Malformed price response');
             throw new Error(`Error from validator: ${errorsMsg}`);
         }
 
