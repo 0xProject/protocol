@@ -460,6 +460,47 @@ describe('QuoteServerClient', () => {
                 expect(signature).toEqual(makerSignature);
             });
 
+            it('should return a signature for valid response if the fee is 0 but no acknowledgement is returned', async () => {
+                // Given
+                const client = new QuoteServerClient(axiosInstance);
+                const request: SignRequest = {
+                    order,
+                    orderHash,
+                    fee: {
+                        amount: new BigNumber('0'),
+                        type: 'fixed',
+                        token: CONTRACT_ADDRESSES.etherToken,
+                    },
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '0',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSignature,
+                };
+
+                const response = {
+                    feeAmount: undefined, // no fee amount acknowledged
+                    proceedWithFill: true,
+                    makerSignature,
+                };
+
+                axiosMock
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
+                    .replyOnce(HttpStatus.OK, response);
+
+                // When
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
+
+                // Then
+                expect(signature).toEqual(makerSignature);
+            });
+
             it('should throw an error for a malformed response', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);

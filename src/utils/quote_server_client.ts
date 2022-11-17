@@ -11,6 +11,7 @@ import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 
 import { Integrator, RFQ_PRICE_ENDPOINT_TIMEOUT_MS, RFQ_SIGN_ENDPOINT_TIMEOUT_MS } from '../config';
+import { ZERO } from '../constants';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
 import { IndicativeQuote, QuoteServerPriceParams } from '../types';
@@ -349,7 +350,7 @@ export class QuoteServerClient {
             return undefined;
         }
 
-        if (!feeAmount.gte(payload.fee.amount)) {
+        if (!payload.fee.amount.eq(ZERO) && !feeAmount.gte(payload.fee.amount)) {
             logger.warn(
                 { requestFeeAmount: payload.fee.amount, responseFeeAmount: feeAmount, makerUri },
                 'Invalid fee acknowledgement',
