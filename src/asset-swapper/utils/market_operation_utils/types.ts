@@ -34,7 +34,6 @@ export enum ERC20BridgeSource {
     Uniswap = 'Uniswap',
     UniswapV2 = 'Uniswap_V2',
     Curve = 'Curve',
-    LiquidityProvider = 'LiquidityProvider',
     Balancer = 'Balancer',
     BalancerV2 = 'Balancer_V2',
     Bancor = 'Bancor',
@@ -232,11 +231,6 @@ export interface UniswapV2FillData extends FillData {
 
 export interface ShellFillData extends FillData {
     poolAddress: string;
-}
-
-export interface LiquidityProviderFillData extends FillData {
-    poolAddress: string;
-    gasCost: number;
 }
 
 export interface BancorFillData extends FillData {
@@ -588,13 +582,6 @@ export interface RawQuotes {
     rfqtIndicativeQuotes: V4RFQIndicativeQuoteMM[];
     twoHopQuotes: DexSample<MultiHopFillData>[];
     dexQuotes: DexSample<FillData>[][];
-}
-
-export interface LiquidityProviderRegistry {
-    [address: string]: {
-        tokens: string[];
-        gasCost: number | ((takerToken: string, makerToken: string) => number);
-    };
 }
 
 export interface GenerateOptimizedOrdersOpts {

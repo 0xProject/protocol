@@ -19,7 +19,6 @@
         "./contracts/src/GMXSampler.sol",
         "./contracts/src/KyberDmmSampler.sol",
         "./contracts/src/LidoSampler.sol",
-        "./contracts/src/LiquidityProviderSampler.sol",
         "./contracts/src/MStableSampler.sol",
         "./contracts/src/MakerPSMSampler.sol",
         "./contracts/src/MooniswapSampler.sol",

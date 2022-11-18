@@ -38,7 +38,6 @@ import {
     CurveFillData,
     ERC20BridgeSource,
     FinalUniswapV3FillData,
-    LiquidityProviderFillData,
     NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
@@ -48,7 +47,6 @@ import {
 
 import {
     multiplexOtcOrder,
-    multiplexPlpEncoder,
     multiplexRfqEncoder,
     MultiplexSubcall,
     multiplexTransformERC20Encoder,
@@ -64,7 +62,7 @@ import {
 } from './quote_consumer_utils';
 
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
-const { NULL_ADDRESS, NULL_BYTES, ZERO_AMOUNT } = constants;
+const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
 
 // use the same order in IPancakeSwapFeature.sol
 const PANCAKE_SWAP_FORKS = [
@@ -234,31 +232,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         sellAmount,
                         minBuyAmount,
                         PANCAKE_SWAP_FORKS.indexOf(source),
-                    )
-                    .getABIEncodedTransactionData(),
-                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
-                gasOverhead: ZERO_AMOUNT,
-            };
-        }
-
-        if (
-            [ChainId.Mainnet, ChainId.BSC].includes(this.chainId) &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.LiquidityProvider])
-        ) {
-            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
-            const target = fillData.poolAddress;
-            return {
-                calldataHexString: this._exchangeProxy
-                    .sellToLiquidityProvider(
-                        isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                        isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                        target,
-                        NULL_ADDRESS,
-                        sellAmount,
-                        minBuyAmount,
-                        NULL_BYTES,
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
@@ -634,16 +607,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         }),
                     });
                     break switch_statement;
-                case ERC20BridgeSource.LiquidityProvider:
-                    subcalls.push({
-                        id: MultiplexSubcall.LiquidityProvider,
-                        sellAmount: order.takerAmount,
-                        data: multiplexPlpEncoder.encode({
-                            provider: (order.fillData as LiquidityProviderFillData).poolAddress,
-                            auxiliaryData: NULL_BYTES,
-                        }),
-                    });
-                    break switch_statement;
                 case ERC20BridgeSource.UniswapV3: {
                     const fillData = (order as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
                     subcalls.push({
@@ -724,15 +687,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         data: multiplexUniswapEncoder.encode({
                             tokens: (order.fillData as UniswapV2FillData).tokenAddressPath,
                             isSushi: order.source === ERC20BridgeSource.SushiSwap,
-                        }),
-                    });
-                    break;
-                case ERC20BridgeSource.LiquidityProvider:
-                    subcalls.push({
-                        id: MultiplexSubcall.LiquidityProvider,
-                        data: multiplexPlpEncoder.encode({
-                            provider: (order.fillData as LiquidityProviderFillData).poolAddress,
-                            auxiliaryData: NULL_BYTES,
                         }),
                     });
                     break;

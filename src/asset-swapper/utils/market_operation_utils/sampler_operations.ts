@@ -37,7 +37,6 @@ import {
     GMX_VAULT_BY_CHAIN_ID,
     KYBER_DMM_ROUTER_BY_CHAIN_ID,
     LIDO_INFO_BY_CHAIN,
-    LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID,
     MAINNET_TOKENS,
     MAKER_PSM_INFO_BY_CHAIN_ID,
     MAX_UINT256,
@@ -56,7 +55,6 @@ import {
     WOOFI_SUPPORTED_TOKENS,
     ZERO_AMOUNT,
 } from './constants';
-import { getLiquidityProvidersForPair } from './liquidity_provider_utils';
 import { BalancerPoolsCache, BalancerV2PoolsCache, PoolsCache } from './pools_cache';
 import { BalancerV2SwapInfoCache } from './pools_cache/balancer_v2_swap_info_cache';
 import { SamplerContractOperation } from './sampler_contract_operation';
@@ -85,8 +83,6 @@ import {
     KyberDmmFillData,
     LidoFillData,
     LidoInfo,
-    LiquidityProviderFillData,
-    LiquidityProviderRegistry,
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
@@ -124,7 +120,6 @@ export interface PoolsCacheMap {
  * for use with `DexOrderSampler.executeAsync()`.
  */
 export class SamplerOperations {
-    public readonly liquidityProviderRegistry: LiquidityProviderRegistry;
     public readonly poolsCaches: PoolsCacheMap;
     public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
     public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
@@ -142,13 +137,8 @@ export class SamplerOperations {
         protected readonly _samplerContract: ERC20BridgeSamplerContract,
         poolsCaches?: PoolsCacheMap,
         protected readonly tokenAdjacencyGraph: TokenAdjacencyGraph = TokenAdjacencyGraph.getEmptyGraph(),
-        liquidityProviderRegistry: LiquidityProviderRegistry = {},
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
-        this.liquidityProviderRegistry = {
-            ...LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID[chainId],
-            ...liquidityProviderRegistry,
-        };
         this.poolsCaches = poolsCaches
             ? poolsCaches
             : {
@@ -370,46 +360,6 @@ export class SamplerOperations {
             contract: this._samplerContract,
             function: this._samplerContract.sampleBuysFromUniswapV2,
             params: [router, tokenAddressPath, makerFillAmounts],
-        });
-    }
-
-    public getLiquidityProviderSellQuotes(
-        providerAddress: string,
-        makerToken: string,
-        takerToken: string,
-        takerFillAmounts: BigNumber[],
-        gasCost: number,
-        source: ERC20BridgeSource = ERC20BridgeSource.LiquidityProvider,
-    ): SourceQuoteOperation<LiquidityProviderFillData> {
-        return new SamplerContractOperation({
-            source,
-            fillData: {
-                poolAddress: providerAddress,
-                gasCost,
-            },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromLiquidityProvider,
-            params: [providerAddress, takerToken, makerToken, takerFillAmounts],
-        });
-    }
-
-    public getLiquidityProviderBuyQuotes(
-        providerAddress: string,
-        makerToken: string,
-        takerToken: string,
-        makerFillAmounts: BigNumber[],
-        gasCost: number,
-        source: ERC20BridgeSource = ERC20BridgeSource.LiquidityProvider,
-    ): SourceQuoteOperation<LiquidityProviderFillData> {
-        return new SamplerContractOperation({
-            source,
-            fillData: {
-                poolAddress: providerAddress,
-                gasCost,
-            },
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromLiquidityProvider,
-            params: [providerAddress, takerToken, makerToken, makerFillAmounts],
         });
     }
 
@@ -1568,17 +1518,6 @@ export class SamplerOperations {
                         return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map((pool) =>
                             this.getShellSellQuotes(pool, makerToken, takerToken, takerFillAmounts, source),
                         );
-                    case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(this.liquidityProviderRegistry, takerToken, makerToken).map(
-                            ({ providerAddress, gasCost }) =>
-                                this.getLiquidityProviderSellQuotes(
-                                    providerAddress,
-                                    makerToken,
-                                    takerToken,
-                                    takerFillAmounts,
-                                    gasCost,
-                                ),
-                        );
                     case ERC20BridgeSource.MStable:
                         return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map((pool) =>
                             this.getMStableSellQuotes(pool, makerToken, takerToken, takerFillAmounts),
@@ -1912,17 +1851,6 @@ export class SamplerOperations {
                     case ERC20BridgeSource.Component:
                         return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map((pool) =>
                             this.getShellBuyQuotes(pool, makerToken, takerToken, makerFillAmounts, source),
-                        );
-                    case ERC20BridgeSource.LiquidityProvider:
-                        return getLiquidityProvidersForPair(this.liquidityProviderRegistry, takerToken, makerToken).map(
-                            ({ providerAddress, gasCost }) =>
-                                this.getLiquidityProviderBuyQuotes(
-                                    providerAddress,
-                                    makerToken,
-                                    takerToken,
-                                    makerFillAmounts,
-                                    gasCost,
-                                ),
                         );
                     case ERC20BridgeSource.MStable:
                         return getShellLikeInfosForPair(this.chainId, takerToken, makerToken, source).map((pool) =>

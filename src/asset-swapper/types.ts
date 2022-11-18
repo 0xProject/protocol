@@ -13,12 +13,7 @@ import { TakerRequestQueryParamsUnnested, V4SignedRfqOrder } from '@0x/quote-ser
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 
-import {
-    ERC20BridgeSource,
-    GetMarketOrdersOpts,
-    LiquidityProviderRegistry,
-    OptimizedMarketOrder,
-} from './utils/market_operation_utils/types';
+import { ERC20BridgeSource, GetMarketOrdersOpts, OptimizedMarketOrder } from './utils/market_operation_utils/types';
 import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
 import { TokenAdjacencyGraph } from './utils/token_adjacency_graph';
 
@@ -350,7 +345,6 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     rfqt?: SwapQuoterRfqOpts;
     samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
-    liquidityProviderRegistry?: LiquidityProviderRegistry;
 }
 
 /**

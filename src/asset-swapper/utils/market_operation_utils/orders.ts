@@ -24,7 +24,6 @@ import {
     GMXFillData,
     KyberDmmFillData,
     LidoFillData,
-    LiquidityProviderFillData,
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
@@ -100,9 +99,6 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.CryptoCom, 'CryptoCom');
         case ERC20BridgeSource.Dodo:
             return encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo');
-        case ERC20BridgeSource.LiquidityProvider:
-            // "LiquidityProvider" is too long to encode (17 characters).
-            return encodeBridgeSourceId(BridgeProtocol.Unknown, 'LP');
         case ERC20BridgeSource.MakerPsm:
             return encodeBridgeSourceId(BridgeProtocol.MakerPsm, 'MakerPsm');
         case ERC20BridgeSource.Mooniswap:
@@ -317,11 +313,6 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([shellFillData.poolAddress]);
             break;
         }
-        case ERC20BridgeSource.LiquidityProvider: {
-            const lpFillData = (order as OptimizedMarketBridgeOrder<LiquidityProviderFillData>).fillData;
-            bridgeData = encoder.encode([lpFillData.poolAddress, tokenAddressEncoder.encode([order.takerToken])]);
-            break;
-        }
         case ERC20BridgeSource.Uniswap: {
             const uniFillData = (order as OptimizedMarketBridgeOrder<GenericRouterFillData>).fillData;
             bridgeData = encoder.encode([uniFillData.router]);
@@ -431,7 +422,6 @@ const balancerV2Encoder = AbiEncoder.create([
     { name: 'poolId', type: 'bytes32' },
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
-const tokenAddressEncoder = AbiEncoder.create([{ name: 'tokenAddress', type: 'address' }]);
 
 export const BRIDGE_ENCODERS: {
     [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop>]: AbiEncoder.DataType;
@@ -481,10 +471,6 @@ export const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.Balancer]: poolEncoder,
     [ERC20BridgeSource.Uniswap]: poolEncoder,
     // Custom integrations
-    [ERC20BridgeSource.LiquidityProvider]: AbiEncoder.create([
-        { name: 'provider', type: 'address' },
-        { name: 'data', type: 'bytes' },
-    ]),
     [ERC20BridgeSource.Dodo]: AbiEncoder.create([
         { name: 'helper', type: 'address' },
         { name: 'poolAddress', type: 'address' },

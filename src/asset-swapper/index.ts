@@ -58,7 +58,6 @@ export {
     FillAdjustor,
     FillData,
     GetMarketOrdersRfqOpts,
-    LiquidityProviderRegistry,
     OptimizedMarketOrder,
     UniswapV2FillData,
 } from './utils/market_operation_utils/types';

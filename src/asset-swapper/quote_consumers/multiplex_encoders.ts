@@ -7,7 +7,6 @@ export enum MultiplexSubcall {
     Otc,
     UniswapV2,
     UniswapV3,
-    LiquidityProvider,
     TransformERC20,
     BatchSell,
     MultiHopSell,

@@ -11,7 +11,6 @@ import {
     ChainId,
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
     ERC20BridgeSource,
-    LiquidityProviderRegistry,
     OrderPrunerPermittedFeeTypes,
     RfqMakerAssetOfferings,
     SamplerOverrides,
@@ -60,7 +59,6 @@ enum EnvVarType {
     PrivateKeys,
     RfqMakerAssetOfferings,
     RateLimitConfig,
-    LiquidityProviderRegistry,
     JsonStringList,
 }
 
@@ -315,14 +313,6 @@ export const LOGGER_INCLUDE_TIMESTAMP = _.isEmpty(process.env.LOGGER_INCLUDE_TIM
     ? DEFAULT_LOGGER_INCLUDE_TIMESTAMP
     : assertEnvVarType('LOGGER_INCLUDE_TIMESTAMP', process.env.LOGGER_INCLUDE_TIMESTAMP, EnvVarType.Boolean);
 
-export const LIQUIDITY_PROVIDER_REGISTRY: LiquidityProviderRegistry = _.isEmpty(process.env.LIQUIDITY_PROVIDER_REGISTRY)
-    ? {}
-    : assertEnvVarType(
-          'LIQUIDITY_PROVIDER_REGISTRY',
-          process.env.LIQUIDITY_PROVIDER_REGISTRY,
-          EnvVarType.LiquidityProviderRegistry,
-      );
-
 export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
     'RFQT_REGISTRY_PASSWORDS',
     EnvVarType.JsonStringList,
@@ -497,13 +487,8 @@ const EXCLUDED_FEE_SOURCES = (() => {
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
 const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 |
-    SOURCE_FLAGS.SushiSwap |
-    SOURCE_FLAGS.LiquidityProvider |
-    SOURCE_FLAGS.RfqOrder |
-    SOURCE_FLAGS.Uniswap_V3;
-const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.LiquidityProvider | SOURCE_FLAGS.Uniswap_V3;
+    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.RfqOrder | SOURCE_FLAGS.Uniswap_V3;
+const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS = SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.Uniswap_V3;
 const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
         // Uniswap and forks VIP
@@ -526,9 +511,6 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     } else if (SOURCE_FLAGS.Curve === sourceFlags) {
         // Curve pseudo-VIP
         return TX_BASE_GAS.plus(40e3);
-    } else if (SOURCE_FLAGS.LiquidityProvider === sourceFlags) {
-        // PLP VIP
-        return TX_BASE_GAS.plus(10e3);
     } else if (SOURCE_FLAGS.RfqOrder === sourceFlags) {
         // RFQ VIP
         return TX_BASE_GAS.plus(5e3);
@@ -606,7 +588,6 @@ export const SWAP_QUOTER_OPTS: Partial<SwapQuoterOpts> = {
     permittedOrderFeeTypes: new Set([OrderPrunerPermittedFeeTypes.NoFees]),
     samplerOverrides: SAMPLER_OVERRIDES,
     tokenAdjacencyGraph: DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID[CHAIN_ID],
-    liquidityProviderRegistry: LIQUIDITY_PROVIDER_REGISTRY,
 };
 
 export const defaultHttpServiceConfig: HttpServiceConfig = {
@@ -815,21 +796,6 @@ function assertEnvVarType(name: string, value: string | undefined, expectedType:
                 });
             }
             return offerings;
-        }
-        case EnvVarType.LiquidityProviderRegistry: {
-            const registry: LiquidityProviderRegistry = JSON.parse(value);
-            for (const liquidityProvider in registry) {
-                assert.isETHAddressHex('liquidity provider address', liquidityProvider);
-
-                const { tokens } = registry[liquidityProvider];
-                assert.isArray(`token list for liquidity provider ${liquidityProvider}`, tokens);
-                tokens.forEach((token, i) => {
-                    assert.isETHAddressHex(`address of token ${i} for liquidity provider ${liquidityProvider}`, token);
-                });
-                // TODO jacob validate gas cost callback in registry
-                // assert.isNumber(`gas cost for liquidity provider ${liquidityProvider}`, gasCost);
-            }
-            return registry;
         }
         default:
             throw new Error(`Unrecognised EnvVarType: ${expectedType} encountered for variable ${name}.`);

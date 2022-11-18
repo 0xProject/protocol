@@ -17,7 +17,6 @@ import {
 const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,
     ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.Native,
     ERC20BridgeSource.UniswapV3,
 ];
@@ -48,7 +47,6 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
 const MULTIPLEX_MULTIHOP_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,
     ERC20BridgeSource.SushiSwap,
-    ERC20BridgeSource.LiquidityProvider,
     ERC20BridgeSource.UniswapV3,
 ];
 

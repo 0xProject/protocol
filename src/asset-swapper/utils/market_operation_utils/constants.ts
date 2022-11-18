@@ -25,8 +25,6 @@ import {
     isFinalUniswapV3FillData,
     LidoFillData,
     LidoInfo,
-    LiquidityProviderFillData,
-    LiquidityProviderRegistry,
     MakerPsmFillData,
     MultiHopFillData,
     PlatypusInfo,
@@ -89,7 +87,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.Lido,
             ERC20BridgeSource.MakerPsm,
@@ -130,7 +127,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.ACryptos,
@@ -154,7 +150,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.KyberDmm,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
@@ -242,7 +237,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Dodo,
             ERC20BridgeSource.DodoV2,
             ERC20BridgeSource.Lido,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.CryptoCom,
             ERC20BridgeSource.MakerPsm,
             ERC20BridgeSource.KyberDmm,
@@ -282,7 +276,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.WaultSwap,
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.ACryptos,
@@ -306,7 +299,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.FirebirdOneSwap,
             ERC20BridgeSource.BalancerV2,
             ERC20BridgeSource.KyberDmm,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.MultiHop,
             ERC20BridgeSource.IronSwap,
             ERC20BridgeSource.AaveV2,
@@ -2034,32 +2026,6 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
     },
 };
 
-export const LIQUIDITY_PROVIDER_REGISTRY_BY_CHAIN_ID = valueByChainId<LiquidityProviderRegistry>(
-    {
-        [ChainId.Mainnet]: {
-            ['0x1d0d407c5af8c86f0a6494de86e56ae21e46a951']: {
-                tokens: [
-                    MAINNET_TOKENS.WETH,
-                    MAINNET_TOKENS.USDC,
-                    MAINNET_TOKENS.USDT,
-                    MAINNET_TOKENS.WBTC,
-                    MAINNET_TOKENS.PAX,
-                    MAINNET_TOKENS.LINK,
-                    MAINNET_TOKENS.KNC,
-                    MAINNET_TOKENS.MANA,
-                    MAINNET_TOKENS.DAI,
-                    MAINNET_TOKENS.BUSD,
-                    MAINNET_TOKENS.AAVE,
-                    MAINNET_TOKENS.HT,
-                ],
-                gasCost: (takerToken: string, makerToken: string) =>
-                    [takerToken, makerToken].includes(MAINNET_TOKENS.WETH) ? 160e3 : 280e3,
-            },
-        },
-    },
-    {},
-);
-
 export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95',
@@ -2607,7 +2573,6 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<Set<ERC20Brid
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Curve,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
         ]),
         [ChainId.BSC]: new Set([
@@ -2616,7 +2581,6 @@ export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<Set<ERC20Brid
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
-            ERC20BridgeSource.LiquidityProvider,
             ERC20BridgeSource.Native,
         ]),
     },
@@ -2665,9 +2629,6 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
         }
     },
     [ERC20BridgeSource.Uniswap]: () => 90e3,
-    [ERC20BridgeSource.LiquidityProvider]: (fillData) => {
-        return (fillData as LiquidityProviderFillData).gasCost || 100e3;
-    },
     [ERC20BridgeSource.Curve]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.CurveV2]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,
     [ERC20BridgeSource.Nerve]: (fillData) => (fillData as CurveFillData).pool.gasSchedule,

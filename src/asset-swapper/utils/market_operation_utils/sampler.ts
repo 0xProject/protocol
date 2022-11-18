@@ -7,7 +7,7 @@ import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { BancorService } from './bancor_service';
 import { PoolsCacheMap, SamplerOperations } from './sampler_operations';
-import { BatchedOperation, LiquidityProviderRegistry } from './types';
+import { BatchedOperation } from './types';
 
 /**
  * Generate sample amounts up to `maxFillAmount`.
@@ -39,10 +39,9 @@ export class DexOrderSampler extends SamplerOperations {
         private readonly _samplerOverrides?: SamplerOverrides,
         poolsCaches?: PoolsCacheMap,
         tokenAdjacencyGraph?: TokenAdjacencyGraph,
-        liquidityProviderRegistry?: LiquidityProviderRegistry,
         bancorServiceFn: () => Promise<BancorService | undefined> = async () => undefined,
     ) {
-        super(chainId, _samplerContract, poolsCaches, tokenAdjacencyGraph, liquidityProviderRegistry, bancorServiceFn);
+        super(chainId, _samplerContract, poolsCaches, tokenAdjacencyGraph, bancorServiceFn);
     }
 
     /* Type overloads for `executeAsync()`. Could skip this if we would upgrade TS. */

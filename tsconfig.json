@@ -52,7 +52,6 @@
         "test/generated-artifacts/IUniswapV2Router01.json",
         "test/generated-artifacts/KyberDmmSampler.json",
         "test/generated-artifacts/LidoSampler.json",
-        "test/generated-artifacts/LiquidityProviderSampler.json",
         "test/generated-artifacts/MStableSampler.json",
         "test/generated-artifacts/MakerPSMSampler.json",
         "test/generated-artifacts/MooniswapSampler.json",

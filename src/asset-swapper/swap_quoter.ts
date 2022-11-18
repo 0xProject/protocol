@@ -79,15 +79,10 @@ export class SwapQuoter {
      * @return  An instance of SwapQuoter
      */
     constructor(supportedProvider: SupportedProvider, orderbook: Orderbook, options: Partial<SwapQuoterOpts> = {}) {
-        const {
-            chainId,
-            expiryBufferMs,
-            permittedOrderFeeTypes,
-            samplerGasLimit,
-            rfqt,
-            tokenAdjacencyGraph,
-            liquidityProviderRegistry,
-        } = { ...constants.DEFAULT_SWAP_QUOTER_OPTS, ...options };
+        const { chainId, expiryBufferMs, permittedOrderFeeTypes, samplerGasLimit, rfqt, tokenAdjacencyGraph } = {
+            ...constants.DEFAULT_SWAP_QUOTER_OPTS,
+            ...options,
+        };
         const provider = providerUtils.standardizeOrThrow(supportedProvider);
         assert.isValidOrderbook('orderbook', orderbook);
         assert.isNumber('chainId', chainId);
@@ -142,7 +137,6 @@ export class SwapQuoter {
                 samplerOverrides,
                 undefined, // pools caches for balancer
                 tokenAdjacencyGraph,
-                liquidityProviderRegistry,
                 this.chainId === ChainId.Mainnet // Enable Bancor only on Mainnet
                     ? async () => BancorService.createAsync(provider)
                     : async () => undefined,

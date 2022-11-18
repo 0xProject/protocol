@@ -2,7 +2,7 @@ import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import 'mocha';
 
-import { AffiliateFeeType, ERC20BridgeSource } from '../src/asset-swapper';
+import { AffiliateFeeType } from '../src/asset-swapper';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS, ZERO } from '../src/constants';
 import { serviceUtils } from '../src/utils/service_utils';
 
@@ -12,43 +12,6 @@ import { randomSellQuote } from './utils/mocks';
 const SUITE_NAME = 'serviceUtils';
 
 describe(SUITE_NAME, () => {
-    describe('excludeProprietarySources', () => {
-        it('will exclude liquidity provider if an API key is not present or invalid', () => {
-            const tests = ['foo', undefined, 'lol'];
-            for (const test of tests) {
-                const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.Balancer], test, ['bar']);
-                expect(result).to.eql([ERC20BridgeSource.Balancer, ERC20BridgeSource.LiquidityProvider]);
-            }
-        });
-
-        it('will not exclude liquidity if a special wildcard is present', () => {
-            const tests = ['foo', undefined, 'lol'];
-            for (const test of tests) {
-                const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.Balancer], test, ['*']);
-                expect(result).to.eql([ERC20BridgeSource.Balancer]);
-            }
-        });
-
-        it('will not add a duplicate entry for LiquidityProvider if already present', () => {
-            const result = serviceUtils.determineExcludedSources([ERC20BridgeSource.LiquidityProvider], 'foo', ['bar']);
-            expect(result).to.eql([ERC20BridgeSource.LiquidityProvider]);
-        });
-
-        it('will not modify the existing excluded sources if a valid API key is present', () => {
-            const tests: [ERC20BridgeSource[], string][] = [
-                [[], 'bar'],
-                [[ERC20BridgeSource.Curve, ERC20BridgeSource.UniswapV2], 'bar'],
-                [[ERC20BridgeSource.LiquidityProvider, ERC20BridgeSource.UniswapV2], 'bar'],
-            ];
-            for (const test of tests) {
-                const [currentExcludedSources, apiKey] = test;
-                const newExcludedSources = serviceUtils.determineExcludedSources(currentExcludedSources, apiKey, [
-                    'bar',
-                ]);
-                expect(newExcludedSources).to.eql(currentExcludedSources);
-            }
-        });
-    });
     describe('attributeCallData', () => {
         it('it returns a reasonable ID and timestamp', () => {
             const fakeCallData = '0x0000000000000';

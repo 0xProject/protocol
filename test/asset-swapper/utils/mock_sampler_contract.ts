@@ -27,26 +27,8 @@ export type SampleBuysUniswapHandler = (
     makerToken: string,
     makerTokenAmounts: BigNumber[],
 ) => SampleResults;
-export type SampleSellsEth2DaiHandler = (
-    router: string,
-    takerToken: string,
-    makerToken: string,
-    takerTokenAmounts: BigNumber[],
-) => SampleResults;
-export type SampleBuysEth2DaiHandler = (
-    router: string,
-    takerToken: string,
-    makerToken: string,
-    makerTokenAmounts: BigNumber[],
-) => SampleResults;
 export type SampleUniswapV2Handler = (router: string, path: string[], assetAmounts: BigNumber[]) => SampleResults;
 export type SampleBuysMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
-export type SampleSellsLPHandler = (
-    providerAddress: string,
-    takerToken: string,
-    makerToken: string,
-    takerTokenAmounts: BigNumber[],
-) => SampleResults;
 export type SampleSellsMultihopHandler = (path: string[], takerTokenAmounts: BigNumber[]) => SampleResults;
 
 const DUMMY_PROVIDER = {
@@ -58,12 +40,10 @@ const DUMMY_PROVIDER = {
 interface Handlers {
     getLimitOrderFillableMakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
-    sampleSellsFromLiquidityProvider: SampleSellsLPHandler;
     sampleSellsFromUniswap: SampleSellsUniswapHandler;
     sampleSellsFromUniswapV2: SampleUniswapV2Handler;
     sampleBuysFromUniswap: SampleBuysUniswapHandler;
     sampleBuysFromUniswapV2: SampleUniswapV2Handler;
-    sampleBuysFromLiquidityProvider: SampleSellsLPHandler;
 }
 
 export class MockSamplerContract extends ERC20BridgeSamplerContract {
@@ -134,22 +114,6 @@ export class MockSamplerContract extends ERC20BridgeSamplerContract {
             this._handlers.sampleSellsFromUniswapV2,
             router,
             path,
-            takerAssetAmounts,
-        );
-    }
-
-    public sampleSellsFromLiquidityProvider(
-        providerAddress: string,
-        takerToken: string,
-        makerToken: string,
-        takerAssetAmounts: BigNumber[],
-    ): ContractTxFunctionObj<BigNumber[]> {
-        return this._wrapCall(
-            super.sampleSellsFromLiquidityProvider,
-            this._handlers.sampleSellsFromLiquidityProvider,
-            providerAddress,
-            takerToken,
-            makerToken,
             takerAssetAmounts,
         );
     }

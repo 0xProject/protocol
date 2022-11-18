@@ -19,7 +19,6 @@ import {
     getIntegratorIdForApiKey,
     KAFKA_BROKERS,
     MATCHA_INTEGRATOR_ID,
-    PLP_API_KEY_WHITELIST,
     PROMETHEUS_REQUEST_BUCKETS,
     RFQT_API_KEY_WHITELIST,
     RFQT_INTEGRATOR_IDS,
@@ -48,7 +47,6 @@ import { parseUtils } from '../utils/parse_utils';
 import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
-import { serviceUtils } from '../utils/service_utils';
 import { zeroExGasApiUtils } from '../utils/zero_ex_gas_api_utils';
 
 let kafkaProducer: Producer | undefined;
@@ -463,15 +461,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         endpoint,
     );
 
-    // Determine if any other sources should be excluded. This usually has an effect
-    // if an API key is not present, or the API key is ineligible for PLP.
-    const updatedExcludedSources = serviceUtils.determineExcludedSources(
-        excludedSources,
-        apiKey,
-        PLP_API_KEY_WHITELIST,
-    );
-
-    const isAllExcluded = Object.values(ERC20BridgeSource).every((s) => updatedExcludedSources.includes(s));
+    const isAllExcluded = Object.values(ERC20BridgeSource).every((s) => excludedSources.includes(s));
     if (isAllExcluded) {
         throw new ValidationError([
             {
@@ -513,7 +503,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     req.log.info({
         type: 'swapRequest',
         endpoint,
-        updatedExcludedSources,
+        excludedSources,
         nativeExclusivelyRFQT,
         // TODO (MKR-123): Remove once the log source has been updated.
         apiKey: integratorId || 'N/A',
@@ -530,7 +520,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         buyAmount,
         buyToken,
         endpoint,
-        excludedSources: updatedExcludedSources,
+        excludedSources,
         gasPrice,
         includePriceComparisons,
         includedSources,
