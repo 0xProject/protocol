@@ -100,6 +100,12 @@ const RFQM_MAKER_BLOCKED_FOR_LLR_COOLDOWN = new Counter({
     labelNames: ['maker_id', 'chain_id', 'pair_key'],
 });
 
+const RFQM_MM_RETURNED_DIFFERENT_AMOUNT = new Counter({
+    name: 'rfqm_mm_returned_different_amount_total',
+    help: 'A maker responded a quote with different amount than requested',
+    labelNames: ['maker_uri', 'chain_id', 'modification_type'],
+});
+
 const PRICE_DECIMAL_PLACES = 6;
 
 const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
@@ -1102,16 +1108,18 @@ export class RfqmService {
             if (quotedAmount.eq(assetFillAmount)) {
                 return;
             }
+            const modificationType = quotedAmount.gt(assetFillAmount) ? 'overfill' : 'underfill';
             logger.warn(
                 {
                     isSelling,
-                    overOrUnder: quotedAmount.gt(assetFillAmount) ? 'overfill' : 'underfill',
+                    overOrUnder: modificationType,
                     requestedAmount: assetFillAmount,
                     quotedAmount,
                     quote,
                 },
                 'Maker returned an incorrect amount',
             );
+            RFQM_MM_RETURNED_DIFFERENT_AMOUNT.labels(quote.makerUri, this._chainId.toString(), modificationType).inc();
         });
 
         return quotes;
