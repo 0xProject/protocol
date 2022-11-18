@@ -118,12 +118,13 @@ contract DODOV2Sampler is SamplerUtils, ApproximateBuys {
         )
     {
         _assertValidPair(makerToken, takerToken);
+
+        uint256 numSamples = makerTokenAmounts.length;
+        takerTokenAmounts = new uint256[](numSamples);
         (pool, sellBase) = _getNextDODOV2Pool(registry, offset, takerToken, makerToken);
         if (pool == address(0)) {
             return (sellBase, pool, takerTokenAmounts);
         }
-        uint256 numSamples = makerTokenAmounts.length;
-        takerTokenAmounts = new uint256[](numSamples);
 
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({

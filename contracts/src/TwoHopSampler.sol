@@ -33,40 +33,49 @@ contract TwoHopSampler {
     function sampleTwoHopSell(
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
-        uint256 sellAmount
+        uint256 numSamples
     )
         public
         returns (
             HopInfo memory firstHop,
             HopInfo memory secondHop,
-            uint256 buyAmount
+            uint256[] memory buyAmounts
         )
     {
-        uint256 intermediateAssetAmount = 0;
-        for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
+        buyAmounts = new uint256[](numSamples);
+        uint256[] memory intermediateAmounts = new uint256[](numSamples);
+        for (uint256 i = 0; i < firstHopCalls.length; i++) {
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
-                uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (amount > intermediateAssetAmount) {
-                    intermediateAssetAmount = amount;
+                uint256[] memory amounts = getAmounts(returnData, numSamples);
+                // Use the amount from the largest size for comparison.
+                if (amounts[numSamples - 1] > intermediateAmounts[numSamples - 1]) {
                     firstHop.sourceIndex = i;
                     firstHop.returnData = returnData;
+                    for (uint256 j = 0; j < numSamples; j++) {
+                        intermediateAmounts[j] = amounts[j];
+                    }
                 }
             }
         }
-        if (intermediateAssetAmount == 0) {
-            return (firstHop, secondHop, buyAmount);
+
+        if (intermediateAmounts[numSamples - 1] == 0) {
+            return (firstHop, secondHop, buyAmounts);
         }
-        for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, intermediateAssetAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
+
+        for (uint256 i = 0; i < secondHopCalls.length; i++) {
+            writeAmounts(secondHopCalls[i], intermediateAmounts);
+
+            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[i]);
             if (didSucceed) {
-                uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (amount > buyAmount) {
-                    buyAmount = amount;
-                    secondHop.sourceIndex = j;
+                uint256[] memory amounts = getAmounts(returnData, numSamples);
+                // Use the amount from the largest size for comparison.
+                if (amounts[numSamples - 1] > buyAmounts[numSamples - 1]) {
+                    secondHop.sourceIndex = i;
                     secondHop.returnData = returnData;
+                    for (uint256 j = 0; j < numSamples; j++) {
+                        buyAmounts[j] = amounts[j];
+                    }
                 }
             }
         }
@@ -75,42 +84,82 @@ contract TwoHopSampler {
     function sampleTwoHopBuy(
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
-        uint256 buyAmount
+        uint256 numSamples
     )
         public
         returns (
             HopInfo memory firstHop,
             HopInfo memory secondHop,
-            uint256 sellAmount
+            uint256[] memory sellAmounts
         )
     {
-        sellAmount = uint256(-1);
-        uint256 intermediateAssetAmount = uint256(-1);
-        for (uint256 j = 0; j != secondHopCalls.length; ++j) {
-            secondHopCalls[j].writeUint256(secondHopCalls[j].length - 32, buyAmount);
-            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
+        sellAmounts = new uint256[](numSamples);
+        for (uint256 i = 0; i < numSamples; i++) {
+            sellAmounts[i] = uint256(-1);
+        }
+
+        uint256[] memory intermediateAmounts = new uint256[](numSamples);
+        for (uint256 i = 0; i < numSamples; i++) {
+            intermediateAmounts[i] = uint256(-1);
+        }
+
+        for (uint256 i = 0; i < secondHopCalls.length; i++) {
+            (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[i]);
             if (didSucceed) {
-                uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (amount > 0 && amount < intermediateAssetAmount) {
-                    intermediateAssetAmount = amount;
-                    secondHop.sourceIndex = j;
+                uint256[] memory amounts = getAmounts(returnData, numSamples);
+                uint256 largestAmount = amounts[numSamples - 1];
+
+                // Use the amount from the largest size for comparison.
+                if (largestAmount > 0 && largestAmount < intermediateAmounts[numSamples - 1]) {
+                    secondHop.sourceIndex = i;
                     secondHop.returnData = returnData;
+                    for (uint256 j = 0; j < numSamples; j++) {
+                        intermediateAmounts[j] = amounts[j];
+                    }
                 }
             }
         }
-        if (intermediateAssetAmount == uint256(-1)) {
-            return (firstHop, secondHop, sellAmount);
+
+        if (intermediateAmounts[numSamples - 1] == uint256(-1)) {
+            return (firstHop, secondHop, sellAmounts);
         }
+
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
-            firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, intermediateAssetAmount);
+            writeAmounts(firstHopCalls[i], intermediateAmounts);
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
-                uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (amount > 0 && amount < sellAmount) {
-                    sellAmount = amount;
+                uint256[] memory amounts = getAmounts(returnData, numSamples);
+                uint256 largestAmount = amounts[numSamples - 1];
+
+                // Use the amount from the largest size for comparison.
+                if (largestAmount > 0 && largestAmount < sellAmounts[numSamples - 1]) {
                     firstHop.sourceIndex = i;
                     firstHop.returnData = returnData;
+                    for (uint256 j = 0; j < numSamples; j++) {
+                        sellAmounts[j] = amounts[j];
+                    }
                 }
+            }
+        }
+    }
+
+    /// @dev Extract amounts from `data` by creating a copy assuming that such uint256[] array exists
+    /// at the end of `data`.
+    function getAmounts(bytes memory data, uint256 amountsLength) private pure returns (uint256[] memory) {
+        uint256 start = data.length - (amountsLength + 2) * 32; // Copy offset and length as well.
+        uint256 end = data.length;
+        bytes memory amounts = data.slice(start, end);
+        amounts.writeUint256(0, 0x20); // Overwrite offset.
+        return abi.decode(amounts, (uint256[]));
+    }
+
+    /// @dev Writes amounts arary to the end of data assuming that there is space reserved.
+    function writeAmounts(bytes memory data, uint256[] memory amounts) private pure {
+        for (uint256 i = 0; i < amounts.length; i++) {
+            uint256 index = data.length - 32 * (amounts.length - i - 1);
+            uint256 amount = amounts[i];
+            assembly {
+                mstore(add(data, index), amount)
             }
         }
     }

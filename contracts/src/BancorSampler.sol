@@ -54,11 +54,11 @@ contract BancorSampler {
             uint256[] memory makerTokenAmounts
         )
     {
+        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         if (opts.paths.length == 0) {
             return (bancorNetwork, path, makerTokenAmounts);
         }
         (bancorNetwork, path) = _findBestPath(opts, takerToken, makerToken, takerTokenAmounts);
-        makerTokenAmounts = new uint256[](takerTokenAmounts.length);
 
         for (uint256 i = 0; i < makerTokenAmounts.length; i++) {
             try IBancorNetwork(bancorNetwork).rateByPath{gas: BANCOR_CALL_GAS}(path, takerTokenAmounts[i]) returns (

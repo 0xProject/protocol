@@ -748,7 +748,7 @@ export class SamplerOperations {
         sources: ERC20BridgeSource[],
         makerToken: string,
         takerToken: string,
-        sellAmount: BigNumber,
+        sellAmounts: BigNumber[],
     ): BatchedOperation<DexSample<MultiHopFillData>[]> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
@@ -756,8 +756,13 @@ export class SamplerOperations {
         }
         const intermediateTokens = this.tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         const subOps = intermediateTokens.map((intermediateToken) => {
-            const firstHopOps = this._getSellQuoteOperations(_sources, intermediateToken, takerToken, [ZERO_AMOUNT]);
-            const secondHopOps = this._getSellQuoteOperations(_sources, makerToken, intermediateToken, [ZERO_AMOUNT]);
+            const firstHopOps = this._getSellQuoteOperations(_sources, intermediateToken, takerToken, sellAmounts);
+            const secondHopOps = this._getSellQuoteOperations(
+                _sources,
+                makerToken,
+                intermediateToken,
+                new Array(sellAmounts.length).fill(ZERO_AMOUNT),
+            );
             return new SamplerContractOperation({
                 contract: this._samplerContract,
                 source: ERC20BridgeSource.MultiHop,
@@ -765,22 +770,22 @@ export class SamplerOperations {
                 params: [
                     firstHopOps.map((op) => op.encodeCall()),
                     secondHopOps.map((op) => op.encodeCall()),
-                    sellAmount,
+                    new BigNumber(sellAmounts.length),
                 ],
                 fillData: { intermediateToken } as MultiHopFillData,
                 callback: (callResults: string, fillData: MultiHopFillData): BigNumber[] => {
-                    const [firstHop, secondHop, buyAmount] = this._samplerContract.getABIDecodedReturnData<
-                        [HopInfo, HopInfo, BigNumber]
+                    const [firstHop, secondHop, buyAmounts] = this._samplerContract.getABIDecodedReturnData<
+                        [HopInfo, HopInfo, BigNumber[]]
                     >('sampleTwoHopSell', callResults);
                     // Ensure the hop sources are set even when the buy amount is zero
                     fillData.firstHopSource = firstHopOps[firstHop.sourceIndex.toNumber()];
                     fillData.secondHopSource = secondHopOps[secondHop.sourceIndex.toNumber()];
-                    if (buyAmount.isZero()) {
-                        return [ZERO_AMOUNT];
+                    if (buyAmounts[buyAmounts.length - 1].isZero()) {
+                        return new Array(buyAmounts.length).fill(ZERO_AMOUNT);
                     }
                     fillData.firstHopSource.handleCallResults(firstHop.returnData);
                     fillData.secondHopSource.handleCallResults(secondHop.returnData);
-                    return [buyAmount];
+                    return buyAmounts;
                 },
             });
         });
@@ -788,10 +793,11 @@ export class SamplerOperations {
             subOps,
             (samples: BigNumber[][]) => {
                 return subOps.map((op, i) => {
+                    // TODO(kyu-c): make it return DexSample<MultiHopFillData>[][] once it actually samples more than 1 point.
                     return {
                         source: op.source,
                         output: samples[i][0],
-                        input: sellAmount,
+                        input: sellAmounts[0],
                         fillData: op.fillData,
                     };
                 });
@@ -807,7 +813,7 @@ export class SamplerOperations {
         sources: ERC20BridgeSource[],
         makerToken: string,
         takerToken: string,
-        buyAmount: BigNumber,
+        buyAmounts: BigNumber[],
     ): BatchedOperation<DexSample<MultiHopFillData>[]> {
         const _sources = TWO_HOP_SOURCE_FILTERS.getAllowed(sources);
         if (_sources.length === 0) {
@@ -815,12 +821,13 @@ export class SamplerOperations {
         }
         const intermediateTokens = this.tokenAdjacencyGraph.getIntermediateTokens(makerToken, takerToken);
         const subOps = intermediateTokens.map((intermediateToken) => {
-            const firstHopOps = this._getBuyQuoteOperations(_sources, intermediateToken, takerToken, [
-                new BigNumber(0),
-            ]);
-            const secondHopOps = this._getBuyQuoteOperations(_sources, makerToken, intermediateToken, [
-                new BigNumber(0),
-            ]);
+            const firstHopOps = this._getBuyQuoteOperations(
+                _sources,
+                intermediateToken,
+                takerToken,
+                new Array(buyAmounts.length).fill(new BigNumber(0)),
+            );
+            const secondHopOps = this._getBuyQuoteOperations(_sources, makerToken, intermediateToken, buyAmounts);
             return new SamplerContractOperation({
                 contract: this._samplerContract,
                 source: ERC20BridgeSource.MultiHop,
@@ -828,32 +835,34 @@ export class SamplerOperations {
                 params: [
                     firstHopOps.map((op) => op.encodeCall()),
                     secondHopOps.map((op) => op.encodeCall()),
-                    buyAmount,
+                    new BigNumber(buyAmounts.length),
                 ],
                 fillData: { intermediateToken } as MultiHopFillData,
                 callback: (callResults: string, fillData: MultiHopFillData): BigNumber[] => {
-                    const [firstHop, secondHop, sellAmount] = this._samplerContract.getABIDecodedReturnData<
-                        [HopInfo, HopInfo, BigNumber]
+                    const [firstHop, secondHop, sellAmounts] = this._samplerContract.getABIDecodedReturnData<
+                        [HopInfo, HopInfo, BigNumber[]]
                     >('sampleTwoHopBuy', callResults);
-                    if (sellAmount.isEqualTo(MAX_UINT256)) {
-                        return [sellAmount];
+                    if (sellAmounts[sellAmounts.length - 1].isEqualTo(MAX_UINT256)) {
+                        return new Array(sellAmounts.length).fill(MAX_UINT256);
                     }
                     fillData.firstHopSource = firstHopOps[firstHop.sourceIndex.toNumber()];
                     fillData.secondHopSource = secondHopOps[secondHop.sourceIndex.toNumber()];
                     fillData.firstHopSource.handleCallResults(firstHop.returnData);
                     fillData.secondHopSource.handleCallResults(secondHop.returnData);
-                    return [sellAmount];
+                    return sellAmounts;
                 },
             });
         });
+
         return this._createBatch(
             subOps,
             (samples: BigNumber[][]) => {
+                // TODO(kyu-c): make it return DexSample<MultiHopFillData>[][] once it actually samples more than 1 point.
                 return subOps.map((op, i) => {
                     return {
                         source: op.source,
                         output: samples[i][0],
-                        input: buyAmount,
+                        input: buyAmounts[0],
                         fillData: op.fillData,
                     };
                 });
