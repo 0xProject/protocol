@@ -310,7 +310,6 @@ blockchainTests('LibMath', env => {
                 const numerator = new BigNumber(100);
                 const denominator = new BigNumber(102);
                 const target = new BigNumber(52);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorFloor(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(true);
             });
@@ -319,7 +318,6 @@ blockchainTests('LibMath', env => {
                 const numerator = new BigNumber(100);
                 const denominator = new BigNumber(101);
                 const target = new BigNumber(92);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorFloor(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(false);
             });
@@ -328,9 +326,7 @@ blockchainTests('LibMath', env => {
                 const numerator = ONE_ETHER;
                 const denominator = ONE_ETHER.dividedToIntegerBy(2);
                 const target = ONE_ETHER.times(0.01);
-                // tslint:disable-next-line: boolean-naming
                 const expected = isRoundingErrorFloor(numerator, denominator, target);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorFloor(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(expected);
             });
@@ -376,7 +372,6 @@ blockchainTests('LibMath', env => {
                 const numerator = new BigNumber(100);
                 const denominator = new BigNumber(101);
                 const target = new BigNumber(92);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorCeil(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(true);
             });
@@ -385,7 +380,6 @@ blockchainTests('LibMath', env => {
                 const numerator = new BigNumber(100);
                 const denominator = new BigNumber(102);
                 const target = new BigNumber(52);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorCeil(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(false);
             });
@@ -394,9 +388,7 @@ blockchainTests('LibMath', env => {
                 const numerator = ONE_ETHER;
                 const denominator = ONE_ETHER.dividedToIntegerBy(2);
                 const target = ONE_ETHER.times(0.01);
-                // tslint:disable-next-line: boolean-naming
                 const expected = isRoundingErrorCeil(numerator, denominator, target);
-                // tslint:disable-next-line: boolean-naming
                 const actual = await libsContract.isRoundingErrorCeil(numerator, denominator, target).callAsync();
                 expect(actual).to.eq(expected);
             });

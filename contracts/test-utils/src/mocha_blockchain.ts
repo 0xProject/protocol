@@ -8,8 +8,6 @@ import * as process from 'process';
 
 import { provider, providerConfigs, txDefaults, web3Wrapper } from './web3_wrapper';
 
-// tslint:disable: no-namespace only-arrow-functions no-unbound-method max-classes-per-file
-
 export type ISuite = mocha.ISuite;
 export type ISuiteCallbackContext = mocha.ISuiteCallbackContext;
 export type SuiteCallback = (this: ISuiteCallbackContext) => void;

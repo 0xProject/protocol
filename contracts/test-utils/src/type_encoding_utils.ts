@@ -9,7 +9,6 @@ export const typeEncodingUtils = {
         const base = 10;
         const formattedValue = new BN(value.toString(base));
         const encodedValue = ethUtil.toBuffer(formattedValue);
-        // tslint:disable-next-line:custom-no-magic-numbers
         const paddedValue = ethUtil.setLengthLeft(encodedValue, constants.WORD_LENGTH);
         return paddedValue;
     },

@@ -29,7 +29,7 @@ export class OrderFactory {
             salt: generatePseudoRandomSalt(),
             ...this._defaultOrderParams,
             ...customOrderParams,
-        } as Order; // tslint:disable-line:no-object-literal-type-assertion
+        } as Order;
         const orderHashBuff = orderHashUtils.getOrderHashBuffer(order);
         const signature = signingUtils.signMessage(orderHashBuff, this._privateKey, signatureType);
         const signedOrder = {
