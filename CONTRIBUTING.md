@@ -8,9 +8,9 @@ We welcome contributions from anyone on the internet and are grateful for even t
 2.  Clone your fork
 3.  Follow the [installation & build steps](https://github.com/0xProject/0x-tools#install-dependencies) in the repo's top-level README.
 4.  Setup the recommended [Development Tooling](#development-tooling).
-5.  Open a PR with the `[WIP]` flag against the `development` branch and describe the change you are intending to undertake in the PR description. (see [our branch naming conventions](#branch-structure))
+5.  Open a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/) against the `development` branch and describe the change you are intending to undertake in the PR description. (see [our branch naming conventions](#branch-structure))
 
-Before removing the `[WIP]` tag and submitting the PR for review, make sure:
+Before making the PR "Ready for review", make sure:
 
 -   It passes our linter checks (`yarn lint`)
 -   It is properly formatted with Prettier (`yarn prettier`)
