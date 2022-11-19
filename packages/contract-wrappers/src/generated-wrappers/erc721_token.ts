@@ -1,6 +1,3 @@
-// tslint:disable:no-consecutive-blank-lines ordered-imports align trailing-comma enum-naming
-// tslint:disable:whitespace no-unbound-method no-trailing-whitespace
-// tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
     EncoderOverrides,
@@ -35,7 +32,6 @@ import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
 import * as ethers from 'ethers';
-// tslint:enable:no-unused-variable
 
 export type ERC721TokenEventArgs =
     | ERC721TokenApprovalEventArgs
@@ -67,9 +63,6 @@ export interface ERC721TokenTransferEventArgs extends DecodedLogArgs {
 }
 
 /* istanbul ignore next */
-// tslint:disable:array-type
-// tslint:disable:no-parameter-reassignment
-// tslint:disable-next-line:class-name
 export class ERC721TokenContract extends BaseContract {
     /**
      * @ignore
@@ -477,7 +470,7 @@ export class ERC721TokenContract extends BaseContract {
 
     public getFunctionSignature(methodName: string): string {
         const index = this._methodABIIndex[methodName];
-        const methodAbi = ERC721TokenContract.ABI()[index] as MethodAbi; // tslint:disable-line:no-unnecessary-type-assertion
+        const methodAbi = ERC721TokenContract.ABI()[index] as MethodAbi;
         const functionSignature = methodAbiToFunctionSignature(methodAbi);
         return functionSignature;
     }
@@ -1078,6 +1071,3 @@ export class ERC721TokenContract extends BaseContract {
     }
 }
 
-// tslint:disable:max-file-line-count
-// tslint:enable:no-unbound-method no-parameter-reassignment no-consecutive-blank-lines ordered-imports align
-// tslint:enable:trailing-comma whitespace no-trailing-whitespace
