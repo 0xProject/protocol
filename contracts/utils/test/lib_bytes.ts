@@ -781,4 +781,3 @@ blockchainTests('LibBytes', env => {
         });
     });
 });
-
