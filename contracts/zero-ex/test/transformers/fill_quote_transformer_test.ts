@@ -272,7 +272,6 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             };
         }
 
-        // tslint:disable-next-line: prefer-for-of
         for (let i = 0; i < data.fillSequence.length; ++i) {
             const orderType = data.fillSequence[i];
             if (data.side === Side.Sell) {

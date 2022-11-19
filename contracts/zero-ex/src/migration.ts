@@ -19,8 +19,6 @@ import {
     ZeroExContract,
 } from './wrappers';
 
-// tslint:disable: completed-docs
-
 /**
  * Addresses of minimum features for a deployment of the Exchange Proxy.
  */

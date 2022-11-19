@@ -3,8 +3,6 @@ import { MethodAbi } from 'ethereum-types';
 
 import * as wrappers from '../../src/wrappers';
 
-// tslint:disable:no-string-literal
-
 blockchainTests('Selector collision test', env => {
     it('Function selectors do not collide', () => {
         const selectorToSignature: { [selector: string]: string } = {};

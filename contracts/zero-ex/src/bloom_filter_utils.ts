@@ -21,7 +21,6 @@ function bitwiseOrWords(a: string, b: string): string {
     const bBits = hexWordToBitArray(b);
     const resultBits = aBits.slice();
     for (let i = 0; i < 256; ++i) {
-        // tslint:disable-next-line: no-bitwise
         resultBits[i] |= bBits[i];
     }
     return bitArrayToHexWord(resultBits);
