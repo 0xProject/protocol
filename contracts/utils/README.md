@@ -63,7 +63,3 @@ yarn lint
 ```bash
 yarn test
 ```
-
-#### Testing options
-
-Contracts testing options like coverage, profiling, revert traces or backing node choosing - are described [here](../TESTING.md).
