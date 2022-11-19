@@ -14,7 +14,7 @@ Before removing the `[WIP]` tag and submitting the PR for review, make sure:
 
 -   It passes our linter checks (`yarn lint`)
 -   It is properly formatted with Prettier (`yarn prettier`)
--   It passes our continuous integration tests (See: [Enabling code coverage checks on your fork](#enabling-code-coverage-checks-on-your-fork) for instructions on getting the `submit-coverage` test to pass on forks)
+-   It passes our continuous integration tests (See: [Enabling code coverage checks on your fork](#fix-submit-coverage-ci-failure) for instructions on getting the `submit-coverage` test to pass on forks)
 -   You've created/updated the corresponding [CHANGELOG](#CHANGELOGs) entries.
 -   Your changes have sufficient test coverage (e.g regression tests have been added for bug fixes)
 
