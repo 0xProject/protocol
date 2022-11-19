@@ -42,7 +42,6 @@ describe('Order hashing', () => {
             // It's common for developers using javascript to provide the amounts
             // as strings. Since we eventually toString() the BigNumber
             // before encoding we should result in the same orderHash in this scenario
-            // tslint:disable-next-line:no-unnecessary-type-assertion
             const orderHash = orderHashUtils.getOrderHashHex({
                 ...order,
                 makerAssetAmount: '0',

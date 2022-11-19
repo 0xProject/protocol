@@ -1,6 +1,3 @@
-// tslint:disable:no-consecutive-blank-lines ordered-imports align trailing-comma enum-naming
-// tslint:disable:whitespace no-unbound-method no-trailing-whitespace
-// tslint:disable:no-unused-variable
 import {
     AwaitTransactionSuccessOpts,
     EncoderOverrides,
@@ -35,7 +32,6 @@ import { EventCallback, IndexedFilterValues, SimpleContractArtifact } from '@0x/
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { assert } from '@0x/assert';
 import * as ethers from 'ethers';
-// tslint:enable:no-unused-variable
 
 export type StakingProxyEventArgs =
     | StakingProxyAuthorizedAddressAddedEventArgs
@@ -74,9 +70,6 @@ export interface StakingProxyStakingContractAttachedToProxyEventArgs extends Dec
 export interface StakingProxyStakingContractDetachedFromProxyEventArgs extends DecodedLogArgs {}
 
 /* istanbul ignore next */
-// tslint:disable:array-type
-// tslint:disable:no-parameter-reassignment
-// tslint:disable-next-line:class-name
 export class StakingProxyContract extends BaseContract {
     /**
      * @ignore
@@ -783,7 +776,7 @@ export class StakingProxyContract extends BaseContract {
 
     public getFunctionSignature(methodName: string): string {
         const index = this._methodABIIndex[methodName];
-        const methodAbi = StakingProxyContract.ABI()[index] as MethodAbi; // tslint:disable-line:no-unnecessary-type-assertion
+        const methodAbi = StakingProxyContract.ABI()[index] as MethodAbi;
         const functionSignature = methodAbiToFunctionSignature(methodAbi);
         return functionSignature;
     }
@@ -1801,7 +1794,3 @@ export class StakingProxyContract extends BaseContract {
         });
     }
 }
-
-// tslint:disable:max-file-line-count
-// tslint:enable:no-unbound-method no-parameter-reassignment no-consecutive-blank-lines ordered-imports align
-// tslint:enable:trailing-comma whitespace no-trailing-whitespace

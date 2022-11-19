@@ -59,16 +59,14 @@ We strongly recommend you use the [VSCode](https://code.visualstudio.com/) text 
 
 #### Linter
 
-We use [TSLint](https://palantir.github.io/tslint/) with [custom configs](https://github.com/0xProject/0x-tools/tree/development/packages/tslint-config) to keep our code-style consistent.
+We use [ESLint](https://eslint.org/docs/latest/) to keep our code-style consistent.
 
-Use `yarn:lint` to lint the entire monorepo, and `PKG={PACKAGE_NAME} yarn lint` to lint a specific package.
-
-If you want to change a rule, or add a custom rule, please make these changes to our [tslint-config](https://github.com/0xProject/0x-tools/tree/development/packages/tslint-config) package. All other packages have it as a dependency.
+Use `yarn lint` to lint the entire monorepo, and `PKG={PACKAGE_NAME} yarn lint` to lint a specific package.
 
 Integrate it into your text editor:
 
--   VSCode: [vscode-tslint](https://marketplace.visualstudio.com/items?itemName=eg2.tslint)
--   Atom: [linter-tslint](https://atom.io/packages/linter-tslint)
+-   VSCode: [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+-   Atom: [ESLint](https://atom.io/packages/eslint)
 
 #### Auto-formatter
 
