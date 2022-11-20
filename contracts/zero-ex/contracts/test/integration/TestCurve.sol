@@ -45,11 +45,7 @@ contract TestCurve {
     IERC20TokenV06 public sellToken;
     TestMintableERC20Token public buyToken;
 
-    constructor(
-        IERC20TokenV06 sellToken_,
-        TestMintableERC20Token buyToken_,
-        uint256 buyAmount_
-    ) public payable {
+    constructor(IERC20TokenV06 sellToken_, TestMintableERC20Token buyToken_, uint256 buyAmount_) public payable {
         sellToken = sellToken_;
         buyToken = buyToken_;
         buyAmount = buyAmount_;

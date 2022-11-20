@@ -147,12 +147,10 @@ contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP7
     /// @param makerSignature The order signature from the maker.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
-    function fillOtcOrderWithEth(LibNativeOrder.OtcOrder memory order, LibSignature.Signature memory makerSignature)
-        public
-        payable
-        override
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    function fillOtcOrderWithEth(
+        LibNativeOrder.OtcOrder memory order,
+        LibSignature.Signature memory makerSignature
+    ) public payable override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         if (order.takerToken == WETH) {
             // Wrap ETH
             WETH.deposit{value: msg.value}();
@@ -425,12 +423,9 @@ contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP7
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.
-    function getOtcOrderInfo(LibNativeOrder.OtcOrder memory order)
-        public
-        view
-        override
-        returns (LibNativeOrder.OtcOrderInfo memory orderInfo)
-    {
+    function getOtcOrderInfo(
+        LibNativeOrder.OtcOrder memory order
+    ) public view override returns (LibNativeOrder.OtcOrderInfo memory orderInfo) {
         // compute order hash.
         orderInfo.orderHash = getOtcOrderHash(order);
 
@@ -470,12 +465,10 @@ contract OtcOrdersFeature is IFeature, IOtcOrdersFeature, FixinCommon, FixinEIP7
     /// @param txOrigin The address.
     /// @param nonceBucket The nonce bucket index.
     /// @return lastNonce The last nonce value used.
-    function lastOtcTxOriginNonce(address txOrigin, uint64 nonceBucket)
-        public
-        view
-        override
-        returns (uint128 lastNonce)
-    {
+    function lastOtcTxOriginNonce(
+        address txOrigin,
+        uint64 nonceBucket
+    ) public view override returns (uint128 lastNonce) {
         LibOtcOrdersStorage.Storage storage stor = LibOtcOrdersStorage.getStorage();
         return stor.txOriginNonces[txOrigin][nonceBucket];
     }

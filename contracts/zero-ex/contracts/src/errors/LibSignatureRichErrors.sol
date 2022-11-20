@@ -45,11 +45,10 @@ library LibSignatureRichErrors {
             );
     }
 
-    function SignatureValidationError(SignatureValidationErrorCodes code, bytes32 hash)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function SignatureValidationError(
+        SignatureValidationErrorCodes code,
+        bytes32 hash
+    ) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(bytes4(keccak256("SignatureValidationError(uint8,bytes32)")), code, hash);
     }
 }

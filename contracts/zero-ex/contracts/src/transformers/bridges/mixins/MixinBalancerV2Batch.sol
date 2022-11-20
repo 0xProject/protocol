@@ -63,10 +63,10 @@ contract MixinBalancerV2Batch {
         IERC20TokenV06[] assets;
     }
 
-    function _tradeBalancerV2Batch(uint256 sellAmount, bytes memory bridgeData)
-        internal
-        returns (uint256 boughtAmount)
-    {
+    function _tradeBalancerV2Batch(
+        uint256 sellAmount,
+        bytes memory bridgeData
+    ) internal returns (uint256 boughtAmount) {
         // Decode the bridge data.
         (
             IBalancerV2BatchSwapVault vault,

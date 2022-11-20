@@ -60,11 +60,7 @@ contract TestLibBytes {
     /// @param b Byte array to insert address into.
     /// @param index Index in byte array of address.
     /// @param input Address to put into byte array.
-    function publicWriteAddress(
-        bytes memory b,
-        uint256 index,
-        address input
-    ) public pure returns (bytes memory) {
+    function publicWriteAddress(bytes memory b, uint256 index, address input) public pure returns (bytes memory) {
         b.writeAddress(index, input);
         return b;
     }
@@ -82,11 +78,7 @@ contract TestLibBytes {
     /// @param b Byte array to insert <input> into.
     /// @param index Index in byte array of <input>.
     /// @param input bytes32 to put into byte array.
-    function publicWriteBytes32(
-        bytes memory b,
-        uint256 index,
-        bytes32 input
-    ) public pure returns (bytes memory) {
+    function publicWriteBytes32(bytes memory b, uint256 index, bytes32 input) public pure returns (bytes memory) {
         b.writeBytes32(index, input);
         return b;
     }
@@ -104,11 +96,7 @@ contract TestLibBytes {
     /// @param b Byte array to insert <input> into.
     /// @param index Index in byte array of <input>.
     /// @param input uint256 to put into byte array.
-    function publicWriteUint256(
-        bytes memory b,
-        uint256 index,
-        uint256 input
-    ) public pure returns (bytes memory) {
+    function publicWriteUint256(bytes memory b, uint256 index, uint256 input) public pure returns (bytes memory) {
         b.writeUint256(index, input);
         return b;
     }

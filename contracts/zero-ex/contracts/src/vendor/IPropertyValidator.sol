@@ -26,9 +26,5 @@ interface IPropertyValidator {
     /// @param tokenAddress The ERC721/ERC1155 token contract address.
     /// @param tokenId The ERC721/ERC1155 tokenId of the asset to check.
     /// @param propertyData Encoded properties or auxiliary data needed to perform the check.
-    function validateProperty(
-        address tokenAddress,
-        uint256 tokenId,
-        bytes calldata propertyData
-    ) external view;
+    function validateProperty(address tokenAddress, uint256 tokenId, bytes calldata propertyData) external view;
 }

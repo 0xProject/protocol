@@ -131,7 +131,10 @@ contract MetaTransactionsFeature is
     /// @param mtx The meta-transaction.
     /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function executeMetaTransaction(MetaTransactionData memory mtx, LibSignature.Signature memory signature)
+    function executeMetaTransaction(
+        MetaTransactionData memory mtx,
+        LibSignature.Signature memory signature
+    )
         public
         payable
         override
@@ -153,7 +156,10 @@ contract MetaTransactionsFeature is
     /// @param mtxs The meta-transactions.
     /// @param signatures The signature by each respective `mtx.signer`.
     /// @return returnResults The ABI-encoded results of the underlying calls.
-    function batchExecuteMetaTransactions(MetaTransactionData[] memory mtxs, LibSignature.Signature[] memory signatures)
+    function batchExecuteMetaTransactions(
+        MetaTransactionData[] memory mtxs,
+        LibSignature.Signature[] memory signatures
+    )
         public
         payable
         override
@@ -182,12 +188,9 @@ contract MetaTransactionsFeature is
     /// @dev Get the block at which a meta-transaction has been executed.
     /// @param mtx The meta-transaction.
     /// @return blockNumber The block height when the meta-transactioin was executed.
-    function getMetaTransactionExecutedBlock(MetaTransactionData memory mtx)
-        public
-        view
-        override
-        returns (uint256 blockNumber)
-    {
+    function getMetaTransactionExecutedBlock(
+        MetaTransactionData memory mtx
+    ) public view override returns (uint256 blockNumber) {
         return getMetaTransactionHashExecutedBlock(getMetaTransactionHash(mtx));
     }
 
@@ -459,11 +462,7 @@ contract MetaTransactionsFeature is
 
     /// @dev Make an arbitrary internal, meta-transaction call.
     ///      Warning: Do not let unadulterated `callData` into this function.
-    function _callSelf(
-        bytes32 hash,
-        bytes memory callData,
-        uint256 value
-    ) private returns (bytes memory returnResult) {
+    function _callSelf(bytes32 hash, bytes memory callData, uint256 value) private returns (bytes memory returnResult) {
         bool success;
         (success, returnResult) = address(this).call{value: value}(callData);
         if (!success) {

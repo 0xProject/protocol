@@ -30,12 +30,7 @@ interface ITokenSpenderFeature {
     /// @param owner The owner of the tokens.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _spendERC20Tokens(
-        IERC20TokenV06 token,
-        address owner,
-        address to,
-        uint256 amount
-    ) external;
+    function _spendERC20Tokens(IERC20TokenV06 token, address owner, address to, uint256 amount) external;
 
     /// @dev Gets the maximum amount of an ERC20 token `token` that can be
     ///      pulled from `owner`.

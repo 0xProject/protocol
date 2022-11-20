@@ -30,12 +30,7 @@ contract DummyERC20Token is Ownable, MintableERC20Token {
     uint256 public decimals;
     uint256 public constant MAX_MINT_AMOUNT = 10000000000000000000000;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _decimals,
-        uint256 _totalSupply
-    ) public {
+    constructor(string memory _name, string memory _symbol, uint256 _decimals, uint256 _totalSupply) public {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;

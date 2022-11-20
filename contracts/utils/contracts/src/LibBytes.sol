@@ -50,11 +50,7 @@ library LibBytes {
     /// @param dest memory address to copy bytes to.
     /// @param source memory address to copy bytes from.
     /// @param length number of bytes to copy.
-    function memCopy(
-        uint256 dest,
-        uint256 source,
-        uint256 length
-    ) internal pure {
+    function memCopy(uint256 dest, uint256 source, uint256 length) internal pure {
         if (length < 32) {
             // Handle a partial word by reading destination and masking
             // off the bits we are interested in.
@@ -161,11 +157,7 @@ library LibBytes {
     /// @param from The starting index for the slice (inclusive).
     /// @param to The final index for the slice (exclusive).
     /// @return result The slice containing bytes at indices [from, to)
-    function slice(
-        bytes memory b,
-        uint256 from,
-        uint256 to
-    ) internal pure returns (bytes memory result) {
+    function slice(bytes memory b, uint256 from, uint256 to) internal pure returns (bytes memory result) {
         // Ensure that the from and to positions are valid positions for a slice within
         // the byte array that is being used.
         if (from > to) {
@@ -199,11 +191,7 @@ library LibBytes {
     /// @param to The final index for the slice (exclusive).
     /// @return result The slice containing bytes at indices [from, to)
     /// @dev When `from == 0`, the original array will match the slice. In other cases its state will be corrupted.
-    function sliceDestructive(
-        bytes memory b,
-        uint256 from,
-        uint256 to
-    ) internal pure returns (bytes memory result) {
+    function sliceDestructive(bytes memory b, uint256 from, uint256 to) internal pure returns (bytes memory result) {
         // Ensure that the from and to positions are valid positions for a slice within
         // the byte array that is being used.
         if (from > to) {
@@ -303,11 +291,7 @@ library LibBytes {
     /// @param b Byte array to insert address into.
     /// @param index Index in byte array of address.
     /// @param input Address to put into byte array.
-    function writeAddress(
-        bytes memory b,
-        uint256 index,
-        address input
-    ) internal pure {
+    function writeAddress(bytes memory b, uint256 index, address input) internal pure {
         if (b.length < index + 20) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
@@ -376,11 +360,7 @@ library LibBytes {
     /// @param b Byte array to insert <input> into.
     /// @param index Index in byte array of <input>.
     /// @param input bytes32 to put into byte array.
-    function writeBytes32(
-        bytes memory b,
-        uint256 index,
-        bytes32 input
-    ) internal pure {
+    function writeBytes32(bytes memory b, uint256 index, bytes32 input) internal pure {
         if (b.length < index + 32) {
             LibRichErrors.rrevert(
                 LibBytesRichErrors.InvalidByteOperationError(
@@ -413,11 +393,7 @@ library LibBytes {
     /// @param b Byte array to insert <input> into.
     /// @param index Index in byte array of <input>.
     /// @param input uint256 to put into byte array.
-    function writeUint256(
-        bytes memory b,
-        uint256 index,
-        uint256 input
-    ) internal pure {
+    function writeUint256(bytes memory b, uint256 index, uint256 input) internal pure {
         writeBytes32(b, index, bytes32(input));
     }
 

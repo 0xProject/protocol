@@ -23,11 +23,7 @@ pragma experimental ABIEncoderV2;
 import "../src/features/interfaces/INativeOrdersFeature.sol";
 
 contract TestRfqOriginRegistration {
-    function registerAllowedRfqOrigins(
-        INativeOrdersFeature feature,
-        address[] memory origins,
-        bool allowed
-    ) external {
+    function registerAllowedRfqOrigins(INativeOrdersFeature feature, address[] memory origins, bool allowed) external {
         feature.registerAllowedRfqOrigins(origins, allowed);
     }
 }

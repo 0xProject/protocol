@@ -36,11 +36,7 @@ contract TestStaking {
         poolForMaker[msg.sender] = poolId;
     }
 
-    function payProtocolFee(
-        address makerAddress,
-        address payerAddress,
-        uint256 amount
-    ) external payable {
+    function payProtocolFee(address makerAddress, address payerAddress, uint256 amount) external payable {
         require(weth.transferFrom(payerAddress, address(this), amount));
         balanceForPool[poolForMaker[makerAddress]] += amount;
     }

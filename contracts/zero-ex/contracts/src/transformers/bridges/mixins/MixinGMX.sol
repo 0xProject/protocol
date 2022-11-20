@@ -33,12 +33,7 @@ interface IGmxRouter {
     /// @param _amountIn The amount of input tokens to send.
     /// @param _minOut The minimum amount of output tokens that must be received for the transaction not to revert.
     /// @param _receiver Recipient of the output tokens.
-    function swap(
-        address[] calldata _path,
-        uint256 _amountIn,
-        uint256 _minOut,
-        address _receiver
-    ) external;
+    function swap(address[] calldata _path, uint256 _amountIn, uint256 _minOut, address _receiver) external;
 }
 
 contract MixinGMX {

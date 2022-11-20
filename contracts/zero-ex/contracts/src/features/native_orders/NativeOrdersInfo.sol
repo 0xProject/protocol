@@ -51,11 +51,9 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
     /// @return orderInfo Info about the order.
-    function getLimitOrderInfo(LibNativeOrder.LimitOrder memory order)
-        public
-        view
-        returns (LibNativeOrder.OrderInfo memory orderInfo)
-    {
+    function getLimitOrderInfo(
+        LibNativeOrder.LimitOrder memory order
+    ) public view returns (LibNativeOrder.OrderInfo memory orderInfo) {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getLimitOrderHash(order);
         uint256 minValidSalt = LibNativeOrdersStorage
@@ -69,11 +67,9 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     /// @dev Get the order info for an RFQ order.
     /// @param order The RFQ order.
     /// @return orderInfo Info about the order.
-    function getRfqOrderInfo(LibNativeOrder.RfqOrder memory order)
-        public
-        view
-        returns (LibNativeOrder.OrderInfo memory orderInfo)
-    {
+    function getRfqOrderInfo(
+        LibNativeOrder.RfqOrder memory order
+    ) public view returns (LibNativeOrder.OrderInfo memory orderInfo) {
         // Recover maker and compute order hash.
         orderInfo.orderHash = getRfqOrderHash(order);
         uint256 minValidSalt = LibNativeOrdersStorage
@@ -145,7 +141,10 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getRfqOrderRelevantState(LibNativeOrder.RfqOrder memory order, LibSignature.Signature memory signature)
+    function getRfqOrderRelevantState(
+        LibNativeOrder.RfqOrder memory order,
+        LibSignature.Signature memory signature
+    )
         public
         view
         returns (
@@ -293,11 +292,9 @@ abstract contract NativeOrdersInfo is FixinEIP712, FixinTokenSpender {
 
     /// @dev Calculate the actual fillable taker token amount of an order
     ///      based on maker allowance and balances.
-    function _getActualFillableTakerTokenAmount(GetActualFillableTakerTokenAmountParams memory params)
-        private
-        view
-        returns (uint128 actualFillableTakerTokenAmount)
-    {
+    function _getActualFillableTakerTokenAmount(
+        GetActualFillableTakerTokenAmountParams memory params
+    ) private view returns (uint128 actualFillableTakerTokenAmount) {
         if (params.orderMakerAmount == 0 || params.orderTakerAmount == 0) {
             // Empty order.
             return 0;

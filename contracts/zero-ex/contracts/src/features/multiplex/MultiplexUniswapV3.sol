@@ -73,9 +73,10 @@ abstract contract MultiplexUniswapV3 is FixinTokenSpender {
         }
     }
 
-    function _multiHopSellUniswapV3(IMultiplexFeature.MultiHopSellState memory state, bytes memory wrappedCallData)
-        internal
-    {
+    function _multiHopSellUniswapV3(
+        IMultiplexFeature.MultiHopSellState memory state,
+        bytes memory wrappedCallData
+    ) internal {
         bool success;
         bytes memory resultData;
         if (state.from == address(this)) {

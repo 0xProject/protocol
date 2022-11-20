@@ -43,11 +43,10 @@ library LibTransformERC20RichErrors {
             );
     }
 
-    function NegativeTransformERC20OutputError(address outputToken, uint256 outputTokenLostAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function NegativeTransformERC20OutputError(
+        address outputToken,
+        uint256 outputTokenLostAmount
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("NegativeTransformERC20OutputError(address,uint256)")),
@@ -77,11 +76,10 @@ library LibTransformERC20RichErrors {
             abi.encodeWithSelector(bytes4(keccak256("OnlyCallableByDeployerError(address,address)")), caller, deployer);
     }
 
-    function InvalidExecutionContextError(address actualContext, address expectedContext)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function InvalidExecutionContextError(
+        address actualContext,
+        address expectedContext
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("InvalidExecutionContextError(address,address)")),
@@ -95,11 +93,10 @@ library LibTransformERC20RichErrors {
         INVALID_ARRAY_LENGTH
     }
 
-    function InvalidTransformDataError(InvalidTransformDataErrorCode errorCode, bytes memory transformData)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function InvalidTransformDataError(
+        InvalidTransformDataErrorCode errorCode,
+        bytes memory transformData
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("InvalidTransformDataError(uint8,bytes)")),
@@ -138,11 +135,10 @@ library LibTransformERC20RichErrors {
             );
     }
 
-    function InsufficientTakerTokenError(uint256 tokenBalance, uint256 tokensNeeded)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function InsufficientTakerTokenError(
+        uint256 tokenBalance,
+        uint256 tokensNeeded
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("InsufficientTakerTokenError(uint256,uint256)")),

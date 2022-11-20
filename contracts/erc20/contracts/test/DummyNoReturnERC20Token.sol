@@ -50,11 +50,7 @@ contract DummyNoReturnERC20Token is DummyERC20Token {
     /// @param _from The address of the sender
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
         require(balances[_from] >= _value, "ERC20_INSUFFICIENT_BALANCE");
         require(allowed[_from][msg.sender] >= _value, "ERC20_INSUFFICIENT_ALLOWANCE");
         require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");

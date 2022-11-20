@@ -31,11 +31,7 @@ library LibERC20TokenV06 {
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param allowance The allowance to set.
-    function compatApprove(
-        IERC20TokenV06 token,
-        address spender,
-        uint256 allowance
-    ) internal {
+    function compatApprove(IERC20TokenV06 token, address spender, uint256 allowance) internal {
         bytes memory callData = abi.encodeWithSelector(token.approve.selector, spender, allowance);
         _callWithOptionalBooleanResult(address(token), callData);
     }
@@ -46,11 +42,7 @@ library LibERC20TokenV06 {
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param amount The minimum allowance needed.
-    function approveIfBelow(
-        IERC20TokenV06 token,
-        address spender,
-        uint256 amount
-    ) internal {
+    function approveIfBelow(IERC20TokenV06 token, address spender, uint256 amount) internal {
         if (token.allowance(address(this), spender) < amount) {
             compatApprove(token, spender, uint256(-1));
         }
@@ -61,11 +53,7 @@ library LibERC20TokenV06 {
     /// @param token The address of the token contract.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function compatTransfer(
-        IERC20TokenV06 token,
-        address to,
-        uint256 amount
-    ) internal {
+    function compatTransfer(IERC20TokenV06 token, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(token.transfer.selector, to, amount);
         _callWithOptionalBooleanResult(address(token), callData);
     }
@@ -76,12 +64,7 @@ library LibERC20TokenV06 {
     /// @param from The owner of the tokens.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function compatTransferFrom(
-        IERC20TokenV06 token,
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
+    function compatTransferFrom(IERC20TokenV06 token, address from, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(token.transferFrom.selector, from, to, amount);
         _callWithOptionalBooleanResult(address(token), callData);
     }

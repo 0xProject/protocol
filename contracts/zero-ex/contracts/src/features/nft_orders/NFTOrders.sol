@@ -439,9 +439,7 @@ abstract contract NFTOrders is FixinCommon, FixinEIP712, FixinTokenSpender {
     /// @dev Get the order info for an NFT order.
     /// @param order The NFT order.
     /// @return orderInfo Info about the order.
-    function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
-        internal
-        view
-        virtual
-        returns (LibNFTOrder.OrderInfo memory orderInfo);
+    function _getOrderInfo(
+        LibNFTOrder.NFTOrder memory order
+    ) internal view virtual returns (LibNFTOrder.OrderInfo memory orderInfo);
 }

@@ -75,10 +75,10 @@ interface IOtcOrdersFeature {
     /// @param makerSignature The order signature from the maker.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
-    function fillOtcOrderWithEth(LibNativeOrder.OtcOrder calldata order, LibSignature.Signature calldata makerSignature)
-        external
-        payable
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
+    function fillOtcOrderWithEth(
+        LibNativeOrder.OtcOrder calldata order,
+        LibSignature.Signature calldata makerSignature
+    ) external payable returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount);
 
     /// @dev Fully fill an OTC order. "Meta-transaction" variant,
     ///      requires order to be signed by both maker and taker.
@@ -144,10 +144,9 @@ interface IOtcOrdersFeature {
     /// @dev Get the order info for an OTC order.
     /// @param order The OTC order.
     /// @return orderInfo Info about the order.
-    function getOtcOrderInfo(LibNativeOrder.OtcOrder calldata order)
-        external
-        view
-        returns (LibNativeOrder.OtcOrderInfo memory orderInfo);
+    function getOtcOrderInfo(
+        LibNativeOrder.OtcOrder calldata order
+    ) external view returns (LibNativeOrder.OtcOrderInfo memory orderInfo);
 
     /// @dev Get the canonical hash of an OTC order.
     /// @param order The OTC order.

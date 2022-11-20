@@ -72,7 +72,9 @@ contract EthereumBridgeAdapter is
     MixinUniswapV3,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth)
+    constructor(
+        IEtherTokenV06 weth
+    )
         public
         MixinBancor(weth)
         MixinBancorV3(weth)

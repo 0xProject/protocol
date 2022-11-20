@@ -40,11 +40,7 @@ library LibSafeMathRichErrorsV06 {
         VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128
     }
 
-    function Uint256BinOpError(
-        BinOpErrorCodes errorCode,
-        uint256 a,
-        uint256 b
-    ) internal pure returns (bytes memory) {
+    function Uint256BinOpError(BinOpErrorCodes errorCode, uint256 a, uint256 b) internal pure returns (bytes memory) {
         return abi.encodeWithSelector(UINT256_BINOP_ERROR_SELECTOR, errorCode, a, b);
     }
 

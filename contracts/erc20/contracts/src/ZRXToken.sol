@@ -37,11 +37,7 @@ contract Token {
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
     /// @return Whether the transfer was successful or not
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) returns (bool success) {}
+    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {}
 
     /// @notice `msg.sender` approves `_addr` to spend `_value` tokens
     /// @param _spender The address of the account able to transfer the tokens
@@ -71,11 +67,7 @@ contract ERC20Token is Token {
         }
     }
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) returns (bool) {
         if (
             balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value >= balances[_to]
         ) {
@@ -109,18 +101,14 @@ contract ERC20Token is Token {
 }
 
 contract UnlimitedAllowanceToken is ERC20Token {
-    uint256 constant MAX_UINT = 2**256 - 1;
+    uint256 constant MAX_UINT = 2 ** 256 - 1;
 
     /// @dev ERC20 transferFrom, modified such that an allowance of MAX_UINT represents an unlimited allowance.
     /// @param _from Address to transfer from.
     /// @param _to Address to transfer to.
     /// @param _value Amount to transfer.
     /// @return Success of transfer.
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         uint256 allowance = allowed[_from][msg.sender];
         if (balances[_from] >= _value && allowance >= _value && balances[_to] + _value >= balances[_to]) {
             balances[_to] += _value;
@@ -138,7 +126,7 @@ contract UnlimitedAllowanceToken is ERC20Token {
 
 contract ZRXToken is UnlimitedAllowanceToken {
     uint8 public constant decimals = 18;
-    uint256 public totalSupply = 10**27; // 1 billion tokens, 18 decimal places
+    uint256 public totalSupply = 10 ** 27; // 1 billion tokens, 18 decimal places
     string public constant name = "0x Protocol Token";
     string public constant symbol = "ZRX";
 
