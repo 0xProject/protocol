@@ -78,6 +78,7 @@ export enum ERC20BridgeSource {
     FirebirdOneSwap = 'FirebirdOneSwap',
     IronSwap = 'IronSwap',
     MeshSwap = 'MeshSwap',
+    Dystopia = 'Dystopia',
     // Avalanche
     Pangolin = 'Pangolin',
     TraderJoe = 'TraderJoe',
