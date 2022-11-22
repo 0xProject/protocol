@@ -86,36 +86,6 @@ interface IL2Pool {
     function withdraw(bytes32 args) external;
 }
 
-// Minimal Aave V3 L2Encoder interface
-interface IL2Encoder {
-    /**
-     * @notice Encodes supply parameters from standard input to compact representation of 1 bytes32
-     * @dev Without an onBehalfOf parameter as the compact calls to L2Pool will use msg.sender as onBehalfOf
-     * @param asset The address of the underlying asset to supply
-     * @param amount The amount to be supplied
-     * @param referralCode referralCode Code used to register the integrator originating the operation, for potential rewards.
-     *   0 if the action is executed directly by the user, without any middle-man
-     * @return compact representation of supply parameters
-     */
-    function encodeSupplyParams(
-        address asset,
-        uint256 amount,
-        uint16 referralCode
-    ) external view returns (bytes32);
-
-    /**
-     * @notice Encodes withdraw parameters from standard input to compact representation of 1 bytes32
-     * @dev Without a to parameter as the compact calls to L2Pool will use msg.sender as to
-     * @param asset The address of the underlying asset to withdraw
-     * @param amount The underlying amount to be withdrawn
-     * @return compact representation of withdraw parameters
-     */
-    function encodeWithdrawParams(
-        address asset,
-        uint256 amount
-    ) external view returns (bytes32);
-}
-
 contract MixinAaveV3 {
     using LibERC20TokenV06 for IERC20TokenV06;
 
