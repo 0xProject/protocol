@@ -132,24 +132,22 @@ contract MixinAaveV3 {
         bytes memory bridgeData
     ) internal returns (uint256) {
         if (_isL2) {
-            (IL2Pool pool, IL2Encoder encoder, address aToken) = abi.decode(bridgeData, (IL2Pool, IL2Encoder, address));
+            (IL2Pool pool, address aToken, bytes32 l2Params) = abi.decode(bridgeData, (IL2Pool, address, bytes32));
 
             sellToken.approveIfBelow(address(pool), sellAmount);
 
             if (address(buyToken) == aToken) {
-                bytes32 supplyParams = encoder.encodeSupplyParams(address(sellToken), sellAmount, 0);
-                pool.supply(supplyParams);
+                pool.supply(l2Params);
                 // 1:1 mapping token --> aToken and have the same number of decimals as the underlying token
                 return sellAmount;
             } else if (address(sellToken) == aToken) {
-                bytes32 withdrawParams = encoder.encodeWithdrawParams(address(buyToken), sellAmount);
-                pool.withdraw(withdrawParams);
+                pool.withdraw(l2Params);
                 return sellAmount;
             }
 
             revert("MixinAaveV3/UNSUPPORTED_TOKEN_PAIR");
         }
-        (IPool pool,, address aToken) = abi.decode(bridgeData, (IPool, IL2Encoder, address));
+        (IPool pool, address aToken, ) = abi.decode(bridgeData, (IPool, address, bytes32));
 
         sellToken.approveIfBelow(address(pool), sellAmount);
 

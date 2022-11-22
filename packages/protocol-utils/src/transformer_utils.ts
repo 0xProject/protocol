@@ -162,6 +162,7 @@ export enum BridgeProtocol {
     Velodrome,
     Synthetix,
     WOOFi,
+    AaveV3,
 }
 
 /**
