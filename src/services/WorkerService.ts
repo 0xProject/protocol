@@ -158,6 +158,7 @@ const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30; // tslint:disable-line
  */
 export class WorkerService {
     private _lastHeartbeatTime: Date | null = null;
+    private _maxFeePerGasCapWei: BigNumber;
 
     public static shouldResubmitTransaction(gasFees: GasFees, gasPriceEstimate: BigNumber): boolean {
         // Geth only allows replacement of transactions if the replacement gas price
@@ -238,9 +239,11 @@ export class WorkerService {
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
         private readonly _initialMaxPriorityFeePerGasGwei: number,
-        private readonly _maxFeePerGasCapGwei: number,
+        maxFeePerGasCapGwei: number,
         private readonly _enableAccessList?: boolean,
-    ) {}
+    ) {
+        this._maxFeePerGasCapWei = new BigNumber(maxFeePerGasCapGwei).times(Math.pow(10, GWEI_DECIMALS));
+    }
 
     public async workerBeforeLogicAsync(workerIndex: number, workerAddress: string): Promise<boolean> {
         let gasPrice;
@@ -291,7 +294,7 @@ export class WorkerService {
             this._chainId,
             workerAddress,
             balance,
-            gasPrice,
+            BigNumber.min(gasPrice, this._maxFeePerGasCapWei),
         );
         if (!isWorkerReady) {
             RFQM_WORKER_NOT_READY.labels(workerAddress, this._chainId.toString()).inc();
@@ -934,7 +937,10 @@ export class WorkerService {
                         Math.pow(10, GWEI_DECIMALS),
                     );
                     const gasFees: GasFees = {
-                        maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+                        maxFeePerGas: BigNumber.min(
+                            gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+                            this._maxFeePerGasCapWei,
+                        ),
                         maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
                     };
 
@@ -1358,10 +1364,12 @@ export class WorkerService {
         const initialMaxPriorityFeePerGas = new BigNumber(this._initialMaxPriorityFeePerGasGwei).times(
             Math.pow(10, GWEI_DECIMALS),
         );
-        const maxFeePerGasCap = new BigNumber(this._maxFeePerGasCapGwei).times(Math.pow(10, GWEI_DECIMALS));
 
         let gasFees: GasFees = {
-            maxFeePerGas: gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+            maxFeePerGas: BigNumber.min(
+                gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
+                this._maxFeePerGasCapWei,
+            ),
             maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
         };
 
@@ -1542,11 +1550,11 @@ export class WorkerService {
                     const { maxFeePerGas: oldMaxFeePerGas, maxPriorityFeePerGas: oldMaxPriorityFeePerGas } =
                         submissionContext.maxGasFees;
 
-                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(maxFeePerGasCap)) {
+                    if (oldMaxFeePerGas.isGreaterThanOrEqualTo(this._maxFeePerGasCapWei)) {
                         // If we've reached the max fee per gas we'd like to pay, just
                         // continue watching the transactions to see if one gets mined.
                         logger.info(
-                            { kind, submissionType, oldMaxFeePerGas, maxFeePerGasCap },
+                            { kind, submissionType, oldMaxFeePerGas, maxFeePerGasCap: this._maxFeePerGasCapWei },
                             'Exceeds max fee per gas',
                         );
                         continue;
