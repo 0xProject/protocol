@@ -16,12 +16,4 @@ fs_permissions = [
     { access = "read-write", path = "./contracts/test/foundry/addresses" },
 ]
 verbosity = 3
-#these rpc's are publicly available on rpc.info not internal rpcs
-[rpc_endpoints]
-arbitrum = "https://rpc.ankr.com/arbitrum"
-avalanche = "https://api.avax.network/ext/bc/C/rpc"
-bsc = "https://bsc-dataseed1.binance.org/"
-fantom = "https://rpc.ftm.tools/"
-mainnet = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-optimism = "https://mainnet.optimism.io"
-polygon = "https://polygon-rpc.com"
+rpc_endpoints = { arbitrum = "${FORGE_ARBITRUM_RPC}", avalanche = "${FORGE_AVALANCHE_RPC}", bsc = "${FORGE_BSC_RPC}", fantom = "${FORGE_FANTOM_RPC}", mainnet = "${FORGE_MAINNET_RPC}", optimism = "${FORGE_OPTIMISM_RPC}", polygon = "${FORGE_POLYGON_RPC}" }
