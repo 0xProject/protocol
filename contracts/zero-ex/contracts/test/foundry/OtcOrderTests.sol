@@ -12,7 +12,7 @@ import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
-import "src/sampler/UniswapV2Sampler.sol";
+import "@0x/samplers/UniswapV2Sampler.sol";
 import "forge-std/StdJson.sol";
 
 contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {

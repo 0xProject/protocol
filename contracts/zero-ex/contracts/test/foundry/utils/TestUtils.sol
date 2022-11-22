@@ -60,7 +60,6 @@ contract TestUtils is Test {
         return nstr;
     }    
 
-<<<<<<< HEAD
     function _findTransformerNonce(
         address transformer,
         address deployer
@@ -69,9 +68,6 @@ contract TestUtils is Test {
         pure
         returns (uint32)
     {
-=======
-    function _findTransformerNonce(address transformer, address deployer) internal returns (uint32) {
->>>>>>> 725dfe4db (working bridge Fills through weth transformer)
         address current;
         for (uint32 i = 0; i < 1024; i++) {
             current = LibERC20Transformer.getDeployedAddress(deployer, i);
