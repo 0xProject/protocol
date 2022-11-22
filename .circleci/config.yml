@@ -175,7 +175,7 @@ jobs:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             # - run: forge install
-            - run: forge test -vvv
+            - run: forge test -vvvv
     test-publish:
         resource_class: large
         environment:
