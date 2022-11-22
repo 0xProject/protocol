@@ -81,7 +81,7 @@ lib
 /contracts/erc1155/build/
 /contracts/zero-ex/foundry-artifacts
 /contracts/zero-ex/foundry-cache
-/contracts/zero-ex/contracts/src/deps
+/contracts/zero-ex/contracts/deps
 /contracts/extensions/build/
 /contracts/exchange-forwarder/build/
 /packages/asset-swapper/
