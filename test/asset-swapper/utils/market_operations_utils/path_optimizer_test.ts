@@ -177,7 +177,7 @@ describe('PathOptimizer', () => {
     });
 
     describe('Multiplex routing', () => {
-        it('Returns the multiplex path from dex samples', async () => {
+        it('Returns the best multiplex path (two DEX samples)', async () => {
             const pathOptimizer = new PathOptimizer({
                 side: MarketOperation.Sell,
                 chainId: ChainId.Mainnet,
@@ -223,10 +223,106 @@ describe('PathOptimizer', () => {
             expect(inputTotal).bignumber.eq(ONE_ETHER.times(4));
             expect(outputTotal).bignumber.eq(ONE_ETHER.times(8));
         });
-    });
 
-    // TODO: DEX + native
-    // TODO: native + native
+        it('Returns the best multiplex path (two native orders)', async () => {
+            const pathOptimizer = new PathOptimizer({
+                side: MarketOperation.Sell,
+                chainId: ChainId.Mainnet,
+                feeSchedule: NO_OP_FEE_SCHEDULE,
+                neonRouterNumSamples: 5,
+                fillAdjustor: new IdentityFillAdjustor(),
+                pathPenaltyOpts: NO_OP_PATH_PENALTY_OPTS,
+                inputAmount: ONE_ETHER.times(4),
+            });
+
+            // The best route involves utilizing two and native orders.
+            const path = pathOptimizer.findOptimalPathFromSamples(
+                [
+                    createDexSamples({
+                        source: ERC20BridgeSource.UniswapV3,
+                        inputsInEther: [1, 2, 3, 4],
+                        outputsInEther: [1, 2, 3, 4],
+                    }),
+                ],
+                [],
+                [
+                    createOtcOrder({
+                        inputInEther: 2,
+                        outputInEther: 4,
+                    }),
+
+                    createOtcOrder({
+                        inputInEther: 2,
+                        outputInEther: 4,
+                    }),
+                ],
+            );
+
+            if (path === undefined) {
+                expect(path).to.be.not.undefined();
+                return;
+            }
+
+            expect(path.fills).lengthOf(2);
+            const fill0 = path.fills[0];
+            const fill1 = path.fills[1];
+            expect(fill0.source).eq(ERC20BridgeSource.Native);
+            expect(fill1.source).eq(ERC20BridgeSource.Native);
+
+            const inputTotal = fill0.input.plus(fill1.input);
+            const outputTotal = fill0.output.plus(fill1.output);
+
+            expect(inputTotal).bignumber.eq(ONE_ETHER.times(4));
+            expect(outputTotal).bignumber.eq(ONE_ETHER.times(8));
+        });
+
+        it('Returns the best multiplex path (DEX + native order)', async () => {
+            const pathOptimizer = new PathOptimizer({
+                side: MarketOperation.Sell,
+                chainId: ChainId.Mainnet,
+                feeSchedule: NO_OP_FEE_SCHEDULE,
+                neonRouterNumSamples: 5,
+                fillAdjustor: new IdentityFillAdjustor(),
+                pathPenaltyOpts: NO_OP_PATH_PENALTY_OPTS,
+                inputAmount: ONE_ETHER.times(4),
+            });
+
+            // The best route involves utilizing both Uniswap V3 and NativeOrder
+            const path = pathOptimizer.findOptimalPathFromSamples(
+                [
+                    createDexSamples({
+                        source: ERC20BridgeSource.UniswapV3,
+                        inputsInEther: [1, 2, 3, 4],
+                        outputsInEther: [2, 4, 5, 7],
+                    }),
+                ],
+                [],
+                [
+                    createOtcOrder({
+                        inputInEther: 2,
+                        outputInEther: 4,
+                    }),
+                ],
+            );
+
+            if (path === undefined) {
+                expect(path).to.be.not.undefined();
+                return;
+            }
+
+            expect(path.fills).lengthOf(2);
+            const fill0 = path.fills[0];
+            const fill1 = path.fills[1];
+            expect(fill0.source).eq(ERC20BridgeSource.UniswapV3);
+            expect(fill1.source).eq(ERC20BridgeSource.Native);
+
+            const inputTotal = fill0.input.plus(fill1.input);
+            const outputTotal = fill0.output.plus(fill1.output);
+
+            expect(inputTotal).bignumber.eq(ONE_ETHER.times(4));
+            expect(outputTotal).bignumber.eq(ONE_ETHER.times(8));
+        });
+    });
 });
 
 function createDexSample(source: ERC20BridgeSource, inputInEther: number, outputInEther: number): DexSample<FillData> {
