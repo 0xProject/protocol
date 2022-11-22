@@ -15,7 +15,7 @@
         "build:ts": "tsc -b",
         "pre_build": "run-s compile contracts:gen generate_contract_wrappers contracts:copy",
         "test": "yarn run_mocha",
-        "forge": "forge test -vvv",
+        "forge": "forge test -vvvv",
         "rebuild_and_test": "run-s build test",
         "test:coverage": "SOLIDITY_COVERAGE=true run-s build run_mocha coverage:report:text coverage:report:lcov",
         "test:profiler": "SOLIDITY_PROFILER=true run-s build run_mocha profiler:report:html",
