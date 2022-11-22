@@ -21,9 +21,6 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
-<<<<<<< HEAD
-
-=======
 import "src/features/TransformERC20Feature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/transformers/WethTransformer.sol";
@@ -78,11 +75,8 @@ struct LiquiditySources {
 interface IFQT{
   function bridgeAdapter() external returns (address);
 }
->>>>>>> 725dfe4db (working bridge Fills through weth transformer)
 
 contract ForkUtils is Test {
-<<<<<<< HEAD
-=======
   
     using stdJson for string;
     //forked providers for each chain
@@ -106,19 +100,8 @@ contract ForkUtils is Test {
 
     //special fork block number for fantom since it produces blocks faster and more frequently
     uint256[] blockNumber = [forkBlock, forkBlock, 33447149, forkBlock, 32000000, forkBlock, forkBlock];
->>>>>>> 06f73f9d5 (added working otc fill through transformERC20 in FQT)
     /// Only run this function if the block number
     // is greater than some constant for Ethereum Mainnet
-<<<<<<< HEAD
-    modifier onlyForked {
-        if (block.number >= 14206900) {
-            _;
-        } else {
-            emit log_string("Requires fork mode, skipping");
-        }
-    }
-}
-=======
 
     string addressesJson;
     string tokensJson;
@@ -237,4 +220,3 @@ contract ForkUtils is Test {
       }
   }
 }
->>>>>>> 725dfe4db (working bridge Fills through weth transformer)
