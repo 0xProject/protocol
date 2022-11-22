@@ -13,11 +13,8 @@ blockchainTests('mocha blockchain extensions', env => {
             expect(env.provider).to.exist('');
             expect(env.txDefaults).to.exist('');
             expect(env.web3Wrapper).to.exist('');
-            // HACK(dorothy-zbornak): tslint seems to get confused by these assertions.
-            // tslint:disable: no-unbound-method
             expect(typeof env.getChainIdAsync).to.eq('function');
             expect(typeof env.getAccountAddressesAsync).to.eq('function');
-            // tslint:enable: no-unbound-method
         });
 
         it('initializes the test environment', async () => {
@@ -96,7 +93,6 @@ blockchainTests('mocha blockchain extensions', env => {
 
 function createHookedObject(obj: any, handler: (name: string) => void, methods: string[]): any {
     const hookedMethods = _.map(methods, methodName => {
-        // tslint:disable: only-arrow-functions
         return function (this: any, ...args: any[]): any {
             handler(methodName);
             return obj[methodName].call(this, ...args);

@@ -30,7 +30,6 @@ import "./LibERC20Transformer.sol";
 
 /// @dev A transformer that transfers tokens to the taker.
 contract PayTakerTransformer is Transformer {
-    // solhint-disable no-empty-blocks
     using LibRichErrorsV06 for bytes;
     using LibSafeMathV06 for uint256;
     using LibERC20Transformer for IERC20TokenV06;

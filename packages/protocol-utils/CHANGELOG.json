@@ -1,5 +1,23 @@
 [
     {
+        "timestamp": 1668477029,
+        "version": "11.17.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "11.17.0",
+        "changes": [
+            {
+                "note": "Rename Velodrome to Solidly"
+            }
+        ],
+        "timestamp": 1667607537
+    },
+    {
         "timestamp": 1667427402,
         "version": "11.16.17",
         "changes": [

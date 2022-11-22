@@ -142,4 +142,3 @@ describe('LibAddressArray', () => {
         });
     });
 });
-// tslint:disable:max-file-line-count

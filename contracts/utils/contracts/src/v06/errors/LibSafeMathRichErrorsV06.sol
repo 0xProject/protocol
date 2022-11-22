@@ -40,7 +40,6 @@ library LibSafeMathRichErrorsV06 {
         VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128
     }
 
-    // solhint-disable func-name-mixedcase
     function Uint256BinOpError(
         BinOpErrorCodes errorCode,
         uint256 a,

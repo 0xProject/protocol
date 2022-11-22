@@ -2,8 +2,6 @@ import { LogEntry, LogWithDecodedArgs, TransactionReceiptWithDecodedLogs } from 
 
 import { expect } from './chai_setup';
 
-// tslint:disable no-unnecessary-type-assertion
-
 /**
  * Filter logs by event name/type.
  */

@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v11.17.1 - _November 15, 2022_
+
+    * Dependencies updated
+
+## v11.17.0 - _November 5, 2022_
+
+    * Rename Velodrome to Solidly
+
 ## v11.16.17 - _November 2, 2022_
 
     * Dependencies updated

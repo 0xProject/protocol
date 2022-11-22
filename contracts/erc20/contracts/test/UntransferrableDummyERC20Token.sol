@@ -20,8 +20,6 @@ pragma solidity ^0.5.5;
 
 import "./DummyERC20Token.sol";
 
-// solhint-disable no-empty-blocks
-// solhint-disable no-unused-vars
 contract UntransferrableDummyERC20Token is DummyERC20Token {
     constructor(
         string memory _name,

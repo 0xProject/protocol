@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.4.0 - _November 15, 2022_
+
+    * Upgrade Polygon FillQuoteTransformer to support Solidly (and its forks). (#616)
+
+## v7.3.0 - _November 5, 2022_
+
+    * Upgrade `AffiliateFeeTransformer`, `PayTakerTransformer`, and `PositiveSlippageFeeTransformer` to support smart contract wallets (#615)
+
 ## v7.2.0 - _November 2, 2022_
 
     * Add RFQTV2 to Mumbai (#611)

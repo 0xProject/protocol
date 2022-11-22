@@ -1,5 +1,23 @@
 [
     {
+        "timestamp": 1668477029,
+        "version": "0.38.1",
+        "changes": [
+            {
+                "note": "Dependencies updated"
+            }
+        ]
+    },
+    {
+        "version": "0.38.0",
+        "changes": [
+            {
+                "note": "Rename Velodrome to Solidly and add SolidlyMixin support on Polygon"
+            }
+        ],
+        "timestamp": 1667607537
+    },
+    {
         "timestamp": 1667427402,
         "version": "0.37.10",
         "changes": [

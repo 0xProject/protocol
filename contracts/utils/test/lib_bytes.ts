@@ -446,7 +446,6 @@ blockchainTests('LibBytes', env => {
     describe('memCopy', () => {
         // Create memory 0x000102...FF
         const memSize = 256;
-        // tslint:disable:no-shadowed-variable
         const memory = new Uint8Array(memSize).map((_, i) => i);
         const memHex = toHex(memory);
 
@@ -782,4 +781,3 @@ blockchainTests('LibBytes', env => {
         });
     });
 });
-// tslint:disable:max-file-line-count

@@ -26,7 +26,6 @@ library LibMathRichErrorsV06 {
     // bytes4(keccak256("RoundingError(uint256,uint256,uint256)"))
     bytes4 internal constant ROUNDING_ERROR_SELECTOR = 0x339f3de2;
 
-    // solhint-disable func-name-mixedcase
     function DivisionByZeroError() internal pure returns (bytes memory) {
         return DIVISION_BY_ZERO_ERROR;
     }

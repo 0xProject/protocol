@@ -113,9 +113,7 @@ contract MetaTransactionsFeature is
         require(initialBalance <= address(this).balance, "MetaTransactionsFeature/ETH_LEAK");
     }
 
-    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {
-        // solhint-disable-next-line no-empty-blocks
-    }
+    constructor(address zeroExAddress) public FixinCommon() FixinEIP712(zeroExAddress) {}
 
     /// @dev Initialize and register this feature.
     ///      Should be delegatecalled by `Migrate.migrate()`.

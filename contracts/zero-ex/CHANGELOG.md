@@ -5,6 +5,14 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v0.38.1 - _November 15, 2022_
+
+    * Dependencies updated
+
+## v0.38.0 - _November 5, 2022_
+
+    * Rename Velodrome to Solidly and add SolidlyMixin support on Polygon
+
 ## v0.37.10 - _November 2, 2022_
 
     * Dependencies updated

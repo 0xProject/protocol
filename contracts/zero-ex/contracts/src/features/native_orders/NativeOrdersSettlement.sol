@@ -118,9 +118,7 @@ abstract contract NativeOrdersSettlement is
         public
         NativeOrdersCancellation(zeroExAddress)
         NativeOrdersProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier)
-    {
-        // solhint-disable no-empty-blocks
-    }
+    {}
 
     /// @dev Fill a limit order. The taker and sender will be the caller.
     /// @param order The limit order. ETH protocol fees can be
@@ -501,6 +499,7 @@ abstract contract NativeOrdersSettlement is
         }
 
         // Update filled state for the order.
+        // solhint-disable-next-line max-line-length
         LibNativeOrdersStorage.getStorage().orderHashToTakerTokenFilledAmount[settleInfo.orderHash] = settleInfo // function if the order is cancelled. // OK to overwrite the whole word because we shouldn't get to this
             .takerTokenFilledAmount
             .safeAdd128(takerTokenFilledAmount);

@@ -23,9 +23,9 @@ import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
 import "./mixins/MixinNerve.sol";
+import "./mixins/MixinSolidly.sol";
 import "./mixins/MixinSynthetix.sol";
 import "./mixins/MixinUniswapV3.sol";
-import "./mixins/MixinVelodrome.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract OptimismBridgeAdapter is
@@ -38,7 +38,7 @@ contract OptimismBridgeAdapter is
     MixinNerve,
     MixinSynthetix,
     MixinUniswapV3,
-    MixinVelodrome,
+    MixinSolidly,
     MixinZeroExBridge
 {
     constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
@@ -71,11 +71,11 @@ contract OptimismBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.VELODROME) {
+        } else if (protocolId == BridgeProtocols.SOLIDLY) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeVelodrome(sellToken, buyToken, sellAmount, order.bridgeData);
+            boughtAmount = _tradeSolidly(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.SYNTHETIX) {
             if (dryRun) {
                 return (0, true);

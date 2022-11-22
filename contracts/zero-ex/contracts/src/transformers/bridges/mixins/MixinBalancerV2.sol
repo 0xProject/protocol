@@ -29,6 +29,7 @@ interface IBalancerV2Vault {
         GIVEN_OUT
     }
 
+    // solhint-disable max-line-length
     /**
      * @dev Performs a swap with a single Pool.
      *
@@ -43,6 +44,9 @@ interface IBalancerV2Vault {
      * Emits a `Swap` event.
      * For full documentation see https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
      */
+
+    // solhint-enable max-line-length
+
     function swap(
         SingleSwap calldata request,
         FundManagement calldata funds,

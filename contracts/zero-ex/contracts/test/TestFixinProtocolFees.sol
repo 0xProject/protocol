@@ -28,9 +28,7 @@ contract TestFixinProtocolFees is FixinProtocolFees {
         IStaking staking,
         FeeCollectorController feeCollectorController,
         uint32 protocolFeeMultiplier
-    ) public FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {
-        // solhint-disalbe no-empty-blocks
-    }
+    ) public FixinProtocolFees(weth, staking, feeCollectorController, protocolFeeMultiplier) {}
 
     function collectProtocolFee(bytes32 poolId) external payable {
         _collectProtocolFee(poolId);

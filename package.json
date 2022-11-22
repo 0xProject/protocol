@@ -34,19 +34,22 @@
         "watch:ts": "tsc -b -w",
         "clean": "wsrun --fast-exit -r --parallel --exclude-missing -p $PKG -c clean",
         "contracts:watch": "wsrun --parallel --exclude-missing -p $PKG -c watch",
+        "lint:contracts": "npx solhint contracts/**/*.sol",
         "remove_node_modules": "lerna clean --yes; rm -rf node_modules",
         "rebuild": "run-s clean build",
         "test": "wsrun --fast-exit --serial --exclude-missing -p $(echo $(echo ${npm_package_config_contractsPackages} ${npm_package_config_nonContractPackages} | tr ' ' '\n' | sort | uniq) ${npm_package_config_ignoreTestsForPackages} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ') -c test",
         "test:all": "wsrun --fast-exit --serial --exclude-missing -p $PKG -c test",
         "test:contracts": "wsrun --serial -p $(echo ${npm_package_config_contractsPackages} ${npm_package_config_ignoreTestsForPackages} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ') --fast-exit --exclude-missing -c test",
         "test:contracts:all": "wsrun --serial -p ${npm_package_config_contractsPackages} --fast-exit --exclude-missing -c test",
+        "test:links": "yarn check-md",
         "generate_doc": "node ./node_modules/@0x/monorepo-scripts/lib/doc_generate.js --config ./doc-gen-config.json",
         "upload_md_docs": "aws s3 rm --recursive s3://docs-markdown; wsrun --exclude-missing -c s3:sync_md_docs",
         "diff_md_docs:ci": "wsrun --exclude-missing -c diff_docs",
         "test:generate_docs:circleci": "for i in ${npm_package_config_packagesWithDocPages}; do yarn generate_doc --package $i || break -1; done;",
         "bundlewatch": "bundlewatch",
-        "lint": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
-        "upgrade_tools": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/abi-gen|@0x/assert|@0x/base-contract|@0x/contracts-gen|@0x/dev-utils|@0x/json-schemas|@0x/monorepo-scripts|@0x/sol-compiler|@0x/sol-coverage|@0x/sol-doc|@0x/sol-profiler|@0x/sol-resolver|@0x/sol-trace|@0x/sol-tracing-utils|@0x/subproviders|@0x/tslint-config|@0x/types|@0x/typescript-typings|@0x/utils|@0x/verdaccio|@0x/web3-wrapper|ethereum-types'",
+        "lint:ts": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
+        "lint": "yarn lint:ts && yarn lint:contracts",
+        "upgrade_tools": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/abi-gen|@0x/assert|@0x/base-contract|@0x/contracts-gen|@0x/dev-utils|@0x/json-schemas|@0x/monorepo-scripts|@0x/sol-compiler|@0x/sol-coverage|@0x/sol-doc|@0x/sol-profiler|@0x/sol-resolver|@0x/sol-trace|@0x/sol-tracing-utils|@0x/subproviders|@0x/types|@0x/typescript-typings|@0x/utils|@0x/verdaccio|@0x/web3-wrapper|ethereum-types'",
         "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
     },
@@ -64,6 +67,7 @@
         "@0x/monorepo-scripts": "^3.2.4",
         "@0xproject/npm-cli-login": "^0.0.11",
         "async-child-process": "^1.1.1",
+        "check-md": "^1.0.2",
         "coveralls": "^3.0.0",
         "ganache-cli": "6.12.2",
         "lcov-result-merger": "^3.0.0",
@@ -71,11 +75,14 @@
         "npm-run-all": "^4.1.2",
         "prettier": "2.7.1",
         "prettier-plugin-solidity": "^1.0.0-beta.24",
+        "solhint": "^3.3.7",
+        "solhint-plugin-prettier": "^0.0.5",
         "source-map-support": "^0.5.6",
         "typescript": "4.6.3",
         "wsrun": "^5.2.4"
     },
     "resolutions": {
         "**/bignumber.js": "^9.0.2"
-    }
+    },
+    "dependencies": {}
 }
