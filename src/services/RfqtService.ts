@@ -66,6 +66,7 @@ function transformRfqtV2PricesParameters(p: QuoteContext, chainId: number): Quot
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
+        protocolVersion: '4', //hardcode - will break some MMs if missing!
     };
 
     // Convert mmRequestParameters values to strings
