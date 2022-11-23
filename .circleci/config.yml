@@ -174,7 +174,6 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: foundryup 
             - run: cd contracts/zero-ex && git submodule update --init --remote && forge remappings
             - run: cd contracts/zero-ex && forge test
     test-publish:
