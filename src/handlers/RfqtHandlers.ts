@@ -11,7 +11,7 @@ import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { FirmQuoteContext, QuoteContext } from '../services/types';
-import { FeeModelVersion, RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
+import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
 
@@ -182,7 +182,7 @@ export class RfqtHandlers {
         try {
             const chainId = this._extractChainId(req);
             service = this._getServiceForChain(chainId);
-            quoteContext = this._extractQuoteContext(req, chainId, false, service.feeModelVersion);
+            quoteContext = await this._extractQuoteContextAsync(req, chainId, false, service);
         } catch (error) {
             RFQT_V2_PRICE_REQUEST_FAILED.inc();
             logger.error({ error: error.message }, 'Rfqt V2 price request failed');
@@ -219,7 +219,7 @@ export class RfqtHandlers {
         try {
             const chainId = this._extractChainId(req);
             service = this._getServiceForChain(chainId);
-            quoteContext = this._extractQuoteContext(req, chainId, true, service.feeModelVersion) as FirmQuoteContext;
+            quoteContext = (await this._extractQuoteContextAsync(req, chainId, true, service)) as FirmQuoteContext;
         } catch (error) {
             RFQT_V2_QUOTE_REQUEST_FAILED.inc();
             logger.error({ error }, 'Rfqt V2 quote request failed');
@@ -324,12 +324,12 @@ export class RfqtHandlers {
      * Extract quote context from request parameters. After running the method, the parameters
      * should match their TypeScript types.
      */
-    private _extractQuoteContext<TRequest extends TypedRequest<RfqtV2Request>>(
+    private async _extractQuoteContextAsync<TRequest extends TypedRequest<RfqtV2Request>>(
         request: TRequest,
         chainId: number,
         isFirm: boolean,
-        feeModelVersion: FeeModelVersion,
-    ): QuoteContext {
+        service: RfqtService,
+    ): Promise<QuoteContext> {
         const { body } = request;
 
         // Doing this before destructuring the body, otherwise the error
@@ -368,6 +368,9 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameter txOrigin');
         }
 
+        const takerTokenDecimals = await service.getTokenDecimalsAsync(takerToken);
+        const makerTokenDecimals = await service.getTokenDecimalsAsync(makerToken);
+
         return {
             workflow: 'rfqt',
             chainId,
@@ -377,15 +380,13 @@ export class RfqtHandlers {
             originalMakerToken: makerToken,
             takerAddress,
             txOrigin,
-            // TODO (Xinxing): figure out token decimals at runtime
-            // Ticket: https://linear.app/0xproject/issue/RFQ-726/rfqt-figure-out-token-decimals-at-runtime
-            takerTokenDecimals: 18,
-            makerTokenDecimals: 18,
+            takerTokenDecimals,
+            makerTokenDecimals,
             integrator,
             isUnwrap: false,
             isSelling: (marketOperation as string) === MarketOperation.Sell.toString(),
             assetFillAmount: new BigNumber(assetFillAmount),
-            feeModelVersion,
+            feeModelVersion: service.feeModelVersion,
         } as QuoteContext;
     }
 

@@ -1,5 +1,7 @@
+import { SupportedProvider } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import Axios, { AxiosRequestConfig } from 'axios';
+import { providers } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';
@@ -15,15 +17,16 @@ import { KEEP_ALIVE_TTL } from '../constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
+
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
-
 import { ConfigManager } from './config_manager';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
-import { RfqBalanceCheckUtils } from './rfq_blockchain_utils';
+import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
+import { TokenMetadataManager } from './TokenMetadataManager';
 
 export type RfqtServices = Map<number, RfqtService>;
 
@@ -59,9 +62,18 @@ export async function buildRfqtServicesAsync(
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
             const quoteServerClient = new QuoteServerClient(axiosInstance);
             const contractAddresses = getContractAddressesForChainOrThrow(chain.chainId);
+            const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+            const provider: SupportedProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
 
-            const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
-            const balanceChecker = new BalanceChecker(rpcProvider);
+            const balanceChecker = new BalanceChecker(provider);
+            const rfqBlockchainUtils = new RfqBlockchainUtils(
+                provider,
+                contractAddresses.exchangeProxy,
+                balanceChecker,
+                ethersProvider,
+            );
+            const tokenMetadataManager = new TokenMetadataManager(chain.chainId, rfqBlockchainUtils);
+
             const balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, contractAddresses.exchangeProxy);
             const cacheClient = new CacheClient(redis);
             const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, balanceCheckUtils);
@@ -71,6 +83,7 @@ export async function buildRfqtServicesAsync(
                 rfqMakerManager,
                 quoteRequestor,
                 quoteServerClient,
+                tokenMetadataManager,
                 contractAddresses,
                 chain.rfqtFeeModelVersion || 0,
                 rfqMakerBalanceCacheService,

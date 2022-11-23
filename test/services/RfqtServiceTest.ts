@@ -18,9 +18,10 @@ import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
-import { RfqBalanceCheckUtils } from '../../src/utils/rfq_blockchain_utils';
+import { RfqBalanceCheckUtils, RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
+import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
 
 jest.mock('../../src/utils/rfq_maker_manager', () => ({
     RfqMakerManager: jest.fn().mockImplementation(() => {
@@ -59,6 +60,8 @@ jest.mock('../../src/services/rfq_maker_balance_cache_service', () => ({
 const mockQuoteRequestor = jest.mocked(new QuoteRequestor({} as RfqMakerAssetOfferings, {} as AxiosInstance));
 const mockRfqMakerManager = jest.mocked(new RfqMakerManager({} as ConfigManager, {} as RfqMakerDbUtils, 0));
 const mockQuoteServerClient = jest.mocked(new QuoteServerClient({} as AxiosInstance));
+const mockTokenMetadataManager = jest.mocked(new TokenMetadataManager(1337, {} as RfqBlockchainUtils));
+// tslint:enable: no-object-literal-type-assertion
 const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
 const mockRfqMakerBalanceCacheService = jest.mocked(
     new RfqMakerBalanceCacheService({} as CacheClient, {} as RfqBalanceCheckUtils),
@@ -80,6 +83,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -164,6 +168,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -286,6 +291,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -350,6 +356,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -428,6 +435,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -500,6 +508,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -568,6 +577,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -616,6 +626,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -675,6 +686,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,
@@ -729,6 +741,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockTokenMetadataManager,
                     mockContractAddresses,
                     1,
                     mockRfqMakerBalanceCacheService,

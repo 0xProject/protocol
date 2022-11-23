@@ -19,6 +19,7 @@ import { RfqtV2Prices, RfqtV2Quotes } from '../../types';
 import { ConfigManager } from '../../utils/config_manager';
 import { QuoteServerClient } from '../../utils/quote_server_client';
 import { RfqMakerManager } from '../../utils/rfq_maker_manager';
+import { TokenMetadataManager } from '../../utils/TokenMetadataManager';
 import { RfqtHandlers } from '../RfqtHandlers';
 
 jest.mock('../../services/RfqtService', () => {
@@ -51,6 +52,7 @@ const mockRfqtService = jest.mocked(
         {} as RfqMakerManager,
         {} as QuoteRequestor,
         {} as QuoteServerClient,
+        {} as TokenMetadataManager,
         {} as ContractAddresses,
         1,
         {} as RfqMakerBalanceCacheService,
@@ -58,6 +60,7 @@ const mockRfqtService = jest.mocked(
 );
 // Jest workaround for getter
 mockRfqtService.feeModelVersion = 1;
+mockRfqtService.getTokenDecimalsAsync = jest.fn().mockResolvedValue(18);
 
 const mockConfigManager = jest.mocked(new ConfigManager());
 // tslint:enable: no-object-literal-type-assertion
@@ -676,7 +679,6 @@ describe('RfqtHandlers', () => {
     describe('getV2PriceAsync', () => {
         it('responds with an error if the underlying service call fails', async () => {
             mockRfqtService.getV2PricesAsync.mockRejectedValueOnce(new Error('The service blew up'));
-
             mockConfigManager.getIntegratorByIdOrThrow.mockImplementationOnce(() => {
                 const integrator: Integrator = {
                     apiKeys: [],
@@ -715,7 +717,6 @@ describe('RfqtHandlers', () => {
 
         it('passes calls on to RfqtService', async () => {
             mockRfqtService.getV2PricesAsync.mockResolvedValue([]);
-
             mockConfigManager.getIntegratorByIdOrThrow.mockImplementationOnce(() => {
                 const integrator: Integrator = {
                     apiKeys: [],

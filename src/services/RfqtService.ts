@@ -19,6 +19,7 @@ import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, 
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+import { TokenMetadataManager } from '../utils/TokenMetadataManager';
 
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from './types';
@@ -115,6 +116,7 @@ export class RfqtService {
         >,
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
+        private readonly _tokenMetadataManager: TokenMetadataManager,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
@@ -382,6 +384,13 @@ export class RfqtService {
 
     public get feeModelVersion(): FeeModelVersion {
         return this._feeModelVersion;
+    }
+
+    /**
+     * Passthrough to TokenMetadataManager's `getTokenDecimalsAsync` method
+     */
+    public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
+        return this._tokenMetadataManager.getTokenDecimalsAsync(tokenAddress);
     }
 
     /**
