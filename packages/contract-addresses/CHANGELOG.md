@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v7.4.1 - _November 23, 2022_
+
+    * Dependencies updated
+
 ## v7.4.0 - _November 15, 2022_
 
     * Upgrade Polygon FillQuoteTransformer to support Solidly (and its forks). (#616)
