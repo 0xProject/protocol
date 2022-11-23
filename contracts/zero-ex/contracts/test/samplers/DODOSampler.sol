@@ -23,7 +23,6 @@ pragma experimental ABIEncoderV2;
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
-
 interface IDODOZoo {
     function getDODO(address baseToken, address quoteToken) external view returns (address);
 }
@@ -34,16 +33,13 @@ interface IDODOHelper {
 
 interface IDODO {
     function querySellBaseToken(uint256 amount) external view returns (uint256);
+
     function _TRADE_ALLOWED_() external view returns (bool);
 }
 
-contract DODOSampler is
-    SamplerUtils,
-    ApproximateBuys
-{
-
+contract DODOSampler is SamplerUtils, ApproximateBuys {
     /// @dev Gas limit for DODO calls.
-    uint256 constant private DODO_CALL_GAS = 300e3; // 300k
+    uint256 private constant DODO_CALL_GAS = 300e3; // 300k
     struct DODOSamplerOpts {
         address registry;
         address helper;
@@ -63,11 +59,7 @@ contract DODOSampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -121,11 +113,7 @@ contract DODOSampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
@@ -168,11 +156,7 @@ contract DODOSampler is
         bytes memory takerTokenData,
         bytes memory /* makerTokenData */,
         uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256)
-    {
+    ) private view returns (uint256) {
         (address takerToken, address pool, address baseToken, address helper) = abi.decode(
             takerTokenData,
             (address, address, address, address)
@@ -181,12 +165,7 @@ contract DODOSampler is
         // We will get called to sell both the taker token and also to sell the maker token
         if (takerToken == baseToken) {
             // If base token then use the original query on the pool
-            try
-                IDODO(pool).querySellBaseToken
-                    {gas: DODO_CALL_GAS}
-                    (sellAmount)
-                returns (uint256 amount)
-            {
+            try IDODO(pool).querySellBaseToken{gas: DODO_CALL_GAS}(sellAmount) returns (uint256 amount) {
                 return amount;
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
@@ -194,12 +173,7 @@ contract DODOSampler is
             }
         } else {
             // If quote token then use helper, this is less accurate
-            try
-                IDODOHelper(helper).querySellQuoteToken
-                    {gas: DODO_CALL_GAS}
-                    (pool, sellAmount)
-                returns (uint256 amount)
-            {
+            try IDODOHelper(helper).querySellQuoteToken{gas: DODO_CALL_GAS}(pool, sellAmount) returns (uint256 amount) {
                 return amount;
             } catch (bytes memory) {
                 // Swallow failures, leaving all results as zero.
@@ -207,5 +181,4 @@ contract DODOSampler is
             }
         }
     }
-
 }

@@ -34,23 +34,15 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
-contract BasicSwapTest is 
-    Test,
-    ForkUtils,
-    TestUtils
-{  
+contract BasicSwapTest is Test, ForkUtils, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
 
-    function setUp()
-        public
-    {
+    function setUp() public {
         zeroExDeployed = new DeployZeroEx().deployZeroEx();
         vm.deal(address(this), 1e19);
     }
 
-    function testTransformERC20()
-        public
-    {
+    function testTransformERC20() public {
         emit log_string("-----Preparing ETH->WETH transformation through TransformERC20()-----");
         emit log_string("   --Building Up Transformations--");
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
@@ -59,10 +51,14 @@ contract BasicSwapTest is
         emit log_named_uint(
             "       Deployer nonce",
             _findTransformerNonce(
+                address(zeroExDeployed.transformers.wethTransformer),
+                address(zeroExDeployed.transformerDeployer)
+            )
+        );
+        transformations[0].deploymentNonce = _findTransformerNonce(
             address(zeroExDeployed.transformers.wethTransformer),
             address(zeroExDeployed.transformerDeployer)
-        ));
-        transformations[0].deploymentNonce = _findTransformerNonce(address(zeroExDeployed.transformers.wethTransformer),address(zeroExDeployed.transformerDeployer));
+        );
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
 
         emit log_string("   ---Calling TransformERC20()---");
@@ -87,7 +83,4 @@ contract BasicSwapTest is
         emit log_named_uint("           WETH BALANCE BEFORE:", balanceWETHBefore);
         emit log_named_uint("           WETH BALANCE AFTER:", zeroExDeployed.weth.balanceOf(address(this)));
     }
-
-
-    
 }

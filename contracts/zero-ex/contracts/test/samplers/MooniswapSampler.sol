@@ -24,13 +24,9 @@ import "./interfaces/IMooniswap.sol";
 import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
-
-contract MooniswapSampler is
-    SamplerUtils,
-    ApproximateBuys
-{
+contract MooniswapSampler is SamplerUtils, ApproximateBuys {
     /// @dev Gas limit for Mooniswap calls.
-    uint256 constant private MOONISWAP_CALL_GAS = 150e3; // 150k
+    uint256 private constant MOONISWAP_CALL_GAS = 150e3; // 150k
 
     /// @dev Sample sell quotes from Mooniswap.
     /// @param registry Address of the Mooniswap Registry.
@@ -45,11 +41,7 @@ contract MooniswapSampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (IMooniswap pool, uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (IMooniswap pool, uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -68,9 +60,7 @@ contract MooniswapSampler is
             }
         }
 
-        pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(takerToken, makerToken)
-        );
+        pool = IMooniswap(IMooniswapRegistry(registry).pools(takerToken, makerToken));
     }
 
     function sampleSingleSellFromMooniswapPool(
@@ -78,15 +68,9 @@ contract MooniswapSampler is
         address mooniswapTakerToken,
         address mooniswapMakerToken,
         uint256 takerTokenAmount
-    )
-        public
-        view
-        returns (uint256)
-    {
+    ) public view returns (uint256) {
         // Find the pool for the pair.
-        IMooniswap pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken)
-        );
+        IMooniswap pool = IMooniswap(IMooniswapRegistry(registry).pools(mooniswapTakerToken, mooniswapMakerToken));
         // If there is no pool then return early
         if (address(pool) == address(0)) {
             return 0;
@@ -100,11 +84,8 @@ contract MooniswapSampler is
             return 0;
         }
         try
-            pool.getReturn
-                {gas: MOONISWAP_CALL_GAS}
-                (mooniswapTakerToken, mooniswapMakerToken, takerTokenAmount)
-            returns (uint256 amount)
-        {
+            pool.getReturn{gas: MOONISWAP_CALL_GAS}(mooniswapTakerToken, mooniswapMakerToken, takerTokenAmount)
+        returns (uint256 amount) {
             return amount;
         } catch (bytes memory) {
             // Swallow failures, leaving all results as zero.
@@ -125,11 +106,7 @@ contract MooniswapSampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (IMooniswap pool, uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (IMooniswap pool, uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
@@ -143,27 +120,16 @@ contract MooniswapSampler is
             makerTokenAmounts
         );
 
-        pool = IMooniswap(
-            IMooniswapRegistry(registry).pools(takerToken, makerToken)
-        );
+        pool = IMooniswap(IMooniswapRegistry(registry).pools(takerToken, makerToken));
     }
 
     function _sampleSellForApproximateBuyFromMooniswap(
         bytes memory takerTokenData,
         bytes memory makerTokenData,
         uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256 buyAmount)
-    {
+    ) private view returns (uint256 buyAmount) {
         (address registry, address mooniswapTakerToken) = abi.decode(takerTokenData, (address, address));
         (address _registry, address mooniswapMakerToken) = abi.decode(makerTokenData, (address, address));
-        return sampleSingleSellFromMooniswapPool(
-            registry,
-            mooniswapTakerToken,
-            mooniswapMakerToken,
-            sellAmount
-        );
+        return sampleSingleSellFromMooniswapPool(registry, mooniswapTakerToken, mooniswapMakerToken, sellAmount);
     }
 }

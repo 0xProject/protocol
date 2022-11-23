@@ -22,11 +22,9 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IUniswapV2Router01.sol";
 
-
-contract UniswapV2Sampler
-{
+contract UniswapV2Sampler {
     /// @dev Gas limit for UniswapV2 calls.
-    uint256 constant private UNISWAPV2_CALL_GAS = 150e3; // 150k
+    uint256 private constant UNISWAPV2_CALL_GAS = 150e3; // 150k
 
     /// @dev Sample sell quotes from UniswapV2.
     /// @param router Router to look up tokens and amounts
@@ -38,20 +36,13 @@ contract UniswapV2Sampler
         address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IUniswapV2Router01(router).getAmountsOut
-                    {gas: UNISWAPV2_CALL_GAS}
-                    (takerTokenAmounts[i], path)
-                returns (uint256[] memory amounts)
-            {
+            try IUniswapV2Router01(router).getAmountsOut{gas: UNISWAPV2_CALL_GAS}(takerTokenAmounts[i], path) returns (
+                uint256[] memory amounts
+            ) {
                 makerTokenAmounts[i] = amounts[path.length - 1];
                 // Break early if there are 0 amounts
                 if (makerTokenAmounts[i] == 0) {
@@ -74,20 +65,13 @@ contract UniswapV2Sampler
         address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            try
-                IUniswapV2Router01(router).getAmountsIn
-                    {gas: UNISWAPV2_CALL_GAS}
-                    (makerTokenAmounts[i], path)
-                returns (uint256[] memory amounts)
-            {
+            try IUniswapV2Router01(router).getAmountsIn{gas: UNISWAPV2_CALL_GAS}(makerTokenAmounts[i], path) returns (
+                uint256[] memory amounts
+            ) {
                 takerTokenAmounts[i] = amounts[0];
                 // Break early if there are 0 amounts
                 if (takerTokenAmounts[i] == 0) {

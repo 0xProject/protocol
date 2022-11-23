@@ -28,11 +28,7 @@ contract TestUtils is Test {
     uint256 private constant MAX_UINT256_STRING_LENGTH = 78;
     uint8 private constant ASCII_DIGIT_OFFSET = 48;
 
-    function _toString(uint256 n) 
-        internal 
-        pure 
-        returns (string memory nstr) 
-    {
+    function _toString(uint256 n) internal pure returns (string memory nstr) {
         if (n == 0) {
             return "0";
         }
@@ -42,10 +38,7 @@ contract TestUtils is Test {
         // Populate string from right to left (lsb to msb).
         while (n != 0) {
             assembly {
-                let char := add(
-                    ASCII_DIGIT_OFFSET,
-                    mod(n, 10)
-                )
+                let char := add(ASCII_DIGIT_OFFSET, mod(n, 10))
                 mstore(add(nstr, k), char)
                 k := sub(k, 1)
                 n := div(n, 10)
@@ -58,16 +51,9 @@ contract TestUtils is Test {
             mstore(nstr, sub(MAX_UINT256_STRING_LENGTH, k))
         }
         return nstr;
-    }    
+    }
 
-    function _findTransformerNonce(
-        address transformer,
-        address deployer
-    )
-        internal
-        pure
-        returns (uint32)
-    {
+    function _findTransformerNonce(address transformer, address deployer) internal pure returns (uint32) {
         address current;
         for (uint32 i = 0; i < 1024; i++) {
             current = LibERC20Transformer.getDeployedAddress(deployer, i);

@@ -22,12 +22,11 @@ pragma experimental ABIEncoderV2;
 
 import "./SamplerUtils.sol";
 
-
 interface IWstETH {
     function getWstETHByStETH(uint256 _stETHAmount) external view returns (uint256);
+
     function getStETHByWstETH(uint256 _wstETHAmount) external view returns (uint256);
 }
-
 
 contract LidoSampler is SamplerUtils {
     struct LidoInfo {
@@ -48,11 +47,7 @@ contract LidoSampler is SamplerUtils {
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory)
-    {
+    ) public view returns (uint256[] memory) {
         _assertValidPair(makerToken, takerToken);
 
         if (takerToken == lidoInfo.wethToken && makerToken == address(lidoInfo.stEthToken)) {
@@ -75,11 +70,7 @@ contract LidoSampler is SamplerUtils {
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory)
-    {
+    ) public view returns (uint256[] memory) {
         if (takerToken == lidoInfo.wethToken && makerToken == address(lidoInfo.stEthToken)) {
             // Minting stETH is always 1:1 therefore we can just return the same amounts back.
             return makerTokenAmounts;
@@ -94,7 +85,7 @@ contract LidoSampler is SamplerUtils {
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    ) private view  returns (uint256[] memory) {
+    ) private view returns (uint256[] memory) {
         IWstETH wstETH = IWstETH(lidoInfo.wstEthToken);
         uint256 numSamples = takerTokenAmounts.length;
         uint256[] memory makerTokenAmounts = new uint256[](numSamples);

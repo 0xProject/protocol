@@ -18,7 +18,7 @@ import "forge-std/StdJson.sol";
 contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
     //use forge-std json library for strings
     using stdJson for string;
-   
+
     //utility mapping to get chainId by name
     mapping(string => string) public chainsByChainId;
     //utility mapping to get indexingChainId by Chain
@@ -26,8 +26,6 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
 
     string json;
 
-
-   
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/
@@ -45,53 +43,73 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
                                  Dispatch
     //////////////////////////////////////////////////////////////*/
 
-
     function testSwapEthForERC20OnUniswap() public {
         log_string("SwapEthForERC20OnUniswap");
         /* */
         for (uint256 i = 0; i < chains.length; i++) {
             //skip fantom/avax failing test
-            if( i == 3 || i == 4 ){
+            if (i == 3 || i == 4) {
                 continue;
             }
             vm.selectFork(forkIds[chains[i]]);
             log_named_string("  Selecting Fork On", chains[i]);
-            labelAddresses(chains[i], indexChainsByChain[chains[i]], getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
+            labelAddresses(
+                chains[i],
+                indexChainsByChain[chains[i]],
+                getTokens(i),
+                getContractAddresses(i),
+                getLiquiditySourceAddresses(i)
+            );
             swapOnUniswap(getTokens(i), getContractAddresses(i), getLiquiditySourceAddresses(i));
         }
     }
-   
+
     /*//////////////////////////////////////////////////////////////
                                  Settlement
     //////////////////////////////////////////////////////////////*/
 
-    function swapOnUniswap(TokenAddresses memory tokens, Addresses memory addresses, LiquiditySources memory sources) public onlyForked {
-        if(sources.UniswapV2Router != address(0)) {
+    function swapOnUniswap(
+        TokenAddresses memory tokens,
+        Addresses memory addresses,
+        LiquiditySources memory sources
+    ) public onlyForked {
+        if (sources.UniswapV2Router != address(0)) {
             // Create our list of transformations, let's do WethTransformer and FillQuoteTransformer
-            ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](2);
-            
+            ITransformERC20Feature.Transformation[]
+                memory transformations = new ITransformERC20Feature.Transformation[](2);
+
             /*//////////////////////////////////////////////////////////////
                                     WethTransformer
             //////////////////////////////////////////////////////////////*/
 
-                // Use our cheeky search helper to find the nonce rather than hardcode it
-                transformations[0].deploymentNonce = _findTransformerNonce(address(addresses.wethTransformer), address(addresses.exchangeProxyTransformerDeployer));
-                emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);
-                createNewFQT(tokens.WrappedNativeToken, addresses.exchangeProxy, addresses.exchangeProxyTransformerDeployer);
-                // Set the first transformation to transform ETH into WETH
-                transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
+            // Use our cheeky search helper to find the nonce rather than hardcode it
+            transformations[0].deploymentNonce = _findTransformerNonce(
+                address(addresses.wethTransformer),
+                address(addresses.exchangeProxyTransformerDeployer)
+            );
+            emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);
+            createNewFQT(
+                tokens.WrappedNativeToken,
+                addresses.exchangeProxy,
+                addresses.exchangeProxyTransformerDeployer
+            );
+            // Set the first transformation to transform ETH into WETH
+            transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
 
             /*//////////////////////////////////////////////////////////////
                                     FillQuoteTransformer
             //////////////////////////////////////////////////////////////*/
 
-            transformations[1].deploymentNonce = _findTransformerNonce(address(fillQuoteTransformer), address(addresses.exchangeProxyTransformerDeployer));
+            transformations[1].deploymentNonce = _findTransformerNonce(
+                address(fillQuoteTransformer),
+                address(addresses.exchangeProxyTransformerDeployer)
+            );
             emit log_named_uint("           FillQuoteTransformer nonce", transformations[1].deploymentNonce);
             // Set up the FillQuoteTransformer data
             FillQuoteTransformer.TransformData memory fqtData;
             fqtData.side = FillQuoteTransformer.Side.Sell;
             fqtData.sellToken = IERC20TokenV06(address(tokens.WrappedNativeToken));
-            fqtData.buyToken =  IERC20TokenV06(address(tokens.USDT));
+            fqtData.buyToken = IERC20TokenV06(address(tokens.USDT));
             // the FQT has a sequence, e.g first RFQ then Limit then Bridge
             // since solidity doesn't support arrays of different types, this is one simple solution
             // We use a Bridge order type here as we will fill on UniswapV2
@@ -139,7 +157,7 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
             vm.deal(address(this), 1e18);
             uint256 balanceETHBefore = address(this).balance;
             uint256 balanceERC20Before = IERC20TokenV06(tokens.USDT).balanceOf(address(this));
-            
+
             IZeroEx(payable(addresses.exchangeProxy)).transformERC20{value: 1e18}(
                 // input token
                 IERC20TokenV06(LibERC20Transformer.ETH_TOKEN_ADDRESS),
@@ -152,14 +170,16 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
                 // list of transform
                 transformations
             );
-            
+
             log_named_uint("        NativeAsset balance before", balanceETHBefore);
-            log_named_uint("        ERC-20 balance before",  balanceERC20Before);
+            log_named_uint("        ERC-20 balance before", balanceERC20Before);
             log_named_uint("        NativeAsset balance after", balanceETHBefore - address(this).balance);
-            log_named_uint("        ERC-20 balance after",  IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before);
+            log_named_uint(
+                "        ERC-20 balance after",
+                IERC20TokenV06(tokens.USDT).balanceOf(address(this)) - balanceERC20Before
+            );
             assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
-        }
-        else {
+        } else {
             log_string("    Liquidity Source Not available on this chain");
         }
     }
@@ -168,20 +188,25 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
                             Sampler Dispatch
     //////////////////////////////////////////////////////////////*/
     // get a real quote from uniswap
-    function sampleLiquiditySource(uint256 amount, address takerToken, address makerToken, address router) public returns (uint256 makerTokenAmounts) {
+    function sampleLiquiditySource(
+        uint256 amount,
+        address takerToken,
+        address makerToken,
+        address router
+    ) public returns (uint256 makerTokenAmounts) {
         UniswapV2Sampler sampler = new UniswapV2Sampler();
-        vm.label(address(sampler),"UniswapV2Sampler");
+        vm.label(address(sampler), "UniswapV2Sampler");
         address[] memory path = new address[](2);
         path[0] = address(takerToken);
         path[1] = address(makerToken);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         uint256 out = sampler.sampleSellsFromUniswapV2(router, path, amounts)[0];
-        
+
         log_string("       Sampling Uniswap for tokens");
-        log_named_address("        ",takerToken);
+        log_named_address("        ", takerToken);
         log_string("           -> ");
-        log_named_address("        ",makerToken);
+        log_named_address("        ", makerToken);
         return out;
     }
 
@@ -189,7 +214,11 @@ contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function createNewFQT(IEtherTokenV06 wrappedNativeToken, address payable exchangeProxy, address transformerDeployer) public {
+    function createNewFQT(
+        IEtherTokenV06 wrappedNativeToken,
+        address payable exchangeProxy,
+        address transformerDeployer
+    ) public {
         vm.startPrank(transformerDeployer);
         // deploy a new instance of the bridge adapter from the transformerDeployer
         bridgeAdapter = createBridgeAdapter(IEtherTokenV06(wrappedNativeToken));

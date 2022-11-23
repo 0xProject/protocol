@@ -16,27 +16,28 @@
 // solhint-disable
 pragma solidity ^0.6.0;
 
-
 contract WETH9V06 {
-    string public name     = "Wrapped Ether";
-    string public symbol   = "WETH";
-    uint8  public decimals = 18;
+    string public name = "Wrapped Ether";
+    string public symbol = "WETH";
+    uint8 public decimals = 18;
 
-    event  Approval(address indexed _owner, address indexed _spender, uint _value);
-    event  Transfer(address indexed _from, address indexed _to, uint _value);
-    event  Deposit(address indexed _owner, uint _value);
-    event  Withdrawal(address indexed _owner, uint _value);
+    event Approval(address indexed _owner, address indexed _spender, uint _value);
+    event Transfer(address indexed _from, address indexed _to, uint _value);
+    event Deposit(address indexed _owner, uint _value);
+    event Withdrawal(address indexed _owner, uint _value);
 
-    mapping (address => uint)                       public  balanceOf;
-    mapping (address => mapping (address => uint))  public  allowance;
+    mapping(address => uint) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
 
     receive() external payable {
         deposit();
     }
+
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
     }
+
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
         balanceOf[msg.sender] -= wad;
@@ -58,10 +59,7 @@ contract WETH9V06 {
         return transferFrom(msg.sender, dst, wad);
     }
 
-    function transferFrom(address src, address dst, uint wad)
-        public
-        returns (bool)
-    {
+    function transferFrom(address src, address dst, uint wad) public returns (bool) {
         require(balanceOf[src] >= wad);
 
         if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
@@ -77,7 +75,6 @@ contract WETH9V06 {
         return true;
     }
 }
-
 
 /*
                     GNU GENERAL PUBLIC LICENSE

@@ -24,7 +24,7 @@ import "forge-std/StdJson.sol";
 contract transformERC20Tests is Test, ForkUtils, TestUtils {
     //use forge-std json library for strings
     using stdJson for string;
-   
+
     //utility mapping to get chainId by name
     mapping(string => string) public chainsByChainId;
     //utility mapping to get indexingChainId by Chain
@@ -55,6 +55,7 @@ contract transformERC20Tests is Test, ForkUtils, TestUtils {
             _wrapNativeToken(chains[i], indexChainsByChain[chains[i]]);
         }
     }
+
     function logAddresses(string memory chainName, string memory chainId) public {
         bytes memory details = json.parseRaw(chainId);
         addresses = abi.decode(details, (Addresses));
@@ -71,16 +72,19 @@ contract transformERC20Tests is Test, ForkUtils, TestUtils {
         ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
 
         emit log_named_address(
-            "    Finding TransformerDeployer nonce @", address(addresses.exchangeProxyTransformerDeployer)
-            );
+            "    Finding TransformerDeployer nonce @",
+            address(addresses.exchangeProxyTransformerDeployer)
+        );
         emit log_named_uint(
             "       Deployer nonce",
             _findTransformerNonce(
-                address(addresses.wethTransformer), address(addresses.exchangeProxyTransformerDeployer)
+                address(addresses.wethTransformer),
+                address(addresses.exchangeProxyTransformerDeployer)
             )
-            );
+        );
         transformations[0].deploymentNonce = _findTransformerNonce(
-            address(addresses.wethTransformer), address(addresses.exchangeProxyTransformerDeployer)
+            address(addresses.wethTransformer),
+            address(addresses.exchangeProxyTransformerDeployer)
         );
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);
 
@@ -101,9 +105,11 @@ contract transformERC20Tests is Test, ForkUtils, TestUtils {
             transformations
         );
         log_named_uint("        NativeAsset balance before", balanceETHBefore);
-        log_named_uint("        ERC-20 balance before",  balanceWETHBefore);
+        log_named_uint("        ERC-20 balance before", balanceWETHBefore);
         log_named_uint("        NativeAsset balance after", balanceETHBefore - address(this).balance);
-        log_named_uint("        ERC-20 balance after",  IERC20TokenV06(addresses.etherToken).balanceOf(address(this)) - balanceWETHBefore);
+        log_named_uint(
+            "        ERC-20 balance after",
+            IERC20TokenV06(addresses.etherToken).balanceOf(address(this)) - balanceWETHBefore
+        );
     }
-
 }
