@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV3.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
@@ -41,7 +40,6 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract PolygonBridgeAdapter is
     AbstractBridgeAdapter(137, "Polygon"),
-    MixinAaveV3,
     MixinAaveV2,
     MixinBalancerV2,
     MixinBalancerV2Batch,
@@ -58,7 +56,7 @@ contract PolygonBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -143,11 +141,6 @@ contract PolygonBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.AAVEV3) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);

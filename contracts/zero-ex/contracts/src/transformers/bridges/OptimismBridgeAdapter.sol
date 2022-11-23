@@ -17,7 +17,6 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV3.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
@@ -30,7 +29,6 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract OptimismBridgeAdapter is
     AbstractBridgeAdapter(10, "Optimism"),
-    MixinAaveV3,
     MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinCurve,
@@ -41,7 +39,7 @@ contract OptimismBridgeAdapter is
     MixinSolidly,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
 
     function _trade(
         BridgeOrder memory order,
@@ -96,11 +94,6 @@ contract OptimismBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.AAVEV3) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);

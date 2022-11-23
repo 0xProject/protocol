@@ -58,5 +58,4 @@ library BridgeProtocols {
     uint128 internal constant SOLIDLY = 29;
     uint128 internal constant SYNTHETIX = 30;
     uint128 internal constant WOOFI = 31;
-    uint128 internal constant AAVEV3 = 32;
 }

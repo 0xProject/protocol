@@ -162,7 +162,6 @@ export enum BridgeProtocol {
     Solidly,
     Synthetix,
     WOOFi,
-    AaveV3,
 }
 
 /**
