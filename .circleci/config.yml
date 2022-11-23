@@ -174,8 +174,11 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: forge install --root contracts/zero-ex
-            - run: forge test --root contracts/zero-ex
+            - run:
+                command: git submodule update --init --recursive
+            - run:
+                command: forge test
+                working_directory: ~/project/contracts/zero-ex
     test-publish:
         resource_class: large
         environment:
