@@ -174,8 +174,8 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: cd contracts/zero-ex && git submodule update --init --remote && forge remappings
-            - run: cd contracts/zero-ex && forge test
+            - run: forge install --root contracts/zero-ex
+            - run: forge test --root contracts/zero-ex
     test-publish:
         resource_class: large
         environment:
