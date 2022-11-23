@@ -22,9 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibMathV06.sol";
 
-
 contract ApproximateBuys {
-
     /// @dev Information computing buy quotes for sources that do not have native
     ///      buy quote support.
     struct ApproximateBuyQuoteOpts {
@@ -33,10 +31,7 @@ contract ApproximateBuys {
         // Arbitrary taker token data to pass to `getSellQuoteCallback`.
         bytes takerTokenData;
         // Callback to retrieve a sell quote.
-        function (bytes memory, bytes memory, uint256)
-            internal
-            view
-            returns (uint256) getSellQuoteCallback;
+        function(bytes memory, bytes memory, uint256) internal view returns (uint256) getSellQuoteCallback;
     }
 
     uint256 private constant ONE_HUNDED_PERCENT_BPS = 1e4;
@@ -48,30 +43,18 @@ contract ApproximateBuys {
     function _sampleApproximateBuys(
         ApproximateBuyQuoteOpts memory opts,
         uint256[] memory makerTokenAmounts
-    )
-        internal
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) internal view returns (uint256[] memory takerTokenAmounts) {
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         if (makerTokenAmounts.length == 0) {
             return takerTokenAmounts;
         }
 
-        uint256 sellAmount = opts.getSellQuoteCallback(
-            opts.makerTokenData,
-            opts.takerTokenData,
-            makerTokenAmounts[0]
-        );
+        uint256 sellAmount = opts.getSellQuoteCallback(opts.makerTokenData, opts.takerTokenData, makerTokenAmounts[0]);
         if (sellAmount == 0) {
             return takerTokenAmounts;
         }
 
-        uint256 buyAmount = opts.getSellQuoteCallback(
-            opts.takerTokenData,
-            opts.makerTokenData,
-            sellAmount
-        );
+        uint256 buyAmount = opts.getSellQuoteCallback(opts.takerTokenData, opts.makerTokenData, sellAmount);
         if (buyAmount == 0) {
             return takerTokenAmounts;
         }
@@ -80,11 +63,7 @@ contract ApproximateBuys {
             uint256 eps = 0;
             for (uint256 iter = 0; iter < APPROXIMATE_BUY_MAX_ITERATIONS; iter++) {
                 // adjustedSellAmount = previousSellAmount * (target/actual) * JUMP_MULTIPLIER
-                sellAmount = _safeGetPartialAmountCeil(
-                    makerTokenAmounts[i],
-                    buyAmount,
-                    sellAmount
-                );
+                sellAmount = _safeGetPartialAmountCeil(makerTokenAmounts[i], buyAmount, sellAmount);
                 if (sellAmount == 0) {
                     break;
                 }
@@ -96,11 +75,7 @@ contract ApproximateBuys {
                 if (sellAmount == 0) {
                     break;
                 }
-                uint256 _buyAmount = opts.getSellQuoteCallback(
-                    opts.takerTokenData,
-                    opts.makerTokenData,
-                    sellAmount
-                );
+                uint256 _buyAmount = opts.getSellQuoteCallback(opts.takerTokenData, opts.makerTokenData, sellAmount);
                 if (_buyAmount == 0) {
                     break;
                 }
@@ -109,9 +84,7 @@ contract ApproximateBuys {
                 buyAmount = _buyAmount;
                 // If we've reached our goal, exit early
                 if (buyAmount >= makerTokenAmounts[i]) {
-                    eps =
-                        (buyAmount - makerTokenAmounts[i]) * ONE_HUNDED_PERCENT_BPS /
-                        makerTokenAmounts[i];
+                    eps = ((buyAmount - makerTokenAmounts[i]) * ONE_HUNDED_PERCENT_BPS) / makerTokenAmounts[i];
                     if (eps <= APPROXIMATE_BUY_TARGET_EPSILON_BPS) {
                         break;
                     }
@@ -123,11 +96,7 @@ contract ApproximateBuys {
             // We do our best to close in on the requested amount, but we can either over buy or under buy and exit
             // if we hit a max iteration limit
             // We scale the sell amount to get the approximate target
-            takerTokenAmounts[i] = _safeGetPartialAmountCeil(
-                makerTokenAmounts[i],
-                buyAmount,
-                sellAmount
-            );
+            takerTokenAmounts[i] = _safeGetPartialAmountCeil(makerTokenAmounts[i], buyAmount, sellAmount);
         }
     }
 
@@ -135,11 +104,7 @@ contract ApproximateBuys {
         uint256 numerator,
         uint256 denominator,
         uint256 target
-    )
-        internal
-        view
-        returns (uint256 partialAmount)
-    {
+    ) internal view returns (uint256 partialAmount) {
         if (numerator == 0 || target == 0 || denominator == 0) return 0;
         uint256 c = numerator * target;
         if (c / numerator != target) return 0;

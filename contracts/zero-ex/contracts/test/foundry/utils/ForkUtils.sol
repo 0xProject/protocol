@@ -63,21 +63,21 @@ struct Addresses {
 }
 
 struct TokenAddresses {
-  IERC20TokenV06 DAI;
-  IERC20TokenV06 USDC;
-  IERC20TokenV06 USDT;
-  IEtherTokenV06 WrappedNativeToken;
+    IERC20TokenV06 DAI;
+    IERC20TokenV06 USDC;
+    IERC20TokenV06 USDT;
+    IEtherTokenV06 WrappedNativeToken;
 }
 
 struct LiquiditySources {
-  address UniswapV2Router;
+    address UniswapV2Router;
 }
-interface IFQT{
-  function bridgeAdapter() external returns (address);
+
+interface IFQT {
+    function bridgeAdapter() external returns (address);
 }
 
 contract ForkUtils is Test {
-  
     using stdJson for string;
     //forked providers for each chain
     mapping(string => uint256) public forkIds;
@@ -108,115 +108,132 @@ contract ForkUtils is Test {
     string sourcesJson;
 
     function createForks() public returns (uint256[] memory) {
-      for (uint256 i = 0; i < chains.length; i++) {
-          forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
-          //forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
-      }
-    }
-    function getSigner() public returns (address, uint){
-      string memory mnemonic = "test test test test test test test test test test test junk";
-      uint256 privateKey = vm.deriveKey(mnemonic, 0);
-      
-      
-      vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
-      return (vm.addr(privateKey), privateKey);
+        for (uint256 i = 0; i < chains.length; i++) {
+            forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
+            //forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
+        }
     }
 
-               
+    function getSigner() public returns (address, uint) {
+        string memory mnemonic = "test test test test test test test test test test test junk";
+        uint256 privateKey = vm.deriveKey(mnemonic, 0);
+
+        vm.label(vm.addr(privateKey), "zeroEx/MarketMaker");
+        return (vm.addr(privateKey), privateKey);
+    }
 
     function readLiquiditySourceAddresses() public returns (string memory) {
-      string memory root = vm.projectRoot();
-      string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/sourceAddresses.json"));
-      sourcesJson = vm.readFile(path);
-      return vm.readFile(path);
+        string memory root = vm.projectRoot();
+        string memory path = string(
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/sourceAddresses.json")
+        );
+        sourcesJson = vm.readFile(path);
+        return vm.readFile(path);
     }
 
-    function getLiquiditySourceAddresses(uint index) public returns (LiquiditySources memory sources ) {
-      readLiquiditySourceAddresses();
-      bytes memory liquiditySources = sourcesJson.parseRaw(indexChainIds[index]);
-      return abi.decode(liquiditySources, (LiquiditySources));
+    function getLiquiditySourceAddresses(uint index) public returns (LiquiditySources memory sources) {
+        readLiquiditySourceAddresses();
+        bytes memory liquiditySources = sourcesJson.parseRaw(indexChainIds[index]);
+        return abi.decode(liquiditySources, (LiquiditySources));
     }
 
-    function readAddresses() public returns (string memory){
+    function readAddresses() public returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
         addressesJson = vm.readFile(path);
         return vm.readFile(path);
     }
-    function getContractAddresses(uint index) public returns (Addresses memory addresses){
-      readAddresses();
-      bytes memory contractAddresses = addressesJson.parseRaw(indexChainIds[index]);
-      return abi.decode(contractAddresses, (Addresses));
-      //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
-  }
 
-    function readTokens() public returns (string memory){
-      string memory root = vm.projectRoot();
-      string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/tokenAddresses.json"));
-      tokensJson = vm.readFile(path);
-      return vm.readFile(path);
-  }
-
-  function getTokens(uint index) public returns (TokenAddresses memory addresses){
-      readTokens();
-      bytes memory chainTokens = tokensJson.parseRaw(indexChainIds[index]);
-      return abi.decode(chainTokens, (TokenAddresses));
-      //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
-  }
-
-  function createBridgeAdapter(IEtherTokenV06 weth) public returns(IBridgeAdapter bridgeAdapter) {
-    uint chainId;
-
-    assembly {
-      chainId := chainid()
+    function getContractAddresses(uint index) public returns (Addresses memory addresses) {
+        readAddresses();
+        bytes memory contractAddresses = addressesJson.parseRaw(indexChainIds[index]);
+        return abi.decode(contractAddresses, (Addresses));
+        //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
     }
-    if(chainId == 1) {return IBridgeAdapter(new EthereumBridgeAdapter(weth));}
-    else if( chainId == 56){ return IBridgeAdapter(new BSCBridgeAdapter(weth));}
-    else if( chainId == 137){return IBridgeAdapter(new PolygonBridgeAdapter(weth));}
-    else if( chainId == 43114){return IBridgeAdapter(new AvalancheBridgeAdapter(weth));}
-    else if( chainId == 250){return IBridgeAdapter(new FantomBridgeAdapter(weth));}
-    else if( chainId == 10){return IBridgeAdapter(new OptimismBridgeAdapter(weth));}
-    else if( chainId == 42161){return IBridgeAdapter(new ArbitrumBridgeAdapter(weth));}
-  }
 
-  function labelAddresses(string memory chainName, string memory chainId, TokenAddresses memory tokens, Addresses memory addresses, LiquiditySources memory sources) public {
-    log_named_string("   Using contract addresses on chain",chainName);
-    // log_named_address("     zeroEx/exchangeProxy",addresses.exchangeProxy);
-    // log_named_address("     zeroEx/fillQuoteTransformer",addresses.fillQuoteTransformer);
-    // log_named_address("     zeroEx/payTakerTransformer",addresses.payTakerTransformer);
-    // log_named_address("     zeroEx/positiveSlippageFeeTransformer",addresses.positiveSlippageFeeTransformer);
-    // log_named_address("     zeroEx/wethTransformer",addresses.wethTransformer);
-    vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
-    vm.label(addresses.erc20BridgeProxy, "zeroEx/erc20BridgeProxy");
-    vm.label(addresses.erc20BridgeSampler, "zeroEx/erc20BridgeSampler");
-    vm.label(addresses.etherToken, "zeroEx/etherToken");
-    vm.label(addresses.exchangeProxy, "zeroEx/exchangeProxy");
-    vm.label(addresses.exchangeProxyFlashWallet, "zeroEx/exchangeProxyFlashWallet");
-    vm.label(addresses.exchangeProxyGovernor, "zeroEx/exchangeProxyGovernor");
-    vm.label(addresses.exchangeProxyLiquidityProviderSandbox, "zeroEx/exchangeProxyLiquidityProviderSandbox");
-    vm.label(addresses.exchangeProxyTransformerDeployer, "zeroEx/exchangeProxyTransformerDeployer");
-    vm.label(addresses.fillQuoteTransformer, "zeroEx/fillQuoteTransformer");
-    vm.label(addresses.payTakerTransformer, "zeroEx/payTakerTransformer");
-    vm.label(addresses.positiveSlippageFeeTransformer, "zeroEx/positiveSlippageFeeTransformer");
-    vm.label(addresses.staking, "zeroEx/staking");
-    vm.label(addresses.stakingProxy, "zeroEx/stakingProxy");
-    vm.label(addresses.wethTransformer, "zeroEx/wethTransformer");
-    vm.label(addresses.zeroExGovernor, "zeroEx/zeroExGovernor");
-    vm.label(addresses.zrxToken, "zeroEx/zrxToken");
-    vm.label(addresses.zrxTreasury, "zeroEx/zrxTreasury");
-    vm.label(addresses.zrxVault, "zeroEx/zrxVault");
-    vm.label(address(tokens.WrappedNativeToken), "WrappedNativeToken");
-    vm.label(address(tokens.USDT), "USDT");
-    vm.label(address(tokens.USDC), "USDC");
-    vm.label(address(tokens.DAI), "DAI");
-    vm.label(address(sources.UniswapV2Router), "UniswapRouter");
-  }
+    function readTokens() public returns (string memory) {
+        string memory root = vm.projectRoot();
+        string memory path = string(
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/tokenAddresses.json")
+        );
+        tokensJson = vm.readFile(path);
+        return vm.readFile(path);
+    }
 
-  modifier onlyForked() {
-      if (block.number >= 15000000) {
-          _;
-      } else {
-          emit log_string("Requires fork mode, skipping");
-      }
-  }
+    function getTokens(uint index) public returns (TokenAddresses memory addresses) {
+        readTokens();
+        bytes memory chainTokens = tokensJson.parseRaw(indexChainIds[index]);
+        return abi.decode(chainTokens, (TokenAddresses));
+        //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
+    }
+
+    function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
+        uint chainId;
+
+        assembly {
+            chainId := chainid()
+        }
+        if (chainId == 1) {
+            return IBridgeAdapter(new EthereumBridgeAdapter(weth));
+        } else if (chainId == 56) {
+            return IBridgeAdapter(new BSCBridgeAdapter(weth));
+        } else if (chainId == 137) {
+            return IBridgeAdapter(new PolygonBridgeAdapter(weth));
+        } else if (chainId == 43114) {
+            return IBridgeAdapter(new AvalancheBridgeAdapter(weth));
+        } else if (chainId == 250) {
+            return IBridgeAdapter(new FantomBridgeAdapter(weth));
+        } else if (chainId == 10) {
+            return IBridgeAdapter(new OptimismBridgeAdapter(weth));
+        } else if (chainId == 42161) {
+            return IBridgeAdapter(new ArbitrumBridgeAdapter(weth));
+        }
+    }
+
+    function labelAddresses(
+        string memory chainName,
+        string memory chainId,
+        TokenAddresses memory tokens,
+        Addresses memory addresses,
+        LiquiditySources memory sources
+    ) public {
+        log_named_string("   Using contract addresses on chain", chainName);
+        // log_named_address("     zeroEx/exchangeProxy",addresses.exchangeProxy);
+        // log_named_address("     zeroEx/fillQuoteTransformer",addresses.fillQuoteTransformer);
+        // log_named_address("     zeroEx/payTakerTransformer",addresses.payTakerTransformer);
+        // log_named_address("     zeroEx/positiveSlippageFeeTransformer",addresses.positiveSlippageFeeTransformer);
+        // log_named_address("     zeroEx/wethTransformer",addresses.wethTransformer);
+        vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
+        vm.label(addresses.erc20BridgeProxy, "zeroEx/erc20BridgeProxy");
+        vm.label(addresses.erc20BridgeSampler, "zeroEx/erc20BridgeSampler");
+        vm.label(addresses.etherToken, "zeroEx/etherToken");
+        vm.label(addresses.exchangeProxy, "zeroEx/exchangeProxy");
+        vm.label(addresses.exchangeProxyFlashWallet, "zeroEx/exchangeProxyFlashWallet");
+        vm.label(addresses.exchangeProxyGovernor, "zeroEx/exchangeProxyGovernor");
+        vm.label(addresses.exchangeProxyLiquidityProviderSandbox, "zeroEx/exchangeProxyLiquidityProviderSandbox");
+        vm.label(addresses.exchangeProxyTransformerDeployer, "zeroEx/exchangeProxyTransformerDeployer");
+        vm.label(addresses.fillQuoteTransformer, "zeroEx/fillQuoteTransformer");
+        vm.label(addresses.payTakerTransformer, "zeroEx/payTakerTransformer");
+        vm.label(addresses.positiveSlippageFeeTransformer, "zeroEx/positiveSlippageFeeTransformer");
+        vm.label(addresses.staking, "zeroEx/staking");
+        vm.label(addresses.stakingProxy, "zeroEx/stakingProxy");
+        vm.label(addresses.wethTransformer, "zeroEx/wethTransformer");
+        vm.label(addresses.zeroExGovernor, "zeroEx/zeroExGovernor");
+        vm.label(addresses.zrxToken, "zeroEx/zrxToken");
+        vm.label(addresses.zrxTreasury, "zeroEx/zrxTreasury");
+        vm.label(addresses.zrxVault, "zeroEx/zrxVault");
+        vm.label(address(tokens.WrappedNativeToken), "WrappedNativeToken");
+        vm.label(address(tokens.USDT), "USDT");
+        vm.label(address(tokens.USDC), "USDC");
+        vm.label(address(tokens.DAI), "DAI");
+        vm.label(address(sources.UniswapV2Router), "UniswapRouter");
+    }
+
+    modifier onlyForked() {
+        if (block.number >= 15000000) {
+            _;
+        } else {
+            emit log_string("Requires fork mode, skipping");
+        }
+    }
 }

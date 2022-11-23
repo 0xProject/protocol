@@ -24,31 +24,24 @@ import "./ApproximateBuys.sol";
 import "./SamplerUtils.sol";
 
 interface IDODOV2Registry {
-    function getDODOPool(address baseToken, address quoteToken)
-        external
-        view
-        returns (address[] memory machines);
+    function getDODOPool(address baseToken, address quoteToken) external view returns (address[] memory machines);
 }
 
 interface IDODOV2Pool {
-    function querySellBase(address trader, uint256 payBaseAmount)
-        external
-        view
-        returns (uint256 receiveQuoteAmount, uint256 mtFee);
+    function querySellBase(
+        address trader,
+        uint256 payBaseAmount
+    ) external view returns (uint256 receiveQuoteAmount, uint256 mtFee);
 
-    function querySellQuote(address trader, uint256 payQuoteAmount)
-        external
-        view
-        returns (uint256 receiveBaseAmount, uint256 mtFee);
+    function querySellQuote(
+        address trader,
+        uint256 payQuoteAmount
+    ) external view returns (uint256 receiveBaseAmount, uint256 mtFee);
 }
 
-contract DODOV2Sampler is
-    SamplerUtils,
-    ApproximateBuys
-{
-
+contract DODOV2Sampler is SamplerUtils, ApproximateBuys {
     /// @dev Gas limit for DODO V2 calls.
-    uint256 constant private DODO_V2_CALL_GAS = 300e3; // 300k
+    uint256 private constant DODO_V2_CALL_GAS = 300e3; // 300k
 
     /// @dev Sample sell quotes from DODO V2.
     /// @param registry Address of the registry to look up.
@@ -66,11 +59,7 @@ contract DODOV2Sampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
 
         uint256 numSamples = takerTokenAmounts.length;
@@ -111,11 +100,7 @@ contract DODOV2Sampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         (pool, sellBase) = _getNextDODOV2Pool(registry, offset, takerToken, makerToken);
         if (pool == address(0)) {
@@ -138,36 +123,25 @@ contract DODOV2Sampler is
         bytes memory takerTokenData,
         bytes memory /* makerTokenData */,
         uint256 sellAmount
-    )
-        private
-        view
-        returns (uint256)
-    {
-        (address takerToken, address pool, bool sellBase) = abi.decode(
-            takerTokenData,
-            (address, address, bool)
-        );
+    ) private view returns (uint256) {
+        (address takerToken, address pool, bool sellBase) = abi.decode(takerTokenData, (address, address, bool));
 
         // We will get called to sell both the taker token and also to sell the maker token
         // since we use approximate buy for sell and buy functions
         if (sellBase) {
-            try
-                IDODOV2Pool(pool).querySellBase
-                    { gas: DODO_V2_CALL_GAS }
-                    (address(0), sellAmount)
-                returns (uint256 amount, uint256)
-            {
+            try IDODOV2Pool(pool).querySellBase{gas: DODO_V2_CALL_GAS}(address(0), sellAmount) returns (
+                uint256 amount,
+                uint256
+            ) {
                 return amount;
             } catch {
                 return 0;
             }
         } else {
-            try
-                IDODOV2Pool(pool).querySellQuote
-                    { gas: DODO_V2_CALL_GAS }
-                    (address(0), sellAmount)
-                returns (uint256 amount, uint256)
-            {
+            try IDODOV2Pool(pool).querySellQuote{gas: DODO_V2_CALL_GAS}(address(0), sellAmount) returns (
+                uint256 amount,
+                uint256
+            ) {
                 return amount;
             } catch {
                 return 0;
@@ -180,11 +154,7 @@ contract DODOV2Sampler is
         uint256 offset,
         address takerToken,
         address makerToken
-    )
-        internal
-        view
-        returns (address machine, bool sellBase)
-    {
+    ) internal view returns (address machine, bool sellBase) {
         // Query in base -> quote direction, if a pool is found then we are selling the base
         address[] memory machines = IDODOV2Registry(registry).getDODOPool(takerToken, makerToken);
         sellBase = true;
@@ -200,5 +170,4 @@ contract DODOV2Sampler is
 
         machine = machines[offset];
     }
-
 }

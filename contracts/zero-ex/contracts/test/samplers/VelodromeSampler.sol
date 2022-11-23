@@ -20,8 +20,8 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
-import './ApproximateBuys.sol';
-import './SamplerUtils.sol';
+import "./ApproximateBuys.sol";
+import "./SamplerUtils.sol";
 
 struct VeloRoute {
     address from;
@@ -36,10 +36,10 @@ interface IVelodromeRouter {
         address tokenOut
     ) external view returns (uint256 amount, bool stable);
 
-    function getAmountsOut(uint256 amountIn, VeloRoute[] calldata routes)
-        external
-        view
-        returns (uint256[] memory amounts);
+    function getAmountsOut(
+        uint256 amountIn,
+        VeloRoute[] calldata routes
+    ) external view returns (uint256[] memory amounts);
 }
 
 contract VelodromeSampler is SamplerUtils, ApproximateBuys {
@@ -64,7 +64,7 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
         // Find the most liquid pool based on max(takerTokenAmounts) and stick with it.
         stable = _isMostLiquidPoolStablePool(router, takerToken, makerToken, takerTokenAmounts);
         VeloRoute[] memory routes = new VeloRoute[](1);
-        routes[0] = VeloRoute({ from: takerToken, to: makerToken, stable: stable });
+        routes[0] = VeloRoute({from: takerToken, to: makerToken, stable: stable});
 
         for (uint256 i = 0; i < numSamples; i++) {
             makerTokenAmounts[i] = router.getAmountsOut(takerTokenAmounts[i], routes)[1];
@@ -96,8 +96,8 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
 
         takerTokenAmounts = _sampleApproximateBuys(
             ApproximateBuyQuoteOpts({
-                takerTokenData: abi.encode(router, VeloRoute({ from: takerToken, to: makerToken, stable: stable })),
-                makerTokenData: abi.encode(router, VeloRoute({ from: makerToken, to: takerToken, stable: stable })),
+                takerTokenData: abi.encode(router, VeloRoute({from: takerToken, to: makerToken, stable: stable})),
+                makerTokenData: abi.encode(router, VeloRoute({from: makerToken, to: takerToken, stable: stable})),
                 getSellQuoteCallback: _sampleSellForApproximateBuyFromVelodrome
             }),
             makerTokenAmounts
@@ -106,7 +106,7 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
 
     function _sampleSellForApproximateBuyFromVelodrome(
         bytes memory takerTokenData,
-        bytes memory, /* makerTokenData */
+        bytes memory /* makerTokenData */,
         uint256 sellAmount
     ) internal view returns (uint256) {
         (IVelodromeRouter router, VeloRoute memory route) = abi.decode(takerTokenData, (IVelodromeRouter, VeloRoute));

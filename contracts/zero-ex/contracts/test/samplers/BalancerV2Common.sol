@@ -22,14 +22,8 @@ pragma experimental ABIEncoderV2;
 
 import "./interfaces/IBalancerV2Vault.sol";
 
-
 contract BalancerV2Common {
-
-    function _createSwapFunds()
-        internal
-        view
-        returns (IBalancerV2Vault.FundManagement memory)
-    {
+    function _createSwapFunds() internal view returns (IBalancerV2Vault.FundManagement memory) {
         return
             IBalancerV2Vault.FundManagement({
                 sender: address(this),

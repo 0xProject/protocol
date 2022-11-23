@@ -24,7 +24,6 @@ import "./interfaces/IBalancerV2Vault.sol";
 import "./BalancerV2Common.sol";
 
 contract BalancerV2BatchSampler is BalancerV2Common {
-
     // Replaces amount for first step with each takerTokenAmount and calls queryBatchSwap using supplied steps
     /// @dev Sample sell quotes from Balancer V2 supporting multihops.
     /// @param swapSteps Array of swap steps (can be >= 1).
@@ -35,22 +34,20 @@ contract BalancerV2BatchSampler is BalancerV2Common {
         IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
         address[] memory swapAssets,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public returns (uint256[] memory makerTokenAmounts) {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
-        IBalancerV2Vault.FundManagement memory swapFunds =
-            _createSwapFunds();
+        IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
             swapSteps[0].amount = takerTokenAmounts[i];
             try
                 // For sells we specify the takerToken which is what the vault will receive from the trade
                 vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_IN, swapSteps, swapAssets, swapFunds)
-            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
-            returns (int256[] memory amounts) {
+            returns (
+                // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+                int256[] memory amounts
+            ) {
                 // Outgoing balance is negative so we need to flip the sign
                 // Note - queryBatchSwap will return a delta for each token in the assets array and last asset should be tokenOut
                 int256 amountOutFromPool = amounts[amounts.length - 1] * -1;
@@ -75,22 +72,20 @@ contract BalancerV2BatchSampler is BalancerV2Common {
         IBalancerV2Vault.BatchSwapStep[] memory swapSteps,
         address[] memory swapAssets,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public returns (uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
-        IBalancerV2Vault.FundManagement memory swapFunds =
-            _createSwapFunds();
+        IBalancerV2Vault.FundManagement memory swapFunds = _createSwapFunds();
 
         for (uint256 i = 0; i < numSamples; i++) {
             swapSteps[0].amount = makerTokenAmounts[i];
             try
                 // Uses GIVEN_OUT type for Buy
                 vault.queryBatchSwap(IBalancerV2Vault.SwapKind.GIVEN_OUT, swapSteps, swapAssets, swapFunds)
-            // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
-            returns (int256[] memory amounts) {
+            returns (
+                // amounts represent pool balance deltas from the swap (incoming balance, outgoing balance)
+                int256[] memory amounts
+            ) {
                 int256 amountIntoPool = amounts[0];
                 if (amountIntoPool <= 0) {
                     break;

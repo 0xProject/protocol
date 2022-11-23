@@ -23,7 +23,10 @@ pragma experimental ABIEncoderV2;
 /// @dev Minimal Balancer V2 Vault interface
 ///      for documentation refer to https://github.com/balancer-labs/balancer-core-v2/blob/master/contracts/vault/interfaces/IVault.sol
 interface IBalancerV2Vault {
-    enum SwapKind { GIVEN_IN, GIVEN_OUT }
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
 
     struct BatchSwapStep {
         bytes32 poolId;

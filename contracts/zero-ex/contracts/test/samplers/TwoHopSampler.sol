@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "@0x/contracts-utils/contracts/src/v06/LibBytesV06.sol";
 
-
 contract TwoHopSampler {
     using LibBytesV06 for bytes;
 
@@ -35,14 +34,7 @@ contract TwoHopSampler {
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
         uint256 sellAmount
-    )
-        public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256 buyAmount
-        )
-    {
+    ) public returns (HopInfo memory firstHop, HopInfo memory secondHop, uint256 buyAmount) {
         uint256 intermediateAssetAmount = 0;
         for (uint256 i = 0; i != firstHopCalls.length; ++i) {
             firstHopCalls[i].writeUint256(firstHopCalls[i].length - 32, sellAmount);
@@ -77,14 +69,7 @@ contract TwoHopSampler {
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
         uint256 buyAmount
-    )
-        public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256 sellAmount
-        )
-    {
+    ) public returns (HopInfo memory firstHop, HopInfo memory secondHop, uint256 sellAmount) {
         sellAmount = uint256(-1);
         uint256 intermediateAssetAmount = uint256(-1);
         for (uint256 j = 0; j != secondHopCalls.length; ++j) {
@@ -92,10 +77,7 @@ contract TwoHopSampler {
             (bool didSucceed, bytes memory returnData) = address(this).call(secondHopCalls[j]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (
-                    amount > 0 &&
-                    amount < intermediateAssetAmount
-                ) {
+                if (amount > 0 && amount < intermediateAssetAmount) {
                     intermediateAssetAmount = amount;
                     secondHop.sourceIndex = j;
                     secondHop.returnData = returnData;
@@ -110,10 +92,7 @@ contract TwoHopSampler {
             (bool didSucceed, bytes memory returnData) = address(this).call(firstHopCalls[i]);
             if (didSucceed) {
                 uint256 amount = returnData.readUint256(returnData.length - 32);
-                if (
-                    amount > 0 &&
-                    amount < sellAmount
-                ) {
+                if (amount > 0 && amount < sellAmount) {
                     sellAmount = amount;
                     firstHop.sourceIndex = i;
                     firstHop.returnData = returnData;

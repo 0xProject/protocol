@@ -19,20 +19,14 @@
 
 pragma solidity ^0.6;
 
-
 interface IMooniswapRegistry {
-
-    function pools(address token1, address token2) external view returns(address);
+    function pools(address token1, address token2) external view returns (address);
 }
 
 interface IMooniswap {
-
     function getReturn(
         address fromToken,
         address destToken,
         uint256 amount
-    )
-        external
-        view
-        returns(uint256 returnAmount);
+    ) external view returns (uint256 returnAmount);
 }
