@@ -19,7 +19,6 @@ import "src/transformers/bridges/AvalancheBridgeAdapter.sol";
 import "src/transformers/bridges/FantomBridgeAdapter.sol";
 import "src/transformers/bridges/CeloBridgeAdapter.sol";
 import "src/features/OtcOrdersFeature.sol";
-import "forge-std/StdJson.sol";
 
 contract transformERC20Tests is Test, ForkUtils, TestUtils {
     //use forge-std json library for strings
