@@ -122,7 +122,7 @@ contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {
             order.takerAmount = 1e18;
             uint privateKey;
             (order.maker, privateKey) = getSigner();
-            vm.deal(address(order.makerToken), order.maker, 1e20);
+            deal(address(order.makerToken), order.maker, 1e20);
             vm.prank(order.maker);
             IERC20TokenV06(tokens.USDC).approve(address(addresses.exchangeProxy), 1e20);
             // vm.startPrank(whale);
