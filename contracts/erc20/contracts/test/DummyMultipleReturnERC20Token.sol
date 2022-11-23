@@ -32,11 +32,7 @@ contract DummyMultipleReturnERC20Token is DummyERC20Token {
     /// @param _from The address of the sender
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
         emit Transfer(_from, _to, _value);
 
         // HACK: This contract will not compile if we remove `returns (bool)`, so we manually return 64 bytes

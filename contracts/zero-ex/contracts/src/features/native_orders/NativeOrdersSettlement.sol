@@ -313,10 +313,9 @@ abstract contract NativeOrdersSettlement is
     /// @dev Fill a limit order. Private variant. Does not refund protocol fees.
     /// @param params Function params.
     /// @return results Results of the fill.
-    function _fillLimitOrderPrivate(FillLimitOrderPrivateParams memory params)
-        private
-        returns (FillNativeOrderResults memory results)
-    {
+    function _fillLimitOrderPrivate(
+        FillLimitOrderPrivateParams memory params
+    ) private returns (FillNativeOrderResults memory results) {
         LibNativeOrder.OrderInfo memory orderInfo = getLimitOrderInfo(params.order);
 
         // Must be fillable.
@@ -402,10 +401,9 @@ abstract contract NativeOrdersSettlement is
     /// @dev Fill an RFQ order. Private variant.
     /// @param params Function params.
     /// @return results Results of the fill.
-    function _fillRfqOrderPrivate(FillRfqOrderPrivateParams memory params)
-        private
-        returns (FillNativeOrderResults memory results)
-    {
+    function _fillRfqOrderPrivate(
+        FillRfqOrderPrivateParams memory params
+    ) private returns (FillNativeOrderResults memory results) {
         LibNativeOrder.OrderInfo memory orderInfo = getRfqOrderInfo(params.order);
 
         // Must be fillable.
@@ -473,10 +471,9 @@ abstract contract NativeOrdersSettlement is
     /// @param settleInfo Information needed to execute the settlement.
     /// @return takerTokenFilledAmount How much taker token was filled.
     /// @return makerTokenFilledAmount How much maker token was filled.
-    function _settleOrder(SettleOrderInfo memory settleInfo)
-        private
-        returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount)
-    {
+    function _settleOrder(
+        SettleOrderInfo memory settleInfo
+    ) private returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         // Clamp the taker token fill amount to the fillable amount.
         takerTokenFilledAmount = LibSafeMathV06.min128(
             settleInfo.takerTokenFillAmount,

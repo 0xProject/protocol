@@ -155,11 +155,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    ) external;
+    function cancelPairLimitOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) external;
 
     /// @dev Cancel all limit orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be a signer registered to the maker.
@@ -211,11 +207,7 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    ) external;
+    function cancelPairRfqOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) external;
 
     /// @dev Cancel all RFQ orders for a given maker and pair with a salt less
     ///      than the value provided. The caller must be a signer registered to the maker.
@@ -263,18 +255,16 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @dev Get the order info for a limit order.
     /// @param order The limit order.
     /// @return orderInfo Info about the order.
-    function getLimitOrderInfo(LibNativeOrder.LimitOrder calldata order)
-        external
-        view
-        returns (LibNativeOrder.OrderInfo memory orderInfo);
+    function getLimitOrderInfo(
+        LibNativeOrder.LimitOrder calldata order
+    ) external view returns (LibNativeOrder.OrderInfo memory orderInfo);
 
     /// @dev Get the order info for an RFQ order.
     /// @param order The RFQ order.
     /// @return orderInfo Info about the order.
-    function getRfqOrderInfo(LibNativeOrder.RfqOrder calldata order)
-        external
-        view
-        returns (LibNativeOrder.OrderInfo memory orderInfo);
+    function getRfqOrderInfo(
+        LibNativeOrder.RfqOrder calldata order
+    ) external view returns (LibNativeOrder.OrderInfo memory orderInfo);
 
     /// @dev Get the canonical hash of a limit order.
     /// @param order The limit order.
@@ -319,7 +309,10 @@ interface INativeOrdersFeature is INativeOrdersEvents {
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getRfqOrderRelevantState(LibNativeOrder.RfqOrder calldata order, LibSignature.Signature calldata signature)
+    function getRfqOrderRelevantState(
+        LibNativeOrder.RfqOrder calldata order,
+        LibSignature.Signature calldata signature
+    )
         external
         view
         returns (

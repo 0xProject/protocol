@@ -80,12 +80,7 @@ contract MixinWOOFi {
         boughtAmount = buyToken.balanceOf(address(this)).safeSub(beforeBalance);
     }
 
-    function _swap(
-        uint256 _amountIn,
-        address _tokenIn,
-        address _tokenOut,
-        IWooPP pool
-    ) internal {
+    function _swap(uint256 _amountIn, address _tokenIn, address _tokenOut, IWooPP pool) internal {
         address quoteToken = pool.quoteToken();
         if (_tokenIn == quoteToken) {
             pool.sellQuote(_tokenOut, _amountIn, 1, address(this), rebateAddress);

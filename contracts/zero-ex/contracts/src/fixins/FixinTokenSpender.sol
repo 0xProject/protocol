@@ -33,12 +33,7 @@ abstract contract FixinTokenSpender {
     /// @param owner The owner of the tokens.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _transferERC20TokensFrom(
-        IERC20TokenV06 token,
-        address owner,
-        address to,
-        uint256 amount
-    ) internal {
+    function _transferERC20TokensFrom(IERC20TokenV06 token, address owner, address to, uint256 amount) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {
@@ -79,11 +74,7 @@ abstract contract FixinTokenSpender {
     /// @param token The token to spend.
     /// @param to The recipient of the tokens.
     /// @param amount The amount of `token` to transfer.
-    function _transferERC20Tokens(
-        IERC20TokenV06 token,
-        address to,
-        uint256 amount
-    ) internal {
+    function _transferERC20Tokens(IERC20TokenV06 token, address to, uint256 amount) internal {
         require(address(token) != address(this), "FixinTokenSpender/CANNOT_INVOKE_SELF");
 
         assembly {

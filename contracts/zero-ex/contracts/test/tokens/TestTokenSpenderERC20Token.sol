@@ -39,11 +39,7 @@ contract TestTokenSpenderERC20Token is TestMintableERC20Token {
         _isGreedyRevert = isGreedy;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public override returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
         emit TransferFromCalled(msg.sender, from, to, amount);
         if (amount == EMPTY_RETURN_AMOUNT) {
             assembly {
@@ -73,12 +69,7 @@ contract TestTokenSpenderERC20Token is TestMintableERC20Token {
         return true;
     }
 
-    function setBalanceAndAllowanceOf(
-        address owner,
-        uint256 balance,
-        address spender,
-        uint256 allowance_
-    ) external {
+    function setBalanceAndAllowanceOf(address owner, uint256 balance, address spender, uint256 allowance_) external {
         balanceOf[owner] = balance;
         allowance[owner][spender] = allowance_;
     }

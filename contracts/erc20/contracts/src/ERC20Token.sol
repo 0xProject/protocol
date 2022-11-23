@@ -47,11 +47,7 @@ contract ERC20Token is IERC20Token {
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
     /// @return True if transfer was successful
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
         require(balances[_from] >= _value, "ERC20_INSUFFICIENT_BALANCE");
         require(allowed[_from][msg.sender] >= _value, "ERC20_INSUFFICIENT_ALLOWANCE");
         require(balances[_to] + _value >= balances[_to], "UINT256_OVERFLOW");

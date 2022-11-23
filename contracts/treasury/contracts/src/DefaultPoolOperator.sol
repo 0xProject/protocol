@@ -36,7 +36,7 @@ contract DefaultPoolOperator {
         stakingProxy = stakingProxy_;
         weth = weth_;
         // operator share = 100%
-        poolId = stakingProxy_.createStakingPool(10**6, false);
+        poolId = stakingProxy_.createStakingPool(10 ** 6, false);
     }
 
     /// @dev Sends this contract's entire WETH balance to the

@@ -138,7 +138,7 @@ contract FillQuoteTransformer is Transformer {
     event ProtocolFeeUnfunded(bytes32 orderHash);
 
     /// @dev The highest bit of a uint256 value.
-    uint256 private constant HIGH_BIT = 2**255;
+    uint256 private constant HIGH_BIT = 2 ** 255;
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
     /// @dev If `refundReceiver` is set to this address, unpsent

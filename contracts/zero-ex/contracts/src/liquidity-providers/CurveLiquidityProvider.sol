@@ -131,8 +131,8 @@ contract CurveLiquidityProvider is ILiquidityProvider {
     /// @dev Quotes the amount of `outputToken` that would be obtained by
     ///      selling `sellAmount` of `inputToken`.
     function getSellQuote(
-        IERC20TokenV06, /* inputToken */
-        IERC20TokenV06, /* outputToken */
+        IERC20TokenV06 /* inputToken */,
+        IERC20TokenV06 /* outputToken */,
         uint256 /* sellAmount */
     ) external view override returns (uint256) {
         revert("CurveLiquidityProvider/NOT_IMPLEMENTED");

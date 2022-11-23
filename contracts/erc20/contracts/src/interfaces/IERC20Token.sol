@@ -34,11 +34,7 @@ contract IERC20Token {
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
     /// @return True if transfer was successful
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool);
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
 
     /// @dev `msg.sender` approves `_spender` to spend `_value` tokens
     /// @param _spender The address of the account able to transfer the tokens

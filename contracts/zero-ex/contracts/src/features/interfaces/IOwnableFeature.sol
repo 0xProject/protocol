@@ -38,9 +38,5 @@ interface IOwnableFeature is IOwnableV06 {
     /// @param target The migrator contract address.
     /// @param newOwner The address of the new owner.
     /// @param data The call data.
-    function migrate(
-        address target,
-        bytes calldata data,
-        address newOwner
-    ) external;
+    function migrate(address target, bytes calldata data, address newOwner) external;
 }

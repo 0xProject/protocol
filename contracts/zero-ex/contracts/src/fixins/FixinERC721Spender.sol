@@ -33,12 +33,7 @@ abstract contract FixinERC721Spender {
     /// @param owner The owner of the asset.
     /// @param to The recipient of the asset.
     /// @param tokenId The token ID of the asset to transfer.
-    function _transferERC721AssetFrom(
-        IERC721Token token,
-        address owner,
-        address to,
-        uint256 tokenId
-    ) internal {
+    function _transferERC721AssetFrom(IERC721Token token, address owner, address to, uint256 tokenId) internal {
         require(address(token) != address(this), "FixinERC721Spender/CANNOT_INVOKE_SELF");
 
         assembly {

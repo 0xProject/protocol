@@ -69,13 +69,10 @@ contract FlashWallet is IFlashWallet {
     /// @param target The call target.
     /// @param callData The call data.
     /// @return resultData The data returned by the call.
-    function executeDelegateCall(address payable target, bytes calldata callData)
-        external
-        payable
-        override
-        onlyOwner
-        returns (bytes memory resultData)
-    {
+    function executeDelegateCall(
+        address payable target,
+        bytes calldata callData
+    ) external payable override onlyOwner returns (bytes memory resultData) {
         bool success;
         (success, resultData) = target.delegatecall(callData);
         if (!success) {

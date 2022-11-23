@@ -81,10 +81,10 @@ interface IStaking {
     /// @param staker Owner of stake.
     /// @param stakeStatus UNDELEGATED or DELEGATED
     /// @return balance Owner's stake balances for given status.
-    function getOwnerStakeByStatus(address staker, StakeStatus stakeStatus)
-        external
-        view
-        returns (StoredBalance memory balance);
+    function getOwnerStakeByStatus(
+        address staker,
+        StakeStatus stakeStatus
+    ) external view returns (StoredBalance memory balance);
 
     /// @dev Returns the total stake delegated to a specific staking pool,
     ///      across all members.
@@ -96,8 +96,8 @@ interface IStaking {
     /// @param staker of stake.
     /// @param poolId Unique Id of pool.
     /// @return balance Stake delegated to pool by staker.
-    function getStakeDelegatedToPoolByOwner(address staker, bytes32 poolId)
-        external
-        view
-        returns (StoredBalance memory balance);
+    function getStakeDelegatedToPoolByOwner(
+        address staker,
+        bytes32 poolId
+    ) external view returns (StoredBalance memory balance);
 }

@@ -114,11 +114,7 @@ contract FullMigration {
     /// @param zeroEx The bootstrapped ZeroEx contract.
     /// @param features Features to add to the proxy.
     /// @param migrateOpts Parameters needed to initialize features.
-    function _addFeatures(
-        ZeroEx zeroEx,
-        Features memory features,
-        MigrateOpts memory migrateOpts
-    ) private {
+    function _addFeatures(ZeroEx zeroEx, Features memory features, MigrateOpts memory migrateOpts) private {
         IOwnableFeature ownable = IOwnableFeature(address(zeroEx));
         // TransformERC20Feature
         {

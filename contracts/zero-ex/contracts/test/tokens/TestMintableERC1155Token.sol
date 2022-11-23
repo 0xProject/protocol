@@ -108,11 +108,7 @@ contract TestMintableERC1155Token {
     // owner => (operator => approved)
     mapping(address => mapping(address => bool)) internal operatorApproval;
 
-    function mint(
-        address to,
-        uint256 id,
-        uint256 quantity
-    ) external {
+    function mint(address to, uint256 id, uint256 quantity) external {
         // Grant the items to the caller
         balances[id][to] = quantity.safeAdd(balances[id][to]);
 
@@ -152,13 +148,7 @@ contract TestMintableERC1155Token {
     /// @param id      ID of the token type
     /// @param value   Transfer amount
     /// @param data    Additional data with no specified format, sent in call to `_to`
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external {
+    function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes calldata data) external {
         // sanity checks
         require(to != address(0x0), "CANNOT_TRANSFER_TO_ADDRESS_ZERO");
         require(from == msg.sender || operatorApproval[from][msg.sender] == true, "INSUFFICIENT_ALLOWANCE");
@@ -267,11 +257,10 @@ contract TestMintableERC1155Token {
     /// @param owners      The addresses of the token holders
     /// @param ids         ID of the Tokens
     /// @return balances_  The _owner's balance of the Token types requested
-    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids)
-        external
-        view
-        returns (uint256[] memory balances_)
-    {
+    function balanceOfBatch(
+        address[] calldata owners,
+        uint256[] calldata ids
+    ) external view returns (uint256[] memory balances_) {
         // sanity check
         require(owners.length == ids.length, "OWNERS_AND_IDS_MUST_HAVE_SAME_LENGTH");
 

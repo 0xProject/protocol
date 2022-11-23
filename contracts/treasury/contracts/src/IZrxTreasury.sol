@@ -112,11 +112,7 @@ interface IZrxTreasury {
     /// @param operatedPoolIds The pools operated by `msg.sender`. The
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
-    function castVote(
-        uint256 proposalId,
-        bool support,
-        bytes32[] calldata operatedPoolIds
-    ) external;
+    function castVote(uint256 proposalId, bool support, bytes32[] calldata operatedPoolIds) external;
 
     /// @dev Casts a vote for the given proposal, by signature.
     ///      Only callable during the voting period for that proposal.
@@ -159,8 +155,8 @@ interface IZrxTreasury {
     ///        ZRX currently delegated to those pools will be accounted
     ///        for in the voting power.
     /// @return votingPower The current voting power of the given account.
-    function getVotingPower(address account, bytes32[] calldata operatedPoolIds)
-        external
-        view
-        returns (uint256 votingPower);
+    function getVotingPower(
+        address account,
+        bytes32[] calldata operatedPoolIds
+    ) external view returns (uint256 votingPower);
 }

@@ -199,17 +199,17 @@ interface IERC1155OrdersFeature {
     ///      an ERC1155 asset.
     /// @param order The ERC1155 order.
     /// @param erc1155TokenId The ID of the ERC1155 asset.
-    function validateERC1155OrderProperties(LibNFTOrder.ERC1155Order calldata order, uint256 erc1155TokenId)
-        external
-        view;
+    function validateERC1155OrderProperties(
+        LibNFTOrder.ERC1155Order calldata order,
+        uint256 erc1155TokenId
+    ) external view;
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderInfo Infor about the order.
-    function getERC1155OrderInfo(LibNFTOrder.ERC1155Order calldata order)
-        external
-        view
-        returns (LibNFTOrder.OrderInfo memory orderInfo);
+    function getERC1155OrderInfo(
+        LibNFTOrder.ERC1155Order calldata order
+    ) external view returns (LibNFTOrder.OrderInfo memory orderInfo);
 
     /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.

@@ -117,11 +117,10 @@ library LibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return Existence and index of the target in the array.
-    function indexOf(address[] memory addressArray, address target)
-        internal
-        pure
-        returns (bool success, uint256 index)
-    {
+    function indexOf(
+        address[] memory addressArray,
+        address target
+    ) internal pure returns (bool success, uint256 index) {
         assembly {
             // Calculate byte length of array
             let arrayByteLen := mul(mload(addressArray), 32)

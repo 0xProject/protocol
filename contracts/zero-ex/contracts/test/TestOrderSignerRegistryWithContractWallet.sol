@@ -35,11 +35,7 @@ contract TestOrderSignerRegistryWithContractWallet is OwnableV06 {
         zeroex.registerAllowedOrderSigner(signer, allowed);
     }
 
-    function approveERC20(
-        IERC20TokenV06 token,
-        address spender,
-        uint256 value
-    ) external onlyOwner {
+    function approveERC20(IERC20TokenV06 token, address spender, uint256 value) external onlyOwner {
         token.approve(spender, value);
     }
 }

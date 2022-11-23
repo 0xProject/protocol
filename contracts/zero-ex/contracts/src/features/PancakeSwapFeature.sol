@@ -85,7 +85,7 @@ contract PancakeSwapFeature is IFeature, IPancakeSwapFeature, FixinCommon {
     // BNB pseudo-token address.
     uint256 private constant ETH_TOKEN_ADDRESS_32 = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
     // Maximum token quantity that can be swapped against the PancakeSwapPair contract.
-    uint256 private constant MAX_SWAP_AMOUNT = 2**112;
+    uint256 private constant MAX_SWAP_AMOUNT = 2 ** 112;
 
     // bytes4(keccak256("executeCall(address,bytes)"))
     uint256 private constant ALLOWANCE_TARGET_EXECUTE_CALL_SELECTOR_32 =

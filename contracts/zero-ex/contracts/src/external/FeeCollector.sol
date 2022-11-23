@@ -38,11 +38,7 @@ contract FeeCollector is AuthorizableV06 {
     /// @param weth The WETH contract.
     /// @param staking The staking contract.
     /// @param poolId The pool ID this contract is collecting fees for.
-    function initialize(
-        IEtherTokenV06 weth,
-        IStaking staking,
-        bytes32 poolId
-    ) external onlyAuthorized {
+    function initialize(IEtherTokenV06 weth, IStaking staking, bytes32 poolId) external onlyAuthorized {
         weth.approve(address(staking), type(uint256).max);
         staking.joinStakingPoolAsMaker(poolId);
     }

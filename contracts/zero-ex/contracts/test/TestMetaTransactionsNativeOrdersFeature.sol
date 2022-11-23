@@ -82,7 +82,7 @@ contract TestMetaTransactionsNativeOrdersFeature is NativeOrdersFeature {
         LibSignature.Signature memory signature,
         uint128 takerTokenFillAmount,
         address taker,
-        bool, /* useSelfBalance */
+        bool /* useSelfBalance */,
         address /* recipient */
     ) public override returns (uint128 takerTokenFilledAmount, uint128 makerTokenFilledAmount) {
         emit FillRfqOrderCalled(
