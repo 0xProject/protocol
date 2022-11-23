@@ -174,9 +174,8 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: yarn foundry:SU
             - run: forge remappings
-            - run: yarn forge
+            - run: forge test
     test-publish:
         resource_class: large
         environment:
