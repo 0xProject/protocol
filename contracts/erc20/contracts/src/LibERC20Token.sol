@@ -31,11 +31,7 @@ library LibERC20Token {
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param allowance The allowance to set.
-    function approve(
-        address token,
-        address spender,
-        uint256 allowance
-    ) internal {
+    function approve(address token, address spender, uint256 allowance) internal {
         bytes memory callData = abi.encodeWithSelector(IERC20Token(0).approve.selector, spender, allowance);
         _callWithOptionalBooleanResult(token, callData);
     }
@@ -47,11 +43,7 @@ library LibERC20Token {
     /// @param token The address of the token contract.
     /// @param spender The address that receives an allowance.
     /// @param amount The minimum allowance needed.
-    function approveIfBelow(
-        address token,
-        address spender,
-        uint256 amount
-    ) internal {
+    function approveIfBelow(address token, address spender, uint256 amount) internal {
         if (IERC20Token(token).allowance(address(this), spender) < amount) {
             approve(token, spender, uint256(-1));
         }
@@ -63,11 +55,7 @@ library LibERC20Token {
     /// @param token The address of the token contract.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function transfer(
-        address token,
-        address to,
-        uint256 amount
-    ) internal {
+    function transfer(address token, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(IERC20Token(0).transfer.selector, to, amount);
         _callWithOptionalBooleanResult(token, callData);
     }
@@ -79,12 +67,7 @@ library LibERC20Token {
     /// @param from The owner of the tokens.
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
-    function transferFrom(
-        address token,
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
+    function transferFrom(address token, address from, address to, uint256 amount) internal {
         bytes memory callData = abi.encodeWithSelector(IERC20Token(0).transferFrom.selector, from, to, amount);
         _callWithOptionalBooleanResult(token, callData);
     }
@@ -107,11 +90,7 @@ library LibERC20Token {
     /// @param owner The owner of the tokens.
     /// @param spender The address the spender.
     /// @return allowance The allowance for a token, owner, and spender.
-    function allowance(
-        address token,
-        address owner,
-        address spender
-    ) internal view returns (uint256 allowance_) {
+    function allowance(address token, address owner, address spender) internal view returns (uint256 allowance_) {
         (bool didSucceed, bytes memory resultData) = token.staticcall(
             abi.encodeWithSelector(IERC20Token(0).allowance.selector, owner, spender)
         );

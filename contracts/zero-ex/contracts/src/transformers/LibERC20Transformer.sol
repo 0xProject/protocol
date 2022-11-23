@@ -40,11 +40,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param to The recipient.
     /// @param amount The transfer amount.
-    function transformerTransfer(
-        IERC20TokenV06 token,
-        address payable to,
-        uint256 amount
-    ) internal {
+    function transformerTransfer(IERC20TokenV06 token, address payable to, uint256 amount) internal {
         if (isTokenETH(token)) {
             to.transfer(amount);
         } else {
@@ -57,11 +53,7 @@ library LibERC20Transformer {
     /// @param token An ERC20 or the ETH pseudo-token address (`ETH_TOKEN_ADDRESS`).
     /// @param to The recipient.
     /// @param amount The transfer amount.
-    function unsafeTransformerTransfer(
-        IERC20TokenV06 token,
-        address payable to,
-        uint256 amount
-    ) internal {
+    function unsafeTransformerTransfer(IERC20TokenV06 token, address payable to, uint256 amount) internal {
         if (isTokenETH(token)) {
             (bool sent, ) = to.call{value: amount}("");
             require(sent, "LibERC20Transformer/FAILED_TO_SEND_ETHER");
@@ -130,11 +122,10 @@ library LibERC20Transformer {
     /// @param deploymentNonce The nonce that the deployer had when deploying
     ///        a contract.
     /// @return deploymentAddress The deployment address.
-    function getDeployedAddress(address deployer, uint32 deploymentNonce)
-        internal
-        pure
-        returns (address payable deploymentAddress)
-    {
+    function getDeployedAddress(
+        address deployer,
+        uint32 deploymentNonce
+    ) internal pure returns (address payable deploymentAddress) {
         // The address of if a deployed contract is the lower 20 bytes of the
         // hash of the RLP-encoded deployer's account address + account nonce.
         // See: https://ethereum.stackexchange.com/questions/760/how-is-the-address-of-an-ethereum-contract-computed

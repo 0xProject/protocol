@@ -230,10 +230,9 @@ interface IERC721OrdersFeature {
     /// @dev Get the current status of an ERC721 order.
     /// @param order The ERC721 order.
     /// @return status The status of the order.
-    function getERC721OrderStatus(LibNFTOrder.ERC721Order calldata order)
-        external
-        view
-        returns (LibNFTOrder.OrderStatus status);
+    function getERC721OrderStatus(
+        LibNFTOrder.ERC721Order calldata order
+    ) external view returns (LibNFTOrder.OrderStatus status);
 
     /// @dev Get the EIP-712 hash of an ERC721 order.
     /// @param order The ERC721 order.

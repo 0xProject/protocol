@@ -251,7 +251,7 @@ contract ERC1155OrdersFeature is IFeature, IERC1155OrdersFeature, FixinERC1155Sp
     ///         indicating that the callback succeeded.
     function onERC1155Received(
         address operator,
-        address, /* from */
+        address /* from */,
         uint256 tokenId,
         uint256 value,
         bytes calldata data
@@ -422,7 +422,7 @@ contract ERC1155OrdersFeature is IFeature, IERC1155OrdersFeature, FixinERC1155Sp
     /// @param fillAmount The amount (denominated in the NFT asset)
     ///        that the order has been filled by.
     function _updateOrderState(
-        LibNFTOrder.NFTOrder memory, /* order */
+        LibNFTOrder.NFTOrder memory /* order */,
         bytes32 orderHash,
         uint128 fillAmount
     ) internal override {
@@ -442,23 +442,19 @@ contract ERC1155OrdersFeature is IFeature, IERC1155OrdersFeature, FixinERC1155Sp
     ///      an ERC1155 asset.
     /// @param order The ERC1155 order.
     /// @param erc1155TokenId The ID of the ERC1155 asset.
-    function validateERC1155OrderProperties(LibNFTOrder.ERC1155Order memory order, uint256 erc1155TokenId)
-        public
-        view
-        override
-    {
+    function validateERC1155OrderProperties(
+        LibNFTOrder.ERC1155Order memory order,
+        uint256 erc1155TokenId
+    ) public view override {
         _validateOrderProperties(order.asNFTOrder(), erc1155TokenId);
     }
 
     /// @dev Get the order info for an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderInfo Info about the order.
-    function getERC1155OrderInfo(LibNFTOrder.ERC1155Order memory order)
-        public
-        view
-        override
-        returns (LibNFTOrder.OrderInfo memory orderInfo)
-    {
+    function getERC1155OrderInfo(
+        LibNFTOrder.ERC1155Order memory order
+    ) public view override returns (LibNFTOrder.OrderInfo memory orderInfo) {
         orderInfo.orderAmount = order.erc1155TokenAmount;
         orderInfo.orderHash = getERC1155OrderHash(order);
 
@@ -511,24 +507,18 @@ contract ERC1155OrdersFeature is IFeature, IERC1155OrdersFeature, FixinERC1155Sp
     /// @dev Get the order info for an NFT order.
     /// @param order The NFT order.
     /// @return orderInfo Info about the order.
-    function _getOrderInfo(LibNFTOrder.NFTOrder memory order)
-        internal
-        view
-        override
-        returns (LibNFTOrder.OrderInfo memory orderInfo)
-    {
+    function _getOrderInfo(
+        LibNFTOrder.NFTOrder memory order
+    ) internal view override returns (LibNFTOrder.OrderInfo memory orderInfo) {
         return getERC1155OrderInfo(order.asERC1155Order());
     }
 
     /// @dev Get the EIP-712 hash of an ERC1155 order.
     /// @param order The ERC1155 order.
     /// @return orderHash The order hash.
-    function getERC1155OrderHash(LibNFTOrder.ERC1155Order memory order)
-        public
-        view
-        override
-        returns (bytes32 orderHash)
-    {
+    function getERC1155OrderHash(
+        LibNFTOrder.ERC1155Order memory order
+    ) public view override returns (bytes32 orderHash) {
         return _getEIP712Hash(LibNFTOrder.getERC1155OrderStructHash(order));
     }
 }

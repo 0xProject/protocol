@@ -82,9 +82,5 @@ interface IUniswapV3Feature {
     /// @param amount1Delta Token1 amount owed.
     /// @param data Arbitrary data forwarded from swap() caller. An ABI-encoded
     ///        struct of: inputToken, outputToken, fee, payer
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata data
-    ) external;
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external;
 }

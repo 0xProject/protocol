@@ -153,14 +153,9 @@ contract TransformERC20Feature is IFeature, ITransformERC20Feature, FixinCommon,
     /// @dev Internal version of `transformERC20()`. Only callable from within.
     /// @param args A `TransformERC20Args` struct.
     /// @return outputTokenAmount The amount of `outputToken` received by the taker.
-    function _transformERC20(TransformERC20Args memory args)
-        public
-        payable
-        virtual
-        override
-        onlySelf
-        returns (uint256 outputTokenAmount)
-    {
+    function _transformERC20(
+        TransformERC20Args memory args
+    ) public payable virtual override onlySelf returns (uint256 outputTokenAmount) {
         return _transformERC20Private(args);
     }
 

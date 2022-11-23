@@ -5,11 +5,9 @@ pragma experimental ABIEncoderV2;
 import "../src/features/libs/LibNativeOrder.sol";
 
 contract TestLibNativeOrder {
-    function getLimitOrderStructHash(LibNativeOrder.LimitOrder calldata order)
-        external
-        pure
-        returns (bytes32 structHash)
-    {
+    function getLimitOrderStructHash(
+        LibNativeOrder.LimitOrder calldata order
+    ) external pure returns (bytes32 structHash) {
         return LibNativeOrder.getLimitOrderStructHash(order);
     }
 

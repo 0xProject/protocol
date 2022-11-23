@@ -20,11 +20,10 @@
 pragma solidity ^0.6.5;
 
 library LibMetaTransactionsRichErrors {
-    function InvalidMetaTransactionsArrayLengthsError(uint256 mtxCount, uint256 signatureCount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function InvalidMetaTransactionsArrayLengthsError(
+        uint256 mtxCount,
+        uint256 signatureCount
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("InvalidMetaTransactionsArrayLengthsError(uint256,uint256)")),
@@ -33,11 +32,10 @@ library LibMetaTransactionsRichErrors {
             );
     }
 
-    function MetaTransactionUnsupportedFunctionError(bytes32 mtxHash, bytes4 selector)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function MetaTransactionUnsupportedFunctionError(
+        bytes32 mtxHash,
+        bytes4 selector
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("MetaTransactionUnsupportedFunctionError(bytes32,bytes4)")),
@@ -118,11 +116,10 @@ library LibMetaTransactionsRichErrors {
             );
     }
 
-    function MetaTransactionAlreadyExecutedError(bytes32 mtxHash, uint256 executedBlockNumber)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function MetaTransactionAlreadyExecutedError(
+        bytes32 mtxHash,
+        uint256 executedBlockNumber
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("MetaTransactionAlreadyExecutedError(bytes32,uint256)")),

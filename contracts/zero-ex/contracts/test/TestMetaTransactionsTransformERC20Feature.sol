@@ -37,12 +37,9 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
 
     constructor() public TransformERC20Feature() {}
 
-    function _transformERC20(TransformERC20Args memory args)
-        public
-        payable
-        override
-        returns (uint256 outputTokenAmount)
-    {
+    function _transformERC20(
+        TransformERC20Args memory args
+    ) public payable override returns (uint256 outputTokenAmount) {
         if (msg.value == 555) {
             tx.origin.transfer(1);
         }

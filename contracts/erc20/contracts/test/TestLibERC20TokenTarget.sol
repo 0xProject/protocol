@@ -29,11 +29,7 @@ contract TestLibERC20TokenTarget {
     bytes private _revertData;
     bytes private _returnData;
 
-    function setBehavior(
-        bool shouldRevert,
-        bytes calldata revertData,
-        bytes calldata returnData
-    ) external {
+    function setBehavior(bool shouldRevert, bytes calldata revertData, bytes calldata returnData) external {
         _shouldRevert = shouldRevert;
         _revertData = revertData;
         _returnData = returnData;
@@ -49,11 +45,7 @@ contract TestLibERC20TokenTarget {
         _execute();
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) external returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
         emit TransferFromCalled(from, to, amount);
         _execute();
     }

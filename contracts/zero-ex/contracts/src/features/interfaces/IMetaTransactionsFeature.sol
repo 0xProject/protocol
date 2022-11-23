@@ -61,10 +61,10 @@ interface IMetaTransactionsFeature {
     /// @param mtx The meta-transaction.
     /// @param signature The signature by `mtx.signer`.
     /// @return returnResult The ABI-encoded result of the underlying call.
-    function executeMetaTransaction(MetaTransactionData calldata mtx, LibSignature.Signature calldata signature)
-        external
-        payable
-        returns (bytes memory returnResult);
+    function executeMetaTransaction(
+        MetaTransactionData calldata mtx,
+        LibSignature.Signature calldata signature
+    ) external payable returns (bytes memory returnResult);
 
     /// @dev Execute multiple meta-transactions.
     /// @param mtxs The meta-transactions.
@@ -78,10 +78,9 @@ interface IMetaTransactionsFeature {
     /// @dev Get the block at which a meta-transaction has been executed.
     /// @param mtx The meta-transaction.
     /// @return blockNumber The block height when the meta-transactioin was executed.
-    function getMetaTransactionExecutedBlock(MetaTransactionData calldata mtx)
-        external
-        view
-        returns (uint256 blockNumber);
+    function getMetaTransactionExecutedBlock(
+        MetaTransactionData calldata mtx
+    ) external view returns (uint256 blockNumber);
 
     /// @dev Get the block at which a meta-transaction hash has been executed.
     /// @param mtxHash The meta-transaction hash.

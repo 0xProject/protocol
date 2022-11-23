@@ -29,9 +29,10 @@ contract TestTransformerHost {
     using LibERC20Transformer for IERC20TokenV06;
     using LibRichErrorsV06 for bytes;
 
-    function rawExecuteTransform(IERC20Transformer transformer, IERC20Transformer.TransformContext calldata context)
-        external
-    {
+    function rawExecuteTransform(
+        IERC20Transformer transformer,
+        IERC20Transformer.TransformContext calldata context
+    ) external {
         (bool _success, bytes memory resultData) = address(transformer).delegatecall(
             abi.encodeWithSelector(transformer.transform.selector, context)
         );

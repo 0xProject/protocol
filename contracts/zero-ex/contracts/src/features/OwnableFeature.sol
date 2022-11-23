@@ -77,11 +77,7 @@ contract OwnableFeature is IFeature, IOwnableFeature, FixinCommon {
     /// @param target The migrator contract address.
     /// @param data The call data.
     /// @param newOwner The address of the new owner.
-    function migrate(
-        address target,
-        bytes calldata data,
-        address newOwner
-    ) external override onlyOwner {
+    function migrate(address target, bytes calldata data, address newOwner) external override onlyOwner {
         if (newOwner == address(0)) {
             LibOwnableRichErrors.TransferOwnerToZeroError().rrevert();
         }

@@ -26,17 +26,9 @@ import "@0x/contracts-erc20/contracts/src/v06/IERC20TokenV06.sol";
 import "../IBridgeAdapter.sol";
 
 interface IDODO {
-    function sellBaseToken(
-        uint256 amount,
-        uint256 minReceiveQuote,
-        bytes calldata data
-    ) external returns (uint256);
+    function sellBaseToken(uint256 amount, uint256 minReceiveQuote, bytes calldata data) external returns (uint256);
 
-    function buyBaseToken(
-        uint256 amount,
-        uint256 maxPayQuote,
-        bytes calldata data
-    ) external returns (uint256);
+    function buyBaseToken(uint256 amount, uint256 maxPayQuote, bytes calldata data) external returns (uint256);
 }
 
 interface IDODOHelper {

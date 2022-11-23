@@ -28,10 +28,10 @@ contract TestFillQuoteTransformerBridge {
     uint256 private constant REVERT_AMOUNT = 0xdeadbeef;
 
     function sellTokenForToken(
-        address, /* takerToken */
+        address /* takerToken */,
         address makerToken,
         address recipient,
-        uint256, /* minBuyAmount */
+        uint256 /* minBuyAmount */,
         bytes calldata auxiliaryData
     ) external returns (uint256 boughtAmount) {
         boughtAmount = abi.decode(auxiliaryData, (uint256));

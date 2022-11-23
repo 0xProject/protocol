@@ -26,12 +26,7 @@ import "../src/fixins/FixinTokenSpender.sol";
 contract TestFixinTokenSpender is FixinTokenSpender {
     constructor() public {}
 
-    function transferERC20TokensFrom(
-        IERC20TokenV06 token,
-        address owner,
-        address to,
-        uint256 amount
-    ) external {
+    function transferERC20TokensFrom(IERC20TokenV06 token, address owner, address to, uint256 amount) external {
         _transferERC20TokensFrom(token, owner, to, amount);
     }
 

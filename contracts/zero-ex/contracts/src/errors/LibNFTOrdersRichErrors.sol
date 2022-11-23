@@ -54,11 +54,10 @@ library LibNFTOrdersRichErrors {
             );
     }
 
-    function SellOrderFeesExceedSpreadError(uint256 sellOrderFees, uint256 spread)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function SellOrderFeesExceedSpreadError(
+        uint256 sellOrderFees,
+        uint256 spread
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("SellOrderFeesExceedSpreadError(uint256,uint256)")),
@@ -112,11 +111,10 @@ library LibNFTOrdersRichErrors {
             );
     }
 
-    function ExceedsRemainingOrderAmount(uint128 remainingOrderAmount, uint128 fillAmount)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function ExceedsRemainingOrderAmount(
+        uint128 remainingOrderAmount,
+        uint128 fillAmount
+    ) internal pure returns (bytes memory) {
         return
             abi.encodeWithSelector(
                 bytes4(keccak256("ExceedsRemainingOrderAmount(uint128,uint128)")),

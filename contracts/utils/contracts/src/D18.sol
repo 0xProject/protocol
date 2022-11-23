@@ -23,7 +23,7 @@ library D18 {
     /// @dev Decimal places for dydx value quantities.
     uint256 private constant PRECISION = 18;
     /// @dev 1.0 in base-18 decimal.
-    int256 private constant DECIMAL_ONE = int256(10**PRECISION);
+    int256 private constant DECIMAL_ONE = int256(10 ** PRECISION);
     /// @dev Minimum signed integer value.
     int256 private constant MIN_INT256_VALUE =
         int256(0x8000000000000000000000000000000000000000000000000000000000000000);

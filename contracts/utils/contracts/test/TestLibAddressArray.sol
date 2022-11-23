@@ -30,11 +30,10 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param addressToAppend  Address to append.
     /// @return Array of addresses: [... addressArray, addressToAppend]
-    function publicAppend(address[] memory addressArray, address addressToAppend)
-        public
-        pure
-        returns (address[] memory)
-    {
+    function publicAppend(
+        address[] memory addressArray,
+        address addressToAppend
+    ) public pure returns (address[] memory) {
         return addressArray.append(addressToAppend);
     }
 
@@ -52,15 +51,7 @@ contract TestLibAddressArray {
         address[] memory addressArray,
         int256 freeMemOffset,
         address addressToAppend
-    )
-        public
-        pure
-        returns (
-            address[] memory result,
-            uint256 oldArrayMemStart,
-            uint256 newArrayMemStart
-        )
-    {
+    ) public pure returns (address[] memory result, uint256 oldArrayMemStart, uint256 newArrayMemStart) {
         assembly {
             // Remember the original memory address of the array.
             oldArrayMemStart := addressArray
@@ -89,11 +80,10 @@ contract TestLibAddressArray {
     /// @param addressArray Array of addresses.
     /// @param target Address to search for in array.
     /// @return Existence and index of the target in the array.
-    function publicIndexOf(address[] memory addressArray, address target)
-        public
-        pure
-        returns (bool success, uint256 index)
-    {
+    function publicIndexOf(
+        address[] memory addressArray,
+        address target
+    ) public pure returns (bool success, uint256 index) {
         (success, index) = addressArray.indexOf(target);
     }
 }

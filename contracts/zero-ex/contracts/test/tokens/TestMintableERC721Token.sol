@@ -123,12 +123,7 @@ contract TestMintableERC721Token {
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
     /// @param _data Additional data with no specified format, sent in call to `_to`
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes calldata _data
-    ) external {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) external {
         transferFrom(_from, _to, _tokenId);
 
         uint256 receiverCodeSize;
@@ -147,11 +142,7 @@ contract TestMintableERC721Token {
     /// @param _from The current owner of the NFT
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external {
         transferFrom(_from, _to, _tokenId);
 
         uint256 receiverCodeSize;
@@ -209,11 +200,7 @@ contract TestMintableERC721Token {
     /// @param _from The current owner of the NFT
     /// @param _to The new owner
     /// @param _tokenId The NFT to transfer
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) public {
+    function transferFrom(address _from, address _to, uint256 _tokenId) public {
         require(_to != address(0), "ERC721_ZERO_TO_ADDRESS");
 
         address owner = ownerOf(_tokenId);

@@ -35,11 +35,7 @@ contract TestMintableERC20Token {
         return true;
     }
 
-    function approveAs(
-        address owner,
-        address spender,
-        uint256 amount
-    ) external returns (bool) {
+    function approveAs(address owner, address spender, uint256 amount) external returns (bool) {
         allowance[owner][spender] = amount;
         return true;
     }
@@ -53,11 +49,7 @@ contract TestMintableERC20Token {
         balanceOf[owner] -= amount;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) public virtual returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
         if (from != msg.sender) {
             require(allowance[from][msg.sender] >= amount, "TestMintableERC20Token/INSUFFICIENT_ALLOWANCE");
             allowance[from][msg.sender] -= amount;

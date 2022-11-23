@@ -62,12 +62,11 @@ library LibFractions {
     /// @param denominator The denominator.
     /// @return scaledNumerator The rescaled numerator.
     /// @return scaledDenominator The rescaled denominator.
-    function normalize(uint256 numerator, uint256 denominator)
-        internal
-        pure
-        returns (uint256 scaledNumerator, uint256 scaledDenominator)
-    {
-        return normalize(numerator, denominator, 2**127);
+    function normalize(
+        uint256 numerator,
+        uint256 denominator
+    ) internal pure returns (uint256 scaledNumerator, uint256 scaledDenominator) {
+        return normalize(numerator, denominator, 2 ** 127);
     }
 
     /// @dev Safely scales the difference between two fractions.

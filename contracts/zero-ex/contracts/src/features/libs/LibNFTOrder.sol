@@ -271,10 +271,7 @@ library LibNFTOrder {
             mstore(typeHashPos, _ERC_721_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
-            structHash := keccak256(
-                typeHashPos,
-                384 /* 32 * 12 */
-            )
+            structHash := keccak256(typeHashPos, 384 /* 32 * 12 */)
 
             mstore(typeHashPos, typeHashMemBefore)
             mstore(feesHashPos, feeHashMemBefore)
@@ -322,10 +319,7 @@ library LibNFTOrder {
             mstore(typeHashPos, _ERC_1155_ORDER_TYPEHASH)
             mstore(feesHashPos, feesHash)
             mstore(propertiesHashPos, propertiesHash)
-            structHash := keccak256(
-                typeHashPos,
-                416 /* 32 * 12 */
-            )
+            structHash := keccak256(typeHashPos, 416 /* 32 * 12 */)
 
             mstore(typeHashPos, typeHashMemBefore)
             mstore(feesHashPos, feesHashMemBefore)

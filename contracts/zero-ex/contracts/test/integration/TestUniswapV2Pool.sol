@@ -27,12 +27,7 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
         (token0, token1) = (params.token0, params.token1);
     }
 
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata /* data */
-    ) external override {
+    function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata /* data */) external override {
         if (amount0Out > 0) {
             token0.transfer(to, amount0Out);
         }
@@ -41,26 +36,13 @@ contract TestUniswapV2Pool is IUniswapV2Pair {
         }
     }
 
-    function setReserves(
-        uint112 reserve0_,
-        uint112 reserve1_,
-        uint32 blockTimestampLast_
-    ) external {
+    function setReserves(uint112 reserve0_, uint112 reserve1_, uint32 blockTimestampLast_) external {
         reserve0 = reserve0_;
         reserve1 = reserve1_;
         blockTimestampLast = blockTimestampLast_;
     }
 
-    function getReserves()
-        external
-        view
-        override
-        returns (
-            uint112,
-            uint112,
-            uint32
-        )
-    {
+    function getReserves() external view override returns (uint112, uint112, uint32) {
         return (reserve0, reserve1, blockTimestampLast);
     }
 }

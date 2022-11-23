@@ -32,11 +32,7 @@ contract TestWethTransformerHost is TestTransformerHost {
         _weth = weth;
     }
 
-    function executeTransform(
-        uint256 wethAmount,
-        IERC20Transformer transformer,
-        bytes calldata data
-    ) external payable {
+    function executeTransform(uint256 wethAmount, IERC20Transformer transformer, bytes calldata data) external payable {
         if (wethAmount != 0) {
             _weth.deposit{value: wethAmount}();
         }

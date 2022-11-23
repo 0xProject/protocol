@@ -54,7 +54,7 @@ contract MultiplexFeature is
     /// @dev Version of this feature.
     uint256 public immutable override FEATURE_VERSION = _encodeVersion(2, 0, 0);
     /// @dev The highest bit of a uint256 value.
-    uint256 private constant HIGH_BIT = 2**255;
+    uint256 private constant HIGH_BIT = 2 ** 255;
     /// @dev Mask of the lower 255 bits of a uint256 value.
     uint256 private constant LOWER_255_BITS = HIGH_BIT - 1;
 
@@ -191,10 +191,10 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of `outputToken` that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of `outputToken` bought.
-    function _multiplexBatchSell(BatchSellParams memory params, uint256 minBuyAmount)
-        private
-        returns (uint256 boughtAmount)
-    {
+    function _multiplexBatchSell(
+        BatchSellParams memory params,
+        uint256 minBuyAmount
+    ) private returns (uint256 boughtAmount) {
         // Cache the recipient's initial balance of the output token.
         uint256 balanceBefore = params.outputToken.balanceOf(params.recipient);
         // Execute the batch sell.
@@ -320,10 +320,10 @@ contract MultiplexFeature is
     /// @param minBuyAmount The minimum amount of output tokens that
     ///        must be bought for this function to not revert.
     /// @return boughtAmount The amount of output tokens bought.
-    function _multiplexMultiHopSell(MultiHopSellParams memory params, uint256 minBuyAmount)
-        private
-        returns (uint256 boughtAmount)
-    {
+    function _multiplexMultiHopSell(
+        MultiHopSellParams memory params,
+        uint256 minBuyAmount
+    ) private returns (uint256 boughtAmount) {
         // There should be one call/hop between every two tokens
         // in the path.
         // tokens[0]––calls[0]––>tokens[1]––...––calls[n-1]––>tokens[n]

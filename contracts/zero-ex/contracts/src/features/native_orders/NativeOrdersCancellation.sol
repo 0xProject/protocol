@@ -85,11 +85,7 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairLimitOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    ) public {
+    function cancelPairLimitOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) public {
         _cancelPairLimitOrders(msg.sender, makerToken, takerToken, minValidSalt);
     }
 
@@ -172,11 +168,7 @@ abstract contract NativeOrdersCancellation is INativeOrdersEvents, NativeOrdersI
     /// @param makerToken The maker token.
     /// @param takerToken The taker token.
     /// @param minValidSalt The new minimum valid salt.
-    function cancelPairRfqOrders(
-        IERC20TokenV06 makerToken,
-        IERC20TokenV06 takerToken,
-        uint256 minValidSalt
-    ) public {
+    function cancelPairRfqOrders(IERC20TokenV06 makerToken, IERC20TokenV06 takerToken, uint256 minValidSalt) public {
         _cancelPairRfqOrders(msg.sender, makerToken, takerToken, minValidSalt);
     }
 

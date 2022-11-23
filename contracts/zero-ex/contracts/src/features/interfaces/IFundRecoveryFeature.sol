@@ -24,9 +24,5 @@ interface IFundRecoveryFeature {
     /// @param erc20 ERC20 Token Address.
     /// @param amountOut Amount of tokens to withdraw.
     /// @param recipientWallet Recipient wallet address.
-    function transferTrappedTokensTo(
-        IERC20TokenV06 erc20,
-        uint256 amountOut,
-        address payable recipientWallet
-    ) external;
+    function transferTrappedTokensTo(IERC20TokenV06 erc20, uint256 amountOut, address payable recipientWallet) external;
 }

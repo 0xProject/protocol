@@ -32,11 +32,7 @@ contract UntransferrableDummyERC20Token is DummyERC20Token {
     /// @param _from The address of the sender
     /// @param _to The address of the recipient
     /// @param _value The amount of token to be transferred
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
         require(false, "TRANSFER_DISABLED");
     }
 }

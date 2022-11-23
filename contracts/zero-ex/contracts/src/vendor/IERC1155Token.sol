@@ -71,13 +71,7 @@ interface IERC1155Token {
     /// @param id      ID of the token type
     /// @param value   Transfer amount
     /// @param data    Additional data with no specified format, sent in call to `_to`
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes calldata data) external;
 
     /// @notice Send multiple types of Tokens from a 3rd party in one transfer (with safety call).
     /// @dev MUST emit TransferBatch event on success.
@@ -124,8 +118,8 @@ interface IERC1155Token {
     /// @param owners      The addresses of the token holders
     /// @param ids         ID of the Tokens
     /// @return balances_  The _owner's balance of the Token types requested
-    function balanceOfBatch(address[] calldata owners, uint256[] calldata ids)
-        external
-        view
-        returns (uint256[] memory balances_);
+    function balanceOfBatch(
+        address[] calldata owners,
+        uint256[] calldata ids
+    ) external view returns (uint256[] memory balances_);
 }

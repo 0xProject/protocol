@@ -36,7 +36,9 @@ interface ISablier {
 
     function balanceOf(uint256 streamId, address who) external view returns (uint256 balance);
 
-    function getStream(uint256 streamId)
+    function getStream(
+        uint256 streamId
+    )
         external
         view
         returns (
