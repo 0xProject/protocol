@@ -174,7 +174,7 @@ jobs:
             - restore_cache:
                   keys:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
-            - run: cd contracts/zero-ex && git submodule update --recursive --remote && forge remappings
+            - run: cd contracts/zero-ex && forge remappings
             - run: cd contracts/zero-ex && forge test
     test-publish:
         resource_class: large
