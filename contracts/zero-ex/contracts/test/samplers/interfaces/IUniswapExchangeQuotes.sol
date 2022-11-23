@@ -19,34 +19,12 @@
 
 pragma solidity ^0.6;
 
-
 interface IUniswapExchangeQuotes {
+    function getEthToTokenInputPrice(uint256 ethSold) external view returns (uint256 tokensBought);
 
-    function getEthToTokenInputPrice(
-        uint256 ethSold
-    )
-        external
-        view
-        returns (uint256 tokensBought);
+    function getEthToTokenOutputPrice(uint256 tokensBought) external view returns (uint256 ethSold);
 
-    function getEthToTokenOutputPrice(
-        uint256 tokensBought
-    )
-        external
-        view
-        returns (uint256 ethSold);
+    function getTokenToEthInputPrice(uint256 tokensSold) external view returns (uint256 ethBought);
 
-    function getTokenToEthInputPrice(
-        uint256 tokensSold
-    )
-        external
-        view
-        returns (uint256 ethBought);
-
-    function getTokenToEthOutputPrice(
-        uint256 ethBought
-    )
-        external
-        view
-        returns (uint256 tokensSold);
+    function getTokenToEthOutputPrice(uint256 ethBought) external view returns (uint256 tokensSold);
 }

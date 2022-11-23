@@ -21,42 +21,32 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 interface IKyberDmmPool {
-
-    function totalSupply()
-        external
-        view
-        returns (uint256);
+    function totalSupply() external view returns (uint256);
 }
 
 interface IKyberDmmFactory {
-
-    function getPools(address token0, address token1)
-        external
-        view
-        returns (address[] memory _tokenPools);
+    function getPools(address token0, address token1) external view returns (address[] memory _tokenPools);
 }
 
 interface IKyberDmmRouter {
-
     function factory() external view returns (address);
 
-    function getAmountsOut(uint256 amountIn, address[] calldata pools, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
+    function getAmountsOut(
+        uint256 amountIn,
+        address[] calldata pools,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 
-    function getAmountsIn(uint256 amountOut, address[] calldata pools, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
+    function getAmountsIn(
+        uint256 amountOut,
+        address[] calldata pools,
+        address[] calldata path
+    ) external view returns (uint256[] memory amounts);
 }
 
-
-
-contract KyberDmmSampler
-{
+contract KyberDmmSampler {
     /// @dev Gas limit for KyberDmm calls.
-    uint256 constant private KYBER_DMM_CALL_GAS = 150e3; // 150k
+    uint256 private constant KYBER_DMM_CALL_GAS = 150e3; // 150k
 
     /// @dev Sample sell quotes from KyberDmm.
     /// @param router Router to look up tokens and amounts
@@ -69,11 +59,7 @@ contract KyberDmmSampler
         address router,
         address[] memory path,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (address[] memory pools, uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (address[] memory pools, uint256[] memory makerTokenAmounts) {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         pools = _getKyberDmmPools(router, path);
@@ -82,11 +68,8 @@ contract KyberDmmSampler
         }
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IKyberDmmRouter(router).getAmountsOut
-                    {gas: KYBER_DMM_CALL_GAS}
-                    (takerTokenAmounts[i], pools, path)
-                returns (uint256[] memory amounts)
-            {
+                IKyberDmmRouter(router).getAmountsOut{gas: KYBER_DMM_CALL_GAS}(takerTokenAmounts[i], pools, path)
+            returns (uint256[] memory amounts) {
                 makerTokenAmounts[i] = amounts[path.length - 1];
                 // Break early if there are 0 amounts
                 if (makerTokenAmounts[i] == 0) {
@@ -110,11 +93,7 @@ contract KyberDmmSampler
         address router,
         address[] memory path,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (address[] memory pools, uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (address[] memory pools, uint256[] memory takerTokenAmounts) {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         pools = _getKyberDmmPools(router, path);
@@ -123,11 +102,8 @@ contract KyberDmmSampler
         }
         for (uint256 i = 0; i < numSamples; i++) {
             try
-                IKyberDmmRouter(router).getAmountsIn
-                    {gas: KYBER_DMM_CALL_GAS}
-                    (makerTokenAmounts[i], pools, path)
-                returns (uint256[] memory amounts)
-            {
+                IKyberDmmRouter(router).getAmountsIn{gas: KYBER_DMM_CALL_GAS}(makerTokenAmounts[i], pools, path)
+            returns (uint256[] memory amounts) {
                 takerTokenAmounts[i] = amounts[0];
                 // Break early if there are 0 amounts
                 if (takerTokenAmounts[i] == 0) {
@@ -140,25 +116,13 @@ contract KyberDmmSampler
         }
     }
 
-    function _getKyberDmmPools(
-        address router,
-        address[] memory path
-    )
-        private
-        view
-        returns (address[] memory pools)
-    {
+    function _getKyberDmmPools(address router, address[] memory path) private view returns (address[] memory pools) {
         IKyberDmmFactory factory = IKyberDmmFactory(IKyberDmmRouter(router).factory());
         pools = new address[](path.length - 1);
         for (uint256 i = 0; i < pools.length; i++) {
             // find the best pool
             address[] memory allPools;
-            try
-                factory.getPools
-                    {gas: KYBER_DMM_CALL_GAS}
-                    (path[i], path[i + 1])
-                returns (address[] memory allPools)
-            {
+            try factory.getPools{gas: KYBER_DMM_CALL_GAS}(path[i], path[i + 1]) returns (address[] memory allPools) {
                 if (allPools.length == 0) {
                     return new address[](0);
                 }

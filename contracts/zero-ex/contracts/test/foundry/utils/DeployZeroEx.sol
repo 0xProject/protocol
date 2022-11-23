@@ -50,16 +50,14 @@ import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
 
-
 contract DeployZeroEx is Test {
     ZeroEx public ZERO_EX = ZeroEx(0xDef1C0ded9bec7F1a1670819833240f027b25EfF);
     IZeroEx public IZERO_EX = IZeroEx(address(ZERO_EX));
     address VANITY_DEPLOYER_ADDRESS = 0xe750ad66DE350F8110E305fb78Ec6A9f594445E3;
-    bytes deployerBytecode = hex"608060405234801561001057600080fd5b506040516103da3803806103da83398101604081905261002f91610077565b8060405161003c9061006a565b610046919061011f565b604051809103906000f080158015610062573d6000803e3d6000fd5b505050610198565b6101f5806101e583390190565b600060208284031215610088578081fd5b81516001600160401b038082111561009e578283fd5b818401915084601f8301126100b1578283fd5b8151818111156100c3576100c3610182565b604051601f8201601f19908116603f011681019083821181831017156100eb576100eb610182565b81604052828152876020848701011115610103578586fd5b610114836020830160208801610152565b979650505050505050565b600060208252825180602084015261013e816040850160208701610152565b601f01601f19169190910160400192915050565b60005b8381101561016d578181015183820152602001610155565b8381111561017c576000848401525b50505050565b634e487b7160e01b600052604160045260246000fd5b603f806101a66000396000f3fe6080604052600080fdfea26469706673582212201bd8b1a777b100d67435ca4bb0b2fdccb13a2c2dde019b227bb553ff9a95bd4464736f6c63430008020033608060405234801561001057600080fd5b506040516101f53803806101f583398101604081905261002f916100c9565b60008151602083016000f090506001600160a01b0381166100865760405162461bcd60e51b815260206004820152600d60248201526c1111541313d657d19052531151609a1b604482015260640160405180910390fd5b6040516001600160a01b03821681527ff40fcec21964ffb566044d083b4073f29f7f7929110ea19e1b3ebe375d89055e9060200160405180910390a150506101a8565b600060208083850312156100db578182fd5b82516001600160401b03808211156100f1578384fd5b818501915085601f830112610104578384fd5b81518181111561011657610116610192565b604051601f8201601f19908116603f0116810190838211818310171561013e5761013e610192565b816040528281528886848701011115610155578687fd5b8693505b828410156101765784840186015181850187015292850192610159565b8284111561018657868684830101525b98975050505050505050565b634e487b7160e01b600052604160045260246000fd5b603f806101b66000396000f3fe6080604052600080fdfea2646970667358221220fbca036a163ed7f008cefa7c834d98d25109a456a051d41d9c89d55d7185d12b64736f6c63430008020033";
+    bytes deployerBytecode =
+        hex"608060405234801561001057600080fd5b506040516103da3803806103da83398101604081905261002f91610077565b8060405161003c9061006a565b610046919061011f565b604051809103906000f080158015610062573d6000803e3d6000fd5b505050610198565b6101f5806101e583390190565b600060208284031215610088578081fd5b81516001600160401b038082111561009e578283fd5b818401915084601f8301126100b1578283fd5b8151818111156100c3576100c3610182565b604051601f8201601f19908116603f011681019083821181831017156100eb576100eb610182565b81604052828152876020848701011115610103578586fd5b610114836020830160208801610152565b979650505050505050565b600060208252825180602084015261013e816040850160208701610152565b601f01601f19169190910160400192915050565b60005b8381101561016d578181015183820152602001610155565b8381111561017c576000848401525b50505050565b634e487b7160e01b600052604160045260246000fd5b603f806101a66000396000f3fe6080604052600080fdfea26469706673582212201bd8b1a777b100d67435ca4bb0b2fdccb13a2c2dde019b227bb553ff9a95bd4464736f6c63430008020033608060405234801561001057600080fd5b506040516101f53803806101f583398101604081905261002f916100c9565b60008151602083016000f090506001600160a01b0381166100865760405162461bcd60e51b815260206004820152600d60248201526c1111541313d657d19052531151609a1b604482015260640160405180910390fd5b6040516001600160a01b03821681527ff40fcec21964ffb566044d083b4073f29f7f7929110ea19e1b3ebe375d89055e9060200160405180910390a150506101a8565b600060208083850312156100db578182fd5b82516001600160401b03808211156100f1578384fd5b818501915085601f830112610104578384fd5b81518181111561011657610116610192565b604051601f8201601f19908116603f0116810190838211818310171561013e5761013e610192565b816040528281528886848701011115610155578687fd5b8693505b828410156101765784840186015181850187015292850192610159565b8284111561018657868684830101525b98975050505050505050565b634e487b7160e01b600052604160045260246000fd5b603f806101b66000396000f3fe6080604052600080fdfea2646970667358221220fbca036a163ed7f008cefa7c834d98d25109a456a051d41d9c89d55d7185d12b64736f6c63430008020033";
 
-    address[] transformerSigners = [
-        address(this)
-    ];
+    address[] transformerSigners = [address(this)];
 
     bool isDeployed = false;
 
@@ -86,34 +84,26 @@ contract DeployZeroEx is Test {
 
     struct ZeroExDeployed {
         IZeroEx zeroEx;
-
         TransformerDeployer transformerDeployer;
         FeeCollectorController feeCollectorController;
         IStaking staking; // address(0)
         // Features
         Features features;
-
         // Transformers
         Transformers transformers;
-
         IEtherTokenV06 weth;
     }
 
     ZeroExDeployed ZERO_EX_DEPLOYED;
 
-    function getDeployedZeroEx()
-        public
-        returns (ZeroExDeployed memory)
-    {
+    function getDeployedZeroEx() public returns (ZeroExDeployed memory) {
         if (!isDeployed) {
             deployZeroEx();
         }
         return ZERO_EX_DEPLOYED;
     }
 
-    function logDeployedZeroEx()
-        public
-    {
+    function logDeployedZeroEx() public {
         emit log_string("--- Deployed ZeroEx ---");
         emit log_named_address("ZeroEx", address(ZERO_EX));
         emit log_named_address("TransformerDeployer", address(ZERO_EX_DEPLOYED.transformerDeployer));
@@ -122,7 +112,10 @@ contract DeployZeroEx is Test {
 
         emit log_string("----- Features -----");
         emit log_named_address("NativeOrdersFeature", address(ZERO_EX_DEPLOYED.features.nativeOrdersFeature));
-        emit log_named_address("BatchFillNativeOrdersFeature", address(ZERO_EX_DEPLOYED.features.batchFillNativeOrdersFeature));
+        emit log_named_address(
+            "BatchFillNativeOrdersFeature",
+            address(ZERO_EX_DEPLOYED.features.batchFillNativeOrdersFeature)
+        );
         emit log_named_address("OtcOrdersFeature", address(ZERO_EX_DEPLOYED.features.otcOrdersFeature));
         emit log_named_address("UniswapFeature", address(ZERO_EX_DEPLOYED.features.uniswapFeature));
         emit log_named_address("FundRecoveryFeature", address(ZERO_EX_DEPLOYED.features.fundRecoveryFeature));
@@ -135,17 +128,17 @@ contract DeployZeroEx is Test {
         emit log_string("----- Transformers -----");
         emit log_named_address("FillQuoteTransformer", address(ZERO_EX_DEPLOYED.transformers.fillQuoteTransformer));
         emit log_named_address("WethTransformer", address(ZERO_EX_DEPLOYED.transformers.wethTransformer));
-        emit log_named_address("AffiliateFeeTransformer", address(ZERO_EX_DEPLOYED.transformers.affiliateFeeTransformer));
+        emit log_named_address(
+            "AffiliateFeeTransformer",
+            address(ZERO_EX_DEPLOYED.transformers.affiliateFeeTransformer)
+        );
         emit log_named_address("PayTakerTransformer", address(ZERO_EX_DEPLOYED.transformers.payTakerTransformer));
 
         emit log_string("----- Other -----");
         emit log_named_address("WETH", address(ZERO_EX_DEPLOYED.weth));
     }
 
-    function deployZeroEx()
-        public
-        returns (ZeroExDeployed memory)
-    {
+    function deployZeroEx() public returns (ZeroExDeployed memory) {
         if (isDeployed) {
             return ZERO_EX_DEPLOYED;
         }
@@ -153,15 +146,9 @@ contract DeployZeroEx is Test {
         ZERO_EX_DEPLOYED.weth = IEtherTokenV06(address(new WETH9V06()));
         InitialMigration initialMigration = new InitialMigration(address(this));
         // Append the required ZeroEx constructor arguments (address bootstrapper)
-        bytes memory zeroExDeploycode = abi.encodePacked(
-            type(ZeroEx).creationCode,
-            abi.encode(initialMigration)
-        );
+        bytes memory zeroExDeploycode = abi.encodePacked(type(ZeroEx).creationCode, abi.encode(initialMigration));
         // Append the required deployer code constructor arguments (bytes initCode)
-        bytes memory deployerDeploycode = abi.encodePacked(
-            deployerBytecode,
-            abi.encode(zeroExDeploycode)
-        );
+        bytes memory deployerDeploycode = abi.encodePacked(deployerBytecode, abi.encode(zeroExDeploycode));
         // HERE BE DRAGONS, feel free to ignore this for now
         // We want to deploy the ZeroEx contract, at 0xDef1C0ded9bec7F1a1670819833240f027b25EfF
 
@@ -176,42 +163,40 @@ contract DeployZeroEx is Test {
         }
         // Staking = address(0);
         ZERO_EX_DEPLOYED.staking = IStaking(address(0));
-        ZERO_EX_DEPLOYED.transformerDeployer = new TransformerDeployer(
-            transformerSigners
-        );
+        ZERO_EX_DEPLOYED.transformerDeployer = new TransformerDeployer(transformerSigners);
         ZERO_EX_DEPLOYED.feeCollectorController = new FeeCollectorController(
             IEtherTokenV06(ZERO_EX_DEPLOYED.weth),
             IStaking(ZERO_EX_DEPLOYED.staking)
         );
 
-        
         // Features
         ZERO_EX_DEPLOYED.features.transformERC20Feature = new TransformERC20Feature();
         ZERO_EX_DEPLOYED.features.nativeOrdersFeature = new NativeOrdersFeature(
-                address(ZERO_EX), // EP address
-                ZERO_EX_DEPLOYED.weth,
-                ZERO_EX_DEPLOYED.staking,
-                ZERO_EX_DEPLOYED.feeCollectorController, // feeCollectorController address
-                uint32(0) // protocolFeeMultiplier
-            );
-        ZERO_EX_DEPLOYED.features.batchFillNativeOrdersFeature = new BatchFillNativeOrdersFeature(
-            address(ZERO_EX)
+            address(ZERO_EX), // EP address
+            ZERO_EX_DEPLOYED.weth,
+            ZERO_EX_DEPLOYED.staking,
+            ZERO_EX_DEPLOYED.feeCollectorController, // feeCollectorController address
+            uint32(0) // protocolFeeMultiplier
         );
-        ZERO_EX_DEPLOYED.features.otcOrdersFeature = new OtcOrdersFeature(
-            address(ZERO_EX),
-            ZERO_EX_DEPLOYED.weth
-        );
+        ZERO_EX_DEPLOYED.features.batchFillNativeOrdersFeature = new BatchFillNativeOrdersFeature(address(ZERO_EX));
+        ZERO_EX_DEPLOYED.features.otcOrdersFeature = new OtcOrdersFeature(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
         ZERO_EX_DEPLOYED.features.uniswapFeature = new UniswapFeature(ZERO_EX_DEPLOYED.weth);
         ZERO_EX_DEPLOYED.features.fundRecoveryFeature = new FundRecoveryFeature();
         ZERO_EX_DEPLOYED.features.metaTransactionsFeature = new MetaTransactionsFeature(address(ZERO_EX));
-        ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
-        ZERO_EX_DEPLOYED.features.erc721OrdersFeature = new ERC721OrdersFeature(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
+        ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(
+            address(ZERO_EX),
+            ZERO_EX_DEPLOYED.weth
+        );
+        ZERO_EX_DEPLOYED.features.erc721OrdersFeature = new ERC721OrdersFeature(
+            address(ZERO_EX),
+            ZERO_EX_DEPLOYED.weth
+        );
         ZERO_EX_DEPLOYED.features.multiplexFeature = new MultiplexFeature(
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth,
             ILiquidityProviderSandbox(address(0)),
             address(0), // uniswapFactory
-            address(0), // sushiswapFactory 
+            address(0), // sushiswapFactory
             bytes32(0), // uniswapPairInitCodeHash
             bytes32(0) // sushiswapPairInitCodeHash
         );
@@ -219,8 +204,8 @@ contract DeployZeroEx is Test {
         initialMigration.initializeZeroEx(
             payable(address(this)),
             ZERO_EX,
-            InitialMigration.BootstrapFeatures({ 
-                registry: new SimpleFunctionRegistryFeature(), 
+            InitialMigration.BootstrapFeatures({
+                registry: new SimpleFunctionRegistryFeature(),
                 ownable: new OwnableFeature()
             })
         );
@@ -231,7 +216,10 @@ contract DeployZeroEx is Test {
         );
         IZERO_EX.migrate(
             address(ZERO_EX_DEPLOYED.features.transformERC20Feature),
-            abi.encodeWithSelector(TransformERC20Feature.migrate.selector, address(ZERO_EX_DEPLOYED.transformerDeployer)),
+            abi.encodeWithSelector(
+                TransformERC20Feature.migrate.selector,
+                address(ZERO_EX_DEPLOYED.transformerDeployer)
+            ),
             address(this)
         );
         IZERO_EX.migrate(
@@ -303,15 +291,11 @@ contract DeployZeroEx is Test {
         );
 
         ZERO_EX_DEPLOYED.transformers.affiliateFeeTransformer = AffiliateFeeTransformer(
-            ZERO_EX_DEPLOYED.transformerDeployer.deploy(
-                type(AffiliateFeeTransformer).creationCode
-            )
+            ZERO_EX_DEPLOYED.transformerDeployer.deploy(type(AffiliateFeeTransformer).creationCode)
         );
 
         ZERO_EX_DEPLOYED.transformers.payTakerTransformer = PayTakerTransformer(
-            ZERO_EX_DEPLOYED.transformerDeployer.deploy(
-                type(PayTakerTransformer).creationCode
-            )
+            ZERO_EX_DEPLOYED.transformerDeployer.deploy(type(PayTakerTransformer).creationCode)
         );
 
         ZERO_EX_DEPLOYED.zeroEx = IZERO_EX;

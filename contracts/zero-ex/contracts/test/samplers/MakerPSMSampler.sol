@@ -27,6 +27,7 @@ interface IPSM {
     // @dev Get the fee for selling USDC to DAI in PSM
     // @return tin toll in [wad]
     function tin() external view returns (uint256);
+
     // @dev Get the fee for selling DAI to USDC in PSM
     // @return tout toll out [wad]
     function tout() external view returns (uint256);
@@ -46,17 +47,12 @@ interface IPSM {
     // @dev Sell USDC for DAI
     // @param usr The address of the account trading USDC for DAI.
     // @param gemAmt The amount of USDC to sell in USDC base units
-    function sellGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function sellGem(address usr, uint256 gemAmt) external;
+
     // @dev Buy USDC for DAI
     // @param usr The address of the account trading DAI for USDC
     // @param gemAmt The amount of USDC to buy in USDC base units
-    function buyGem(
-        address usr,
-        uint256 gemAmt
-    ) external;
+    function buyGem(address usr, uint256 gemAmt) external;
 }
 
 interface IVAT {
@@ -70,18 +66,10 @@ interface IVAT {
     // @return ilk.dust Urn Debt Floor in rad
     function ilks(
         bytes32 ilkIdentifier
-    ) external view returns (
-        uint256 Art,
-        uint256 rate,
-        uint256 spot,
-        uint256 line,
-        uint256 dust
-    );
+    ) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
-contract MakerPSMSampler is
-    SamplerUtils
-{
+contract MakerPSMSampler is SamplerUtils {
     using LibSafeMathV06 for uint256;
 
     /// @dev Information about which PSM module to use
@@ -92,16 +80,16 @@ contract MakerPSMSampler is
     }
 
     /// @dev Gas limit for MakerPsm calls.
-    uint256 constant private MAKER_PSM_CALL_GAS = 300e3; // 300k
-
+    uint256 private constant MAKER_PSM_CALL_GAS = 300e3; // 300k
 
     // Maker units
     // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-    uint256 constant private WAD = 10 ** 18;
+    uint256 private constant WAD = 10 ** 18;
     // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-    uint256 constant private RAY = 10 ** 27;
+    uint256 private constant RAY = 10 ** 27;
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-    uint256 constant private RAD = 10 ** 45;
+    uint256 private constant RAD = 10 ** 45;
+
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.m
 
     /// @dev Sample sell quotes from Maker PSM
@@ -110,15 +98,10 @@ contract MakerPSMSampler is
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory makerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         IPSM psm = IPSM(psmInfo.psmAddress);
         IVAT vat = IVAT(psm.vat());
-
 
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -142,11 +125,7 @@ contract MakerPSMSampler is
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    ) public view returns (uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         IPSM psm = IPSM(psmInfo.psmAddress);
         IVAT vat = IVAT(psm.vat());
@@ -166,15 +145,19 @@ contract MakerPSMSampler is
 
             takerTokenAmounts[i] = sellAmount;
         }
-
     }
 
-    function _samplePSMSell(MakerPsmInfo memory psmInfo, address makerToken, address takerToken, uint256 takerTokenAmount, IPSM psm, IVAT vat)
-        private
-        view
-        returns (uint256)
-    {
-        (uint256 totalDebtInWad,,, uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(psmInfo.ilkIdentifier);
+    function _samplePSMSell(
+        MakerPsmInfo memory psmInfo,
+        address makerToken,
+        address takerToken,
+        uint256 takerTokenAmount,
+        IPSM psm,
+        IVAT vat
+    ) private view returns (uint256) {
+        (uint256 totalDebtInWad, , , uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(
+            psmInfo.ilkIdentifier
+        );
         uint256 gemTokenBaseUnit = uint256(1e6);
 
         if (takerToken == psmInfo.gemTokenAddress) {
@@ -210,7 +193,9 @@ contract MakerPSMSampler is
             }
 
             uint256 feeDivisorInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
-            uint256 makerTokenAmountInGemTokenBaseUnits =  takerTokenAmountInWad.safeMul(gemTokenBaseUnit).safeDiv(feeDivisorInWad);
+            uint256 makerTokenAmountInGemTokenBaseUnits = takerTokenAmountInWad.safeMul(gemTokenBaseUnit).safeDiv(
+                feeDivisorInWad
+            );
 
             return makerTokenAmountInGemTokenBaseUnits;
         }
@@ -218,12 +203,17 @@ contract MakerPSMSampler is
         return 0;
     }
 
-    function _samplePSMBuy(MakerPsmInfo memory psmInfo, address makerToken, address takerToken, uint256 makerTokenAmount, IPSM psm, IVAT vat)
-        private
-        view
-        returns (uint256)
-    {
-        (uint256 totalDebtInWad,,, uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(psmInfo.ilkIdentifier);
+    function _samplePSMBuy(
+        MakerPsmInfo memory psmInfo,
+        address makerToken,
+        address takerToken,
+        uint256 makerTokenAmount,
+        IPSM psm,
+        IVAT vat
+    ) private view returns (uint256) {
+        (uint256 totalDebtInWad, , , uint256 debtCeilingInRad, uint256 debtFloorInRad) = vat.ilks(
+            psmInfo.ilkIdentifier
+        );
 
         if (takerToken == psmInfo.gemTokenAddress) {
             // Simulate sellGem
@@ -246,7 +236,7 @@ contract MakerPSMSampler is
             // Buying USDC from the PSM, decreasing the total debt
             uint256 makerTokenAmountInWad = makerTokenAmount.safeMul(1e12);
             uint256 feeMultiplierInWad = WAD.safeAdd(psm.tout()); // eg. 1.001 * 10 ** 18 with 0.1% tout;
-            uint256 takerTokenAmountInWad =  makerTokenAmountInWad.safeMul(feeMultiplierInWad).safeDiv(WAD);
+            uint256 takerTokenAmountInWad = makerTokenAmountInWad.safeMul(feeMultiplierInWad).safeDiv(WAD);
             if (takerTokenAmountInWad > totalDebtInWad) {
                 return 0;
             }
@@ -257,11 +247,9 @@ contract MakerPSMSampler is
                 return 0;
             }
 
-
             return takerTokenAmountInWad;
         }
 
         return 0;
     }
-
 }

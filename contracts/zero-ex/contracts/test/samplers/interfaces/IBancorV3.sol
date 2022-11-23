@@ -21,7 +21,6 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 interface IBancorV3 {
-
     /**
      * @dev returns the output amount when trading by providing the source amount
      */
@@ -39,5 +38,4 @@ interface IBancorV3 {
         address targetToken,
         uint256 targetAmount
     ) external view returns (uint256);
-
 }
