@@ -93,7 +93,7 @@ contract ForkUtils is Test {
 
     uint256 forkBlock = 15_000_000;
 
-    string[] chains = ["mainnet", "bsc", "polygon", "avalanche", "fantom", "optimism", "arbitrum"];
+    string[] chains = ["mainnet"]; //, "bsc", "polygon", "avalanche", "fantom", "optimism", "arbitrum"
     string[] indexChainIds = [".1", ".56", ".137", ".43114", ".250", ".10", ".42161"];
     string[] chainIds = ["1", "56", "137", "43114", "250", "10", "42161"];
     uint256[] chainId = [1, 56, 137, 43114, 250, 10, 42161];
@@ -109,6 +109,7 @@ contract ForkUtils is Test {
 
     function createForks() public returns (uint256[] memory) {
         for (uint256 i = 0; i < chains.length; i++) {
+            emit log_named_string("chains[i]", chains[i]);
             forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
             //forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
         }
@@ -164,7 +165,7 @@ contract ForkUtils is Test {
         readTokens();
         bytes memory chainTokens = tokensJson.parseRaw(indexChainIds[index]);
         return abi.decode(chainTokens, (TokenAddresses));
-        //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
+        log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
     }
 
     function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
