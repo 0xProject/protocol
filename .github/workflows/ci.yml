@@ -21,3 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
+
+      - name: Build solution
+        run: yarn build
