@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,12 +15,22 @@ jobs:
           submodules: recursive
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "16"
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Build solution
         run: yarn build
+
+      - name: Lint typescript
+        run: yarn lint:ts
+
+      - name: Lint solidity
+        run: yarn lint:contracts
+
+      - name: Run prettier
+        run: yarn prettier:ci
+
