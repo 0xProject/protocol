@@ -20,5 +20,4 @@ jobs:
           node-version: "16"
 
       - name: Install dependencies
-        run: git submodule update --init --recursive |
-             yarn
+        run: yarn install
