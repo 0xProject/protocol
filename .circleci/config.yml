@@ -159,7 +159,8 @@ jobs:
     test-foundry:
         resource_class: xlarge
         docker:
-            - image: ghcr.io/foundry-rs/foundry:latest
+            # Using nightly as foundry:latest is ~2 months old
+            - image: ghcr.io/foundry-rs/foundry:nightly
         steps:
             - checkout
             - run: |
