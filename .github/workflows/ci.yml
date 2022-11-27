@@ -37,6 +37,12 @@ jobs:
       - name: Check dependent packages have consistent versions
         run: yarn deps_versions:ci
 
+      - name: Check diff in docs
+        run: yarn diff_md_docs:ci
+
+      - name: Check for broken links in markdown files
+        run: yarn test:links
+
       - name: Test @0x/contracts-*
         run: |
               yarn wsrun \
