@@ -56,3 +56,15 @@ jobs:
                 -p @0x/contracts-broker \
                 -p @0x/contracts-zero-ex \
                 -m --serial -c test:circleci
+
+      - name: Add foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run foundry tests for zero ex contracts only
+        working-directory: ~/project/contracts/zero-ex
+        run: |
+          forge --version
+          forge build --sizes
+          forge test -vvv --gas-report
