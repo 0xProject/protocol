@@ -45,17 +45,27 @@ jobs:
 
       - name: Test @0x/contracts-*
         run: |
-              yarn wsrun \
-                -p @0x/contracts-multisig \
-                -p @0x/contracts-utils \
-                -p @0x/contracts-exchange-libs \
-                -p @0x/contracts-erc20 \
-                -p @0x/contracts-erc721 \
-                -p @0x/contracts-erc1155 \
-                -p @0x/contracts-asset-proxy \
-                -p @0x/contracts-broker \
-                -p @0x/contracts-zero-ex \
-                -m --serial -c test:circleci
+                yarn wsrun \
+                  -p @0x/contracts-multisig \
+                  -p @0x/contracts-utils \
+                  -p @0x/contracts-exchange-libs \
+                  -p @0x/contracts-erc20 \
+                  -p @0x/contracts-erc721 \
+                  -p @0x/contracts-erc1155 \
+                  -p @0x/contracts-asset-proxy \
+                  -p @0x/contracts-broker \
+                  -p @0x/contracts-zero-ex \
+                  -m --serial -c test:circleci
+
+      - name: Test local @0x/contracts-*
+        run: |
+                yarn wsrun \
+                  -p @0x/contracts-test-utils \
+                  -p @0x/contract-addresses \
+                  -p @0x/contract-artifacts \
+                  -p @0x/contract-wrappers-test \
+                  -p @0x/order-utils \
+                  -m --serial -c test:circleci
 
       - name: Add foundry
         uses: foundry-rs/foundry-toolchain@v1
