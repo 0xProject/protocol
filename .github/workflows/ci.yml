@@ -38,7 +38,7 @@ jobs:
         run: yarn deps_versions:ci
 
       - name: Test doc generation
-        run: yarn test:generate_docs:circleci
+        run: yarn test:generate_docs:ci
 
       - name: Check diff in docs
         run: yarn diff_md_docs:ci
@@ -58,7 +58,7 @@ jobs:
                   -p @0x/contracts-asset-proxy \
                   -p @0x/contracts-broker \
                   -p @0x/contracts-zero-ex \
-                  -m --serial -c test:circleci
+                  -m --serial -c test:ci
 
       - name: Test local @0x/contracts-*
         run: |
@@ -68,7 +68,7 @@ jobs:
                   -p @0x/contract-artifacts \
                   -p @0x/contract-wrappers-test \
                   -p @0x/order-utils \
-                  -m --serial -c test:circleci
+                  -m --serial -c test:ci
 
       - name: Add foundry
         uses: foundry-rs/foundry-toolchain@v1

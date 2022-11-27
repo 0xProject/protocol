@@ -13,7 +13,7 @@
         "build": "yarn tsc -b",
         "build:ci": "yarn build",
         "test": "mocha --require source-map-support/register  'lib/test/**/*_test.js' --timeout 10000 --bail --exit",
-        "test:circleci": "yarn test",
+        "test:ci": "yarn test",
         "clean": "shx rm -rf lib",
         "publish:private": "yarn build && gitpkg publish"
     },
