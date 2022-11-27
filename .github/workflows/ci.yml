@@ -76,7 +76,7 @@ jobs:
           version: nightly
 
       - name: Run foundry tests for zero ex contracts only
-        working-directory: ~/project/contracts/zero-ex
+        working-directory: contracts/zero-ex
         run: |
           forge --version
           forge build --sizes
