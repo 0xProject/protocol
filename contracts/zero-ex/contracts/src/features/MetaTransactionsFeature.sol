@@ -92,7 +92,10 @@ contract MetaTransactionsFeature is
             "bytes callData,"
             "uint256 value,"
             "address feeToken,"
-            "uint256 feeAmount"
+            "uint256 feeAmountOne,"
+            "address feeRecipientOne,"
+            "uint256 feeAmountTwo,"
+            "address feeRecipientTwo"
             ")"
         );
 
@@ -219,7 +222,10 @@ contract MetaTransactionsFeature is
                         keccak256(mtx.callData),
                         mtx.value,
                         mtx.feeToken,
-                        mtx.feeAmount
+                        mtx.feeAmountOne,
+                        mtx.feeRecipientOne,
+                        mtx.feeAmountTwo,
+                        mtx.feeRecipientTwo
                     )
                 )
             );
@@ -238,8 +244,11 @@ contract MetaTransactionsFeature is
         LibMetaTransactionsStorage.getStorage().mtxHashToExecutedBlockNumber[state.hash] = block.number;
 
         // Pay the fee to the sender.
-        if (state.mtx.feeAmount > 0) {
-            _transferERC20TokensFrom(state.mtx.feeToken, state.mtx.signer, state.sender, state.mtx.feeAmount);
+        if (state.mtx.feeAmountOne > 0) {
+            _transferERC20TokensFrom(state.mtx.feeToken, state.mtx.signer, state.mtx.feeRecipientOne, state.mtx.feeAmountOne);
+        }
+        if (state.mtx.feeAmountTwo > 0) {
+            _transferERC20TokensFrom(state.mtx.feeToken, state.mtx.signer, state.mtx.feeRecipientTwo, state.mtx.feeAmountTwo);
         }
 
         // Execute the call based on the selector.

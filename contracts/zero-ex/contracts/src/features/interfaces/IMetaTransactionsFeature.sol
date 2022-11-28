@@ -46,7 +46,13 @@ interface IMetaTransactionsFeature {
         // ERC20 fee `signer` pays `sender`.
         IERC20TokenV06 feeToken;
         // ERC20 fee amount.
-        uint256 feeAmount;
+        uint256 feeAmountOne;
+        // ERC20 fee recipient.
+        address feeRecipientOne;
+        // ERC20 fee amount.
+        uint256 feeAmountTwo;
+        // ERC20 fee recipient.
+        address feeRecipientTwo;
     }
 
     /// @dev Emitted whenever a meta-transaction is executed via
