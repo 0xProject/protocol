@@ -25,6 +25,13 @@ import "../libs/LibSignature.sol";
 
 /// @dev Meta-transactions feature.
 interface IMetaTransactionsFeature {
+    struct MetaTransactionFeeData {
+        // ERC20 fee recipient
+        address recipient;
+        // ERC20 fee amount
+        uint256 amount;
+    }
+
     /// @dev Describes an exchange proxy meta transaction.
     struct MetaTransactionData {
         // Signer of meta-transaction. On whose behalf to execute the MTX.
@@ -45,8 +52,8 @@ interface IMetaTransactionsFeature {
         uint256 value;
         // ERC20 fee `signer` pays `sender`.
         IERC20TokenV06 feeToken;
-        // ERC20 fee amount.
-        uint256 feeAmount;
+        // ERC20 fees.
+        MetaTransactionFeeData[] fees;
     }
 
     /// @dev Emitted whenever a meta-transaction is executed via
