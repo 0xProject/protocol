@@ -221,6 +221,10 @@ export const RPC_REQUEST_TIMEOUT = _.isEmpty(process.env.RPC_REQUEST_TIMEOUT)
 
 // Prometheus shared metrics
 export const PROMETHEUS_REQUEST_BUCKETS = linearBuckets(0, 0.25, RPC_REQUEST_TIMEOUT / 1000 / 0.25); // [ 0,  0.25,  0.5,  0.75, ... 5 ]
+export const PROMETHEUS_REQUEST_SIZE_BUCKETS = linearBuckets(0, 50000, 20); // A single step is 50kb, up to 1mb.
+export const PROMETHEUS_RESPONSE_SIZE_BUCKETS = linearBuckets(0, 50000, 20); // A single step is 50kb, up to 1mb.
+export const PROMETHEUS_LABEL_STATUS_OK = 'ok';
+export const PROMETHEUS_LABEL_STATUS_ERROR = 'error';
 
 // Enable client side content compression when sending RPC requests (default false)
 export const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_REQUEST_COMPRESSION)

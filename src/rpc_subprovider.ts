@@ -6,10 +6,16 @@ import * as http from 'http';
 import * as https from 'https';
 import JsonRpcError = require('json-rpc-error');
 import fetch, { Headers, Response } from 'node-fetch';
-import { Counter, Histogram, Summary } from 'prom-client';
+import { Counter, Histogram } from 'prom-client';
 import { gzip } from 'zlib';
 
-import { PROMETHEUS_REQUEST_BUCKETS } from './config';
+import {
+    PROMETHEUS_LABEL_STATUS_ERROR,
+    PROMETHEUS_LABEL_STATUS_OK,
+    PROMETHEUS_REQUEST_BUCKETS,
+    PROMETHEUS_REQUEST_SIZE_BUCKETS,
+    PROMETHEUS_RESPONSE_SIZE_BUCKETS,
+} from './config';
 import { ONE_SECOND_MS } from './constants';
 
 const httpAgent = new http.Agent({ keepAlive: true });
@@ -18,34 +24,30 @@ const httpsAgent = new https.Agent({ keepAlive: true });
 const agent = (_parsedURL: any) => (_parsedURL.protocol === 'http:' ? httpAgent : httpsAgent);
 
 const ETH_RPC_RESPONSE_TIME = new Histogram({
-    name: 'eth_rpc_response_time',
+    name: 'eth_rpc_response_duration_seconds',
     help: 'The response time of an RPC request',
     labelNames: ['method'],
     buckets: PROMETHEUS_REQUEST_BUCKETS,
 });
 
-const ETH_RPC_REQUEST_SIZE_SUMMARY = new Summary({
-    name: 'eth_rpc_request_size_summary',
+const ETH_RPC_RESPONSE_SIZE = new Histogram({
+    name: 'eth_rpc_reponse_size_bytes',
+    help: 'The rpc response size',
+    labelNames: ['method', 'status'],
+    buckets: PROMETHEUS_RESPONSE_SIZE_BUCKETS,
+});
+
+const ETH_RPC_REQUEST_SIZE = new Histogram({
+    name: 'eth_rpc_request_size_bytes',
     help: 'The rpc request payload size',
     labelNames: ['method'],
+    buckets: PROMETHEUS_REQUEST_SIZE_BUCKETS,
 });
 
 const ETH_RPC_REQUESTS = new Counter({
-    name: 'eth_rpc_requests',
+    name: 'eth_rpc_requests_total',
     help: 'The count of RPC requests',
-    labelNames: ['method'],
-});
-
-const ETH_RPC_REQUEST_SUCCESS = new Counter({
-    name: 'eth_rpc_request_success',
-    help: 'The count of successful RPC requests',
-    labelNames: ['method'],
-});
-
-const ETH_RPC_REQUEST_ERROR = new Counter({
-    name: 'eth_rpc_request_error',
-    help: 'The count of RPC request errors',
-    labelNames: ['method'],
+    labelNames: ['method', 'status'],
 });
 
 /**
@@ -86,16 +88,16 @@ export class RPCSubprovider extends Subprovider {
             'Content-Type': 'application/json',
             ...(this._shouldCompressRequest ? { 'Content-Encoding': 'gzip' } : {}),
         });
+        const method: string = finalPayload.method ?? 'method:unknown';
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        ETH_RPC_REQUESTS.labels(finalPayload.method!).inc();
         const begin = Date.now();
 
         let response: Response;
         const rpcUrl = this._rpcUrls[Math.floor(Math.random() * this._rpcUrls.length)];
         const body = await this._encodeRequestPayloadAsync(finalPayload);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        ETH_RPC_REQUEST_SIZE_SUMMARY.labels(finalPayload.method!).observe(Buffer.byteLength(body, 'utf8'));
+
+        ETH_RPC_REQUEST_SIZE.labels(method).observe(Buffer.byteLength(body, 'utf8'));
+
         try {
             response = await fetch(rpcUrl, {
                 method: 'POST',
@@ -106,21 +108,21 @@ export class RPCSubprovider extends Subprovider {
                 agent,
             });
         } catch (err) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
+            ETH_RPC_REQUESTS.labels(method, PROMETHEUS_LABEL_STATUS_ERROR).inc();
             end(new JsonRpcError.InternalError(err));
             return;
         } finally {
             const duration = (Date.now() - begin) / ONE_SECOND_MS;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            ETH_RPC_RESPONSE_TIME.labels(finalPayload.method!).observe(duration);
+
+            ETH_RPC_RESPONSE_TIME.labels(method).observe(duration);
         }
 
         const text = await response.text();
 
         if (!response.ok) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
+            ETH_RPC_REQUESTS.labels(method, PROMETHEUS_LABEL_STATUS_ERROR).inc();
+            ETH_RPC_RESPONSE_SIZE.labels(method, PROMETHEUS_LABEL_STATUS_ERROR).observe(text.length);
+
             const statusCode = response.status;
             switch (statusCode) {
                 case StatusCodes.MethodNotAllowed:
@@ -138,25 +140,24 @@ export class RPCSubprovider extends Subprovider {
                     return;
             }
         }
+        ETH_RPC_RESPONSE_SIZE.labels(method, PROMETHEUS_LABEL_STATUS_OK).observe(text.length);
 
         let data;
         try {
             data = JSON.parse(text);
         } catch (err) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
+            ETH_RPC_REQUESTS.labels(method, PROMETHEUS_LABEL_STATUS_ERROR).inc();
             end(new JsonRpcError.InternalError(err));
             return;
         }
 
         if (data.error) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            ETH_RPC_REQUEST_ERROR.labels(finalPayload.method!).inc();
+            ETH_RPC_REQUESTS.labels(method, PROMETHEUS_LABEL_STATUS_ERROR).inc();
             end(data.error);
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        ETH_RPC_REQUEST_SUCCESS.labels(finalPayload.method!).inc();
+
+        ETH_RPC_REQUESTS.labels(method, PROMETHEUS_LABEL_STATUS_OK).inc();
         end(null, data.result);
     }
 
