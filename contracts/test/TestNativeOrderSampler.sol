@@ -26,12 +26,7 @@ contract TestNativeOrderSamplerToken {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    function setBalanceAndAllowance(
-        address owner,
-        address spender,
-        uint256 balance,
-        uint256 allowance_
-    ) external {
+    function setBalanceAndAllowance(address owner, address spender, uint256 balance, uint256 allowance_) external {
         balanceOf[owner] = balance;
         allowance[owner][spender] = allowance_;
     }
@@ -59,14 +54,13 @@ contract TestNativeOrderSampler is NativeOrderSampler, UtilitySampler {
     }
 
     // IExchange.getLimitOrderRelevantState()
-    function getLimitOrderRelevantState(IExchange.LimitOrder memory order, IExchange.Signature calldata signature)
+    function getLimitOrderRelevantState(
+        IExchange.LimitOrder memory order,
+        IExchange.Signature calldata signature
+    )
         external
         view
-        returns (
-            IExchange.OrderInfo memory orderInfo,
-            uint128 actualFillableTakerTokenAmount,
-            bool isSignatureValid
-        )
+        returns (IExchange.OrderInfo memory orderInfo, uint128 actualFillableTakerTokenAmount, bool isSignatureValid)
     {
         // The order salt determines everything.
         orderInfo.orderHash = keccak256(abi.encode(order.salt));

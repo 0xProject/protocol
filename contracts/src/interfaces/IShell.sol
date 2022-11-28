@@ -20,15 +20,7 @@
 pragma solidity ^0.6;
 
 interface IShell {
-    function viewOriginSwap(
-        address from,
-        address to,
-        uint256 fromAmount
-    ) external view returns (uint256 toAmount);
+    function viewOriginSwap(address from, address to, uint256 fromAmount) external view returns (uint256 toAmount);
 
-    function viewTargetSwap(
-        address from,
-        address to,
-        uint256 toAmount
-    ) external view returns (uint256 fromAmount);
+    function viewTargetSwap(address from, address to, uint256 toAmount) external view returns (uint256 fromAmount);
 }

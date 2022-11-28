@@ -34,14 +34,7 @@ contract TwoHopSampler {
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
         uint256 numSamples
-    )
-        public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256[] memory buyAmounts
-        )
-    {
+    ) public returns (HopInfo memory firstHop, HopInfo memory secondHop, uint256[] memory buyAmounts) {
         buyAmounts = new uint256[](numSamples);
         uint256[] memory intermediateAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < firstHopCalls.length; i++) {
@@ -85,14 +78,7 @@ contract TwoHopSampler {
         bytes[] memory firstHopCalls,
         bytes[] memory secondHopCalls,
         uint256 numSamples
-    )
-        public
-        returns (
-            HopInfo memory firstHop,
-            HopInfo memory secondHop,
-            uint256[] memory sellAmounts
-        )
-    {
+    ) public returns (HopInfo memory firstHop, HopInfo memory secondHop, uint256[] memory sellAmounts) {
         sellAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
             sellAmounts[i] = uint256(-1);

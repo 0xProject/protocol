@@ -32,7 +32,10 @@ interface IUniswapV3QuoterV2 {
     // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
     // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
     // @return gasEstimate The estimate of the gas that the swap consumes
-    function quoteExactInput(bytes memory path, uint256 amountIn)
+    function quoteExactInput(
+        bytes memory path,
+        uint256 amountIn
+    )
         external
         returns (
             uint256 amountOut,
@@ -48,7 +51,10 @@ interface IUniswapV3QuoterV2 {
     // @return sqrtPriceX96AfterList List of the sqrt price after the swap for each pool in the path
     // @return initializedTicksCrossedList List of the initialized ticks that the swap crossed for each pool in the path
     // @return gasEstimate The estimate of the gas that the swap consumes
-    function quoteExactOutput(bytes memory path, uint256 amountOut)
+    function quoteExactOutput(
+        bytes memory path,
+        uint256 amountOut
+    )
         external
         returns (
             uint256 amountIn,
@@ -59,11 +65,7 @@ interface IUniswapV3QuoterV2 {
 }
 
 interface IUniswapV3Factory {
-    function getPool(
-        IERC20TokenV06 a,
-        IERC20TokenV06 b,
-        uint24 fee
-    ) external view returns (IUniswapV3Pool pool);
+    function getPool(IERC20TokenV06 a, IERC20TokenV06 b, uint24 fee) external view returns (IUniswapV3Pool pool);
 }
 
 interface IUniswapV3Pool {
@@ -91,11 +93,7 @@ contract UniswapV3Sampler {
         uint256[] memory takerTokenAmounts
     )
         public
-        returns (
-            bytes[] memory uniswapPaths,
-            uint256[] memory uniswapGasUsed,
-            uint256[] memory makerTokenAmounts
-        )
+        returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory makerTokenAmounts)
     {
         IUniswapV3Pool[][] memory poolPaths = _getPoolPaths(
             quoter,
@@ -118,8 +116,8 @@ contract UniswapV3Sampler {
                 bytes memory uniswapPath = _toUniswapPath(path, poolPaths[j]);
                 try quoter.quoteExactInput{gas: QUOTE_GAS}(uniswapPath, takerTokenAmounts[i]) returns (
                     uint256 buyAmount,
-                    uint160[] memory, /* sqrtPriceX96AfterList */
-                    uint32[] memory, /* initializedTicksCrossedList */
+                    uint160[] memory /* sqrtPriceX96AfterList */,
+                    uint32[] memory /* initializedTicksCrossedList */,
                     uint256 gasUsed
                 ) {
                     if (topBuyAmount <= buyAmount) {
@@ -154,11 +152,7 @@ contract UniswapV3Sampler {
         uint256[] memory makerTokenAmounts
     )
         public
-        returns (
-            bytes[] memory uniswapPaths,
-            uint256[] memory uniswapGasUsed,
-            uint256[] memory takerTokenAmounts
-        )
+        returns (bytes[] memory uniswapPaths, uint256[] memory uniswapGasUsed, uint256[] memory takerTokenAmounts)
     {
         IERC20TokenV06[] memory reversedPath = _reverseTokenPath(path);
         IUniswapV3Pool[][] memory poolPaths = _getPoolPaths(
@@ -183,8 +177,8 @@ contract UniswapV3Sampler {
                 bytes memory uniswapPath = _toUniswapPath(reversedPath, _reversePoolPath(poolPaths[j]));
                 try quoter.quoteExactOutput{gas: QUOTE_GAS}(uniswapPath, makerTokenAmounts[i]) returns (
                     uint256 sellAmount,
-                    uint160[] memory, /* sqrtPriceX96AfterList */
-                    uint32[] memory, /* initializedTicksCrossedList */
+                    uint160[] memory /* sqrtPriceX96AfterList */,
+                    uint32[] memory /* initializedTicksCrossedList */,
                     uint256 gasUsed
                 ) {
                     if (topSellAmount == 0 || topSellAmount >= sellAmount) {
@@ -304,8 +298,8 @@ contract UniswapV3Sampler {
             bytes memory uniswapPath = _toUniswapPath(path, poolPath);
             try quoter.quoteExactInput{gas: QUOTE_GAS}(uniswapPath, inputAmount) returns (
                 uint256 outputAmount,
-                uint160[] memory, /* sqrtPriceX96AfterList */
-                uint32[] memory, /* initializedTicksCrossedList */
+                uint160[] memory /* sqrtPriceX96AfterList */,
+                uint32[] memory /* initializedTicksCrossedList */,
                 uint256 /* gasUsed */
             ) {
                 // Keeping track of the top 2 pools.
@@ -322,22 +316,18 @@ contract UniswapV3Sampler {
         }
     }
 
-    function _reverseTokenPath(IERC20TokenV06[] memory tokenPath)
-        private
-        pure
-        returns (IERC20TokenV06[] memory reversed)
-    {
+    function _reverseTokenPath(
+        IERC20TokenV06[] memory tokenPath
+    ) private pure returns (IERC20TokenV06[] memory reversed) {
         reversed = new IERC20TokenV06[](tokenPath.length);
         for (uint256 i = 0; i < tokenPath.length; ++i) {
             reversed[i] = tokenPath[tokenPath.length - i - 1];
         }
     }
 
-    function _reversePoolPath(IUniswapV3Pool[] memory poolPath)
-        private
-        pure
-        returns (IUniswapV3Pool[] memory reversed)
-    {
+    function _reversePoolPath(
+        IUniswapV3Pool[] memory poolPath
+    ) private pure returns (IUniswapV3Pool[] memory reversed) {
         reversed = new IUniswapV3Pool[](poolPath.length);
         for (uint256 i = 0; i < poolPath.length; ++i) {
             reversed[i] = poolPath[poolPath.length - i - 1];
@@ -374,11 +364,10 @@ contract UniswapV3Sampler {
         return true;
     }
 
-    function _toUniswapPath(IERC20TokenV06[] memory tokenPath, IUniswapV3Pool[] memory poolPath)
-        private
-        view
-        returns (bytes memory uniswapPath)
-    {
+    function _toUniswapPath(
+        IERC20TokenV06[] memory tokenPath,
+        IUniswapV3Pool[] memory poolPath
+    ) private view returns (bytes memory uniswapPath) {
         require(
             tokenPath.length >= 2 && tokenPath.length == poolPath.length + 1,
             "UniswapV3Sampler/invalid path lengths"

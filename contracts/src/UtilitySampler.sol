@@ -34,11 +34,10 @@ contract UtilitySampler {
         }
     }
 
-    function getBalanceOf(IERC20TokenV06[] memory tokens, address account)
-        public
-        view
-        returns (uint256[] memory balances)
-    {
+    function getBalanceOf(
+        IERC20TokenV06[] memory tokens,
+        address account
+    ) public view returns (uint256[] memory balances) {
         balances = new uint256[](tokens.length);
         for (uint256 i = 0; i != tokens.length; i++) {
             balances[i] = tokens[i] == UTILITY_ETH_ADDRESS ? account.balance : tokens[i].compatBalanceOf(account);

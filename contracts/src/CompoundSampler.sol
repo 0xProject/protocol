@@ -54,14 +54,16 @@ contract CompoundSampler is SamplerUtils {
         if (address(makerToken) == address(cToken)) {
             // mint
             for (uint256 i = 0; i < numSamples; i++) {
-                makerTokenAmounts[i] = (takerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10**cTokenDecimals) / exchangeRate;
+                makerTokenAmounts[i] =
+                    (takerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals) /
+                    exchangeRate;
             }
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
                 makerTokenAmounts[i] =
                     (takerTokenAmounts[i] * exchangeRate) /
-                    (EXCHANGE_RATE_SCALE * 10**cTokenDecimals);
+                    (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
             }
         }
     }
@@ -83,12 +85,14 @@ contract CompoundSampler is SamplerUtils {
             for (uint256 i = 0; i < numSamples; i++) {
                 takerTokenAmounts[i] =
                     (makerTokenAmounts[i] * exchangeRate) /
-                    (EXCHANGE_RATE_SCALE * 10**cTokenDecimals);
+                    (EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals);
             }
         } else if (address(takerToken) == address(cToken)) {
             // redeem
             for (uint256 i = 0; i < numSamples; i++) {
-                takerTokenAmounts[i] = (makerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10**cTokenDecimals) / exchangeRate;
+                takerTokenAmounts[i] =
+                    (makerTokenAmounts[i] * EXCHANGE_RATE_SCALE * 10 ** cTokenDecimals) /
+                    exchangeRate;
             }
         }
     }

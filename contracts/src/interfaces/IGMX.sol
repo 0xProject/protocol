@@ -2,11 +2,7 @@ pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
 interface IGMX {
-    function getMaxAmountIn(
-        IVault _vault,
-        address _tokenIn,
-        address _tokenOut
-    ) external view returns (uint256);
+    function getMaxAmountIn(IVault _vault, address _tokenIn, address _tokenOut) external view returns (uint256);
 
     function getAmountOut(
         IVault _vault,

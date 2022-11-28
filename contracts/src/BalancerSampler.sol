@@ -28,7 +28,7 @@ contract BalancerSampler {
 
     // Balancer math constants
     // https://github.com/balancer-labs/balancer-core/blob/master/contracts/BConst.sol
-    uint256 private constant BONE = 10**18;
+    uint256 private constant BONE = 10 ** 18;
     uint256 private constant MAX_IN_RATIO = BONE / 2;
     uint256 private constant MAX_OUT_RATIO = (BONE / 3) + 1 wei;
 

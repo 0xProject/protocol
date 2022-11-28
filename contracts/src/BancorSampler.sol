@@ -45,15 +45,7 @@ contract BancorSampler {
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (
-            address bancorNetwork,
-            address[] memory path,
-            uint256[] memory makerTokenAmounts
-        )
-    {
+    ) public view returns (address bancorNetwork, address[] memory path, uint256[] memory makerTokenAmounts) {
         makerTokenAmounts = new uint256[](takerTokenAmounts.length);
         if (opts.paths.length == 0) {
             return (bancorNetwork, path, makerTokenAmounts);
@@ -91,15 +83,7 @@ contract BancorSampler {
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (
-            address bancorNetwork,
-            address[] memory path,
-            uint256[] memory takerTokenAmounts
-        )
-    {}
+    ) public view returns (address bancorNetwork, address[] memory path, uint256[] memory takerTokenAmounts) {}
 
     function _findBestPath(
         BancorSamplerOpts memory opts,

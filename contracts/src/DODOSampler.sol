@@ -59,15 +59,7 @@ contract DODOSampler is SamplerUtils, ApproximateBuys {
         address takerToken,
         address makerToken,
         uint256[] memory takerTokenAmounts
-    )
-        public
-        view
-        returns (
-            bool sellBase,
-            address pool,
-            uint256[] memory makerTokenAmounts
-        )
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory makerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
@@ -121,15 +113,7 @@ contract DODOSampler is SamplerUtils, ApproximateBuys {
         address takerToken,
         address makerToken,
         uint256[] memory makerTokenAmounts
-    )
-        public
-        view
-        returns (
-            bool sellBase,
-            address pool,
-            uint256[] memory takerTokenAmounts
-        )
-    {
+    ) public view returns (bool sellBase, address pool, uint256[] memory takerTokenAmounts) {
         _assertValidPair(makerToken, takerToken);
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
@@ -170,7 +154,7 @@ contract DODOSampler is SamplerUtils, ApproximateBuys {
 
     function _sampleSellForApproximateBuyFromDODO(
         bytes memory takerTokenData,
-        bytes memory, /* makerTokenData */
+        bytes memory /* makerTokenData */,
         uint256 sellAmount
     ) private view returns (uint256) {
         (address takerToken, address pool, address baseToken, address helper) = abi.decode(

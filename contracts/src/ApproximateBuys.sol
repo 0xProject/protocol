@@ -40,11 +40,10 @@ contract ApproximateBuys {
     /// @dev Maximum iterations to perform when approximating a buy quote.
     uint256 private constant APPROXIMATE_BUY_MAX_ITERATIONS = 5;
 
-    function _sampleApproximateBuys(ApproximateBuyQuoteOpts memory opts, uint256[] memory makerTokenAmounts)
-        internal
-        view
-        returns (uint256[] memory takerTokenAmounts)
-    {
+    function _sampleApproximateBuys(
+        ApproximateBuyQuoteOpts memory opts,
+        uint256[] memory makerTokenAmounts
+    ) internal view returns (uint256[] memory takerTokenAmounts) {
         takerTokenAmounts = new uint256[](makerTokenAmounts.length);
         if (makerTokenAmounts.length == 0) {
             return takerTokenAmounts;

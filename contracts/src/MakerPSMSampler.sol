@@ -64,16 +64,9 @@ interface IVAT {
     // @return ilk.spot Price with Safety Margin in ray
     // @return ilk.line Debt Ceiling in rad
     // @return ilk.dust Urn Debt Floor in rad
-    function ilks(bytes32 ilkIdentifier)
-        external
-        view
-        returns (
-            uint256 Art,
-            uint256 rate,
-            uint256 spot,
-            uint256 line,
-            uint256 dust
-        );
+    function ilks(
+        bytes32 ilkIdentifier
+    ) external view returns (uint256 Art, uint256 rate, uint256 spot, uint256 line, uint256 dust);
 }
 
 contract MakerPSMSampler is SamplerUtils {
@@ -91,11 +84,11 @@ contract MakerPSMSampler is SamplerUtils {
 
     // Maker units
     // wad: fixed point decimal with 18 decimals (for basic quantities, e.g. balances)
-    uint256 private constant WAD = 10**18;
+    uint256 private constant WAD = 10 ** 18;
     // ray: fixed point decimal with 27 decimals (for precise quantites, e.g. ratios)
-    uint256 private constant RAY = 10**27;
+    uint256 private constant RAY = 10 ** 27;
     // rad: fixed point decimal with 45 decimals (result of integer multiplication with a wad and a ray)
-    uint256 private constant RAD = 10**45;
+    uint256 private constant RAD = 10 ** 45;
 
     // See https://github.com/makerdao/dss/blob/master/DEVELOPING.m
 

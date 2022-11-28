@@ -182,11 +182,10 @@ contract UniswapSampler is SamplerUtils {
     /// @param router Address of the Uniswap router.
     /// @param tokenAddress Address of the token contract.
     /// @return exchange `IUniswapExchangeQuotes` for the token.
-    function _getUniswapExchange(address router, address tokenAddress)
-        private
-        view
-        returns (IUniswapExchangeQuotes exchange)
-    {
+    function _getUniswapExchange(
+        address router,
+        address tokenAddress
+    ) private view returns (IUniswapExchangeQuotes exchange) {
         exchange = IUniswapExchangeQuotes(address(IUniswapExchangeFactory(router).getExchange(tokenAddress)));
     }
 }

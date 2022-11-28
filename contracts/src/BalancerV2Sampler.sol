@@ -113,11 +113,10 @@ contract BalancerV2Sampler is SamplerUtils, BalancerV2Common {
         }
     }
 
-    function _createSwapSteps(IBalancerV2Vault.BalancerV2PoolInfo memory poolInfo, uint256 amount)
-        private
-        pure
-        returns (IBalancerV2Vault.BatchSwapStep[] memory)
-    {
+    function _createSwapSteps(
+        IBalancerV2Vault.BalancerV2PoolInfo memory poolInfo,
+        uint256 amount
+    ) private pure returns (IBalancerV2Vault.BatchSwapStep[] memory) {
         IBalancerV2Vault.BatchSwapStep[] memory swapSteps = new IBalancerV2Vault.BatchSwapStep[](1);
         swapSteps[0] = IBalancerV2Vault.BatchSwapStep({
             poolId: poolInfo.poolId,

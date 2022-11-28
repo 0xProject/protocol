@@ -104,14 +104,10 @@ interface IExchange {
     /// @return actualFillableTakerTokenAmount How much of the order is fillable
     ///         based on maker funds, in taker tokens.
     /// @return isSignatureValid Whether the signature is valid.
-    function getLimitOrderRelevantState(LimitOrder memory order, Signature calldata signature)
-        external
-        view
-        returns (
-            OrderInfo memory orderInfo,
-            uint128 actualFillableTakerTokenAmount,
-            bool isSignatureValid
-        );
+    function getLimitOrderRelevantState(
+        LimitOrder memory order,
+        Signature calldata signature
+    ) external view returns (OrderInfo memory orderInfo, uint128 actualFillableTakerTokenAmount, bool isSignatureValid);
 }
 
 contract NativeOrderSampler {

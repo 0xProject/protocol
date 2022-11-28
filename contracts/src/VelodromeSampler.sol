@@ -36,10 +36,10 @@ interface IVelodromeRouter {
         address tokenOut
     ) external view returns (uint256 amount, bool stable);
 
-    function getAmountsOut(uint256 amountIn, VeloRoute[] calldata routes)
-        external
-        view
-        returns (uint256[] memory amounts);
+    function getAmountsOut(
+        uint256 amountIn,
+        VeloRoute[] calldata routes
+    ) external view returns (uint256[] memory amounts);
 }
 
 contract VelodromeSampler is SamplerUtils, ApproximateBuys {
@@ -106,7 +106,7 @@ contract VelodromeSampler is SamplerUtils, ApproximateBuys {
 
     function _sampleSellForApproximateBuyFromVelodrome(
         bytes memory takerTokenData,
-        bytes memory, /* makerTokenData */
+        bytes memory /* makerTokenData */,
         uint256 sellAmount
     ) internal view returns (uint256) {
         (IVelodromeRouter router, VeloRoute memory route) = abi.decode(takerTokenData, (IVelodromeRouter, VeloRoute));

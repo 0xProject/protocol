@@ -34,28 +34,14 @@ interface IExchanger {
         uint256 sourceAmount,
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey
-    )
-        external
-        view
-        returns (
-            uint256 amountReceived,
-            uint256 fee,
-            uint256 exchangeFeeRate
-        );
+    ) external view returns (uint256 amountReceived, uint256 fee, uint256 exchangeFeeRate);
 
     // Optimism
     function getAmountsForExchange(
         uint256 sourceAmount,
         bytes32 sourceCurrencyKey,
         bytes32 destinationCurrencyKey
-    )
-        external
-        view
-        returns (
-            uint256 amountReceived,
-            uint256 fee,
-            uint256 exchangeFeeRate
-        );
+    ) external view returns (uint256 amountReceived, uint256 fee, uint256 exchangeFeeRate);
 }
 
 contract SynthetixSampler {

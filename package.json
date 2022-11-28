@@ -84,7 +84,7 @@
         "nodemon": "^1.19.4",
         "pino-pretty": "^9.1.1",
         "prettier": "^2.3.1",
-        "prettier-plugin-solidity": "^1.0.0-beta.24",
+        "prettier-plugin-solidity": "^1.0.0",
         "shx": "^0.3.2",
         "supertest": "^4.0.2",
         "ts-mockito": "^2.6.1",
