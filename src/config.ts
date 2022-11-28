@@ -70,7 +70,6 @@ export interface Integrator {
     integratorId: string;
     whitelistIntegratorUrls?: string[];
     label: string;
-    plp: boolean;
     rfqm: boolean;
     rfqt: boolean;
     slippageModel?: boolean;
@@ -95,7 +94,7 @@ export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
 /**
  * Extracts the integrator API keys from the `INTEGRATORS_ACL` environment variable for the provided group type.
  */
-export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'plp' | 'rfqm'): string[] => {
+export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'rfqm'): string[] => {
     return INTEGRATORS_ACL.filter((i) => i[groupType])
         .flatMap((i) => i.apiKeys)
         .sort();
@@ -327,7 +326,6 @@ export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rf
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
 export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
-export const PLP_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('plp');
 
 export const RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER: MakerIdsToConfigs = getMakerConfigMapForOrderType('rfq', 'rfqt');
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');

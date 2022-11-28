@@ -30,10 +30,7 @@ describe('Config', () => {
 
         it('allows us to fetch Integrator by Integrator key', () => {
             const { whitelistIntegratorUrls } = getIntegratorByIdOrThrow('test-integrator-id-1');
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            expect(whitelistIntegratorUrls!.length).to.eql(1);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-            expect(whitelistIntegratorUrls![0]).to.eql('http://foo.bar');
+            expect(whitelistIntegratorUrls).to.deep.eq(['http://foo.bar']);
         });
 
         it('returns `undefined` for non-existent api keys', () => {
@@ -45,24 +42,15 @@ describe('Config', () => {
 
     describe('getApiKeyWhitelistFromIntegratorsAcl', () => {
         it('gets keys for allowed liquidity sources', () => {
-            const rfqtKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
-            expect(rfqtKeys.length).to.eql(2);
-            expect(rfqtKeys[0]).to.eql('test-api-key-1');
-            expect(rfqtKeys[1]).to.eql('test-api-key-2');
-
             const rfqmKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqm');
-            expect(rfqmKeys.length).to.eql(3);
-            expect(rfqmKeys[0]).to.eql('test-api-key-1');
-            expect(rfqmKeys[1]).to.eql('test-api-key-2');
-            expect(rfqmKeys[2]).to.eql('test-api-key-3');
+            expect(rfqmKeys).to.deep.eq(['test-api-key-1', 'test-api-key-2', 'test-api-key-3']);
         });
         it("doesn't add disallowed liquidity sources to allowed API keys", () => {
-            const plpKeys = getApiKeyWhitelistFromIntegratorsAcl('plp');
-            expect(plpKeys.length).to.equal(0);
+            const rfqtKeys = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
+            expect(rfqtKeys).to.deep.eq(['test-api-key-1', 'test-api-key-2']);
         });
         it('creates the RFQt Integrator ID list (used in swap/rfq/registry)', () => {
-            expect(RFQT_INTEGRATOR_IDS.length).to.equal(1);
-            expect(RFQT_INTEGRATOR_IDS[0]).to.equal('test-integrator-id-1');
+            expect(RFQT_INTEGRATOR_IDS).to.deep.eq(['test-integrator-id-1']);
         });
     });
 });

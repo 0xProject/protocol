@@ -19,9 +19,6 @@
         "label": {
             "type": "string"
         },
-        "plp": {
-            "type": "boolean"
-        },
         "rfqm": {
             "type": "boolean"
         },
@@ -32,6 +29,6 @@
             "type": "boolean"
         }
     },
-    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm", "plp"],
+    "required": ["label", "integratorId", "apiKeys", "rfqt", "rfqm"],
     "type": "object"
 }
