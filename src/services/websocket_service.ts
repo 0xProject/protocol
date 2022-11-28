@@ -127,7 +127,12 @@ export class WebsocketService {
         }
         this._requestIdToSocket.clear();
         this._requestIdToSubscriptionOpts.clear();
+
         this._server.close();
+        for (const client of this._server.clients) {
+            client.terminate();
+        }
+
         if (this._orderEventsSubscription) {
             this._orderEventsSubscription.unsubscribe();
         }

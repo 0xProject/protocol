@@ -66,7 +66,7 @@
         "@types/node-fetch": "^2.5.8",
         "@types/supertest": "^2.0.8",
         "@types/uuid-validate": "^0.0.1",
-        "@types/ws": "^6.0.2",
+        "@types/ws": "^8.5.3",
         "@types/zen-observable": "^0.8.1",
         "@typescript-eslint/eslint-plugin": "^5.35.1",
         "@typescript-eslint/parser": "^5.35.1",
@@ -143,7 +143,7 @@
         "sqs-producer": "^2.1.0",
         "typeorm": "0.2.29",
         "uuid-validate": "^0.0.3",
-        "ws": "^7.4.6",
+        "ws": "^8.11.0",
         "zen-observable": "^0.8.15"
     }
 }
