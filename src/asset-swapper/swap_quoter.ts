@@ -12,7 +12,6 @@ import { ERC20BridgeSamplerContract } from '../wrappers';
 import { constants, INVALID_SIGNATURE } from './constants';
 import {
     AssetSwapperContractAddresses,
-    MarketBuySwapQuote,
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
     RfqRequestOpts,
@@ -147,63 +146,6 @@ export class SwapQuoter {
         const integratorIds =
             this._rfqtOptions?.integratorsWhitelist.map((integrator) => integrator.integratorId) || [];
         this._integratorIdsSet = new Set(integratorIds);
-    }
-
-    public async getBatchMarketBuySwapQuoteAsync(
-        makerTokens: string[],
-        targetTakerToken: string,
-        makerTokenBuyAmounts: BigNumber[],
-        options: Partial<SwapQuoteRequestOpts>,
-    ): Promise<MarketBuySwapQuote[]> {
-        makerTokenBuyAmounts.map((a, i) => assert.isBigNumber(`makerAssetBuyAmounts[${i}]`, a));
-        let gasPrice: BigNumber;
-        if (options.gasPrice) {
-            gasPrice = options.gasPrice;
-            assert.isBigNumber('gasPrice', gasPrice);
-        } else {
-            gasPrice = await this.getGasPriceEstimationOrThrowAsync();
-        }
-
-        const allOrders = await this.orderbook.getBatchOrdersAsync(
-            makerTokens,
-            targetTakerToken,
-            this._limitOrderPruningFn,
-        );
-
-        // Orders could be missing from the orderbook, so we create a dummy one as a placeholder
-        allOrders.forEach((orders: SignedNativeOrder[], i: number) => {
-            if (!orders || orders.length === 0) {
-                allOrders[i] = [createDummyOrder(makerTokens[i], targetTakerToken)];
-            }
-        });
-
-        const opts = { ...constants.DEFAULT_SWAP_QUOTE_REQUEST_OPTS, ...options };
-        const optimizerResults = await this._marketOperationUtils.getBatchMarketBuyOrdersAsync(
-            allOrders,
-            makerTokenBuyAmounts,
-            opts as GetMarketOrdersOpts,
-        );
-
-        const batchSwapQuotes = await Promise.all(
-            optimizerResults.map(async (result, i) => {
-                if (result) {
-                    const { makerToken, takerToken } = allOrders[i][0].order;
-                    return createSwapQuote(
-                        result,
-                        makerToken,
-                        takerToken,
-                        MarketOperation.Buy,
-                        makerTokenBuyAmounts[i],
-                        gasPrice,
-                        opts.gasSchedule,
-                        opts.bridgeSlippage,
-                    );
-                } else {
-                    return undefined;
-                }
-            }),
-        );
-        return batchSwapQuotes.filter((x) => x !== undefined) as MarketBuySwapQuote[];
     }
 
     /**
