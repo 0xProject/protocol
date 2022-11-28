@@ -2,7 +2,7 @@ import { isAPIError, isRevertError } from '@0x/api-utils';
 import { isNativeSymbolOrAddress } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
-import * as HttpStatus from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import * as _ from 'lodash';
 
 import { SwapQuoterError } from '../asset-swapper';
@@ -29,7 +29,7 @@ export class MetaTransactionHandlers {
 
     public static rootAsync(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Meta Transaction API. Visit ${META_TRANSACTION_DOCS_URL} for details about this API.`;
-        res.status(HttpStatus.OK).send({ message });
+        res.status(StatusCodes.OK).send({ message });
     }
 
     constructor(metaTransactionService: MetaTransactionService) {
@@ -60,7 +60,7 @@ export class MetaTransactionHandlers {
                 from: params.takerAddress,
             });
 
-            res.status(HttpStatus.OK).send(metaTransactionQuote);
+            res.status(StatusCodes.OK).send(metaTransactionQuote);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {
@@ -127,7 +127,7 @@ export class MetaTransactionHandlers {
                 gas: metaTransactionPriceCalculation.estimatedGas,
             };
 
-            res.status(HttpStatus.OK).send(metaTransactionPriceResponse);
+            res.status(StatusCodes.OK).send(metaTransactionPriceResponse);
         } catch (e) {
             // If this is already a transformed error then just re-throw
             if (isAPIError(e)) {

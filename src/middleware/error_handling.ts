@@ -1,5 +1,5 @@
 import { APIBaseError, BadRequestError, ErrorUtils as BaseErrorUtils, isAPIError } from '@0x/api-utils';
-import * as HttpStatus from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 
 import { APIErrorCodes, apiErrorCodesToReasons } from '../errors';
 
@@ -28,7 +28,7 @@ class ErrorUtils extends BaseErrorUtils {
 }
 
 function isAPIBadRequestError(error: APIBaseError): error is APIBaseError & BadRequestError<APIErrorCodes> {
-    return error.statusCode === HttpStatus.BAD_REQUEST;
+    return error.statusCode === StatusCodes.BAD_REQUEST;
 }
 
 export const errorUtils = new ErrorUtils();

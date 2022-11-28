@@ -3,7 +3,7 @@ import { isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/tok
 import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
-import * as HttpStatus from 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
 import { Kafka, Producer } from 'kafkajs';
 import _ = require('lodash');
 import { Counter, Histogram } from 'prom-client';
@@ -84,31 +84,31 @@ export class SwapHandlers {
     private readonly _swapService: SwapService;
     public static root(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Swap API. Visit ${SWAP_DOCS_URL} for details about this API.`;
-        res.status(HttpStatus.OK).send({ message });
+        res.status(StatusCodes.OK).send({ message });
     }
 
     public static getLiquiditySources(_req: express.Request, res: express.Response): void {
         const sources = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources
             .map((s) => (s === ERC20BridgeSource.Native ? '0x' : s))
             .sort((a, b) => a.localeCompare(b));
-        res.status(HttpStatus.OK).send({ records: sources });
+        res.status(StatusCodes.OK).send({ records: sources });
     }
 
     public static getRfqRegistry(req: express.Request, res: express.Response): void {
         const auth = req.header('Authorization');
         REGISTRY_ENDPOINT_FETCHED.labels(auth || 'N/A').inc();
         if (auth === undefined) {
-            return res.status(HttpStatus.UNAUTHORIZED).end();
+            return res.status(StatusCodes.UNAUTHORIZED).end();
         }
         const authTokenRegex = auth.match(BEARER_REGEX);
         if (!authTokenRegex) {
-            return res.status(HttpStatus.UNAUTHORIZED).end();
+            return res.status(StatusCodes.UNAUTHORIZED).end();
         }
         const authToken = authTokenRegex[1];
         if (!REGISTRY_SET.has(authToken)) {
-            return res.status(HttpStatus.UNAUTHORIZED).end();
+            return res.status(StatusCodes.UNAUTHORIZED).end();
         }
-        res.status(HttpStatus.OK).send(RFQT_INTEGRATOR_IDS).end();
+        res.status(StatusCodes.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
 
     constructor(swapService: SwapService) {
@@ -194,7 +194,7 @@ export class SwapHandlers {
             params.apiKey !== undefined ? params.apiKey : 'N/A',
             params.integrator?.integratorId || 'N/A',
         ).inc();
-        res.status(HttpStatus.OK).send(response);
+        res.status(StatusCodes.OK).send(response);
     }
 
     public async getQuotePriceAsync(req: express.Request, res: express.Response): Promise<void> {
@@ -285,7 +285,7 @@ export class SwapHandlers {
             params.integrator?.integratorId || 'N/A',
         ).inc();
 
-        res.status(HttpStatus.OK).send(response);
+        res.status(StatusCodes.OK).send(response);
     }
 
     private async _getSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse> {
