@@ -38,7 +38,7 @@ jobs:
     - run: yarn lint
     - run: yarn test
     - name: Save build artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: lib
         path: lib
