@@ -391,14 +391,15 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
     [],
 );
 
-// HACK(mzhu25): Limit and RFQ orders need to be treated as different sources
+// HACK(mzhu25): Limit, Rfq, and Otc orders need to be treated as different sources
 //               when computing the exchange proxy gas overhead.
 export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: bigint } & {
     RfqOrder: bigint;
     LimitOrder: bigint;
+    OtcOrder: bigint;
 } = Object.assign(
     {},
-    ...['RfqOrder', 'LimitOrder', ...Object.values(ERC20BridgeSource)].map((source, index) => ({
+    ...['RfqOrder', 'LimitOrder', 'OtcOrder', ...Object.values(ERC20BridgeSource)].map((source, index) => ({
         [source]: source === ERC20BridgeSource.Native ? BigInt(0) : BigInt(1) << BigInt(index),
     })),
 );

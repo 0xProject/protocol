@@ -6,6 +6,19 @@ import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
 import { DEFAULT_FEE_ESTIMATE, POSITIVE_INF, SOURCE_FLAGS } from './constants';
 import { DexSample, ERC20BridgeSource, FeeEstimate, FeeSchedule, Fill, MultiHopFillData } from './types';
 
+function toNativeSourceFlagKey(type: FillQuoteTransformerOrderType): 'LimitOrder' | 'RfqOrder' | 'OtcOrder' {
+    switch (type) {
+        case FillQuoteTransformerOrderType.Limit:
+            return 'LimitOrder';
+        case FillQuoteTransformerOrderType.Rfq:
+            return 'RfqOrder';
+        case FillQuoteTransformerOrderType.Otc:
+            return 'OtcOrder';
+        default:
+            return 'LimitOrder';
+    }
+}
+
 /**
  * Converts the ETH value to an amount in output tokens.
  *
@@ -78,7 +91,7 @@ export function nativeOrderToFill(
         adjustedOutput,
         input: clippedInput,
         output: clippedOutput,
-        flags: SOURCE_FLAGS[type === FillQuoteTransformerOrderType.Rfq ? 'RfqOrder' : 'LimitOrder'],
+        flags: SOURCE_FLAGS[toNativeSourceFlagKey(type)],
         source: ERC20BridgeSource.Native,
         type,
         fillData: { ...order },

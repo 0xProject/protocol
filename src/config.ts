@@ -489,7 +489,11 @@ const EXCLUDED_FEE_SOURCES = (() => {
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
 const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
-    SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.RfqOrder | SOURCE_FLAGS.Uniswap_V3;
+    SOURCE_FLAGS.Uniswap_V2 |
+    SOURCE_FLAGS.SushiSwap |
+    SOURCE_FLAGS.RfqOrder |
+    SOURCE_FLAGS.Uniswap_V3 |
+    SOURCE_FLAGS.OtcOrder;
 const MULTIPLEX_MULTIHOP_FILL_SOURCE_FLAGS = SOURCE_FLAGS.Uniswap_V2 | SOURCE_FLAGS.SushiSwap | SOURCE_FLAGS.Uniswap_V3;
 const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     if ([SOURCE_FLAGS.Uniswap_V2, SOURCE_FLAGS.SushiSwap].includes(sourceFlags)) {
@@ -516,7 +520,16 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     } else if (SOURCE_FLAGS.RfqOrder === sourceFlags) {
         // RFQ VIP
         return TX_BASE_GAS.plus(5e3);
+    } else if (SOURCE_FLAGS.OtcOrder === sourceFlags) {
+        // OtcOrder VIP
+        // NOTE: Should be 15k cheaper after the first tx from txOrigin than RfqOrder
+        // Use 5k less for now as not to over bias
+        return TX_BASE_GAS;
     } else if ((MULTIPLEX_BATCH_FILL_SOURCE_FLAGS | sourceFlags) === MULTIPLEX_BATCH_FILL_SOURCE_FLAGS) {
+        if ((sourceFlags & SOURCE_FLAGS.OtcOrder) === SOURCE_FLAGS.OtcOrder) {
+            // Multiplex that has OtcOrder
+            return TX_BASE_GAS.plus(10e3);
+        }
         // Multiplex batch fill
         return TX_BASE_GAS.plus(15e3);
     } else if (
