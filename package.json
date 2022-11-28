@@ -82,7 +82,7 @@
         "mocha": "^6.2.2",
         "msw": "^0.44.2",
         "nodemon": "^1.19.4",
-        "pino-pretty": "^3.2.2",
+        "pino-pretty": "^9.1.1",
         "prettier": "^2.3.1",
         "prettier-plugin-solidity": "^1.0.0-beta.24",
         "shx": "^0.3.2",
