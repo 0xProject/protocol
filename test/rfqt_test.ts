@@ -13,7 +13,8 @@ import * as _ from 'lodash';
 import 'mocha';
 import * as request from 'supertest';
 
-import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { AppDependencies } from '../src/types';
 import {
     ContractAddresses,
     ERC20BridgeSource,

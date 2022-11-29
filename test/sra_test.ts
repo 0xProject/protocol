@@ -9,7 +9,8 @@ import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 import 'mocha';
 
-import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { AppDependencies } from '../src/types';
 import { LimitOrder } from '../src/asset-swapper';
 import * as config from '../src/config';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE, NULL_ADDRESS, ONE_SECOND_MS, SRA_PATH } from '../src/constants';

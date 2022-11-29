@@ -39,8 +39,7 @@ import {
     ValidationErrorReasons,
 } from '../errors';
 import { schemas } from '../schemas';
-import { SwapService } from '../services/swap_service';
-import { GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';
+import { ISwapService, GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteResponse } from '../types';
 import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { estimateArbitrumL1CalldataGasCost } from '../utils/l2_gas_utils';
 import { parseUtils } from '../utils/parse_utils';
@@ -81,7 +80,7 @@ const HTTP_SWAP_REQUESTS = new Counter({
 });
 
 export class SwapHandlers {
-    private readonly _swapService: SwapService;
+    private readonly _swapService: ISwapService;
     public static root(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Swap API. Visit ${SWAP_DOCS_URL} for details about this API.`;
         res.status(StatusCodes.OK).send({ message });
@@ -111,7 +110,7 @@ export class SwapHandlers {
         res.status(StatusCodes.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
 
-    constructor(swapService: SwapService) {
+    constructor(swapService: ISwapService) {
         this._swapService = swapService;
     }
 

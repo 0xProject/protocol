@@ -2,9 +2,9 @@ import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 
 import { SwapHandlers } from '../handlers/swap_handlers';
-import { SwapService } from '../services/swap_service';
+import { ISwapService } from '../types';
 
-export function createSwapRouter(swapService: SwapService): express.Router {
+export function createSwapRouter(swapService: ISwapService): express.Router {
     const router = express.Router();
     const handlers = new SwapHandlers(swapService);
     router.get('', asyncHandler(SwapHandlers.root.bind(SwapHandlers)));

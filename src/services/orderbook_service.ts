@@ -12,15 +12,22 @@ import { ONE_SECOND_MS } from '../constants';
 import { PersistentSignedOrderV4Entity, SignedOrderV4Entity } from '../entities';
 import { ValidationError, ValidationErrorCodes, ValidationErrorReasons } from '../errors';
 import { alertOnExpiredOrders } from '../logger';
-import { OrderbookResponse, OrderEventEndState, PaginatedCollection, SignedLimitOrder, SRAOrder } from '../types';
+import {
+    IOrderBookService,
+    OrderbookResponse,
+    OrderEventEndState,
+    PaginatedCollection,
+    SignedLimitOrder,
+    SRAOrder,
+} from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { OrderWatcherInterface } from '../utils/order_watcher';
 import { paginationUtils } from '../utils/pagination_utils';
 
-export class OrderBookService {
+export class OrderBookService implements IOrderBookService {
     private readonly _connection: Connection;
     private readonly _orderWatcher: OrderWatcherInterface;
-    public static isAllowedPersistentOrders(apiKey: string): boolean {
+    public isAllowedPersistentOrders(apiKey: string): boolean {
         return SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS.includes(apiKey);
     }
     public async getOrderByHashIfExistsAsync(orderHash: string): Promise<SRAOrder | undefined> {

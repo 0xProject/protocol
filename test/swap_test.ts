@@ -11,7 +11,8 @@ import * as _ from 'lodash';
 import 'mocha';
 import supertest from 'supertest';
 
-import { AppDependencies, getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { AppDependencies } from '../src/types';
 import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ChainId, ERC20BridgeSource, LimitOrderFields } from '../src/asset-swapper';
 import * as config from '../src/config';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, GAS_LIMIT_BUFFER_MULTIPLIER, SWAP_PATH } from '../src/constants';

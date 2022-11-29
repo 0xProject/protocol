@@ -1,10 +1,13 @@
 import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
+import { ContractAddresses, ChainId } from '@0x/contract-addresses';
+import { Connection } from 'typeorm';
+import { Kafka } from 'kafkajs';
 
+import { SignedOrderV4Entity } from './entities';
 import {
     AffiliateFeeType,
-    ChainId,
     ERC20BridgeSource,
     ExtendedQuoteReportSources,
     LimitOrderFields,
@@ -12,8 +15,8 @@ import {
     QuoteReport,
     RfqRequestOpts,
     Signature,
+    SupportedProvider,
 } from './asset-swapper';
-import { Integrator } from './config';
 
 export enum OrderWatcherLifeCycleEvents {
     Added,
@@ -375,4 +378,81 @@ export enum OrderEventEndState {
     // and no further events for this order will be emitted. In some cases, the order may be re-added in the
     // future.
     StoppedWatching = 'STOPPED_WATCHING',
+}
+
+export interface Integrator {
+    apiKeys: string[];
+    integratorId: string;
+    whitelistIntegratorUrls?: string[];
+    label: string;
+    rfqm: boolean;
+    rfqt: boolean;
+    slippageModel?: boolean;
+}
+
+export interface MetaTransactionQuoteResult extends QuoteBase {
+    buyTokenAddress: string;
+    callData: string;
+    sellTokenAddress: string;
+    taker: string;
+}
+
+export interface IMetaTransactionService {
+    getMetaTransactionPriceAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResult>;
+    getMetaTransactionQuoteAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResponse>;
+}
+
+export interface IOrderBookService {
+    isAllowedPersistentOrders(apiKey: string): boolean;
+    getOrderByHashIfExistsAsync(orderHash: string): Promise<SRAOrder | undefined>;
+    getOrderBookAsync(page: number, perPage: number, baseToken: string, quoteToken: string): Promise<OrderbookResponse>;
+
+    getOrdersAsync(
+        page: number,
+        perPage: number,
+        orderFieldFilters: Partial<SignedOrderV4Entity>,
+        additionalFilters: { isUnfillable?: boolean; trader?: string },
+    ): Promise<PaginatedCollection<SRAOrder>>;
+
+    getBatchOrdersAsync(
+        page: number,
+        perPage: number,
+        makerTokens: string[],
+        takerTokens: string[],
+    ): Promise<PaginatedCollection<SRAOrder>>;
+
+    addOrderAsync(signedOrder: SignedLimitOrder): Promise<void>;
+    addOrdersAsync(signedOrders: SignedLimitOrder[]): Promise<void>;
+    addPersistentOrdersAsync(signedOrders: SignedLimitOrder[]): Promise<void>;
+}
+
+export interface ISlippageModelManager {
+    initializeAsync(): Promise<void>;
+    calculateExpectedSlippage(
+        buyToken: string,
+        sellToken: string,
+        buyAmount: BigNumber,
+        sellAmount: BigNumber,
+        sources: GetSwapQuoteResponseLiquiditySource[],
+        maxSlippageRate: number,
+    ): BigNumber | null;
+}
+
+export interface ISwapService {
+    readonly slippageModelManager?: ISlippageModelManager;
+    calculateSwapQuoteAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse>;
+    getSwapQuoteForWrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse>;
+    getSwapQuoteForUnwrapAsync(params: GetSwapQuoteParams): Promise<GetSwapQuoteResponse>;
+}
+
+export interface AppDependencies {
+    contractAddresses: ContractAddresses;
+    connection: Connection;
+    kafkaClient?: Kafka;
+    orderBookService: IOrderBookService;
+    swapService?: ISwapService;
+    metaTransactionService?: IMetaTransactionService;
+    provider: SupportedProvider;
+    websocketOpts: Partial<WebsocketSRAOpts>;
+    hasSentry?: boolean;
 }

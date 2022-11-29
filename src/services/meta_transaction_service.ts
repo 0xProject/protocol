@@ -9,19 +9,13 @@ import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } 
 import {
     MetaTransactionQuoteParams,
     GetSwapQuoteResponse,
-    QuoteBase,
     MetaTransactionQuoteResponse,
     AffiliateFee,
+    IMetaTransactionService,
+    MetaTransactionQuoteResult,
 } from '../types';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
-
-export interface MetaTransactionQuoteResult extends QuoteBase {
-    buyTokenAddress: string;
-    callData: string;
-    sellTokenAddress: string;
-    taker: string;
-}
 
 let kafkaProducer: Producer | undefined;
 if (KAFKA_BROKERS !== undefined) {
@@ -34,7 +28,7 @@ if (KAFKA_BROKERS !== undefined) {
     kafkaProducer.connect();
 }
 
-export class MetaTransactionService {
+export class MetaTransactionService implements IMetaTransactionService {
     private readonly _swapService: SwapService;
     private readonly _exchangeProxyAddress: string;
 

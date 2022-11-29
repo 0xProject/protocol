@@ -54,7 +54,13 @@ import {
 } from '../constants';
 import { GasEstimationError, InsufficientFundsError } from '../errors';
 import { logger } from '../logger';
-import { AffiliateFee, GetSwapQuoteParams, GetSwapQuoteResponse, SwapQuoteResponsePartialTransaction } from '../types';
+import {
+    AffiliateFee,
+    GetSwapQuoteParams,
+    GetSwapQuoteResponse,
+    ISwapService,
+    SwapQuoteResponsePartialTransaction,
+} from '../types';
 import { altMarketResponseToAltOfferings } from '../utils/alt_mm_utils';
 import { PairsManager } from '../utils/pairs_manager';
 import { createResultCache } from '../utils/result_cache';
@@ -65,7 +71,7 @@ import { SlippageModelFillAdjustor } from '../utils/slippage_model_fill_adjustor
 import { SlippageModelManager } from '../utils/slippage_model_manager';
 import { utils } from '../utils/utils';
 
-export class SwapService {
+export class SwapService implements ISwapService {
     private readonly _provider: SupportedProvider;
     private readonly _fakeTaker: FakeTakerContract;
     private readonly _swapQuoteConsumer: SwapQuoteConsumer;

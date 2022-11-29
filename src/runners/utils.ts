@@ -1,4 +1,4 @@
-import { AppDependencies } from '../app';
+import { AppDependencies } from '../types';
 
 /**
  * Pass this callback into the default server to ensure all dependencies shut down correctly

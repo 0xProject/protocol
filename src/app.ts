@@ -4,7 +4,6 @@ import axios from 'axios';
 import * as express from 'express';
 import { Server } from 'http';
 import { Kafka } from 'kafkajs';
-import { Connection } from 'typeorm';
 
 import {
     artifacts,
@@ -33,7 +32,7 @@ import { MetaTransactionService } from './services/meta_transaction_service';
 import { OrderBookService } from './services/orderbook_service';
 import { PostgresRfqtFirmQuoteValidator } from './services/postgres_rfqt_firm_quote_validator';
 import { SwapService } from './services/swap_service';
-import { HttpServiceConfig, WebsocketSRAOpts } from './types';
+import { HttpServiceConfig, AppDependencies } from './types';
 import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
 import { ConfigManager } from './utils/config_manager';
 import { OrderWatcher } from './utils/order_watcher';
@@ -43,18 +42,6 @@ import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 import { RfqMakerDbUtils } from './utils/rfq_maker_db_utils';
 import { S3Client } from './utils/s3_client';
 import { SlippageModelManager } from './utils/slippage_model_manager';
-
-export interface AppDependencies {
-    contractAddresses: ContractAddresses;
-    connection: Connection;
-    kafkaClient?: Kafka;
-    orderBookService: OrderBookService;
-    swapService?: SwapService;
-    metaTransactionService?: MetaTransactionService;
-    provider: SupportedProvider;
-    websocketOpts: Partial<WebsocketSRAOpts>;
-    hasSentry?: boolean;
-}
 
 async function deploySamplerContractAsync(
     provider: SupportedProvider,

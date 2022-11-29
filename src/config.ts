@@ -37,7 +37,7 @@ import {
     TX_BASE_GAS,
 } from './constants';
 import { schemas } from './schemas';
-import { HttpServiceConfig } from './types';
+import { HttpServiceConfig, Integrator } from './types';
 import { schemaUtils } from './utils/schema_utils';
 
 enum EnvVarType {
@@ -65,15 +65,6 @@ enum EnvVarType {
 /**
  * A taker-integrator of the 0x API.
  */
-export interface Integrator {
-    apiKeys: string[];
-    integratorId: string;
-    whitelistIntegratorUrls?: string[];
-    label: string;
-    rfqm: boolean;
-    rfqt: boolean;
-    slippageModel?: boolean;
-}
 export type IntegratorsAcl = Integrator[];
 
 /**

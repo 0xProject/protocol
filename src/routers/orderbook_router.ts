@@ -2,9 +2,9 @@ import * as express from 'express';
 import * as asyncHandler from 'express-async-handler';
 
 import { SRAHandlers } from '../handlers/sra_handlers';
-import { OrderBookService } from '../services/orderbook_service';
+import { IOrderBookService } from '../types';
 
-export function createOrderBookRouter(orderBook: OrderBookService): express.Router {
+export function createOrderBookRouter(orderBook: IOrderBookService): express.Router {
     const router = express.Router();
     const handlers = new SRAHandlers(orderBook);
     /**

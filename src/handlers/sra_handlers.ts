@@ -8,13 +8,12 @@ import { NULL_ADDRESS, SRA_DOCS_URL, ZERO } from '../constants';
 import { SignedOrderV4Entity } from '../entities';
 import { InvalidAPIKeyError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
 import { schemas } from '../schemas';
-import { OrderBookService } from '../services/orderbook_service';
-import { OrderConfigResponse, SignedLimitOrder } from '../types';
+import { OrderConfigResponse, SignedLimitOrder, IOrderBookService } from '../types';
 import { paginationUtils } from '../utils/pagination_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
 export class SRAHandlers {
-    private readonly _orderBook: OrderBookService;
+    private readonly _orderBook: IOrderBookService;
     public static rootAsync(_req: express.Request, res: express.Response): void {
         const message = `This is the root of the Standard Relayer API. Visit ${SRA_DOCS_URL} for details about this API.`;
         res.status(StatusCodes.OK).send({ message });
@@ -35,7 +34,7 @@ export class SRAHandlers {
         };
         res.status(StatusCodes.OK).send(orderConfigResponse);
     }
-    constructor(orderBook: OrderBookService) {
+    constructor(orderBook: IOrderBookService) {
         this._orderBook = orderBook;
     }
     public async getOrderByHashAsync(req: express.Request, res: express.Response): Promise<void> {
@@ -110,7 +109,7 @@ export class SRAHandlers {
     public async postPersistentOrderAsync(req: express.Request, res: express.Response): Promise<void> {
         const shouldSkipConfirmation = req.query.skipConfirmation === 'true';
         const apiKey = req.header('0x-api-key');
-        if (apiKey === undefined || !isValidUUID(apiKey) || !OrderBookService.isAllowedPersistentOrders(apiKey)) {
+        if (apiKey === undefined || !isValidUUID(apiKey) || !this._orderBook.isAllowedPersistentOrders(apiKey)) {
             throw new InvalidAPIKeyError();
         }
         schemaUtils.validateSchema(req.body, schemas.sraPostOrderPayloadSchema);

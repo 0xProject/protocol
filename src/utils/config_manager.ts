@@ -3,11 +3,11 @@ import {
     CHAIN_ID,
     getIntegratorByIdOrThrow,
     getIntegratorIdForApiKey,
-    Integrator,
     MakerIdsToConfigs,
     RFQM_API_KEY_WHITELIST,
     RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER,
 } from '../config';
+import { Integrator } from '../types';
 
 /**
  * ConfigManager is a simple wrapper around configs.

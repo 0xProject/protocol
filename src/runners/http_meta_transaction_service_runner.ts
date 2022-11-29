@@ -3,7 +3,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
-import { AppDependencies, getDefaultAppDependenciesAsync } from '../app';
+import { getDefaultAppDependenciesAsync } from '../app';
 import {
     defaultHttpServiceConfig,
     SENTRY_DSN,
@@ -17,7 +17,7 @@ import { logger } from '../logger';
 import { errorHandler } from '../middleware/error_handling';
 import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
 import { SentryInit, SentryOptions } from '../sentry';
-import { HttpServiceConfig } from '../types';
+import { HttpServiceConfig, AppDependencies } from '../types';
 import { providerUtils } from '../utils/provider_utils';
 
 import { destroyCallback } from './utils';
