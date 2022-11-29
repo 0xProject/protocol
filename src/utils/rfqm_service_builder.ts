@@ -33,7 +33,7 @@ import {
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
 } from '../constants';
 import { logger } from '../logger';
-import { RfqmFeeService } from '../services/rfqm_fee_service';
+import { FeeService } from '../services/fee_service';
 import { RfqmService } from '../services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
 import { WorkerService } from '../services/WorkerService';
@@ -237,7 +237,7 @@ export async function buildRfqmServiceAsync(
 
     const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
 
-    const rfqmFeeService = new RfqmFeeService(
+    const feeService = new FeeService(
         chain.chainId,
         feeTokenMetadata,
         configManager,
@@ -253,7 +253,7 @@ export async function buildRfqmServiceAsync(
 
     return new RfqmService(
         chain.chainId,
-        rfqmFeeService,
+        feeService,
         chain.feeModelVersion || 0,
         contractAddresses,
         chain.registryAddress,

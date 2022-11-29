@@ -26,7 +26,7 @@ import {
     buildRfqMakerService,
     runHttpRfqmServiceAsync,
 } from '../src/runners/http_rfqm_service_runner';
-import { RfqmFeeService } from '../src/services/rfqm_fee_service';
+import { FeeService } from '../src/services/fee_service';
 import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import { RfqmTypes } from '../src/services/types';
@@ -168,10 +168,10 @@ describe('RFQM Integration', () => {
         [takerAddress] = await web3Wrapper.getAvailableAddressesAsync();
 
         // Build dependencies
-        // Create the mock RfqmFeeService
-        const rfqmFeeServiceMock = mock(RfqmFeeService);
-        when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(GAS_PRICE);
-        when(rfqmFeeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({
+        // Create the mock FeeService
+        const feeServiceMock = mock(FeeService);
+        when(feeServiceMock.getGasPriceEstimationAsync()).thenResolve(GAS_PRICE);
+        when(feeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({
             feeWithDetails: {
                 token: '0xToken',
                 amount: new BigNumber(300),
@@ -211,7 +211,7 @@ describe('RFQM Integration', () => {
                 },
             },
         });
-        const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);
+        const feeServiceInstance = instance(feeServiceMock);
 
         // Create the mock ConfigManager
         const configManagerMock = mock(ConfigManager);
@@ -327,7 +327,7 @@ describe('RFQM Integration', () => {
         const rfqMakerManager = instance(rfqMakerManagerMock);
         rfqmServiceChainId1337 = new RfqmService(
             1337,
-            rfqmFeeServiceInstance,
+            feeServiceInstance,
             /* feeModelVersion */ 0,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,
@@ -349,7 +349,7 @@ describe('RFQM Integration', () => {
         const rfqMakerManagerChainId3 = instance(rfqMakerManagerChain3Mock);
         rfqmServiceChainId3 = new RfqmService(
             3,
-            rfqmFeeServiceInstance,
+            feeServiceInstance,
             /* feeModelVersion */ 0,
             contractAddresses,
             MOCK_WORKER_REGISTRY_ADDRESS,

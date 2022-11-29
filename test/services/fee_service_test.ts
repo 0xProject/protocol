@@ -10,8 +10,8 @@ import {
     calculateDefaultFeeAmount,
     calculatePriceImprovementAmount,
     reviseQuoteWithFees,
-    RfqmFeeService,
-} from '../../src/services/rfqm_fee_service';
+    FeeService,
+} from '../../src/services/fee_service';
 import { FeeWithDetails, QuoteContext } from '../../src/services/types';
 import { IndicativeQuote, TokenMetadata } from '../../src/types';
 import { ConfigManager } from '../../src/utils/config_manager';
@@ -23,7 +23,7 @@ const feeTokenSymbol = 'fee';
 const feeTokenAddress = 'feeTokenAddress';
 const feeTokenDecimals = 18;
 
-const buildRfqmFeeService = (overrides: {
+const buildFeeService = (overrides: {
     feeModelConfiguration?: FeeModelConfiguration;
     gasPrice?: BigNumber;
     tradeTokenPrice?: BigNumber | null;
@@ -35,7 +35,7 @@ const buildRfqmFeeService = (overrides: {
     gasStationAttendantMock?: GasStationAttendantEthereum;
     tokenPriceOracleMock?: TokenPriceOracle;
     zeroExApiClientMock?: ZeroExApiClient;
-}): RfqmFeeService => {
+}): FeeService => {
     const chainId = overrides?.chainId || 1337;
     const feeTokenMetadata = overrides?.feeTokenMetadata || {
         symbol: feeTokenSymbol,
@@ -60,7 +60,7 @@ const buildRfqmFeeService = (overrides: {
     const zeroExApiClientMock = mock(ZeroExApiClient);
     when(zeroExApiClientMock.fetchAmmQuoteAsync(anything())).thenResolve(ammQuote);
 
-    return new RfqmFeeService(
+    return new FeeService(
         chainId,
         feeTokenMetadata,
         instance(overrides?.configManagerMock || configManagerMock),
@@ -70,7 +70,7 @@ const buildRfqmFeeService = (overrides: {
     );
 };
 
-describe('RfqmFeeService', () => {
+describe('FeeService', () => {
     const workflow = 'rfqm';
     const txOrigin = 'registryAddress';
     const makerToken = 'UsdcAddress';
@@ -104,14 +104,14 @@ describe('RfqmFeeService', () => {
 
     describe('calculateFeeAsync v0', () => {
         const feeModelVersion = 0;
-        it('should calculate v0 fee correctly', async () => {
+        it('should calculate v0 fee for RFQm correctly', async () => {
             // Given
             const isSelling = true;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(0.345e18);
             const tradeSizeBps = 5;
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio: 0,
                     tradeSizeBps,
@@ -172,18 +172,76 @@ describe('RfqmFeeService', () => {
             };
             expect(fee).toMatchObject(expectedFee);
         });
-    });
-
-    describe('calculateFeeAsync v1', () => {
-        const feeModelVersion = 1;
-        it('should calculate v1 fee for selling correctly', async () => {
+        it('should calculate v0 fee for RFQt correctly', async () => {
             // Given
             const isSelling = true;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(0.345e18);
             const tradeSizeBps = 5;
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
+                feeModelConfiguration: {
+                    marginRakeRatio: 0,
+                    tradeSizeBps,
+                },
+                gasPrice,
+                tradeTokenPrice: takerTokenPrice,
+                feeTokenPrice,
+            });
+
+            // When
+            const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow: 'rfqt',
+                chainId: 1337,
+                feeModelVersion,
+                txOrigin,
+                makerToken,
+                takerToken,
+                originalMakerToken: makerToken,
+                makerTokenDecimals,
+                takerTokenDecimals,
+                isUnwrap,
+                isSelling,
+                assetFillAmount,
+                takerAmount: assetFillAmount,
+                isFirm: true,
+                takerAddress,
+                integrator,
+            });
+
+            // Then
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeTokenAddress,
+                amount: new BigNumber(0),
+                details: {
+                    kind: 'gasOnly',
+                    feeModelVersion,
+                    gasFeeAmount: new BigNumber(0),
+                    gasPrice: new BigNumber(0),
+                },
+                breakdown: {},
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
+        });
+    });
+
+    describe('calculateFeeAsync v1', () => {
+        const feeModelVersion = 1;
+        it('should calculate v1 fee for RFQm selling correctly', async () => {
+            // Given
+            const isSelling = true;
+            const isUnwrap = false;
+            const assetFillAmount = new BigNumber(0.345e18);
+            const tradeSizeBps = 5;
+
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio: 0,
                     tradeSizeBps,
@@ -262,14 +320,14 @@ describe('RfqmFeeService', () => {
             };
             expect(fee).toMatchObject(expectedFee);
         });
-        it('should calculate v1 fee for buying correctly', async () => {
+        it('should calculate v1 fee for RFQm buying correctly', async () => {
             // Given
             const isSelling = false;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(5000e6);
             const tradeSizeBps = 4;
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio: 0,
                     tradeSizeBps,
@@ -347,13 +405,90 @@ describe('RfqmFeeService', () => {
             };
             expect(fee).toMatchObject(expectedFee);
         });
+        it('should calculate v1 fee for RFQt selling correctly', async () => {
+            // Given
+            const isSelling = true;
+            const isUnwrap = false;
+            const assetFillAmount = new BigNumber(0.345e18);
+            const tradeSizeBps = 5;
+
+            const feeService: FeeService = buildFeeService({
+                feeModelConfiguration: {
+                    marginRakeRatio: 0,
+                    tradeSizeBps,
+                },
+                gasPrice,
+                tradeTokenPrice: takerTokenPrice,
+                feeTokenPrice,
+            });
+
+            // When
+            const { feeWithDetails: fee } = await feeService.calculateFeeAsync({
+                workflow: 'rfqt',
+                chainId: 1337,
+                feeModelVersion,
+                txOrigin,
+                makerToken,
+                takerToken,
+                originalMakerToken: makerToken,
+                makerTokenDecimals,
+                takerTokenDecimals,
+                isUnwrap,
+                isSelling,
+                assetFillAmount,
+                takerAmount: assetFillAmount,
+                isFirm: true,
+                takerAddress,
+                integrator,
+            });
+
+            // Then
+            const expectedZeroExFeeAmount = assetFillAmount
+                .times(tradeSizeBps * BPS_TO_RATIO)
+                .times(takerTokenPrice)
+                .div(feeTokenPrice)
+                .integerValue();
+
+            const expectedFee: FeeWithDetails = {
+                type: 'fixed',
+                token: feeTokenAddress,
+                amount: expectedZeroExFeeAmount,
+                details: {
+                    kind: 'default',
+                    feeModelVersion,
+                    gasFeeAmount: new BigNumber(0),
+                    gasPrice: new BigNumber(0),
+                    zeroExFeeAmount: expectedZeroExFeeAmount,
+                    tradeSizeBps,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: takerTokenPrice,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+                breakdown: {
+                    zeroEx: {
+                        amount: expectedZeroExFeeAmount,
+                        details: {
+                            kind: 'volume',
+                            tradeSizeBps,
+                        },
+                    },
+                },
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    feeTokenBaseUnitPriceUsd: feeTokenPrice,
+                    takerTokenBaseUnitPriceUsd: takerTokenPrice,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+            expect(fee).toMatchObject(expectedFee);
+        });
         it('should not include zeroEx fee for non-configured pairs', async () => {
             // Given
             const isSelling = true;
             const isUnwrap = false;
             const assetFillAmount = new BigNumber(0.345e18);
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 gasPrice,
                 tradeTokenPrice: takerTokenPrice,
                 feeTokenPrice,
@@ -428,7 +563,7 @@ describe('RfqmFeeService', () => {
             const assetFillAmount = new BigNumber(5000e6);
             const tradeSizeBps = 4;
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio: 0,
                     tradeSizeBps,
@@ -535,7 +670,7 @@ describe('RfqmFeeService', () => {
                 },
             ];
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio,
                     tradeSizeBps: 0,
@@ -687,7 +822,7 @@ describe('RfqmFeeService', () => {
                 },
             ];
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio,
                     tradeSizeBps: 0,
@@ -830,7 +965,7 @@ describe('RfqmFeeService', () => {
                 },
             ];
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio,
                     tradeSizeBps,
@@ -980,7 +1115,7 @@ describe('RfqmFeeService', () => {
                 },
             ];
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio,
                     tradeSizeBps,
@@ -1092,7 +1227,7 @@ describe('RfqmFeeService', () => {
                 },
             ];
 
-            const feeService: RfqmFeeService = buildRfqmFeeService({
+            const feeService: FeeService = buildFeeService({
                 feeModelConfiguration: {
                     marginRakeRatio,
                     tradeSizeBps: 0,
@@ -1175,6 +1310,58 @@ describe('RfqmFeeService', () => {
             expect(feeWithDetails).toMatchObject(expectedFee);
             expect(quotesWithGasFee).toMatchObject(mmQuotes);
             expect(ammQuoteUniqueId).toBe(decodedUniqueId);
+        });
+        it('should throw if called from RFQt workflow', async () => {
+            // Given
+            const isSelling = true;
+            const isUnwrap = false;
+            const assetFillAmount = new BigNumber(1e18);
+            const marginRakeRatio = 0.5;
+
+            const ammMakerAmount = new BigNumber(3450e6);
+            const expectedSlippage = new BigNumber(-0.01);
+            const estimatedAmmGasFeeWei = new BigNumber(100e9);
+            const decodedUniqueId = '1234-5678';
+            const ammQuote: AmmQuote = {
+                makerAmount: ammMakerAmount,
+                takerAmount: assetFillAmount,
+                expectedSlippage,
+                estimatedGasFeeWei: estimatedAmmGasFeeWei,
+                decodedUniqueId,
+            };
+
+            const feeService: FeeService = buildFeeService({
+                feeModelConfiguration: {
+                    marginRakeRatio,
+                    tradeSizeBps: 0,
+                },
+                gasPrice,
+                tradeTokenPrice: makerTokenPrice,
+                feeTokenPrice,
+                ammQuote,
+            });
+
+            const quoteContext: QuoteContext = {
+                workflow: 'rfqt',
+                chainId: 1337,
+                isFirm: true,
+                feeModelVersion,
+                txOrigin,
+                makerToken,
+                takerToken,
+                originalMakerToken: makerToken,
+                makerTokenDecimals,
+                takerTokenDecimals,
+                isUnwrap,
+                isSelling,
+                assetFillAmount,
+                takerAmount: assetFillAmount,
+                takerAddress,
+                integrator,
+            };
+
+            // When
+            await expect(() => feeService.calculateFeeAsync(quoteContext)).rejects.toThrow('Not implemented');
         });
     });
 

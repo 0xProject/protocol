@@ -53,7 +53,7 @@ import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
 
-import { RfqmFeeService } from './rfqm_fee_service';
+import { FeeService } from './fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import {
     ApprovalResponse,
@@ -217,7 +217,7 @@ export class RfqmService {
 
     constructor(
         private readonly _chainId: number,
-        private readonly _rfqmFeeService: RfqmFeeService,
+        private readonly _feeService: FeeService,
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _registryAddress: string,
@@ -272,7 +272,7 @@ export class RfqmService {
         } = quoteContext;
 
         // (Optimization) When `quotesWithGasFee` is returned, we can use this value and revise it, to avoid another fetch to MMs
-        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._rfqmFeeService.calculateFeeAsync(
+        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._feeService.calculateFeeAsync(
             quoteContext,
             this._fetchIndicativeQuotesAsync.bind(this),
         );
@@ -281,7 +281,7 @@ export class RfqmService {
         const otherFeesAmount = feeWithDetails.amount.minus(feeWithDetails.details.gasFeeAmount);
 
         const finalQuotes = quotesWithGasFee
-            ? await this._rfqmFeeService.reviseQuotesAsync(quotesWithGasFee, otherFeesAmount, quoteContext)
+            ? await this._feeService.reviseQuotesAsync(quotesWithGasFee, otherFeesAmount, quoteContext)
             : await this._fetchIndicativeQuotesAsync(quoteContext, feeWithDetails);
 
         // (Quote Report) If otherFees > 0, then we "revised" the quotes from MMs. We want to save both the original quotes (aka intermediateQuotes) and the revised (finalQuotes)
@@ -376,7 +376,7 @@ export class RfqmService {
 
         // (Optimization) When `quotesWithGasFee` is returned, we can sometimes reuse it, to avoid another fetch to MMs
         // NOTE: this optimization differs from the optimization for indicative quotes because we do NOT revise firm quotes
-        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._rfqmFeeService.calculateFeeAsync(
+        const { feeWithDetails, quotesWithGasFee, ammQuoteUniqueId } = await this._feeService.calculateFeeAsync(
             quoteContext,
             this._fetchIndicativeQuotesAsync.bind(this),
         );
@@ -714,7 +714,7 @@ export class RfqmService {
         const heartbeats = await this._dbUtils.findRfqmWorkerHeartbeatsAsync(this._chainId);
         let gasPrice: BigNumber | undefined;
         try {
-            gasPrice = await this._rfqmFeeService.getGasPriceEstimationAsync();
+            gasPrice = await this._feeService.getGasPriceEstimationAsync();
         } catch (error) {
             logger.warn({ errorMessage: error.message }, 'Failed to get gas price for health check');
         }

@@ -143,9 +143,9 @@ export const reviseQuoteWithFees = (
 };
 
 /**
- * RfqmFeeService is used by RfqmService to calculate RFQm Fees of all versions (0, 1 and 2).
+ * FeeService is used by RfqmService to calculate RFQm Fees of all versions (0, 1 and 2).
  */
-export class RfqmFeeService {
+export class FeeService {
     constructor(
         private readonly _chainId: number,
         private readonly _feeTokenMetadata: TokenMetadata,
@@ -236,7 +236,30 @@ export class RfqmFeeService {
     private async _calculateGasFeeAsync(
         quoteContext: QuoteContext,
     ): Promise<FeeWithDetails & { details: GasOnlyFeeDetailsDeprecated }> {
-        const { takerToken, makerToken, isUnwrap, feeModelVersion } = quoteContext;
+        const { workflow, takerToken, makerToken, isUnwrap, feeModelVersion } = quoteContext;
+
+        if (workflow === 'rfqt') {
+            const gasPrice = new BigNumber(0);
+            const gasFeeAmount = new BigNumber(0);
+            return {
+                amount: gasFeeAmount,
+                token: this._feeTokenMetadata.tokenAddress,
+                type: 'fixed',
+                details: {
+                    kind: 'gasOnly',
+                    feeModelVersion,
+                    gasFeeAmount,
+                    gasPrice,
+                },
+                breakdown: {},
+                conversionRates: {
+                    nativeTokenBaseUnitPriceUsd: null,
+                    feeTokenBaseUnitPriceUsd: null,
+                    takerTokenBaseUnitPriceUsd: null,
+                    makerTokenBaseUnitPriceUsd: null,
+                },
+            };
+        }
 
         const gasPrice: BigNumber = await this.getGasPriceEstimationAsync();
         const gasEstimate = calculateGasEstimate(makerToken, takerToken, 'otc', isUnwrap);
@@ -281,6 +304,7 @@ export class RfqmFeeService {
         quoteContext: QuoteContext,
     ): Promise<FeeWithDetails & { details: DefaultFeeDetailsDeprecated | GasOnlyFeeDetailsDeprecated }> {
         const {
+            workflow,
             takerToken,
             makerToken,
             takerAmount,
@@ -339,7 +363,8 @@ export class RfqmFeeService {
                 makerTokenBaseUnitPriceUsd: isSelling ? null : tradeTokenBaseUnitPriceUsd,
             },
             breakdown: {
-                gas: gasFee.breakdown.gas,
+                // RFQ will not charge gas fee for RFQt as taker will pay it
+                gas: workflow === 'rfqt' ? undefined : gasFee.breakdown.gas,
                 zeroEx: {
                     amount: zeroExFeeAmount,
                     details: {
@@ -371,6 +396,7 @@ export class RfqmFeeService {
         fetchMmQuotesAsync?: (quoteContext: QuoteContext, fee: Fee) => Promise<IndicativeQuote[]>,
     ): Promise<CalculateFeeResponse> {
         const {
+            workflow,
             takerToken,
             makerToken,
             takerTokenDecimals,
@@ -379,6 +405,10 @@ export class RfqmFeeService {
             assetFillAmount,
             feeModelVersion,
         } = quoteContext;
+
+        if (workflow === 'rfqt') {
+            throw new Error(`Not implemented: price improvement based fee model for RFQt has not been implemented!`);
+        }
 
         const { marginRakeRatio: rakeRatio, tradeSizeBps } = this._configManager.getFeeModelConfiguration(
             this._chainId,

@@ -21,7 +21,7 @@ import {
     RfqmTransactionSubmissionStatus,
     RfqmTransactionSubmissionType,
 } from '../../src/entities/types';
-import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
+import { FeeService } from '../../src/services/fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import {
@@ -67,7 +67,7 @@ const MOCK_INTEGRATOR: Integrator = {
 const buildRfqmServiceForUnitTest = (
     overrides: {
         chainId?: number;
-        rfqmFeeService?: RfqmFeeService;
+        feeService?: FeeService;
         feeModelVersion?: FeeModelVersion;
         rfqBlockchainUtils?: RfqBlockchainUtils;
         dbUtils?: RfqmDbUtils;
@@ -101,9 +101,9 @@ const buildRfqmServiceForUnitTest = (
         },
     ]);
 
-    const rfqmFeeServiceMock = mock(RfqmFeeService);
-    when(rfqmFeeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
-    when(rfqmFeeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({
+    const feeServiceMock = mock(FeeService);
+    when(feeServiceMock.getGasPriceEstimationAsync()).thenResolve(MOCK_GAS_PRICE);
+    when(feeServiceMock.calculateFeeAsync(anything(), anything())).thenResolve({
         feeWithDetails: {
             token: '0xToken',
             amount: new BigNumber(300),
@@ -143,7 +143,7 @@ const buildRfqmServiceForUnitTest = (
             },
         },
     });
-    const rfqmFeeServiceInstance = instance(rfqmFeeServiceMock);
+    const feeServiceInstance = instance(feeServiceMock);
 
     const rfqBlockchainUtilsMock = mock(RfqBlockchainUtils);
     when(rfqBlockchainUtilsMock.getAccountBalanceAsync(MOCK_WORKER_REGISTRY_ADDRESS)).thenResolve(
@@ -173,7 +173,7 @@ const buildRfqmServiceForUnitTest = (
 
     return new RfqmService(
         overrides.chainId || 1337,
-        overrides.rfqmFeeService || rfqmFeeServiceInstance,
+        overrides.feeService || feeServiceInstance,
         overrides.feeModelVersion || 0,
         contractAddresses,
         MOCK_WORKER_REGISTRY_ADDRESS,

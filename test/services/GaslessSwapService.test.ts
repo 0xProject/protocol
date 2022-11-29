@@ -14,7 +14,7 @@ import { ZERO } from '../../src/constants';
 import { MetaTransactionJobEntity } from '../../src/entities';
 import { RfqmJobStatus } from '../../src/entities/types';
 import { GaslessSwapService } from '../../src/services/GaslessSwapService';
-import { RfqmFeeService } from '../../src/services/rfqm_fee_service';
+import { FeeService } from '../../src/services/fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import {
@@ -108,7 +108,7 @@ const mockBlockchainUtils = jest.mocked(
 const mockRfqmService = jest.mocked(
     new RfqmService(
         0,
-        {} as RfqmFeeService,
+        {} as FeeService,
         0,
         {} as ContractAddresses,
         '0x0',
