@@ -69,6 +69,7 @@ export interface ChainConfiguration {
     // The max fee per gas (in gwei) the worker is willing to pay for a transaction
     maxFeePerGasCapGwei: number;
     quoteReportTopic?: string;
+    rfqtQuoteReportTopic?: string;
     enableAccessList?: boolean;
     // Enables caching for maker balances on observed tokens
     enableMakerBalanceCache?: boolean;

@@ -1,10 +1,10 @@
-import { ERC20BridgeSource, FillData, jsonifyFillData, NativeFillData, RfqOrderFields } from '@0x/asset-swapper';
+import { ERC20BridgeSource, FillData, NativeFillData, RfqOrderFields } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
 import { StoredFee } from '../entities/types';
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote } from '../types';
+import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes } from '../types';
 
 import { numberUtils } from './number_utils';
 
@@ -62,6 +62,7 @@ export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase
     isRFQ: true;
     makerUri?: string;
     comparisonPrice?: number;
+    orderHash?: string;
 }
 
 export declare type ExtendedQuoteReportEntry =
@@ -112,6 +113,20 @@ interface ExtendedQuoteReportForRFQMLogOptions {
     isLiquidityAvailable?: boolean;
 }
 
+interface ExtendedQuoteReportForRfqtLogOptions {
+    isFirmQuote: boolean;
+    buyAmount?: BigNumber;
+    sellAmount?: BigNumber;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    integratorId?: string;
+    taker?: string;
+    quotes: RfqtV2Quotes;
+    fee: StoredFee;
+    ammQuoteUniqueId?: string;
+    isLiquidityAvailable?: boolean;
+}
+
 export const quoteReportUtils = {
     async publishRFQMQuoteReportAsync(
         logOpts: ExtendedQuoteReportForRFQMLogOptions,
@@ -121,7 +136,7 @@ export const quoteReportUtils = {
     ): Promise</* quoteId */ string | null> {
         if (kafkaProducer && quoteReportTopic) {
             const quoteId = numberUtils.randomHexNumberOfLength(10);
-            logger.info(`Generating and pushing Quote report for: ${quoteId}`);
+            logger.info(`Generating and pushing RFQm Quote Report for: ${quoteId}`);
 
             let orderHash: string | undefined;
             if (logOpts.bestQuote && isFirmQuote(logOpts.bestQuote)) {
@@ -218,8 +233,87 @@ export const quoteReportUtils = {
         }
         return null;
     },
+    async publishRfqtQuoteReport(
+        logOpts: ExtendedQuoteReportForRfqtLogOptions,
+        kafkaProducer: Producer,
+        quoteReportTopic?: string,
+        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'taker',
+    ) {
+        if (kafkaProducer && quoteReportTopic) {
+            const quoteId = numberUtils.randomHexNumberOfLength(10);
+            logger.info(`Generating and pushing RFQt Quote Report for: ${quoteId}`);
+
+            const sourcesConsidered = logOpts.quotes.map(
+                (quote, idx): ExtendedQuoteReportEntryWithIntermediateQuote => {
+                    return {
+                        ...jsonifyFillData({
+                            quoteEntryIndex: idx,
+                            isDelivered: false,
+                            liquiditySource: ERC20BridgeSource.Native,
+                            makerAmount: quote.order.makerAmount,
+                            takerAmount: quote.order.takerAmount,
+                            fillableTakerAmount: quote.fillableTakerAmount,
+                            isRFQ: true,
+                            makerUri: quote.makerUri,
+                            fillData: quote.order,
+                            orderHash: quote.order.getHash(),
+                        }),
+                        isIntermediate: false,
+                    };
+                },
+            );
+
+            const extendedQuoteReport: ExtendedQuoteReportWithFee = {
+                quoteId,
+                taker: logOpts.taker,
+                timestamp: Date.now(),
+                firmQuoteReport: logOpts.isFirmQuote,
+                submissionBy: extendedQuoteReportSubmissionBy,
+                buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
+                sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
+                buyTokenAddress: logOpts.buyTokenAddress,
+                sellTokenAddress: logOpts.sellTokenAddress,
+                integratorId: logOpts.integratorId,
+                slippageBips: undefined,
+                sourcesConsidered,
+                sourcesDelivered: undefined,
+                fee: logOpts.fee,
+                ammQuoteUniqueId: logOpts.ammQuoteUniqueId,
+                isLiquidityAvailable: logOpts.isLiquidityAvailable,
+            };
+
+            kafkaProducer.send({
+                topic: quoteReportTopic,
+                messages: [
+                    {
+                        value: JSON.stringify(extendedQuoteReport),
+                    },
+                ],
+            });
+
+            return quoteId;
+        }
+        return null;
+    },
 };
 
 function isFirmQuote(quote: FirmOtcQuote | IndicativeQuote): quote is FirmOtcQuote {
     return (quote as FirmOtcQuote).order !== undefined;
+}
+
+/**
+ * Migrated from @0x/asset-swapper
+ */
+export function jsonifyFillData(source: ExtendedQuoteReportIndexedEntry): ExtendedQuoteReportIndexedEntryOutbound {
+    return {
+        ...source,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fillData: JSON.stringify(source.fillData, (key: string, value: any) => {
+            if (key === '_samplerContract') {
+                return {};
+            } else {
+                return value;
+            }
+        }),
+    };
 }

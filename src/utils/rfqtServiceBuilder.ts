@@ -5,11 +5,13 @@ import { providers } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import Redis from 'ioredis';
+import { Kafka, Producer as KafkaProducer } from 'kafkajs';
 
 import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_PROFILE,
     ChainConfigurations,
+    KAFKA_BROKERS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
 } from '../config';
@@ -78,6 +80,8 @@ export async function buildRfqtServicesAsync(
             const cacheClient = new CacheClient(redis);
             const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(cacheClient, balanceCheckUtils);
 
+            const kafkaProducer = getKafkaProducer();
+
             return new RfqtService(
                 chain.chainId,
                 rfqMakerManager,
@@ -87,6 +91,8 @@ export async function buildRfqtServicesAsync(
                 contractAddresses,
                 chain.rfqtFeeModelVersion || 0,
                 rfqMakerBalanceCacheService,
+                kafkaProducer,
+                chain.rfqtQuoteReportTopic,
             );
         }),
     );
@@ -110,4 +116,22 @@ function getAxiosRequestConfig(): AxiosRequestConfig {
     }
 
     return axiosRequestConfig;
+}
+
+/**
+ * Initialize a kafka producer if KAFKA_BROKERS is set
+ */
+function getKafkaProducer(): KafkaProducer | undefined {
+    let kafkaProducer: KafkaProducer | undefined;
+    if (KAFKA_BROKERS !== undefined) {
+        const kafka = new Kafka({
+            clientId: '0x-api',
+            brokers: KAFKA_BROKERS,
+        });
+
+        kafkaProducer = kafka.producer();
+        // tslint:disable-next-line: no-floating-promises
+        kafkaProducer.connect();
+    }
+    return kafkaProducer;
 }

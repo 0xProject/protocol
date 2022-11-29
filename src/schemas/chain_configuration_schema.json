@@ -31,6 +31,9 @@
         "quoteReportTopic": {
             "type": "string"
         },
+        "rfqtQuoteReportTopic": {
+            "type": "string"
+        },
         "zeroExClientBaseUrl": {
             "type": "string"
         },
