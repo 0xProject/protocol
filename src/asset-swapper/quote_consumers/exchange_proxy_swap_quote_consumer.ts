@@ -336,7 +336,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     .getABIEncodedTransactionData();
             }
             // if the otc orders makerToken is the native asset
-            if (isToETH) {
+            else if (isToETH) {
                 callData = this._exchangeProxy
                     .fillOtcOrderForEth(otcOrdersData[0].order, otcOrdersData[0].signature, sellAmount)
                     .getABIEncodedTransactionData();
