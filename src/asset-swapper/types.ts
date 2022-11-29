@@ -160,11 +160,6 @@ export interface ExchangeProxyContractOpts {
     shouldSellEntireBalance: boolean;
 }
 
-export interface GetExtensionContractTypeOpts {
-    takerAddress?: string;
-    ethAmount?: BigNumber;
-}
-
 /**
  * takerToken: Address of the taker asset.
  * makerToken: Address of the maker asset.
@@ -244,17 +239,6 @@ export type SwapQuoteOrdersBreakdown = Partial<
     }
 >;
 
-/**
- * nativeExclusivelyRFQ: if set to `true`, Swap quote will exclude Open Orderbook liquidity.
- *                       If set to `true` and `ERC20BridgeSource.Native` is part of the `excludedSources`
- *                       array in `SwapQuoteRequestOpts`, an Error will be raised.
- */
-
-export interface RfqmRequestOptions extends RfqRequestOpts {
-    isLastLook: true;
-    fee: Fee;
-}
-
 export interface RfqRequestOpts {
     takerAddress: string;
     txOrigin: string;
@@ -292,14 +276,6 @@ export interface AltOffering {
 }
 export interface AltRfqMakerAssetOfferings {
     [endpoint: string]: AltOffering[];
-}
-export enum RfqPairType {
-    Standard = 'standard',
-    Alt = 'alt',
-}
-export interface TypedMakerUrl {
-    url: string;
-    pairType: RfqPairType;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
@@ -345,17 +321,6 @@ export interface SwapQuoterOpts extends OrderPrunerOpts {
     rfqt?: SwapQuoterRfqOpts;
     samplerOverrides?: SamplerOverrides;
     tokenAdjacencyGraph?: TokenAdjacencyGraph;
-}
-
-/**
- * Possible error messages thrown by an SwapQuoterConsumer instance or associated static methods.
- */
-export enum SwapQuoteConsumerError {
-    InvalidMarketSellOrMarketBuySwapQuote = 'INVALID_MARKET_BUY_SELL_SWAP_QUOTE',
-    InvalidForwarderSwapQuote = 'INVALID_FORWARDER_SWAP_QUOTE_PROVIDED',
-    NoAddressAvailable = 'NO_ADDRESS_AVAILABLE',
-    SignatureRequestDenied = 'SIGNATURE_REQUEST_DENIED',
-    TransactionValueTooLow = 'TRANSACTION_VALUE_TOO_LOW',
 }
 
 /**
