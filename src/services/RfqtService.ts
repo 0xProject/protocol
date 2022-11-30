@@ -24,6 +24,7 @@ import { feeToStoredFee } from '../utils/rfqm_db_utils';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
+import { FeeService } from './fee_service';
 
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from './types';
@@ -36,7 +37,7 @@ const getTokenAddressFromSymbol = (symbol: string, chainId: number): string => {
  * Converts the parameters of an RFQt v2 prices request from 0x API
  * into the format needed for `QuoteServerClient` to call the market makers
  */
-function transformRfqtV2PricesParameters(p: QuoteContext, chainId: number): QuoteServerPriceParams {
+function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chainId: number): QuoteServerPriceParams {
     const buyTokenAddress = p.makerToken;
     const sellTokenAddress = p.takerToken;
     // Typescript gymnastics with `baseUnits` to caputure the "oneof" nature--
@@ -66,8 +67,8 @@ function transformRfqtV2PricesParameters(p: QuoteContext, chainId: number): Quot
         buyTokenAddress,
         sellTokenAddress,
         chainId,
-        feeAmount: new BigNumber(0),
-        feeToken: getTokenAddressFromSymbol(nativeWrappedTokenSymbol(chainId), chainId),
+        feeAmount: fee.amount,
+        feeToken: fee.token,
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
@@ -122,6 +123,7 @@ export class RfqtService {
         private readonly _quoteServerClient: QuoteServerClient,
         private readonly _tokenMetadataManager: TokenMetadataManager,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
+        private readonly _feeService: FeeService,
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _kafkaProducer?: KafkaProducer,
@@ -250,55 +252,8 @@ export class RfqtService {
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
     public async getV2PricesAsync(quoteContext: QuoteContext, now: Date = new Date()): Promise<RfqtV2Prices> {
-        const { integrator, makerToken, takerToken } = quoteContext;
-        // Fetch the makers active on this pair
-        const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
-            if (m.rfqtUri === null) {
-                return false;
-            }
-            if (integrator.whitelistMakerIds && !integrator.whitelistMakerIds.includes(m.makerId)) {
-                return false;
-            }
-            return true;
-        });
-
-        // Short circuit if no makers are active
-        if (!makers.length) {
-            return [];
-        }
-
-        // TODO (haozhuo): check to see if MM passes circuit breaker
-
-        const prices = (
-            await this._quoteServerClient.batchGetPriceV2Async(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                makers.map((m) => /* won't be null because of previous `filter` operation */ m.rfqtUri!),
-                integrator,
-                transformRfqtV2PricesParameters(quoteContext, this._chainId),
-                (url) => `${url}/rfqt/v2/price`,
-            )
-        ).map((price) => {
-            const maker = makers.find((m) => m.rfqtUri === price.makerUri);
-            if (!maker) {
-                throw new Error(`Could not find maker with URI ${price.makerUri}`);
-            }
-            return {
-                expiry: price.expiry,
-                makerAddress: price.maker,
-                makerAmount: price.makerAmount,
-                makerId: maker.makerId,
-                makerToken: price.makerToken,
-                makerUri: price.makerUri,
-                takerAmount: price.takerAmount,
-                takerToken: price.takerToken,
-            };
-        });
-
-        // Filter out invalid prices
-        const validatedPrices = validateV2Prices(prices, quoteContext, RFQT_MINIMUM_EXPIRY_DURATION_MS, now);
-
-        return validatedPrices;
+        const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
+        return this._getV2PricesInternalAsync(quoteContext, fee, now);
     }
 
     /**
@@ -316,8 +271,11 @@ export class RfqtService {
         now: Date = new Date(),
         extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'taker',
     ): Promise<RfqtV2Quotes> {
+        const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
+        const storedFee: StoredFee = feeToStoredFee(fee);
+
         // TODO (rhinodavid): put a meter on this response time
-        const prices = await this.getV2PricesAsync(quoteContext, now);
+        const prices = await this._getV2PricesInternalAsync(quoteContext, fee, now);
 
         // If multiple quotes are aggregated into the final order, they must
         // all have unique nonces. Otherwise they'll be rejected by the smart contract.
@@ -326,10 +284,6 @@ export class RfqtService {
             order: this._v2priceToOrder(price, quoteContext.txOrigin, baseNonce.plus(i)),
             price,
         }));
-
-        // No fee in place for now
-        const fee: Fee = { token: this._nativeWrappedTokenAddress, amount: new BigNumber(0), type: 'fixed' };
-        const storedFee: StoredFee = feeToStoredFee(fee);
 
         const pricesAndOrdersAndSignatures = await Promise.all(
             pricesAndOrders.map(async ({ price, order }) => {
@@ -441,6 +395,65 @@ export class RfqtService {
      */
     public async getTokenDecimalsAsync(tokenAddress: string): Promise<number> {
         return this._tokenMetadataManager.getTokenDecimalsAsync(tokenAddress);
+    }
+
+    /**
+     * Get prices from MMs for given quote context and fee.
+     */
+    public async _getV2PricesInternalAsync(
+        quoteContext: QuoteContext,
+        fee: Fee,
+        now: Date = new Date(),
+    ): Promise<RfqtV2Prices> {
+        const { integrator, makerToken, takerToken } = quoteContext;
+        // Fetch the makers active on this pair
+        const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
+            if (m.rfqtUri === null) {
+                return false;
+            }
+            if (integrator.whitelistMakerIds && !integrator.whitelistMakerIds.includes(m.makerId)) {
+                return false;
+            }
+            return true;
+        });
+
+        // Short circuit if no makers are active
+        if (!makers.length) {
+            return [];
+        }
+
+        // TODO (haozhuo): check to see if MM passes circuit breaker
+
+        const prices = (
+            await this._quoteServerClient.batchGetPriceV2Async(
+                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                makers.map((m) => /* won't be null because of previous `filter` operation */ m.rfqtUri!),
+                integrator,
+                transformRfqtV2PricesParameters(quoteContext, fee, this._chainId),
+                (url) => `${url}/rfqt/v2/price`,
+            )
+        ).map((price) => {
+            const maker = makers.find((m) => m.rfqtUri === price.makerUri);
+            if (!maker) {
+                throw new Error(`Could not find maker with URI ${price.makerUri}`);
+            }
+            return {
+                expiry: price.expiry,
+                makerAddress: price.maker,
+                makerAmount: price.makerAmount,
+                makerId: maker.makerId,
+                makerToken: price.makerToken,
+                makerUri: price.makerUri,
+                takerAmount: price.takerAmount,
+                takerToken: price.takerToken,
+            };
+        });
+
+        // Filter out invalid prices
+        const validatedPrices = validateV2Prices(prices, quoteContext, RFQT_MINIMUM_EXPIRY_DURATION_MS, now);
+
+        return validatedPrices;
     }
 
     /**

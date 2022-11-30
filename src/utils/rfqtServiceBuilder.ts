@@ -1,5 +1,6 @@
-import { SupportedProvider } from '@0x/asset-swapper';
+import { ProtocolFeeUtils, SupportedProvider } from '@0x/asset-swapper';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import Axios, { AxiosRequestConfig } from 'axios';
 import { providers } from 'ethers';
 import { Agent as HttpAgent } from 'http';
@@ -11,24 +12,31 @@ import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_PROFILE,
     ChainConfigurations,
+    DEFINED_FI_API_KEY,
+    DEFINED_FI_ENDPOINT,
     KAFKA_BROKERS,
     RFQ_PROXY_ADDRESS,
     RFQ_PROXY_PORT,
+    ZERO_EX_API_KEY,
 } from '../config';
-import { KEEP_ALIVE_TTL } from '../constants';
+import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS } from '../constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
+import { FeeService } from '../services/fee_service';
 import { RfqtService } from '../services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../services/rfq_maker_balance_cache_service';
 
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
 import { ConfigManager } from './config_manager';
+import { getGasStationAttendant } from './GasStationAttendantUtils';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from './rfq_blockchain_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 import { RfqMakerManager } from './rfq_maker_manager';
 import { TokenMetadataManager } from './TokenMetadataManager';
+import { TokenPriceOracle } from './TokenPriceOracle';
+import { ZeroExApiClient } from './ZeroExApiClient';
 
 export type RfqtServices = Map<number, RfqtService>;
 
@@ -82,6 +90,29 @@ export async function buildRfqtServicesAsync(
 
             const kafkaProducer = getKafkaProducer();
 
+            const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+            if (feeTokenMetadata === undefined) {
+                throw new Error(
+                    `Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`,
+                );
+            }
+
+            const protocolFeeUtils = ProtocolFeeUtils.getInstance(
+                PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+                chain.gasStationUrl,
+            );
+            const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
+            const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
+            const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
+            const feeService = new FeeService(
+                chain.chainId,
+                feeTokenMetadata,
+                configManager,
+                gasStationAttendant,
+                tokenPriceOracle,
+                zeroExApiClient,
+            );
+
             return new RfqtService(
                 chain.chainId,
                 rfqMakerManager,
@@ -89,6 +120,7 @@ export async function buildRfqtServicesAsync(
                 quoteServerClient,
                 tokenMetadataManager,
                 contractAddresses,
+                feeService,
                 chain.rfqtFeeModelVersion || 0,
                 rfqMakerBalanceCacheService,
                 kafkaProducer,

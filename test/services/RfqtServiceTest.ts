@@ -3,6 +3,7 @@ import { RfqMakerAssetOfferings } from '@0x/asset-swapper/lib/src/types';
 import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { OtcOrder } from '@0x/protocol-utils';
 import { Signature, SignatureType } from '@0x/protocol-utils/lib/src/signature_utils';
+import { TokenMetadata } from '@0x/token-metadata';
 import { MarketOperation } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
@@ -11,17 +12,21 @@ import { Integrator } from '../../src/config';
 import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
+import { FeeService } from '../../src/services/fee_service';
 import { RfqtService } from '../../src/services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from '../../src/services/types';
 import { IndicativeQuote } from '../../src/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { ConfigManager } from '../../src/utils/config_manager';
+import { GasStationAttendant } from '../../src/utils/GasStationAttendant';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { RfqBalanceCheckUtils, RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerDbUtils } from '../../src/utils/rfq_maker_db_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
+import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';
+import { ZeroExApiClient } from '../../src/utils/ZeroExApiClient';
 
 jest.mock('../../src/utils/rfq_maker_manager', () => ({
     RfqMakerManager: jest.fn().mockImplementation(() => {
@@ -60,6 +65,16 @@ jest.mock('../../src/services/rfq_maker_balance_cache_service', () => ({
 const mockQuoteRequestor = jest.mocked(new QuoteRequestor({} as RfqMakerAssetOfferings, {} as AxiosInstance));
 const mockRfqMakerManager = jest.mocked(new RfqMakerManager({} as ConfigManager, {} as RfqMakerDbUtils, 0));
 const mockQuoteServerClient = jest.mocked(new QuoteServerClient({} as AxiosInstance));
+const mockFeeService = jest.mocked(
+    new FeeService(
+        1337,
+        {} as TokenMetadata,
+        {} as ConfigManager,
+        {} as GasStationAttendant,
+        {} as TokenPriceOracle,
+        {} as ZeroExApiClient,
+    ),
+);
 const mockTokenMetadataManager = jest.mocked(new TokenMetadataManager(1337, {} as RfqBlockchainUtils));
 // tslint:enable: no-object-literal-type-assertion
 const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
@@ -85,6 +100,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -170,6 +186,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -285,6 +302,13 @@ describe('Rfqt Service', () => {
                 };
 
                 mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -293,6 +317,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -319,7 +344,7 @@ describe('Rfqt Service', () => {
                       "buyAmountBaseUnits": "1000",
                       "buyTokenAddress": "0x1",
                       "chainId": "1337",
-                      "feeAmount": "0",
+                      "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
@@ -350,6 +375,13 @@ describe('Rfqt Service', () => {
                     txOrigin: '0xtakeraddress',
                 };
                 mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -358,6 +390,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -383,7 +416,7 @@ describe('Rfqt Service', () => {
                     Object {
                       "buyTokenAddress": "0x1",
                       "chainId": "1337",
-                      "feeAmount": "0",
+                      "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
@@ -429,6 +462,13 @@ describe('Rfqt Service', () => {
 
                 mockRfqMakerManager.getRfqtV2MakersForPair = jest.fn().mockReturnValue([maker]);
                 mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([price]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -437,6 +477,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -502,6 +543,13 @@ describe('Rfqt Service', () => {
                     },
                 ]);
                 mockQuoteServerClient.batchGetPriceV2Async = jest.fn().mockResolvedValue([price]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -510,6 +558,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -571,6 +620,13 @@ describe('Rfqt Service', () => {
                     },
                 ]);
                 mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(undefined);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -579,6 +635,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -620,6 +677,13 @@ describe('Rfqt Service', () => {
                     },
                 ]);
                 mockQuoteServerClient.signV2Async = jest.fn().mockRejectedValue(new Error('EXPLODE'));
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -628,6 +692,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -677,6 +742,13 @@ describe('Rfqt Service', () => {
                         expiry,
                     },
                 ]);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
                 mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
@@ -688,6 +760,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );
@@ -735,6 +808,13 @@ describe('Rfqt Service', () => {
                 ]);
                 const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
                 mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
+                mockFeeService.calculateFeeAsync = jest.fn().mockResolvedValue({
+                    feeWithDetails: {
+                        token: '0x0b1ba0af832d7c05fd64161e0db78e85978e8082',
+                        amount: new BigNumber(100),
+                        type: 'fixed',
+                    },
+                });
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers
@@ -743,6 +823,7 @@ describe('Rfqt Service', () => {
                     mockQuoteServerClient,
                     mockTokenMetadataManager,
                     mockContractAddresses,
+                    mockFeeService,
                     1,
                     mockRfqMakerBalanceCacheService,
                 );

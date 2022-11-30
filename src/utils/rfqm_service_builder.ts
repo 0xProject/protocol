@@ -9,7 +9,7 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { getTokenMetadataIfExists } from '@0x/token-metadata';
 import { Web3Wrapper } from '@0x/web3-wrapper';
-import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import Axios, { AxiosRequestConfig } from 'axios';
 import { providers, Wallet } from 'ethers';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
@@ -41,11 +41,7 @@ import { WorkerService } from '../services/WorkerService';
 import { BalanceChecker } from './balance_checker';
 import { CacheClient } from './cache_client';
 import { ConfigManager } from './config_manager';
-import { GasOracle } from './GasOracle';
-import { GasStationAttendant } from './GasStationAttendant';
-import { GasStationAttendantEthereum } from './GasStationAttendantEthereum';
-import { GasStationAttendantPolygon } from './GasStationAttendantPolygon';
-import { GasStationAttendantRopsten } from './GasStationAttendantRopsten';
+import { getGasStationAttendant } from './GasStationAttendantUtils';
 import { providerUtils } from './provider_utils';
 import { QuoteServerClient } from './quote_server_client';
 import { RfqmDbUtils } from './rfqm_db_utils';
@@ -155,32 +151,6 @@ export async function getContractAddressesForNetworkOrThrowAsync(
         contractAddresses = { ...contractAddresses, exchangeProxy: exchangeProxyContractAddressOverride };
     }
     return contractAddresses;
-}
-
-function getGasStationAttendant(
-    chain: ChainConfiguration,
-    axiosInstance: AxiosInstance,
-    protocolFeeUtils: ProtocolFeeUtils,
-): GasStationAttendant {
-    let gasOracle: GasOracle;
-    // tslint:disable: custom-no-magic-numbers
-    switch (chain.chainId) {
-        case /* ethereum */ 1:
-            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
-            return new GasStationAttendantEthereum(gasOracle);
-        case /* ropsten */ 3:
-            return new GasStationAttendantRopsten(protocolFeeUtils);
-        case /* ganache */ 1337:
-            gasOracle = GasOracle.create(chain.gasStationUrl, axiosInstance);
-            return new GasStationAttendantEthereum(gasOracle);
-        case /* polygon */ 137:
-            return new GasStationAttendantPolygon(protocolFeeUtils);
-        case /* mumbai */ 80001:
-            return new GasStationAttendantPolygon(protocolFeeUtils);
-        default:
-            throw new Error(`Gas station attendant not configured for chain: ${chain.name}`);
-    }
-    // tslint:enable: custom-no-magic-numbers
 }
 
 /**

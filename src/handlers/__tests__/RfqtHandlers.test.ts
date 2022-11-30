@@ -13,6 +13,7 @@ import * as supertest from 'supertest';
 
 import { Integrator } from '../../config';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../quoteRequestor/QuoteRequestor';
+import { FeeService } from '../../services/fee_service';
 import { RfqtService } from '../../services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../services/rfq_maker_balance_cache_service';
 import { RfqtV2Prices, RfqtV2Quotes } from '../../types';
@@ -54,6 +55,7 @@ const mockRfqtService = jest.mocked(
         {} as QuoteServerClient,
         {} as TokenMetadataManager,
         {} as ContractAddresses,
+        {} as FeeService,
         1,
         {} as RfqMakerBalanceCacheService,
     ),
