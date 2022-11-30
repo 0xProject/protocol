@@ -739,6 +739,7 @@ export const CURVE_POOLS = {
     bLUSD: '0x74ed5d42203806c8cdcf2f04ca5f60dc777b901c',
     rsr: '0x6a6283ab6e31c2aec3fa08697a8f806b740660b2',
     DOLAFRAX: '0xe57180685e3348589e9521aa53af0bcd497e884d',
+    crvfrax: '0xdcef968d416a41cdac0ed8702fac8128a64241a2',
 };
 
 export const CURVE_V2_POOLS = {
@@ -1506,6 +1507,11 @@ export const CURVE_MAINNET_INFOS: { [name: string]: CurveInfo } = {
     [CURVE_POOLS.bLUSD]: createCurveFactoryCryptoExchangePool({
         tokens: [MAINNET_TOKENS.bLUSD, MAINNET_TOKENS.LUSDCRV],
         pool: CURVE_POOLS.bLUSD,
+        gasSchedule: 390e3,
+    }),
+    [CURVE_POOLS.crvfrax]: createCurveExchangePool({
+        tokens: [MAINNET_TOKENS.FRAX, MAINNET_TOKENS.USDC],
+        pool: CURVE_POOLS.crvfrax,
         gasSchedule: 390e3,
     }),
     [CURVE_POOLS.rsr]: createCurveFactoryCryptoExchangePool({
