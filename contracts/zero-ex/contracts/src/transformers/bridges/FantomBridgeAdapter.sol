@@ -22,8 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinAaveV3.sol";
-import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
@@ -35,8 +33,6 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract FantomBridgeAdapter is
     AbstractBridgeAdapter(250, "Fantom"),
-    MixinAaveV3,
-    MixinAaveV2,
     MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinCurve,
@@ -46,7 +42,7 @@ contract FantomBridgeAdapter is
     MixinWOOFi,
     MixinZeroExBridge
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(false) {}
+    constructor(IEtherTokenV06 weth) public MixinCurve(weth){}
 
     function _trade(
         BridgeOrder memory order,
@@ -86,11 +82,6 @@ contract FantomBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.AAVEV2) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeAaveV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.WOOFI) {
             if (dryRun) {
                 return (0, true);
@@ -101,11 +92,6 @@ contract FantomBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.AAVEV3) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
         }
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
