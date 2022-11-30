@@ -749,6 +749,9 @@ describe('Rfqt Service', () => {
                         type: 'fixed',
                     },
                 });
+                mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync = jest
+                    .fn()
+                    .mockResolvedValue([new BigNumber(10000), new BigNumber(10000)]);
 
                 const signature: Signature = { r: 'r', v: 21, s: 's', signatureType: SignatureType.EIP712 };
                 mockQuoteServerClient.signV2Async = jest.fn().mockResolvedValue(signature);
@@ -815,6 +818,9 @@ describe('Rfqt Service', () => {
                         type: 'fixed',
                     },
                 });
+                mockRfqMakerBalanceCacheService.getERC20OwnerBalancesAsync = jest
+                    .fn()
+                    .mockResolvedValue([new BigNumber(10000)]);
 
                 const rfqtService = new RfqtService(
                     1337, // tslint:disable-line: custom-no-magic-numbers

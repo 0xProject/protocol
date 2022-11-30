@@ -328,9 +328,6 @@ export class RfqtService {
             );
         }
 
-        // TODO: remove line below to calculate fillable amounts
-        quotedMakerBalances = undefined;
-
         const fillableAmounts = getRfqtV2FillableAmounts(prices, this._chainId, quotedMakerBalances);
 
         const quotes = pricesAndOrdersAndSignatures
