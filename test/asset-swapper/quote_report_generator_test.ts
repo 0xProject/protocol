@@ -5,16 +5,16 @@ import * as _ from 'lodash';
 import 'mocha';
 import * as TypeMoq from 'typemoq';
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../src/asset-swapper/types';
 import {
-    DexSample,
+    MarketOperation,
+    NativeOrderWithFillableAmounts,
     ERC20BridgeSource,
     Fill,
-    MultiHopFillData,
     NativeFillData,
     NativeLimitOrderFillData,
     NativeRfqOrderFillData,
-} from '../../src/asset-swapper/utils/market_operation_utils/types';
+} from '../../src/asset-swapper/types';
+import { DexSample, MultiHopFillData } from '../../src/asset-swapper/utils/market_operation_utils/types';
 import { QuoteRequestor } from '../../src/asset-swapper/utils/quote_requestor';
 
 import {

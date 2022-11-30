@@ -5,14 +5,8 @@ import { BigNumber, logUtils } from '@0x/utils';
 import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
-import {
-    ComparisonPrice,
-    ERC20BridgeSource,
-    ExchangeProxyOverhead,
-    FeeEstimate,
-    FeeSchedule,
-    MarketSideLiquidity,
-} from './types';
+import { ComparisonPrice, MarketSideLiquidity } from './types';
+import { ERC20BridgeSource, ExchangeProxyOverhead, FeeEstimate, FeeSchedule } from '../../types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat

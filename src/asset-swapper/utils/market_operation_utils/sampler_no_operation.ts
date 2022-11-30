@@ -1,6 +1,7 @@
 import { BigNumber, logUtils, NULL_BYTES } from '@0x/utils';
 
-import { ERC20BridgeSource, FillData, SourceQuoteOperation } from './types';
+import { ERC20BridgeSource, FillData } from '../../types';
+import { SourceQuoteOperation } from './types';
 
 interface SamplerNoOperationCall {
     callback: () => BigNumber[];

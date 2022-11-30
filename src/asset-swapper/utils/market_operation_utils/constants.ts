@@ -16,12 +16,7 @@ import {
     CurveFunctionSelectors,
     CurveInfo,
     DODOFillData,
-    ERC20BridgeSource,
-    FeeSchedule,
-    FillData,
     FinalUniswapV3FillData,
-    GasSchedule,
-    GetMarketOrdersOpts,
     isFinalUniswapV3FillData,
     LidoFillData,
     LidoInfo,
@@ -34,6 +29,8 @@ import {
     UniswapV3FillData,
     WOOFiFillData,
 } from './types';
+
+import { ERC20BridgeSource, FeeSchedule, FillData, GasSchedule, GetMarketOrdersOpts } from '../../types';
 
 export const ONE_ETHER = new BigNumber(1e18);
 export const POSITIVE_INF = new BigNumber('Infinity');

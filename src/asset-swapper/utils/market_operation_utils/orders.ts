@@ -2,7 +2,20 @@ import { BridgeProtocol, encodeBridgeSourceId, FillQuoteTransformerOrderType } f
 import { AbiEncoder, BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
-import { AssetSwapperContractAddresses, MarketOperation } from '../../types';
+import {
+    AssetSwapperContractAddresses,
+    MarketOperation,
+    ERC20BridgeSource,
+    Fill,
+    FillData,
+    NativeFillData,
+    NativeLimitOrderFillData,
+    NativeOtcOrderFillData,
+    NativeRfqOrderFillData,
+    OptimizedMarketBridgeOrder,
+    OptimizedMarketOrder,
+    OptimizedMarketOrderBase,
+} from '../../types';
 
 import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
@@ -16,9 +29,6 @@ import {
     CurveFillData,
     DexSample,
     DODOFillData,
-    ERC20BridgeSource,
-    Fill,
-    FillData,
     FinalUniswapV3FillData,
     GenericRouterFillData,
     GMXFillData,
@@ -27,13 +37,6 @@ import {
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
-    NativeFillData,
-    NativeLimitOrderFillData,
-    NativeOtcOrderFillData,
-    NativeRfqOrderFillData,
-    OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    OptimizedMarketOrderBase,
     PlatypusFillData,
     ShellFillData,
     SynthetixFillData,

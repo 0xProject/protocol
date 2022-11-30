@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { ERC20BridgeSource } from './types';
+import { ERC20BridgeSource } from '../../types';
 
 export class SourceFilters {
     // All valid sources.

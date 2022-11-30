@@ -1,7 +1,14 @@
 import { BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
-import { MarketOperation } from '../../types';
+import {
+    MarketOperation,
+    NativeFillData,
+    OptimizedMarketOrder,
+    ERC20BridgeSource,
+    ExchangeProxyOverhead,
+    Fill,
+} from '../../types';
 
 import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
@@ -13,14 +20,7 @@ import {
     getMakerTakerTokens,
 } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
-import {
-    ERC20BridgeSource,
-    ExchangeProxyOverhead,
-    Fill,
-    MultiHopFillData,
-    NativeFillData,
-    OptimizedMarketOrder,
-} from './types';
+import { MultiHopFillData } from './types';
 
 export interface PathSize {
     input: BigNumber;

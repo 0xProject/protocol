@@ -2,17 +2,16 @@ import { FillQuoteTransformerOrderType, RfqOrderFields, Signature } from '@0x/pr
 import { BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../types';
-
 import {
-    DexSample,
+    MarketOperation,
+    NativeOrderWithFillableAmounts,
     ERC20BridgeSource,
     Fill,
     FillData,
-    MultiHopFillData,
     NativeFillData,
-    RawQuotes,
-} from './market_operation_utils/types';
+} from '../types';
+
+import { DexSample, MultiHopFillData, RawQuotes } from './market_operation_utils/types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from './quote_requestor';
 
 export interface QuoteReportEntryBase {

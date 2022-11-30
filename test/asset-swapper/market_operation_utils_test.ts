@@ -21,7 +21,13 @@ import {
     SignedNativeOrder,
     TokenAdjacencyGraph,
 } from '../../src/asset-swapper';
-import { Integrator, SignedLimitOrder } from '../../src/asset-swapper/types';
+import {
+    Integrator,
+    SignedLimitOrder,
+    ERC20BridgeSource,
+    FillData,
+    GetMarketOrdersOpts,
+} from '../../src/asset-swapper/types';
 import { MarketOperationUtils } from '../../src/asset-swapper/utils/market_operation_utils/';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -35,10 +41,7 @@ import { BATCH_SOURCE_FILTERS } from '../../src/asset-swapper/utils/market_opera
 import {
     AggregationError,
     DexSample,
-    ERC20BridgeSource,
-    FillData,
     GenerateOptimizedOrdersOpts,
-    GetMarketOrdersOpts,
     MarketSideLiquidity,
     OptimizerResultWithReport,
 } from '../../src/asset-swapper/utils/market_operation_utils/types';

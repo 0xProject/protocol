@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 
 import { ERC20BridgeSamplerContract } from '../../../wrappers';
 import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
-import { SamplerCallResult, SignedNativeOrder } from '../../types';
+import { SamplerCallResult, SignedNativeOrder, ERC20BridgeSource, FeeSchedule } from '../../types';
 import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { AaveV2ReservesCache } from './aave_reserves_cache';
@@ -76,8 +76,6 @@ import {
     CurveInfo,
     DexSample,
     DODOFillData,
-    ERC20BridgeSource,
-    FeeSchedule,
     GenericRouterFillData,
     GMXFillData,
     HopInfo,

@@ -2,9 +2,8 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
-import { MarketOperation } from '../types';
+import { MarketOperation, GasSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from '../types';
 
-import { GasSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from './market_operation_utils/types';
 import { getNativeAdjustedTakerFeeAmount } from './utils';
 
 const { PROTOCOL_FEE_MULTIPLIER, ZERO_AMOUNT } = constants;

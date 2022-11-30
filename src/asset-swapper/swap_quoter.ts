@@ -29,14 +29,8 @@ import { BancorService } from './utils/market_operation_utils/bancor_service';
 import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
-import {
-    ERC20BridgeSource,
-    FillData,
-    GasSchedule,
-    GetMarketOrdersOpts,
-    OptimizedMarketOrder,
-    OptimizerResultWithReport,
-} from './utils/market_operation_utils/types';
+import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
+import { ERC20BridgeSource, FillData, GasSchedule, GetMarketOrdersOpts, OptimizedMarketOrder } from './types';
 import { ProtocolFeeUtils } from './utils/protocol_fee_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';

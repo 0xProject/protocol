@@ -34,16 +34,15 @@ import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,
 } from '../utils/market_operation_utils/constants';
+import { CurveFillData, FinalUniswapV3FillData, UniswapV2FillData } from '../utils/market_operation_utils/types';
+
 import {
-    CurveFillData,
     ERC20BridgeSource,
-    FinalUniswapV3FillData,
     NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
-    UniswapV2FillData,
-} from '../utils/market_operation_utils/types';
+} from '../types';
 
 import {
     multiplexOtcOrder,

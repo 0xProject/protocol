@@ -3,14 +3,14 @@ import { FillQuoteTransformerOrderType, SignatureType } from '@0x/protocol-utils
 import { BigNumber, hexUtils, NULL_BYTES } from '@0x/utils';
 import * as _ from 'lodash';
 
-import { MarketOperation } from '../../src/asset-swapper/types';
 import {
+    MarketOperation,
     ERC20BridgeSource,
     Fill,
     NativeLimitOrderFillData,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
-} from '../../src/asset-swapper/utils/market_operation_utils/types';
+} from '../../src/asset-swapper/types';
 import {
     fillQuoteOrders,
     QuoteFillOrderCall,

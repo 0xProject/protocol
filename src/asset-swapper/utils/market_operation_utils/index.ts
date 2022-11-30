@@ -11,6 +11,8 @@ import {
     MarketOperation,
     NativeOrderWithFillableAmounts,
     SignedNativeOrder,
+    ERC20BridgeSource,
+    GetMarketOrdersOpts,
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
@@ -49,9 +51,7 @@ import { SourceFilters } from './source_filters';
 import {
     AggregationError,
     DexSample,
-    ERC20BridgeSource,
     GenerateOptimizedOrdersOpts,
-    GetMarketOrdersOpts,
     MarketSideLiquidity,
     OptimizerResult,
     OptimizerResultWithReport,

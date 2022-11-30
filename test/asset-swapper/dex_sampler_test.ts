@@ -3,10 +3,9 @@ import { constants, expect, getRandomFloat, getRandomInteger, randomAddress } fr
 import { FillQuoteTransformerOrderType, LimitOrderFields, SignatureType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils, NULL_ADDRESS } from '@0x/utils';
 import * as _ from 'lodash';
-import { SignedLimitOrder } from '../../src/asset-swapper/types';
+import { SignedLimitOrder, ERC20BridgeSource } from '../../src/asset-swapper/types';
 
 import { DexOrderSampler, getSampleAmounts } from '../../src/asset-swapper/utils/market_operation_utils/sampler';
-import { ERC20BridgeSource } from '../../src/asset-swapper/utils/market_operation_utils/types';
 import { TokenAdjacencyGraphBuilder } from '../../src/asset-swapper/utils/token_adjacency_graph';
 
 import { MockSamplerContract } from './utils/mock_sampler_contract';

@@ -1,18 +1,21 @@
 import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 
-import { ExchangeProxyContractOpts, MarketBuySwapQuote, MarketOperation, SwapQuote } from '../types';
 import {
-    createBridgeDataForBridgeOrder,
-    getErc20BridgeSourceToBridgeSource,
-} from '../utils/market_operation_utils/orders';
-import {
+    ExchangeProxyContractOpts,
+    MarketBuySwapQuote,
+    MarketOperation,
+    SwapQuote,
     ERC20BridgeSource,
     OptimizedMarketBridgeOrder,
     OptimizedMarketOrder,
     OptimizedOtcOrder,
     OptimizedRfqOrder,
     OptimizedLimitOrder,
-} from '../utils/market_operation_utils/types';
+} from '../types';
+import {
+    createBridgeDataForBridgeOrder,
+    getErc20BridgeSourceToBridgeSource,
+} from '../utils/market_operation_utils/orders';
 
 const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,

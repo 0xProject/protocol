@@ -59,7 +59,8 @@ import {
     WAULTSWAP_ROUTER_BY_CHAIN_ID,
     YOSHI_ROUTER_BY_CHAIN_ID,
 } from './constants';
-import { CurveInfo, ERC20BridgeSource, PlatypusInfo } from './types';
+import { CurveInfo, PlatypusInfo } from './types';
+import { ERC20BridgeSource } from '../../types';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isValidAddress(address: string | String): address is string {

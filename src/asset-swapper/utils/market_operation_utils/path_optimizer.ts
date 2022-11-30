@@ -8,12 +8,20 @@ import { performance } from 'perf_hooks';
 
 import { SAMPLER_METRICS } from '../../../utils/sampler_metrics';
 import { DEFAULT_WARNING_LOGGER } from '../../constants';
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
+import {
+    MarketOperation,
+    NativeOrderWithFillableAmounts,
+    ERC20BridgeSource,
+    FeeSchedule,
+    Fill,
+    FillAdjustor,
+    FillData,
+} from '../../types';
 
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill, twoHopSampleToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
-import { DexSample, ERC20BridgeSource, FeeSchedule, Fill, FillAdjustor, FillData, MultiHopFillData } from './types';
+import { DexSample, MultiHopFillData } from './types';
 
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;

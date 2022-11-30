@@ -1,10 +1,17 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, hexUtils } from '@0x/utils';
 
-import { MarketOperation, NativeOrderWithFillableAmounts } from '../../types';
+import {
+    MarketOperation,
+    NativeOrderWithFillableAmounts,
+    ERC20BridgeSource,
+    FeeEstimate,
+    FeeSchedule,
+    Fill,
+} from '../../types';
 
 import { DEFAULT_FEE_ESTIMATE, POSITIVE_INF, SOURCE_FLAGS } from './constants';
-import { DexSample, ERC20BridgeSource, FeeEstimate, FeeSchedule, Fill, MultiHopFillData } from './types';
+import { DexSample, MultiHopFillData } from './types';
 
 function toNativeSourceFlagKey(type: FillQuoteTransformerOrderType): 'LimitOrder' | 'RfqOrder' | 'OtcOrder' {
     switch (type) {
