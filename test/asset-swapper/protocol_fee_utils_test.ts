@@ -3,7 +3,7 @@ import 'mocha';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { ProtocolFeeUtils } from '../../src/asset-swapper';
+import { GasPriceUtils } from '../../src/asset-swapper';
 
 import { chaiSetup } from './utils/chai_setup';
 chaiSetup.configure();
@@ -26,7 +26,7 @@ const server = setupServer(
     }),
 );
 
-describe('ProtocolFeeUtils', () => {
+describe('GasPriceUtils', () => {
     describe('getGasPriceEstimationOrThrowAsync', () => {
         beforeEach(() => {
             server.listen();
@@ -37,9 +37,9 @@ describe('ProtocolFeeUtils', () => {
         });
 
         it('parses fast gas price response correctly', async () => {
-            const utils = ProtocolFeeUtils.getInstance(420000, 'https://mock-0x-gas-api.org/median');
+            const utils = GasPriceUtils.getInstance(420000, 'https://mock-0x-gas-api.org/median');
             const gasPrice = await utils.getGasPriceEstimationOrThrowAsync();
-            expect(gasPrice.toNumber()).to.eq(18848500000);
+            expect(gasPrice.fast).to.eq(18848500000);
         });
     });
 });

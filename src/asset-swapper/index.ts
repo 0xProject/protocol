@@ -65,7 +65,7 @@ export {
 
 export { TokenAdjacencyGraph } from './utils/token_adjacency_graph';
 export { IdentityFillAdjustor } from './utils/market_operation_utils/identity_fill_adjustor';
-export { ProtocolFeeUtils } from './utils/protocol_fee_utils';
+export { GasPriceUtils } from './utils/gas_price_utils';
 export {
     jsonifyFillData,
     QuoteReport,
