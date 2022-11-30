@@ -335,6 +335,8 @@ export class SwapHandlers {
                         field: params.sellAmount ? 'sellAmount' : 'buyAmount',
                         code: ValidationErrorCodes.ValueOutOfRange,
                         reason: SwapQuoterError.InsufficientAssetLiquidity,
+                        description:
+                            'We are not able to fulfill an order for this token pair at the requested amount due to a lack of liquidity',
                     },
                 ]);
             }

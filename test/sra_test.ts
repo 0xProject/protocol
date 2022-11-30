@@ -307,13 +307,13 @@ describe(SUITE_NAME, () => {
                 reason: 'Validation Failed',
                 validationErrors: [
                     {
-                        field: 'baseToken',
                         code: 1000,
+                        field: 'baseToken',
                         reason: "should have required property 'baseToken'",
                     },
                     {
-                        field: 'quoteToken',
                         code: 1001,
+                        field: 'quoteToken',
                         reason: 'should match pattern "^0x[0-9a-fA-F]{40}$"',
                     },
                 ],

@@ -221,6 +221,8 @@ describe(SUITE_NAME, () => {
                     validationErrors: [
                         {
                             code: ValidationErrorCodes.ValueOutOfRange,
+                            description:
+                                'We are not able to fulfill an order for this token pair at the requested amount due to a lack of liquidity',
                             field: 'buyAmount',
                             reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
