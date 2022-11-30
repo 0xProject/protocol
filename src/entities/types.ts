@@ -142,6 +142,8 @@ export interface StoredFee {
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     details?: any;
+    breakdown?: any;
+    conversionRates?: any;
 }
 
 export interface TransactionEntityOpts {

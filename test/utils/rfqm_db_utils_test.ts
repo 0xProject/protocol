@@ -51,6 +51,8 @@ describe('RFQM DB utils', () => {
             expect(storedFee.token).toEqual(fee.token);
             expect(storedFee.amount).toEqual(fee.amount.toString());
             expect(storedFee.details).toEqual(undefined);
+            expect(storedFee.breakdown).toEqual(undefined);
+            expect(storedFee.conversionRates).toEqual(undefined);
         });
 
         it('should convert Fee with gasOnly details correctly', () => {
@@ -93,6 +95,18 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.feeModelVersion).toEqual(fee.details.feeModelVersion);
             expect(storedFee.details.gasFeeAmount).toEqual(fee.details.gasFeeAmount.toString());
             expect(storedFee.details.gasPrice).toEqual(fee.details.gasPrice.toString());
+
+            expect(storedFee.breakdown.gas.amount).toEqual(fee.breakdown.gas?.amount.toString());
+            expect(storedFee.breakdown.gas.details.gasPrice).toEqual(fee.breakdown.gas?.details.gasPrice.toString());
+            expect(storedFee.breakdown.gas.details.estimatedGas).toEqual(
+                fee.breakdown.gas?.details.estimatedGas.toString(),
+            );
+            expect(storedFee.breakdown.zeroEx).toEqual(undefined);
+
+            expect(storedFee.conversionRates.nativeTokenBaseUnitPriceUsd).toEqual(undefined);
+            expect(storedFee.conversionRates.feeTokenBaseUnitPriceUsd).toEqual(undefined);
+            expect(storedFee.conversionRates.takerTokenBaseUnitPriceUsd).toEqual(undefined);
+            expect(storedFee.conversionRates.makerTokenBaseUnitPriceUsd).toEqual(undefined);
         });
 
         it('should convert Fee with default details correctly', () => {
@@ -150,15 +164,31 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.tradeSizeBps).toEqual(fee.details.tradeSizeBps);
             expect(storedFee.details.zeroExFeeAmount).toEqual(fee.details.zeroExFeeAmount.toString());
             expect(storedFee.details.feeTokenBaseUnitPriceUsd).toEqual(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                fee.details.feeTokenBaseUnitPriceUsd!.toString(),
+                fee.details.feeTokenBaseUnitPriceUsd?.toString(),
             );
             expect(storedFee.details.takerTokenBaseUnitPriceUsd).toEqual(undefined);
             expect(storedFee.details.makerTokenBaseUnitPriceUsd).toEqual(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                fee.details.makerTokenBaseUnitPriceUsd!.toString(),
+                fee.details.makerTokenBaseUnitPriceUsd?.toString(),
+            );
+
+            expect(storedFee.breakdown.gas.amount).toEqual(fee.breakdown.gas?.amount.toString());
+            expect(storedFee.breakdown.gas.details.gasPrice).toEqual(fee.breakdown.gas?.details.gasPrice.toString());
+            expect(storedFee.breakdown.gas.details.estimatedGas).toEqual(
+                fee.breakdown.gas?.details.estimatedGas.toString(),
+            );
+            expect(storedFee.breakdown.zeroEx.amount).toEqual(fee.breakdown.zeroEx?.amount.toString());
+            expect(storedFee.breakdown.zeroEx.details.kind).toEqual(fee.breakdown.zeroEx?.details.kind);
+            expect(storedFee.breakdown.zeroEx.details.tradeSizeBps).toEqual(4);
+
+            expect(storedFee.conversionRates.nativeTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.nativeTokenBaseUnitPriceUsd?.toString(),
+            );
+            expect(storedFee.conversionRates.feeTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.feeTokenBaseUnitPriceUsd?.toString(),
+            );
+            expect(storedFee.conversionRates.takerTokenBaseUnitPriceUsd).toEqual(undefined);
+            expect(storedFee.conversionRates.makerTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.makerTokenBaseUnitPriceUsd?.toString(),
             );
         });
 
@@ -220,16 +250,33 @@ describe('RFQM DB utils', () => {
             expect(storedFee.details.marginRakeRatio).toEqual(fee.details.marginRakeRatio);
             expect(storedFee.details.zeroExFeeAmount).toEqual(fee.details.zeroExFeeAmount.toString());
             expect(storedFee.details.feeTokenBaseUnitPriceUsd).toEqual(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                fee.details.feeTokenBaseUnitPriceUsd!.toString(),
+                fee.details.feeTokenBaseUnitPriceUsd?.toString(),
             );
             expect(storedFee.details.takerTokenBaseUnitPriceUsd).toEqual(
-                // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                fee.details.takerTokenBaseUnitPriceUsd!.toString(),
+                fee.details.takerTokenBaseUnitPriceUsd?.toString(),
             );
             expect(storedFee.details.makerTokenBaseUnitPriceUsd).toEqual(undefined);
+
+            expect(storedFee.breakdown.gas.amount).toEqual(fee.breakdown.gas?.amount.toString());
+            expect(storedFee.breakdown.gas.details.gasPrice).toEqual(fee.breakdown.gas?.details.gasPrice.toString());
+            expect(storedFee.breakdown.gas.details.estimatedGas).toEqual(
+                fee.breakdown.gas?.details.estimatedGas.toString(),
+            );
+            expect(storedFee.breakdown.zeroEx.amount).toEqual(fee.breakdown.zeroEx?.amount.toString());
+            expect(storedFee.breakdown.zeroEx.details.kind).toEqual(fee.breakdown.zeroEx?.details.kind);
+            expect(storedFee.breakdown.zeroEx.details.priceImprovement).toEqual('4570');
+            expect(storedFee.breakdown.zeroEx.details.rakeRatio).toEqual(0.35);
+
+            expect(storedFee.conversionRates.nativeTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.nativeTokenBaseUnitPriceUsd?.toString(),
+            );
+            expect(storedFee.conversionRates.feeTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.feeTokenBaseUnitPriceUsd?.toString(),
+            );
+            expect(storedFee.conversionRates.takerTokenBaseUnitPriceUsd).toEqual(
+                fee.conversionRates.takerTokenBaseUnitPriceUsd?.toString(),
+            );
+            expect(storedFee.conversionRates.makerTokenBaseUnitPriceUsd).toEqual(undefined);
         });
     });
 });
