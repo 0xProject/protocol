@@ -62,7 +62,6 @@ export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase
     isRFQ: true;
     makerUri?: string;
     comparisonPrice?: number;
-    orderHash?: string;
 }
 
 export declare type ExtendedQuoteReportEntry =
@@ -112,19 +111,37 @@ interface ExtendedQuoteReportForRFQMLogOptions {
     ammQuoteUniqueId?: string;
     isLiquidityAvailable?: boolean;
 }
-
-interface ExtendedQuoteReportForRfqtLogOptions {
-    isFirmQuote: boolean;
-    buyAmount?: BigNumber;
-    sellAmount?: BigNumber;
+/**
+ * RFQt V2 Fee Event Interfaces
+ */
+interface RfqtV2FeeEventLogOptions {
+    requestedBuyAmount?: BigNumber;
+    requestedSellAmount?: BigNumber;
+    requestedTakerAddress: string;
     buyTokenAddress: string;
     sellTokenAddress: string;
-    integratorId?: string;
-    taker?: string;
+    integratorId: string;
+    blockNumber?: number;
     quotes: RfqtV2Quotes;
     fee: StoredFee;
-    ammQuoteUniqueId?: string;
-    isLiquidityAvailable?: boolean;
+}
+
+interface RfqtV2FeeEvent {
+    createdAt: number;
+    orderHash: string;
+    requestedBuyAmount?: BigNumber;
+    requestedSellAmount?: BigNumber;
+    requestedTakerAddress: string;
+    fillableBuyAmount: BigNumber;
+    fillableSellAmount: BigNumber;
+    buyTokenAddress: string;
+    sellTokenAddress: string;
+    fee: StoredFee;
+    integratorId: string;
+    makerId?: string;
+    makerUri?: string;
+    expiry: BigNumber;
+    blockNumber?: number;
 }
 
 export const quoteReportUtils = {
@@ -233,67 +250,40 @@ export const quoteReportUtils = {
         }
         return null;
     },
-    async publishRfqtQuoteReport(
-        logOpts: ExtendedQuoteReportForRfqtLogOptions,
-        kafkaProducer: Producer,
-        quoteReportTopic?: string,
-        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'taker',
-    ) {
+    async publishRfqtV2FeeEvent(logOpts: RfqtV2FeeEventLogOptions, kafkaProducer: Producer, quoteReportTopic?: string) {
         if (kafkaProducer && quoteReportTopic) {
-            const quoteId = numberUtils.randomHexNumberOfLength(10);
-            logger.info(`Generating and pushing RFQt Quote Report for: ${quoteId}`);
+            const createdAt = Date.now();
+            logger.info(`Generating and pushing RFQt V2 Quote Report`);
 
-            const sourcesConsidered = logOpts.quotes.map(
-                (quote, idx): ExtendedQuoteReportEntryWithIntermediateQuote => {
-                    return {
-                        ...jsonifyFillData({
-                            quoteEntryIndex: idx,
-                            isDelivered: false,
-                            liquiditySource: ERC20BridgeSource.Native,
-                            makerAmount: quote.order.makerAmount,
-                            takerAmount: quote.order.takerAmount,
-                            fillableTakerAmount: quote.fillableTakerAmount,
-                            isRFQ: true,
-                            makerUri: quote.makerUri,
-                            fillData: quote.order,
-                            orderHash: quote.order.getHash(),
-                        }),
-                        isIntermediate: false,
-                    };
-                },
-            );
+            logOpts.quotes.map((quote) => {
+                const quoteReport: RfqtV2FeeEvent = {
+                    createdAt,
+                    orderHash: quote.order.getHash(),
+                    requestedBuyAmount: logOpts.requestedBuyAmount,
+                    requestedSellAmount: logOpts.requestedSellAmount,
+                    requestedTakerAddress: logOpts.requestedTakerAddress,
+                    fillableBuyAmount: quote.fillableMakerAmount,
+                    fillableSellAmount: quote.fillableTakerAmount,
+                    buyTokenAddress: logOpts.buyTokenAddress,
+                    sellTokenAddress: logOpts.sellTokenAddress,
+                    fee: logOpts.fee,
+                    integratorId: logOpts.integratorId,
+                    makerId: quote.makerId,
+                    makerUri: quote.makerUri,
+                    expiry: quote.order.expiry,
+                    blockNumber: logOpts.blockNumber,
+                };
 
-            const extendedQuoteReport: ExtendedQuoteReportWithFee = {
-                quoteId,
-                taker: logOpts.taker,
-                timestamp: Date.now(),
-                firmQuoteReport: logOpts.isFirmQuote,
-                submissionBy: extendedQuoteReportSubmissionBy,
-                buyAmount: logOpts.buyAmount ? logOpts.buyAmount.toString() : undefined,
-                sellAmount: logOpts.sellAmount ? logOpts.sellAmount.toString() : undefined,
-                buyTokenAddress: logOpts.buyTokenAddress,
-                sellTokenAddress: logOpts.sellTokenAddress,
-                integratorId: logOpts.integratorId,
-                slippageBips: undefined,
-                sourcesConsidered,
-                sourcesDelivered: undefined,
-                fee: logOpts.fee,
-                ammQuoteUniqueId: logOpts.ammQuoteUniqueId,
-                isLiquidityAvailable: logOpts.isLiquidityAvailable,
-            };
-
-            kafkaProducer.send({
-                topic: quoteReportTopic,
-                messages: [
-                    {
-                        value: JSON.stringify(extendedQuoteReport),
-                    },
-                ],
+                kafkaProducer.send({
+                    topic: quoteReportTopic,
+                    messages: [
+                        {
+                            value: JSON.stringify(quoteReport),
+                        },
+                    ],
+                });
             });
-
-            return quoteId;
         }
-        return null;
     },
 };
 

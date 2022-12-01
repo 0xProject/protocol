@@ -140,10 +140,11 @@ export interface StoredFee {
     amount: string;
     type: 'fixed' | 'bps';
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     details?: any;
     breakdown?: any;
     conversionRates?: any;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
 export interface TransactionEntityOpts {

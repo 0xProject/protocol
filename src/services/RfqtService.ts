@@ -18,7 +18,7 @@ import { logger } from '../logger';
 import { Fee } from '../quote-server/types';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
-import { ExtendedQuoteReport, quoteReportUtils } from '../utils/quote_report_utils';
+import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { feeToStoredFee } from '../utils/rfqm_db_utils';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
@@ -266,11 +266,7 @@ export class RfqtService {
      *  2. Valid prices are then sent to the market makers' `/sign`
      *     endpoint to get a signed quote
      */
-    public async getV2QuotesAsync(
-        quoteContext: FirmQuoteContext,
-        now: Date = new Date(),
-        extendedQuoteReportSubmissionBy: ExtendedQuoteReport['submissionBy'] = 'taker',
-    ): Promise<RfqtV2Quotes> {
+    public async getV2QuotesAsync(quoteContext: FirmQuoteContext, now: Date = new Date()): Promise<RfqtV2Quotes> {
         const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
         const storedFee: StoredFee = feeToStoredFee(fee);
 
@@ -343,39 +339,36 @@ export class RfqtService {
                 signature: signature!, // `null` signatures already filtered out
             }));
 
-        // Write to Quote Report
+        // Write to Fee Event Report
         if (this._kafkaProducer) {
             try {
-                await quoteReportUtils.publishRfqtQuoteReport(
+                await quoteReportUtils.publishRfqtV2FeeEvent(
                     {
-                        isFirmQuote: quoteContext.isFirm,
-                        buyAmount: quoteContext.makerAmount,
-                        sellAmount: quoteContext.takerAmount,
-                        buyTokenAddress: quoteContext.originalMakerToken,
+                        requestedBuyAmount: quoteContext.makerAmount,
+                        requestedSellAmount: quoteContext.takerAmount,
+                        requestedTakerAddress: quoteContext.takerAddress,
+                        buyTokenAddress: quoteContext.makerToken,
                         sellTokenAddress: quoteContext.takerToken,
                         integratorId: quoteContext.integrator.integratorId,
-                        taker: quoteContext.takerAddress,
                         quotes,
                         fee: storedFee,
-                        isLiquidityAvailable: quotes.length !== 0,
                     },
                     this._kafkaProducer,
                     this._quoteReportTopic,
-                    extendedQuoteReportSubmissionBy,
                 );
             } catch (e) {
                 logger.error(
                     {
                         chainId: this._chainId,
-                        buyAmount: quoteContext.makerAmount,
-                        sellAmount: quoteContext.takerAmount,
-                        buyTokenAddress: quoteContext.originalMakerToken,
+                        requestedBuyAmount: quoteContext.makerAmount,
+                        requestedSellAmount: quoteContext.takerAmount,
+                        requestedTakerAddress: quoteContext.takerAddress,
+                        buyTokenAddress: quoteContext.makerToken,
                         sellTokenAddress: quoteContext.takerToken,
                         integratorId: quoteContext.integrator.integratorId,
-                        taker: quoteContext.takerAddress,
                         errorMessage: e.message,
                     },
-                    'Failed to publish RFQt quote to Quote Report',
+                    'Failed to publish RFQt quote to Fee Event Report',
                 );
             }
         }
