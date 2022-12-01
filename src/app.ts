@@ -76,7 +76,7 @@ let contractAddresses_: AssetSwapperContractAddresses | undefined;
  * @param provider provider to the network, used for ganache deployment
  * @param chainId the network chain id
  */
-export async function getContractAddressesForNetworkOrThrowAsync(
+async function getContractAddressesForNetworkOrThrowAsync(
     provider: SupportedProvider,
     chainId: ChainId,
 ): Promise<AssetSwapperContractAddresses> {
@@ -231,7 +231,7 @@ export async function getAppAsync(
 /**
  * Instantiates a MetaTransactionService
  */
-export function createMetaTxnServiceFromSwapService(
+function createMetaTxnServiceFromSwapService(
     swapService: SwapService,
     contractAddresses: ContractAddresses,
 ): MetaTransactionService {

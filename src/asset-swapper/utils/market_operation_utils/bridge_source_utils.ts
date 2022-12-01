@@ -73,7 +73,7 @@ export function getDodoV2Offsets(): BigNumber[] {
         .map((_v, i) => new BigNumber(i));
 }
 
-export function getShellsForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+function getShellsForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
     }
@@ -82,7 +82,7 @@ export function getShellsForPair(chainId: ChainId, takerToken: string, makerToke
         .map((i) => i.poolAddress);
 }
 
-export function getComponentForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+function getComponentForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet) {
         return [];
     }
@@ -91,7 +91,7 @@ export function getComponentForPair(chainId: ChainId, takerToken: string, makerT
         .map((i) => i.poolAddress);
 }
 
-export function getMStableForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
+function getMStableForPair(chainId: ChainId, takerToken: string, makerToken: string): string[] {
     if (chainId !== ChainId.Mainnet && chainId !== ChainId.Polygon) {
         return [];
     }
@@ -100,7 +100,7 @@ export function getMStableForPair(chainId: ChainId, takerToken: string, makerTok
         .map((i) => i.poolAddress);
 }
 
-export function getCurveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getCurveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     switch (chainId) {
         case ChainId.Mainnet:
             return Object.values(CURVE_MAINNET_INFOS).filter((c) =>
@@ -152,7 +152,7 @@ export function getCurveInfosForPair(chainId: ChainId, takerToken: string, maker
     }
 }
 
-export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     const filterTokenInfos = function (curveV2ChainInfos: { [name: string]: CurveInfo }): CurveInfo[] {
         return Object.values(curveV2ChainInfos).filter((c) =>
             [makerToken, takerToken].every(
@@ -179,7 +179,7 @@ export function getCurveV2InfosForPair(chainId: ChainId, takerToken: string, mak
     }
 }
 
-export function getNerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getNerveInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
     }
@@ -192,7 +192,7 @@ export function getNerveInfosForPair(chainId: ChainId, takerToken: string, maker
     );
 }
 
-export function getSynapseInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getSynapseInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     switch (chainId) {
         case ChainId.Mainnet:
             return Object.values(SYNAPSE_MAINNET_INFOS).filter((c) =>
@@ -262,7 +262,7 @@ export function getSynapseInfosForPair(chainId: ChainId, takerToken: string, mak
     }
 }
 
-export function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId === ChainId.BSC) {
         return Object.values(FIREBIRDONESWAP_BSC_INFOS).filter((c) =>
             [makerToken, takerToken].every(
@@ -286,7 +286,7 @@ export function getFirebirdOneSwapInfosForPair(chainId: ChainId, takerToken: str
     }
 }
 
-export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
     }
@@ -299,7 +299,7 @@ export function getBeltInfosForPair(chainId: ChainId, takerToken: string, makerT
     );
 }
 
-export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
     }
@@ -312,7 +312,7 @@ export function getEllipsisInfosForPair(chainId: ChainId, takerToken: string, ma
     );
 }
 
-export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getSaddleInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     const chainToInfosMap = {
         [ChainId.Mainnet]: SADDLE_MAINNET_INFOS,
         [ChainId.Optimism]: SADDLE_OPTIMISM_INFOS,
@@ -329,7 +329,7 @@ export function getSaddleInfosForPair(chainId: ChainId, takerToken: string, make
     );
 }
 
-export function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Polygon) {
         return [];
     }
@@ -342,7 +342,7 @@ export function getIronSwapInfosForPair(chainId: ChainId, takerToken: string, ma
     );
 }
 
-export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.BSC) {
         return [];
     }
@@ -354,7 +354,7 @@ export function getAcryptosInfosForPair(chainId: ChainId, takerToken: string, ma
         ),
     );
 }
-export function getMobiusMoneyInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
+function getMobiusMoneyInfoForPair(chainId: ChainId, takerToken: string, makerToken: string): CurveInfo[] {
     if (chainId !== ChainId.Celo) {
         return [];
     }
@@ -394,7 +394,7 @@ export function getShellLikeInfosForPair(
     }
 }
 
-export interface CurveDetailedInfo extends CurveInfo {
+interface CurveDetailedInfo extends CurveInfo {
     makerTokenIdx: number;
     takerTokenIdx: number;
 }

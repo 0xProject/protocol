@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/utils';
 
 import { ZERO_AMOUNT } from '../constants';
-export interface AaveInfo {
+interface AaveInfo {
     lendingPool: string;
     aToken: string;
     underlyingToken: string;

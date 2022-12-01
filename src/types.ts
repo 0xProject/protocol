@@ -1,5 +1,5 @@
 import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
-import { ExchangeProxyMetaTransaction, ZeroExTransaction } from '@0x/types';
+import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { ContractAddresses, ChainId } from '@0x/contract-addresses';
 import { Connection } from 'typeorm';
@@ -17,19 +17,6 @@ import {
     Signature,
     SupportedProvider,
 } from './asset-swapper';
-
-export enum OrderWatcherLifeCycleEvents {
-    Added,
-    Removed,
-    Updated,
-    PersistentUpdated,
-}
-
-export interface OrdersByLifecycleEvents {
-    added: SRAOrder[];
-    removed: SRAOrder[];
-    updated: SRAOrder[];
-}
 
 export interface PaginatedCollection<T> {
     total: number;
@@ -69,31 +56,20 @@ export interface UpdateOrdersChannelMessageWithChannel extends UpdateOrdersChann
     channel: MessageChannels;
 }
 
-export type OrdersChannelMessage = UpdateOrdersChannelMessage | UnknownOrdersChannelMessage;
 export enum OrdersChannelMessageTypes {
     Update = 'update',
     Unknown = 'unknown',
 }
-export interface UpdateOrdersChannelMessage {
+interface UpdateOrdersChannelMessage {
     type: OrdersChannelMessageTypes.Update;
     requestId: string;
     payload: SRAOrder[];
-}
-export interface UnknownOrdersChannelMessage {
-    type: OrdersChannelMessageTypes.Unknown;
-    requestId: string;
-    payload: undefined;
 }
 
 export enum WebsocketConnectionEventType {
     Close = 'close',
     Error = 'error',
     Message = 'message',
-}
-
-export enum WebsocketClientEventType {
-    Connect = 'connect',
-    ConnectFailed = 'connectFailed',
 }
 
 /**
@@ -115,13 +91,6 @@ export interface SRAOrderMetaData {
 export interface SRAOrder {
     order: SignedLimitOrder;
     metaData: SRAOrderMetaData;
-}
-
-export type OrdersResponse = PaginatedCollection<SRAOrder>;
-
-export interface OrderbookRequest {
-    baseToken: string;
-    quoteToken: string;
 }
 
 export interface OrderbookResponse {
@@ -146,24 +115,7 @@ export interface OrderConfigResponse {
     takerTokenFeeAmount: BigNumber;
 }
 
-export type FeeRecipientsResponse = PaginatedCollection<string>;
-
-export interface PagedRequestOpts {
-    page?: number;
-    perPage?: number;
-}
-
 /** END SRA TYPES */
-
-export interface ObjectMap<T> {
-    [key: string]: T;
-}
-
-export interface TokenMetadata {
-    symbol: string;
-    decimals: number;
-    tokenAddress: string;
-}
 
 export enum FeeParamTypes {
     POSITIVE_SLIPPAGE = 'POSITIVE_SLIPPAGE',
@@ -179,7 +131,7 @@ export interface AffiliateFeeAmounts {
 
 /** Begin /swap and /meta_transaction types */
 
-export interface QuoteBase {
+interface QuoteBase {
     chainId: ChainId;
     price: BigNumber;
     buyAmount: BigNumber;
@@ -204,7 +156,7 @@ export interface GetSwapQuoteResponseLiquiditySource {
     hops?: string[];
 }
 
-export interface BasePriceResponse extends QuoteBase {
+interface BasePriceResponse extends QuoteBase {
     sellTokenAddress: string;
     buyTokenAddress: string;
     value: BigNumber;
@@ -319,9 +271,6 @@ export interface MetaTransactionQuoteRequestParams extends SwapQuoteParamsBase {
     takerAddress: string;
 }
 
-// Interim types
-export type ZeroExTransactionWithoutDomain = Omit<ZeroExTransaction, 'domain'>;
-
 /**
  * Parameters for the Meta Transaction Service price and quote functions.
  */
@@ -344,12 +293,6 @@ export interface HttpServiceConfig extends BaseHttpConfig {
     kafkaConsumerGroupId?: string;
     rpcRequestTimeout: number;
     shouldCompressRequest: boolean;
-}
-
-export interface TokenMetadataOptionalSymbol {
-    symbol?: string;
-    decimals: number;
-    tokenAddress: string;
 }
 
 export enum OrderEventEndState {

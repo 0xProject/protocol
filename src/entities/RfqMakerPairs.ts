@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
-export type RfqMakerPairsOpts = Pick<RfqMakerPairs, 'makerId' | 'chainId' | 'pairs'> & Partial<RfqMakerPairs>;
+type RfqMakerPairsOpts = Pick<RfqMakerPairs, 'makerId' | 'chainId' | 'pairs'> & Partial<RfqMakerPairs>;
 
 /**
  * A representation of the pairs a market maker is active on for a given chain ID

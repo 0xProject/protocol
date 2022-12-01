@@ -18,7 +18,7 @@ export interface StoredFee {
  * @deprecated
  * Kept here to ensure existing migrations type check
  */
-export enum RfqmJobStatus {
+enum RfqmJobStatus {
     // Transaction has been enqueued and will be processed once a worker is available
     PendingEnqueued = 'pending_enqueued',
     // Transaction has passed initial validation. Last look will be executed and transaction will be submitted if last look is accepted.
@@ -63,7 +63,7 @@ export enum RfqmOrderTypes {
     V4Rfq = 'v4Rfq',
 }
 
-export interface V4RfqStoredOrder {
+interface V4RfqStoredOrder {
     type: RfqmOrderTypes.V4Rfq;
     order: V4StringRfqOrderFields;
 }
@@ -72,7 +72,7 @@ export interface V4RfqStoredOrder {
  * @deprecated
  * Kept here to ensure existing migrations type check
  */
-export interface V4RfqStoredOrder {
+interface V4RfqStoredOrder {
     type: RfqmOrderTypes.V4Rfq;
     order: V4StringRfqOrderFields;
 }
@@ -87,7 +87,7 @@ export type StoredOrder = V4RfqStoredOrder;
  * @deprecated
  * Kept here to ensure existing migrations type check
  */
-export interface V4StringRfqOrderFields {
+interface V4StringRfqOrderFields {
     txOrigin: string;
     maker: string;
     taker: string;
@@ -102,7 +102,7 @@ export interface V4StringRfqOrderFields {
     verifyingContract: string;
 }
 
-export type RfqmJobConstructorOpts = Pick<RfqmJobEntity, 'calldata' | 'chainId' | 'expiry' | 'makerUri' | 'orderHash'> &
+type RfqmJobConstructorOpts = Pick<RfqmJobEntity, 'calldata' | 'chainId' | 'expiry' | 'makerUri' | 'orderHash'> &
     Partial<RfqmJobEntity>;
 /**
  * @deprecated

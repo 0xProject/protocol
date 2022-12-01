@@ -99,10 +99,7 @@ import {
 /**
  * Source filters for `getTwoHopBuyQuotes()` and `getTwoHopSellQuotes()`.
  */
-export const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([
-    ERC20BridgeSource.MultiHop,
-    ERC20BridgeSource.Native,
-]);
+const TWO_HOP_SOURCE_FILTERS = SourceFilters.all().exclude([ERC20BridgeSource.MultiHop, ERC20BridgeSource.Native]);
 /**
  * Source filters for `getSellQuotes()` and `getBuyQuotes()`.
  */

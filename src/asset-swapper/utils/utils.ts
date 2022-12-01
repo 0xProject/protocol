@@ -23,7 +23,7 @@ export function getNativeAdjustedMakerFillAmount(order: CommonOrderFields, taker
  * @param order The order
  * @param makerFillAmount the amount of maker asset
  */
-export function getNativeAdjustedTakerFillAmount(order: CommonOrderFields, makerFillAmount: BigNumber): BigNumber {
+function getNativeAdjustedTakerFillAmount(order: CommonOrderFields, makerFillAmount: BigNumber): BigNumber {
     // Round up because exchange rate favors Maker
     const takerFillAmount = makerFillAmount
         .multipliedBy(order.takerAmount)

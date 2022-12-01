@@ -50,7 +50,6 @@ import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
 import {
     AggregationError,
-    DexSample,
     GenerateOptimizedOrdersOpts,
     MarketSideLiquidity,
     OptimizerResult,

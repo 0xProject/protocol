@@ -24,7 +24,7 @@ const RESERVES_GQL_QUERY = gql`
     }
 `;
 
-export interface AaveReserve {
+interface AaveReserve {
     id: string;
     underlyingAsset: string;
     aToken: {

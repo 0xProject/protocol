@@ -1,7 +1,7 @@
 import { TEN_MINUTES_MS } from '../constants';
 import { logger } from '../logger';
 
-export interface CachedResult<T> {
+interface CachedResult<T> {
     timestamp: number;
     result: T;
 }

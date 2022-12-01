@@ -7,9 +7,9 @@ import { ERC20BridgeSource, FillData } from '../../types';
 import { SourceQuoteOperation } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-export type Parameters<T> = T extends (...args: infer TArgs) => any ? TArgs : never;
+type Parameters<T> = T extends (...args: infer TArgs) => any ? TArgs : never;
 
-export interface SamplerContractCall<
+interface SamplerContractCall<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     TFunc extends (...args: any[]) => ContractFunctionObj<any>,
     TFillData extends FillData = FillData,

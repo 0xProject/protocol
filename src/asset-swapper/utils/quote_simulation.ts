@@ -60,7 +60,7 @@ const EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT = {
     gas: 0,
 };
 
-export interface QuoteFillInfo {
+interface QuoteFillInfo {
     orders: OptimizedMarketOrder[];
     fillAmount: BigNumber;
     gasPrice: BigNumber;
@@ -68,7 +68,7 @@ export interface QuoteFillInfo {
     opts: Partial<QuoteFillInfoOpts>;
 }
 
-export interface QuoteFillInfoOpts {
+interface QuoteFillInfoOpts {
     gasSchedule: GasSchedule;
     protocolFeeMultiplier: BigNumber;
     slippage: number;

@@ -1,12 +1,6 @@
 import { Producer } from 'kafkajs';
 
-import {
-    BigNumber,
-    ExtendedQuoteReport,
-    ExtendedQuoteReportSources,
-    jsonifyFillData,
-    SignedNativeOrder,
-} from '../asset-swapper';
+import { BigNumber, ExtendedQuoteReport, ExtendedQuoteReportSources, jsonifyFillData } from '../asset-swapper';
 import { KAFKA_TOPIC_QUOTE_REPORT } from '../config';
 import { logger } from '../logger';
 
@@ -34,11 +28,6 @@ interface ExtendedQuoteReportForGaslessSwapAmm extends QuoteReportLogOptionsBase
     quoteReportSources: ExtendedQuoteReportSources;
     submissionBy: 'gaslessSwapAmm';
     decodedUniqueId: string;
-}
-
-export interface WrappedSignedNativeOrderMM {
-    order: SignedNativeOrder;
-    makerUri: string;
 }
 
 type ExtendedQuoteReportLogOptions = ExtendedQuoteReportForTakerTxn | ExtendedQuoteReportForGaslessSwapAmm;

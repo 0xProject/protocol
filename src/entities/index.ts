@@ -10,5 +10,4 @@ export { RfqmQuoteEntity } from './RfqmQuoteEntity';
 export { RfqmWorkerHeartbeatEntity } from './RfqmWorkerHeartbeatEntity';
 export { RfqmTransactionSubmissionEntity } from './RfqmTransactionSubmissionEntity';
 export { SignedOrderV4Entity } from './SignedOrderV4Entity';
-export { TransactionEntityOpts } from './types';
 export { OrderWatcherSignedOrderEntity } from './OrderWatcherSignedOrderEntity';

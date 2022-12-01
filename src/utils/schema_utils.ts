@@ -35,8 +35,6 @@ interface ValidationErrorObject extends AJV.ErrorObject {
 function schemaValidationErrorToValidationErrorItem(
     schemaValidationErrorObject: ValidationErrorObject,
 ): ValidationErrorItem {
-    let field: string;
-    let code: ValidationErrorCodes;
     const description = schemaValidationErrorObject.description;
     const reason = schemaValidationErrorObject.message || '';
 

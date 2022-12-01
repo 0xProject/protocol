@@ -9,20 +9,9 @@ import { initDBConnectionAsync } from './db_connection';
 const apiRootDir = path.normalize(path.resolve(`${__dirname}/../../../`));
 const dockerComposeFilename = 'docker-compose-test.yml';
 
-export enum LogType {
+enum LogType {
     Console,
     File,
-}
-
-/**
- * The configuration object that provides information on how verbose the logs
- * should be and where they should be located.
- * @param apiLogType The location where the API logs should be logged.
- * @param dependencyLogType The location where the API's dependency logs should be logged.
- */
-export interface LoggingConfig {
-    apiLogType?: LogType;
-    dependencyLogType?: LogType;
 }
 
 let didTearDown = false;

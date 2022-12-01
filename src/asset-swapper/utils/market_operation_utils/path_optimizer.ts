@@ -43,7 +43,7 @@ function nativeOrderToNormalizedAmounts(
     return { input, output };
 }
 
-export interface RoutablePath {
+interface RoutablePath {
     pathId: string;
     samplesOrNativeOrders: DexSample[] | NativeOrderWithFillableAmounts[];
     serializedPath: SerializedPath;

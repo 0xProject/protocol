@@ -1,9 +1,7 @@
 import { BigNumber } from '@0x/utils';
-import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { RfqMakerAssetOfferings } from '../asset-swapper';
-import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../constants';
+import { ETH_DECIMALS } from '../constants';
 import { RfqmWorkerHeartbeatEntity } from '../entities';
 
 const SQS_QUEUE_SIZE_DEGRADED_THRESHOLD = 10; // More messages sitting in queue than this will cause a DEGRADED issue
@@ -18,17 +16,6 @@ const MS_IN_MINUTE = 60000;
 
 const BALANCE_DEGRADED_THRESHOLD_WEI = new BigNumber(BALANCE_DEGRADED_THRESHOLD).shiftedBy(ETH_DECIMALS);
 const BALANCE_FAILED_THRESHOLD_WEI = new BigNumber(BALANCE_FAILED_THRESHOLD).shiftedBy(ETH_DECIMALS);
-
-const RFQM_HEALTH_CHECK_ISSUE_GAUGE = new Gauge({
-    name: 'rfqm_health_check_issue_gauge',
-    labelNames: ['label' /* :HealthCheckLabel */],
-    help: 'Gauge indicating the current status for each label. Value corresponds to the `statusSeverity`',
-});
-
-const RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE = new Gauge({
-    name: 'rfqm_total_system_trade_capacity',
-    help: 'Total amount of ETH in the worker pool divided by the current expected gas of a trade',
-});
 
 export enum HealthCheckStatus {
     Operational = 'operational',
@@ -48,116 +35,6 @@ interface HealthCheckIssue {
     status: HealthCheckStatus;
     description: string;
     label: HealthCheckLabel;
-}
-
-/**
- * The complete result of an RFQm health check routine.
- * For public users, this should be converted to a `RfqmHealthCheckShortResponse` before being
- * sent in the reponse in order to not expose potentially-sensitive system details.
- */
-export interface HealthCheckResult {
-    status: HealthCheckStatus;
-    pairs: {
-        [pair: string]: HealthCheckStatus; // where the pair has the form `${contractA}-${contractB}`
-    };
-    http: {
-        status: HealthCheckStatus;
-        issues: HealthCheckIssue[];
-    };
-    workers: {
-        status: HealthCheckStatus;
-        issues: HealthCheckIssue[];
-    };
-    // TODO (rhinodavid): Add MarketMakers
-}
-
-export interface RfqmHealthCheckShortResponse {
-    isOperational: boolean;
-    pairs: [string, string][];
-}
-
-/**
- * Produces a full health check from the given inupts.
- */
-export async function computeHealthCheckAsync(
-    isMaintainenceMode: boolean,
-    registryBalance: BigNumber,
-    offerings: RfqMakerAssetOfferings,
-    producer: Producer,
-    heartbeats: RfqmWorkerHeartbeatEntity[],
-    gasPrice?: BigNumber,
-): Promise<HealthCheckResult> {
-    const pairs = transformPairs(offerings);
-
-    const httpIssues = getHttpIssues(isMaintainenceMode, registryBalance);
-    const httpStatus = getWorstStatus(httpIssues.map((issue) => issue.status));
-
-    const queueIssues = await checkSqsQueueAsync(producer);
-    const heartbeatIssues = await checkWorkerHeartbeatsAsync(heartbeats);
-    const workersIssues = [...queueIssues, ...heartbeatIssues];
-    const workersStatus = getWorstStatus(workersIssues.map((issue) => issue.status));
-
-    // Prometheus counters
-    const severityByLabel: Record<HealthCheckLabel, number> = {
-        'registry balance': statusSeverity(HealthCheckStatus.Operational),
-        'RFQM_MAINTENANCE_MODE config `true`': statusSeverity(HealthCheckStatus.Operational),
-        'queue size': statusSeverity(HealthCheckStatus.Operational),
-        'worker balance': statusSeverity(HealthCheckStatus.Operational),
-        'worker heartbeat': statusSeverity(HealthCheckStatus.Operational),
-    };
-    [...httpIssues, ...workersIssues].forEach(
-        (issue) =>
-            (severityByLabel[issue.label] = Math.max(severityByLabel[issue.label], statusSeverity(issue.status))),
-    );
-    Object.entries(severityByLabel).forEach(([label, severity]) => {
-        RFQM_HEALTH_CHECK_ISSUE_GAUGE.labels(label).set(severity);
-    });
-
-    if (gasPrice) {
-        // Note that this gauge is an estimation of the total number of trades, since two workers could have
-        // 50% of the amount for one trade and the gauge would show 1 but the actual capacity would be 0.
-        const totalWorkerBalance = heartbeats.reduce((total, { balance }) => total.plus(balance), new BigNumber(0));
-        const totalSystemTradeCapacity = totalWorkerBalance.div(gasPrice.times(RFQM_TX_GAS_ESTIMATE));
-        RFQM_TOTAL_SYSTEM_TRADE_CAPACITY_GAUGE.set(totalSystemTradeCapacity.toNumber());
-    }
-
-    return {
-        status: getWorstStatus([httpStatus, workersStatus]),
-        pairs,
-        http: { status: httpStatus, issues: httpIssues },
-        workers: { status: workersStatus, issues: workersIssues },
-    };
-}
-
-/**
- * Transform the full health check result into the minimal response the Matcha UI requires.
- */
-export function transformResultToShortResponse(result: HealthCheckResult): RfqmHealthCheckShortResponse {
-    return {
-        isOperational: result.status === HealthCheckStatus.Operational || result.status === HealthCheckStatus.Degraded,
-        pairs: Object.entries(result.pairs)
-            .filter(
-                ([_pair, status]) => status === HealthCheckStatus.Operational || status === HealthCheckStatus.Degraded,
-            )
-            .map(([pair, _status]) => {
-                const [tokenA, tokenB] = pair.split('-');
-                return [tokenA, tokenB];
-            }),
-    };
-}
-
-/**
- * Changes the set of trading pairs from the format used in config to the format used in the health check response.
- */
-function transformPairs(offerings: RfqMakerAssetOfferings): { [pair: string]: HealthCheckStatus } {
-    return Object.values(offerings)
-        .flat()
-        .reduce((result: { [pair: string]: HealthCheckStatus }, pair) => {
-            const [tokenA, tokenB] = pair.sort();
-            // Currently, we assume all pairs are operation. In the future, this may not be the case.
-            result[`${tokenA}-${tokenB}`] = HealthCheckStatus.Operational;
-            return result;
-        }, {});
 }
 
 /**
@@ -221,39 +98,6 @@ export async function checkSqsQueueAsync(producer: Producer): Promise<HealthChec
         });
     }
     return results;
-}
-
-/**
- * Returns a numerical value which corresponds to the "severity" of a `HealthCheckStatus` enum member.
- * Higher values are more severe. (Oh to have SwiftLang enums here.)
- */
-function statusSeverity(status: HealthCheckStatus): number {
-    switch (status) {
-        case HealthCheckStatus.Failed:
-            return 4;
-        case HealthCheckStatus.Maintenance:
-            return 3;
-        case HealthCheckStatus.Degraded:
-            return 2;
-        case HealthCheckStatus.Operational:
-            return 1;
-        default:
-            throw new Error(`Received unknown status: ${status}`);
-    }
-}
-
-/**
- * Accepts a list of statuses and returns the worst status
- */
-function getWorstStatus(statuses: HealthCheckStatus[]): HealthCheckStatus {
-    if (!statuses.length) {
-        return HealthCheckStatus.Operational;
-    }
-    return statuses.reduce(
-        (worstStatus, currentStatus) =>
-            statusSeverity(currentStatus) > statusSeverity(worstStatus) ? currentStatus : worstStatus,
-        HealthCheckStatus.Operational,
-    );
 }
 
 /**

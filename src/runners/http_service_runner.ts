@@ -55,7 +55,7 @@ if (require.main === module) {
     })().catch((error) => logger.error(error.stack));
 }
 
-export interface HttpServices {
+interface HttpServices {
     server: Server;
 }
 

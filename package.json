@@ -41,7 +41,7 @@
         "start:service:meta_transaction_http": "node -r dotenv/config lib/src/runners/http_meta_transaction_service_runner.js",
         "start:service:rfq_maker_balance_cache": "node -r dotenv/config lib/src/runners/rfq_maker_balance_cache_runner.js",
         "sampler-size": "jq .compilerOutput.evm.deployedBytecode.object  -- test/generated-artifacts/ERC20BridgeSampler.json | echo $(( $(wc -c) / 2 - 1 ))",
-        "lint": "eslint src test integration-test && yarn prettier:ci"
+        "lint": "ts-prune -e -i 'test/wrappers.ts|migrations' && eslint src test && yarn prettier:ci"
     },
     "config": {
         "prettier_target": "{*,test/**/*,integration-test/**/*,src/**/*,migrations/*,contracts/**/*}.{ts,tsx,sol,json,md}",
@@ -89,6 +89,7 @@
         "supertest": "^4.0.2",
         "ts-mockito": "^2.6.1",
         "ts-node": "^10.9.1",
+        "ts-prune": "^0.10.3",
         "typemoq": "^2.1.0",
         "typescript": "^4.6.3"
     },

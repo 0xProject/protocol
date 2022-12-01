@@ -412,7 +412,7 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
     return bridgeData;
 }
 
-export const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
+const poolEncoder = AbiEncoder.create([{ name: 'poolAddress', type: 'address' }]);
 const curveEncoder = AbiEncoder.create([
     { name: 'curveAddress', type: 'address' },
     { name: 'exchangeFunctionSelector', type: 'bytes4' },
@@ -429,7 +429,7 @@ const balancerV2Encoder = AbiEncoder.create([
 ]);
 const routerAddressPathEncoder = AbiEncoder.create('(address,address[])');
 
-export const BRIDGE_ENCODERS: {
+const BRIDGE_ENCODERS: {
     [key in Exclude<ERC20BridgeSource, ERC20BridgeSource.Native | ERC20BridgeSource.MultiHop>]: AbiEncoder.DataType;
 } = {
     // Curve like

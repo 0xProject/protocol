@@ -6,8 +6,7 @@ import { StoredFee, StoredOrder } from './RfqmJobEntity';
  * @deprecated
  * Kept here to ensure existing migrations type check
  */
-export type RfqmQuoteConstructorOpts = Pick<RfqmQuoteEntity, 'chainId' | 'makerUri' | 'orderHash'> &
-    Partial<RfqmQuoteEntity>;
+type RfqmQuoteConstructorOpts = Pick<RfqmQuoteEntity, 'chainId' | 'makerUri' | 'orderHash'> & Partial<RfqmQuoteEntity>;
 
 /**
  * @deprecated

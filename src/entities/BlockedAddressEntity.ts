@@ -1,6 +1,6 @@
 import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-export type BlockedAddressConstructorOpts = Pick<BlockedAddressEntity, 'address'> & Partial<BlockedAddressEntity>;
+type BlockedAddressConstructorOpts = Pick<BlockedAddressEntity, 'address'> & Partial<BlockedAddressEntity>;
 @Entity({ name: 'blocked_addresses' })
 export class BlockedAddressEntity {
     @PrimaryColumn({ name: 'address', type: 'varchar' })

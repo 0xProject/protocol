@@ -92,8 +92,6 @@ export const INVALID_SIGNATURE = { signatureType: SignatureType.Invalid, v: 1, r
 
 export const POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS = new BigNumber(30000);
 
-export const KEEP_ALIVE_TTL = 5 * 60 * ONE_SECOND_MS;
-
 export const constants = {
     ZERO_EX_GAS_API_URL,
     PROTOCOL_FEE_MULTIPLIER,

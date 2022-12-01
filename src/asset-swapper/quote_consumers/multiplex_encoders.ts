@@ -33,7 +33,3 @@ export const multiplexUniswapEncoder = AbiEncoder.create([
     { name: 'tokens', type: 'address[]' },
     { name: 'isSushi', type: 'bool' },
 ]);
-export const multiplexPlpEncoder = AbiEncoder.create([
-    { name: 'provider', type: 'address' },
-    { name: 'auxiliaryData', type: 'bytes' },
-]);

@@ -58,6 +58,7 @@ export class GasPriceUtils {
         if (this._gasPriceEstimation === undefined) {
             await this._updateGasPriceFromOracleOrThrow();
         }
+        // eslint-disable-next-line  @typescript-eslint/no-non-null-assertion
         return this._gasPriceEstimation!;
     }
 

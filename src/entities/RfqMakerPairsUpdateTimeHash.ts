@@ -1,6 +1,6 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
 
-export type RfqMakerPairsUpdateTimeHashOpts = Pick<RfqMakerPairsUpdateTimeHash, 'hash' | 'chainId'> &
+type RfqMakerPairsUpdateTimeHashOpts = Pick<RfqMakerPairsUpdateTimeHash, 'hash' | 'chainId'> &
     Partial<RfqMakerPairsUpdateTimeHash>;
 
 /**

@@ -5,9 +5,6 @@ import { ONE_SECOND_MS } from './constants';
 import { SignedLimitOrder } from './types';
 
 export {
-    BadRequestError,
-    ErrorBody,
-    GeneralErrorCodes,
     InternalServerError,
     InvalidAPIKeyError,
     MalformedJSONError,
@@ -74,13 +71,6 @@ export class ExpiredOrderError extends AlertError {
         super();
         this.expiry = order.expiry.toNumber();
         this.expiredForSeconds = Date.now() / ONE_SECOND_MS - this.expiry;
-    }
-}
-
-export class OrderWatcherSyncError extends AlertError {
-    public message = `Error syncing OrderWatcher!`;
-    constructor(public details?: string) {
-        super();
     }
 }
 

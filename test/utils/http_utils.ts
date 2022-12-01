@@ -2,7 +2,7 @@ import * as httpRequest from 'supertest';
 
 const API_HTTP_ADDRESS = 'http://localhost:3000';
 
-export interface ProtoRoute {
+interface ProtoRoute {
     baseRoute: string;
     queryParams?: {
         [param: string]: string;

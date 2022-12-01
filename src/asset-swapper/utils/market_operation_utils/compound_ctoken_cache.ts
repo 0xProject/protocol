@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import { constants } from '../../constants';
 
-export interface CToken {
+interface CToken {
     tokenAddress: string;
     underlyingAddress: string;
 }

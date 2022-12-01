@@ -9,7 +9,7 @@ import {
     RfqOrderFields,
     Signature,
 } from '@0x/protocol-utils';
-import { TakerRequestQueryParamsUnnested, V4SignedRfqOrder } from '@0x/quote-server';
+import { TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
 import { RfqClient } from '../utils/rfq_client';
@@ -137,7 +137,7 @@ export interface AffiliateFeeAmount {
 /**
  * Automatically resolved protocol fee refund receiver addresses.
  */
-export enum ExchangeProxyRefundReceiver {
+enum ExchangeProxyRefundReceiver {
     // Refund to the taker address.
     Taker = '0x0000000000000000000000000000000000000001',
     // Refund to the sender address.
@@ -174,7 +174,7 @@ export interface ExchangeProxyContractOpts {
  * bestCaseQuoteInfo: Info about the best case price for the asset.
  * worstCaseQuoteInfo: Info about the worst case price for the asset.
  */
-export interface SwapQuoteBase {
+interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
@@ -377,18 +377,6 @@ export interface MockedRfqQuoteResponse {
     callback?: (config: any) => Promise<any>;
 }
 
-/**
- * Represents a mocked RFQ-T/M alternative maker responses.
- */
-export interface AltMockedRfqQuoteResponse {
-    endpoint: string;
-    mmApiKey: string;
-    requestData: AltQuoteRequestData;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-    responseData: any;
-    responseCode: number;
-}
-
 export interface SamplerOverrides {
     overrides: GethCallOverrides;
     block: BlockParam;
@@ -400,54 +388,7 @@ export interface SamplerCallResult {
     data: string;
 }
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
-export enum AltQuoteModel {
-    Firm = 'firm',
-    Indicative = 'indicative',
-}
-
-export enum AltQuoteSide {
-    Buy = 'buy',
-    Sell = 'sell',
-}
-
-export interface AltQuoteRequestData {
-    market: string;
-    model: AltQuoteModel;
-    profile: string;
-    side: AltQuoteSide;
-    value?: string;
-    amount?: string;
-    meta: {
-        txOrigin: string;
-        taker: string;
-        client: string;
-        existingOrder?: {
-            price: string;
-            value?: string;
-            amount?: string;
-        };
-    };
-}
-
-export interface AltBaseRfqResponse extends AltQuoteRequestData {
-    id: string;
-    price?: string;
-}
-
-export interface AltIndicativeQuoteResponse extends AltBaseRfqResponse {
-    model: AltQuoteModel.Indicative;
-    status: 'live' | 'rejected';
-}
-
-export interface AltFirmQuoteResponse extends AltBaseRfqResponse {
-    model: AltQuoteModel.Firm;
-    data: {
-        '0xv4order': V4SignedRfqOrder;
-    };
-    status: 'active' | 'rejected';
-}
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface RfqtV2Request {
     assetFillAmount: BigNumber;
@@ -601,7 +542,7 @@ export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber 
 // TODO:  Remove `Partial` from `FeeSchedule`
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
 
-export type GasEstimate = (fillData: FillData) => number;
+type GasEstimate = (fillData: FillData) => number;
 export type GasSchedule = Partial<{ [key in ERC20BridgeSource]: GasEstimate }>;
 
 /**

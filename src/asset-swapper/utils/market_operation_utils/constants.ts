@@ -38,7 +38,7 @@ export const ZERO_AMOUNT = new BigNumber(0);
 export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 export const ONE_HOUR_IN_SECONDS = 60 * 60;
 export const ONE_SECOND_MS = 1000;
-export const NULL_BYTES = '0x';
+const NULL_BYTES = '0x';
 export const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const SAMPLER_ADDRESS = '0x5555555555555555555555555555555555555555';
 export const COMPARISON_PRICE_DECIMALS = 10;
@@ -367,7 +367,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
 /**
  *  0x Protocol Fee Multiplier
  */
-export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
+const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
 /**
  * Sources to poll for ETH fee price estimates.
@@ -508,7 +508,7 @@ export const MAINNET_TOKENS = {
     crvFRAX: '0x3175df0976dfa876431c2e9ee6bc45b65d3473cc',
 };
 
-export const BSC_TOKENS = {
+const BSC_TOKENS = {
     WBNB: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
     BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
     USDT: '0x55d398326f99059ff775485246999027b3197955',
@@ -527,7 +527,7 @@ export const BSC_TOKENS = {
     WOO: '0x4691937a7508860f876c9c0a2a617e7d9e945d4b',
 };
 
-export const POLYGON_TOKENS = {
+const POLYGON_TOKENS = {
     DAI: '0x8f3cf7ad23cd3cadbd9735aff958023239c6a063',
     USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
     USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
@@ -577,7 +577,7 @@ export const AVALANCHE_TOKENS = {
     WOO: '0xabc9547b534519ff73921b1fba6e672b5f58d083',
 };
 
-export const CELO_TOKENS = {
+const CELO_TOKENS = {
     WCELO: '0x471ece3750da237f93b8e339c536989b8978a438',
     // Some of these tokens are Optics bridge? tokens which
     // had an issue and migrated from v1 to v2
@@ -613,7 +613,7 @@ export const CELO_TOKENS = {
     DAI: '0x90ca507a5d4458a4c6c6249d186b6dcb02a5bccd',
 };
 
-export const FANTOM_TOKENS = {
+const FANTOM_TOKENS = {
     WFTM: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
     WETH: '0x74b23882a30290451a17c44f4f05243b6b58c76d',
     USDC: '0x04068da6c83afcfa0e13ba15a6696662335d5b75',
@@ -639,7 +639,7 @@ export const FANTOM_TOKENS = {
     alUSD: '0xb67fa6defce4042070eb1ae1511dcd6dcc6a532e',
 };
 
-export const OPTIMISM_TOKENS = {
+const OPTIMISM_TOKENS = {
     WETH: '0x4200000000000000000000000000000000000006',
     USDC: '0x7f5c764cbc14f9669b88837ca1490cca17c31607',
     USDT: '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58',
@@ -661,7 +661,7 @@ export const OPTIMISM_TOKENS = {
     sUSD: '0x8c6f28f2f1a3c87f0f938b96d27520d9751ec8d9',
 };
 
-export const ARBITRUM_TOKENS = {
+const ARBITRUM_TOKENS = {
     USDT: '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9',
     USDC: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8',
     FRAX: '0x17fc002b466eec40dae837fc4be5c67993ddbd6f',
@@ -675,7 +675,7 @@ export const ARBITRUM_TOKENS = {
 
 export const REBASING_TOKENS = new Set<string>([MAINNET_TOKENS.stETH]);
 
-export const CURVE_POOLS = {
+const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
     // 1.USDT is dead
     PAX: '0x06364f10b501e868329afbc005b3492902d6c763', // 2.PAX
@@ -739,31 +739,31 @@ export const CURVE_POOLS = {
     crvfrax: '0xdcef968d416a41cdac0ed8702fac8128a64241a2',
 };
 
-export const CURVE_V2_POOLS = {
+const CURVE_V2_POOLS = {
     tricrypto: '0x80466c64868e1ab14a1ddf27a676c3fcbe638fe5',
     tricrypto2: '0xd51a44d3fae010294c616388b506acda1bfaae46',
 };
 
-export const CURVE_POLYGON_POOLS = {
+const CURVE_POLYGON_POOLS = {
     aave: '0x445fe580ef8d70ff569ab36e80c647af338db351',
     ren: '0xc2d95eef97ec6c17551d45e77b590dc1f9117c67',
 };
 
-export const CURVE_V2_POLYGON_POOLS = {
+const CURVE_V2_POLYGON_POOLS = {
     atricrypto3: '0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8',
 };
 
-export const CURVE_AVALANCHE_POOLS = {
+const CURVE_AVALANCHE_POOLS = {
     aave: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
     mim: '0xaea2e71b631fa93683bcf256a8689dfa0e094fcd',
     USDC: '0x3a43a5851a3e3e0e25a3c1089670269786be1577',
 };
 
-export const CURVE_V2_AVALANCHE_POOLS = {
+const CURVE_V2_AVALANCHE_POOLS = {
     atricrypto: '0x58e57ca18b7a47112b877e31929798cd3d703b0f',
 };
 
-export const CURVE_FANTOM_POOLS = {
+const CURVE_FANTOM_POOLS = {
     fUSDT: '0x92d5ebf3593a92888c25c0abef126583d4b5312e',
     twoPool: '0x27e611fd27b276acbd5ffd632e5eaebec9761e40',
     ren: '0x3ef6a01a0f81d6046290f3e2a8c5b843e738e604',
@@ -772,15 +772,15 @@ export const CURVE_FANTOM_POOLS = {
     FRAX_twoPool: '0x7a656b342e14f745e2b164890e88017e27ae7320',
 };
 
-export const CURVE_V2_FANTOM_POOLS = {
+const CURVE_V2_FANTOM_POOLS = {
     tricrypto: '0x3a1659ddcf2339be3aea159ca010979fb49155ff',
 };
 
-export const CURVE_OPTIMISM_POOLS = {
+const CURVE_OPTIMISM_POOLS = {
     tri: '0x1337bedc9d22ecbe766df105c9623922a27963ec',
 };
 
-export const CURVE_V2_ARBITRUM_POOLS = {
+const CURVE_V2_ARBITRUM_POOLS = {
     tri: '0x960ea3e3c7fb317332d990873d354e18d7645590',
     twoPool: '0x7f90122bf0700f9e7e1f688fe926940e8839f353',
     vstFrax: '0x59bf0545fca0e5ad48e13da269facd2e8c886ba4',
@@ -788,7 +788,7 @@ export const CURVE_V2_ARBITRUM_POOLS = {
     fraxBP: '0xc9b8a3fdecb9d5b218d02555a8baf332e5b740d5',
 };
 
-export const SADDLE_MAINNET_POOLS = {
+const SADDLE_MAINNET_POOLS = {
     // swaps
     stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7',
     bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
@@ -805,72 +805,72 @@ export const SADDLE_MAINNET_POOLS = {
     fraxSusdMetaPool: '0x69baa0d7c2e864b74173922ca069ac79d3be1556',
 };
 
-export const SADDLE_OPTIMISM_POOLS = {
+const SADDLE_OPTIMISM_POOLS = {
     // swaps
     fraxBP: '0xf6c2e0adc659007ba7c48446f5a4e4e94dfe08b5',
 };
 
-export const SADDLE_ARBITRUM_POOLS = {
+const SADDLE_ARBITRUM_POOLS = {
     // swaps
     arbUSDPoolV2: '0xfeea4d1bacb0519e8f952460a70719944fe56ee0',
     fraxBP: '0x401afbc31ad2a3bc0ed8960d63efcdea749b4849',
 };
 
-export const IRONSWAP_POOLS = {
+const IRONSWAP_POOLS = {
     is3usd: '0x837503e8a8753ae17fb8c8151b8e6f586defcb57',
 };
 
-export const NERVE_POOLS = {
+const NERVE_POOLS = {
     threePool: '0x1b3771a66ee31180906972580ade9b81afc5fcdc',
 };
 
-export const SYNAPSE_MAINNET_POOLS = {
+const SYNAPSE_MAINNET_POOLS = {
     nUSDLP: '0x1116898dda4015ed8ddefb84b6e8bc24528af2d8',
 };
 
-export const SYNAPSE_OPTIMISM_POOLS = {
+const SYNAPSE_OPTIMISM_POOLS = {
     nETHLP: '0xe27bff97ce92c3e1ff7aa9f86781fdd6d48f5ee9',
 };
 
-export const SYNAPSE_BSC_POOLS = {
+const SYNAPSE_BSC_POOLS = {
     nUSDLP: '0x28ec0b36f0819ecb5005cab836f4ed5a2eca4d13',
 };
 
-export const SYNAPSE_POLYGON_POOLS = {
+const SYNAPSE_POLYGON_POOLS = {
     nUSDLP: '0x85fcd7dd0a1e1a9fcd5fd886ed522de8221c3ee5',
 };
 
-export const SYNAPSE_FANTOM_POOLS = {
+const SYNAPSE_FANTOM_POOLS = {
     nUSDLP: '0x2913e812cf0dcca30fb28e6cac3d2dcff4497688',
     nETHLP: '0x8d9ba570d6cb60c7e3e0f31343efe75ab8e65fb1',
 };
 
-export const SYNAPSE_AVALANCHE_POOLS = {
+const SYNAPSE_AVALANCHE_POOLS = {
     nUSDLP: '0xed2a7edd7413021d440b09d654f3b87712abab66',
     nETHLP: '0x77a7e60555bc18b4be44c181b2575eee46212d44',
 };
 
-export const SYNAPSE_ARBITRUM_POOLS = {
+const SYNAPSE_ARBITRUM_POOLS = {
     nUSDLP: '0x0db3fe3b770c95a0b99d1ed6f2627933466c0dd8',
     nETHLP: '0xa067668661c84476afcdc6fa5d758c4c01c34352',
 };
 
-export const BELT_POOLS = {
+const BELT_POOLS = {
     vPool: '0xf16d312d119c13dd27fd0dc814b0bcdcaaa62dfd',
 };
 
-export const ELLIPSIS_POOLS = {
+const ELLIPSIS_POOLS = {
     threePool: '0x160caed03795365f3a589f10c379ffa7d75d4e76',
 };
 
-export const FIREBIRDONESWAP_BSC_POOLS = {
+const FIREBIRDONESWAP_BSC_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
 
-export const FIREBIRDONESWAP_POLYGON_POOLS = {
+const FIREBIRDONESWAP_POLYGON_POOLS = {
     oneswap: '0x01c9475dbd36e46d1961572c8de24b74616bae9e',
 };
-export const MOBIUSMONEY_CELO_POOLS = {
+const MOBIUSMONEY_CELO_POOLS = {
     usdc_optics_v2: '0x9906589ea8fd27504974b7e8201df5bbde986b03',
     dai_optics_v2: '0xf3f65dfe0c8c8f2986da0fec159abe6fd4e700b4',
     weth_optics_v2: '0x74ef28d635c6c5800dd3cd62d4c4f8752daacb09',
@@ -879,14 +879,14 @@ export const MOBIUSMONEY_CELO_POOLS = {
     usdc_poly_optics: '0xa2f0e57d4ceacf025e81c76f28b9ad6e9fbe8735',
 };
 
-export const ACRYPTOS_POOLS = {
+const ACRYPTOS_POOLS = {
     acs4usd: '0xb3f0c9ea1f05e312093fdb031e789a756659b0ac',
     acs4vai: '0x191409d5a4effe25b0f4240557ba2192d18a191e',
     acs4ust: '0x99c92765efc472a9709ced86310d64c4573c4b77',
     acs3btc: '0xbe7caa236544d1b9a0e7f91e94b9f5bfd3b5ca81',
 };
 
-export const PLATYPUS_AVALANCHE_POOLS = {
+const PLATYPUS_AVALANCHE_POOLS = {
     usd: '0x66357dcace80431aee0a7507e2e361b7e2402370',
     yusd: '0xc828d995c686aaba78a4ac89dfc8ec0ff4c5be83',
     frax: '0xb8e567fc23c39c94a1f6359509d7b43d1fbed824',
@@ -2860,7 +2860,7 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
     [ERC20BridgeSource.Dystopia]: () => 160e3,
 };
 
-export const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
+const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
     acc[key as ERC20BridgeSource] = (fillData: FillData) => {
         return {
             gas: DEFAULT_GAS_SCHEDULE[key as ERC20BridgeSource](fillData),

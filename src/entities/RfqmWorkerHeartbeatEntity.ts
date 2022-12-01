@@ -4,7 +4,7 @@ import { BigNumber } from '../asset-swapper';
 
 import { BigNumberTransformer } from './transformers';
 
-export type RfqmWorkerHeartbeatOptions = Pick<RfqmWorkerHeartbeatEntity, 'address' | 'balance' | 'index'> &
+type RfqmWorkerHeartbeatOptions = Pick<RfqmWorkerHeartbeatEntity, 'address' | 'balance' | 'index'> &
     Partial<RfqmWorkerHeartbeatEntity>;
 
 @Entity({ name: 'rfqm_worker_heartbeats' })

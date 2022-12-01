@@ -117,7 +117,7 @@ interface Swap {
     tokenOutDecimals: number;
 }
 
-export interface PoolPairData {
+interface PoolPairData {
     id: string;
     poolType?: string; // Todo: make this a mandatory field?
     pairType?: string; // Todo: make this a mandatory field?

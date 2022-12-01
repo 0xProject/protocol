@@ -13,7 +13,7 @@ interface ParseRequestForExcludedSourcesParams {
     apiKey?: string;
 }
 
-export interface ParseRequestForExcludedSourcesResult {
+interface ParseRequestForExcludedSourcesResult {
     excludedSources: ERC20BridgeSource[];
     includedSources: ERC20BridgeSource[];
     nativeExclusivelyRFQT: boolean;

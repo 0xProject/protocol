@@ -5,7 +5,7 @@ import { BigNumber, providerUtils } from '@0x/utils';
 import { artifacts } from '../../artifacts';
 import { ERC20BridgeSamplerContract } from '../../wrappers';
 
-export const VB = '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b';
+const VB = '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b';
 
 blockchainTests.skip('Mainnet Sampler Tests', (env) => {
     let testContract: ERC20BridgeSamplerContract;

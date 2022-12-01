@@ -14,7 +14,7 @@ import {
 import { DexSample, MultiHopFillData, RawQuotes } from './market_operation_utils/types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from './quote_requestor';
 
-export interface QuoteReportEntryBase {
+interface QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource;
     makerAmount: BigNumber;
     takerAmount: BigNumber;
@@ -46,7 +46,7 @@ export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     comparisonPrice?: number;
 }
 
-export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
     liquiditySource: ERC20BridgeSource.Native;
     fillableTakerAmount: BigNumber;
     isRFQ: true;
@@ -60,19 +60,19 @@ export type QuoteReportEntry =
     | NativeLimitOrderQuoteReportEntry
     | NativeRfqOrderQuoteReportEntry;
 
-export type ExtendedQuoteReportEntry =
+type ExtendedQuoteReportEntry =
     | BridgeQuoteReportEntry
     | MultiHopQuoteReportEntry
     | NativeLimitOrderQuoteReportEntry
     | NativeRfqOrderQuoteReportEntry
     | IndicativeRfqOrderQuoteReportEntry;
 
-export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
+type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
     quoteEntryIndex: number;
     isDelivered: boolean;
 };
 
-export type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
+type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
     fillData?: string;
 };
 
@@ -400,7 +400,7 @@ export function nativeOrderToReportEntry(
  * Generates a report entry for an indicative RFQ Quote
  * NOTE: this is used for the QuoteReport and quote price comparison data
  */
-export function indicativeQuoteToReportEntry(
+function indicativeQuoteToReportEntry(
     order: V4RFQIndicativeQuoteMM,
     comparisonPrice?: BigNumber | undefined,
 ): IndicativeRfqOrderQuoteReportEntry {

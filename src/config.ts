@@ -1,5 +1,5 @@
 import { assert } from '@0x/assert';
-import { nativeWrappedTokenSymbol, TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
+import { TokenMetadatasForChains, valueByChainId } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -65,13 +65,13 @@ enum EnvVarType {
 /**
  * A taker-integrator of the 0x API.
  */
-export type IntegratorsAcl = Integrator[];
+type IntegratorsAcl = Integrator[];
 
 /**
  * Configuration which represents taker-integrators of the 0x API. The configuration contains the label, id,
  * api keys, and allowed liquidity sources for each integrator.
  */
-export const INTEGRATORS_ACL: IntegratorsAcl = (() => {
+const INTEGRATORS_ACL: IntegratorsAcl = (() => {
     let integrators: IntegratorsAcl;
     try {
         integrators = resolveEnvVar<IntegratorsAcl>('INTEGRATORS_ACL', EnvVarType.JsonStringList, []);
@@ -94,7 +94,7 @@ export const getApiKeyWhitelistFromIntegratorsAcl = (groupType: 'rfqt' | 'rfqm')
 /**
  * Gets the integrator ID for the provided label.
  */
-export const getIntegratorIdFromLabel = (label: string): string | undefined => {
+const getIntegratorIdFromLabel = (label: string): string | undefined => {
     for (const integrator of INTEGRATORS_ACL) {
         if (integrator.label === label) {
             return integrator.integratorId;
@@ -102,8 +102,8 @@ export const getIntegratorIdFromLabel = (label: string): string | undefined => {
     }
 };
 
-export type RfqWorkFlowType = 'rfqt' | 'rfqm';
-export type RfqOrderType = 'rfq' | 'otc';
+type RfqWorkFlowType = 'rfqt' | 'rfqm';
+type RfqOrderType = 'rfq' | 'otc';
 
 export const RFQ_WORKFLOW: RfqWorkFlowType = 'rfqt'; // This code base currently only supports rfqt workflow.
 export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
@@ -129,7 +129,7 @@ export type MakerIdsToConfigs = Map</* makerId */ string, RfqMakerConfig>;
 /**
  * Generate a map from MakerId to MakerConfig that support a given order type for a given workflow
  */
-export const getMakerConfigMapForOrderType = (
+const getMakerConfigMapForOrderType = (
     orderType: RfqOrderType | 'any',
     workflow: RfqWorkFlowType,
 ): MakerIdsToConfigs => {
@@ -161,12 +161,12 @@ export const LOG_LEVEL: string = _.isEmpty(process.env.LOG_LEVEL)
     : assertEnvVarType('LOG_LEVEL', process.env.LOG_LEVEL, EnvVarType.NonEmptyString);
 
 // Network port to listen on
-export const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
+const HTTP_PORT = _.isEmpty(process.env.HTTP_PORT)
     ? 3000
     : assertEnvVarType('HTTP_PORT', process.env.HTTP_PORT, EnvVarType.Port);
 
 // Network port for the healthcheck service at /healthz, if not provided, it uses the HTTP_PORT value.
-export const HEALTHCHECK_HTTP_PORT = _.isEmpty(process.env.HEALTHCHECK_HTTP_PORT)
+const HEALTHCHECK_HTTP_PORT = _.isEmpty(process.env.HEALTHCHECK_HTTP_PORT)
     ? HTTP_PORT
     : assertEnvVarType('HEALTHCHECK_HTTP_PORT', process.env.HEALTHCHECK_HTTP_PORT, EnvVarType.Port);
 
@@ -174,14 +174,14 @@ export const HEALTHCHECK_HTTP_PORT = _.isEmpty(process.env.HEALTHCHECK_HTTP_PORT
 // incoming data aftere it finished writing last response before a socket will
 // be destroyed.
 // Ref: https://nodejs.org/api/http.html#http_server_keepalivetimeout
-export const HTTP_KEEP_ALIVE_TIMEOUT = _.isEmpty(process.env.HTTP_KEEP_ALIVE_TIMEOUT)
+const HTTP_KEEP_ALIVE_TIMEOUT = _.isEmpty(process.env.HTTP_KEEP_ALIVE_TIMEOUT)
     ? 76 * 1000
     : assertEnvVarType('HTTP_KEEP_ALIVE_TIMEOUT', process.env.HTTP_KEEP_ALIVE_TIMEOUT, EnvVarType.KeepAliveTimeout);
 
 // Limit the amount of time the parser will wait to receive the complete HTTP headers.
 // NOTE: This value HAS to be higher than HTTP_KEEP_ALIVE_TIMEOUT.
 // Ref: https://nodejs.org/api/http.html#http_server_headerstimeout
-export const HTTP_HEADERS_TIMEOUT = _.isEmpty(process.env.HTTP_HEADERS_TIMEOUT)
+const HTTP_HEADERS_TIMEOUT = _.isEmpty(process.env.HTTP_HEADERS_TIMEOUT)
     ? 77 * 1000
     : assertEnvVarType('HTTP_HEADERS_TIMEOUT', process.env.HTTP_HEADERS_TIMEOUT, EnvVarType.KeepAliveTimeout);
 
@@ -195,17 +195,12 @@ export const WHITELISTED_TOKENS: string[] | '*' = _.isEmpty(process.env.WHITELIS
     ? TokenMetadatasForChains.map((tm) => tm.tokenAddresses[CHAIN_ID])
     : assertEnvVarType('WHITELIST_ALL_TOKENS', process.env.WHITELIST_ALL_TOKENS, EnvVarType.WhitelistAllTokens);
 
-// Ignored addresses only for Swap endpoints (still present in database and SRA).
-export const SWAP_IGNORED_ADDRESSES: string[] = _.isEmpty(process.env.SWAP_IGNORED_ADDRESSES)
-    ? []
-    : assertEnvVarType('SWAP_IGNORED_ADDRESSES', process.env.SWAP_IGNORED_ADDRESSES, EnvVarType.AddressList);
-
 export const DB_ORDERS_UPDATE_CHUNK_SIZE = 300;
 
 // Ethereum RPC Url list
-export const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.UrlList);
+const ETHEREUM_RPC_URL = assertEnvVarType('ETHEREUM_RPC_URL', process.env.ETHEREUM_RPC_URL, EnvVarType.UrlList);
 // Timeout in seconds to wait for an RPC request (default 5000)
-export const RPC_REQUEST_TIMEOUT = _.isEmpty(process.env.RPC_REQUEST_TIMEOUT)
+const RPC_REQUEST_TIMEOUT = _.isEmpty(process.env.RPC_REQUEST_TIMEOUT)
     ? 5000
     : assertEnvVarType('RPC_REQUEST_TIMEOUT', process.env.RPC_REQUEST_TIMEOUT, EnvVarType.Integer);
 
@@ -217,7 +212,7 @@ export const PROMETHEUS_LABEL_STATUS_OK = 'ok';
 export const PROMETHEUS_LABEL_STATUS_ERROR = 'error';
 
 // Enable client side content compression when sending RPC requests (default false)
-export const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_REQUEST_COMPRESSION)
+const ENABLE_RPC_REQUEST_COMPRESSION = _.isEmpty(process.env.ENABLE_RPC_REQUEST_COMPRESSION)
     ? false
     : assertEnvVarType(
           'ENABLE_RPC_REQUEST_COMPRESSION',
@@ -253,7 +248,7 @@ export const KAFKA_BROKERS = _.isEmpty(process.env.KAFKA_BROKERS)
     ? undefined
     : assertEnvVarType('KAFKA_BROKERS', process.env.KAFKA_BROKERS, EnvVarType.StringList);
 
-export const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROUP_ID)
+const KAFKA_CONSUMER_GROUP_ID = _.isEmpty(process.env.KAFKA_CONSUMER_GROUP_ID)
     ? undefined
     : assertEnvVarType('KAFKA_CONSUMER_GROUP_ID', process.env.KAFKA_CONSUMER_GROUP_ID, EnvVarType.NonEmptyString);
 
@@ -313,7 +308,7 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
     [],
 );
 
-export const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
+const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
 export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
 export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
@@ -335,7 +330,7 @@ export const ALT_RFQ_MM_ENDPOINT: string | undefined = _.isEmpty(process.env.ALT
 export const ALT_RFQ_MM_API_KEY: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_API_KEY)
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_API_KEY', process.env.ALT_RFQ_MM_API_KEY, EnvVarType.NonEmptyString);
-export const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_PROFILE)
+const ALT_RFQ_MM_PROFILE: string | undefined = _.isEmpty(process.env.ALT_RFQ_MM_PROFILE)
     ? undefined
     : assertEnvVarType('ALT_RFQ_MM_PROFILE', process.env.ALT_RFQ_MM_PROFILE, EnvVarType.NonEmptyString);
 
@@ -377,13 +372,9 @@ export const PROMETHEUS_PORT: number = _.isEmpty(process.env.PROMETHEUS_PORT)
     : assertEnvVarType('PROMETHEUS_PORT', process.env.PROMETHEUS_PORT, EnvVarType.Port);
 
 // ZeroEx Gas API URL
-export const ZERO_EX_GAS_API_URL: string = _.isEmpty(process.env.ZERO_EX_GAS_API_URL)
+const ZERO_EX_GAS_API_URL: string = _.isEmpty(process.env.ZERO_EX_GAS_API_URL)
     ? DEFAULT_ZERO_EX_GAS_API_URL
     : assertEnvVarType('ZERO_EX_GAS_API_URL', process.env.ZERO_EX_GAS_API_URL, EnvVarType.Url);
-
-export const RFQ_PROXY_PORT: number | undefined = _.isEmpty(process.env.RFQ_PROXY_PORT)
-    ? undefined
-    : assertEnvVarType('RFQ_PROXY_PORT', process.env.RFQ_PROXY_PORT, EnvVarType.Port);
 
 export const KAFKA_TOPIC_QUOTE_REPORT: string = _.isEmpty(process.env.KAFKA_TOPIC_QUOTE_REPORT)
     ? undefined
@@ -415,8 +406,6 @@ export const GASLESS_SWAP_FEE_ENABLED: boolean = _.isEmpty(process.env.GASLESS_S
 
 // Max number of entities per page
 export const MAX_PER_PAGE = 1000;
-// Default ERC20 token precision
-export const DEFAULT_ERC20_TOKEN_PRECISION = 18;
 
 export const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 
@@ -429,8 +418,7 @@ const UNWRAP_GAS_BY_CHAIN_ID = valueByChainId<BigNumber>(
     },
     new BigNumber(25000),
 );
-export const UNWRAP_WETH_GAS = UNWRAP_GAS_BY_CHAIN_ID[CHAIN_ID];
-export const WRAP_ETH_GAS = UNWRAP_WETH_GAS;
+const UNWRAP_WETH_GAS = UNWRAP_GAS_BY_CHAIN_ID[CHAIN_ID];
 export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
 export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 
@@ -534,13 +522,11 @@ const EXCHANGE_PROXY_OVERHEAD_FULLY_FEATURED = (sourceFlags: bigint) => {
     }
 };
 
-export const NATIVE_WRAPPED_TOKEN_SYMBOL = nativeWrappedTokenSymbol(CHAIN_ID);
-
 const NEON_ROUTER_NUM_SAMPLES = 14;
 // TODO(kimpers): Due to an issue with the Rust router we want to use equidistant samples when using the Rust router
 const DEFAULT_SAMPLE_DISTRIBUTION_BASE = 1;
 
-export const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTION_BASE)
+const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTION_BASE)
     ? DEFAULT_SAMPLE_DISTRIBUTION_BASE
     : assertEnvVarType('SAMPLE_DISTRIBUTION_BASE', process.env.SAMPLE_DISTRIBUTION_BASE, EnvVarType.Float);
 
@@ -561,7 +547,7 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOp
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_VIP,
 };
 
-export const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
+const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     switch (CHAIN_ID) {
         case ChainId.Ganache:
         case ChainId.Kovan:
