@@ -347,8 +347,15 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameters');
         }
 
-        const { takerToken, makerToken, takerAddress, txOrigin, assetFillAmount, marketOperation, integratorId } =
-            request.body;
+        const {
+            takerToken,
+            makerToken,
+            takerAddress,
+            txOrigin,
+            assetFillAmount: assetFillAmountStr,
+            marketOperation,
+            integratorId,
+        } = request.body;
 
         if (
             (marketOperation as string) !== MarketOperation.Buy.toString() &&
@@ -368,6 +375,14 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameter txOrigin');
         }
 
+        const isSelling = (marketOperation as string) === MarketOperation.Sell.toString();
+        const assetFillAmount = new BigNumber(assetFillAmountStr);
+        let takerAmount, makerAmount;
+        if (isSelling) {
+            takerAmount = assetFillAmount;
+        } else {
+            makerAmount = assetFillAmount;
+        }
         const takerTokenDecimals = await service.getTokenDecimalsAsync(takerToken);
         const makerTokenDecimals = await service.getTokenDecimalsAsync(makerToken);
 
@@ -380,12 +395,14 @@ export class RfqtHandlers {
             originalMakerToken: makerToken,
             takerAddress,
             txOrigin,
+            takerAmount,
+            makerAmount,
             takerTokenDecimals,
             makerTokenDecimals,
             integrator,
             isUnwrap: false,
-            isSelling: (marketOperation as string) === MarketOperation.Sell.toString(),
-            assetFillAmount: new BigNumber(assetFillAmount),
+            isSelling,
+            assetFillAmount,
             feeModelVersion: service.feeModelVersion,
         } as QuoteContext;
     }
