@@ -153,6 +153,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
             ERC20BridgeSource.WOOFi,
+            ERC20BridgeSource.AaveV3,
             ERC20BridgeSource.Dystopia,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
@@ -168,6 +169,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
             ERC20BridgeSource.WOOFi,
+            ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -197,6 +199,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
+            ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
@@ -208,6 +211,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             //ERC20BridgeSource.Dodo,
             ERC20BridgeSource.Saddle,
+            ERC20BridgeSource.AaveV3,
         ]),
     },
     new SourceFilters([]),
@@ -302,6 +306,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.MeshSwap,
             ERC20BridgeSource.WOOFi,
+            ERC20BridgeSource.AaveV3,
             ERC20BridgeSource.Dystopia,
         ]),
         [ChainId.Avalanche]: new SourceFilters([
@@ -317,6 +322,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.GMX,
             ERC20BridgeSource.Platypus,
             ERC20BridgeSource.WOOFi,
+            ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Fantom]: new SourceFilters([
             ERC20BridgeSource.MultiHop,
@@ -346,6 +352,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
+            ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
             ERC20BridgeSource.UniswapV3,
@@ -357,6 +364,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
             //ERC20BridgeSource.Dodo,
             ERC20BridgeSource.Saddle,
+            ERC20BridgeSource.AaveV3,
         ]),
     },
     new SourceFilters([]),
@@ -2377,6 +2385,24 @@ export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
     null,
 );
 
+export const AAVE_V3_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v3-polygon',
+        [ChainId.Avalanche]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v3-avalanche',
+        [ChainId.Arbitrum]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v3-arbitrum',
+        [ChainId.Optimism]: 'https://api.thegraph.com/subgraphs/name/aave/protocol-v3-optimism',
+    },
+    null,
+);
+
+export const AAVE_V3_L2_ENCODERS_BY_CHAIN_ID = valueByChainId(
+    {
+        [ChainId.Arbitrum]: '0x9abadecd08572e0ea5af4d47a9c7984a5aa503dc',
+        [ChainId.Optimism]: '0x9abadecd08572e0ea5af4d47a9c7984a5aa503dc',
+    },
+    NULL_ADDRESS,
+);
+
 export const COMPOUND_API_URL_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
@@ -2743,6 +2769,11 @@ export const DEFAULT_GAS_SCHEDULE: Required<GasSchedule> = {
         }
     },
     [ERC20BridgeSource.AaveV2]: (fillData?: FillData) => {
+        const aaveFillData = fillData as AaveV2FillData;
+        // NOTE: The Aave deposit method is more expensive than the withdraw
+        return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;
+    },
+    [ERC20BridgeSource.AaveV3]: (fillData?: FillData) => {
         const aaveFillData = fillData as AaveV2FillData;
         // NOTE: The Aave deposit method is more expensive than the withdraw
         return aaveFillData.takerToken === aaveFillData.underlyingToken ? 400e3 : 300e3;

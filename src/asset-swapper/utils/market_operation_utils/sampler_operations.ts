@@ -9,7 +9,7 @@ import { AaveV2Sampler } from '../../noop_samplers/AaveV2Sampler';
 import { SamplerCallResult, SignedNativeOrder, ERC20BridgeSource, FeeSchedule } from '../../types';
 import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
-import { AaveV2ReservesCache } from './aave_reserves_cache';
+import { AaveReservesCache, AaveV3Reserve, AaveV2Reserve } from './aave_reserves_cache';
 import { BancorService } from './bancor_service';
 import {
     getCurveLikeInfosForPair,
@@ -23,6 +23,8 @@ import {
 import { CompoundCTokenCache } from './compound_ctoken_cache';
 import {
     AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID,
+    AAVE_V3_SUBGRAPH_URL_BY_CHAIN_ID,
+    AAVE_V3_L2_ENCODERS_BY_CHAIN_ID,
     AVALANCHE_TOKENS,
     BALANCER_V2_VAULT_ADDRESS_BY_CHAIN,
     BANCORV3_NETWORK_BY_CHAIN_ID,
@@ -63,7 +65,8 @@ import { SamplerNoOperation } from './sampler_no_operation';
 import { SourceFilters } from './source_filters';
 import {
     AaveV2FillData,
-    AaveV2Info,
+    AaveV3FillData,
+    AaveInfo,
     BalancerFillData,
     BalancerSwapInfo,
     BalancerV2BatchSwapFillData,
@@ -117,7 +120,8 @@ export interface PoolsCacheMap {
  */
 export class SamplerOperations {
     public readonly poolsCaches: PoolsCacheMap;
-    public readonly aaveReservesCache: AaveV2ReservesCache | undefined;
+    public readonly aaveV2ReservesCache: AaveReservesCache | undefined;
+    public readonly aaveV3ReservesCache: AaveReservesCache | undefined;
     public readonly compoundCTokenCache: CompoundCTokenCache | undefined;
     protected _bancorService?: BancorService;
     public static constant<T>(result: T): BatchedOperation<T> {
@@ -146,9 +150,14 @@ export class SamplerOperations {
                           : new BalancerV2SwapInfoCache(chainId),
               };
 
-        const aaveSubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
-        if (aaveSubgraphUrl) {
-            this.aaveReservesCache = new AaveV2ReservesCache(aaveSubgraphUrl);
+        const aaveV2SubgraphUrl = AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
+        if (aaveV2SubgraphUrl) {
+            this.aaveV2ReservesCache = new AaveReservesCache(aaveV2SubgraphUrl, false);
+        }
+
+        const aaveV3SubgraphUrl = AAVE_V3_SUBGRAPH_URL_BY_CHAIN_ID[chainId];
+        if (aaveV3SubgraphUrl) {
+            this.aaveV3ReservesCache = new AaveReservesCache(aaveV3SubgraphUrl, true);
         }
 
         const compoundApiUrl = COMPOUND_API_URL_BY_CHAIN_ID[chainId];
@@ -1075,7 +1084,7 @@ export class SamplerOperations {
     }
 
     public getAaveV2SellQuotes(
-        aaveInfo: AaveV2Info,
+        aaveInfo: AaveInfo,
         makerToken: string,
         takerToken: string,
         takerFillAmounts: BigNumber[],
@@ -1088,7 +1097,7 @@ export class SamplerOperations {
     }
 
     public getAaveV2BuyQuotes(
-        aaveInfo: AaveV2Info,
+        aaveInfo: AaveInfo,
         makerToken: string,
         takerToken: string,
         makerFillAmounts: BigNumber[],
@@ -1097,6 +1106,80 @@ export class SamplerOperations {
             source: ERC20BridgeSource.AaveV2,
             fillData: { ...aaveInfo, takerToken },
             callback: () => AaveV2Sampler.sampleBuysFromAaveV2(aaveInfo, takerToken, makerToken, makerFillAmounts),
+        });
+    }
+
+    public getAaveV3SellQuotes(
+        aaveInfo: AaveInfo,
+        makerToken: string,
+        takerToken: string,
+        takerFillAmounts: BigNumber[],
+        l2EncoderAddress: string,
+    ): SourceQuoteOperation<AaveV3FillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.AaveV3,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleSellsFromAaveV3,
+            params: [
+                l2EncoderAddress,
+                aaveInfo.aToken,
+                aaveInfo.underlyingToken,
+                takerToken,
+                makerToken,
+                takerFillAmounts,
+            ],
+            callback: (callResults: string, fillData: AaveV3FillData): BigNumber[] => {
+                const [l2Params, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
+                    'sampleSellsFromAaveV3',
+                    callResults,
+                );
+                fillData.l2EncodedParams = l2Params.map((l2Param, i) => ({
+                    inputAmount: takerFillAmounts[i],
+                    l2Parameter: l2Param,
+                }));
+
+                fillData.lendingPool = aaveInfo.lendingPool;
+                fillData.aToken = aaveInfo.aToken;
+
+                return samples;
+            },
+        });
+    }
+
+    public getAaveV3BuyQuotes(
+        aaveInfo: AaveInfo,
+        makerToken: string,
+        takerToken: string,
+        makerFillAmounts: BigNumber[],
+        l2EncoderAddress: string,
+    ): SourceQuoteOperation<AaveV3FillData> {
+        return new SamplerContractOperation({
+            source: ERC20BridgeSource.AaveV3,
+            contract: this._samplerContract,
+            function: this._samplerContract.sampleBuysFromAaveV3,
+            params: [
+                l2EncoderAddress,
+                aaveInfo.aToken,
+                aaveInfo.underlyingToken,
+                takerToken,
+                makerToken,
+                makerFillAmounts,
+            ],
+            callback: (callResults: string, fillData: AaveV3FillData): BigNumber[] => {
+                const [l2Params, samples] = this._samplerContract.getABIDecodedReturnData<[string[], BigNumber[]]>(
+                    'sampleBuysFromAaveV3',
+                    callResults,
+                );
+                fillData.l2EncodedParams = l2Params.map((l2Param, i) => ({
+                    inputAmount: makerFillAmounts[i],
+                    l2Parameter: l2Param,
+                }));
+
+                fillData.lendingPool = aaveInfo.lendingPool;
+                fillData.aToken = aaveInfo.aToken;
+
+                return samples;
+            },
         });
     }
 
@@ -1646,17 +1729,36 @@ export class SamplerOperations {
                         const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoSellQuotes(lidoInfo, makerToken, takerToken, takerFillAmounts);
                     }
-                    case ERC20BridgeSource.AaveV2: {
-                        if (!this.aaveReservesCache) {
+                    case ERC20BridgeSource.AaveV3: {
+                        if (!this.aaveV3ReservesCache) {
                             return [];
                         }
-                        const reserve = this.aaveReservesCache.get(takerToken, makerToken);
+                        const reserve = this.aaveV3ReservesCache.get(takerToken, makerToken);
                         if (!reserve) {
                             return [];
                         }
 
-                        const info: AaveV2Info = {
-                            lendingPool: reserve.pool.lendingPool,
+                        const info: AaveInfo = {
+                            lendingPool: (reserve as AaveV3Reserve).pool.pool,
+                            aToken: reserve.aToken.id,
+                            underlyingToken: reserve.underlyingAsset,
+                        };
+
+                        const l2Encoder = AAVE_V3_L2_ENCODERS_BY_CHAIN_ID[this.chainId];
+
+                        return this.getAaveV3SellQuotes(info, makerToken, takerToken, takerFillAmounts, l2Encoder);
+                    }
+                    case ERC20BridgeSource.AaveV2: {
+                        if (!this.aaveV2ReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.aaveV2ReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+
+                        const info: AaveInfo = {
+                            lendingPool: (reserve as AaveV2Reserve).pool.lendingPool,
                             aToken: reserve.aToken.id,
                             underlyingToken: reserve.underlyingAsset,
                         };
@@ -1983,16 +2085,33 @@ export class SamplerOperations {
                         const lidoInfo = LIDO_INFO_BY_CHAIN[this.chainId];
                         return this.getLidoBuyQuotes(lidoInfo, makerToken, takerToken, makerFillAmounts);
                     }
-                    case ERC20BridgeSource.AaveV2: {
-                        if (!this.aaveReservesCache) {
+                    case ERC20BridgeSource.AaveV3: {
+                        if (!this.aaveV3ReservesCache) {
                             return [];
                         }
-                        const reserve = this.aaveReservesCache.get(takerToken, makerToken);
+                        const reserve = this.aaveV3ReservesCache.get(takerToken, makerToken);
                         if (!reserve) {
                             return [];
                         }
-                        const info: AaveV2Info = {
-                            lendingPool: reserve.pool.lendingPool,
+                        const info: AaveInfo = {
+                            lendingPool: (reserve as AaveV3Reserve).pool.pool,
+                            aToken: reserve.aToken.id,
+                            underlyingToken: reserve.underlyingAsset,
+                        };
+
+                        const l2Encoder = AAVE_V3_L2_ENCODERS_BY_CHAIN_ID[this.chainId];
+                        return this.getAaveV3BuyQuotes(info, makerToken, takerToken, makerFillAmounts, l2Encoder);
+                    }
+                    case ERC20BridgeSource.AaveV2: {
+                        if (!this.aaveV2ReservesCache) {
+                            return [];
+                        }
+                        const reserve = this.aaveV2ReservesCache.get(takerToken, makerToken);
+                        if (!reserve) {
+                            return [];
+                        }
+                        const info: AaveInfo = {
+                            lendingPool: (reserve as AaveV2Reserve).pool.lendingPool,
                             aToken: reserve.aToken.id,
                             underlyingToken: reserve.underlyingAsset,
                         };

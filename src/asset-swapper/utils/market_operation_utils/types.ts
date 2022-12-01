@@ -94,7 +94,7 @@ export interface BalancerV2PoolInfo {
     vault: string;
 }
 
-export interface AaveV2Info {
+export interface AaveInfo {
     lendingPool: string;
     aToken: string;
     underlyingToken: string;
@@ -234,6 +234,14 @@ export interface AaveV2FillData extends FillData {
     aToken: string;
     underlyingToken: string;
     takerToken: string;
+}
+
+interface AaveV3L2EncodedParameter {
+    inputAmount: BigNumber;
+    l2Parameter: string;
+}
+export interface AaveV3FillData extends AaveV2FillData {
+    l2EncodedParams: AaveV3L2EncodedParameter[];
 }
 
 export interface CompoundFillData extends FillData {

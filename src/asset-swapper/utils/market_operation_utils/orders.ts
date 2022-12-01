@@ -20,6 +20,7 @@ import {
 import { MAX_UINT256, ZERO_AMOUNT } from './constants';
 import {
     AaveV2FillData,
+    AaveV3FillData,
     AggregationError,
     BalancerFillData,
     BalancerV2BatchSwapFillData,
@@ -178,6 +179,8 @@ export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): s
             return encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'Yoshi');
         case ERC20BridgeSource.AaveV2:
             return encodeBridgeSourceId(BridgeProtocol.AaveV2, 'AaveV2');
+        case ERC20BridgeSource.AaveV3:
+            return encodeBridgeSourceId(BridgeProtocol.AaveV3, 'AaveV3');
         case ERC20BridgeSource.Compound:
             return encodeBridgeSourceId(BridgeProtocol.Compound, 'Compound');
         case ERC20BridgeSource.MobiusMoney:
@@ -352,6 +355,22 @@ export function createBridgeDataForBridgeOrder(order: OptimizedMarketBridgeOrder
             bridgeData = encoder.encode([lidoFillData.stEthTokenAddress, lidoFillData.wstEthTokenAddress]);
             break;
         }
+        case ERC20BridgeSource.AaveV3: {
+            const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV3FillData>).fillData;
+            const i = _.findIndex(
+                aaveFillData.l2EncodedParams,
+                (l) => l.inputAmount.isEqualTo(order.makerAmount) || l.inputAmount.isEqualTo(order.takerAmount),
+            );
+            if (i === -1) {
+                throw new Error('Invalid order to encode for Bridge Data');
+            }
+            bridgeData = encoder.encode([
+                aaveFillData.lendingPool,
+                aaveFillData.aToken,
+                aaveFillData.l2EncodedParams[i].l2Parameter,
+            ]);
+            break;
+        }
         case ERC20BridgeSource.AaveV2: {
             const aaveFillData = (order as OptimizedMarketBridgeOrder<AaveV2FillData>).fillData;
             bridgeData = encoder.encode([aaveFillData.lendingPool, aaveFillData.aToken]);
@@ -512,6 +531,7 @@ const BRIDGE_ENCODERS: {
     [ERC20BridgeSource.KyberDmm]: AbiEncoder.create('(address,address[],address[])'),
     [ERC20BridgeSource.Lido]: AbiEncoder.create('(address,address)'),
     [ERC20BridgeSource.AaveV2]: AbiEncoder.create('(address,address)'),
+    [ERC20BridgeSource.AaveV3]: AbiEncoder.create('(address,address,bytes32)'),
     [ERC20BridgeSource.Compound]: AbiEncoder.create('(address)'),
     [ERC20BridgeSource.Velodrome]: AbiEncoder.create('(address,bool)'),
     [ERC20BridgeSource.Dystopia]: AbiEncoder.create('(address,bool)'),

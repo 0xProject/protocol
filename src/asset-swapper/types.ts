@@ -491,6 +491,7 @@ export enum ERC20BridgeSource {
     Lido = 'Lido',
     ShibaSwap = 'ShibaSwap',
     AaveV2 = 'Aave_V2',
+    AaveV3 = 'Aave_V3',
     Compound = 'Compound',
     Synapse = 'Synapse',
     BancorV3 = 'BancorV3',
