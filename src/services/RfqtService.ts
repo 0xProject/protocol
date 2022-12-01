@@ -344,8 +344,8 @@ export class RfqtService {
             try {
                 await quoteReportUtils.publishRfqtV2FeeEvent(
                     {
-                        requestedBuyAmount: quoteContext.makerAmount,
-                        requestedSellAmount: quoteContext.takerAmount,
+                        requestedBuyAmount: quoteContext.makerAmount ?? null,
+                        requestedSellAmount: quoteContext.takerAmount ?? null,
                         requestedTakerAddress: quoteContext.takerAddress,
                         buyTokenAddress: quoteContext.makerToken,
                         sellTokenAddress: quoteContext.takerToken,

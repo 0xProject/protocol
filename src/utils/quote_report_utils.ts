@@ -115,8 +115,8 @@ interface ExtendedQuoteReportForRFQMLogOptions {
  * RFQt V2 Fee Event Interfaces
  */
 interface RfqtV2FeeEventLogOptions {
-    requestedBuyAmount?: BigNumber;
-    requestedSellAmount?: BigNumber;
+    requestedBuyAmount: BigNumber | null;
+    requestedSellAmount: BigNumber | null;
     requestedTakerAddress: string;
     buyTokenAddress: string;
     sellTokenAddress: string;
@@ -129,8 +129,8 @@ interface RfqtV2FeeEventLogOptions {
 interface RfqtV2FeeEvent {
     createdAt: number;
     orderHash: string;
-    requestedBuyAmount?: BigNumber;
-    requestedSellAmount?: BigNumber;
+    requestedBuyAmount: BigNumber | null;
+    requestedSellAmount: BigNumber | null;
     requestedTakerAddress: string;
     fillableBuyAmount: BigNumber;
     fillableSellAmount: BigNumber;
