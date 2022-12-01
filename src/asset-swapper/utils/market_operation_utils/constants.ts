@@ -96,8 +96,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Synthetix,
             ERC20BridgeSource.AaveV2,
-            // TODO: Explore adding compound as a source
-            // ERC20BridgeSource.Compound,
+            ERC20BridgeSource.Compound,
         ]),
         [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Goerli]: new SourceFilters([
@@ -246,8 +245,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Synapse,
             ERC20BridgeSource.Synthetix,
             ERC20BridgeSource.AaveV2,
-            // TODO: Explore adding compound as a source
-            // ERC20BridgeSource.Compound,
+            ERC20BridgeSource.Compound,
         ]),
         [ChainId.Goerli]: new SourceFilters([
             ERC20BridgeSource.Native,
@@ -2381,8 +2379,7 @@ export const AAVE_V2_SUBGRAPH_URL_BY_CHAIN_ID = valueByChainId(
 
 export const COMPOUND_API_URL_BY_CHAIN_ID = valueByChainId(
     {
-        // TODO: enable after FQT has been redeployed on Ethereum mainnet
-        // [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
+        [ChainId.Mainnet]: 'https://api.compound.finance/api/v2',
     },
     null,
 );
