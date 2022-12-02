@@ -10,7 +10,7 @@ import {
     SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
 } from '../types';
-import { assert } from '../utils/assert';
+import { assert } from '../utils/utils';
 
 import { ExchangeProxySwapQuoteConsumer } from './exchange_proxy_swap_quote_consumer';
 

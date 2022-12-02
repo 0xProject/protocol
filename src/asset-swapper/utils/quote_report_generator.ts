@@ -7,84 +7,24 @@ import {
     NativeOrderWithFillableAmounts,
     ERC20BridgeSource,
     Fill,
-    FillData,
     NativeFillData,
+    ExtendedQuoteReportIndexedEntry,
+    BridgeQuoteReportEntry,
+    MultiHopQuoteReportEntry,
+    NativeLimitOrderQuoteReportEntry,
+    NativeRfqOrderQuoteReportEntry,
+    ExtendedQuoteReportSources,
+    ExtendedQuoteReportEntry,
+    IndicativeRfqOrderQuoteReportEntry,
+    QuoteReport,
 } from '../types';
 
 import { DexSample, MultiHopFillData, RawQuotes } from './market_operation_utils/types';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from './quote_requestor';
 
-interface QuoteReportEntryBase {
-    liquiditySource: ERC20BridgeSource;
-    makerAmount: BigNumber;
-    takerAmount: BigNumber;
-    fillData: FillData;
-}
-export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
-    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
-}
-
-export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
-    liquiditySource: ERC20BridgeSource.MultiHop;
-    hopSources: ERC20BridgeSource[];
-}
-
-export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
-    liquiditySource: ERC20BridgeSource.Native;
-    fillData: NativeFillData;
-    fillableTakerAmount: BigNumber;
-    isRFQ: false;
-}
-
-export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
-    liquiditySource: ERC20BridgeSource.Native;
-    fillData: NativeFillData;
-    fillableTakerAmount: BigNumber;
-    isRFQ: true;
-    nativeOrder: RfqOrderFields;
-    makerUri: string;
-    comparisonPrice?: number;
-}
-
-interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
-    liquiditySource: ERC20BridgeSource.Native;
-    fillableTakerAmount: BigNumber;
-    isRFQ: true;
-    makerUri?: string;
-    comparisonPrice?: number;
-}
-
-export type QuoteReportEntry =
-    | BridgeQuoteReportEntry
-    | MultiHopQuoteReportEntry
-    | NativeLimitOrderQuoteReportEntry
-    | NativeRfqOrderQuoteReportEntry;
-
-type ExtendedQuoteReportEntry =
-    | BridgeQuoteReportEntry
-    | MultiHopQuoteReportEntry
-    | NativeLimitOrderQuoteReportEntry
-    | NativeRfqOrderQuoteReportEntry
-    | IndicativeRfqOrderQuoteReportEntry;
-
-type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
-    quoteEntryIndex: number;
-    isDelivered: boolean;
-};
-
 type ExtendedQuoteReportIndexedEntryOutbound = Omit<ExtendedQuoteReportIndexedEntry, 'fillData'> & {
     fillData?: string;
 };
-
-export interface QuoteReport {
-    sourcesConsidered: QuoteReportEntry[];
-    sourcesDelivered: QuoteReportEntry[];
-}
-
-export interface ExtendedQuoteReportSources {
-    sourcesConsidered: ExtendedQuoteReportIndexedEntry[];
-    sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
-}
 
 export interface ExtendedQuoteReport {
     quoteId?: string;
@@ -106,12 +46,6 @@ export interface ExtendedQuoteReport {
     estimatedGas: string;
     enableSlippageProtection?: boolean;
     expectedSlippage?: string;
-}
-
-export interface PriceComparisonsReport {
-    dexSources: BridgeQuoteReportEntry[];
-    multiHopSources: MultiHopQuoteReportEntry[];
-    nativeSources: (NativeLimitOrderQuoteReportEntry | NativeRfqOrderQuoteReportEntry)[];
 }
 
 /**

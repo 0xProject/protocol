@@ -29,7 +29,7 @@ import {
     SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
 } from '../types';
-import { assert } from '../utils/assert';
+import { assert } from '../utils/utils';
 import {
     CURVE_LIQUIDITY_PROVIDER_BY_CHAIN_ID,
     NATIVE_FEE_TOKEN_BY_CHAIN_ID,

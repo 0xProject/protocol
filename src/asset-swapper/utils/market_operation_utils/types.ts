@@ -11,9 +11,11 @@ import {
     Fill,
     FillAdjustor,
     ExchangeProxyOverhead,
+    ExtendedQuoteReportSources,
+    PriceComparisonsReport,
+    QuoteReport,
 } from '../../types';
 import { V4RFQIndicativeQuoteMM } from '../../utils/quote_requestor';
-import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from '../quote_report_generator';
 
 import { SourceFilters } from './source_filters';
 

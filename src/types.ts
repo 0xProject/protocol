@@ -2,6 +2,7 @@ import { HttpServiceConfig as BaseHttpConfig } from '@0x/api-utils';
 import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { ContractAddresses, ChainId } from '@0x/contract-addresses';
+import { OtcOrder } from '@0x/protocol-utils';
 import { Connection } from 'typeorm';
 import { Kafka } from 'kafkajs';
 
@@ -17,6 +18,8 @@ import {
     Signature,
     SupportedProvider,
 } from './asset-swapper';
+
+export type Address = string;
 
 export interface PaginatedCollection<T> {
     total: number;
@@ -398,4 +401,37 @@ export interface AppDependencies {
     provider: SupportedProvider;
     websocketOpts: Partial<WebsocketSRAOpts>;
     hasSentry?: boolean;
+}
+
+export type RfqtV2Price = {
+    expiry: BigNumber;
+    makerAddress: string;
+    makerAmount: BigNumber;
+    makerId: string;
+    makerToken: string;
+    makerUri: string;
+    takerAmount: BigNumber;
+    takerToken: string;
+};
+
+export type RfqtV2Quote = {
+    fillableMakerAmount: BigNumber;
+    fillableTakerAmount: BigNumber;
+    fillableTakerFeeAmount: BigNumber;
+    makerId: string;
+    makerUri: string;
+    order: OtcOrder;
+    signature: Signature;
+};
+
+export interface RfqtV2Request {
+    assetFillAmount: BigNumber;
+    chainId: number;
+    integratorId: string;
+    intentOnFilling: boolean;
+    makerToken: string;
+    marketOperation: 'Sell' | 'Buy';
+    takerAddress: string;
+    takerToken: string;
+    txOrigin: string;
 }

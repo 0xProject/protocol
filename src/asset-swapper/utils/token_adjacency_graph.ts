@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { Address } from '../types';
+import { Address } from '../../types';
 
 export class TokenAdjacencyGraph {
     private readonly _graph: Map<Address, Address[]>;

@@ -9,7 +9,7 @@ import {
     RfqClientV1QuoteRequest,
     RfqClientV1QuoteResponse,
 } from '../asset-swapper';
-import { RfqtV2Price, RfqtV2Quote, RfqtV2Request } from '../asset-swapper/types';
+import { RfqtV2Price, RfqtV2Quote, RfqtV2Request } from '../types';
 import { RFQT_REQUEST_MAX_RESPONSE_MS, RFQ_CLIENT_ROLLOUT_PERCENT } from '../config';
 import { logger } from '../logger';
 import { isHashSmallEnough } from './hash_utils';

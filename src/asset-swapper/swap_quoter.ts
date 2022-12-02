@@ -23,7 +23,6 @@ import {
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
 } from './types';
-import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
 import {
@@ -35,26 +34,18 @@ import {
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
-import { ERC20BridgeSource, FillData, GasSchedule, GetMarketOrdersOpts, OptimizedMarketOrder } from './types';
+import {
+    ERC20BridgeSource,
+    FillData,
+    GasSchedule,
+    GetMarketOrdersOpts,
+    OptimizedMarketOrder,
+    Orderbook,
+} from './types';
 import { GasPriceUtils } from './utils/gas_price_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
-
-export abstract class Orderbook {
-    public abstract getOrdersAsync(
-        makerToken: string,
-        takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[]>;
-    public abstract getBatchOrdersAsync(
-        makerTokens: string[],
-        takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[][]>;
-    public async destroyAsync(): Promise<void> {
-        return;
-    }
-}
+import { assert } from './utils/utils';
 
 export class SwapQuoter {
     public readonly provider: ZeroExProvider;

@@ -3,7 +3,6 @@ import { BlockParam, ContractAddresses, GethCallOverrides } from '@0x/contract-w
 import {
     FillQuoteTransformerOrderType,
     LimitOrderFields,
-    OtcOrder,
     OtcOrderFields,
     RfqOrder,
     RfqOrderFields,
@@ -12,18 +11,89 @@ import {
 import { TakerRequestQueryParamsUnnested } from '@0x/quote-server';
 import { Fee } from '@0x/quote-server/lib/src/types';
 import { BigNumber } from '@0x/utils';
-import { RfqClient } from '../utils/rfq_client';
-import { QuoteRequestor } from './utils/quote_requestor';
 import {
     FillQuoteTransformerRfqOrderInfo,
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOtcOrderInfo,
 } from '@0x/protocol-utils';
-
-import { ExtendedQuoteReportSources, PriceComparisonsReport, QuoteReport } from './utils/quote_report_generator';
+import { RfqClient } from '../utils/rfq_client';
+import { QuoteRequestor } from './utils/quote_requestor';
 import { TokenAdjacencyGraph } from './utils/token_adjacency_graph';
 
-export type Address = string;
+export interface QuoteReport {
+    sourcesConsidered: QuoteReportEntry[];
+    sourcesDelivered: QuoteReportEntry[];
+}
+
+export interface PriceComparisonsReport {
+    dexSources: BridgeQuoteReportEntry[];
+    multiHopSources: MultiHopQuoteReportEntry[];
+    nativeSources: (NativeLimitOrderQuoteReportEntry | NativeRfqOrderQuoteReportEntry)[];
+}
+
+export interface IndicativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillableTakerAmount: BigNumber;
+    isRFQ: true;
+    makerUri?: string;
+    comparisonPrice?: number;
+}
+
+export interface NativeRfqOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillData: NativeFillData;
+    fillableTakerAmount: BigNumber;
+    isRFQ: true;
+    nativeOrder: RfqOrderFields;
+    makerUri: string;
+    comparisonPrice?: number;
+}
+
+export interface NativeLimitOrderQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.Native;
+    fillData: NativeFillData;
+    fillableTakerAmount: BigNumber;
+    isRFQ: false;
+}
+
+export interface MultiHopQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource.MultiHop;
+    hopSources: ERC20BridgeSource[];
+}
+
+interface QuoteReportEntryBase {
+    liquiditySource: ERC20BridgeSource;
+    makerAmount: BigNumber;
+    takerAmount: BigNumber;
+    fillData: FillData;
+}
+
+export interface BridgeQuoteReportEntry extends QuoteReportEntryBase {
+    liquiditySource: Exclude<ERC20BridgeSource, ERC20BridgeSource.Native>;
+}
+
+export type QuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry;
+
+export type ExtendedQuoteReportEntry =
+    | BridgeQuoteReportEntry
+    | MultiHopQuoteReportEntry
+    | NativeLimitOrderQuoteReportEntry
+    | NativeRfqOrderQuoteReportEntry
+    | IndicativeRfqOrderQuoteReportEntry;
+
+export type ExtendedQuoteReportIndexedEntry = ExtendedQuoteReportEntry & {
+    quoteEntryIndex: number;
+    isDelivered: boolean;
+};
+
+export interface ExtendedQuoteReportSources {
+    sourcesConsidered: ExtendedQuoteReportIndexedEntry[];
+    sourcesDelivered: ExtendedQuoteReportIndexedEntry[] | undefined;
+}
 
 /**
  * expiryBufferMs: The number of seconds to add when calculating whether an order is expired or not. Defaults to 300s (5m).
@@ -390,39 +460,6 @@ export interface SamplerCallResult {
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export interface RfqtV2Request {
-    assetFillAmount: BigNumber;
-    chainId: number;
-    integratorId: string;
-    intentOnFilling: boolean;
-    makerToken: string;
-    marketOperation: 'Sell' | 'Buy';
-    takerAddress: string;
-    takerToken: string;
-    txOrigin: string;
-}
-
-export type RfqtV2Price = {
-    expiry: BigNumber;
-    makerAddress: string;
-    makerAmount: BigNumber;
-    makerId: string;
-    makerToken: string;
-    makerUri: string;
-    takerAmount: BigNumber;
-    takerToken: string;
-};
-
-export type RfqtV2Quote = {
-    fillableMakerAmount: BigNumber;
-    fillableTakerAmount: BigNumber;
-    fillableTakerFeeAmount: BigNumber;
-    makerId: string;
-    makerUri: string;
-    order: OtcOrder;
-    signature: Signature;
-};
-
 export interface RfqClientV1PriceRequest {
     altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
     assetFillAmount: BigNumber;
@@ -712,3 +749,19 @@ export type OptimizedMarketOrder =
     | OptimizedMarketOrderBase<NativeLimitOrderFillData>
     | OptimizedMarketOrderBase<NativeRfqOrderFillData>
     | OptimizedMarketOrderBase<NativeOtcOrderFillData>;
+
+export abstract class Orderbook {
+    public abstract getOrdersAsync(
+        makerToken: string,
+        takerToken: string,
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[]>;
+    public abstract getBatchOrdersAsync(
+        makerTokens: string[],
+        takerToken: string,
+        pruneFn?: (o: SignedNativeOrder) => boolean,
+    ): Promise<SignedNativeOrder[][]>;
+    public async destroyAsync(): Promise<void> {
+        return;
+    }
+}
