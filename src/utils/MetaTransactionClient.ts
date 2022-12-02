@@ -6,9 +6,13 @@ import { BigNumber } from '@0x/utils';
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { BAD_REQUEST } from 'http-status-codes';
 import { Summary } from 'prom-client';
+import { TwirpError } from 'twirpscript';
+import { META_TRANSACTION_SERVICE_RPC_URL } from '../config';
 import { APIErrorCodes } from '../errors';
+import { GetQuote, GetQuoteResponse } from '../proto-ts/meta_transaction.pb';
 
 import { FetchIndicativeQuoteResponse } from '../services/types';
+import { bigNumberToProto, protoToBigNumber } from './ProtoUtils';
 
 // Types
 //
@@ -70,6 +74,7 @@ export async function getQuoteAsync(
     url: URL,
     params: {
         affiliateAddress?: string;
+        chainId: number;
         buyAmount?: BigNumber;
         buyToken: string;
         integratorId: string;
@@ -97,6 +102,7 @@ export async function getQuoteAsync(
                     sellToken: data.sellToken,
                     takerAddress: data.takerAddress,
                     integratorId: data.integratorId,
+                    chainId: data.chainId.toString(),
                 });
                 const {
                     affiliateAddress,
@@ -199,5 +205,143 @@ export async function getQuoteAsync(
             verifyingContract: response.data.metaTransaction.domain.verifyingContract,
         }),
         price: { buyAmount, buyTokenAddress, gas, price, sellAmount, sellTokenAddress },
+    };
+}
+
+/**
+ * Queries the MetaTransaction RPC service for an AMM quote wrapped in a
+ * MetaTransaction.
+ * If no AMM liquidity is available, returns `null`.
+ *
+ * If a prometheus 'Summary' is provided to the `requestDurationSummary`
+ * parameter, the function will call its `observe` method with the request
+ * duration in ms.
+ */
+export async function getQuoteRpc(
+    params: {
+        affiliateAddress?: string;
+        chainId: number;
+        buyAmount?: BigNumber;
+        buyToken: string;
+        integratorId: string;
+        sellAmount?: BigNumber;
+        sellToken: string;
+        slippagePercentage?: BigNumber;
+        takerAddress: string;
+        quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
+    },
+    meter?: { requestDurationSummary: Summary<'chainId' | 'success'>; chainId: number },
+    noLiquidityLogger?: pino.LogFn,
+): Promise<{ metaTransaction: MetaTransaction; price: FetchIndicativeQuoteResponse } | null> {
+    const stopTimer = meter?.requestDurationSummary.startTimer({ chainId: meter.chainId });
+
+    let response: GetQuoteResponse;
+    try {
+        // TODO (rhinodavid): Figure out how to set a timeout
+        response = await GetQuote(
+            {
+                affiliateAddress: params.affiliateAddress,
+                buyAmount: params.buyAmount ? bigNumberToProto(params.buyAmount) : undefined,
+                buyTokenAddress: params.buyToken,
+                chainId: params.chainId,
+                integratorId: params.integratorId,
+                quoteUniqueId: params.quoteUniqueId,
+                sellAmount: params.sellAmount ? bigNumberToProto(params.sellAmount) : undefined,
+                sellTokenAddress: params.sellToken,
+                slippagePercentage: params.slippagePercentage ? bigNumberToProto(params.slippagePercentage) : undefined,
+                takerAddress: params.takerAddress,
+            },
+            { baseURL: META_TRANSACTION_SERVICE_RPC_URL },
+        );
+    } catch (_e) {
+        stopTimer && stopTimer({ success: 'false' });
+
+        /**
+         * Error handling:
+         *
+         * Twirp throws an error of the following type:
+         * export interface TwirpError {
+         *   code: ErrorCode;
+         *   msg: string;
+         *   meta?: Record<string, string>;
+         * }
+         *
+         * To support the current error codes, we type `meta` as:
+         *  meta: {
+         *     zeroexErrorCode?: APIErrorCodes,
+         *     validationErrors: JSON.stringify(ValidationErrorItem[])
+         *  }
+         */
+
+        const e = _e as TwirpError;
+        const zeroexErrorCode = Number.isNaN(parseInt(e.meta?.zeroexErrorCode ?? ''))
+            ? null
+            : parseInt(e.meta?.zeroexErrorCode ?? '');
+        const validationErrors: ValidationErrorItem[] = JSON.parse(e.meta?.validationErrors ?? '[]');
+
+        if (
+            validationErrors?.length === 1 &&
+            validationErrors?.map((v) => v.reason).includes(SwapQuoterError.InsufficientAssetLiquidity)
+        ) {
+            // Looks like there is no liquidity for the quote...
+            noLiquidityLogger &&
+                noLiquidityLogger(
+                    { ammQuoteRequestParams: params },
+                    `[MetaTransactionClient] No liquitity returned for pair`,
+                );
+            return null;
+        }
+
+        // The response for insufficient fund error (primarily caused by trading amount is less than the fee)
+        // is a zeroexGeneralErrorCode `InsufficientFundsError`
+
+        if (zeroexErrorCode === APIErrorCodes.InsufficientFundsError) {
+            if (params.sellAmount) {
+                throw new ValidationError([
+                    {
+                        field: 'sellAmount',
+                        code: ValidationErrorCodes.FieldInvalid,
+                        reason: 'sellAmount too small',
+                    },
+                ]);
+            }
+
+            throw new ValidationError([
+                {
+                    field: 'buyAmount',
+                    code: ValidationErrorCodes.FieldInvalid,
+                    reason: 'buyAmount too small',
+                },
+            ]);
+        }
+        // This error is neither the standard no liquidity error nor the insufficient fund error
+        throw e;
+    }
+
+    stopTimer && stopTimer({ success: 'true' });
+
+    return {
+        metaTransaction: new MetaTransaction({
+            signer: response.metaTransaction.signerAddress,
+            sender: response.metaTransaction.senderAddress,
+            minGasPrice: protoToBigNumber(response.metaTransaction.minGasPrice),
+            maxGasPrice: protoToBigNumber(response.metaTransaction.maxGasPrice),
+            expirationTimeSeconds: protoToBigNumber(response.metaTransaction.expirationTimeSeconds),
+            salt: protoToBigNumber(response.metaTransaction.salt),
+            callData: response.metaTransaction.callData,
+            value: protoToBigNumber(response.metaTransaction.value),
+            feeToken: response.metaTransaction.feeTokenAddress,
+            feeAmount: protoToBigNumber(response.metaTransaction.feeAmount),
+            chainId: response.metaTransaction.chainId,
+            verifyingContract: response.metaTransaction.verifyingContract,
+        }),
+        price: {
+            buyAmount: protoToBigNumber(response.quote.buyAmount),
+            buyTokenAddress: response.quote.buyTokenAddress,
+            gas: protoToBigNumber(response.quote.gas),
+            price: protoToBigNumber(response.quote.price),
+            sellAmount: protoToBigNumber(response.quote.sellAmount),
+            sellTokenAddress: response.quote.sellTokenAddress,
+        },
     };
 }

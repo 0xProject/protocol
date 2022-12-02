@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "tsc -p tsconfig.json",
-        "build:proto": "shx rm src/proto-ts/*.pb.ts && twirpscript",
+        "build:proto": "shx rm -f src/proto-ts/*.pb.ts && twirpscript",
         "clean": "shx rm -rf lib",
         "db:migrate": "./node_modules/.bin/typeorm migration:run --dataSource ./lib/src/ormconfig.js",
         "db:migration:create": "./node_modules/.bin/typeorm migration:create",

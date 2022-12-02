@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+import "big_number_js.proto";
+
+message LiquiditySource {
+    string name = 1;
+    BigNumberJs proportion = 2;
+    optional string intermediate_token = 3;
+    repeated string hops = 4;
+}
+
+message Quote {
+    string sell_token_address = 1;
+    BigNumberJs sell_amount = 2;
+    string buy_token_address = 3;
+    BigNumberJs buy_amount = 4;
+    BigNumberJs price = 5;
+    optional BigNumberJs estimated_price_impact = 6;
+    BigNumberJs sell_token_to_native_token_rate = 7; // sellTokenToEthRate
+    BigNumberJs buy_token_to_native_token_rate = 8; // buyTokenToEthRate
+    int32 chain_id = 9;
+    BigNumberJs gas = 10;
+    BigNumberJs estimated_gas = 11;
+    BigNumberJs gas_price = 12;
+    BigNumberJs value = 13;
+    BigNumberJs protocol_fee = 14;
+    BigNumberJs minimum_protocol_fee = 15;
+    string allowance_target = 16;
+    repeated LiquiditySource liquidity_sources = 17;
+    // not included (yet): priceComparisons?: SourceComparison[];
+}
+
+/**
+ * MetaTransaction
+ * https://github.com/0xProject/protocol/blob/development/packages/protocol-utils/src/meta_transactions.ts#L39
+ */
+message MetaTransaction {
+    string signer_address = 1;
+    string sender_address = 2;
+    BigNumberJs min_gas_price = 3;
+    BigNumberJs max_gas_price = 4;
+    BigNumberJs expiration_time_seconds = 5;
+    BigNumberJs salt = 6;
+    string call_data = 7;
+    BigNumberJs value = 8;
+    string fee_token_address = 9;
+    BigNumberJs fee_amount = 10;
+    int32 chain_id = 11;
+    string verifying_contract = 12;
+    
+}
+
+message GetQuoteRequest {
+    string sell_token_address = 1;
+    string buy_token_address = 2;
+    oneof amount {
+        BigNumberJs sell_amount = 3;
+        BigNumberJs buy_amount = 4;
+    }
+    int32 chain_id = 5;
+    string taker_address = 6;
+    string integrator_id = 7;
+    optional string affiliate_address = 8;
+    optional BigNumberJs slippage_percentage = 9;
+    // ID to use for the quote report `decodedUniqueId`
+    optional string quote_unique_id = 10;
+}
+
+message GetQuoteResponse {
+    Quote quote = 1;
+    MetaTransaction meta_transaction = 2;
+}
+
+service MetaTransactionService {
+    rpc GetQuote(GetQuoteRequest) returns (GetQuoteResponse);
+}

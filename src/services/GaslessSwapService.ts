@@ -163,6 +163,7 @@ export class GaslessSwapService {
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
                     ...params,
+                    chainId: this._chainId,
                     integratorId: params.integrator.integratorId,
                     // Can use the null address here since we won't be returning
                     // the actual metatransaction
@@ -243,6 +244,7 @@ export class GaslessSwapService {
                 new URL(`${this._metaTransactionServiceBaseUrl.toString()}/quote`),
                 {
                     ...params,
+                    chainId: this._chainId,
                     affiliateAddress: params.affiliateAddress ?? params.integrator.affiliateAddress,
                     integratorId: params.integrator.integratorId,
                     quoteUniqueId: rfqQuoteReportId ?? undefined,
