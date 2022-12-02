@@ -26,7 +26,12 @@ import {
 import { assert } from './utils/assert';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { SAMPLER_ADDRESS, SOURCE_FLAGS, ZERO_AMOUNT } from './utils/market_operation_utils/constants';
+import {
+    DEFAULT_GAS_SCHEDULE,
+    SAMPLER_ADDRESS,
+    SOURCE_FLAGS,
+    ZERO_AMOUNT,
+} from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
@@ -220,7 +225,7 @@ export class SwapQuoter {
         const calcOpts: GetMarketOrdersOpts = {
             ...cloneOpts,
             gasPrice,
-            feeSchedule: _.mapValues(opts.gasSchedule, (gasCost) => (fillData: FillData) => {
+            feeSchedule: _.mapValues(DEFAULT_GAS_SCHEDULE, (gasCost) => (fillData: FillData) => {
                 const gas = gasCost ? gasCost(fillData) : 0;
                 const fee = gasPrice.times(gas);
                 return { gas, fee };
@@ -247,7 +252,7 @@ export class SwapQuoter {
             marketOperation,
             assetFillAmount,
             gasPrice,
-            opts.gasSchedule,
+            DEFAULT_GAS_SCHEDULE,
             opts.bridgeSlippage,
         );
 

@@ -544,7 +544,7 @@ export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber 
 export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
 
 type GasEstimate = (fillData: FillData) => number;
-export type GasSchedule = Partial<{ [key in ERC20BridgeSource]: GasEstimate }>;
+export type GasSchedule = Record<ERC20BridgeSource, GasEstimate>;
 
 /**
  * Represents a node on a fill path.
@@ -637,9 +637,8 @@ export interface GetMarketOrdersOpts {
      */
     feeSchedule: FeeSchedule;
     /**
-     * Estimated gas consumed by each liquidity source.
+     * Exchange proxy gas overhead based on source flag.
      */
-    gasSchedule: GasSchedule;
     exchangeProxyOverhead: ExchangeProxyOverhead;
     /**
      * Whether to pad the quote with a redundant fallback quote using different

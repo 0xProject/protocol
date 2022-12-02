@@ -10,6 +10,7 @@ import {
     NativeLimitOrderFillData,
     OptimizedMarketOrder,
     OptimizedMarketOrderBase,
+    GasSchedule,
 } from '../../src/asset-swapper/types';
 import {
     fillQuoteOrders,
@@ -24,7 +25,10 @@ describe('quote_simulation tests', async () => {
     const ONE = new BigNumber(1);
     const MAKER_TOKEN = randomAddress();
     const TAKER_TOKEN = randomAddress();
-    const GAS_SCHEDULE = { [ERC20BridgeSource.Uniswap]: _.constant(1), [ERC20BridgeSource.Native]: _.constant(1) };
+    const GAS_SCHEDULE: GasSchedule = (() => {
+        const sources = Object.values(ERC20BridgeSource);
+        return _.zipObject(sources, new Array(sources.length).fill(_.constant(1))) as GasSchedule;
+    })();
 
     // Check if two numbers are within `maxError` error rate within each other.
     function assertRoughlyEquals(n1: BigNumber, n2: BigNumber, maxError: BigNumber | number = 1e-10): void {

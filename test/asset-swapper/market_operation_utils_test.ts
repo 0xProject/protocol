@@ -440,7 +440,6 @@ describe('MarketOperationUtils tests', () => {
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
-                gasSchedule: {},
                 feeSchedule: {},
                 gasPrice: new BigNumber(30e9),
             };
@@ -1166,7 +1165,6 @@ describe('MarketOperationUtils tests', () => {
                 maxFallbackSlippage: 100,
                 excludedSources: DEFAULT_EXCLUDED,
                 allowFallback: false,
-                gasSchedule: {},
                 feeSchedule: {},
                 gasPrice: GAS_PRICE,
             };

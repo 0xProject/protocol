@@ -65,17 +65,16 @@ interface QuoteFillInfo {
     fillAmount: BigNumber;
     gasPrice: BigNumber;
     side: MarketOperation;
-    opts: Partial<QuoteFillInfoOpts>;
+    opts: QuoteFillInfoOpts;
 }
 
 interface QuoteFillInfoOpts {
     gasSchedule: GasSchedule;
-    protocolFeeMultiplier: BigNumber;
-    slippage: number;
+    protocolFeeMultiplier?: BigNumber;
+    slippage?: number;
 }
 
-const DEFAULT_SIMULATED_FILL_QUOTE_INFO_OPTS: QuoteFillInfoOpts = {
-    gasSchedule: {},
+const DEFAULT_SIMULATED_FILL_QUOTE_INFO_OPTS = {
     protocolFeeMultiplier: PROTOCOL_FEE_MULTIPLIER,
     slippage: 0,
 };
