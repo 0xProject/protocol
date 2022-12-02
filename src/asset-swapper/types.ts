@@ -248,7 +248,7 @@ interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
-    orders: OptimizedMarketOrder[];
+    orders: OptimizedOrder[];
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
@@ -712,7 +712,7 @@ export interface GetMarketOrdersOpts {
     fillAdjustor: FillAdjustor;
 }
 
-export interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
+interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     source: ERC20BridgeSource;
     fillData: TFillData;
     type: FillQuoteTransformerOrderType; // should correspond with TFillData
@@ -741,14 +741,9 @@ export interface OptimizedOtcOrder extends OptimizedMarketOrderBase<NativeOtcOrd
     type: FillQuoteTransformerOrderType.Otc;
 }
 
-/**
- * Optimized orders to fill.
- */
-export type OptimizedMarketOrder =
-    | OptimizedMarketBridgeOrder<FillData>
-    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
-    | OptimizedMarketOrderBase<NativeOtcOrderFillData>;
+export type OptimizedNativeOrder = OptimizedLimitOrder | OptimizedRfqOrder | OptimizedOtcOrder;
+
+export type OptimizedOrder = OptimizedMarketBridgeOrder<FillData> | OptimizedNativeOrder;
 
 export abstract class Orderbook {
     public abstract getOrdersAsync(

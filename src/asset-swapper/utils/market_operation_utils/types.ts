@@ -5,7 +5,7 @@ import { BigNumber } from '@0x/utils';
 import {
     NativeOrderWithFillableAmounts,
     ERC20BridgeSource,
-    OptimizedMarketOrder,
+    OptimizedOrder,
     FillData,
     FeeSchedule,
     Fill,
@@ -307,7 +307,7 @@ export interface SourceQuoteOperation<TFillData extends FillData = FillData> ext
 }
 
 export interface OptimizerResult {
-    optimizedOrders: OptimizedMarketOrder[];
+    optimizedOrders: OptimizedOrder[];
     sourceFlags: bigint;
     liquidityDelivered: Readonly<Fill[] | DexSample<MultiHopFillData>>;
     marketSideLiquidity: MarketSideLiquidity;

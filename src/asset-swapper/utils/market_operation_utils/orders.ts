@@ -13,8 +13,8 @@ import {
     NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
-    OptimizedMarketOrder,
-    OptimizedMarketOrderBase,
+    OptimizedOrder,
+    OptimizedNativeOrder,
 } from '../../types';
 
 import { MAX_UINT256, ZERO_AMOUNT } from './constants';
@@ -58,7 +58,7 @@ export interface CreateOrderFromPathOpts {
 export function createOrdersFromTwoHopSample(
     sample: DexSample<MultiHopFillData>,
     opts: CreateOrderFromPathOpts,
-): [OptimizedMarketOrder, OptimizedMarketOrder] {
+): [OptimizedOrder, OptimizedOrder] {
     const [makerToken, takerToken] = getMakerTakerTokens(opts);
     const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
     const firstHopFill: Fill = {
@@ -548,13 +548,7 @@ function getFillTokenAmounts(fill: Fill, side: MarketOperation): [BigNumber, Big
     ];
 }
 
-export function createNativeOptimizedOrder(
-    fill: Fill<NativeFillData>,
-    side: MarketOperation,
-):
-    | OptimizedMarketOrderBase<NativeRfqOrderFillData>
-    | OptimizedMarketOrderBase<NativeLimitOrderFillData>
-    | OptimizedMarketOrderBase<NativeOtcOrderFillData> {
+export function createNativeOptimizedOrder(fill: Fill<NativeFillData>, side: MarketOperation): OptimizedNativeOrder {
     const fillData = fill.fillData;
     const [makerAmount, takerAmount] = getFillTokenAmounts(fill, side);
     const base = {

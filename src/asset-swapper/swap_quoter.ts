@@ -34,14 +34,7 @@ import {
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
-import {
-    ERC20BridgeSource,
-    FillData,
-    GasSchedule,
-    GetMarketOrdersOpts,
-    OptimizedMarketOrder,
-    Orderbook,
-} from './types';
+import { ERC20BridgeSource, FillData, GasSchedule, GetMarketOrdersOpts, OptimizedOrder, Orderbook } from './types';
 import { GasPriceUtils } from './utils/gas_price_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './utils/quote_simulation';
@@ -399,7 +392,7 @@ function createSwapQuote(
 }
 
 function calculateQuoteInfo(
-    optimizedOrders: OptimizedMarketOrder[],
+    optimizedOrders: OptimizedOrder[],
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
@@ -430,7 +423,7 @@ function calculateQuoteInfo(
 }
 
 function calculateTwoHopQuoteInfo(
-    optimizedOrders: OptimizedMarketOrder[],
+    optimizedOrders: OptimizedOrder[],
     operation: MarketOperation,
     gasSchedule: GasSchedule,
     slippage: number,

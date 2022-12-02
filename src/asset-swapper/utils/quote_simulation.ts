@@ -2,7 +2,7 @@ import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { constants } from '../constants';
-import { MarketOperation, GasSchedule, NativeLimitOrderFillData, OptimizedMarketOrder } from '../types';
+import { MarketOperation, GasSchedule, NativeLimitOrderFillData, OptimizedOrder } from '../types';
 
 import { getNativeAdjustedTakerFeeAmount } from './utils';
 
@@ -61,7 +61,7 @@ const EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT = {
 };
 
 interface QuoteFillInfo {
-    orders: OptimizedMarketOrder[];
+    orders: OptimizedOrder[];
     fillAmount: BigNumber;
     gasPrice: BigNumber;
     side: MarketOperation;
@@ -80,7 +80,7 @@ const DEFAULT_SIMULATED_FILL_QUOTE_INFO_OPTS = {
 };
 
 export interface QuoteFillOrderCall {
-    order: OptimizedMarketOrder;
+    order: OptimizedOrder;
     // Total input amount defined in the order.
     totalOrderInput: BigNumber;
     // Total output amount defined in the order.
@@ -176,7 +176,7 @@ export function fillQuoteOrders(
     return result;
 }
 
-function hasProtocolFee(o: OptimizedMarketOrder): boolean {
+function hasProtocolFee(o: OptimizedOrder): boolean {
     return o.type === FillQuoteTransformerOrderType.Limit;
 }
 
@@ -299,7 +299,7 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(fills: OptimizedMarketOrder[], gasSchedule: GasSchedule): number {
+function getTotalGasUsedByFills(fills: OptimizedOrder[], gasSchedule: GasSchedule): number {
     let gasUsed = 0;
     for (const f of fills) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!

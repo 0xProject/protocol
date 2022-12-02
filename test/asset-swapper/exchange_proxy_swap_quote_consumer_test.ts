@@ -30,7 +30,7 @@ import {
     Fill,
     NativeFillData,
     OptimizedLimitOrder,
-    OptimizedMarketOrder,
+    OptimizedOrder,
 } from '../../src/asset-swapper/types';
 
 import { chaiSetup } from './utils/chai_setup';
@@ -172,7 +172,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
 
     type PlainOrder = Exclude<LimitOrderFields, ['chainId', 'exchangeAddress']>;
 
-    function cleanOrders(orders: OptimizedMarketOrder[]): PlainOrder[] {
+    function cleanOrders(orders: OptimizedOrder[]): PlainOrder[] {
         return orders.map(
             (o) =>
                 _.omit(

@@ -4,7 +4,7 @@ import _ = require('lodash');
 import {
     MarketOperation,
     NativeFillData,
-    OptimizedMarketOrder,
+    OptimizedOrder,
     ERC20BridgeSource,
     ExchangeProxyOverhead,
     Fill,
@@ -42,7 +42,7 @@ const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
 };
 
 export class Path {
-    public orders?: OptimizedMarketOrder[];
+    public orders?: OptimizedOrder[];
     public sourceFlags = BigInt(0);
     protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
@@ -179,5 +179,5 @@ export class Path {
 }
 
 interface FinalizedPath extends Path {
-    readonly orders: OptimizedMarketOrder[];
+    readonly orders: OptimizedOrder[];
 }
