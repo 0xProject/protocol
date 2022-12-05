@@ -149,7 +149,6 @@ export class MarketOperationUtils {
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -163,7 +162,7 @@ export class MarketOperationUtils {
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources.sources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -171,7 +170,7 @@ export class MarketOperationUtils {
             ),
             // Get ETH -> taker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources.sources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -270,7 +269,6 @@ export class MarketOperationUtils {
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._buySources.merge(requestFilters);
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -284,7 +282,7 @@ export class MarketOperationUtils {
             this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources.sources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -292,7 +290,7 @@ export class MarketOperationUtils {
             ),
             // Get ETH -> taker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources.sources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
