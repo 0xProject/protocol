@@ -6,7 +6,7 @@ import { MarketOperation } from '../../types';
 
 import { COMPARISON_PRICE_DECIMALS, SOURCE_FLAGS } from './constants';
 import { ComparisonPrice, MarketSideLiquidity } from './types';
-import { ERC20BridgeSource, ExchangeProxyOverhead, FeeEstimate, FeeSchedule } from '../../types';
+import { ExchangeProxyOverhead, FeeEstimate } from '../../types';
 
 /**
  * Takes in an optimizer response and returns a price for RFQT MMs to beat
@@ -15,14 +15,14 @@ import { ERC20BridgeSource, ExchangeProxyOverhead, FeeEstimate, FeeSchedule } fr
  * @param adjustedRate the adjusted rate (accounting for fees) from the optimizer, maker/taker
  * @param amount the amount specified by the client
  * @param marketSideLiquidity the results from querying liquidity sources
- * @param feeSchedule the fee schedule passed to the Optimizer
+ * @param nativeOrderFeeEstimate the fee estimate for native order.
  * @return ComparisonPrice object with the prices for RFQ MMs to beat
  */
 export function getComparisonPrices(
     adjustedRate: BigNumber,
     amount: BigNumber,
     marketSideLiquidity: MarketSideLiquidity,
-    feeSchedule: FeeSchedule,
+    nativeOrderFeeEstimate: FeeEstimate,
     exchangeProxyOverhead: ExchangeProxyOverhead,
 ): ComparisonPrice {
     let wholeOrder: BigNumber | undefined;
@@ -34,22 +34,15 @@ export function getComparisonPrices(
     // This works because the feeSchedule returns a constant for Native orders, this will need
     // to be tweaked if the feeSchedule for native orders uses the fillData passed in
     // 2 potential issues: there is no native fee schedule or the fee schedule depends on fill data
-    if (feeSchedule[ERC20BridgeSource.Native] === undefined) {
-        logUtils.warn('ComparisonPrice function did not find native order fee schedule');
+
+    try {
+        const fillFeeInEth = new BigNumber(nativeOrderFeeEstimate({ type: FillQuoteTransformerOrderType.Rfq }).fee);
+        const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
+        feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);
+    } catch {
+        logUtils.warn('Native order fee schedule requires fill data');
 
         return { wholeOrder };
-    } else {
-        try {
-            const fillFeeInEth = new BigNumber(
-                (feeSchedule[ERC20BridgeSource.Native] as FeeEstimate)({ type: FillQuoteTransformerOrderType.Rfq }).fee,
-            );
-            const exchangeProxyOverheadInEth = new BigNumber(exchangeProxyOverhead(SOURCE_FLAGS.RfqOrder));
-            feeInEth = fillFeeInEth.plus(exchangeProxyOverheadInEth);
-        } catch {
-            logUtils.warn('Native order fee schedule requires fill data');
-
-            return { wholeOrder };
-        }
     }
 
     // Calc native order fee penalty in output unit (maker units for sells, taker unit for buys)

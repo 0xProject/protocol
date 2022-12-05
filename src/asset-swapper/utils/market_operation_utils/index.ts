@@ -496,7 +496,7 @@ export class MarketOperationUtils {
                 optimizerResult.adjustedRate,
                 amount,
                 marketSideLiquidity,
-                _opts.feeSchedule,
+                _opts.feeSchedule.Native,
                 _opts.exchangeProxyOverhead,
             ).wholeOrder;
         }

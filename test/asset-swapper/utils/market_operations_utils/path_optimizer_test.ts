@@ -24,7 +24,7 @@ const ZERO = new BigNumber(0);
 
 const NO_OP_FEE_SCHEDULE: FeeSchedule = Object.fromEntries(
     Object.values(ERC20BridgeSource).map((source) => [source, _.constant({ gas: 0, fee: ZERO })]),
-);
+) as unknown as FeeSchedule;
 
 const NO_OP_PATH_PENALTY_OPTS: PathPenaltyOpts = {
     outputAmountPerEth: ZERO,

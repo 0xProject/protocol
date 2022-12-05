@@ -577,8 +577,7 @@ export enum ERC20BridgeSource {
 export interface FillData {}
 
 export type FeeEstimate = (fillData: FillData) => { gas: number; fee: BigNumber };
-// TODO:  Remove `Partial` from `FeeSchedule`
-export type FeeSchedule = Partial<{ [key in ERC20BridgeSource]: FeeEstimate }>;
+export type FeeSchedule = Record<ERC20BridgeSource, FeeEstimate>;
 
 type GasEstimate = (fillData: FillData) => number;
 export type GasSchedule = Record<ERC20BridgeSource, GasEstimate>;

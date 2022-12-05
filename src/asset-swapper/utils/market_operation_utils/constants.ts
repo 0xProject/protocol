@@ -2888,7 +2888,7 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.Dystopia]: () => 160e3,
 };
 
-const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
+const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.keys(DEFAULT_GAS_SCHEDULE).reduce((acc, key) => {
     acc[key as ERC20BridgeSource] = (fillData: FillData) => {
         return {
             gas: DEFAULT_GAS_SCHEDULE[key as ERC20BridgeSource](fillData),
@@ -2896,9 +2896,7 @@ const DEFAULT_FEE_SCHEDULE: Required<FeeSchedule> = Object.keys(DEFAULT_GAS_SCHE
         };
     };
     return acc;
-}, {} as Required<FeeSchedule>);
-
-export const DEFAULT_FEE_ESTIMATE = { gas: 0, fee: ZERO_AMOUNT };
+}, {} as FeeSchedule);
 
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     excludedSources: [],
