@@ -124,7 +124,7 @@ export async function buildRfqtServicesAsync(
                 chain.rfqtFeeModelVersion || 0,
                 rfqMakerBalanceCacheService,
                 kafkaProducer,
-                chain.rfqtQuoteReportTopic,
+                chain.rfqtFeeEventTopic,
             );
         }),
     );
