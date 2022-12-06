@@ -7,7 +7,6 @@ on:
       environment:
         type: choice
         options:
-        - ropsten
         - staging
         - production
         required: true
