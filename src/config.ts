@@ -105,13 +105,10 @@ const getIntegratorIdFromLabel = (label: string): string | undefined => {
 type RfqWorkFlowType = 'rfqt' | 'rfqm';
 type RfqOrderType = 'rfq' | 'otc';
 
-export const RFQ_WORKFLOW: RfqWorkFlowType = 'rfqt'; // This code base currently only supports rfqt workflow.
-export const RFQ_PAIR_REFRESH_INTERVAL_MS: number = ONE_MINUTE_MS * 1;
-
 /**
  * The JSON config for each Market Maker, providing information including URIs, type of order supported and authentication.
  */
-export interface RfqMakerConfig {
+interface RfqMakerConfig {
     makerId: string;
     label: string;
     rfqmMakerUri: string;
@@ -124,7 +121,7 @@ export interface RfqMakerConfig {
 /**
  * A Map type which map the makerId to the config object.
  */
-export type MakerIdsToConfigs = Map</* makerId */ string, RfqMakerConfig>;
+type MakerIdsToConfigs = Map</* makerId */ string, RfqMakerConfig>;
 
 /**
  * Generate a map from MakerId to MakerConfig that support a given order type for a given workflow
@@ -311,9 +308,7 @@ export const RFQT_REGISTRY_PASSWORDS: string[] = resolveEnvVar<string[]>(
 const RFQT_INTEGRATORS: Integrator[] = INTEGRATORS_ACL.filter((i) => i.rfqt);
 export const RFQT_INTEGRATOR_IDS: string[] = INTEGRATORS_ACL.filter((i) => i.rfqt).map((i) => i.integratorId);
 export const RFQT_API_KEY_WHITELIST: string[] = getApiKeyWhitelistFromIntegratorsAcl('rfqt');
-export const RFQM_API_KEY_WHITELIST: Set<string> = new Set(getApiKeyWhitelistFromIntegratorsAcl('rfqm'));
 
-export const RFQT_MAKER_CONFIG_MAP_FOR_RFQ_ORDER: MakerIdsToConfigs = getMakerConfigMapForOrderType('rfq', 'rfqt');
 export const MATCHA_INTEGRATOR_ID: string | undefined = getIntegratorIdFromLabel('Matcha');
 
 export const RFQ_CLIENT_ROLLOUT_PERCENT: number = resolveEnvVar('RFQ_CLIENT_ROLLOUT_PERCENT', EnvVarType.Integer, 0);
