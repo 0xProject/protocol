@@ -188,6 +188,12 @@ export class QuoteServerClient {
         makerUriToUrl: (u: string) => string,
     ): Promise<IndicativeQuote | undefined> {
         const timerStopFn = RFQ_MARKET_MAKER_PRICE_REQUEST_DURATION_SECONDS.startTimer();
+        const headers = {
+            '0x-request-uuid': uuid.v4(),
+            '0x-integrator-id': integrator.integratorId,
+            '0x-api-key': integrator.integratorId,
+        };
+        logger.info({ headers, parameters, integratorId: integrator.integratorId, makerUri }, 'v2/price request to MM');
         const response = await this._axiosInstance.get(makerUriToUrl(makerUri), {
             timeout: RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
             validateStatus: (status: number) => {
@@ -198,13 +204,10 @@ export class QuoteServerClient {
                 // Don't throw errors on 4xx or 5xx
                 return true;
             },
-            headers: {
-                '0x-request-uuid': uuid.v4(),
-                '0x-integrator-id': integrator.integratorId,
-                '0x-api-key': integrator.integratorId,
-            },
+            headers,
             params: parameters,
         });
+        logger.info({ makerUri, body: response.data, status: response.status }, 'v2/price response from MM');
 
         timerStopFn({
             type: makerUriToUrl(''), // HACK - used to distinguish between RFQm and RFQt
@@ -296,6 +299,13 @@ export class QuoteServerClient {
     ): Promise<Signature | undefined> {
         const timerStopFn = MARKET_MAKER_SIGN_LATENCY.startTimer();
         const requestUuid = uuid.v4();
+        const headers = {
+            '0x-api-key': integratorId,
+            '0x-integrator-id': integratorId,
+            '0x-request-uuid': requestUuid,
+            'Content-Type': 'application/json',
+        };
+        logger.info({ headers, payload, integratorId, makerUri }, 'v2/sign request to MM');
         const rawResponse = await this._axiosInstance.post(
             makerUriToUrl(makerUri),
             {
@@ -322,8 +332,9 @@ export class QuoteServerClient {
                 makerUri,
                 requestUuid,
                 status: rawResponse.status,
+                body: rawResponse.data,
             },
-            'Sign response received from MM',
+            'v2/sign response from MM',
         );
         timerStopFn({
             makerUri,
