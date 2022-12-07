@@ -11,7 +11,8 @@ import * as _ from 'lodash';
 import 'mocha';
 import supertest from 'supertest';
 
-import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { getAppAsync } from '../src/app';
+import { getDefaultAppDependenciesAsync } from '../src/runners/utils';
 import { AppDependencies } from '../src/types';
 import { BUY_SOURCE_FILTER_BY_CHAIN_ID, ChainId, ERC20BridgeSource, LimitOrderFields } from '../src/asset-swapper';
 import * as config from '../src/config';
@@ -46,6 +47,7 @@ import { getRandomSignedLimitOrderAsync } from './utils/orders';
 // Force reload of the app avoid variables being polluted between test suites
 // Warning: You probably don't want to move this
 delete require.cache[require.resolve('../src/app')];
+delete require.cache[require.resolve('../src/runners/utils')];
 
 const SUITE_NAME = 'Swap API';
 const EXCLUDED_SOURCES = BUY_SOURCE_FILTER_BY_CHAIN_ID[ChainId.Mainnet].sources.filter(

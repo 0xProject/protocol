@@ -9,7 +9,8 @@ import * as HttpStatus from 'http-status-codes';
 import * as _ from 'lodash';
 import 'mocha';
 
-import { getAppAsync, getDefaultAppDependenciesAsync } from '../src/app';
+import { getAppAsync } from '../src/app';
+import { getDefaultAppDependenciesAsync } from '../src/runners/utils';
 import { AppDependencies } from '../src/types';
 import { LimitOrder } from '../src/asset-swapper';
 import * as config from '../src/config';
@@ -32,6 +33,7 @@ import { getRandomSignedLimitOrderAsync } from './utils/orders';
 
 // Force reload of the app avoid variables being polluted between test suites
 delete require.cache[require.resolve('../src/app')];
+delete require.cache[require.resolve('../src/runners/utils')];
 
 const SUITE_NAME = 'Standard Relayer API (SRA) integration tests';
 

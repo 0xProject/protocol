@@ -6,7 +6,7 @@ import * as express from 'express';
 import * as core from 'express-serve-static-core';
 import { Server } from 'http';
 
-import { getDefaultAppDependenciesAsync } from '../app';
+import { getDefaultAppDependenciesAsync } from './utils';
 import {
     defaultHttpServiceConfig,
     SENTRY_DSN,
