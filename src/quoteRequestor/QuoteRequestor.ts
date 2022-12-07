@@ -18,9 +18,9 @@ import axios, { AxiosInstance } from 'axios';
 
 import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { ONE_SECOND_MS } from '../core/constants';
+import { Fee } from '../core/types';
 import { logger } from '../logger';
 import {
-    Fee,
     TakerRequestQueryParamsUnnested,
     V4RFQFirmQuote,
     V4SignedRfqOrder,

@@ -13,19 +13,25 @@ import { Producer as KafkaProducer } from 'kafkajs';
 
 import { Integrator } from '../config';
 import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../core/constants';
-import { StoredFee } from '../entities/types';
+import { feeToStoredFee } from '../core/fee_utils';
+import {
+    Fee,
+    FeeModelVersion,
+    QuoteServerPriceParams,
+    RequireOnlyOne,
+    RfqtV2Prices,
+    RfqtV2Quotes,
+    StoredFee,
+} from '../core/types';
 import { logger } from '../logger';
-import { Fee } from '../quote-server/types';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../core/types';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
-import { feeToStoredFee } from '../utils/rfqm_db_utils';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
-import { FeeService } from './fee_service';
 
+import { FeeService } from './fee_service';
 import { RfqMakerBalanceCacheService } from './rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from './types';
 

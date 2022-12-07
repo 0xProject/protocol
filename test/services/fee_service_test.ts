@@ -12,8 +12,8 @@ import {
     reviseQuoteWithFees,
     FeeService,
 } from '../../src/services/fee_service';
-import { FeeWithDetails, QuoteContext } from '../../src/services/types';
-import { IndicativeQuote, TokenMetadata } from '../../src/core/types';
+import { QuoteContext } from '../../src/services/types';
+import { FeeWithDetails, IndicativeQuote, TokenMetadata } from '../../src/core/types';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';

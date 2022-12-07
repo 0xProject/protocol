@@ -16,6 +16,8 @@ import {
     ONE_MINUTE_S,
     ONE_SECOND_MS,
 } from '../core/constants';
+import { storedFeeToFee } from '../core/fee_utils';
+import { Approval } from '../core/types';
 import {
     MetaTransactionJobEntity,
     MetaTransactionSubmissionEntity,
@@ -30,11 +32,10 @@ import {
 } from '../entities/types';
 import { logger } from '../logger';
 import { SignRequest } from '../quote-server/types';
-import { Approval } from '../core/types';
 import { CacheClient } from '../utils/cache_client';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { QuoteServerClient } from '../utils/quote_server_client';
-import { RfqmDbUtils, storedFeeToFee, storedOtcOrderToOtcOrder } from '../utils/rfqm_db_utils';
+import { RfqmDbUtils, storedOtcOrderToOtcOrder } from '../utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 import { getSignerFromHash, padSignature } from '../utils/signature_utils';

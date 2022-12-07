@@ -1,7 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
+import { StoredFee } from '../core/types';
+
 import { StoredOrder } from './RfqmJobEntity';
-import { StoredFee } from './types';
 
 export type RfqmQuoteConstructorOpts = Pick<RfqmQuoteEntity, 'chainId' | 'makerUri' | 'orderHash'> &
     Partial<RfqmQuoteEntity>;

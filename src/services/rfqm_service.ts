@@ -29,11 +29,13 @@ import {
 import { REASON_ON_STATUS_ERROR_RESPONSE_ENABLED } from '../config';
 import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../core/errors';
 import { logger } from '../logger';
-import { Fee } from '../quote-server/types';
+import { feeToStoredFee } from '../core/fee_utils';
+import { toPairString } from '../core/pair_utils';
 import {
     Eip712DataField,
     ExecuteMetaTransactionApproval,
     ExecuteMetaTransactionEip712Context,
+    Fee,
     FeeModelVersion,
     FirmOtcQuote,
     GaslessApprovalTypes,
@@ -42,11 +44,10 @@ import {
     PermitEip712Context,
 } from '../core/types';
 import { CacheClient } from '../utils/cache_client';
-import { toPairString } from '../core/pair_utils';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { ExtendedQuoteReport, quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
-import { feeToStoredFee, otcOrderToStoredOtcOrder, RfqmDbUtils } from '../utils/rfqm_db_utils';
+import { otcOrderToStoredOtcOrder, RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { computeHealthCheckAsync, HealthCheckResult } from '../utils/rfqm_health_check';
 import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';

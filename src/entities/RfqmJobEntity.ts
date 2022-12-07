@@ -2,8 +2,10 @@ import { RfqOrderFields } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
+import { StoredFee } from '../core/types';
+
 import { BigNumberTransformer } from './transformers';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee } from './types';
+import { RfqmJobStatus, RfqmOrderTypes } from './types';
 
 export interface V4RfqStoredOrder {
     type: RfqmOrderTypes.V4Rfq;

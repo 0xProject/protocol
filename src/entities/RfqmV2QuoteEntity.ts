@@ -1,6 +1,8 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-import { StoredFee, StoredOtcOrder } from './types';
+import { StoredFee } from '../core/types';
+
+import { StoredOtcOrder } from './types';
 
 export type RfqmV2QuoteConstructorOpts = Pick<
     RfqmV2QuoteEntity,

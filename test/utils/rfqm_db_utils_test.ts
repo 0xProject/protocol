@@ -4,14 +4,15 @@ import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
 import { ZERO } from '../../src/core/constants';
-import { Fee } from '../../src/quote-server/types';
+import { feeToStoredFee } from '../../src/core/fee_utils';
 import {
     DefaultFeeDetailsDeprecated,
+    Fee,
     FeeWithDetails,
     GasOnlyFeeDetailsDeprecated,
     MarginBasedFeeDetailsDeprecated,
-} from '../../src/services/types';
-import { feeToStoredFee, otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';
+} from '../../src/core/types';
+import { otcOrderToStoredOtcOrder, storedOtcOrderToOtcOrder } from '../../src/utils/rfqm_db_utils';
 
 describe('RFQM DB utils', () => {
     describe('storedOtcOrderToOtcOrder and otcOrderToStoredOtcOrder', () => {

@@ -203,6 +203,6 @@ export enum OrderEventEndState {
     StoppedWatching = 'STOPPED_WATCHING',
 }
 
-export type FeeModelVersion = /* no 0x fee */ 0 | /* fixed rate */ 1 | /* margin rake */ 2;
+export * from './fees';
 
 // tslint:disable-line:max-file-line-count

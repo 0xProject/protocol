@@ -1,6 +1,7 @@
 import { SignedOrder as V3SignedOrder } from '@0x/order-utils';
 import { OtcOrderFields as OtcOrder, RfqOrderFields as V4RfqOrder, Signature as V4Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import { Fee } from '../core/types';
 
 // Requires that one of many properites is specified
 // See https://stackoverflow.com/a/49725198
@@ -11,12 +12,6 @@ export type SupportedVersion = '3' | '4';
 
 export interface V4SignedRfqOrder extends V4RfqOrder {
     signature: V4Signature;
-}
-
-export interface Fee {
-    token: string;
-    amount: BigNumber;
-    type: 'fixed' | 'bps';
 }
 
 export interface BaseTakerRequest {

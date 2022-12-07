@@ -1,7 +1,7 @@
 import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import { Fee, SignRequest } from '../quote-server/types';
+import { SignRequest } from '../quote-server/types';
 import { schemas as quoteServerSchemas } from '../quote-server/schemas';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
@@ -14,7 +14,7 @@ import { Integrator, RFQ_PRICE_ENDPOINT_TIMEOUT_MS, RFQ_SIGN_ENDPOINT_TIMEOUT_MS
 import { ZERO } from '../core/constants';
 import { logger } from '../logger';
 import { schemas } from '../core/schemas';
-import { IndicativeQuote, QuoteServerPriceParams } from '../core/types';
+import { Fee, IndicativeQuote, QuoteServerPriceParams } from '../core/types';
 
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',

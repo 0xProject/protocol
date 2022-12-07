@@ -9,8 +9,8 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../core/constants';
-import { SubmitRequest, Fee } from '../quote-server/types';
-import { QuoteServerPriceParams } from '../core/types';
+import { Fee, QuoteServerPriceParams } from '../core/types';
+import { SubmitRequest } from '../quote-server/types';
 import { stringsToOtcOrderFields, stringsToSignature } from '../utils/rfqm_request_utils';
 
 const WETH_ROPSTEN = '0xc778417e063141139fce010982780140aa0cd5ab';

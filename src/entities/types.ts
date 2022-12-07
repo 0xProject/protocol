@@ -135,18 +135,6 @@ export enum SubmissionContextStatus {
     SucceededUnconfirmed = 'succeeded_unconfirmed',
 }
 
-export interface StoredFee {
-    token: string;
-    amount: string;
-    type: 'fixed' | 'bps';
-    // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    details?: any;
-    breakdown?: any;
-    conversionRates?: any;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-}
-
 export interface TransactionEntityOpts {
     refHash: string;
     apiKey?: string;

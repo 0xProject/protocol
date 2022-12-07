@@ -3,8 +3,16 @@ import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
 import { BPS_TO_RATIO, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../core/constants';
-import { Fee } from '../quote-server/types';
-import { IndicativeQuote } from '../core/types';
+import {
+    ConversionRates,
+    DefaultFeeDetailsDeprecated,
+    Fee,
+    FeeBreakdown,
+    FeeWithDetails,
+    GasOnlyFeeDetailsDeprecated,
+    IndicativeQuote,
+    MarginBasedFeeDetailsDeprecated,
+} from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { getBestQuote } from '../utils/quote_comparison_utils';
@@ -12,15 +20,7 @@ import { calculateGasEstimate } from '../utils/rfqm_gas_estimate_utils';
 import { TokenPriceOracle } from '../utils/TokenPriceOracle';
 import { AmmQuote, ZeroExApiClient } from '../utils/ZeroExApiClient';
 
-import {
-    ConversionRates,
-    DefaultFeeDetailsDeprecated,
-    FeeBreakdown,
-    FeeWithDetails,
-    GasOnlyFeeDetailsDeprecated,
-    MarginBasedFeeDetailsDeprecated,
-    QuoteContext,
-} from './types';
+import { QuoteContext } from './types';
 
 /**
  * Interface for the response of CalculateFeeAsync() method. Including `feeWithDetails` object, and two optional fields for fee model v2:

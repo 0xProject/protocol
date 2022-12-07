@@ -2,10 +2,10 @@ import { Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
-import { Approval } from '../core/types';
+import { Approval, StoredFee } from '../core/types';
 
 import { BigNumberTransformer } from './transformers';
-import { RfqmJobStatus, StoredFee, StoredOtcOrder } from './types';
+import { RfqmJobStatus, StoredOtcOrder } from './types';
 
 export type RfqmV2JobApprovalOpts = Pick<RfqmV2JobEntity, 'approval' | 'approvalSignature'>;
 

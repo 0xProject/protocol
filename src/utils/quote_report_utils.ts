@@ -2,9 +2,8 @@ import { ERC20BridgeSource, FillData, NativeFillData, RfqOrderFields } from '@0x
 import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
-import { StoredFee } from '../entities/types';
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes } from '../core/types';
+import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes, StoredFee } from '../core/types';
 
 import { numberUtils } from './number_utils';
 

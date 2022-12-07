@@ -20,7 +20,7 @@ import { DataSource } from 'typeorm';
 import * as config from '../src/config';
 import { ADMIN_PATH, ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, RFQM_PATH, ZERO } from '../src/core/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity } from '../src/entities';
-import { RfqmJobStatus, RfqmOrderTypes, StoredFee, StoredOtcOrder } from '../src/entities/types';
+import { RfqmJobStatus, RfqmOrderTypes, StoredOtcOrder } from '../src/entities/types';
 import {
     buildRfqAdminService,
     buildRfqMakerService,
@@ -30,7 +30,7 @@ import { FeeService } from '../src/services/fee_service';
 import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
 import { RfqmTypes } from '../src/services/types';
-import { GaslessApprovalTypes, PermitEip712Types } from '../src/core/types';
+import { GaslessApprovalTypes, PermitEip712Types, StoredFee } from '../src/core/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';

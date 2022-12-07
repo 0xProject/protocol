@@ -5,18 +5,12 @@ import { DataSource } from 'typeorm';
 import * as uuid from 'uuid';
 
 import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/core/constants';
+import { feeToStoredFee, storedFeeToFee } from '../src/core/fee_utils';
 import { MetaTransactionSubmissionEntityConstructorOpts } from '../src/entities/MetaTransactionSubmissionEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../src/entities/types';
-import { Fee } from '../src/quote-server/types';
-import { ExecuteMetaTransactionApproval, GaslessApprovalTypes } from '../src/core/types';
-import {
-    feeToStoredFee,
-    otcOrderToStoredOtcOrder,
-    RfqmDbUtils,
-    storedFeeToFee,
-    storedOtcOrderToOtcOrder,
-} from '../src/utils/rfqm_db_utils';
+import { ExecuteMetaTransactionApproval, Fee, GaslessApprovalTypes } from '../src/core/types';
+import { otcOrderToStoredOtcOrder, RfqmDbUtils, storedOtcOrderToOtcOrder } from '../src/utils/rfqm_db_utils';
 
 import { MOCK_FEE, MOCK_META_TRANSACTION } from './constants';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from './test_utils/deployment';
