@@ -6,7 +6,7 @@ import Axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { BAD_REQUEST, NOT_ACCEPTABLE, OK } from 'http-status-codes';
 import { TwirpError } from 'twirpscript';
-import { APIErrorCodes, apiErrorCodesToReasons } from '../../src/errors';
+import { APIErrorCodes, apiErrorCodesToReasons } from '../../src/core/errors';
 import { GetQuote, GetQuoteResponse } from '../../src/proto-ts/meta_transaction.pb';
 import { getQuoteAsync, getQuoteRpc } from '../../src/utils/MetaTransactionClient';
 import { bigNumberToProto, protoToBigNumber } from '../../src/utils/ProtoUtils';

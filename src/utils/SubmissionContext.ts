@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/utils';
 import { providers } from 'ethers';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, SubmissionContextStatus } from '../entities/types';
 

@@ -1,6 +1,6 @@
 import { SQS } from 'aws-sdk';
 
-import { LONG_POLLING_WAIT_TIME_SECONDS, SINGLE_MESSAGE } from '../constants';
+import { LONG_POLLING_WAIT_TIME_SECONDS, SINGLE_MESSAGE } from '../core/constants';
 
 /**
  * SqsClient wraps SQS, making it far easier to unit test SQS and ignore SQS details

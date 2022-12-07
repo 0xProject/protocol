@@ -17,7 +17,7 @@ import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import axios, { AxiosInstance } from 'axios';
 
 import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
 import {
     Fee,

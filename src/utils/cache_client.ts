@@ -2,11 +2,11 @@ import { ZERO } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import Redis from 'ioredis';
 
-import { MAKER_TOKEN_BALANCE_EXPIRY_SECONDS } from '../constants';
-import { ERC20Owner } from '../types';
+import { MAKER_TOKEN_BALANCE_EXPIRY_SECONDS } from '../core/constants';
+import { ERC20Owner } from '../core/types';
 
 import { splitAddresses } from './address_utils';
-import { toPairString } from './pair_utils';
+import { toPairString } from '../core/pair_utils';
 
 const OTC_ORDER_NONCE_BUCKET_COUNTER_KEY = (chainId: number) => `otcorder.nonce.bucket.counter.chain.${chainId}`;
 // The value stored at this key is a set. The members of this set are each an ERC20_OWNER_BALANCE_KEY.

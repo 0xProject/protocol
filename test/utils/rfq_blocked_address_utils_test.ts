@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { DataSource } from 'typeorm';
 
-import { ONE_MINUTE_MS } from '../../src/constants';
+import { ONE_MINUTE_MS } from '../../src/core/constants';
 import { BlockedAddressEntity } from '../../src/entities/BlockedAddressEntity';
 import { RfqBlockedAddressUtils } from '../../src/utils/rfq_blocked_address_utils';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from '../test_utils/deployment';

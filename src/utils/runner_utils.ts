@@ -3,7 +3,7 @@ import { Worker } from 'bullmq';
 import * as express from 'express';
 
 import { ENABLE_PROMETHEUS_METRICS, PROMETHEUS_PORT } from '../config';
-import { METRICS_PATH } from '../constants';
+import { METRICS_PATH } from '../core/constants';
 import { logger } from '../logger';
 
 /**

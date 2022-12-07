@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 
 import backgroundJobNoOp from '../src/background-jobs/no_op';
 import { REDIS_BACKGROUND_JOB_URI } from '../src/config';
-import { ONE_SECOND_MS } from '../src/constants';
+import { ONE_SECOND_MS } from '../src/core/constants';
 import { ScheduledBackgroundJob, Scheduler } from '../src/scheduler';
 import { closeRedisConnectionsAsync, closeWorkersAsync } from '../src/utils/runner_utils';
 

@@ -2,7 +2,7 @@ import { BigNumber } from '@0x/utils';
 import { Counter, Gauge, Summary } from 'prom-client';
 
 import { logger } from '../logger';
-import { ERC20Owner } from '../types';
+import { ERC20Owner } from '../core/types';
 import { CacheClient } from '../utils/cache_client';
 import { RfqBalanceCheckUtils } from '../utils/rfq_blockchain_utils';
 

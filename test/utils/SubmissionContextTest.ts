@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { BigNumber as EthersBigNumber, providers } from 'ethers';
 import { deepEqual, instance, mock, when } from 'ts-mockito';
 
-import { ONE_SECOND_MS } from '../../src/constants';
+import { ONE_SECOND_MS } from '../../src/core/constants';
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import {
     RfqmTransactionSubmissionStatus,

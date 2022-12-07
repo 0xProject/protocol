@@ -11,7 +11,7 @@ import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { FirmQuoteContext, QuoteContext } from '../services/types';
-import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../types';
+import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
 

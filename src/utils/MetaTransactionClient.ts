@@ -8,7 +8,7 @@ import { BAD_REQUEST } from 'http-status-codes';
 import { Summary } from 'prom-client';
 import { TwirpError } from 'twirpscript';
 import { META_TRANSACTION_SERVICE_RPC_URL } from '../config';
-import { APIErrorCodes } from '../errors';
+import { APIErrorCodes } from '../core/errors';
 import { GetQuote, GetQuoteResponse } from '../proto-ts/meta_transaction.pb';
 
 import { FetchIndicativeQuoteResponse } from '../services/types';

@@ -3,7 +3,7 @@ import { ChainId } from '@0x/contract-addresses';
 import { findTokenAddressOrThrow } from '@0x/token-metadata';
 import { addressUtils } from '@0x/utils';
 
-import { ERC20Owner } from '../types';
+import { ERC20Owner } from '../core/types';
 
 /**
  * Checks top level attributes of an object for values matching an ETH address

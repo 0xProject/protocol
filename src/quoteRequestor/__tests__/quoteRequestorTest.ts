@@ -19,7 +19,7 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import * as _ from 'lodash';
 
-import { NULL_ADDRESS } from '../../constants';
+import { NULL_ADDRESS } from '../../core/constants';
 import { TakerRequestQueryParamsUnnested, V4RFQIndicativeQuote } from '../../quote-server/types';
 import { QuoteRequestor } from '../QuoteRequestor';
 

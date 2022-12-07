@@ -1,10 +1,10 @@
 import { BigNumber } from '@0x/utils';
 import { Counter } from 'prom-client';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
 import { QuoteContext } from '../services/types';
-import { RfqtV2Prices } from '../types';
+import { RfqtV2Prices } from '../core/types';
 
 const ORDER_FULLY_FILLABLE = new Counter({
     name: 'rfqt_order_fully_fillable',

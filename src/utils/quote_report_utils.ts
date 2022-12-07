@@ -4,7 +4,7 @@ import { Producer } from 'kafkajs';
 
 import { StoredFee } from '../entities/types';
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes } from '../types';
+import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes } from '../core/types';
 
 import { numberUtils } from './number_utils';
 

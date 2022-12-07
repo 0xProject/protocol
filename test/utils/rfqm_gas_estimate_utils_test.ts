@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 
-import { RFQM_TX_GAS_ESTIMATE } from '../../src/constants';
+import { RFQM_TX_GAS_ESTIMATE } from '../../src/core/constants';
 import { calculateGasEstimate } from '../../src/utils/rfqm_gas_estimate_utils';
 
 describe('RFQM Gas Estimate utils', () => {

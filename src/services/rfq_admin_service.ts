@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { RfqmJobStatus, UnresolvedRfqmJobStatuses } from '../entities/types';
 import { logger } from '../logger';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';

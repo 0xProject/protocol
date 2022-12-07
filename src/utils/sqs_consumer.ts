@@ -5,7 +5,7 @@ import { SQS } from 'aws-sdk';
 import delay from 'delay';
 
 import { SENTRY_DSN } from '../config';
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
 
 import { SqsClient } from './sqs_client';

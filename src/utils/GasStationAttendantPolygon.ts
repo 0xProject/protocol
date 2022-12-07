@@ -1,7 +1,7 @@
 import { ProtocolFeeUtils } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
-import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../constants';
+import { GWEI_DECIMALS, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasStationAttendant, Wei, WeiPerGas } from './GasStationAttendant';

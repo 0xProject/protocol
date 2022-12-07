@@ -11,10 +11,10 @@ import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 
 import { Integrator, RFQ_PRICE_ENDPOINT_TIMEOUT_MS, RFQ_SIGN_ENDPOINT_TIMEOUT_MS } from '../config';
-import { ZERO } from '../constants';
+import { ZERO } from '../core/constants';
 import { logger } from '../logger';
-import { schemas } from '../schemas';
-import { IndicativeQuote, QuoteServerPriceParams } from '../types';
+import { schemas } from '../core/schemas';
+import { IndicativeQuote, QuoteServerPriceParams } from '../core/types';
 
 const MARKET_MAKER_SIGN_LATENCY = new Summary({
     name: 'market_maker_sign_latency',

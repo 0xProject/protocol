@@ -7,7 +7,7 @@ import { RfqMaker } from '../entities';
 import { logger } from '../logger';
 
 import { ConfigManager } from './config_manager';
-import { toPairString } from './pair_utils';
+import { toPairString } from '../core/pair_utils';
 import { RfqMakerDbUtils } from './rfq_maker_db_utils';
 
 const RFQ_MAKER_REFRESH_FAILED = new Counter({

@@ -10,7 +10,7 @@ import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
 
 import { Integrator } from '../../src/config';
-import { ZERO } from '../../src/constants';
+import { ZERO } from '../../src/core/constants';
 import { MetaTransactionJobEntity } from '../../src/entities';
 import { RfqmJobStatus } from '../../src/entities/types';
 import { GaslessSwapService } from '../../src/services/GaslessSwapService';

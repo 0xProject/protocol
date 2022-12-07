@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as HttpStatus from 'http-status-codes';
 import { Counter } from 'prom-client';
 
-import { RFQ_MAKER_API_KEY_HEADER } from '../constants';
+import { RFQ_MAKER_API_KEY_HEADER } from '../core/constants';
 import { RfqMaker } from '../entities';
 import { logger } from '../logger';
 import { RfqMakerService } from '../services/rfq_maker_service';

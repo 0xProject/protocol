@@ -9,14 +9,14 @@ import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { Integrator } from '../../src/config';
-import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/constants';
+import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/core/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { FeeService } from '../../src/services/fee_service';
 import { RfqtService } from '../../src/services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
 import { FirmQuoteContext, QuoteContext } from '../../src/services/types';
-import { IndicativeQuote } from '../../src/types';
+import { IndicativeQuote } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendant } from '../../src/utils/GasStationAttendant';

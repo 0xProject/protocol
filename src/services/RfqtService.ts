@@ -12,12 +12,12 @@ import { BigNumber } from '@0x/utils';
 import { Producer as KafkaProducer } from 'kafkajs';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../constants';
+import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../core/constants';
 import { StoredFee } from '../entities/types';
 import { logger } from '../logger';
 import { Fee } from '../quote-server/types';
 import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
-import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../types';
+import { FeeModelVersion, QuoteServerPriceParams, RequireOnlyOne, RfqtV2Prices, RfqtV2Quotes } from '../core/types';
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { feeToStoredFee } from '../utils/rfqm_db_utils';

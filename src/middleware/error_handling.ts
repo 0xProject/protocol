@@ -1,7 +1,7 @@
 import { APIBaseError, BadRequestError, ErrorUtils as BaseErrorUtils, isAPIError } from '@0x/api-utils';
 import * as HttpStatus from 'http-status-codes';
 
-import { APIErrorCodes, apiErrorCodesToReasons } from '../errors';
+import { APIErrorCodes, apiErrorCodesToReasons } from '../core/errors';
 
 class ErrorUtils extends BaseErrorUtils {
     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me

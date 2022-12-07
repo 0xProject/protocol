@@ -14,7 +14,7 @@ import * as HttpStatus from 'http-status-codes';
 import { Counter } from 'prom-client';
 
 import { Integrator } from '../config';
-import { schemas } from '../schemas';
+import { schemas } from '../core/schemas';
 import { GaslessSwapService } from '../services/GaslessSwapService';
 import {
     FetchFirmQuoteParams,
@@ -24,7 +24,7 @@ import {
     SubmitMetaTransactionSignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../types';
+import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -36,7 +36,7 @@ import {
     stringsToOtcOrderFields,
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
-import { schemaUtils } from '../utils/schema_utils';
+import { schemaUtils } from '../core/schema_utils';
 
 // Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
 const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%

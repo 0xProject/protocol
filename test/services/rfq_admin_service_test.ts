@@ -5,7 +5,7 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
 
-import { ONE_SECOND_MS, ZERO } from '../../src/constants';
+import { ONE_SECOND_MS, ZERO } from '../../src/core/constants';
 import { RfqmV2JobEntity } from '../../src/entities';
 import { RfqmJobStatus } from '../../src/entities/types';
 import { RfqAdminService } from '../../src/services/rfq_admin_service';

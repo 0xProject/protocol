@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 import { META_TXN_RELAY_EXPECTED_MINED_SEC } from '../config';
-import { ONE_SECOND_MS, ZERO } from '../constants';
+import { ONE_SECOND_MS, ZERO } from '../core/constants';
 
 import { BigIntTransformer, BigNumberTransformer } from './transformers';
 import { TransactionEntityOpts } from './types';

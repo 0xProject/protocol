@@ -1,7 +1,7 @@
 import { Job, Queue } from 'bullmq';
 import { Counter } from 'prom-client';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
 
 import { BackgroundJobBlueprint } from './blueprint';

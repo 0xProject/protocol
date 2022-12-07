@@ -17,7 +17,7 @@ import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_NUM_BUCKETS } from '../constants';
+import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_NUM_BUCKETS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
@@ -27,7 +27,7 @@ import {
     RfqmTransactionSubmissionType,
 } from '../entities/types';
 import { REASON_ON_STATUS_ERROR_RESPONSE_ENABLED } from '../config';
-import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../errors';
+import { InternalServerError, NotFoundError, ValidationError, ValidationErrorCodes } from '../core/errors';
 import { logger } from '../logger';
 import { Fee } from '../quote-server/types';
 import {
@@ -40,9 +40,9 @@ import {
     IndicativeQuote,
     PermitApproval,
     PermitEip712Context,
-} from '../types';
+} from '../core/types';
 import { CacheClient } from '../utils/cache_client';
-import { toPairString } from '../utils/pair_utils';
+import { toPairString } from '../core/pair_utils';
 import { getBestQuote } from '../utils/quote_comparison_utils';
 import { ExtendedQuoteReport, quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';

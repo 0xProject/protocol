@@ -11,7 +11,7 @@ import * as HttpStatus from 'http-status-codes';
 
 import { Integrator } from '../../src/config';
 import { Fee, SignRequest } from '../../src/quote-server/types';
-import { QuoteServerPriceParams } from '../../src/types';
+import { QuoteServerPriceParams } from '../../src/core/types';
 import { QuoteServerClient } from '../../src/utils/quote_server_client';
 import { CHAIN_ID, CONTRACT_ADDRESSES } from '../constants';
 

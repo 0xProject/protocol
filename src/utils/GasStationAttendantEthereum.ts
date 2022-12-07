@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
-import { GWEI_DECIMALS } from '../constants';
+import { GWEI_DECIMALS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 
 import { GasOracle } from './GasOracle';

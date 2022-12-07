@@ -15,7 +15,7 @@ import {
     LLR_COOLDOWN_WINDOW_SECONDS,
     ONE_MINUTE_S,
     ONE_SECOND_MS,
-} from '../constants';
+} from '../core/constants';
 import {
     MetaTransactionJobEntity,
     MetaTransactionSubmissionEntity,
@@ -30,7 +30,7 @@ import {
 } from '../entities/types';
 import { logger } from '../logger';
 import { SignRequest } from '../quote-server/types';
-import { Approval } from '../types';
+import { Approval } from '../core/types';
 import { CacheClient } from '../utils/cache_client';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { QuoteServerClient } from '../utils/quote_server_client';

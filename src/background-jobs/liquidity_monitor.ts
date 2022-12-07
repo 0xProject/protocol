@@ -7,7 +7,7 @@ import { DataSource } from 'typeorm';
 import * as uuid from 'uuid';
 
 import { CHAIN_CONFIGURATIONS, INTEGRATORS_ACL, RFQ_MAKER_CONFIGS, RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
-import { NULL_ADDRESS } from '../constants';
+import { NULL_ADDRESS } from '../core/constants';
 import { RfqMaker } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';

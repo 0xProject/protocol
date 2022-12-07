@@ -1,4 +1,4 @@
-import { RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../constants';
+import { RFQM_TX_GAS_ESTIMATE, RFQM_TX_OTC_ORDER_GAS_ESTIMATE } from '../core/constants';
 
 // ERC-20 tokens implement their own `transfer` and `transferFrom` functions, resulting in
 // different gas amounts used. These premia allow us to better estimate the gas each token uses

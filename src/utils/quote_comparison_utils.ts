@@ -1,11 +1,11 @@
 import { BigNumber, V4RFQIndicativeQuote } from '@0x/asset-swapper';
 import { Counter } from 'prom-client';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote } from '../types';
+import { FirmOtcQuote, IndicativeQuote } from '../core/types';
 
-import { toPairString } from './pair_utils';
+import { toPairString } from '../core/pair_utils';
 
 const RFQM_MAKER_BLOCKED_FOR_LOW_MAKER_BALANCE = new Counter({
     name: 'rfqm_maker_blocked_for_low_maker_balance',

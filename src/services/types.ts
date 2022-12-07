@@ -9,7 +9,7 @@ import {
     FeeModelVersion,
     GaslessApprovalTypes,
     PermitEip712Context,
-} from '../types';
+} from '../core/types';
 
 export enum RfqmTypes {
     MetaTransaction = 'metatransaction',

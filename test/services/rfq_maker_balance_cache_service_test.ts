@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
-import { ERC20Owner } from '../../src/types';
+import { ERC20Owner } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { RfqBalanceCheckUtils } from '../../src/utils/rfq_blockchain_utils';
 

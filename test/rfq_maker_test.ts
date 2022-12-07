@@ -10,7 +10,7 @@ import { anything, instance, mock, resetCalls, verify, when } from 'ts-mockito';
 import { Connection } from 'typeorm';
 
 import * as config from '../src/config';
-import { RFQ_MAKER_API_KEY_HEADER, RFQ_MAKER_PATH } from '../src/constants';
+import { RFQ_MAKER_API_KEY_HEADER, RFQ_MAKER_PATH } from '../src/core/constants';
 import { RfqMaker } from '../src/entities';
 import { runHttpRfqmServiceAsync } from '../src/runners/http_rfqm_service_runner';
 import { RfqmService } from '../src/services/rfqm_service';

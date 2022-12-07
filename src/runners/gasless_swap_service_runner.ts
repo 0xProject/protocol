@@ -23,7 +23,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { GASLESS_SWAP_SERVICE_PATH, GASLESS_SWAP_SERVICE_REAL_PATH } from '../constants';
+import { GASLESS_SWAP_SERVICE_PATH, GASLESS_SWAP_SERVICE_REAL_PATH } from '../core/constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';

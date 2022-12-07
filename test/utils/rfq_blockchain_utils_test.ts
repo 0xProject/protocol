@@ -4,9 +4,9 @@ import { BigNumber } from '@0x/utils';
 import { providers, Wallet } from 'ethers';
 import { anything, instance, mock, spy, when } from 'ts-mockito';
 
-import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../../src/constants';
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, PERMIT_EIP_712_TYPES } from '../../src/core/constants';
 import { EIP_712_REGISTRY } from '../../src/eip712registry';
-import { GaslessApprovalTypes } from '../../src/types';
+import { GaslessApprovalTypes } from '../../src/core/types';
 import { BalanceChecker } from '../../src/utils/balance_checker';
 import { extractEIP712DomainType } from '../../src/utils/Eip712Utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';

@@ -8,8 +8,8 @@ import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 
-import { RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/constants';
-import { FirmOtcQuote, IndicativeQuote } from '../../src/types';
+import { RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/core/constants';
+import { FirmOtcQuote, IndicativeQuote } from '../../src/core/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
 // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me

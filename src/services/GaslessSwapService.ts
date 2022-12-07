@@ -8,11 +8,11 @@ import Redis from 'ioredis';
 import { Counter, Summary } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { ONE_MINUTE_S, ONE_SECOND_MS } from '../constants';
+import { ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
-import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
+import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../core/types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';

@@ -21,11 +21,11 @@ import {
     METRICS_PATH,
     NULL_ADDRESS,
     ONE_MINUTE_MS,
-} from './constants';
-import { schemas } from './schemas';
-import { FeeModelVersion } from './types';
-import { toPairString } from './utils/pair_utils';
-import { schemaUtils } from './utils/schema_utils';
+} from './core/constants';
+import { schemas } from './core/schemas';
+import { FeeModelVersion } from './core/types';
+import { toPairString } from './core/pair_utils';
+import { schemaUtils } from './core/schema_utils';
 
 // tslint:disable:no-bitwise
 

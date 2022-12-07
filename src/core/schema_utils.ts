@@ -1,7 +1,7 @@
 import { AJV, SchemaValidator } from '@0x/json-schemas';
 
-import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from '../errors';
-import { schemas } from '../schemas';
+import { ValidationError, ValidationErrorCodes, ValidationErrorItem } from './errors';
+import { schemas } from './schemas';
 
 const schemaValidator = new SchemaValidator();
 for (const schema of Object.values(schemas)) {

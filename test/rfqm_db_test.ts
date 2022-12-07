@@ -4,12 +4,12 @@ import { expect } from 'chai';
 import { DataSource } from 'typeorm';
 import * as uuid from 'uuid';
 
-import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/constants';
+import { EXECUTE_META_TRANSACTION_EIP_712_TYPES, ONE_MINUTE_MS, ZERO } from '../src/core/constants';
 import { MetaTransactionSubmissionEntityConstructorOpts } from '../src/entities/MetaTransactionSubmissionEntity';
 import { RfqmV2TransactionSubmissionEntityConstructorOpts } from '../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmJobStatus, RfqmTransactionSubmissionStatus, RfqmTransactionSubmissionType } from '../src/entities/types';
 import { Fee } from '../src/quote-server/types';
-import { ExecuteMetaTransactionApproval, GaslessApprovalTypes } from '../src/types';
+import { ExecuteMetaTransactionApproval, GaslessApprovalTypes } from '../src/core/types';
 import {
     feeToStoredFee,
     otcOrderToStoredOtcOrder,

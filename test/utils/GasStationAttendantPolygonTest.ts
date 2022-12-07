@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import { instance, mock, when } from 'ts-mockito';
 
-import { GWEI_DECIMALS } from '../../src/constants';
+import { GWEI_DECIMALS } from '../../src/core/constants';
 import { RfqmV2TransactionSubmissionEntity } from '../../src/entities/RfqmV2TransactionSubmissionEntity';
 import { RfqmTransactionSubmissionType } from '../../src/entities/types';
 import { GasStationAttendantPolygon } from '../../src/utils/GasStationAttendantPolygon';

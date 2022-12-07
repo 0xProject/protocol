@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-import { OrderEventEndState } from '../types';
+import { OrderEventEndState } from '../core/types';
 
 // Adds a field `orderState` to SignedOrderEntity
 // Persists after cancellation, expiration, etc

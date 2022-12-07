@@ -3,7 +3,7 @@
 import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import { ZERO } from '../../src/constants';
+import { ZERO } from '../../src/core/constants';
 import { Fee } from '../../src/quote-server/types';
 import {
     DefaultFeeDetailsDeprecated,

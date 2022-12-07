@@ -12,7 +12,7 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import { expect } from 'chai';
 import { Contract, providers, Wallet } from 'ethers';
 
-import { ONE_MINUTE_MS, ZERO } from '../src/constants';
+import { ONE_MINUTE_MS, ZERO } from '../src/core/constants';
 import { BalanceChecker } from '../src/utils/balance_checker';
 import { RfqBlockchainUtils } from '../src/utils/rfq_blockchain_utils';
 

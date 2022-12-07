@@ -1,4 +1,4 @@
-import { TEN_MINUTES_MS } from '../constants';
+import { TEN_MINUTES_MS } from '../core/constants';
 import { logger } from '../logger';
 
 export interface CachedResult<T> {

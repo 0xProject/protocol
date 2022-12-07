@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { Producer } from 'sqs-producer';
 import { instance, mock, when } from 'ts-mockito';
 
-import { ETH_DECIMALS } from '../../src/constants';
+import { ETH_DECIMALS } from '../../src/core/constants';
 import { RfqmWorkerHeartbeatEntity } from '../../src/entities';
 import {
     checkSqsQueueAsync,

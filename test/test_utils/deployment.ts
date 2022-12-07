@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import * as path from 'path';
 
-import { ONE_MINUTE_MS } from '../../src/constants';
+import { ONE_MINUTE_MS } from '../../src/core/constants';
 
 import { initDbDataSourceAsync } from './initDbDataSourceAsync';
 

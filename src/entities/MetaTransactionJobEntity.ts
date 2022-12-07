@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { Column, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Fee } from '../quote-server/types';
 
-import { Approval } from '../types';
+import { Approval } from '../core/types';
 
 import { BigNumberTransformer, FeeTransformer, MetaTransactionTransformer } from './transformers';
 import { RfqmJobStatus } from './types';

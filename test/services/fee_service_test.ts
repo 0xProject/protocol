@@ -5,7 +5,7 @@ import { BigNumber } from '@0x/utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { DEFAULT_FEE_MODEL_CONFIGURATION, FeeModelConfiguration } from '../../src/config';
-import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../../src/constants';
+import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../../src/core/constants';
 import {
     calculateDefaultFeeAmount,
     calculatePriceImprovementAmount,
@@ -13,7 +13,7 @@ import {
     FeeService,
 } from '../../src/services/fee_service';
 import { FeeWithDetails, QuoteContext } from '../../src/services/types';
-import { IndicativeQuote, TokenMetadata } from '../../src/types';
+import { IndicativeQuote, TokenMetadata } from '../../src/core/types';
 import { ConfigManager } from '../../src/utils/config_manager';
 import { GasStationAttendantEthereum } from '../../src/utils/GasStationAttendantEthereum';
 import { TokenPriceOracle } from '../../src/utils/TokenPriceOracle';

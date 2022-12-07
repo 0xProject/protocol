@@ -9,7 +9,7 @@ import { BlockParamLiteral } from 'ethereum-types';
 import { providers } from 'ethers';
 import { anything, instance, mock, when } from 'ts-mockito';
 
-import { NULL_ADDRESS, RFQM_TX_GAS_ESTIMATE } from '../../src/constants';
+import { NULL_ADDRESS, RFQM_TX_GAS_ESTIMATE } from '../../src/core/constants';
 import { isWorkerReadyAndAbleAsync } from '../../src/utils/rfqm_worker_balance_utils';
 
 let providerMock: providers.Provider;

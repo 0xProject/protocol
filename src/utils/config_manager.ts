@@ -18,7 +18,7 @@ import {
     RFQ_API_KEY_HASH_TO_MAKER_ID,
 } from '../config';
 
-import { toPairString } from './pair_utils';
+import { toPairString } from '../core/pair_utils';
 
 const getApiKeyHash = (apiKey: string): string => createHash('sha256').update(apiKey).digest('base64');
 

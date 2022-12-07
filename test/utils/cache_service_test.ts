@@ -3,8 +3,8 @@ import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 import Redis from 'ioredis';
 
-import { ONE_MINUTE_MS } from '../../src/constants';
-import { ERC20Owner } from '../../src/types';
+import { ONE_MINUTE_MS } from '../../src/core/constants';
+import { ERC20Owner } from '../../src/core/types';
 import { CacheClient } from '../../src/utils/cache_client';
 import { setupDependenciesAsync, TeardownDependenciesFunctionHandle } from '../test_utils/deployment';
 

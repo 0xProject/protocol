@@ -8,7 +8,7 @@ import * as HttpStatus from 'http-status-codes';
 import { Counter } from 'prom-client';
 
 import { Integrator } from '../config';
-import { schemas } from '../schemas';
+import { schemas } from '../core/schemas';
 import { RfqmService } from '../services/rfqm_service';
 import {
     FetchFirmQuoteParams,
@@ -19,7 +19,7 @@ import {
     RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../types';
+import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -30,7 +30,7 @@ import {
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
 import { RfqmServices } from '../utils/rfqm_service_builder';
-import { schemaUtils } from '../utils/schema_utils';
+import { schemaUtils } from '../core/schema_utils';
 
 const RFQM_INDICATIVE_QUOTE_REQUEST = new Counter({
     name: 'rfqm_handler_indicative_quote_requested',

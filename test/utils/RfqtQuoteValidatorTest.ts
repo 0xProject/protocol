@@ -1,9 +1,9 @@
 import { BigNumber } from '@0x/utils';
 import { Integrator } from '../../src/config';
-import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../../src/constants';
+import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../../src/core/constants';
 import { QuoteContext } from '../../src/services/types';
 
-import { RfqtV2Prices } from '../../src/types';
+import { RfqtV2Prices } from '../../src/core/types';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../../src/utils/RfqtQuoteValidator';
 
 describe('Rfqt Quote Validator', () => {

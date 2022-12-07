@@ -3,7 +3,7 @@
  * maker should be avoided for being too latent.
  */
 
-import { ONE_MINUTE_MS } from '../constants';
+import { ONE_MINUTE_MS } from '../core/constants';
 import { logger } from '../logger';
 
 export class RfqMakerBlacklist {

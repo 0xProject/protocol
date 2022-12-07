@@ -1,4 +1,4 @@
-import { Eip712Domain } from '../types';
+import { Eip712Domain } from '../core/types';
 
 import * as ethereum from './ethereum.json';
 import * as polygon from './polygon.json';

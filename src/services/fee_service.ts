@@ -2,9 +2,9 @@
 import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
-import { BPS_TO_RATIO, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../constants';
+import { BPS_TO_RATIO, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../core/constants';
 import { Fee } from '../quote-server/types';
-import { IndicativeQuote } from '../types';
+import { IndicativeQuote } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { GasStationAttendant } from '../utils/GasStationAttendant';
 import { getBestQuote } from '../utils/quote_comparison_utils';

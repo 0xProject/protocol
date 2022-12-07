@@ -22,10 +22,16 @@ import {
     RFQM_TX_GAS_ESTIMATE,
     ZERO,
     ZEROG_METATX_GAS_ESTIMATE,
-} from '../constants';
+} from '../core/constants';
 import { EIP_712_REGISTRY } from '../eip712registry';
 import { logger } from '../logger';
-import { Approval, ERC20Owner, ExecuteMetaTransactionApproval, GaslessApprovalTypes, PermitApproval } from '../types';
+import {
+    Approval,
+    ERC20Owner,
+    ExecuteMetaTransactionApproval,
+    GaslessApprovalTypes,
+    PermitApproval,
+} from '../core/types';
 
 import { splitAddresses } from './address_utils';
 import { BalanceChecker } from './balance_checker';

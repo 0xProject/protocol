@@ -13,7 +13,7 @@ import * as _ from 'lodash';
 import { Producer } from 'sqs-producer';
 import { anything, capture, deepEqual, instance, mock, spy, verify, when } from 'ts-mockito';
 
-import { ETH_DECIMALS, GWEI_DECIMALS, ONE_SECOND_MS } from '../../src/constants';
+import { ETH_DECIMALS, GWEI_DECIMALS, ONE_SECOND_MS } from '../../src/core/constants';
 import {
     MetaTransactionJobEntity,
     RfqmJobEntity,

@@ -3,7 +3,7 @@ import { Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
-import { ONE_SECOND_MS } from '../constants';
+import { ONE_SECOND_MS } from '../core/constants';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
 
 import { METRICS_PROXY } from './MetricsProxyImpl';

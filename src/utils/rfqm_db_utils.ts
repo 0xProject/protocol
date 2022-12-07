@@ -29,7 +29,7 @@ import {
 import { Fee } from '../quote-server/types';
 import { FeeWithDetails } from '../services/types';
 
-import { toPairString } from './pair_utils';
+import { toPairString } from '../core/pair_utils';
 
 /**
  * Map a StoredOtcOrder to an OtcOrder

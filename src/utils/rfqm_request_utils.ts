@@ -1,7 +1,7 @@
 import { MetaTransactionFields, OtcOrderFields, Signature } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import { Eip712DataField, Eip712Domain, ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../types';
+import { Eip712DataField, Eip712Domain, ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../core/types';
 
 export interface StringSignatureFields {
     signatureType: string;

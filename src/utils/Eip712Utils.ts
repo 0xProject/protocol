@@ -1,4 +1,4 @@
-import { Eip712DataField, Eip712Domain } from '../types';
+import { Eip712DataField, Eip712Domain } from '../core/types';
 
 const NAME_TO_TYPES: Record<string, string> = {
     name: 'string',

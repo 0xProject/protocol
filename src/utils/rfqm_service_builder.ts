@@ -31,7 +31,7 @@ import {
     DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
-} from '../constants';
+} from '../core/constants';
 import { logger } from '../logger';
 import { FeeService } from '../services/fee_service';
 import { RfqmService } from '../services/rfqm_service';

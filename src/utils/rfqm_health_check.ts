@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { Gauge } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
-import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../constants';
+import { ETH_DECIMALS, RFQM_TX_GAS_ESTIMATE } from '../core/constants';
 import { RfqmWorkerHeartbeatEntity } from '../entities';
 
 const SQS_QUEUE_SIZE_DEGRADED_THRESHOLD = 10; // More messages sitting in queue than this will cause a DEGRADED issue

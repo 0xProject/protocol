@@ -19,7 +19,7 @@ import {
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
 } from '../config';
-import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS } from '../constants';
+import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS } from '../core/constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { FeeService } from '../services/fee_service';
 import { RfqtService } from '../services/RfqtService';

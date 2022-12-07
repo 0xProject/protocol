@@ -1,7 +1,7 @@
 import { AbiEncoder, BigNumber } from '@0x/utils';
 
 import { FEE_RECIPIENT_ADDRESS } from '../config';
-import { HEX_BASE, ONE_SECOND_MS } from '../constants';
+import { HEX_BASE, ONE_SECOND_MS } from '../core/constants';
 
 import { numberUtils } from './number_utils';
 

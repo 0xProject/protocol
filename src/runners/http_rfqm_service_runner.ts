@@ -25,7 +25,7 @@ import {
     SENTRY_TRACES_SAMPLE_RATE,
     TOKEN_PRICE_ORACLE_TIMEOUT,
 } from '../config';
-import { ADMIN_PATH, RFQM_PATH, RFQT_V1_PATH, RFQT_V2_PATH, RFQ_MAKER_PATH } from '../constants';
+import { ADMIN_PATH, RFQM_PATH, RFQT_V1_PATH, RFQT_V2_PATH, RFQ_MAKER_PATH } from '../core/constants';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
