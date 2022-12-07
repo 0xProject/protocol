@@ -12,20 +12,18 @@ import {
     ContractAddresses,
     ERC20BridgeSamplerContract,
     getContractAddressesForChainOrThrow,
+    Orderbook,
     SupportedProvider,
 } from './asset-swapper';
 import {
     CHAIN_ID,
     ORDER_WATCHER_KAFKA_TOPIC,
-    RFQT_TX_ORIGIN_BLACKLIST,
     RFQ_API_URL,
     SENTRY_ENABLED,
     SLIPPAGE_MODEL_S3_API_VERSION,
     WEBSOCKET_ORDER_UPDATES_PATH,
 } from './config';
-import { RFQ_DYNAMIC_BLACKLIST_TTL, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from './constants';
-import { getDBConnectionAsync } from './db_connection';
-import { MakerBalanceChainCacheEntity } from './entities/MakerBalanceChainCacheEntity';
+import { getDBConnection } from './db_connection';
 import { logger } from './logger';
 import { runHttpServiceAsync } from './runners/http_service_runner';
 import { MetaTransactionService } from './services/meta_transaction_service';
@@ -34,7 +32,7 @@ import { PostgresRfqtFirmQuoteValidator } from './services/postgres_rfqt_firm_qu
 import { SwapService } from './services/swap_service';
 import { HttpServiceConfig, AppDependencies } from './types';
 import { AssetSwapperOrderbook } from './utils/asset_swapper_orderbook';
-import { OrderWatcher } from './utils/order_watcher';
+import { NoOpOrderbook } from './utils/no_op_orderbook';
 import { RfqClient } from './utils/rfq_client';
 import { RfqDynamicBlacklist } from './utils/rfq_dyanmic_blacklist';
 import { S3Client } from './utils/s3_client';
@@ -102,6 +100,13 @@ async function createAndInitializeSlippageModelManagerAsync(s3Client: S3Client):
     return slippageModelManager;
 }
 
+function createOrderbook(orderBookService: OrderBookService | undefined): Orderbook {
+    if (orderBookService === undefined) {
+        return new NoOpOrderbook();
+    }
+    return new AssetSwapperOrderbook(orderBookService);
+}
+
 /**
  * Instantiates dependencies required to run the app. Uses default settings based on config
  * @param config should the ethereum RPC URL
@@ -111,7 +116,7 @@ export async function getDefaultAppDependenciesAsync(
     config: HttpServiceConfig,
 ): Promise<AppDependencies> {
     const contractAddresses = await getContractAddressesForNetworkOrThrowAsync(provider, CHAIN_ID);
-    const connection = await getDBConnectionAsync();
+    const connection = await getDBConnection();
 
     let kafkaClient: Kafka | undefined;
     if (config.kafkaBrokers !== undefined) {
@@ -123,22 +128,15 @@ export async function getDefaultAppDependenciesAsync(
         logger.warn(`skipping kafka client creation because no kafkaBrokers were passed in`);
     }
 
-    const orderBookService = new OrderBookService(connection, new OrderWatcher());
+    const orderBookService = OrderBookService.create(connection);
 
-    const rfqtFirmQuoteValidator = new PostgresRfqtFirmQuoteValidator(
-        connection.getRepository(MakerBalanceChainCacheEntity),
-        RFQ_FIRM_QUOTE_CACHE_EXPIRY,
-    );
+    if (orderBookService == undefined) {
+        logger.warn('Order book service is disabled');
+    }
 
     let swapService: SwapService | undefined;
     let metaTransactionService: MetaTransactionService | undefined;
     try {
-        const rfqDynamicBlacklist = new RfqDynamicBlacklist(
-            connection,
-            RFQT_TX_ORIGIN_BLACKLIST,
-            RFQ_DYNAMIC_BLACKLIST_TTL,
-        );
-
         const rfqClient: RfqClient = new RfqClient(RFQ_API_URL, axios);
 
         const s3Client: S3Client = new S3Client(
@@ -148,12 +146,12 @@ export async function getDefaultAppDependenciesAsync(
         );
         const slippageModelManager = await createAndInitializeSlippageModelManagerAsync(s3Client);
         swapService = new SwapService(
-            new AssetSwapperOrderbook(orderBookService),
+            createOrderbook(orderBookService),
             provider,
             contractAddresses,
             rfqClient,
-            rfqtFirmQuoteValidator,
-            rfqDynamicBlacklist,
+            PostgresRfqtFirmQuoteValidator.create(connection),
+            RfqDynamicBlacklist.create(connection),
             slippageModelManager,
         );
         metaTransactionService = createMetaTxnServiceFromSwapService(swapService, contractAddresses);

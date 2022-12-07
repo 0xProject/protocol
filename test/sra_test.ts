@@ -70,7 +70,7 @@ describe(SUITE_NAME, () => {
             },
         };
         const orderEntity = orderUtils.serializeOrder(apiOrder);
-        await dependencies.connection.getRepository(OrderWatcherSignedOrderEntity).save(orderEntity);
+        await dependencies.connection?.getRepository(OrderWatcherSignedOrderEntity).save(orderEntity);
         return apiOrder;
     }
 
@@ -107,14 +107,14 @@ describe(SUITE_NAME, () => {
     });
 
     beforeEach(async () => {
-        await dependencies.connection.runMigrations();
+        await dependencies.connection?.runMigrations();
         await blockchainLifecycle.startAsync();
     });
 
     afterEach(async () => {
         await blockchainLifecycle.revertAsync();
         await dependencies.connection
-            .createQueryBuilder()
+            ?.createQueryBuilder()
             .delete()
             .from(OrderWatcherSignedOrderEntity)
             .where('true')
@@ -249,7 +249,7 @@ describe(SUITE_NAME, () => {
         });
         it('should return 404 if order is not found', async () => {
             const apiOrder = await addNewOrderAsync({ maker: makerAddress });
-            await dependencies.connection.manager.delete(OrderWatcherSignedOrderEntity, apiOrder.metaData.orderHash);
+            await dependencies.connection?.manager.delete(OrderWatcherSignedOrderEntity, apiOrder.metaData.orderHash);
             const response = await httpGetAsync({ app, route: `${SRA_PATH}/order/${apiOrder.metaData.orderHash}` });
             expect(response.status).to.deep.eq(HttpStatus.NOT_FOUND);
         });

@@ -21,7 +21,6 @@ import {
 } from './asset-swapper';
 import {
     DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
-    DEFAULT_LOCAL_POSTGRES_URI,
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,
     DEFAULT_META_TX_MIN_ALLOWED_SLIPPAGE,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
@@ -286,8 +285,8 @@ export const SRA_ORDER_EXPIRATION_BUFFER_SECONDS: number = _.isEmpty(process.env
           EnvVarType.KeepAliveTimeout,
       );
 
-export const POSTGRES_URI = _.isEmpty(process.env.POSTGRES_URI)
-    ? DEFAULT_LOCAL_POSTGRES_URI
+export const POSTGRES_URI: string | undefined = _.isEmpty(process.env.POSTGRES_URI)
+    ? undefined
     : assertEnvVarType('POSTGRES_URI', process.env.POSTGRES_URI, EnvVarType.Url);
 
 export const POSTGRES_READ_REPLICA_URIS: string[] | undefined = _.isEmpty(process.env.POSTGRES_READ_REPLICA_URIS)

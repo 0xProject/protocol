@@ -11,7 +11,7 @@ import { artifacts } from '../artifacts';
 import { BalanceCheckerContract } from '../asset-swapper';
 import * as defaultConfig from '../config';
 import { METRICS_PATH, ONE_SECOND_MS, RFQ_ALLOWANCE_TARGET, RFQ_FIRM_QUOTE_CACHE_EXPIRY } from '../constants';
-import { getDBConnectionAsync } from '../db_connection';
+import { getDBConnectionOrThrow } from '../db_connection';
 import { MakerBalanceChainCacheEntity } from '../entities';
 import { logger } from '../logger';
 import { providerUtils } from '../utils/provider_utils';
@@ -77,8 +77,7 @@ if (require.main === module) {
         );
         const web3Wrapper = new Web3Wrapper(provider);
 
-        const connection = await getDBConnectionAsync();
-
+        const connection = await getDBConnectionOrThrow();
         const balanceCheckerContractInterface = getBalanceCheckerContractInterface(RANDOM_ADDRESS, provider);
 
         await runRfqBalanceCacheAsync(web3Wrapper, connection, balanceCheckerContractInterface);

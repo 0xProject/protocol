@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
-import { In } from 'typeorm';
+import { Connection, In } from 'typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 
 import { BigNumber, RfqFirmQuoteValidator, RfqOrderFields } from '../asset-swapper';
-import { ONE_MINUTE_MS, ZERO } from '../constants';
+import { ONE_MINUTE_MS, RFQ_FIRM_QUOTE_CACHE_EXPIRY, ZERO } from '../constants';
 import { MakerBalanceChainCacheEntity } from '../entities/MakerBalanceChainCacheEntity';
 import { logger } from '../logger';
 
@@ -59,6 +59,17 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
     private readonly _chainCacheRepository: Repository<MakerBalanceChainCacheEntity>;
     private readonly _cacheExpiryThresholdMs: number;
     private readonly _workerId: string;
+
+    public static create(connection: Connection | undefined): RfqFirmQuoteValidator | undefined {
+        if (connection === undefined) {
+            return undefined;
+        }
+
+        return new PostgresRfqtFirmQuoteValidator(
+            connection.getRepository(MakerBalanceChainCacheEntity),
+            RFQ_FIRM_QUOTE_CACHE_EXPIRY,
+        );
+    }
 
     constructor(
         chainCacheRepository: Repository<MakerBalanceChainCacheEntity>,

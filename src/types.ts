@@ -393,9 +393,9 @@ export interface ISwapService {
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
-    connection: Connection;
+    connection?: Connection;
     kafkaClient?: Kafka;
-    orderBookService: IOrderBookService;
+    orderBookService?: IOrderBookService;
     swapService?: ISwapService;
     metaTransactionService?: IMetaTransactionService;
     provider: SupportedProvider;

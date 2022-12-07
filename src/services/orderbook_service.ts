@@ -21,12 +21,25 @@ import {
     SRAOrder,
 } from '../types';
 import { orderUtils } from '../utils/order_utils';
-import { OrderWatcherInterface } from '../utils/order_watcher';
+import { OrderWatcher, OrderWatcherInterface } from '../utils/order_watcher';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService implements IOrderBookService {
     private readonly _connection: Connection;
     private readonly _orderWatcher: OrderWatcherInterface;
+
+    public static create(connection: Connection | undefined): OrderBookService | undefined {
+        if (connection === undefined) {
+            return undefined;
+        }
+        return new OrderBookService(connection, new OrderWatcher());
+    }
+
+    constructor(connection: Connection, orderWatcher: OrderWatcherInterface) {
+        this._connection = connection;
+        this._orderWatcher = orderWatcher;
+    }
+
     public isAllowedPersistentOrders(apiKey: string): boolean {
         return SRA_PERSISTENT_ORDER_POSTING_WHITELISTED_API_KEYS.includes(apiKey);
     }
@@ -202,10 +215,6 @@ export class OrderBookService implements IOrderBookService {
 
         const paginatedApiOrders = paginationUtils.paginate(fresh, page, perPage);
         return paginatedApiOrders;
-    }
-    constructor(connection: Connection, orderWatcher: OrderWatcherInterface) {
-        this._connection = connection;
-        this._orderWatcher = orderWatcher;
     }
     public async addOrderAsync(signedOrder: SignedLimitOrder): Promise<void> {
         await this._orderWatcher.postOrdersAsync([signedOrder]);

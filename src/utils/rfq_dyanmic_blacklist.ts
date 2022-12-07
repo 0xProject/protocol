@@ -1,4 +1,6 @@
 import { Connection } from 'typeorm';
+import { RFQT_TX_ORIGIN_BLACKLIST } from '../config';
+import { RFQ_DYNAMIC_BLACKLIST_TTL } from '../constants';
 
 import { RfqBlockedAddressUtils } from './rfq_blocked_address_utils';
 
@@ -9,6 +11,14 @@ import { RfqBlockedAddressUtils } from './rfq_blocked_address_utils';
 export class RfqDynamicBlacklist implements Set<string> {
     public size: number;
     private readonly _rfqBlockedAddressUtils: RfqBlockedAddressUtils;
+
+    public static create(connection: Connection | undefined): RfqDynamicBlacklist | undefined {
+        if (connection === undefined) {
+            return undefined;
+        }
+
+        return new RfqDynamicBlacklist(connection, RFQT_TX_ORIGIN_BLACKLIST, RFQ_DYNAMIC_BLACKLIST_TTL);
+    }
 
     constructor(connection: Connection, initialBlockedSet: Set<string>, ttlMs: number) {
         this._rfqBlockedAddressUtils = new RfqBlockedAddressUtils(connection, initialBlockedSet, ttlMs);

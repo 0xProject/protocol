@@ -56,4 +56,10 @@ const config: ConnectionOptions = {
         migrationsDir: 'migrations',
     },
 };
-module.exports = config;
+
+export function getOrmConfig(): ConnectionOptions | undefined {
+    if (POSTGRES_URI === undefined) {
+        return undefined;
+    }
+    return config;
+}

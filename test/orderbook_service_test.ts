@@ -9,7 +9,7 @@ import { Connection } from 'typeorm';
 const { color, symbols } = Mocha.reporters.Base;
 
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from '../src/constants';
-import { getDBConnectionAsync } from '../src/db_connection';
+import { getDBConnectionOrThrow } from '../src/db_connection';
 import { OrderWatcherSignedOrderEntity, PersistentSignedOrderV4Entity } from '../src/entities';
 import { OrderBookService } from '../src/services/orderbook_service';
 import { OrderEventEndState, PaginatedCollection, SRAOrder, SRAOrderMetaData } from '../src/types';
@@ -93,7 +93,7 @@ describe(SUITE_NAME, () => {
 
     before(async () => {
         await setupDependenciesAsync(SUITE_NAME);
-        connection = await getDBConnectionAsync();
+        connection = await getDBConnectionOrThrow();
         await connection.runMigrations();
         orderBookService = new OrderBookService(connection, new MockOrderWatcher(connection));
         provider = getProvider();
@@ -107,6 +107,7 @@ describe(SUITE_NAME, () => {
         privateKey = `0x${privateKeyBuf.toString('hex')}`;
         await blockchainLifecycle.startAsync();
     });
+
     after(async () => {
         await teardownDependenciesAsync(SUITE_NAME);
     });
