@@ -62,16 +62,16 @@ Function timelocks are represented in days, where one day is equivalent to 86,40
 .. csv-table::
     :header: "Contract", "Function", "Selector", "Timelock"
 
-    AllowanceTarget, ``addAuthorizedAddress``, ``42f1181e``, 1 day
+    AllowanceTarget, ``addAuthorizedAddress``, ``42f1181e``, 2 day
     AllowanceTarget, ``removeAuthorizedAddress``, ``70712939``, 0 days
     AllowanceTarget, ``removeAuthorizedAddressAtIndex``, ``9ad26744``, 0 days
-    Governor, ``registerFunctionCall``, ``751ad560``, 1 day
-    ExchangeProxy, ``extend``, ``6eb224cb``, 1 day
-    ExchangeProxy, ``migrate``, ``261fe679``, 1 day
+    Governor, ``registerFunctionCall``, ``751ad560``, 2 day
+    ExchangeProxy, ``extend``, ``6eb224cb``, 2 day
+    ExchangeProxy, ``migrate``, ``261fe679``, 2 day
     ExchangeProxy, ``rollback``, ``9db64a40``, 0 days
-    ExchangeProxy, ``setQuoteSigner``, ``<deprecation in progress>``, 1 day
-    ExchangeProxy, ``setTransformerDeployer``, ``87c96419``, 1 day
-    ExchangeProxy, ``transferOwnership``, ``f2fde38b``, 1 day
+    ExchangeProxy, ``setQuoteSigner``, ``<deprecation in progress>``, 2 day
+    ExchangeProxy, ``setTransformerDeployer``, ``87c96419``, 2 day
+    ExchangeProxy, ``transferOwnership``, ``f2fde38b``, 2 day
     StakingProxy, ``addExchangeAddress``, ``8a2e271a``, 14 days
     StakingProxy, ``removeExchangeAddress``, ``01e28d84``, 14 days
     StakingProxy, ``attachStakingContract``, ``66615d56``, 14 days
