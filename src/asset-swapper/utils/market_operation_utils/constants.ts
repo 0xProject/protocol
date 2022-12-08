@@ -2900,7 +2900,6 @@ const DEFAULT_FEE_SCHEDULE: FeeSchedule = Object.keys(DEFAULT_GAS_SCHEDULE).redu
 
 export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice'> = {
     excludedSources: [],
-    excludedFeeSources: [],
     includedSources: [],
     bridgeSlippage: 0.005,
     maxFallbackSlippage: 0.05,

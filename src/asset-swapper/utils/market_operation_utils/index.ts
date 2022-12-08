@@ -64,7 +64,7 @@ const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
     private readonly _buySources: SourceFilters;
-    private readonly _feeSources: SourceFilters;
+    private readonly _feeSources: ERC20BridgeSource[];
     private readonly _nativeFeeToken: string;
     private readonly _nativeFeeTokenAmount: BigNumber;
 
@@ -126,7 +126,7 @@ export class MarketOperationUtils {
     ) {
         this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
         this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[_sampler.chainId];
-        this._feeSources = new SourceFilters(FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId]);
+        this._feeSources = FEE_QUOTE_SOURCES_BY_CHAIN_ID[_sampler.chainId];
         this._nativeFeeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[_sampler.chainId];
         this._nativeFeeTokenAmount = NATIVE_FEE_TOKEN_AMOUNT_BY_CHAIN_ID[_sampler.chainId];
     }
@@ -149,7 +149,6 @@ export class MarketOperationUtils {
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._sellSources.merge(requestFilters);
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -163,7 +162,7 @@ export class MarketOperationUtils {
             this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -171,7 +170,7 @@ export class MarketOperationUtils {
             ),
             // Get ETH -> taker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -270,7 +269,6 @@ export class MarketOperationUtils {
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
         const quoteSourceFilters = this._buySources.merge(requestFilters);
-        const feeSourceFilters = this._feeSources.exclude(_opts.excludedFeeSources);
 
         // Used to determine whether the tx origin is an EOA or a contract
         const txOrigin = (_opts.rfqt && _opts.rfqt.txOrigin) || NULL_ADDRESS;
@@ -284,7 +282,7 @@ export class MarketOperationUtils {
             this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources,
                 makerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,
@@ -292,7 +290,7 @@ export class MarketOperationUtils {
             ),
             // Get ETH -> taker token price.
             this._sampler.getBestNativeTokenSellRate(
-                feeSourceFilters.sources,
+                this._feeSources,
                 takerToken,
                 this._nativeFeeToken,
                 this._nativeFeeTokenAmount,

@@ -443,22 +443,6 @@ const EXCLUDED_SOURCES = (() => {
     }
 })();
 
-const EXCLUDED_FEE_SOURCES = (() => {
-    switch (CHAIN_ID) {
-        case ChainId.Mainnet:
-            return [];
-        case ChainId.Kovan:
-            return [ERC20BridgeSource.Uniswap];
-        case ChainId.BSC:
-            return [ERC20BridgeSource.Uniswap];
-        case ChainId.Polygon:
-            return [];
-        case ChainId.Celo:
-            return [];
-        default:
-            return [ERC20BridgeSource.Uniswap, ERC20BridgeSource.UniswapV2];
-    }
-})();
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
 const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
@@ -526,7 +510,6 @@ const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTI
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
     excludedSources: EXCLUDED_SOURCES,
-    excludedFeeSources: EXCLUDED_FEE_SOURCES,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,
