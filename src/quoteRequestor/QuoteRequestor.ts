@@ -18,6 +18,7 @@ import axios, { AxiosInstance } from 'axios';
 
 import { RFQ_PRICE_ENDPOINT_TIMEOUT_MS } from '../config';
 import { ONE_SECOND_MS } from '../core/constants';
+import { toPairString } from '../core/pair_utils';
 import { Fee } from '../core/types';
 import { logger } from '../logger';
 import {
@@ -37,6 +38,24 @@ const MAKER_TIMEOUT_STREAK_LENGTH = 10;
 const MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES = 10;
 const FILL_RATIO_WARNING_LEVEL = 0.99;
 const rfqMakerBlacklist = new RfqMakerBlacklist(MAKER_TIMEOUT_STREAK_LENGTH, MAKER_TIMEOUT_BLACKLIST_DURATION_MINUTES);
+
+// Stables
+const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f';
+const BUSD = '0x4fabb145d64652a948d72533023f6e7a623c7c53';
+const TUSD = '0x0000000000085d4780b73119b644ae5ecd22b376';
+
+// Other assets
+const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const WBTC = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
+const MATIC = '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0';
+const DISABLED_RFQT_V1_TOKENS = [USDC, USDT, DAI, BUSD, TUSD, WETH, WBTC, MATIC];
+const DISABLED_RFQT_V1_PAIRS_SET = new Set(
+    DISABLED_RFQT_V1_TOKENS.flatMap((token) =>
+        DISABLED_RFQT_V1_TOKENS.filter((t) => t !== token).map((otherToken) => toPairString(token, otherToken)),
+    ),
+);
 
 interface RfqQuote<T> {
     response: T;
@@ -263,6 +282,10 @@ export class QuoteRequestor {
         altMakerAssetOfferings: AltRfqMakerAssetOfferings | undefined,
         assetOfferings: RfqMakerAssetOfferings | undefined,
     ): boolean {
+        // Turn off RFQt v1 for these pairs
+        if (DISABLED_RFQT_V1_PAIRS_SET.has(toPairString(makerToken, takerToken))) {
+            return false;
+        }
         if (typedMakerUrl.pairType === RfqPairType.Standard && assetOfferings) {
             for (const assetPair of assetOfferings[typedMakerUrl.url]) {
                 if (
