@@ -34,7 +34,6 @@ import {
     MAX_MINT_AMOUNT,
     NULL_ADDRESS,
     SYMBOL_TO_ADDRESS,
-    // UNKNOWN_TOKEN_ADDRESS,
     WETH_TOKEN_ADDRESS,
     ZRX_TOKEN_ADDRESS,
 } from './constants';
@@ -254,7 +253,7 @@ describe(SUITE_NAME, () => {
                 { gasPrice, protocolFee, value: protocolFee },
             );
         });
-        it('should respect excludedSources', async () => {
+        it('should throw an error when requested to exclude all sources', async () => {
             await quoteAndExpectAsync(
                 app,
                 {
@@ -267,6 +266,50 @@ describe(SUITE_NAME, () => {
                             code: ValidationErrorCodes.ValueOutOfRange,
                             field: 'excludedSources',
                             reason: 'Request excluded all sources',
+                        },
+                    ],
+                },
+            );
+        });
+        it('should not use a source that is in excludedSources', async () => {
+            // TODO: When non-native source is supported for this test, it should test whether the
+            // proportion of Native in response.sources is 0 instead of checking whether it failed
+            // because of INSUFFICIENT_ASSET_LIQUIDITY
+            await quoteAndExpectAsync(
+                app,
+                { sellAmount: '1234', excludedSources: `${ERC20BridgeSource.Native}` },
+                {
+                    validationErrors: [
+                        {
+                            code: ValidationErrorCodes.ValueOutOfRange,
+                            description:
+                                'We are not able to fulfill an order for this token pair at the requested amount due to a lack of liquidity',
+                            field: 'sellAmount',
+                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
+                        },
+                    ],
+                },
+            );
+        });
+        it('should not use source that is not in includedSources', async () => {
+            // TODO: When non-native source is supported for this test, it should test whether the
+            // proportion of Native in response.sources is 0 instead of checking whether it failed
+            // because of INSUFFICIENT_ASSET_LIQUIDITY
+            await quoteAndExpectAsync(
+                app,
+                {
+                    sellAmount: '1234',
+                    excludedSources: '',
+                    includedSources: `${ERC20BridgeSource.UniswapV2}`,
+                },
+                {
+                    validationErrors: [
+                        {
+                            code: ValidationErrorCodes.ValueOutOfRange,
+                            description:
+                                'We are not able to fulfill an order for this token pair at the requested amount due to a lack of liquidity',
+                            field: 'sellAmount',
+                            reason: 'INSUFFICIENT_ASSET_LIQUIDITY',
                         },
                     ],
                 },

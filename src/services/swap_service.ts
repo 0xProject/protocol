@@ -296,7 +296,7 @@ export class SwapService implements ISwapService {
             ...swapQuoteRequestOpts,
             bridgeSlippage: slippagePercentage,
             gasPrice: providedGasPrice,
-            excludedSources: swapQuoteRequestOpts.excludedSources?.concat(...(excludedSources || [])),
+            excludedSources: excludedSources.concat(swapQuoteRequestOpts.excludedSources || []),
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,

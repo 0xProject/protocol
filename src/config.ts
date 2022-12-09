@@ -10,7 +10,6 @@ import {
     BlockParamLiteral,
     ChainId,
     DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID,
-    ERC20BridgeSource,
     OrderPrunerPermittedFeeTypes,
     RfqMakerAssetOfferings,
     SamplerOverrides,
@@ -394,33 +393,6 @@ const UNWRAP_WETH_GAS = UNWRAP_GAS_BY_CHAIN_ID[CHAIN_ID];
 export const UNWRAP_QUOTE_GAS = TX_BASE_GAS.plus(UNWRAP_WETH_GAS);
 export const WRAP_QUOTE_GAS = UNWRAP_QUOTE_GAS;
 
-const EXCLUDED_SOURCES = (() => {
-    const allERC20BridgeSources = Object.values(ERC20BridgeSource);
-    switch (CHAIN_ID) {
-        case ChainId.Mainnet:
-            return [];
-        case ChainId.Kovan:
-            return allERC20BridgeSources.filter(
-                (s) => s !== ERC20BridgeSource.Native && s !== ERC20BridgeSource.UniswapV2,
-            );
-        case ChainId.Ganache:
-            return allERC20BridgeSources.filter((s) => s !== ERC20BridgeSource.Native);
-        case ChainId.BSC:
-        case ChainId.Polygon:
-        case ChainId.Avalanche:
-        case ChainId.Celo:
-        case ChainId.Fantom:
-        case ChainId.Optimism:
-        case ChainId.Goerli:
-        case ChainId.PolygonMumbai:
-        case ChainId.ArbitrumRinkeby:
-        case ChainId.Arbitrum:
-            return [ERC20BridgeSource.Native];
-        default:
-            throw new Error(`Excluded sources not specified for ${CHAIN_ID}`);
-    }
-})();
-
 const FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD = new BigNumber(150e3);
 const EXCHANGE_PROXY_OVERHEAD_NO_VIP = () => FILL_QUOTE_TRANSFORMER_GAS_OVERHEAD;
 const MULTIPLEX_BATCH_FILL_SOURCE_FLAGS =
@@ -487,7 +459,6 @@ const SAMPLE_DISTRIBUTION_BASE: number = _.isEmpty(process.env.SAMPLE_DISTRIBUTI
     : assertEnvVarType('SAMPLE_DISTRIBUTION_BASE', process.env.SAMPLE_DISTRIBUTION_BASE, EnvVarType.Float);
 
 export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
-    excludedSources: EXCLUDED_SOURCES,
     bridgeSlippage: DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     maxFallbackSlippage: DEFAULT_FALLBACK_SLIPPAGE_PERCENTAGE,
     numSamples: 13,

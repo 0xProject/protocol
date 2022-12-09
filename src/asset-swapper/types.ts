@@ -739,6 +739,7 @@ export type OptimizedNativeOrder = OptimizedLimitOrder | OptimizedRfqOrder | Opt
 
 export type OptimizedOrder = OptimizedMarketBridgeOrder<FillData> | OptimizedNativeOrder;
 
+// TODO: `SignedNativeOrder` should be `SignedLimitOrder`.
 export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,

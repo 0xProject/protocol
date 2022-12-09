@@ -25,7 +25,13 @@ import {
 } from './types';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import { DEFAULT_GAS_SCHEDULE, SAMPLER_ADDRESS, SOURCE_FLAGS } from './utils/market_operation_utils/constants';
+import {
+    BUY_SOURCE_FILTER_BY_CHAIN_ID,
+    DEFAULT_GAS_SCHEDULE,
+    SAMPLER_ADDRESS,
+    SELL_SOURCE_FILTER_BY_CHAIN_ID,
+    SOURCE_FLAGS,
+} from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
@@ -39,13 +45,16 @@ export class SwapQuoter {
     public readonly provider: ZeroExProvider;
     public readonly orderbook: Orderbook;
     public readonly expiryBufferMs: number;
-    public readonly chainId: number;
+    public readonly chainId: ChainId;
     public readonly permittedOrderFeeTypes: Set<OrderPrunerPermittedFeeTypes>;
     private readonly _contractAddresses: AssetSwapperContractAddresses;
     private readonly _gasPriceUtils: GasPriceUtils;
     private readonly _marketOperationUtils: MarketOperationUtils;
     private readonly _rfqtOptions?: SwapQuoterRfqOpts;
     private readonly _integratorIdsSet: Set<string>;
+    // TODO: source filters can be removed once orderbook is moved to `MarketOperationUtils`.
+    private readonly _sellSources: SourceFilters;
+    private readonly _buySources: SourceFilters;
 
     /**
      * Instantiates a new SwapQuoter instance
@@ -124,6 +133,8 @@ export class SwapQuoter {
         const integratorIds =
             this._rfqtOptions?.integratorsWhitelist.map((integrator) => integrator.integratorId) || [];
         this._integratorIdsSet = new Set(integratorIds);
+        this._buySources = BUY_SOURCE_FILTER_BY_CHAIN_ID[chainId];
+        this._sellSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[chainId];
     }
 
     /**
@@ -133,21 +144,6 @@ export class SwapQuoter {
         const gasPrices = await this._gasPriceUtils.getGasPriceEstimationOrThrowAsync();
 
         return new BigNumber(gasPrices.fast);
-    }
-
-    /**
-     * Destroys any subscriptions or connections.
-     */
-    public async destroyAsync(): Promise<void> {
-        await this._gasPriceUtils.destroyAsync();
-        await this.orderbook.destroyAsync();
-    }
-
-    /**
-     * Utility function to get Ether token address
-     */
-    public getEtherToken(): string {
-        return this._contractAddresses.etherToken;
     }
 
     /**
@@ -185,14 +181,6 @@ export class SwapQuoter {
 
         opts.rfqt = this._validateRfqtOpts(sourceFilters, opts.rfqt);
 
-        // Get SRA orders (limit orders)
-        const shouldSkipOpenOrderbook =
-            !sourceFilters.isAllowed(ERC20BridgeSource.Native) ||
-            (opts.rfqt && opts.rfqt.nativeExclusivelyRFQ === true);
-        const nativeOrders = shouldSkipOpenOrderbook
-            ? await Promise.resolve([])
-            : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
-
         //  ** Prepare options for fetching market side liquidity **
         // Scale fees by gas price.
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
@@ -206,16 +194,17 @@ export class SwapQuoter {
             }),
             exchangeProxyOverhead: (flags) => gasPrice.times(opts.exchangeProxyOverhead(flags)),
         };
+
         // pass the rfqClient on if rfqt enabled
         if (calcOpts.rfqt !== undefined) {
             calcOpts.rfqt.quoteRequestor = new QuoteRequestor();
             calcOpts.rfqt.rfqClient = rfqClient;
         }
-
-        const result: OptimizerResultWithReport = await this._marketOperationUtils.getOptimizerResultAsync(
+        const limitOrders = await this.getLimitOrders(marketOperation, makerToken, takerToken, calcOpts);
+        const result = await this._marketOperationUtils.getOptimizerResultAsync(
             makerToken,
             takerToken,
-            nativeOrders,
+            limitOrders,
             assetFillAmount,
             marketOperation,
             calcOpts,
@@ -238,6 +227,23 @@ export class SwapQuoter {
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 
         return swapQuote;
+    }
+
+    private async getLimitOrders(
+        side: MarketOperation,
+        makerToken: string,
+        takerToken: string,
+        opts: GetMarketOrdersOpts,
+    ): Promise<SignedNativeOrder[]> {
+        const requestFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
+        const sourceFilter = side === MarketOperation.Sell ? this._sellSources : this._buySources;
+        const quoteFilter = sourceFilter.merge(requestFilters);
+
+        if (!quoteFilter.isAllowed(ERC20BridgeSource.Native) || opts.rfqt?.nativeExclusivelyRFQ === true) {
+            return [];
+        }
+
+        return await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
     }
 
     private readonly _limitOrderPruningFn = (limitOrder: SignedNativeOrder) => {
