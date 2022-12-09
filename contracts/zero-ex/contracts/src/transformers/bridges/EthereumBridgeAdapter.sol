@@ -24,7 +24,6 @@ import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
 import "./mixins/MixinAaveV2.sol";
 import "./mixins/MixinBalancer.sol";
-import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinBancor.sol";
 import "./mixins/MixinBancorV3.sol";
@@ -50,7 +49,6 @@ contract EthereumBridgeAdapter is
     AbstractBridgeAdapter(1, "Ethereum"),
     MixinAaveV2,
     MixinBalancer,
-    MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinBancor,
     MixinBancorV3,
@@ -122,11 +120,6 @@ contract EthereumBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeBalancer(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BALANCERV2) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeBalancerV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
             if (dryRun) {
                 return (0, true);

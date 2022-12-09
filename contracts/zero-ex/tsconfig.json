@@ -142,7 +142,6 @@
         "test/generated-artifacts/MetaTransactionsFeature.json",
         "test/generated-artifacts/MixinAaveV2.json",
         "test/generated-artifacts/MixinBalancer.json",
-        "test/generated-artifacts/MixinBalancerV2.json",
         "test/generated-artifacts/MixinBalancerV2Batch.json",
         "test/generated-artifacts/MixinBancor.json",
         "test/generated-artifacts/MixinBancorV3.json",

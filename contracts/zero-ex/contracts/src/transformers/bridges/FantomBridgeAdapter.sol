@@ -22,7 +22,6 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinBalancerV2.sol";
 import "./mixins/MixinBalancerV2Batch.sol";
 import "./mixins/MixinCurve.sol";
 import "./mixins/MixinCurveV2.sol";
@@ -33,7 +32,6 @@ import "./mixins/MixinZeroExBridge.sol";
 
 contract FantomBridgeAdapter is
     AbstractBridgeAdapter(250, "Fantom"),
-    MixinBalancerV2,
     MixinBalancerV2Batch,
     MixinCurve,
     MixinCurveV2,
@@ -67,11 +65,6 @@ contract FantomBridgeAdapter is
                 return (0, true);
             }
             boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BALANCERV2) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeBalancerV2(sellToken, buyToken, sellAmount, order.bridgeData);
         } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
             if (dryRun) {
                 return (0, true);
