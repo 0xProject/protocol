@@ -145,6 +145,8 @@ export interface BalancerV2BatchSwapFillData extends FillData {
     vault: string;
     swapSteps: BalancerBatchSwapStep[];
     assets: string[];
+    // Only needed for gas estimation
+    chainId: ChainId;
 }
 
 export interface UniswapV2FillData extends FillData {

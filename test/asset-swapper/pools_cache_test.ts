@@ -2,11 +2,7 @@ import { ChainId } from '@0x/contract-addresses';
 import * as chai from 'chai';
 import 'mocha';
 
-import {
-    BalancerPoolsCache,
-    BalancerV2PoolsCache,
-    PoolsCache,
-} from '../../src/asset-swapper/utils/market_operation_utils/pools_cache';
+import { BalancerPoolsCache, PoolsCache } from '../../src/asset-swapper/utils/market_operation_utils/pools_cache';
 
 import { chaiSetup } from './utils/chai_setup';
 
@@ -38,25 +34,6 @@ describe('Pools Caches for Balancer-based sampling', () => {
                 [usdcAddress, wethAddress],
                 [daiAddress, wethAddress],
             ];
-            await Promise.all(
-                pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
-            );
-        });
-    });
-
-    describe('BalancerV2PoolsCache', () => {
-        // TODO: revisit its flakiness
-        it.skip('fetches pools (Beethoven X - Fantom)', async () => {
-            const cache = BalancerV2PoolsCache.createBeethovenXPoolCache(ChainId.Fantom);
-            const wftmAddress = '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83';
-            const beetsAddress = '0xf24bcf4d1e507740041c9cfd2dddb29585adce1e';
-            const fantomWethAddress = '0x74b23882a30290451a17c44f4f05243b6b58c76d';
-
-            const pairs = [
-                [wftmAddress, beetsAddress],
-                [wftmAddress, fantomWethAddress],
-            ];
-
             await Promise.all(
                 pairs.map(async ([takerToken, makerToken]) => fetchAndAssertPoolsAsync(cache, takerToken, makerToken)),
             );

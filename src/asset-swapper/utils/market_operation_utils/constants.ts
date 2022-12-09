@@ -199,6 +199,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
+            ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
@@ -352,6 +353,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.Saddle,
             ERC20BridgeSource.Velodrome,
             ERC20BridgeSource.Synthetix,
+            ERC20BridgeSource.Beethovenx,
             ERC20BridgeSource.AaveV3,
         ]),
         [ChainId.Arbitrum]: new SourceFilters([
@@ -2307,13 +2309,8 @@ export const BALANCER_V2_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
         [ChainId.Mainnet]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         [ChainId.Polygon]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         [ChainId.Arbitrum]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
-    },
-    NULL_ADDRESS,
-);
-
-export const BEETHOVEN_X_VAULT_ADDRESS_BY_CHAIN = valueByChainId<string>(
-    {
         [ChainId.Fantom]: '0x20dd72ed959b6147912c2e529f0a0c651c33c9ce',
+        [ChainId.Optimism]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
     },
     NULL_ADDRESS,
 );
@@ -2341,6 +2338,8 @@ export const BALANCER_V2_SUBGRAPH_URL_BY_CHAIN = valueByChainId(
         [ChainId.Mainnet]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-v2',
         [ChainId.Polygon]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-polygon-v2',
         [ChainId.Arbitrum]: 'https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-arbitrum-v2',
+        [ChainId.Fantom]: 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx',
+        [ChainId.Optimism]: 'https://api.thegraph.com/subgraphs/name/beethovenxfi/beethovenx-optimism',
     },
     null,
 );
@@ -2879,8 +2878,13 @@ export const DEFAULT_GAS_SCHEDULE: GasSchedule = {
     [ERC20BridgeSource.SpiritSwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.SpookySwap]: uniswapV2CloneGasSchedule,
     [ERC20BridgeSource.Yoshi]: uniswapV2CloneGasSchedule,
-    [ERC20BridgeSource.Beethovenx]: () => 100e3,
-
+    [ERC20BridgeSource.Beethovenx]: (fillData?: FillData) => {
+        const balancerFillData = fillData as BalancerV2BatchSwapFillData;
+        if (balancerFillData.chainId === ChainId.Fantom) {
+            return 125e3 + (balancerFillData.swapSteps.length - 1) * 50e3;
+        }
+        return 305e3 + (balancerFillData.swapSteps.length - 1) * 100e3;
+    },
     //
     // Optimism
     //
