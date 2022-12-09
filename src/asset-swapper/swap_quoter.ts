@@ -1,6 +1,6 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { FastABI } from '@0x/fast-abi';
-import { FillQuoteTransformerOrderType, LimitOrder } from '@0x/protocol-utils';
+import { LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
 import * as _ from 'lodash';
@@ -9,7 +9,7 @@ import { artifacts } from '../artifacts';
 import { RfqClient } from '../utils/rfq_client';
 import { ERC20BridgeSamplerContract } from '../wrappers';
 
-import { constants, INVALID_SIGNATURE } from './constants';
+import { constants } from './constants';
 import {
     AssetSwapperContractAddresses,
     MarketOperation,
@@ -25,12 +25,7 @@ import {
 } from './types';
 import { MarketOperationUtils } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
-import {
-    DEFAULT_GAS_SCHEDULE,
-    SAMPLER_ADDRESS,
-    SOURCE_FLAGS,
-    ZERO_AMOUNT,
-} from './utils/market_operation_utils/constants';
+import { DEFAULT_GAS_SCHEDULE, SAMPLER_ADDRESS, SOURCE_FLAGS } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
 import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
@@ -198,11 +193,6 @@ export class SwapQuoter {
             ? await Promise.resolve([])
             : await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
 
-        // if no native orders, pass in a dummy order for the sampler to have required metadata for sampling
-        if (nativeOrders.length === 0) {
-            nativeOrders.push(createDummyOrder(makerToken, takerToken));
-        }
-
         //  ** Prepare options for fetching market side liquidity **
         // Scale fees by gas price.
         const cloneOpts = _.omit(opts, 'gasPrice') as GetMarketOrdersOpts;
@@ -223,6 +213,8 @@ export class SwapQuoter {
         }
 
         const result: OptimizerResultWithReport = await this._marketOperationUtils.getOptimizerResultAsync(
+            makerToken,
+            takerToken,
             nativeOrders,
             assetFillAmount,
             marketOperation,
@@ -497,21 +489,5 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuot
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
         slippage,
-    };
-}
-
-function createDummyOrder(makerToken: string, takerToken: string): SignedNativeOrder {
-    return {
-        type: FillQuoteTransformerOrderType.Limit,
-        order: {
-            ...new LimitOrder({
-                makerToken,
-                takerToken,
-                makerAmount: ZERO_AMOUNT,
-                takerAmount: ZERO_AMOUNT,
-                takerTokenFeeAmount: ZERO_AMOUNT,
-            }),
-        },
-        signature: INVALID_SIGNATURE,
     };
 }

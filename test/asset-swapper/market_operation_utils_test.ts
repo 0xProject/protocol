@@ -90,7 +90,14 @@ async function getMarketSellOrdersAsync(
     takerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
-    return utils.getOptimizerResultAsync(nativeOrders, takerAmount, MarketOperation.Sell, opts);
+    return utils.getOptimizerResultAsync(
+        MAKER_TOKEN,
+        TAKER_TOKEN,
+        nativeOrders,
+        takerAmount,
+        MarketOperation.Sell,
+        opts,
+    );
 }
 
 /**
@@ -107,7 +114,14 @@ async function getMarketBuyOrdersAsync(
     makerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
-    return utils.getOptimizerResultAsync(nativeOrders, makerAmount, MarketOperation.Buy, opts);
+    return utils.getOptimizerResultAsync(
+        MAKER_TOKEN,
+        TAKER_TOKEN,
+        nativeOrders,
+        makerAmount,
+        MarketOperation.Buy,
+        opts,
+    );
 }
 
 function toRfqClientV1Price(order: SignedLimitOrder): RfqClientV1Price {
@@ -626,6 +640,8 @@ describe('MarketOperationUtils tests', () => {
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     ORDERS,
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -662,6 +678,8 @@ describe('MarketOperationUtils tests', () => {
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     ORDERS,
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -722,6 +740,8 @@ describe('MarketOperationUtils tests', () => {
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -795,6 +815,8 @@ describe('MarketOperationUtils tests', () => {
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     ORDERS.slice(1, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -873,6 +895,8 @@ describe('MarketOperationUtils tests', () => {
 
                 const totalAssetAmount = ORDERS.map((o) => o.order.takerAmount).reduce((a, b) => a.plus(b));
                 await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     ORDERS.slice(2, ORDERS.length),
                     totalAssetAmount,
                     MarketOperation.Sell,
@@ -922,6 +946,8 @@ describe('MarketOperationUtils tests', () => {
 
                 try {
                     await mockedMarketOpUtils.object.getOptimizerResultAsync(
+                        MAKER_TOKEN,
+                        TAKER_TOKEN,
                         ORDERS.slice(2, ORDERS.length),
                         ORDERS[0].order.takerAmount,
                         MarketOperation.Sell,
@@ -945,8 +971,20 @@ describe('MarketOperationUtils tests', () => {
                     DEFAULT_OPTS,
                 );
                 const improvedOrders = improvedOrdersResponse.optimizedOrders;
-                const totaltakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.takerAmount));
-                expect(totaltakerAmount).to.bignumber.gte(FILL_AMOUNT);
+                const totalTakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.takerAmount));
+                expect(totalTakerAmount).to.bignumber.gte(FILL_AMOUNT);
+            });
+
+            it('generates bridge orders with correct taker amount when limit order is empty', async () => {
+                const improvedOrdersResponse = await getMarketSellOrdersAsync(
+                    marketOperationUtils,
+                    [],
+                    FILL_AMOUNT,
+                    DEFAULT_OPTS,
+                );
+                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const totalTakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.takerAmount));
+                expect(totalTakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
 
             it('generates bridge orders with max slippage of `bridgeSlippage`', async () => {
@@ -1140,6 +1178,8 @@ describe('MarketOperationUtils tests', () => {
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.Curve ? constants.ZERO_AMOUNT : new BigNumber(1.3e5).times(gasPrice);
                 const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     MarketOperation.Sell,
@@ -1447,6 +1487,8 @@ describe('MarketOperationUtils tests', () => {
                 const exchangeProxyOverhead = (sourceFlags: bigint) =>
                     sourceFlags === SOURCE_FLAGS.Curve ? constants.ZERO_AMOUNT : new BigNumber(1.3e5).times(GAS_PRICE);
                 const improvedOrdersResponse = await optimizer.getOptimizerResultAsync(
+                    MAKER_TOKEN,
+                    TAKER_TOKEN,
                     createOrdersFromSellRates(FILL_AMOUNT, rates[ERC20BridgeSource.Native]),
                     FILL_AMOUNT,
                     MarketOperation.Buy,

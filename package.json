@@ -34,7 +34,7 @@
         "fix": "eslint --fix src test && yarn prettier",
         "prettier": "prettier --write ${npm_package_config_prettier_target} --config .prettierrc",
         "prettier:ci": "prettier --list-different ${npm_package_config_prettier_target} --config .prettierrc",
-	    "circular": "madge --circular --extensions ts ./",
+        "circular": "madge --circular --extensions ts ./",
         "start": "node -r dotenv/config lib/src/index.js",
         "start:service:http": "node -r dotenv/config lib/src/runners/http_service_runner.js",
         "start:service:sra_http": "node -r dotenv/config lib/src/runners/http_sra_service_runner.js",

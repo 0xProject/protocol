@@ -133,18 +133,21 @@ export class MarketOperationUtils {
 
     /**
      * Gets the liquidity available for a market sell operation
+     * @param makerToken Maker token address
+     * @param takerToken Taker token address
      * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
      * @param takerAmount Amount of taker asset to sell.
      * @param opts Options object.
      * @return MarketSideLiquidity.
      */
     public async getMarketSellLiquidityAsync(
+        makerToken: string,
+        takerToken: string,
         nativeOrders: SignedNativeOrder[],
         takerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
-        const { makerToken, takerToken } = nativeOrders[0].order;
         const sampleAmounts = getSampleAmounts(takerAmount, _opts.numSamples, _opts.sampleDistributionBase);
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
@@ -253,18 +256,21 @@ export class MarketOperationUtils {
 
     /**
      * Gets the liquidity available for a market buy operation
+     * @param makerToken Maker token address
+     * @param takerToken Taker token address
      * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
      * @param makerAmount Amount of maker asset to buy.
      * @param opts Options object.
      * @return MarketSideLiquidity.
      */
     public async getMarketBuyLiquidityAsync(
+        makerToken: string,
+        takerToken: string,
         nativeOrders: SignedNativeOrder[],
         makerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
         const _opts = { ...DEFAULT_GET_MARKET_ORDERS_OPTS, ...opts };
-        const { makerToken, takerToken } = nativeOrders[0].order;
         const sampleAmounts = getSampleAmounts(makerAmount, _opts.numSamples, _opts.sampleDistributionBase);
 
         const requestFilters = new SourceFilters().exclude(_opts.excludedSources).include(_opts.includedSources);
@@ -441,6 +447,8 @@ export class MarketOperationUtils {
      * @param nativeOrders: Assumes LimitOrders not RfqOrders
      */
     public async getOptimizerResultAsync(
+        makerToken: string,
+        takerToken: string,
         nativeOrders: SignedNativeOrder[],
         amount: BigNumber,
         side: MarketOperation,
@@ -455,16 +463,24 @@ export class MarketOperationUtils {
             fillAdjustor: _opts.fillAdjustor,
         };
 
-        if (nativeOrders.length === 0) {
-            throw new Error(AggregationError.EmptyOrders);
-        }
-
         // Compute an optimized path for on-chain DEX and open-orderbook. This should not include RFQ liquidity.
         let marketSideLiquidity: MarketSideLiquidity;
         if (side === MarketOperation.Sell) {
-            marketSideLiquidity = await this.getMarketSellLiquidityAsync(nativeOrders, amount, _opts);
+            marketSideLiquidity = await this.getMarketSellLiquidityAsync(
+                makerToken,
+                takerToken,
+                nativeOrders,
+                amount,
+                _opts,
+            );
         } else {
-            marketSideLiquidity = await this.getMarketBuyLiquidityAsync(nativeOrders, amount, _opts);
+            marketSideLiquidity = await this.getMarketBuyLiquidityAsync(
+                makerToken,
+                takerToken,
+                nativeOrders,
+                amount,
+                _opts,
+            );
         }
 
         // Phase 1 Routing
@@ -520,8 +536,6 @@ export class MarketOperationUtils {
         ) {
             // Timing of RFQT lifecycle
             const timeStart = new Date().getTime();
-            const { makerToken, takerToken } = nativeOrders[0].order;
-
             // Filter Alt Rfq Maker Asset Offerings to the current pair
             const filteredOfferings: AltRfqMakerAssetOfferings = {};
             if (rfqt.altRfqAssetOfferings) {

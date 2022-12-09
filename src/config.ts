@@ -101,7 +101,6 @@ const getIntegratorIdFromLabel = (label: string): string | undefined => {
     }
 };
 
-type RfqWorkFlowType = 'rfqt' | 'rfqm';
 type RfqOrderType = 'rfq' | 'otc';
 
 /**
@@ -116,27 +115,6 @@ interface RfqMakerConfig {
     rfqtOrderTypes: RfqOrderType[];
     apiKeyHashes: string[];
 }
-
-/**
- * A Map type which map the makerId to the config object.
- */
-type MakerIdsToConfigs = Map</* makerId */ string, RfqMakerConfig>;
-
-/**
- * Generate a map from MakerId to MakerConfig that support a given order type for a given workflow
- */
-const getMakerConfigMapForOrderType = (
-    orderType: RfqOrderType | 'any',
-    workflow: RfqWorkFlowType,
-): MakerIdsToConfigs => {
-    const typesField = workflow === 'rfqt' ? 'rfqtOrderTypes' : 'rfqmOrderTypes';
-    return RFQ_MAKER_CONFIGS.reduce((acc, curr) => {
-        if (orderType === 'any' || curr[typesField].includes(orderType)) {
-            acc.set(curr.makerId, curr);
-        }
-        return acc;
-    }, new Map<string, RfqMakerConfig>());
-};
 
 /**
  * A list of type RfqMakerConfig, read from the RFQ_MAKER_CONFIGS env variable
