@@ -1,5 +1,14 @@
 [
     {
+        "version": "8.0.0",
+        "changes": [
+            {
+                "note": "Remove Kovan and Arbitrum Rinkeby as they are no longer supported.",
+                "pr": 630
+            }
+        ]
+    },
+    {
         "timestamp": 1669235113,
         "version": "7.4.1",
         "changes": [
