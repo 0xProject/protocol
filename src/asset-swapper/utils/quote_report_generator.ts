@@ -287,6 +287,21 @@ function _isNativeOrderFromCollapsedFill(cf: Fill): cf is Fill<NativeFillData> {
     }
 }
 
+function _isRFQOrderfromType(orderType: FillQuoteTransformerOrderType) {
+    switch (orderType) {
+        case FillQuoteTransformerOrderType.Rfq:
+        case FillQuoteTransformerOrderType.Otc:
+            return true;
+        case FillQuoteTransformerOrderType.Limit:
+        case FillQuoteTransformerOrderType.Bridge:
+            return false;
+        default:
+            ((_: never) => {
+                throw new Error('unreachable');
+            })(orderType);
+    }
+}
+
 /**
  * Generates a report entry for a native order
  * NOTE: this is used for the QuoteReport and quote price comparison data
@@ -305,7 +320,7 @@ export function nativeOrderToReportEntry(
     };
 
     // if we find this is an rfqt order, label it as such and associate makerUri
-    const isRFQ = type === FillQuoteTransformerOrderType.Rfq;
+    const isRFQ = _isRFQOrderfromType(type);
     const rfqtMakerUri =
         isRFQ && quoteRequestor ? quoteRequestor.getMakerUriForSignature(fillData.signature) : undefined;
 
