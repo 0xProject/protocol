@@ -6,7 +6,8 @@
                 "note": "Remove Kovan and Arbitrum Rinkeby as they are no longer supported.",
                 "pr": 630
             }
-        ]
+        ],
+        "timestamp": 1670879498
     },
     {
         "timestamp": 1669235113,

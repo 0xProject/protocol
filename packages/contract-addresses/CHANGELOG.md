@@ -5,6 +5,10 @@ Edit the package's CHANGELOG.json file only.
 
 CHANGELOG
 
+## v8.0.0 - _December 12, 2022_
+
+    * Remove Kovan and Arbitrum Rinkeby as they are no longer supported. (#630)
+
 ## v7.4.1 - _November 23, 2022_
 
     * Dependencies updated
