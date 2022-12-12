@@ -103,7 +103,6 @@ export * from '../test/generated-wrappers/log_metadata_transformer';
 export * from '../test/generated-wrappers/meta_transactions_feature';
 export * from '../test/generated-wrappers/mixin_aave_v2';
 export * from '../test/generated-wrappers/mixin_balancer';
-export * from '../test/generated-wrappers/mixin_balancer_v2';
 export * from '../test/generated-wrappers/mixin_balancer_v2_batch';
 export * from '../test/generated-wrappers/mixin_bancor';
 export * from '../test/generated-wrappers/mixin_bancor_v3';

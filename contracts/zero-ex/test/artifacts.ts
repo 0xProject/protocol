@@ -105,7 +105,6 @@ import * as LogMetadataTransformer from '../test/generated-artifacts/LogMetadata
 import * as MetaTransactionsFeature from '../test/generated-artifacts/MetaTransactionsFeature.json';
 import * as MixinAaveV2 from '../test/generated-artifacts/MixinAaveV2.json';
 import * as MixinBalancer from '../test/generated-artifacts/MixinBalancer.json';
-import * as MixinBalancerV2 from '../test/generated-artifacts/MixinBalancerV2.json';
 import * as MixinBalancerV2Batch from '../test/generated-artifacts/MixinBalancerV2Batch.json';
 import * as MixinBancor from '../test/generated-artifacts/MixinBancor.json';
 import * as MixinBancorV3 from '../test/generated-artifacts/MixinBancorV3.json';
@@ -329,7 +328,6 @@ export const artifacts = {
     PolygonBridgeAdapter: PolygonBridgeAdapter as ContractArtifact,
     MixinAaveV2: MixinAaveV2 as ContractArtifact,
     MixinBalancer: MixinBalancer as ContractArtifact,
-    MixinBalancerV2: MixinBalancerV2 as ContractArtifact,
     MixinBalancerV2Batch: MixinBalancerV2Batch as ContractArtifact,
     MixinBancor: MixinBancor as ContractArtifact,
     MixinBancorV3: MixinBancorV3 as ContractArtifact,
