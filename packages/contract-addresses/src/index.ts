@@ -27,7 +27,6 @@ export interface ContractAddresses {
 export enum ChainId {
     Mainnet = 1,
     Goerli = 5,
-    Kovan = 42,
     Ganache = 1337,
     BSC = 56,
     Polygon = 137,
@@ -37,7 +36,6 @@ export enum ChainId {
     Celo = 42220,
     Optimism = 10,
     Arbitrum = 42161,
-    ArbitrumRinkeby = 421611,
 }
 
 /**
