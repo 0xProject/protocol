@@ -160,7 +160,7 @@ const HTTP_HEADERS_TIMEOUT = _.isEmpty(process.env.HTTP_HEADERS_TIMEOUT)
 
 // Default chain id to use when not specified
 export const CHAIN_ID: ChainId = _.isEmpty(process.env.CHAIN_ID)
-    ? ChainId.Kovan
+    ? ChainId.Mainnet
     : assertEnvVarType('CHAIN_ID', process.env.CHAIN_ID, EnvVarType.ChainId);
 
 // Whitelisted token addresses. Set to a '*' instead of an array to allow all tokens.
@@ -476,7 +476,6 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOp
 const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     switch (CHAIN_ID) {
         case ChainId.Ganache:
-        case ChainId.Kovan:
             return { overrides: {}, block: BlockParamLiteral.Latest };
         default:
             return undefined;

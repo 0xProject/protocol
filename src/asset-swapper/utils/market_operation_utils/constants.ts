@@ -49,7 +49,6 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
     return {
         [ChainId.Mainnet]: defaultValue,
         [ChainId.Goerli]: defaultValue,
-        [ChainId.Kovan]: defaultValue,
         [ChainId.Ganache]: defaultValue,
         [ChainId.BSC]: defaultValue,
         [ChainId.Polygon]: defaultValue,
@@ -59,7 +58,6 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Celo]: defaultValue,
         [ChainId.Optimism]: defaultValue,
         [ChainId.Arbitrum]: defaultValue,
-        [ChainId.ArbitrumRinkeby]: defaultValue,
         ...(rest || {}),
     };
 }
@@ -98,7 +96,6 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.AaveV2,
             ERC20BridgeSource.Compound,
         ]),
-        [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Goerli]: new SourceFilters([
             ERC20BridgeSource.Native,
             ERC20BridgeSource.SushiSwap,
@@ -261,7 +258,6 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID = valueByChainId<SourceFilters>(
             ERC20BridgeSource.MultiHop,
         ]),
         [ChainId.PolygonMumbai]: new SourceFilters([ERC20BridgeSource.Native, ERC20BridgeSource.UniswapV3]),
-        [ChainId.Kovan]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.Ganache]: new SourceFilters([ERC20BridgeSource.Native]),
         [ChainId.BSC]: new SourceFilters([
             ERC20BridgeSource.BakerySwap,
@@ -1107,7 +1103,6 @@ export const NATIVE_FEE_TOKEN_BY_CHAIN_ID = valueByChainId<string>(
         [ChainId.Ganache]: getContractAddressesForChainOrThrow(ChainId.Ganache).etherToken,
         [ChainId.Goerli]: getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
         [ChainId.PolygonMumbai]: getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
-        [ChainId.Kovan]: getContractAddressesForChainOrThrow(ChainId.Kovan).etherToken,
         [ChainId.Polygon]: getContractAddressesForChainOrThrow(ChainId.Polygon).etherToken,
         [ChainId.Avalanche]: getContractAddressesForChainOrThrow(ChainId.Avalanche).etherToken,
         [ChainId.Fantom]: getContractAddressesForChainOrThrow(ChainId.Fantom).etherToken,
