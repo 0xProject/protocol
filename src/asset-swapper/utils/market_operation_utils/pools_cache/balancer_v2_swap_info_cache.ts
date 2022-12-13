@@ -35,8 +35,8 @@ type BalancerChains =
 const SOR_CONFIG: Record<BalancerChains, SorConfig> = {
     [ChainId.Mainnet]: {
         chainId: ChainId.Mainnet,
-        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-        weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        weth: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
         wETHwstETH: {
             id: '0x32296969ef14eb0c6d29669c550d4a0449130230000200000000000000000080',
             address: '0x32296969ef14eb0c6d29669c550d4a0449130230',
@@ -44,28 +44,28 @@ const SOR_CONFIG: Record<BalancerChains, SorConfig> = {
     },
     [ChainId.Polygon]: {
         chainId: ChainId.Polygon,
-        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-        weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+        vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        weth: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
     },
     [ChainId.Arbitrum]: {
         chainId: ChainId.Arbitrum,
-        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-        weth: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+        vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+        weth: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     },
     [ChainId.Goerli]: {
         chainId: ChainId.Goerli,
-        vault: '0x65748E8287Ce4B9E6D83EE853431958851550311',
-        weth: '0x9A1000D492d40bfccbc03f413A48F5B6516Ec0Fd',
+        vault: '0x65748e8287ce4b9e6d83ee853431958851550311',
+        weth: '0x9a1000d492d40bfccbc03f413a48f5b6516ec0fd',
     },
     [ChainId.Optimism]: {
         chainId: ChainId.Optimism,
-        vault: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
+        vault: '0xba12222222228d8ba445958a75a0704d566bf2c8',
         weth: '0x4200000000000000000000000000000000000006',
     },
     [ChainId.Fantom]: {
         chainId: ChainId.Fantom,
         vault: '0x20dd72ed959b6147912c2e529f0a0c651c33c9ce',
-        weth: '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83',
+        weth: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
     },
 };
 

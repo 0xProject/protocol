@@ -8,7 +8,7 @@ import { MAINNET_TOKENS } from './constants';
 const findToken = (tokenAddress: string, graph: object): string =>
     // If we're looking for WETH it is stored by Bancor as the 0xeee address
     tokenAddress.toLowerCase() === MAINNET_TOKENS.WETH.toLowerCase()
-        ? '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+        ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
         : Object.keys(graph).filter((k) => k.toLowerCase() === tokenAddress.toLowerCase())[0];
 
 export class BancorService {

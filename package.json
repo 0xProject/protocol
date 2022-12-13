@@ -71,6 +71,7 @@
         "@types/zen-observable": "^0.8.1",
         "@typescript-eslint/eslint-plugin": "^5.35.1",
         "@typescript-eslint/parser": "^5.35.1",
+        "@zapper-fi/eslint-plugin": "^1.4.0",
         "axios-mock-adapter": "^1.19.0",
         "chai": "^4.0.1",
         "chai-as-promised": "^7.1.0",

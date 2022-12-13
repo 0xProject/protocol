@@ -22,7 +22,7 @@ const createMockS3Client = (slippageModels: SlippageModel[]): S3Client => {
 describe('SlippageModelManager', () => {
     const usdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
     const weth = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-    const otherToken = '0xeAC17F958D2ee523a2206206994597C13D831ec7';
+    const otherToken = '0xeac17f958d2ee523a2206206994597c13d831ec7';
     const slippageModels = [
         {
             token0: usdc,

@@ -430,7 +430,7 @@ export const MAINNET_TOKENS = {
     RenBTC: '0xeb4c2781e4eba804ce9a9803c67d0893436bb27d',
     sBTC: '0xfe18be6b3bd88a2d2a7f928d00292e7a9963cfc6',
     tBTC: '0x8daebade922df735c38c80c7ebd708af50815faa',
-    tBTCv2: '0x18084fbA666a33d37592fA2633fD49a74DD93a88',
+    tBTCv2: '0x18084fba666a33d37592fa2633fd49a74dd93a88',
     hBTC: '0x0316eb71485b0ab14103307bf65a021042c6d380',
     pBTC: '0x5228a22e72ccc52d415ecfd199f99d0665e7733b',
     bBTC: '0x9be89d2a4cd102d8fecc6bf9da793be995c22541',
@@ -470,7 +470,7 @@ export const MAINNET_TOKENS = {
     ankrETH: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
     vETH: '0x898bad2774eb97cf6b94605677f43b41871410b1',
     alETH: '0x0100546f2cd4c9d97f798ffc9755e47865ff7ee6',
-    HT: '0x6f259637dcD74C767781E37Bc6133cd6A68aa161',
+    HT: '0x6f259637dcd74c767781e37bc6133cd6a68aa161',
     UST: '0xa47c8bf37f92abed4a126bda807a7b7498661acd',
     // StableSwap "open pools" (crv.finance)
     STABLEx: '0xcd91538b91b4ba7797d39a2f66e63810b50a33d0',
@@ -530,7 +530,7 @@ const BSC_TOKENS = {
     renBTC: '0xfce146bf3146100cfe5db4129cf6c82b0ef4ad8c',
     pBTC: '0xed28a457a5a76596ac48d87c0f577020f6ea1c4c',
     nUSD: '0x23b891e5c62e0955ae2bd185990103928ab817b3',
-    BSW: '0x965F527D9159dCe6288a2219DB51fc6Eef120dD1',
+    BSW: '0x965f527d9159dce6288a2219db51fc6eef120dd1',
     WOO: '0x4691937a7508860f876c9c0a2a617e7d9e945d4b',
 };
 
@@ -550,7 +550,7 @@ const POLYGON_TOKENS = {
     BANANA: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
     WEXPOLY: '0x4c4bf319237d98a30a929a96112effa8da3510eb',
     nUSD: '0xb6c473756050de474286bed418b77aeac39b02af',
-    ANY: '0x6aB6d61428fde76768D7b45D8BFeec19c6eF91A8',
+    ANY: '0x6ab6d61428fde76768d7b45d8bfeec19c6ef91a8',
     WOO: '0x1b815d120b3ef02039ee11dc2d33de7aa4a8c603',
 };
 
@@ -576,7 +576,7 @@ export const AVALANCHE_TOKENS = {
     nUSD: '0xcfc37a6ab183dd4aed08c204d1c2773c0b1bdf46',
     aWETH: '0x53f7c5869a859f0aec3d334ee8b4cf01e3492f21',
     MIM: '0x130966628846bfd36ff31a822705796e8cb8c18d',
-    MAG: '0x1d60109178C48E4A937D8AB71699D8eBb6F7c5dE',
+    MAG: '0x1d60109178c48e4a937d8ab71699d8ebb6f7c5de',
     sAVAX: '0x2b2c81e08f1af8835a78bb2a90ae924ace0ea4be',
     UST: '0xb599c3590f42f8f995ecfa0f85d2980b76862fc1',
     FRAX: '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64',
@@ -797,8 +797,8 @@ const CURVE_V2_ARBITRUM_POOLS = {
 
 const SADDLE_MAINNET_POOLS = {
     // swaps
-    stablesV2: '0xaCb83E0633d6605c5001e2Ab59EF3C745547C8C7',
-    bitcoinsV2: '0xdf3309771d2BF82cb2B6C56F9f5365C8bD97c4f2',
+    stablesV2: '0xacb83e0633d6605c5001e2ab59ef3c745547c8c7',
+    bitcoinsV2: '0xdf3309771d2bf82cb2b6c56f9f5365c8bd97c4f2',
     alETH: '0xa6018520eaacc06c30ff2e1b3ee2c7c22e64196a',
     d4: '0xc69ddcd4dfef25d8a793241834d4cc4b3668ead6',
     '4Pool': '0x101cd330d088634b6f64c2eb4276e63bf1bbfde3',
@@ -954,12 +954,12 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         ],
         [ChainId.Goerli]: [
             getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
-            '0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844', // DAI
-            '0x07865c6E87B9F70255377e024ace6630C1Eaa37F', // USDC
+            '0x11fe4b6ae13d2a6055c8d9cf65c55bac32b5d844', // DAI
+            '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
         ],
         [ChainId.PolygonMumbai]: [
             getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
-            '0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747', // USDC
+            '0xe6b8a5cf854791412c1f6efc7caf629f5df1c747', // USDC
         ],
         [ChainId.Polygon]: [
             POLYGON_TOKENS.WMATIC,
@@ -2046,7 +2046,7 @@ export const PLATYPUS_AVALANCHE_INFOS: { [name: string]: PlatypusInfo } = {
 export const UNISWAPV1_ROUTER_BY_CHAIN_ID = valueByChainId<string>(
     {
         [ChainId.Mainnet]: '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95',
-        [ChainId.Goerli]: '0x6Ce570d02D73d4c384b46135E87f8C592A8c86dA',
+        [ChainId.Goerli]: '0x6ce570d02d73d4c384b46135e87f8c592a8c86da',
     },
     NULL_ADDRESS,
 );
@@ -2172,7 +2172,7 @@ export const DODOV1_CONFIG_BY_CHAIN_ID = valueByChainId(
     {
         [ChainId.Mainnet]: {
             helper: '0x533da777aedce766ceae696bf90f8541a4ba80eb',
-            registry: '0x3A97247DF274a17C59A3bd12735ea3FcDFb49950',
+            registry: '0x3a97247df274a17c59a3bd12735ea3fcdfb49950',
         },
         [ChainId.BSC]: {
             helper: '0x0f859706aee7fcf61d5a8939e8cb9dbb6c1eda33',
@@ -2238,7 +2238,7 @@ export const MAKER_PSM_INFO_BY_CHAIN_ID = valueByChainId<PsmInfo>(
 
 export const BANCOR_REGISTRY_BY_CHAIN_ID = valueByChainId<string>(
     {
-        [ChainId.Mainnet]: '0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4',
+        [ChainId.Mainnet]: '0x52ae12abe5d8bd778bd5397f99ca900624cfadd4',
     },
     NULL_ADDRESS,
 );

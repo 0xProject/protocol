@@ -11,7 +11,7 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "plugins": ["@typescript-eslint"],
+    "plugins": ["@typescript-eslint", "@zapper-fi"],
     "ignorePatterns": [
         "migrations/*",
         "generated-wrappers/**/*",
@@ -25,6 +25,7 @@
             {
                 "argsIgnorePattern": "^_"
             }
-        ]
+        ],
+        "@zapper-fi/ethereum-address": 2
     }
 }
