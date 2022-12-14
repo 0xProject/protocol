@@ -59,6 +59,7 @@ import {
 const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
     name: 'no_conversion_to_native_found',
     help: 'unable to get conversion to native token',
+    labelNames: ['source', 'endpoint'],
 });
 
 export class MarketOperationUtils {
@@ -207,13 +208,21 @@ export class MarketOperationUtils {
             gasAfter,
         ] = await samplerPromise;
 
+        const defaultLabels = ['getMarketSellLiquidityAsync', opts?.endpoint || 'N/A'];
+
         if (outputAmountPerEth.isZero()) {
-            DEFAULT_INFO_LOGGER({ token: makerToken }, 'output conversion to native token is zero');
-            NO_CONVERSION_TO_NATIVE_FOUND.inc();
+            DEFAULT_INFO_LOGGER(
+                { token: makerToken, endpoint: opts?.endpoint, inOut: 'output' },
+                'conversion to native token is zero',
+            );
+            NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
         if (inputAmountPerEth.isZero()) {
-            DEFAULT_INFO_LOGGER({ token: takerToken }, 'input conversion to native token is zero');
-            NO_CONVERSION_TO_NATIVE_FOUND.inc();
+            DEFAULT_INFO_LOGGER(
+                { token: takerToken, endpoint: opts?.endpoint, inOut: 'input' },
+                'conversion to native token is zero',
+            );
+            NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
         }
 
         // Log the gas metrics
@@ -329,6 +338,23 @@ export class MarketOperationUtils {
             isTxOriginContract,
             gasAfter,
         ] = await samplerPromise;
+
+        const defaultLabels = ['getMarketBuyLiquidityAsync', opts?.endpoint || 'N/A'];
+
+        if (ethToMakerAssetRate.isZero()) {
+            DEFAULT_INFO_LOGGER(
+                { token: makerToken, endpoint: opts?.endpoint, inOut: 'output' },
+                'conversion to native token is zero',
+            );
+            NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
+        }
+        if (ethToTakerAssetRate.isZero()) {
+            DEFAULT_INFO_LOGGER(
+                { token: takerToken, endpoint: opts?.endpoint, inOut: 'input' },
+                'conversion to native token is zero',
+            );
+            NO_CONVERSION_TO_NATIVE_FOUND.labels(...defaultLabels).inc();
+        }
 
         SAMPLER_METRICS.logGasDetails({ side: 'buy', gasBefore, gasAfter });
         SAMPLER_METRICS.logBlockNumber(blockNumber);

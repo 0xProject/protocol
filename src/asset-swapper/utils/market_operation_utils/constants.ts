@@ -2920,4 +2920,5 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     tokenAdjacencyGraph: TokenAdjacencyGraph.getEmptyGraph(),
     neonRouterNumSamples: 14,
     fillAdjustor: new IdentityFillAdjustor(),
+    endpoint: 'price',
 };

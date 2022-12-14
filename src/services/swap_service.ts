@@ -310,6 +310,7 @@ export class SwapService implements ISwapService {
                           slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
                       )
                     : new IdentityFillAdjustor(),
+            endpoint: endpoint,
         };
 
         const marketSide = sellAmount !== undefined ? MarketOperation.Sell : MarketOperation.Buy;

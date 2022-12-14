@@ -704,6 +704,11 @@ export interface GetMarketOrdersOpts {
      * Adjusts fills individual fills based on caller supplied criteria
      */
     fillAdjustor: FillAdjustor;
+
+    /**
+     * Which endpoint was called
+     */
+    endpoint: 'price' | 'quote';
 }
 
 interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
