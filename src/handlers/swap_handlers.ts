@@ -24,6 +24,7 @@ import {
     RFQT_API_KEY_WHITELIST,
     RFQT_INTEGRATOR_IDS,
     RFQT_REGISTRY_PASSWORDS,
+    ZERO_EX_GAS_API_URL,
 } from '../config';
 import {
     AFFILIATE_DATA_SELECTOR,
@@ -307,7 +308,10 @@ export class SwapHandlers {
 
             // Add additional L1 gas cost.
             if (CHAIN_ID === ChainId.Arbitrum) {
-                const gasUtils = GasPriceUtils.getInstance(constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS);
+                const gasUtils = GasPriceUtils.getInstance(
+                    constants.PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+                    ZERO_EX_GAS_API_URL,
+                );
                 const gasPrices = await gasUtils.getGasPriceEstimationOrDefault({
                     fast: 100_000_000, // 0.1 gwei in wei
                 });
