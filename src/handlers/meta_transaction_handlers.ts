@@ -7,7 +7,11 @@ import * as _ from 'lodash';
 
 import { SwapQuoterError } from '../asset-swapper';
 import { CHAIN_ID, META_TX_MIN_ALLOWED_SLIPPAGE } from '../config';
-import { DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE, META_TRANSACTION_DOCS_URL } from '../constants';
+import {
+    DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
+    META_TRANSACTION_DOCS_URL,
+    DEFAULT_PRICE_IMPACT_PROTECTION_PERCENTAGE,
+} from '../constants';
 import {
     EthSellNotSupportedError,
     InternalServerError,
@@ -198,6 +202,11 @@ function parseRequestParams(req: express.Request): MetaTransactionQuoteRequestPa
         ]);
     }
 
+    const priceImpactProtectionPercentage =
+        req.query.priceImpactProtectionPercentage === undefined
+            ? DEFAULT_PRICE_IMPACT_PROTECTION_PERCENTAGE
+            : Number.parseFloat(req.query.priceImpactProtectionPercentage as string);
+
     // Note: no RFQT config is passed through here so RFQT is excluded
     const excludedSources =
         req.query.excludedSources === undefined
@@ -225,5 +234,6 @@ function parseRequestParams(req: express.Request): MetaTransactionQuoteRequestPa
         affiliateAddress,
         integratorId,
         quoteUniqueId,
+        priceImpactProtectionPercentage,
     };
 }

@@ -28,6 +28,7 @@ import {
 import {
     AFFILIATE_DATA_SELECTOR,
     DEFAULT_ENABLE_SLIPPAGE_PROTECTION,
+    DEFAULT_PRICE_IMPACT_PROTECTION_PERCENTAGE,
     DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
     ONE_SECOND_MS,
     SWAP_DOCS_URL,
@@ -78,6 +79,11 @@ const HTTP_SWAP_REQUESTS = new Counter({
     name: 'swap_requests',
     help: 'Total number of swap requests',
     labelNames: ['endpoint', 'chain_id', 'api_key', 'integrator_id'],
+});
+
+const PRICE_IMPACT_PROTECTION_SPECIFIED = new Counter({
+    name: 'price_impact_protection_specified',
+    help: 'price impact protection was specified by client',
 });
 
 export class SwapHandlers {
@@ -452,6 +458,22 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         ]);
     }
 
+    let priceImpactProtectionPercentage = DEFAULT_PRICE_IMPACT_PROTECTION_PERCENTAGE;
+    if (req.query.priceImpactProtectionPercentage !== undefined) {
+        PRICE_IMPACT_PROTECTION_SPECIFIED.inc();
+        priceImpactProtectionPercentage = Number.parseFloat(req.query.priceImpactProtectionPercentage as string);
+        if (priceImpactProtectionPercentage > 1) {
+            throw new ValidationError([
+                {
+                    field: 'priceImpactProtectionPercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: ValidationErrorReasons.PercentageOutOfRange,
+                    description: 'priceImpactProtectionPercentage should be between 0 and 1.0',
+                },
+            ]);
+        }
+    }
+
     // Parse sources
     const { excludedSources, includedSources, nativeExclusivelyRFQT } = parseUtils.parseRequestForExcludedSources(
         {
@@ -515,6 +537,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         integratorLabel: integrator?.label || 'N/A',
         rawApiKey: apiKey || 'N/A',
         enableSlippageProtection,
+        priceImpactProtectionPercentage,
     });
 
     return {
@@ -543,6 +566,7 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         slippagePercentage,
         takerAddress: takerAddress as string,
         enableSlippageProtection,
+        priceImpactProtectionPercentage,
     };
 };
 

@@ -195,6 +195,7 @@ interface SwapQuoteParamsBase {
     affiliateAddress?: string;
     affiliateFee: AffiliateFee;
     includePriceComparisons?: boolean;
+    priceImpactProtectionPercentage: number;
 }
 
 // GET /swap/quote

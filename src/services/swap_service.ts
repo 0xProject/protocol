@@ -7,6 +7,7 @@ import { TxData, Web3Wrapper } from '@0x/web3-wrapper';
 import axios from 'axios';
 import { SupportedProvider } from 'ethereum-types';
 import * as _ from 'lodash';
+import { Counter } from 'prom-client';
 
 import {
     AffiliateFeeAmount,
@@ -52,7 +53,13 @@ import {
     ONE_MINUTE_MS,
     ZERO,
 } from '../constants';
-import { GasEstimationError, InsufficientFundsError } from '../errors';
+import {
+    GasEstimationError,
+    InsufficientFundsError,
+    ValidationError,
+    ValidationErrorCodes,
+    ValidationErrorReasons,
+} from '../errors';
 import { logger } from '../logger';
 import {
     AffiliateFee,
@@ -69,6 +76,12 @@ import { serviceUtils, getBuyTokenPercentageFeeOrZero } from '../utils/service_u
 import { SlippageModelFillAdjustor } from '../utils/slippage_model_fill_adjustor';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
 import { utils } from '../utils/utils';
+
+const PRICE_IMPACT_TOO_HIGH = new Counter({
+    name: 'price_impact_too_high',
+    help: 'The number of price impact events',
+    labelNames: ['reason'],
+});
 
 export class SwapService implements ISwapService {
     private readonly _provider: SupportedProvider;
@@ -247,6 +260,7 @@ export class SwapService implements ISwapService {
             skipValidation,
             shouldSellEntireBalance,
             enableSlippageProtection,
+            priceImpactProtectionPercentage,
         } = params;
 
         let _rfqt: GetMarketOrdersRfqOpts | undefined;
@@ -481,6 +495,22 @@ export class SwapService implements ISwapService {
 
         if (apiSwapQuote.buyAmount.lte(new BigNumber(0))) {
             throw new InsufficientFundsError();
+        }
+
+        if (
+            isQuote &&
+            apiSwapQuote.estimatedPriceImpact &&
+            apiSwapQuote.estimatedPriceImpact.gt(priceImpactProtectionPercentage * 100)
+        ) {
+            PRICE_IMPACT_TOO_HIGH.labels('ValueOutOfRange').inc();
+            throw new ValidationError([
+                {
+                    field: 'priceImpactProtectionPercentage',
+                    code: ValidationErrorCodes.ValueOutOfRange,
+                    reason: ValidationErrorReasons.PriceImpactTooHigh,
+                    description: `estimated price impact of ${apiSwapQuote.estimatedPriceImpact} is greater than priceImpactProtectionPercentage ${priceImpactProtectionPercentage}`,
+                },
+            ]);
         }
 
         // If the slippage Model is forced on for the integrator, or if they have opted in to slippage protection

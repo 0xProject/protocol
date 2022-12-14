@@ -61,6 +61,7 @@ export enum ValidationErrorReasons {
     MultipleFeeTypesUsed = 'MULTIPLE_FEE_TYPES_USED',
     FeeRecipientMissing = 'FEE_RECIPIENT_MISSING',
     MinSlippageTooLow = 'MINIMUM_SLIPPAGE_IS_TOO_LOW',
+    PriceImpactTooHigh = 'PRICE_IMPACT_TOO_HIGH',
 }
 
 export class ExpiredOrderError extends AlertError {
