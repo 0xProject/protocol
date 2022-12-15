@@ -972,6 +972,7 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
         [ChainId.Avalanche]: [
             AVALANCHE_TOKENS.WAVAX,
             AVALANCHE_TOKENS.WETH,
+            AVALANCHE_TOKENS.WBTC,
             AVALANCHE_TOKENS.DAI,
             AVALANCHE_TOKENS.USDT,
             AVALANCHE_TOKENS.USDC,

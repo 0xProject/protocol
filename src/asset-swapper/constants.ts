@@ -42,7 +42,7 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
 // default 50% buffer for selecting native orders to be aggregated with other sources
 const MARKET_UTILS_AMOUNT_BUFFER_PERCENTAGE = 0.5;
 
-export const ZERO_AMOUNT = new BigNumber(0);
+const ZERO_AMOUNT = new BigNumber(0);
 const DEFAULT_SWAP_QUOTER_OPTS: SwapQuoterOpts = {
     chainId: ChainId.Mainnet,
     orderRefreshIntervalMs: 10000, // 10 seconds

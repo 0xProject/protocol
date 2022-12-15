@@ -20,6 +20,7 @@
 pragma solidity ^0.6;
 pragma experimental ABIEncoderV2;
 
+import "./AaveV2Sampler.sol";
 import "./AaveV3Sampler.sol";
 import "./BalancerSampler.sol";
 import "./BalancerV2Sampler.sol";
@@ -49,6 +50,7 @@ import "./WooPPSampler.sol";
 import "./UtilitySampler.sol";
 
 contract ERC20BridgeSampler is
+    AaveV2Sampler,
     AaveV3Sampler,
     BalancerSampler,
     BalancerV2Sampler,

@@ -23,6 +23,7 @@
         "generated-artifacts/BalanceChecker.json",
         "generated-artifacts/ERC20BridgeSampler.json",
         "generated-artifacts/FakeTaker.json",
+        "test/generated-artifacts/AaveV2Sampler.json",
         "test/generated-artifacts/AaveV3Sampler.json",
         "test/generated-artifacts/ApproximateBuys.json",
         "test/generated-artifacts/BalanceChecker.json",
