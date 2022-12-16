@@ -508,7 +508,9 @@ export class SwapService implements ISwapService {
                     field: 'priceImpactProtectionPercentage',
                     code: ValidationErrorCodes.ValueOutOfRange,
                     reason: ValidationErrorReasons.PriceImpactTooHigh,
-                    description: `estimated price impact of ${apiSwapQuote.estimatedPriceImpact} is greater than priceImpactProtectionPercentage ${priceImpactProtectionPercentage}`,
+                    description: `estimated price impact of ${
+                        apiSwapQuote.estimatedPriceImpact
+                    } is greater than priceImpactProtectionPercentage ${priceImpactProtectionPercentage * 100}`,
                 },
             ]);
         }
