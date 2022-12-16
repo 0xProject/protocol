@@ -7,7 +7,12 @@ import { retry } from '@lifeomic/attempt';
 import delay from 'delay';
 import { Counter, Gauge, Summary } from 'prom-client';
 
-import { ENABLE_LLR_COOLDOWN, Integrator, LLR_COOLDOWN_DURATION_SECONDS } from '../config';
+import {
+    ENABLE_LLR_COOLDOWN,
+    Integrator,
+    LLR_COOLDOWN_DURATION_SECONDS,
+    TAKER_SPECIFIED_SIDE_ENABLED,
+} from '../config';
 import {
     ETH_DECIMALS,
     GAS_ESTIMATE_BUFFER,
@@ -383,7 +388,6 @@ export class WorkerService {
             }
             job.workerAddress = workerAddress;
             await this._dbUtils.updateRfqmJobAsync(job);
-
             if (job.approval) {
                 // approval and trade workflow
                 await this.processApprovalAndTradeAsync(job, workerAddress);
@@ -1071,6 +1075,8 @@ export class WorkerService {
                 order: otcOrder,
                 orderHash,
                 takerSignature,
+                ...(job.takerSpecifiedSide &&
+                    TAKER_SPECIFIED_SIDE_ENABLED && { takerSpecifiedSide: job.takerSpecifiedSide }),
             };
 
             // "Last Look" in v1 is replaced by market maker order signing in v2.
@@ -1107,7 +1113,6 @@ export class WorkerService {
             }
 
             logger.info({ makerUri, signed: !!makerSignature, orderHash }, 'Got signature response from market maker');
-
             if (!makerSignature) {
                 // Market Maker has declined to sign the transaction
                 RFQM_JOB_MM_REJECTED_LAST_LOOK.labels(makerUri, this._chainId.toString()).inc();

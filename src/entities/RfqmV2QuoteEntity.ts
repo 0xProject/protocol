@@ -42,6 +42,14 @@ export class RfqmV2QuoteEntity {
     @Column({ name: 'affiliate_address', type: 'varchar', nullable: true })
     public affiliateAddress: string | null;
 
+    // When requesting a quote, taker specifies one amount (maker or taker amount)
+    // and the MM populates the other field.
+    // This field preserves that information.
+    // This field is accepted to be null, only for backward compatibility,
+    // in normal operation "taker_specified_side" is always known.
+    @Column({ name: 'taker_specified_side', type: 'varchar', nullable: true })
+    public takerSpecifiedSide: 'makerToken' | 'takerToken' | null;
+
     // tslint:disable-next-line no-object-literal-type-assertion
     constructor(opts: RfqmV2QuoteConstructorOpts = {} as RfqmV2QuoteConstructorOpts) {
         // allow createdAt overrides for testing
@@ -57,5 +65,6 @@ export class RfqmV2QuoteEntity {
         this.makerUri = opts.makerUri;
         this.order = opts.order;
         this.orderHash = opts.orderHash;
+        this.takerSpecifiedSide = opts.takerSpecifiedSide ?? null;
     }
 }

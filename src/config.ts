@@ -387,6 +387,10 @@ export const REASON_ON_STATUS_ERROR_RESPONSE_ENABLED: boolean = _.isEmpty(
           EnvVarType.Boolean,
       );
 
+export const TAKER_SPECIFIED_SIDE_ENABLED: boolean = _.isEmpty(process.env.TAKER_SPECIFIED_SIDE_ENABLED)
+    ? false
+    : assertEnvVarType('TAKER_SPECIFIED_SIDE_ENABLED', process.env.TAKER_SPECIFIED_SIDE_ENABLED, EnvVarType.Boolean);
+
 export const RFQM_MAKER_ID_SET: MakerIdSet = getMakerIdSetForOrderType('any', 'rfqm');
 export const RFQT_MAKER_ID_SET_FOR_RFQ_ORDER: MakerIdSet = getMakerIdSetForOrderType('rfq', 'rfqt');
 export const RFQT_MAKER_ID_SET_FOR_OTC_ORDER: MakerIdSet = getMakerIdSetForOrderType('otc', 'rfqt');

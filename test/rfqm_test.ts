@@ -141,6 +141,7 @@ const MOCK_RFQM_JOB = new RfqmV2JobEntity({
     workerAddress: null,
     lastLookResult: null,
     affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+    takerSpecifiedSide: 'makerToken',
 });
 
 jest.setTimeout(ONE_MINUTE_MS * 2);
@@ -1069,6 +1070,7 @@ describe('RFQM Integration', () => {
                 order: mockStoredOtcOrder,
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                takerSpecifiedSide: 'makerToken',
             });
 
             // write a corresponding quote entity to validate against
@@ -1149,6 +1151,7 @@ describe('RFQM Integration', () => {
                 order: mockStoredOtcOrder,
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                takerSpecifiedSide: 'makerToken',
             });
 
             // write a corresponding quote entity to validate against
@@ -1186,6 +1189,7 @@ describe('RFQM Integration', () => {
                 order: mockStoredOtcOrder,
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                takerSpecifiedSide: 'makerToken',
             });
 
             await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
@@ -1213,6 +1217,7 @@ describe('RFQM Integration', () => {
                 order: mockStoredOtcOrder,
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                takerSpecifiedSide: 'makerToken',
             });
 
             await dataSource.getRepository(RfqmV2QuoteEntity).insert(mockQuote);
@@ -1302,6 +1307,7 @@ describe('RFQM Integration', () => {
                 order: mockStoredOtcOrder,
                 chainId: 1337,
                 affiliateAddress: MATCHA_AFFILIATE_ADDRESS,
+                takerSpecifiedSide: 'makerToken',
             });
 
             // write a corresponding quote entity to validate against

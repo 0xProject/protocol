@@ -1,8 +1,8 @@
 import { MarketOperation } from '@0x/asset-swapper/lib/src/types';
 import { SchemaValidator } from '@0x/json-schemas';
 import { Signature } from '@0x/protocol-utils';
-import { SignRequest } from '../quote-server/types';
 import { schemas as quoteServerSchemas } from '../quote-server/schemas';
+import { SignRequest } from '../quote-server/types';
 import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 import { OK } from 'http-status-codes';
@@ -10,7 +10,12 @@ import { OK } from 'http-status-codes';
 import { Summary } from 'prom-client';
 import * as uuid from 'uuid';
 
-import { Integrator, RFQ_PRICE_ENDPOINT_TIMEOUT_MS, RFQ_SIGN_ENDPOINT_TIMEOUT_MS } from '../config';
+import {
+    Integrator,
+    RFQ_PRICE_ENDPOINT_TIMEOUT_MS,
+    RFQ_SIGN_ENDPOINT_TIMEOUT_MS,
+    TAKER_SPECIFIED_SIDE_ENABLED,
+} from '../config';
 import { ZERO } from '../core/constants';
 import { logger } from '../logger';
 import { schemas } from '../core/schemas';
@@ -315,6 +320,8 @@ export class QuoteServerClient {
                 takerSignature: payload.takerSignature,
                 feeToken: payload.fee.token,
                 feeAmount: payload.fee.amount,
+                ...(TAKER_SPECIFIED_SIDE_ENABLED &&
+                    payload.takerSpecifiedSide && { takerSpecifiedSide: payload.takerSpecifiedSide }),
             },
             {
                 timeout: RFQ_SIGN_ENDPOINT_TIMEOUT_MS,

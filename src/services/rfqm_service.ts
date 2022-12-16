@@ -512,6 +512,7 @@ export class RfqmService {
             affiliateAddress,
             integratorId: integrator.integratorId,
             isUnwrap,
+            takerSpecifiedSide: params.sellAmount ? 'takerToken' : 'makerToken',
         });
 
         const approval = params.checkApproval
@@ -947,6 +948,7 @@ export class RfqmService {
             takerSignature,
             affiliateAddress: quote.affiliateAddress,
             isUnwrap: quote.isUnwrap,
+            takerSpecifiedSide: quote.takerSpecifiedSide,
         };
 
         // if approval opts are supplied, add params to job table

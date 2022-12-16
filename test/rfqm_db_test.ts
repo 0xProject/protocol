@@ -137,6 +137,7 @@ describe('RFQM Database', () => {
                 order: otcOrderToStoredOtcOrder(otcOrder),
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
+                takerSpecifiedSide: 'takerToken',
             });
 
             const storedQuote = await dbUtils.findV2QuoteByOrderHashAsync(otcOrderHash);
@@ -146,6 +147,8 @@ describe('RFQM Database', () => {
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(fee).to.deep.eq(storedFeeToFee(storedQuote?.fee!));
+
+            expect(storedQuote?.takerSpecifiedSide).to.equal('takerToken');
         });
 
         it('should be able to write, update, and read the rfqm_v2_job table', async () => {
@@ -161,6 +164,7 @@ describe('RFQM Database', () => {
                 takerSignature,
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
+                takerSpecifiedSide: 'makerToken',
             });
 
             // First Read
@@ -187,6 +191,7 @@ describe('RFQM Database', () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,@typescript-eslint/no-non-null-asserted-optional-chain
             expect(storedFeeToFee(updatedJob?.fee!)).to.deep.eq(fee);
             expect(updatedJob?.status).to.equal(RfqmJobStatus.SucceededConfirmed);
+            expect(updatedJob?.takerSpecifiedSide).to.equal('makerToken');
         });
 
         it('should be able to find by status across the rfqm_v2_job table', async () => {
@@ -200,6 +205,7 @@ describe('RFQM Database', () => {
                 order: otcOrderToStoredOtcOrder(otcOrder),
                 orderHash: otcOrderHash,
                 fee: feeToStoredFee(fee),
+                takerSpecifiedSide: 'makerToken',
             });
 
             // Get jobs with that status

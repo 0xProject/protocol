@@ -316,6 +316,7 @@ describe('RfqmService HTTP Logic', () => {
                 order: otcOrderToStoredOtcOrder(newOtcOrder),
                 orderHash: '',
                 isUnwrap: false,
+                takerSpecifiedSide: null,
             });
             const metatransactionMock = mock(MetaTransaction);
             when(metatransactionMock.getHash()).thenReturn('0xmetatransactionhash');
@@ -455,6 +456,7 @@ describe('RfqmService HTTP Logic', () => {
                 order: otcOrderToStoredOtcOrder(otcOrder),
                 orderHash: '',
                 isUnwrap: false,
+                takerSpecifiedSide: null,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.getMinOfBalancesAndAllowancesAsync(anything())).thenResolve([
@@ -537,6 +539,7 @@ describe('RfqmService HTTP Logic', () => {
                 order: otcOrderToStoredOtcOrder(otcOrder),
                 orderHash: '',
                 isUnwrap: false,
+                takerSpecifiedSide: null,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(10000)]);
@@ -629,6 +632,7 @@ describe('RfqmService HTTP Logic', () => {
                 order: otcOrderToStoredOtcOrder(otcOrder),
                 orderHash: '',
                 isUnwrap: false,
+                takerSpecifiedSide: null,
             });
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.getTokenBalancesAsync(anything())).thenResolve([new BigNumber(10000)]);

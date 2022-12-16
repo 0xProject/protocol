@@ -93,6 +93,14 @@ export class RfqmV2JobEntity {
     @Column({ name: 'approval_signature', type: 'jsonb', nullable: true })
     public approvalSignature: Signature | null;
 
+    // When requesting a quote, taker specifies one amount (maker or taker amount)
+    // and the MM populates the other field.
+    // This field preserves that information.
+    // This field is accepted to be null, only for backward compatibility,
+    // in normal operation "taker_specified_side" is always known.
+    @Column({ name: 'taker_specified_side', type: 'varchar', nullable: true })
+    public takerSpecifiedSide: 'makerToken' | 'takerToken' | null;
+
     /**
      * Used to get the 'canonical' hash of the job. This is useful
      * because it can also be called on a metatransaction job and
@@ -132,5 +140,6 @@ export class RfqmV2JobEntity {
         this.takerSignature = opts.takerSignature ?? null;
         this.updatedAt = opts.updatedAt ?? null;
         this.workerAddress = opts.workerAddress ?? null;
+        this.takerSpecifiedSide = opts.takerSpecifiedSide ?? null;
     }
 }

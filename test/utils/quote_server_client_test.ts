@@ -419,6 +419,49 @@ describe('QuoteServerClient', () => {
                 expect(signature).toEqual(makerSignature);
             });
 
+            it('should send takerSpecifiedSide when enabled and present in request', async () => {
+                // Given
+                const client = new QuoteServerClient(axiosInstance);
+                const request: SignRequest = {
+                    order,
+                    orderHash,
+                    fee: {
+                        amount: new BigNumber('100'),
+                        type: 'fixed',
+                        token: CONTRACT_ADDRESSES.etherToken,
+                    },
+                    expiry: order.expiry,
+                    takerSpecifiedSide: 'makerToken',
+                    takerSignature,
+                };
+
+                const actualRequest = {
+                    order,
+                    orderHash,
+                    feeAmount: '100',
+                    feeToken: CONTRACT_ADDRESSES.etherToken,
+                    expiry: order.expiry,
+                    takerSpecifiedSide: 'makerToken',
+                    takerSignature,
+                };
+
+                const response = {
+                    feeAmount: '100',
+                    proceedWithFill: true,
+                    makerSignature,
+                };
+
+                axiosMock
+                    .onPost(`${makerUri}/rfqm/v2/sign`, JSON.parse(JSON.stringify(actualRequest)))
+                    .replyOnce(HttpStatus.OK, response);
+
+                // When
+                const signature = await client.signV2Async(makerUri, 'dummy-integrator-id', request);
+
+                // Then
+                expect(signature).toEqual(makerSignature);
+            });
+
             it('should return a signature for valid response even if the fee is higher than requested', async () => {
                 // Given
                 const client = new QuoteServerClient(axiosInstance);
