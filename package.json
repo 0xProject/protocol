@@ -130,7 +130,7 @@
         "delay": "^4.4.0",
         "dotenv": "^8.1.0",
         "ethereum-types": "^3.7.1",
-        "express": "^4.17.1",
+        "express": "^4.17.3",
         "express-async-handler": "^1.1.4",
         "graphql": "^15.4.0",
         "graphql-request": "^3.4.0",
