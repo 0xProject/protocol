@@ -14,7 +14,7 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 import "samplers/UniswapV2Sampler.sol";
 
-contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {
+contract SwapNativeToERC20RFQTv2 is Test, ForkUtils, TestUtils {
 
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
