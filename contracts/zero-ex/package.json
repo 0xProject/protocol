@@ -1,6 +1,6 @@
 {
     "name": "@0x/contracts-zero-ex",
-    "version": "0.38.3",
+    "version": "0.38.2",
     "engines": {
         "node": ">=6.12"
     },
@@ -39,8 +39,7 @@
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
         "publish:private": "yarn build && gitpkg publish",
         "rollback": "node ./lib/scripts/rollback.js",
-        "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'",
-        "foundry:SU": "git submodule update --recursive --remote"
+        "typechain": "typechain --target=ethers-v5 --out-dir='typechain-wrappers'  './foundry-artifacts/**/*.json'"
     },
     "config": {
         "publicInterfaceContracts": "IZeroEx,ZeroEx,FullMigration,InitialMigration,IFlashWallet,IERC20Transformer,IOwnableFeature,ISimpleFunctionRegistryFeature,ITransformERC20Feature,FillQuoteTransformer,PayTakerTransformer,PositiveSlippageFeeTransformer,WethTransformer,OwnableFeature,SimpleFunctionRegistryFeature,TransformERC20Feature,AffiliateFeeTransformer,MetaTransactionsFeature,LogMetadataTransformer,LiquidityProviderFeature,ILiquidityProviderFeature,NativeOrdersFeature,INativeOrdersFeature,FeeCollectorController,FeeCollector,CurveLiquidityProvider,BatchFillNativeOrdersFeature,IBatchFillNativeOrdersFeature,MultiplexFeature,IMultiplexFeature,OtcOrdersFeature,IOtcOrdersFeature,AvalancheBridgeAdapter,BSCBridgeAdapter,CeloBridgeAdapter,EthereumBridgeAdapter,FantomBridgeAdapter,OptimismBridgeAdapter,PolygonBridgeAdapter",
