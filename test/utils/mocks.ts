@@ -25,27 +25,6 @@ export const ganacheZrxWethRfqOrderExchangeProxy: RfqOrderFields = {
     taker: NULL_ADDRESS,
 };
 
-export const liquiditySources0xOnly = [
-    { name: '0x', proportion: '1' },
-    { name: 'Uniswap', proportion: '0' },
-    { name: 'Uniswap_V2', proportion: '0' },
-    { name: 'Eth2Dai', proportion: '0' },
-    { name: 'Kyber', proportion: '0' },
-    { name: 'Curve', proportion: '0' },
-    { name: 'Balancer', proportion: '0' },
-    { name: 'CREAM', proportion: '0' },
-    { name: 'Bancor', proportion: '0' },
-    { name: 'mStable', proportion: '0' },
-    { name: 'Mooniswap', proportion: '0' },
-    { name: 'MultiHop', proportion: '0' },
-    { name: 'Shell', proportion: '0' },
-    { name: 'Swerve', proportion: '0' },
-    { name: 'SnowSwap', proportion: '0' },
-    { name: 'SushiSwap', proportion: '0' },
-    { name: 'DODO', proportion: '0' },
-    { name: 'CryptoCom', proportion: '0' },
-];
-
 const bestCaseQuoteInfo = {
     feeTakerTokenAmount: new BigNumber('383288145500497440'),
     makerAmount: new BigNumber('213528060573258946'),

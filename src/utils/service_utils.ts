@@ -53,7 +53,7 @@ export const serviceUtils = {
             type: 'function',
         });
 
-        // Generate unique identiifer
+        // Generate unique identifier
         const timestampInSeconds = new BigNumber(Date.now() / ONE_SECOND_MS).integerValue();
         const hexTimestamp = timestampInSeconds.toString(HEX_BASE);
         const randomNumber = numberUtils.randomHexNumberOfLength(10);
