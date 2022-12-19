@@ -338,7 +338,10 @@ workflows:
             # - test-contracts-extra-ganache:
             #       requires:
             #           - build
-            - test-foundry:
+            - test-foundry-local:
+                  requires:
+                      - build
+            - test-foundry-forked:
                   requires:
                       - build
             - test-contracts-rest-ganache:
