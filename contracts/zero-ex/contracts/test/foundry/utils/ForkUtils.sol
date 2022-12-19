@@ -79,6 +79,9 @@ interface IFQT {
 
 contract ForkUtils is Test {
     using stdJson for string;
+
+    string json;
+
     //forked providers for each chain
     mapping(string => uint256) public forkIds;
 
@@ -106,6 +109,11 @@ contract ForkUtils is Test {
     string addressesJson;
     string tokensJson;
     string sourcesJson;
+
+    //utility mapping to get chainId by name
+    mapping(string => string) public chainsByChainId;
+    //utility mapping to get indexingChainId by Chain
+    mapping(string => string) public indexChainsByChain;
 
     function createForks() public returns (uint256[] memory) {
         for (uint256 i = 0; i < chains.length; i++) {
@@ -227,6 +235,35 @@ contract ForkUtils is Test {
         vm.label(address(tokens.USDC), "USDC");
         vm.label(address(tokens.DAI), "DAI");
         vm.label(address(sources.UniswapV2Router), "UniswapRouter");
+    }
+
+    function createNewFQT(
+        IEtherTokenV06 wrappedNativeToken,
+        address payable exchangeProxy,
+        address transformerDeployer
+    ) public {
+        vm.startPrank(transformerDeployer);
+        // deploy a new instance of the bridge adapter from the transformerDeployer
+        bridgeAdapter = createBridgeAdapter(IEtherTokenV06(wrappedNativeToken));
+        // deploy a new instance of the fill quote transformer from the transformerDeployer
+        fillQuoteTransformer = new FillQuoteTransformer(IBridgeAdapter(bridgeAdapter), IZeroEx(exchangeProxy));
+        vm.label(address(fillQuoteTransformer), "zeroEx/FillQuoteTransformer");
+        vm.stopPrank();
+    }
+
+    function _setup() public {
+        //get out addresses.json file that defines contract addresses for each chain we are currently deployed on
+        string memory root = vm.projectRoot();
+        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
+        json = vm.readFile(path);
+        createForks();
+
+        for (uint256 i = 0; i < chains.length; i++) {
+            chainsByChainId[chains[i]] = chainIds[i];
+            indexChainsByChain[chains[i]] = indexChainIds[i];
+            bytes memory details = json.parseRaw(indexChainIds[i]);
+            addresses = abi.decode(details, (Addresses));
+        }
     }
 
     modifier onlyForked() {
