@@ -2,8 +2,8 @@ pragma solidity ^0.6;
 
 pragma experimental ABIEncoderV2;
 
-import "./utils/ForkUtils.sol";
-import "./utils/TestUtils.sol";
+import "../utils/ForkUtils.sol";
+import "../utils/TestUtils.sol";
 import "src/IZeroEx.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
 import "src/features/TransformERC20Feature.sol";
@@ -15,27 +15,12 @@ import "src/features/OtcOrdersFeature.sol";
 import "samplers/UniswapV2Sampler.sol";
 
 contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {
-    //use forge-std json library for strings
-    using stdJson for string;
-
-    //utility mapping to get chainId by name
-    mapping(string => string) public chainsByChainId;
-    //utility mapping to get indexingChainId by Chain
-    mapping(string => string) public indexChainsByChain;
-
-    string json;
 
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/
     function setUp() public {
-        //get out addresses.json file that defines contract addresses for each chain we are currently deployed on
-        createForks();
-
-        for (uint256 i = 0; i < chains.length; i++) {
-            chainsByChainId[chains[i]] = chainIds[i];
-            indexChainsByChain[chains[i]] = indexChainIds[i];
-        }
+        _setup();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -136,17 +121,7 @@ contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {
         deal(address(order.makerToken), order.maker, 1e20);
         vm.prank(order.maker);
         IERC20TokenV06(tokens.USDC).approve(address(addresses.exchangeProxy), 1e20);
-        // vm.startPrank(whale);
-        // tokens.USDC.approve(address(this), uint(-1));
-        // //tokens.USDC.transferFrom(address(whale), address(order.maker), balance);
-        // balance = tokens.USDC.balanceOf(order.maker);
-        // vm.stopPrank();
-        //vm.deal(address(order.makerToken), address(order.maker), 1e20);
         vm.prank(order.maker);
-        // tokens.USDC.approve(
-        //     address(IZERO_EX),
-        //     uint256(-1)
-        // );
 
         order.taker = address(0);
         order.txOrigin = address(tx.origin);
@@ -195,18 +170,4 @@ contract NativeTokenToERC20WithOtcTest is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
-
-    function createNewFQT(
-        IEtherTokenV06 wrappedNativeToken,
-        address payable exchangeProxy,
-        address transformerDeployer
-    ) public {
-        vm.startPrank(transformerDeployer);
-        // deploy a new instance of the bridge adapter from the transformerDeployer
-        bridgeAdapter = createBridgeAdapter(IEtherTokenV06(wrappedNativeToken));
-        // deploy a new instance of the fill quote transformer from the transformerDeployer
-        fillQuoteTransformer = new FillQuoteTransformer(IBridgeAdapter(bridgeAdapter), IZeroEx(exchangeProxy));
-        vm.label(address(fillQuoteTransformer), "zeroEx/FillQuoteTransformer");
-        vm.stopPrank();
-    }
 }
