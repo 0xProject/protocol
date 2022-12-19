@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "../utils/ForkUtils.sol";
 import "../utils/TestUtils.sol";
-import "..s/utils/DeployZeroEx.sol";
+import "../utils/DeployZeroEx.sol";
 import "forge-std/Test.sol";
 import "src/IZeroEx.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
@@ -34,7 +34,7 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/transformers/bridges/EthereumBridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
-contract BasicSwapTest is Test, ForkUtils, TestUtils {
+contract WrapEth is Test, ForkUtils, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
 
     function setUp() public {

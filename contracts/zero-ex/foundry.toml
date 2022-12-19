@@ -1,7 +1,7 @@
 [profile.default]
 src = 'contracts/src'
 out = 'foundry-artifacts'
-test = 'contracts/test/foundry'
+test = 'contracts/test/foundry/localTests'
 libs = ["contracts/deps/", "../utils/contracts/src/"]
 remappings = [
     'forge-std/=contracts/deps/forge-std/src/',
@@ -19,11 +19,16 @@ fs_permissions = [
 ]
 verbosity = 3
 
+[profile.local]
+test = 'contracts/test/foundry/localTests'
+[profile.forked]
+test = 'contracts/test/foundry/forkedTests'
+
 [rpc_endpoints]
-arbitrum = "${FORGE_ARBITRUM_RPC}"
-avalanche = "${FORGE_AVALANCHE_RPC}"
-bsc = "${FORGE_BSC_RPC}"
-fantom = "${FORGE_FANTOM_RPC}"
-mainnet = "${FORGE_MAINNET_RPC}"
-optimism = "${FORGE_OPTIMISM_RPC}"
-polygon = "${FORGE_POLYGON_RPC}"
+arbitrum = "${ARBITRUM_RPC_URL}"
+avalanche = "${AVALANCHE_RPC_URL}"
+bsc = "${BSC_RPC_URL}"
+fantom = "${FANTOM_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"
+optimism = "${OPTIMISM_RPC_URL}"
+polygon = "${POLYGON_RPC_URL}"
