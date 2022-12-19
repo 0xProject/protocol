@@ -14,7 +14,7 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 import "samplers/UniswapV2Sampler.sol";
 
-contract ETHToERC20TransformTest is Test, ForkUtils, TestUtils {
+contract SwapEthForERC20OnUniswap is Test, ForkUtils, TestUtils {
 
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup

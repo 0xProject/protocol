@@ -20,7 +20,7 @@ import "src/transformers/bridges/FantomBridgeAdapter.sol";
 import "src/transformers/bridges/CeloBridgeAdapter.sol";
 import "src/features/OtcOrdersFeature.sol";
 
-contract transformERC20Tests is Test, ForkUtils, TestUtils {
+contract SwapEthToWeth is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/

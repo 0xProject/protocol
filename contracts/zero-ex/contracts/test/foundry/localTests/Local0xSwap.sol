@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "../utils/ForkUtils.sol";
 import "../utils/TestUtils.sol";
-import "../utils/DeployZeroEx.sol";
+import "..s/utils/DeployZeroEx.sol";
 import "forge-std/Test.sol";
 import "src/IZeroEx.sol";
 import "@0x/contracts-erc20/contracts/src/v06/IEtherTokenV06.sol";
