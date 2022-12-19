@@ -15,5 +15,5 @@ markComment: >
     for your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: >
-    This issue has been automatically closed because no activity occured in 7 days after being marked as stale. If it's still relevant - feel free to reopen. Thank you
+    This issue has been automatically closed because no activity occured in 30 days after being marked as stale. If it's still relevant - feel free to reopen. Thank you
     for your contributions.
