@@ -181,7 +181,7 @@ describe(SUITE_NAME, () => {
             { buyToken: ETH_TOKEN_ADDRESS, sellToken: 'ZRX', buyAmount: WETH_BUY_AMOUNT },
         ];
         parameterPermutations.map((parameters) => {
-            it.only(`should return a valid quote for ${JSON.stringify(parameters)}`, async () => {
+            it(`should return a valid quote for ${JSON.stringify(parameters)}`, async () => {
                 const response = await requestSwap(app, 'quote', parameters);
                 expectCorrectQuoteResponse(response, {
                     buyAmount: new BigNumber(parameters.buyAmount),
