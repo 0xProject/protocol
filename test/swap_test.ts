@@ -229,6 +229,32 @@ describe(SUITE_NAME, () => {
             });
         });
 
+        it('should handle wrapping of native token', async () => {
+            const response = await requestSwap(app, 'quote', {
+                sellToken: 'ETH',
+                buyToken: 'WETH',
+                sellAmount: '10000000',
+            });
+            expectCorrectQuoteResponse(response, {
+                sellTokenAddress: ETH_TOKEN_ADDRESS,
+                buyTokenAddress: WETH_TOKEN_ADDRESS,
+                buyAmount: new BigNumber('10000000'),
+            });
+        });
+
+        it('should handle unwrapping of native token', async () => {
+            const response = await requestSwap(app, 'quote', {
+                sellToken: 'WETH',
+                buyToken: 'ETH',
+                sellAmount: '10000000',
+            });
+            expectCorrectQuoteResponse(response, {
+                sellTokenAddress: WETH_TOKEN_ADDRESS,
+                buyTokenAddress: ETH_TOKEN_ADDRESS,
+                buyAmount: new BigNumber('10000000'),
+            });
+        });
+
         it('should respect buyAmount', async () => {
             const response = await requestSwap(app, 'quote', { buyAmount: '1234' });
             expectCorrectQuoteResponse(response, { buyAmount: new BigNumber(1234) });
