@@ -156,7 +156,7 @@ jobs:
                     -p @0x/contracts-broker \
                     -p @0x/contracts-zero-ex \
                     -m --serial -c test:circleci
-    test-foundry:
+    test-foundry-local:
         resource_class: xlarge
         docker:
             # Using nightly as foundry:latest is ~2 months old
@@ -179,6 +179,36 @@ jobs:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run:
                 command: git submodule update --init --recursive
+            -run:
+                command: FOUNDRY_PROFILE=local
+            - run:
+                command: forge test
+                working_directory: ~/project/contracts/zero-ex
+    test-foundry-forked:
+        resource_class: xlarge
+        docker:
+            # Using nightly as foundry:latest is ~2 months old
+            # which seems to cause an issue with latest forge-std
+            # https://github.com/foundry-rs/forge-std/issues/230
+            - image: ghcr.io/foundry-rs/foundry:nightly
+        steps:
+            - checkout
+            - run: |
+                  git diff --name-only development >> changed.txt
+                  cat changed.txt
+                  if ! grep -q \.sol changed.txt; then
+                    circleci-agent step halt
+                  fi
+            - restore_cache:
+                  keys:
+                      - cache-{{ checksum "yarn.lock" }}-<< pipeline.parameters.cache_version >>
+            - restore_cache:
+                  keys:
+                      - repo-{{ .Environment.CIRCLE_SHA1 }}
+            - run:
+                command: git submodule update --init --recursive
+            -run:
+                command: FOUNDRY_PROFILE=forked
             - run:
                 command: forge test
                 working_directory: ~/project/contracts/zero-ex
