@@ -17,6 +17,8 @@ interface QuoteReportLogOptionsBase {
     estimatedGas: BigNumber;
     enableSlippageProtection: boolean | undefined;
     expectedSlippage?: BigNumber | null;
+    estimatedPriceImpact: BigNumber | null;
+    priceImpactProtectionPercentage: number;
 }
 
 interface ExtendedQuoteReportForTakerTxn extends QuoteReportLogOptionsBase {
@@ -78,6 +80,8 @@ export function publishQuoteReport(
             estimatedGas: logOpts.estimatedGas.toString(),
             enableSlippageProtection: logOpts.enableSlippageProtection,
             expectedSlippage: logOpts.expectedSlippage?.toString(),
+            estimatedPriceImpact: logOpts.estimatedPriceImpact?.toString(),
+            priceImpactProtectionPercentage: logOpts.priceImpactProtectionPercentage * 100,
         };
         kafkaProducer
             .send({

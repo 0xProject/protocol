@@ -153,6 +153,8 @@ export class MetaTransactionService implements IMetaTransactionService {
                     estimatedGas: quote.estimatedGas,
                     enableSlippageProtection: false,
                     expectedSlippage: quote.expectedSlippage,
+                    estimatedPriceImpact: quote.estimatedPriceImpact,
+                    priceImpactProtectionPercentage: params.priceImpactProtectionPercentage,
                 },
                 true,
                 kafkaProducer,

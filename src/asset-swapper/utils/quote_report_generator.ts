@@ -46,6 +46,8 @@ export interface ExtendedQuoteReport {
     estimatedGas: string;
     enableSlippageProtection?: boolean;
     expectedSlippage?: string;
+    estimatedPriceImpact?: string;
+    priceImpactProtectionPercentage: number;
 }
 
 /**
