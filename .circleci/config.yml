@@ -179,10 +179,8 @@ jobs:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run:
                 command: git submodule update --init --recursive
-            -run:
-                command: FOUNDRY_PROFILE=local
             - run:
-                command: forge test
+                command: FOUNDRY_PROFILE=local && forge test
                 working_directory: ~/project/contracts/zero-ex
     test-foundry-forked:
         resource_class: xlarge
@@ -207,10 +205,8 @@ jobs:
                       - repo-{{ .Environment.CIRCLE_SHA1 }}
             - run:
                 command: git submodule update --init --recursive
-            -run:
-                command: FOUNDRY_PROFILE=forked
             - run:
-                command: forge test
+                command: FOUNDRY_PROFILE=forked && forge test
                 working_directory: ~/project/contracts/zero-ex
     test-publish:
         resource_class: large
