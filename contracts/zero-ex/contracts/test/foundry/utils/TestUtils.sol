@@ -53,7 +53,6 @@ contract TestUtils is Test {
         return nstr;
     }
 
-
     function _findTransformerNonce(address transformer, address deployer) internal pure returns (uint32) {
         address current;
         for (uint32 i = 0; i < 1024; i++) {
