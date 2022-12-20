@@ -73,7 +73,7 @@ export class Path {
      * for settlement
      */
     public finalize(opts: CreateOrderFromPathOpts): FinalizedPath {
-        const [makerToken, takerToken] = getMakerTakerTokens(opts);
+        const { makerToken, takerToken } = getMakerTakerTokens(opts);
         this.orders = [];
         for (const fill of this.fills) {
             // internal BigInt flag field is not supported JSON and is tricky

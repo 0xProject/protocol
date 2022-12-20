@@ -428,8 +428,7 @@ function calculateTwoHopQuoteInfo(
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
     const [firstHopOrder, secondHopOrder] = optimizedOrders;
     const gas = new BigNumber(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        gasSchedule[ERC20BridgeSource.MultiHop]!({
+        gasSchedule[ERC20BridgeSource.MultiHop]({
             firstHopSource: _.pick(firstHopOrder, 'source', 'fillData'),
             secondHopSource: _.pick(secondHopOrder, 'source', 'fillData'),
         }),
@@ -438,9 +437,9 @@ function calculateTwoHopQuoteInfo(
 
     return {
         bestCaseQuoteInfo: {
-            makerAmount: isSell ? secondHopOrder.fill.output : secondHopOrder.fill.input,
-            takerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
-            totalTakerAmount: isSell ? firstHopOrder.fill.input : firstHopOrder.fill.output,
+            makerAmount: secondHopOrder.makerAmount,
+            takerAmount: firstHopOrder.takerAmount,
+            totalTakerAmount: firstHopOrder.takerAmount,
             feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,

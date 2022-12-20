@@ -582,10 +582,21 @@ export type FeeSchedule = Record<ERC20BridgeSource, FeeEstimate>;
 type GasEstimate = (fillData: FillData) => number;
 export type GasSchedule = Record<ERC20BridgeSource, GasEstimate>;
 
+export interface FillBase {
+    // Input fill amount (taker asset amount in a sell, maker asset amount in a buy).
+    input: BigNumber;
+    // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
+    output: BigNumber;
+    // The output fill amount, adjusted by fees.
+    adjustedOutput: BigNumber;
+    // The expected gas cost of this fill
+    gas: number;
+}
+
 /**
  * Represents a node on a fill path.
  */
-export interface Fill<TFillData extends FillData = FillData> {
+export interface Fill<TFillData extends FillData = FillData> extends FillBase {
     // basic data for every fill
     source: ERC20BridgeSource;
     // TODO jacob people seem to agree  that orderType here is more readable
@@ -597,14 +608,6 @@ export interface Fill<TFillData extends FillData = FillData> {
     sourcePathId: string;
     // See `SOURCE_FLAGS`.
     flags: bigint;
-    // Input fill amount (taker asset amount in a sell, maker asset amount in a buy).
-    input: BigNumber;
-    // Output fill amount (maker asset amount in a sell, taker asset amount in a buy).
-    output: BigNumber;
-    // The output fill amount, adjusted by fees.
-    adjustedOutput: BigNumber;
-    // The expected gas cost of this fill
-    gas: number;
 }
 
 export type ExchangeProxyOverhead = (sourceFlags: bigint) => BigNumber;
@@ -719,13 +722,12 @@ interface OptimizedMarketOrderBase<TFillData extends FillData = FillData> {
     takerToken: string;
     makerAmount: BigNumber; // The amount we wish to buy from this order, e.g inclusive of any previous partial fill
     takerAmount: BigNumber; // The amount we wish to fill this for, e.g inclusive of any previous partial fill
-    fill: Omit<Fill, 'flags' | 'fillData' | 'sourcePathId' | 'source' | 'type'>; // Remove duplicates which have been brought into the OrderBase interface
+    fill: FillBase;
 }
 
 export interface OptimizedMarketBridgeOrder<TFillData extends FillData = FillData>
     extends OptimizedMarketOrderBase<TFillData> {
     type: FillQuoteTransformerOrderType.Bridge;
-    sourcePathId: string;
 }
 
 export interface OptimizedLimitOrder extends OptimizedMarketOrderBase<NativeLimitOrderFillData> {
