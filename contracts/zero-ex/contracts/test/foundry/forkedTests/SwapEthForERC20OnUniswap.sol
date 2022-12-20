@@ -12,7 +12,6 @@ import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
-import "samplers/UniswapV2Sampler.sol";
 
 contract SwapEthForERC20OnUniswap is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
@@ -178,14 +177,12 @@ contract SwapEthForERC20OnUniswap is Test, ForkUtils, TestUtils {
         address makerToken,
         address router
     ) public returns (uint256 makerTokenAmounts) {
-        UniswapV2Sampler sampler = new UniswapV2Sampler();
-        vm.label(address(sampler), "UniswapV2Sampler");
         address[] memory path = new address[](2);
         path[0] = address(takerToken);
         path[1] = address(makerToken);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        uint256 out = sampler.sampleSellsFromUniswapV2(router, path, amounts)[0];
+        uint256 out = sampleSellsFromUniswapV2(router, path, amounts)[0];
 
         log_string("       Sampling Uniswap for tokens");
         log_named_address("        ", takerToken);
