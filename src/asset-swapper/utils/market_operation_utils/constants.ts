@@ -378,7 +378,13 @@ const PROTOCOL_FEE_MULTIPLIER = new BigNumber(0);
  */
 export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>(
     {
-        [ChainId.Mainnet]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap, ERC20BridgeSource.UniswapV3],
+        // Lido added so that we can get fee price estimates for stETH
+        [ChainId.Mainnet]: [
+            ERC20BridgeSource.UniswapV2,
+            ERC20BridgeSource.SushiSwap,
+            ERC20BridgeSource.UniswapV3,
+            ERC20BridgeSource.Lido,
+        ],
         [ChainId.BSC]: [ERC20BridgeSource.PancakeSwap, ERC20BridgeSource.Mooniswap, ERC20BridgeSource.SushiSwap],
         [ChainId.Goerli]: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap],
         [ChainId.PolygonMumbai]: [ERC20BridgeSource.UniswapV3],
