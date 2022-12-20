@@ -72,7 +72,7 @@ blockchainTests.resets('FillQuoteTransformer', env => {
             artifacts,
             NULL_ADDRESS,
             NULL_ADDRESS,
-            NULL_ADDRESS
+            NULL_ADDRESS,
         );
         transformer = await FillQuoteTransformerContract.deployFrom0xArtifactAsync(
             artifacts.FillQuoteTransformer,
