@@ -71,14 +71,16 @@ contract EthereumBridgeAdapter is
     MixinZeroExBridge
 {
     constructor(
-        IEtherTokenV06 weth
+        IEtherTokenV06 weth,
+        address steth,
+        address wsteth
     )
         public
         MixinBancor(weth)
         MixinBancorV3(weth)
         MixinCompound(weth)
         MixinCurve(weth)
-        MixinLido(weth)
+        MixinLido(weth, steth, wsteth)
         MixinUniswap(weth)
     {}
 
@@ -174,7 +176,7 @@ contract EthereumBridgeAdapter is
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeLido(sellToken, buyToken, sellAmount, order.bridgeData);
+            boughtAmount = _tradeLido(sellToken, buyToken, sellAmount);
         } else if (protocolId == BridgeProtocols.AAVEV2) {
             if (dryRun) {
                 return (0, true);

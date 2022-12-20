@@ -68,51 +68,30 @@ contract MixinLido {
     using LibERC20TokenV06 for IEtherTokenV06;
 
     IEtherTokenV06 private immutable WETH;
+    IStETH private immutable StETH;
+    IWstETH private immutable WstETH;
 
-    constructor(IEtherTokenV06 weth) public {
+    constructor(IEtherTokenV06 weth, address steth, address wsteth) public {
         WETH = weth;
+        StETH = IStETH(steth);
+        WstETH = IWstETH(wsteth);
     }
 
     function _tradeLido(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
+        uint256 sellAmount
     ) internal returns (uint256 boughtAmount) {
-        if (address(sellToken) == address(WETH)) {
-            return _tradeStETH(buyToken, sellAmount, bridgeData);
-        }
-
-        return _tradeWstETH(sellToken, buyToken, sellAmount, bridgeData);
-    }
-
-    function _tradeStETH(
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    ) private returns (uint256 boughtAmount) {
-        IStETH stETH = abi.decode(bridgeData, (IStETH));
-        if (address(buyToken) == address(stETH)) {
+        if (address(sellToken) == address(WETH) && address(buyToken) == address(StETH)) {
             WETH.withdraw(sellAmount);
-            return stETH.getPooledEthByShares(stETH.submit{value: sellAmount}(address(0)));
+            return StETH.getPooledEthByShares(StETH.submit{value: sellAmount}(address(0)));
         }
-
-        revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
-    }
-
-    function _tradeWstETH(
-        IERC20TokenV06 sellToken,
-        IERC20TokenV06 buyToken,
-        uint256 sellAmount,
-        bytes memory bridgeData
-    ) private returns (uint256 boughtAmount) {
-        (IEtherTokenV06 stETH, IWstETH wstETH) = abi.decode(bridgeData, (IEtherTokenV06, IWstETH));
-        if (address(sellToken) == address(stETH) && address(buyToken) == address(wstETH)) {
-            sellToken.approveIfBelow(address(wstETH), sellAmount);
-            return wstETH.wrap(sellAmount);
+        if (address(sellToken) == address(StETH) && address(buyToken) == address(WstETH)) {
+            sellToken.approveIfBelow(address(WstETH), sellAmount);
+            return WstETH.wrap(sellAmount);
         }
-        if (address(sellToken) == address(wstETH) && address(buyToken) == address(stETH)) {
-            return wstETH.unwrap(sellAmount);
+        if (address(sellToken) == address(WstETH) && address(buyToken) == address(StETH)) {
+            return WstETH.unwrap(sellAmount);
         }
 
         revert("MixinLido/UNSUPPORTED_TOKEN_PAIR");
