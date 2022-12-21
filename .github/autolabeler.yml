@@ -1,6 +1,2 @@
-python: ['python-packages']
-contracts: ['contracts']
-@0x/contract-addresses: ['packages/contract-addresses']
-@0x/order-utils: ['packages/order-utils']
-@0x/contract-artifacts: ['packages/contract-artifacts']
-@0x/contract-wrappers: ['packages/contract-wrappers']
+documentation: ['docs']
+liquidity integrations: ['contracts/zero-ex/contracts/src/transformers']
