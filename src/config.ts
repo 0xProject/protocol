@@ -473,6 +473,10 @@ export const ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP: Partial<SwapQuoteRequestOp
     exchangeProxyOverhead: EXCHANGE_PROXY_OVERHEAD_NO_VIP,
 };
 
+export const CHAIN_HAS_VIPS = (chainId: ChainId) => {
+    return [ChainId.Mainnet, ChainId.BSC].includes(chainId);
+};
+
 const SAMPLER_OVERRIDES: SamplerOverrides | undefined = (() => {
     switch (CHAIN_ID) {
         case ChainId.Ganache:

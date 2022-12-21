@@ -37,6 +37,7 @@ import {
     ALT_RFQ_MM_ENDPOINT,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS,
     ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP,
+    CHAIN_HAS_VIPS,
     CHAIN_ID,
     RFQT_REQUEST_MAX_RESPONSE_MS,
     SWAP_QUOTER_OPTS,
@@ -299,7 +300,8 @@ export class SwapService implements ISwapService {
             isMetaTransaction ||
             shouldSellEntireBalance ||
             // Note: We allow VIP to continue ahead when positive slippage fee is enabled
-            affiliateFee.feeType === AffiliateFeeType.PercentageFee
+            affiliateFee.feeType === AffiliateFeeType.PercentageFee ||
+            !CHAIN_HAS_VIPS(CHAIN_ID)
         ) {
             swapQuoteRequestOpts = ASSET_SWAPPER_MARKET_ORDERS_OPTS_NO_VIP;
         } else {
