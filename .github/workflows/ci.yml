@@ -1,0 +1,84 @@
+name: Continuous Integration
+on:
+  push:
+    branches:
+      - main
+      - development
+  pull_request:
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build solution
+        run: yarn build
+
+      - name: Lint typescript
+        run: yarn lint:ts
+
+      - name: Lint solidity
+        run: yarn lint:contracts
+
+      - name: Run prettier
+        run: yarn prettier:ci
+
+      - name: Check dependent packages have consistent versions
+        run: yarn deps_versions:ci
+
+      - name: Check diff in docs
+        run: yarn diff_md_docs:ci
+
+      - name: Check for broken links in markdown files
+        run: yarn test:links
+
+      - name: Test doc generation
+        run: yarn test:generate_docs:ci
+
+      - name: Test @0x/contracts-*
+        run: |
+                yarn wsrun \
+                  -p @0x/contracts-multisig \
+                  -p @0x/contracts-utils \
+                  -p @0x/contracts-exchange-libs \
+                  -p @0x/contracts-erc20 \
+                  -p @0x/contracts-erc721 \
+                  -p @0x/contracts-erc1155 \
+                  -p @0x/contracts-asset-proxy \
+                  -p @0x/contracts-broker \
+                  -p @0x/contracts-zero-ex \
+                  -m --serial -c test:ci
+
+      - name: Test local @0x/contracts-*
+        run: |
+                yarn wsrun \
+                  -p @0x/contracts-test-utils \
+                  -p @0x/contract-addresses \
+                  -p @0x/contract-artifacts \
+                  -p @0x/contract-wrappers-test \
+                  -p @0x/order-utils \
+                  -m --serial -c test:ci
+
+      - name: Add foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run foundry tests for zero ex contracts only
+        working-directory: contracts/zero-ex
+        run: |
+          forge --version
+          forge build --sizes
+          forge test -vvv --gas-report

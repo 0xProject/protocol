@@ -8,7 +8,7 @@
 
 # Dev tools & setup
 
-.circleci/ @dekz
+.github/ @dekz
 packages/contract-addresses/ @dekz @dextracker @kyu-c
 packages/contract-artifacts/ @dekz
 packages/protocol-utils/ @dekz

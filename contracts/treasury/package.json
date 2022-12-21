@@ -23,7 +23,7 @@
         "generate_contract_wrappers": "abi-gen --debug --abis  ${npm_package_config_abis} --output test/generated-wrappers --backend ethers",
         "lint": "eslint src test",
         "fix": "eslint --fix src test",
-        "test:circleci": "yarn test",
+        "test:ci": "yarn test",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
