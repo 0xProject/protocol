@@ -3,5 +3,5 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthy
+      interval: monthly
     target-branch: "development"
