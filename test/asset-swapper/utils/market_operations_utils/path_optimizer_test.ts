@@ -30,7 +30,6 @@ const NO_OP_PATH_PENALTY_OPTS: PathPenaltyOpts = {
     outputAmountPerEth: ZERO,
     inputAmountPerEth: ZERO,
     exchangeProxyOverhead: () => ZERO,
-    gasPrice: ZERO,
 };
 
 describe('PathOptimizer', () => {

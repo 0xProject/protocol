@@ -509,9 +509,7 @@ export class PathOptimizer {
             return undefined;
         }
 
-        const pathFromRustInputs = Path.create(this.side, adjustedFills, inputAmount, this.pathPenaltyOpts);
-
-        return pathFromRustInputs;
+        return Path.create(this.side, adjustedFills, inputAmount, this.pathPenaltyOpts);
     }
 }
 

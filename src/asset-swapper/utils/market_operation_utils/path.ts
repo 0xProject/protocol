@@ -31,15 +31,7 @@ export interface PathPenaltyOpts {
     outputAmountPerEth: BigNumber;
     inputAmountPerEth: BigNumber;
     exchangeProxyOverhead: ExchangeProxyOverhead;
-    gasPrice: BigNumber;
 }
-
-const DEFAULT_PATH_PENALTY_OPTS: PathPenaltyOpts = {
-    outputAmountPerEth: ZERO_AMOUNT,
-    inputAmountPerEth: ZERO_AMOUNT,
-    exchangeProxyOverhead: () => ZERO_AMOUNT,
-    gasPrice: ZERO_AMOUNT,
-};
 
 export class Path {
     public orders?: OptimizedOrder[];
@@ -50,8 +42,8 @@ export class Path {
     public static create(
         side: MarketOperation,
         fills: ReadonlyArray<Fill>,
-        targetInput: BigNumber = POSITIVE_INF,
-        pathPenaltyOpts: PathPenaltyOpts = DEFAULT_PATH_PENALTY_OPTS,
+        targetInput: BigNumber,
+        pathPenaltyOpts: PathPenaltyOpts,
     ): Path {
         const path = new Path(side, fills, targetInput, pathPenaltyOpts);
         fills.forEach((fill) => {
@@ -128,17 +120,6 @@ export class Path {
     public adjustedRate(): BigNumber {
         const { input, output } = this.adjustedSize();
         return getRate(this.side, input, output);
-    }
-
-    /**
-     * Returns the best possible rate this path can offer, given the fills.
-     */
-    public bestRate(): BigNumber {
-        const best = this.fills.reduce((prevRate, curr) => {
-            const currRate = getRate(this.side, curr.input, curr.output);
-            return prevRate.isLessThan(currRate) ? currRate : prevRate;
-        }, new BigNumber(0));
-        return best;
     }
 
     /**
