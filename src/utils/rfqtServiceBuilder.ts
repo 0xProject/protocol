@@ -118,6 +118,7 @@ export async function buildRfqtServicesAsync(
                 rfqMakerManager,
                 quoteRequestor,
                 quoteServerClient,
+                rfqBlockchainUtils,
                 tokenMetadataManager,
                 contractAddresses,
                 feeService,

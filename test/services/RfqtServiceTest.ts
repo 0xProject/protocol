@@ -75,6 +75,7 @@ const mockFeeService = jest.mocked(
         {} as ZeroExApiClient,
     ),
 );
+const mockRfqBlockchainUtils = jest.mocked({} as RfqBlockchainUtils);
 const mockTokenMetadataManager = jest.mocked(new TokenMetadataManager(1337, {} as RfqBlockchainUtils));
 // tslint:enable: no-object-literal-type-assertion
 const mockContractAddresses = getContractAddressesForChainOrThrow(1337);
@@ -98,6 +99,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -184,6 +186,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -315,6 +318,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -388,6 +392,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -475,6 +480,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -556,6 +562,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -588,6 +595,7 @@ describe('Rfqt Service', () => {
             const fakeNow = new Date(1657069278103);
             const expiry = new BigNumber(fakeNow.getTime() + 1_000_000).dividedBy(ONE_SECOND_MS).decimalPlaces(0);
 
+            mockRfqBlockchainUtils.isValidOrderSignerAsync = jest.fn().mockResolvedValue(true);
             it('filters out quotes with no signatures', async () => {
                 const quoteContext: FirmQuoteContext = {
                     isFirm: true,
@@ -633,6 +641,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -690,6 +699,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -761,6 +771,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,
@@ -827,6 +838,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
                     mockFeeService,

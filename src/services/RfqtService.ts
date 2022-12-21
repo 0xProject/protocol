@@ -28,7 +28,9 @@ import { QuoteRequestor, SignedNativeOrderMM, V4RFQIndicativeQuoteMM } from '../
 import { quoteReportUtils } from '../utils/quote_report_utils';
 import { QuoteServerClient } from '../utils/quote_server_client';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../utils/RfqtQuoteValidator';
+import { RfqBlockchainUtils } from '../utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../utils/rfq_maker_manager';
+import { getSignerFromHash, padSignature } from '../utils/signature_utils';
 import { TokenMetadataManager } from '../utils/TokenMetadataManager';
 
 import { FeeService } from './fee_service';
@@ -127,6 +129,7 @@ export class RfqtService {
         >,
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
+        private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _tokenMetadataManager: TokenMetadataManager,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
         private readonly _feeService: FeeService,
@@ -291,13 +294,46 @@ export class RfqtService {
             pricesAndOrders.map(async ({ price, order }) => {
                 let signature: Signature | undefined;
                 try {
+                    const orderHash = order.getHash();
                     signature = await this._quoteServerClient.signV2Async(
                         price.makerUri,
                         quoteContext.integrator.integratorId,
-                        { order, orderHash: order.getHash(), expiry: price.expiry, fee },
+                        { order, orderHash, expiry: price.expiry, fee },
                         (u: string) => `${u}/rfqt/v2/sign`,
                         /* requireProceedWithFill */ false,
                     );
+
+                    if (signature) {
+                        // Certain market makers are returning signature components which are missing
+                        // leading bytes. Add them if they don't exist.
+                        const paddedSignature = padSignature(signature);
+                        if (paddedSignature.r !== signature.r || paddedSignature.s !== signature.s) {
+                            logger.warn(
+                                { orderHash, r: paddedSignature.r, s: paddedSignature.s },
+                                'Got market maker signature with missing bytes',
+                            );
+                            signature = paddedSignature;
+                        }
+
+                        // Verify the signer was the maker
+                        const signerAddress = getSignerFromHash(orderHash, signature).toLowerCase();
+                        const makerAddress = order.maker.toLowerCase();
+                        if (signerAddress !== makerAddress) {
+                            const isValidSigner = await this._blockchainUtils.isValidOrderSignerAsync(
+                                makerAddress,
+                                signerAddress,
+                            );
+                            if (!isValidSigner) {
+                                logger.warn(
+                                    { signerAddress, makerAddress, orderHash, makerUri: price.makerUri },
+                                    'Invalid maker signature',
+                                );
+
+                                // Quotes with `undefined` signature will be filtered out later
+                                signature = undefined;
+                            }
+                        }
+                    }
                 } catch (e) {
                     logger.warn(
                         { orderHash: order.getHash(), makerId: price.makerId },
