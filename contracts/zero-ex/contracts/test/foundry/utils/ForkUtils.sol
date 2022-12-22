@@ -109,14 +109,11 @@ contract ForkUtils is Test {
 
     //special fork block number for fantom since it produces blocks faster and more frequently
     uint256[] blockNumber = [forkBlock, forkBlock, 33447149, forkBlock, 32000000, forkBlock, forkBlock];
-    /// Only run this function if the block number
-    // is greater than some constant for Ethereum Mainnet
 
     string addressesJson;
     string tokensJson;
     string sourcesJson;
 
-    uint256 private constant UNISWAPV2_CALL_GAS = 150e3; // 150k
 
     //utility mapping to get chainId by name
     mapping(string => string) public chainsByChainId;
@@ -141,7 +138,7 @@ contract ForkUtils is Test {
     function readLiquiditySourceAddresses() public returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/sourceAddresses.json")
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/SourceAddresses.json")
         );
         sourcesJson = vm.readFile(path);
         return vm.readFile(path);
@@ -164,13 +161,12 @@ contract ForkUtils is Test {
         readAddresses();
         bytes memory contractAddresses = addressesJson.parseRaw(indexChainIds[index]);
         return abi.decode(contractAddresses, (Addresses));
-        //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
     }
 
     function readTokens() public returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/tokenAddresses.json")
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/TokenAddresses.json")
         );
         tokensJson = vm.readFile(path);
         return vm.readFile(path);
@@ -180,7 +176,6 @@ contract ForkUtils is Test {
         readTokens();
         bytes memory chainTokens = tokensJson.parseRaw(indexChainIds[index]);
         return abi.decode(chainTokens, (TokenAddresses));
-        //log_named_address("WETH/NATIVE_ASSET", address(tokens.WrappedNativeToken));
     }
 
     function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
@@ -188,6 +183,10 @@ contract ForkUtils is Test {
 
         assembly {
             chainId := chainid()
+        }
+        if(chainId == uint256(address(0))){
+            //ERROR: chainId not mapped
+            revert("CHAIN ID NOT MAPPED");
         }
         if (chainId == 1) {
             return IBridgeAdapter(new EthereumBridgeAdapter(weth));
@@ -214,11 +213,6 @@ contract ForkUtils is Test {
         LiquiditySources memory sources
     ) public {
         log_named_string("   Using contract addresses on chain", chainName);
-        // log_named_address("     zeroEx/exchangeProxy",addresses.exchangeProxy);
-        // log_named_address("     zeroEx/fillQuoteTransformer",addresses.fillQuoteTransformer);
-        // log_named_address("     zeroEx/payTakerTransformer",addresses.payTakerTransformer);
-        // log_named_address("     zeroEx/positiveSlippageFeeTransformer",addresses.positiveSlippageFeeTransformer);
-        // log_named_address("     zeroEx/wethTransformer",addresses.wethTransformer);
         vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
         vm.label(addresses.erc20BridgeProxy, "zeroEx/erc20BridgeProxy");
         vm.label(addresses.erc20BridgeSampler, "zeroEx/erc20BridgeSampler");
@@ -282,7 +276,7 @@ contract ForkUtils is Test {
         uint256 numSamples = takerTokenAmounts.length;
         makerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            try IUniswapV2Router01(router).getAmountsOut{gas: UNISWAPV2_CALL_GAS}(takerTokenAmounts[i], path) returns (
+            try IUniswapV2Router01(router).getAmountsOut(takerTokenAmounts[i], path) returns (
                 uint256[] memory amounts
             ) {
                 makerTokenAmounts[i] = amounts[path.length - 1];
@@ -311,7 +305,7 @@ contract ForkUtils is Test {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            try IUniswapV2Router01(router).getAmountsIn{gas: UNISWAPV2_CALL_GAS}(makerTokenAmounts[i], path) returns (
+            try IUniswapV2Router01(router).getAmountsIn(makerTokenAmounts[i], path) returns (
                 uint256[] memory amounts
             ) {
                 takerTokenAmounts[i] = amounts[0];
