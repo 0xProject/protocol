@@ -1,7 +1,7 @@
 [profile.default]
 src = 'contracts/src'
 out = 'foundry-artifacts'
-test = 'contracts/test/foundry/localTests'
+test = 'contracts/test/foundry/local'
 libs = ["contracts/deps/", "../utils/contracts/src/"]
 remappings = [
     'forge-std/=contracts/deps/forge-std/src/',
@@ -20,9 +20,9 @@ fs_permissions = [
 verbosity = 3
 
 [profile.local]
-test = 'contracts/test/foundry/localTests'
+test = 'contracts/test/foundry/local'
 [profile.forked]
-test = 'contracts/test/foundry/forkedTests'
+test = 'contracts/test/foundry/forked'
 
 [rpc_endpoints]
 arbitrum = "${ARBITRUM_RPC_URL}"
