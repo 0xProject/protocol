@@ -123,10 +123,10 @@ contract ForkUtils is Test {
     function createForks() public returns (uint256[] memory) {
         for (uint256 i = 0; i < chains.length; i++) {
             forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
-            //forkIds[chains[i]] = vm.createFork(vm.rpcUrl(chains[i]), blockNumber[i]);
         }
     }
 
+    //gets a dummy signer to be used for an OTC order
     function getSigner() public returns (address, uint) {
         string memory mnemonic = "test test test test test test test test test test test junk";
         uint256 privateKey = vm.deriveKey(mnemonic, 0);
@@ -135,7 +135,8 @@ contract ForkUtils is Test {
         return (vm.addr(privateKey), privateKey);
     }
 
-    function readLiquiditySourceAddresses() public returns (string memory) {
+    //read the uniswapV2 router addresses from file
+    function readLiquiditySourceAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
             abi.encodePacked(root, "/", "contracts/test/foundry/addresses/SourceAddresses.json")
@@ -144,26 +145,28 @@ contract ForkUtils is Test {
         return vm.readFile(path);
     }
 
+    //retrieve the uniswapV2 router addresses
     function getLiquiditySourceAddresses(uint index) public returns (LiquiditySources memory sources) {
         readLiquiditySourceAddresses();
         bytes memory liquiditySources = sourcesJson.parseRaw(indexChainIds[index]);
         return abi.decode(liquiditySources, (LiquiditySources));
     }
 
-    function readAddresses() public returns (string memory) {
+    function readAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
         addressesJson = vm.readFile(path);
         return vm.readFile(path);
     }
 
+    //retrieve the 0xProtocol contract addresses from addresses.json
     function getContractAddresses(uint index) public returns (Addresses memory addresses) {
         readAddresses();
         bytes memory contractAddresses = addressesJson.parseRaw(indexChainIds[index]);
         return abi.decode(contractAddresses, (Addresses));
     }
 
-    function readTokens() public returns (string memory) {
+    function readTokens() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
             abi.encodePacked(root, "/", "contracts/test/foundry/addresses/TokenAddresses.json")
@@ -172,12 +175,14 @@ contract ForkUtils is Test {
         return vm.readFile(path);
     }
 
+    //retrieve our tokenList from TokenAddresses.json
     function getTokens(uint index) public returns (TokenAddresses memory addresses) {
         readTokens();
         bytes memory chainTokens = tokensJson.parseRaw(indexChainIds[index]);
         return abi.decode(chainTokens, (TokenAddresses));
     }
 
+    //creates the appropriate bridge adapter based on what chain the tests are currently executing on.
     function createBridgeAdapter(IEtherTokenV06 weth) public returns (IBridgeAdapter bridgeAdapter) {
         uint chainId;
 
@@ -205,6 +210,7 @@ contract ForkUtils is Test {
         }
     }
 
+    //label the addresses that are read from the various .json files
     function labelAddresses(
         string memory chainName,
         string memory chainId,
@@ -239,6 +245,8 @@ contract ForkUtils is Test {
         vm.label(address(sources.UniswapV2Router), "UniswapRouter");
     }
 
+    //deploy a new FillQuoteTransformer
+    //executes in the context of the `transformerDeployer`
     function createNewFQT(
         IEtherTokenV06 wrappedNativeToken,
         address payable exchangeProxy,
@@ -253,8 +261,10 @@ contract ForkUtils is Test {
         vm.stopPrank();
     }
 
+    //utility function to be called in the `setUp()` function of a test
+    //creates a fork and retrieves the correct addresses based on chainId
     function _setup() public {
-        //get out addresses.json file that defines contract addresses for each chain we are currently deployed on
+        //get our addresses.json file that defines contract addresses for each chain we are currently deployed on
         string memory root = vm.projectRoot();
         string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
         json = vm.readFile(path);
@@ -268,6 +278,12 @@ contract ForkUtils is Test {
         }
     }
 
+    /// @dev Sample sell quotes from UniswapV2.
+    /// @param router Router to look up tokens and amounts
+    /// @param path Token route. Should be takerToken -> makerToken.
+    /// @param takerTokenAmounts Taker token sell amount for each sample.
+    /// @return makerTokenAmounts Taker amounts sold at each maker token
+    ///         amount.
     function sampleSellsFromUniswapV2(
         address router,
         address[] memory path,
