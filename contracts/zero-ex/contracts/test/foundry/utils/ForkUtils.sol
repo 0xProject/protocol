@@ -114,7 +114,6 @@ contract ForkUtils is Test {
     string tokensJson;
     string sourcesJson;
 
-
     //utility mapping to get chainId by name
     mapping(string => string) public chainsByChainId;
     //utility mapping to get indexingChainId by Chain
@@ -189,7 +188,7 @@ contract ForkUtils is Test {
         assembly {
             chainId := chainid()
         }
-        if(chainId == uint256(address(0))){
+        if (chainId == uint256(address(0))) {
             //ERROR: chainId not mapped
             revert("CHAIN ID NOT MAPPED");
         }
@@ -246,7 +245,7 @@ contract ForkUtils is Test {
     }
 
     //deploy a new FillQuoteTransformer
-    //executes in the context of the `transformerDeployer`
+    //executes in the context of the transformerDeployer
     function createNewFQT(
         IEtherTokenV06 wrappedNativeToken,
         address payable exchangeProxy,
@@ -321,9 +320,7 @@ contract ForkUtils is Test {
         uint256 numSamples = makerTokenAmounts.length;
         takerTokenAmounts = new uint256[](numSamples);
         for (uint256 i = 0; i < numSamples; i++) {
-            try IUniswapV2Router01(router).getAmountsIn(makerTokenAmounts[i], path) returns (
-                uint256[] memory amounts
-            ) {
+            try IUniswapV2Router01(router).getAmountsIn(makerTokenAmounts[i], path) returns (uint256[] memory amounts) {
                 takerTokenAmounts[i] = amounts[0];
                 // Break early if there are 0 amounts
                 if (takerTokenAmounts[i] == 0) {
