@@ -10,7 +10,7 @@ import {
     Fill,
 } from '../../types';
 
-import { POSITIVE_INF, ZERO_AMOUNT } from './constants';
+import { ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
 import {
     createBridgeOrder,
@@ -36,7 +36,6 @@ export interface PathPenaltyOpts {
 export class Path {
     public orders?: OptimizedOrder[];
     public sourceFlags = BigInt(0);
-    protected _size: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
     protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
 
     public static create(
@@ -87,7 +86,34 @@ export class Path {
         return this as FinalizedPath;
     }
 
-    public adjustedSize(): PathSize {
+    /**
+     * Calculates the rate of this path, where the output has been
+     * adjusted for penalties (e.g cost)
+     */
+    public adjustedRate(): BigNumber {
+        const { input, output } = this.adjustedSize();
+        return getRate(this.side, input, output);
+    }
+
+    /**
+     * Compares two paths returning if this adjusted path
+     * is better than the other adjusted path
+     */
+    public isAdjustedBetterThan(other: Path): boolean {
+        if (!this.targetInput.isEqualTo(other.targetInput)) {
+            throw new Error(`Target input mismatch: ${this.targetInput} !== ${other.targetInput}`);
+        }
+        const { targetInput } = this;
+        const { input } = this._adjustedSize;
+        const { input: otherInput } = other._adjustedSize;
+        if (input.isLessThan(targetInput) || otherInput.isLessThan(targetInput)) {
+            return input.isGreaterThan(otherInput);
+        } else {
+            return this.adjustedCompleteRate().isGreaterThan(other.adjustedCompleteRate());
+        }
+    }
+
+    private adjustedSize(): PathSize {
         // Adjusted input/output has been adjusted by the cost of the DEX, but not by any
         // overhead added by the exchange proxy.
         const { input, output } = this._adjustedSize;
@@ -108,51 +134,20 @@ export class Path {
         };
     }
 
-    public adjustedCompleteRate(): BigNumber {
+    private adjustedCompleteRate(): BigNumber {
         const { input, output } = this.adjustedSize();
         return getCompleteRate(this.side, input, output, this.targetInput);
     }
 
-    /**
-     * Calculates the rate of this path, where the output has been
-     * adjusted for penalties (e.g cost)
-     */
-    public adjustedRate(): BigNumber {
-        const { input, output } = this.adjustedSize();
-        return getRate(this.side, input, output);
-    }
-
-    /**
-     * Compares two paths returning if this adjusted path
-     * is better than the other adjusted path
-     */
-    public isAdjustedBetterThan(other: Path): boolean {
-        if (!this.targetInput.isEqualTo(other.targetInput)) {
-            throw new Error(`Target input mismatch: ${this.targetInput} !== ${other.targetInput}`);
-        }
-        const { targetInput } = this;
-        const { input } = this._size;
-        const { input: otherInput } = other._size;
-        if (input.isLessThan(targetInput) || otherInput.isLessThan(targetInput)) {
-            return input.isGreaterThan(otherInput);
-        } else {
-            return this.adjustedCompleteRate().isGreaterThan(other.adjustedCompleteRate());
-        }
-    }
-
     private _addFillSize(fill: Fill): void {
-        if (this._size.input.plus(fill.input).isGreaterThan(this.targetInput)) {
-            const remainingInput = this.targetInput.minus(this._size.input);
+        if (this._adjustedSize.input.plus(fill.input).isGreaterThan(this.targetInput)) {
+            const remainingInput = this.targetInput.minus(this._adjustedSize.input);
             const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
-            this._size.input = this.targetInput;
-            this._size.output = this._size.output.plus(scaledFillOutput);
             // Penalty does not get interpolated.
             const penalty = fill.adjustedOutput.minus(fill.output);
             this._adjustedSize.input = this.targetInput;
             this._adjustedSize.output = this._adjustedSize.output.plus(scaledFillOutput).plus(penalty);
         } else {
-            this._size.input = this._size.input.plus(fill.input);
-            this._size.output = this._size.output.plus(fill.output);
             this._adjustedSize.input = this._adjustedSize.input.plus(fill.input);
             this._adjustedSize.output = this._adjustedSize.output.plus(fill.adjustedOutput);
         }
