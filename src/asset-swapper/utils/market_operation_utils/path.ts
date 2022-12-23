@@ -35,28 +35,24 @@ export interface PathPenaltyOpts {
 
 export class Path {
     public orders?: OptimizedOrder[];
-    public sourceFlags = BigInt(0);
-    protected _adjustedSize: PathSize = { input: ZERO_AMOUNT, output: ZERO_AMOUNT };
 
     public static create(
         side: MarketOperation,
-        fills: ReadonlyArray<Fill>,
+        fills: readonly Fill[],
         targetInput: BigNumber,
         pathPenaltyOpts: PathPenaltyOpts,
     ): Path {
-        const path = new Path(side, fills, targetInput, pathPenaltyOpts);
-        fills.forEach((fill) => {
-            path.sourceFlags |= fill.flags;
-            path._addFillSize(fill);
-        });
-        return path;
+        const sourceFlags = mergeSourceFlags(fills.map((fill) => fill.flags));
+        return new Path(side, fills, targetInput, pathPenaltyOpts, sourceFlags, createAdjustedSize(targetInput, fills));
     }
 
-    protected constructor(
+    private constructor(
         protected readonly side: MarketOperation,
-        public fills: ReadonlyArray<Fill>,
+        public fills: readonly Fill[],
         protected readonly targetInput: BigNumber,
         public readonly pathPenaltyOpts: PathPenaltyOpts,
+        public readonly sourceFlags: bigint,
+        protected readonly adjustedSize: PathSize,
     ) {}
 
     /**
@@ -91,7 +87,7 @@ export class Path {
      * adjusted for penalties (e.g cost)
      */
     public adjustedRate(): BigNumber {
-        const { input, output } = this.adjustedSize();
+        const { input, output } = this.getExchangeProxyOverheadAppliedSize();
         return getRate(this.side, input, output);
     }
 
@@ -104,8 +100,8 @@ export class Path {
             throw new Error(`Target input mismatch: ${this.targetInput} !== ${other.targetInput}`);
         }
         const { targetInput } = this;
-        const { input } = this._adjustedSize;
-        const { input: otherInput } = other._adjustedSize;
+        const { input } = this.adjustedSize;
+        const { input: otherInput } = other.adjustedSize;
         if (input.isLessThan(targetInput) || otherInput.isLessThan(targetInput)) {
             return input.isGreaterThan(otherInput);
         } else {
@@ -113,10 +109,10 @@ export class Path {
         }
     }
 
-    private adjustedSize(): PathSize {
+    private getExchangeProxyOverheadAppliedSize(): PathSize {
         // Adjusted input/output has been adjusted by the cost of the DEX, but not by any
         // overhead added by the exchange proxy.
-        const { input, output } = this._adjustedSize;
+        const { input, output } = this.adjustedSize;
         const { exchangeProxyOverhead, outputAmountPerEth, inputAmountPerEth } = this.pathPenaltyOpts;
         // Calculate the additional penalty from the ways this path can be filled
         // by the exchange proxy, e.g VIPs (small) or FillQuoteTransformer (large)
@@ -135,25 +131,38 @@ export class Path {
     }
 
     private adjustedCompleteRate(): BigNumber {
-        const { input, output } = this.adjustedSize();
+        const { input, output } = this.getExchangeProxyOverheadAppliedSize();
         return getCompleteRate(this.side, input, output, this.targetInput);
-    }
-
-    private _addFillSize(fill: Fill): void {
-        if (this._adjustedSize.input.plus(fill.input).isGreaterThan(this.targetInput)) {
-            const remainingInput = this.targetInput.minus(this._adjustedSize.input);
-            const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
-            // Penalty does not get interpolated.
-            const penalty = fill.adjustedOutput.minus(fill.output);
-            this._adjustedSize.input = this.targetInput;
-            this._adjustedSize.output = this._adjustedSize.output.plus(scaledFillOutput).plus(penalty);
-        } else {
-            this._adjustedSize.input = this._adjustedSize.input.plus(fill.input);
-            this._adjustedSize.output = this._adjustedSize.output.plus(fill.adjustedOutput);
-        }
     }
 }
 
 interface FinalizedPath extends Path {
     readonly orders: OptimizedOrder[];
+}
+
+function createAdjustedSize(targetInput: BigNumber, fills: readonly Fill[]): PathSize {
+    return fills.reduce(
+        (currentSize, fill) => {
+            if (currentSize.input.plus(fill.input).isGreaterThan(targetInput)) {
+                const remainingInput = targetInput.minus(currentSize.input);
+                const scaledFillOutput = fill.output.times(remainingInput.div(fill.input));
+                // Penalty does not get interpolated.
+                const penalty = fill.adjustedOutput.minus(fill.output);
+                return {
+                    input: targetInput,
+                    output: currentSize.output.plus(scaledFillOutput).plus(penalty),
+                };
+            } else {
+                return {
+                    input: currentSize.input.plus(fill.input),
+                    output: currentSize.output.plus(fill.adjustedOutput),
+                };
+            }
+        },
+        { input: ZERO_AMOUNT, output: ZERO_AMOUNT },
+    );
+}
+
+function mergeSourceFlags(flags: bigint[]): bigint {
+    return flags.reduce((mergedFlags, currentFlags) => mergedFlags | currentFlags, BigInt(0));
 }

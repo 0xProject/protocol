@@ -3,7 +3,6 @@ import { AbiEncoder, BigNumber } from '@0x/utils';
 import _ = require('lodash');
 
 import {
-    AssetSwapperContractAddresses,
     MarketOperation,
     ERC20BridgeSource,
     Fill,
@@ -52,7 +51,6 @@ export interface CreateOrderFromPathOpts {
     side: MarketOperation;
     inputToken: string;
     outputToken: string;
-    contractAddresses: AssetSwapperContractAddresses;
 }
 
 export function createOrdersFromTwoHopSample(

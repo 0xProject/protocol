@@ -404,7 +404,6 @@ export class MarketOperationUtils {
             side,
             inputToken,
             outputToken,
-            contractAddresses: this.contractAddresses,
         };
 
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(

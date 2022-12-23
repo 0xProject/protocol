@@ -58,6 +58,27 @@ describe('Path', () => {
             expect(path.adjustedRate()).bignumber.eq(new BigNumber(990 + 1000 / 2 - 10 - 10).div(1.5));
         });
     });
+
+    describe('source flags', () => {
+        it('Returns merged source flags from fills', () => {
+            const path = Path.create(
+                MarketOperation.Sell,
+                [
+                    createFakeFillWithFlags(BigInt(1)),
+                    createFakeFillWithFlags(BigInt(2)),
+                    createFakeFillWithFlags(BigInt(8)),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            expect(path.sourceFlags).eq(BigInt(1 + 2 + 8));
+        });
+    });
 });
 
 function createFakeFill(params: { input: BigNumber; output?: BigNumber; adjustedOutput: BigNumber }): Fill {
@@ -72,5 +93,19 @@ function createFakeFill(params: { input: BigNumber; output?: BigNumber; adjusted
         fillData: {},
         sourcePathId: 'fake-path-id',
         flags: BigInt(0),
+    };
+}
+
+function createFakeFillWithFlags(flags: bigint): Fill {
+    return {
+        input: ONE_ETHER,
+        output: ONE_ETHER,
+        adjustedOutput: ONE_ETHER,
+        gas: 42,
+        source: ERC20BridgeSource.UniswapV3,
+        type: FillQuoteTransformerOrderType.Bridge,
+        fillData: {},
+        sourcePathId: 'fake-path-id',
+        flags,
     };
 }
