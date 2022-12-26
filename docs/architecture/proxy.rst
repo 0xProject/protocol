@@ -54,7 +54,7 @@ Call ``rollback()`` to revert a function implementation to a prior version in it
 
 Ownership
 =========
-Another Feature, ``InitialMigration``, bootstraps into the proxy is the Ownable feature. This exposes ownership management functions: ``transferOwnership()`` and ``getOwner()``. This feature also enables ubiquitous modifiers such as onlyOwner, so it is an implicit dependency of nearly every other feature.
+Another Feature, ``InitialMigration``, bootstraps into the proxy is the Ownable feature. This exposes ownership management functions: ``transferOwnership()`` and ``owner()``. This feature also enables ubiquitous modifiers such as onlyOwner, so it is an implicit dependency of nearly every other feature.
 
 .. code-block:: solidity
 
@@ -63,8 +63,9 @@ Another Feature, ``InitialMigration``, bootstraps into the proxy is the Ownable 
         external
         onlyOwner;
 
-    // Get the owner of this contract.
-    function getOwner()
+    /// @dev Get the owner of this contract.
+    /// @return owner_ The owner of this contract.
+    function owner()
         external
         view
         returns (address owner_);
@@ -189,7 +190,7 @@ These involve meaningful behavioral changes, such as new settlement logic, chang
 
 **Features used by Features**
 
-Not all features are designed to be exclusively consumed by the public. We can have internal features by applying an onlySelf modifier to the function. We need to be mindful of another class of user: the contract itself. Avoiding missteps on this will require a combination of diligence and good regression test suites. 
+Not all features are designed to be exclusively consumed by the public. We can have internal features by applying an onlySelf modifier to the function. We need to be mindful of another class of user: the contract itself. Avoiding missteps on this will require a combination of diligence and good regression test suites.
 
 Known Risks
 ===========
@@ -213,7 +214,7 @@ Every time we develop a new feature, an entry is appended to the ``LibStorage.St
     function getStorageSlot(StorageId id) internal pure returns (uint256) {
         return (uint256(id) + 1) << 128;
     }
-    
+
 
 Given Solidity’s `storage layout rules <https://solidity.readthedocs.io/en/v0.6.6/miscellaneous.html)>`_, subsequent storage buckets should always be 2^128 slots apart, which means buckets can have 2^128 flattened inline fields before overlapping. While it’s not impossible for buckets to overlap with this pattern, it should be extremely unlikely if we follow it closely. Maps and arrays are not stored sequentially but should also be affected by their base slot value to make collisions unlikely.
 
