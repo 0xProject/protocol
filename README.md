@@ -53,7 +53,7 @@ You can include those by prepending the `@0x/typescript-typings` package to your
 
 We strongly recommend that the community help us make improvements and determine the future direction of the protocol. To report bugs within this package, please create an issue in this repository.
 
-#### Read our [contribution guidelines](./CONTRIBUTING.md).
+#### Read our [contribution guidelines](.github/CONTRIBUTING.md).
 
 ### Install dependencies
 
