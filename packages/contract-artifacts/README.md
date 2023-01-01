@@ -24,7 +24,7 @@ var artifacts = require('@0x/contract-artifacts');
 
 We welcome improvements and fixes from the wider community! To report bugs within this package, please create an issue in this repository.
 
-Please read our [contribution guidelines](../../CONTRIBUTING.md) before getting started.
+Please read our [contribution guidelines](../../.github/CONTRIBUTING.md) before getting started.
 
 ### Install dependencies
 

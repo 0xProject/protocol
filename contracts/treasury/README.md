@@ -16,7 +16,7 @@ We strongly recommend that the community help us make improvements and determine
 
 For proposals regarding the 0x protocol's smart contract architecture, message format, or additional functionality, go to the [0x Improvement Proposals (ZEIPs)](https://github.com/0xProject/ZEIPs) repository and follow the contribution guidelines provided therein.
 
-Please read our [contribution guidelines](../../CONTRIBUTING.md) before getting started.
+Please read our [contribution guidelines](../../.github/CONTRIBUTING.md) before getting started.
 
 ### Install Dependencies
 

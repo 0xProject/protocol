@@ -2,15 +2,13 @@
 
 <!--- Before submitting please check to see if this issue was already reported -->
 
-<!--- Prefix your issue title with the package name it relates to (e.g., `0x.js: ` or `general:`) -->
-
 ## Expected Behavior
 
 <!--- If you're describing a bug, tell us what should happen -->
 
 <!--- If you're suggesting a package change/improvement, tell us how it should work -->
 
-<!--- If you're suggesting a contract or protocol change/improvement, visit our ZEIPs repo -->
+<!--- If you're suggesting a contract or protocol change/improvement, visit our ZEIPs repo https://github.com/0xProject/ZEIPs -->
 
 ## Current Behavior
 
@@ -50,8 +48,8 @@
 | ------: | :------ |
 
 <!-- For example:
-|             `0x.js` | 2.0.4   |
-| `Exchange Contract` | v2      |
+|    `protocol-utils` | 2.0.4   |
+| `Exchange Contract` | v3      |
 -->
 
 | Network |
@@ -60,6 +58,6 @@
 
 <!-- For example:
 | mainnet |
-| kovan |
-| testrpc |
+| goerli |
+| development |
 -->
