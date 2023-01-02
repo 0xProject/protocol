@@ -349,16 +349,10 @@ function createMultihopSample(params: {
             firstHopSource: {
                 source: params.firstHopSource,
                 fillData: {},
-                encodeCall: () => 'fake-encodedCall',
-                handleCallResults: () => [],
-                handleRevert: () => [],
             },
             secondHopSource: {
                 source: params.secondHopSource,
                 fillData: {},
-                encodeCall: () => 'fake-encodedCall',
-                handleCallResults: () => [],
-                handleRevert: () => [],
             },
             intermediateToken: 'fake-intermediate-token',
         },

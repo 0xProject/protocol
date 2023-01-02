@@ -177,12 +177,15 @@ export interface GenericRouterFillData extends FillData {
     router: string;
 }
 
-// TODO(kyu-c): investigate
-// It seems unnecessary for `firstHopSource` and `secondHopSource` to be a `SourceQuoteOperation`.
-// It may only need `source` and `fillData`.
 export interface MultiHopFillData extends FillData {
-    firstHopSource: SourceQuoteOperation;
-    secondHopSource: SourceQuoteOperation;
+    firstHopSource: {
+        source: ERC20BridgeSource;
+        fillData: FillData;
+    };
+    secondHopSource: {
+        source: ERC20BridgeSource;
+        fillData: FillData;
+    };
     intermediateToken: string;
 }
 

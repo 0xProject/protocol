@@ -804,13 +804,17 @@ export class SamplerOperations {
                         [HopInfo, HopInfo, BigNumber[]]
                     >('sampleTwoHopSell', callResults);
                     // Ensure the hop sources are set even when the buy amount is zero
-                    fillData.firstHopSource = firstHopOps[firstHop.sourceIndex.toNumber()];
-                    fillData.secondHopSource = secondHopOps[secondHop.sourceIndex.toNumber()];
                     if (buyAmounts[buyAmounts.length - 1].isZero()) {
                         return new Array(buyAmounts.length).fill(ZERO_AMOUNT);
                     }
-                    fillData.firstHopSource.handleCallResults(firstHop.returnData);
-                    fillData.secondHopSource.handleCallResults(secondHop.returnData);
+
+                    const firstHopOp = firstHopOps[firstHop.sourceIndex.toNumber()];
+                    const secondHopOp = secondHopOps[secondHop.sourceIndex.toNumber()];
+                    firstHopOp.handleCallResults(firstHop.returnData);
+                    secondHopOp.handleCallResults(secondHop.returnData);
+                    fillData.firstHopSource = { source: firstHopOp.source, fillData: firstHopOp.fillData };
+                    fillData.secondHopSource = { source: secondHopOp.source, fillData: secondHopOp.fillData };
+
                     return buyAmounts;
                 },
             });
@@ -871,10 +875,12 @@ export class SamplerOperations {
                     if (sellAmounts[sellAmounts.length - 1].isEqualTo(MAX_UINT256)) {
                         return new Array(sellAmounts.length).fill(MAX_UINT256);
                     }
-                    fillData.firstHopSource = firstHopOps[firstHop.sourceIndex.toNumber()];
-                    fillData.secondHopSource = secondHopOps[secondHop.sourceIndex.toNumber()];
-                    fillData.firstHopSource.handleCallResults(firstHop.returnData);
-                    fillData.secondHopSource.handleCallResults(secondHop.returnData);
+                    const firstHopOp = firstHopOps[firstHop.sourceIndex.toNumber()];
+                    const secondHopOp = secondHopOps[secondHop.sourceIndex.toNumber()];
+                    firstHopOp.handleCallResults(firstHop.returnData);
+                    secondHopOp.handleCallResults(secondHop.returnData);
+                    fillData.firstHopSource = { source: firstHopOp.source, fillData: firstHopOp.fillData };
+                    fillData.secondHopSource = { source: secondHopOp.source, fillData: secondHopOp.fillData };
                     return sellAmounts;
                 },
             });
