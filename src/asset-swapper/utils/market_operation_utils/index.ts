@@ -450,12 +450,10 @@ export class MarketOperationUtils {
             throw new Error(AggregationError.NoOptimalPath);
         }
 
-        const finalizedPath = optimalPath.finalize(orderOpts);
-
         return {
-            optimizedOrders: finalizedPath.orders,
-            liquidityDelivered: finalizedPath.fills,
-            sourceFlags: finalizedPath.sourceFlags,
+            optimizedOrders: optimalPath.createOrders(orderOpts),
+            liquidityDelivered: optimalPath.fills,
+            sourceFlags: optimalPath.sourceFlags,
             marketSideLiquidity,
             adjustedRate: optimalPathAdjustedRate,
             takerAmountPerEth,

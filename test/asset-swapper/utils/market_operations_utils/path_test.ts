@@ -7,13 +7,14 @@ import {
     FillQuoteTransformerOrderType,
     MarketOperation,
 } from '../../../../src/asset-swapper';
-import { ONE_ETHER } from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
+import { MAX_UINT256, ONE_ETHER } from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
 import { Path } from '../../../../src/asset-swapper/utils/market_operation_utils/path';
 import { chaiSetup } from '../chai_setup';
 
 chaiSetup.configure();
 const expect = chai.expect;
 
+// TODO: add tests for MarketOperation.Buy
 describe('Path', () => {
     describe('adjustedRate()', () => {
         it('Returns the adjusted rate based on adjustedOutput and exchange proxy overhead', () => {
@@ -77,6 +78,196 @@ describe('Path', () => {
             );
 
             expect(path.sourceFlags).eq(BigInt(1 + 2 + 8));
+        });
+    });
+
+    describe('createOrders()', () => {
+        it('Returns a corresponding `OptimizedOrder` for a single native order (sell)', () => {
+            const path = Path.create(
+                MarketOperation.Sell,
+                [
+                    {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(1000),
+                        gas: 0,
+                        source: ERC20BridgeSource.Native,
+                        type: FillQuoteTransformerOrderType.Otc,
+                        fillData: {
+                            order: {
+                                takerToken: 'fake-weth-address',
+                                makerToken: 'fake-usdc-address',
+                            },
+                        },
+                        sourcePathId: 'fake-path-id',
+                        flags: BigInt(0),
+                    },
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createOrders({
+                inputToken: 'fake-weth-address',
+                outputToken: 'fake-usdc-address',
+                side: MarketOperation.Sell,
+            });
+
+            expect(orders).to.deep.eq([
+                {
+                    type: FillQuoteTransformerOrderType.Otc,
+                    source: ERC20BridgeSource.Native,
+                    makerToken: 'fake-usdc-address',
+                    takerToken: 'fake-weth-address',
+                    takerAmount: ONE_ETHER,
+                    makerAmount: ONE_ETHER.times(1000),
+                    fillData: {
+                        order: {
+                            takerToken: 'fake-weth-address',
+                            makerToken: 'fake-usdc-address',
+                        },
+                    },
+                    fill: {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(1000),
+                        gas: 0,
+                    },
+                },
+            ]);
+        });
+
+        it('Returns a corresponding `OptimizedOrder`s for a single bridge order (sell)', () => {
+            const path = Path.create(
+                MarketOperation.Sell,
+                [
+                    {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(990),
+                        gas: 0,
+                        source: ERC20BridgeSource.UniswapV2,
+                        type: FillQuoteTransformerOrderType.Bridge,
+                        fillData: { fakeFillData: 'fakeFillData' },
+                        sourcePathId: 'fake-path-id',
+                        flags: BigInt(0),
+                    },
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createOrders({
+                inputToken: 'fake-weth-address',
+                outputToken: 'fake-usdc-address',
+                side: MarketOperation.Sell,
+            });
+
+            expect(orders).to.deep.eq([
+                {
+                    type: FillQuoteTransformerOrderType.Bridge,
+                    source: ERC20BridgeSource.UniswapV2,
+                    makerToken: 'fake-usdc-address',
+                    takerToken: 'fake-weth-address',
+                    takerAmount: ONE_ETHER,
+                    makerAmount: ONE_ETHER.times(1000),
+                    fillData: { fakeFillData: 'fakeFillData' },
+                    fill: {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(990),
+                        gas: 0,
+                    },
+                },
+            ]);
+        });
+
+        it('Returns corresponding `OptimizedOrder`s for a two hop order (sell)', () => {
+            const path = Path.create(
+                MarketOperation.Sell,
+                [
+                    {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(990),
+                        gas: 0,
+                        source: ERC20BridgeSource.MultiHop,
+                        type: FillQuoteTransformerOrderType.Bridge,
+                        fillData: {
+                            firstHopSource: {
+                                source: ERC20BridgeSource.Curve,
+                                fillData: { fakeFillData: 'curve' },
+                                encodeCall: () => '',
+                                handleCallResults: () => [new BigNumber(0)],
+                                handleRevert: () => [new BigNumber(0)],
+                            },
+                            secondHopSource: {
+                                source: ERC20BridgeSource.BalancerV2,
+                                fillData: { fakeFillData: 'balancer v2' },
+                                encodeCall: () => '',
+                                handleCallResults: () => [new BigNumber(0)],
+                                handleRevert: () => [new BigNumber(0)],
+                            },
+                            intermediateToken: 'fake-usdt-address',
+                        },
+                        sourcePathId: 'fake-path-id',
+                        flags: BigInt(0),
+                    },
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createOrders({
+                inputToken: 'fake-weth-address',
+                outputToken: 'fake-usdc-address',
+                side: MarketOperation.Sell,
+            });
+
+            expect(orders).deep.eq([
+                {
+                    type: FillQuoteTransformerOrderType.Bridge,
+                    source: ERC20BridgeSource.Curve,
+                    takerToken: 'fake-weth-address',
+                    makerToken: 'fake-usdt-address',
+                    takerAmount: ONE_ETHER,
+                    makerAmount: new BigNumber(0),
+                    fillData: { fakeFillData: 'curve' },
+                    fill: {
+                        input: ONE_ETHER,
+                        output: new BigNumber(0),
+                        adjustedOutput: new BigNumber(0),
+                        gas: 1,
+                    },
+                },
+                {
+                    type: FillQuoteTransformerOrderType.Bridge,
+                    source: ERC20BridgeSource.BalancerV2,
+                    takerToken: 'fake-usdt-address',
+                    makerToken: 'fake-usdc-address',
+                    takerAmount: MAX_UINT256,
+                    makerAmount: ONE_ETHER.times(1000),
+                    fillData: { fakeFillData: 'balancer v2' },
+                    fill: {
+                        input: MAX_UINT256,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(1000),
+                        gas: 1,
+                    },
+                },
+            ]);
         });
     });
 });

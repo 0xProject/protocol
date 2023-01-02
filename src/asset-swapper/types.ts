@@ -458,8 +458,6 @@ export interface SamplerCallResult {
     data: string;
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
 export interface RfqClientV1PriceRequest {
     altRfqAssetOfferings: AltRfqMakerAssetOfferings | undefined;
     assetFillAmount: BigNumber;

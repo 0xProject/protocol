@@ -34,8 +34,6 @@ export interface PathPenaltyOpts {
 }
 
 export class Path {
-    public orders?: OptimizedOrder[];
-
     public static create(
         side: MarketOperation,
         fills: readonly Fill[],
@@ -55,31 +53,23 @@ export class Path {
         protected readonly adjustedSize: PathSize,
     ) {}
 
-    /**
-     * Finalizes this path, creating fillable orders with the information required
-     * for settlement
-     */
-    public finalize(opts: CreateOrderFromPathOpts): FinalizedPath {
+    public createOrders(opts: CreateOrderFromPathOpts): OptimizedOrder[] {
         const { makerToken, takerToken } = getMakerTakerTokens(opts);
-        this.orders = [];
-        for (const fill of this.fills) {
-            // internal BigInt flag field is not supported JSON and is tricky
-            // to remove upstream. Since it's not needed in a FinalizedPath we just drop it.
+        return _.flatMap(this.fills, (fill) => {
+            // Internal BigInt flag field is not supported JSON and is tricky to remove upstream.
             const normalizedFill = _.omit(fill, 'flags') as Fill;
             if (fill.source === ERC20BridgeSource.Native) {
-                this.orders.push(createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, opts.side));
+                return [createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, opts.side)];
             } else if (fill.source === ERC20BridgeSource.MultiHop) {
                 const [firstHopOrder, secondHopOrder] = createOrdersFromTwoHopSample(
                     normalizedFill as Fill<MultiHopFillData>,
                     opts,
                 );
-                this.orders.push(firstHopOrder);
-                this.orders.push(secondHopOrder);
+                return [firstHopOrder, secondHopOrder];
             } else {
-                this.orders.push(createBridgeOrder(normalizedFill, makerToken, takerToken, opts.side));
+                return [createBridgeOrder(normalizedFill, makerToken, takerToken, opts.side)];
             }
-        }
-        return this as FinalizedPath;
+        });
     }
 
     /**
@@ -134,10 +124,6 @@ export class Path {
         const { input, output } = this.getExchangeProxyOverheadAppliedSize();
         return getCompleteRate(this.side, input, output, this.targetInput);
     }
-}
-
-interface FinalizedPath extends Path {
-    readonly orders: OptimizedOrder[];
 }
 
 function createAdjustedSize(targetInput: BigNumber, fills: readonly Fill[]): PathSize {
