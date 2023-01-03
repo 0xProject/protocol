@@ -44,22 +44,30 @@ import {
     ZERO_AMOUNT,
 } from './constants';
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
+import { Path } from './path';
 import { PathOptimizer } from './path_optimizer';
 import { DexOrderSampler, getSampleAmounts } from './sampler';
 import { SourceFilters } from './source_filters';
-import {
-    AggregationError,
-    GenerateOptimizedOrdersOpts,
-    MarketSideLiquidity,
-    OptimizerResult,
-    OptimizerResultWithReport,
-} from './types';
+import { AggregationError, GenerateOptimizedOrdersOpts, MarketSideLiquidity } from './types';
 
 const NO_CONVERSION_TO_NATIVE_FOUND = new Counter({
     name: 'no_conversion_to_native_found',
     help: 'unable to get conversion to native token',
     labelNames: ['source', 'endpoint'],
 });
+
+interface OptimizerResult {
+    path: Path;
+    marketSideLiquidity: MarketSideLiquidity;
+    takerAmountPerEth: BigNumber;
+    makerAmountPerEth: BigNumber;
+}
+
+export interface OptimizerResultWithReport extends OptimizerResult {
+    quoteReport?: QuoteReport;
+    extendedQuoteReportSources?: ExtendedQuoteReportSources;
+    priceComparisonsReport?: PriceComparisonsReport;
+}
 
 export class MarketOperationUtils {
     private readonly _sellSources: SourceFilters;
@@ -75,8 +83,13 @@ export class MarketOperationUtils {
         comparisonPrice?: BigNumber | undefined,
     ): QuoteReport {
         const { side, quotes } = marketSideLiquidity;
-        const { liquidityDelivered } = optimizerResult;
-        return generateQuoteReport(side, quotes.nativeOrders, liquidityDelivered, comparisonPrice, quoteRequestor);
+        return generateQuoteReport(
+            side,
+            quotes.nativeOrders,
+            optimizerResult.path.fills,
+            comparisonPrice,
+            quoteRequestor,
+        );
     }
 
     private static _computeExtendedQuoteReportSources(
@@ -87,11 +100,10 @@ export class MarketOperationUtils {
         comparisonPrice?: BigNumber | undefined,
     ): ExtendedQuoteReportSources {
         const { side, quotes } = marketSideLiquidity;
-        const { liquidityDelivered } = optimizerResult;
         return generateExtendedQuoteReportSources(
             side,
             quotes,
-            liquidityDelivered,
+            optimizerResult.path.fills,
             amount,
             comparisonPrice,
             quoteRequestor,
@@ -439,8 +451,6 @@ export class MarketOperationUtils {
             ...augmentedRfqtIndicativeQuotes,
         ]);
 
-        const optimalPathAdjustedRate = optimalPath ? optimalPath.adjustedRate() : ZERO_AMOUNT;
-
         // If there is no optimal path then throw.
         if (optimalPath === undefined) {
             //temporary logging for INSUFFICIENT_ASSET_LIQUIDITY
@@ -449,11 +459,8 @@ export class MarketOperationUtils {
         }
 
         return {
-            optimizedOrders: optimalPath.createOrders(),
-            liquidityDelivered: optimalPath.fills,
-            sourceFlags: optimalPath.sourceFlags,
+            path: optimalPath,
             marketSideLiquidity,
-            adjustedRate: optimalPathAdjustedRate,
             takerAmountPerEth,
             makerAmountPerEth,
         };
@@ -523,7 +530,7 @@ export class MarketOperationUtils {
         let wholeOrderPrice: BigNumber | undefined;
         if (optimizerResult) {
             wholeOrderPrice = getComparisonPrices(
-                optimizerResult.adjustedRate,
+                optimizerResult.path.adjustedRate(),
                 amount,
                 marketSideLiquidity,
                 _opts.feeSchedule.Native,
@@ -620,7 +627,7 @@ export class MarketOperationUtils {
 
                     // Phase 2 Routing
                     const phase1OptimalSources = optimizerResult
-                        ? optimizerResult.optimizedOrders.map((o) => o.source)
+                        ? optimizerResult.path.createOrders().map((o) => o.source)
                         : [];
                     const phase2MarketSideLiquidity: MarketSideLiquidity = {
                         ...marketSideLiquidity,
@@ -735,9 +742,7 @@ export class MarketOperationUtils {
                     // Phase 2 Routing
                     // Optimization: Filter by what is already currently in the Phase1 output as it doesn't
                     // seem possible that inclusion of RFQT could impact the sources chosen from Phase 1.
-                    const phase1OptimalSources = optimizerResult
-                        ? optimizerResult.optimizedOrders.map((o) => o.source)
-                        : [];
+                    const phase1OptimalSources = optimizerResult?.path.createOrders().map((o) => o.source) || [];
                     const phase2MarketSideLiquidity: MarketSideLiquidity = {
                         ...marketSideLiquidity,
                         quotes: {

@@ -29,7 +29,7 @@ import {
     GetMarketOrdersOpts,
     FeeSchedule,
 } from '../../src/asset-swapper/types';
-import { MarketOperationUtils } from '../../src/asset-swapper/utils/market_operation_utils/';
+import { MarketOperationUtils, OptimizerResultWithReport } from '../../src/asset-swapper/utils/market_operation_utils/';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
@@ -44,7 +44,6 @@ import {
     DexSample,
     GenerateOptimizedOrdersOpts,
     MarketSideLiquidity,
-    OptimizerResultWithReport,
 } from '../../src/asset-swapper/utils/market_operation_utils/types';
 import { RfqClient } from '../../src/utils/rfq_client';
 
@@ -604,7 +603,7 @@ describe('MarketOperationUtils tests', () => {
             //         FILL_AMOUNT,
             //         DEFAULT_OPTS,
             //     );
-            //     const improvedOrders = improvedOrdersResponse.optimizedOrders;
+            //     const improvedOrders = improvedOrdersResponse.path.createOrders();
             //     expect(improvedOrders).to.not.be.length(0);
             //     for (const order of improvedOrders) {
             //         expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
@@ -970,7 +969,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     DEFAULT_OPTS,
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const totalTakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.takerAmount));
                 expect(totalTakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
@@ -982,7 +981,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     DEFAULT_OPTS,
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const totalTakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.takerAmount));
                 expect(totalTakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
@@ -996,7 +995,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, bridgeSlippage },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
                     const expectedMakerAmount = order.fill.output;
@@ -1020,7 +1019,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
@@ -1061,7 +1060,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
@@ -1099,7 +1098,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
@@ -1126,7 +1125,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4 },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.SushiSwap,
@@ -1153,7 +1152,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
@@ -1191,7 +1190,7 @@ describe('MarketOperationUtils tests', () => {
                         exchangeProxyOverhead,
                     },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [ERC20BridgeSource.Curve];
                 expect(orderSources).to.deep.eq(expectedSources);
@@ -1358,7 +1357,7 @@ describe('MarketOperationUtils tests', () => {
             //         FILL_AMOUNT,
             //         DEFAULT_OPTS,
             //     );
-            //     const improvedOrders = improvedOrdersResponse.optimizedOrders;
+            //     const improvedOrders = improvedOrdersResponse.path.createOrders();
             //     expect(improvedOrders).to.not.be.length(0);
             //     for (const order of improvedOrders) {
             //         expect(getSourceFromAssetData(order.makerAssetData)).to.exist('');
@@ -1384,7 +1383,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     DEFAULT_OPTS,
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const totalMakerAmount = BigNumber.sum(...improvedOrders.map((o) => o.makerAmount));
                 expect(totalMakerAmount).to.bignumber.gte(FILL_AMOUNT);
             });
@@ -1398,7 +1397,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, bridgeSlippage },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 expect(improvedOrders).to.not.be.length(0);
                 for (const order of improvedOrders) {
                     const expectedTakerAmount = order.fill.output;
@@ -1437,7 +1436,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, feeSchedule },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [
                     ERC20BridgeSource.Native,
@@ -1463,7 +1462,7 @@ describe('MarketOperationUtils tests', () => {
                     FILL_AMOUNT,
                     { ...DEFAULT_OPTS, numSamples: 4, allowFallback: true, maxFallbackSlippage: 0.25 },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const firstSources = [ERC20BridgeSource.Native, ERC20BridgeSource.Native, ERC20BridgeSource.Uniswap];
                 const secondSources: ERC20BridgeSource[] = [];
@@ -1500,7 +1499,7 @@ describe('MarketOperationUtils tests', () => {
                         exchangeProxyOverhead,
                     },
                 );
-                const improvedOrders = improvedOrdersResponse.optimizedOrders;
+                const improvedOrders = improvedOrdersResponse.path.createOrders();
                 const orderSources = improvedOrders.map((o) => o.source);
                 const expectedSources = [ERC20BridgeSource.Curve];
                 expect(orderSources).to.deep.eq(expectedSources);

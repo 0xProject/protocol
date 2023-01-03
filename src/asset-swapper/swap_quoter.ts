@@ -23,7 +23,7 @@ import {
     SwapQuoterOpts,
     SwapQuoterRfqOpts,
 } from './types';
-import { MarketOperationUtils } from './utils/market_operation_utils';
+import { MarketOperationUtils, OptimizerResultWithReport } from './utils/market_operation_utils';
 import { BancorService } from './utils/market_operation_utils/bancor_service';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -34,7 +34,6 @@ import {
 } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
-import { OptimizerResultWithReport } from './utils/market_operation_utils/types';
 import { ERC20BridgeSource, FillData, GasSchedule, GetMarketOrdersOpts, OptimizedOrder, Orderbook } from './types';
 import { GasPriceUtils } from './utils/gas_price_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
@@ -222,7 +221,7 @@ export class SwapQuoter {
         );
 
         // Use the raw gas, not scaled by gas price
-        const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.sourceFlags).toNumber();
+        const exchangeProxyOverhead = opts.exchangeProxyOverhead(result.path.sourceFlags).toNumber();
         swapQuote.bestCaseQuoteInfo.gas += exchangeProxyOverhead;
         swapQuote.worstCaseQuoteInfo.gas += exchangeProxyOverhead;
 
@@ -338,15 +337,15 @@ function createSwapQuote(
     slippage: number,
 ): SwapQuote {
     const {
-        optimizedOrders,
+        path,
         quoteReport,
         extendedQuoteReportSources,
-        sourceFlags,
         takerAmountPerEth,
         makerAmountPerEth,
         priceComparisonsReport,
     } = optimizerResult;
-    const isTwoHop = sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
+    const isTwoHop = path.sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
+    const optimizedOrders = path.createOrders();
 
     // Calculate quote info
     const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
