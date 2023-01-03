@@ -149,6 +149,6 @@
         "typeorm": "0.2.29",
         "uuid-validate": "^0.0.3",
         "ws": "^8.11.0",
-        "zen-observable": "^0.8.15"
+        "zen-observable": "^0.10.0"
     }
 }
