@@ -15,12 +15,11 @@ import { ethToOutputAmount } from './fills';
 import {
     createBridgeOrder,
     createNativeOptimizedOrder,
-    CreateOrderFromPathOpts,
     createOrdersFromTwoHopSample,
     getMakerTakerTokens,
 } from './orders';
 import { getCompleteRate, getRate } from './rate_utils';
-import { MultiHopFillData } from './types';
+import { MultiHopFillData, PathContext } from './types';
 
 interface PathSize {
     input: BigNumber;
@@ -35,17 +34,24 @@ export interface PathPenaltyOpts {
 
 export class Path {
     public static create(
-        side: MarketOperation,
+        context: PathContext,
         fills: readonly Fill[],
         targetInput: BigNumber,
         pathPenaltyOpts: PathPenaltyOpts,
     ): Path {
         const sourceFlags = mergeSourceFlags(fills.map((fill) => fill.flags));
-        return new Path(side, fills, targetInput, pathPenaltyOpts, sourceFlags, createAdjustedSize(targetInput, fills));
+        return new Path(
+            context,
+            fills,
+            targetInput,
+            pathPenaltyOpts,
+            sourceFlags,
+            createAdjustedSize(targetInput, fills),
+        );
     }
 
     private constructor(
-        protected readonly side: MarketOperation,
+        private readonly context: PathContext,
         public fills: readonly Fill[],
         protected readonly targetInput: BigNumber,
         public readonly pathPenaltyOpts: PathPenaltyOpts,
@@ -53,21 +59,21 @@ export class Path {
         protected readonly adjustedSize: PathSize,
     ) {}
 
-    public createOrders(opts: CreateOrderFromPathOpts): OptimizedOrder[] {
-        const { makerToken, takerToken } = getMakerTakerTokens(opts);
+    public createOrders(): OptimizedOrder[] {
+        const { makerToken, takerToken } = getMakerTakerTokens(this.context);
         return _.flatMap(this.fills, (fill) => {
             // Internal BigInt flag field is not supported JSON and is tricky to remove upstream.
             const normalizedFill = _.omit(fill, 'flags') as Fill;
             if (fill.source === ERC20BridgeSource.Native) {
-                return [createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, opts.side)];
+                return [createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, this.context.side)];
             } else if (fill.source === ERC20BridgeSource.MultiHop) {
                 const [firstHopOrder, secondHopOrder] = createOrdersFromTwoHopSample(
                     normalizedFill as Fill<MultiHopFillData>,
-                    opts,
+                    this.context,
                 );
                 return [firstHopOrder, secondHopOrder];
             } else {
-                return [createBridgeOrder(normalizedFill, makerToken, takerToken, opts.side)];
+                return [createBridgeOrder(normalizedFill, makerToken, takerToken, this.context.side)];
             }
         });
     }
@@ -78,7 +84,7 @@ export class Path {
      */
     public adjustedRate(): BigNumber {
         const { input, output } = this.getExchangeProxyOverheadAppliedSize();
-        return getRate(this.side, input, output);
+        return getRate(this.context.side, input, output);
     }
 
     /**
@@ -116,13 +122,13 @@ export class Path {
         });
         return {
             input,
-            output: this.side === MarketOperation.Sell ? output.minus(pathPenalty) : output.plus(pathPenalty),
+            output: this.context.side === MarketOperation.Sell ? output.minus(pathPenalty) : output.plus(pathPenalty),
         };
     }
 
     private adjustedCompleteRate(): BigNumber {
         const { input, output } = this.getExchangeProxyOverheadAppliedSize();
-        return getCompleteRate(this.side, input, output, this.targetInput);
+        return getCompleteRate(this.context.side, input, output, this.targetInput);
     }
 }
 

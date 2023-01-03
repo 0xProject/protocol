@@ -21,7 +21,7 @@ import {
 import { VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID, ZERO_AMOUNT } from './constants';
 import { dexSampleToFill, ethToOutputAmount, nativeOrderToFill, twoHopSampleToFill } from './fills';
 import { Path, PathPenaltyOpts } from './path';
-import { DexSample, MultiHopFillData } from './types';
+import { DexSample, MultiHopFillData, PathContext } from './types';
 
 // NOTE: The Rust router will panic with less than 3 samples
 const MIN_NUM_SAMPLE_INPUTS = 3;
@@ -50,7 +50,7 @@ interface RoutablePath {
 }
 
 export class PathOptimizer {
-    private side: MarketOperation;
+    private pathContext: PathContext;
     private chainId: ChainId;
     private feeSchedule: FeeSchedule;
     private neonRouterNumSamples: number;
@@ -59,7 +59,7 @@ export class PathOptimizer {
     private inputAmount: BigNumber;
 
     constructor(context: {
-        side: MarketOperation;
+        pathContext: PathContext;
         chainId: ChainId;
         feeSchedule: FeeSchedule;
         neonRouterNumSamples: number;
@@ -67,7 +67,7 @@ export class PathOptimizer {
         pathPenaltyOpts: PathPenaltyOpts;
         inputAmount: BigNumber;
     }) {
-        this.side = context.side;
+        this.pathContext = context.pathContext;
         this.chainId = context.chainId;
         this.feeSchedule = context.feeSchedule;
         this.neonRouterNumSamples = context.neonRouterNumSamples;
@@ -144,7 +144,7 @@ export class PathOptimizer {
         }
 
         const optimizerCapture: OptimizerCapture = {
-            side: this.side,
+            side: this.pathContext.side,
             targetInput: inputAmount.toNumber(),
             pathsIn: serializedPaths,
         };
@@ -248,7 +248,7 @@ export class PathOptimizer {
 
         for (const [idx, nativeOrder] of nativeOrders.entries()) {
             const { input: normalizedOrderInput, output: normalizedOrderOutput } = nativeOrderToNormalizedAmounts(
-                this.side,
+                this.pathContext.side,
                 nativeOrder,
             );
             // NOTE: skip dummy order created in swap_quoter
@@ -325,7 +325,7 @@ export class PathOptimizer {
             });
             return outputFee;
         } else {
-            const { input, output } = nativeOrderToNormalizedAmounts(this.side, sampleOrNativeOrder);
+            const { input, output } = nativeOrderToNormalizedAmounts(this.pathContext.side, sampleOrNativeOrder);
             const fee = this.feeSchedule[ERC20BridgeSource.Native]?.(sampleOrNativeOrder).fee || ZERO_AMOUNT;
             const outputFee = ethToOutputAmount({
                 input,
@@ -342,27 +342,22 @@ export class PathOptimizer {
     // adjustor
     private createFillFromDexSample(sample: DexSample): Fill {
         const fill = dexSampleToFill(
-            this.side,
+            this.pathContext.side,
             sample,
             this.pathPenaltyOpts.outputAmountPerEth,
             this.pathPenaltyOpts.inputAmountPerEth,
             this.feeSchedule,
         );
-        const adjustedFills = this.fillAdjustor.adjustFills(this.side, [fill]);
+        const adjustedFills = this.fillAdjustor.adjustFills(this.pathContext.side, [fill]);
         return adjustedFills[0];
     }
 
     private createFillFromTwoHopSample(sample: DexSample<MultiHopFillData>): Fill {
         const { fillData } = sample;
+        const side = this.pathContext.side;
 
         const multihopFeeEstimate = this.feeSchedule[ERC20BridgeSource.MultiHop];
-        const fill = twoHopSampleToFill(
-            this.side,
-            sample,
-            this.pathPenaltyOpts.outputAmountPerEth,
-            multihopFeeEstimate,
-        );
-        const side = this.side;
+        const fill = twoHopSampleToFill(side, sample, this.pathPenaltyOpts.outputAmountPerEth, multihopFeeEstimate);
         const fillAdjustor = this.fillAdjustor;
 
         // Adjust the individual Fill
@@ -434,7 +429,7 @@ export class PathOptimizer {
             // we want to convert this to an array of samples
             if (!isDexSample(current)) {
                 const nativeFill = nativeOrderToFill(
-                    this.side,
+                    this.pathContext.side,
                     current,
                     routeInputCorrected,
                     this.pathPenaltyOpts.outputAmountPerEth,
@@ -507,7 +502,7 @@ export class PathOptimizer {
             return undefined;
         }
 
-        return Path.create(this.side, adjustedFills, inputAmount, this.pathPenaltyOpts);
+        return Path.create(this.pathContext, adjustedFills, inputAmount, this.pathPenaltyOpts);
     }
 }
 

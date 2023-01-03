@@ -36,7 +36,11 @@ describe('PathOptimizer', () => {
     describe('Single source type (DEX, MultiHop, Native) routing', () => {
         it('Returns the best single DEX source path', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,
@@ -78,7 +82,11 @@ describe('PathOptimizer', () => {
 
         it('Returns the multihop path', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,
@@ -122,7 +130,11 @@ describe('PathOptimizer', () => {
 
         it('Returns the native source path', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,
@@ -173,7 +185,11 @@ describe('PathOptimizer', () => {
     describe('Multiplex routing', () => {
         it('Returns the best multiplex path (two DEX samples)', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,
@@ -220,7 +236,11 @@ describe('PathOptimizer', () => {
 
         it('Returns the best multiplex path (two native orders)', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,
@@ -272,7 +292,11 @@ describe('PathOptimizer', () => {
 
         it('Returns the best multiplex path (DEX + native order)', async () => {
             const pathOptimizer = new PathOptimizer({
-                side: MarketOperation.Sell,
+                pathContext: {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
                 chainId: ChainId.Mainnet,
                 feeSchedule: NO_OP_FEE_SCHEDULE,
                 neonRouterNumSamples: 5,

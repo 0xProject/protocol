@@ -346,6 +346,12 @@ export interface MarketSideLiquidity {
     blockNumber: number;
 }
 
+export interface PathContext {
+    side: MarketOperation;
+    inputToken: string;
+    outputToken: string;
+}
+
 export interface RawQuotes {
     nativeOrders: NativeOrderWithFillableAmounts[];
     rfqtIndicativeQuotes: V4RFQIndicativeQuoteMM[];

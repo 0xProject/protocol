@@ -400,12 +400,6 @@ export class MarketOperationUtils {
             marketSideLiquidity;
         const { nativeOrders, rfqtIndicativeQuotes, dexQuotes, twoHopQuotes } = quotes;
 
-        const orderOpts = {
-            side,
-            inputToken,
-            outputToken,
-        };
-
         const augmentedRfqtIndicativeQuotes: NativeOrderWithFillableAmounts[] = rfqtIndicativeQuotes.map(
             (q) =>
                 ({
@@ -424,7 +418,11 @@ export class MarketOperationUtils {
 
         // Find the optimal path using Rust router.
         const pathOptimizer = new PathOptimizer({
-            side,
+            pathContext: {
+                side,
+                inputToken,
+                outputToken,
+            },
             feeSchedule: opts.feeSchedule,
             chainId: this._sampler.chainId,
             neonRouterNumSamples: opts.neonRouterNumSamples,
@@ -451,7 +449,7 @@ export class MarketOperationUtils {
         }
 
         return {
-            optimizedOrders: optimalPath.createOrders(orderOpts),
+            optimizedOrders: optimalPath.createOrders(),
             liquidityDelivered: optimalPath.fills,
             sourceFlags: optimalPath.sourceFlags,
             marketSideLiquidity,

@@ -37,6 +37,7 @@ import {
     MakerPsmFillData,
     MooniswapFillData,
     MultiHopFillData,
+    PathContext,
     PlatypusFillData,
     ShellFillData,
     SynthetixFillData,
@@ -47,25 +48,21 @@ import {
     WOOFiFillData,
 } from './types';
 
-export interface CreateOrderFromPathOpts {
-    side: MarketOperation;
-    inputToken: string;
-    outputToken: string;
-}
-
 export function createOrdersFromTwoHopSample(
     sample: DexSample<MultiHopFillData>,
-    opts: CreateOrderFromPathOpts,
+    pathContext: PathContext,
 ): [OptimizedOrder, OptimizedOrder] {
-    const { makerToken, takerToken } = getMakerTakerTokens(opts);
+    const { side } = pathContext;
+    const { makerToken, takerToken } = getMakerTakerTokens(pathContext);
     const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
+
     const firstHopFill: Fill = {
         sourcePathId: '',
         source: firstHopSource.source,
         type: FillQuoteTransformerOrderType.Bridge,
-        input: opts.side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
-        output: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
-        adjustedOutput: opts.side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
+        input: side === MarketOperation.Sell ? sample.input : ZERO_AMOUNT,
+        output: side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
+        adjustedOutput: side === MarketOperation.Sell ? ZERO_AMOUNT : sample.output,
         fillData: firstHopSource.fillData,
         flags: BigInt(0),
         gas: 1,
@@ -74,16 +71,16 @@ export function createOrdersFromTwoHopSample(
         sourcePathId: '',
         source: secondHopSource.source,
         type: FillQuoteTransformerOrderType.Bridge,
-        input: opts.side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
-        output: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
-        adjustedOutput: opts.side === MarketOperation.Sell ? sample.output : MAX_UINT256,
+        input: side === MarketOperation.Sell ? MAX_UINT256 : sample.input,
+        output: side === MarketOperation.Sell ? sample.output : MAX_UINT256,
+        adjustedOutput: side === MarketOperation.Sell ? sample.output : MAX_UINT256,
         fillData: secondHopSource.fillData,
         flags: BigInt(0),
         gas: 1,
     };
     return [
-        createBridgeOrder(firstHopFill, intermediateToken, takerToken, opts.side),
-        createBridgeOrder(secondHopFill, makerToken, intermediateToken, opts.side),
+        createBridgeOrder(firstHopFill, intermediateToken, takerToken, side),
+        createBridgeOrder(secondHopFill, makerToken, intermediateToken, side),
     ];
 }
 
@@ -630,11 +627,12 @@ function getBestUniswapV3PathAmountForInputAmount(
     return fillData.pathAmounts[fillData.pathAmounts.length - 1];
 }
 
-export function getMakerTakerTokens(opts: CreateOrderFromPathOpts): {
+export function getMakerTakerTokens(pathContext: PathContext): {
     makerToken: string;
     takerToken: string;
 } {
-    const makerToken = opts.side === MarketOperation.Sell ? opts.outputToken : opts.inputToken;
-    const takerToken = opts.side === MarketOperation.Sell ? opts.inputToken : opts.outputToken;
+    const { side, inputToken, outputToken } = pathContext;
+    const makerToken = side === MarketOperation.Sell ? outputToken : inputToken;
+    const takerToken = side === MarketOperation.Sell ? inputToken : outputToken;
     return { makerToken, takerToken };
 }
