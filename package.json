@@ -119,7 +119,7 @@
         "@bancor/sdk": "0.2.10",
         "@ethersproject/abi": "^5.0.1",
         "@ethersproject/address": "^5.0.1",
-        "@ethersproject/contracts": "^5.0.1",
+        "@ethersproject/contracts": "^5.7.0",
         "@ethersproject/hdnode": "^5.2.0",
         "@ethersproject/providers": "^5.7.1",
         "@ethersproject/strings": "^5.0.10",
