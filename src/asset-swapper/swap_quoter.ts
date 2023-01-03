@@ -30,7 +30,6 @@ import {
     DEFAULT_GAS_SCHEDULE,
     SAMPLER_ADDRESS,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
-    SOURCE_FLAGS,
 } from './utils/market_operation_utils/constants';
 import { DexOrderSampler } from './utils/market_operation_utils/sampler';
 import { SourceFilters } from './utils/market_operation_utils/source_filters';
@@ -344,7 +343,7 @@ function createSwapQuote(
         makerAmountPerEth,
         priceComparisonsReport,
     } = optimizerResult;
-    const isTwoHop = path.sourceFlags === SOURCE_FLAGS[ERC20BridgeSource.MultiHop];
+    const isTwoHop = path.hasTwoHop();
     const optimizedOrders = path.createOrders();
 
     // Calculate quote info

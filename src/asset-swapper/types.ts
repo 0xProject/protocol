@@ -248,6 +248,7 @@ interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
+    // TODO(kyu-c): replace `orders` with a `Path`
     orders: OptimizedOrder[];
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
@@ -255,6 +256,7 @@ interface SwapQuoteBase {
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
+    // TODO(kyu-c): remove and derive from `Path`
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;

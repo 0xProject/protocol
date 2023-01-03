@@ -7,7 +7,11 @@ import {
     FillQuoteTransformerOrderType,
     MarketOperation,
 } from '../../../../src/asset-swapper';
-import { MAX_UINT256, ONE_ETHER } from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
+import {
+    MAX_UINT256,
+    ONE_ETHER,
+    SOURCE_FLAGS,
+} from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
 import { Path } from '../../../../src/asset-swapper/utils/market_operation_utils/path';
 import { chaiSetup } from '../chai_setup';
 
@@ -90,6 +94,52 @@ describe('Path', () => {
             );
 
             expect(path.sourceFlags).eq(BigInt(1 + 2 + 8));
+        });
+    });
+
+    describe('hasTwoHop()', () => {
+        it('Returns false when the path does not include a two hop', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
+                [
+                    createFakeFillWithFlags(SOURCE_FLAGS[ERC20BridgeSource.UniswapV3]),
+                    createFakeFillWithFlags(SOURCE_FLAGS[ERC20BridgeSource.Curve]),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            expect(path.hasTwoHop()).to.be.false();
+        });
+
+        it('Returns true when the path includes a two hop', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
+                [
+                    createFakeFillWithFlags(SOURCE_FLAGS[ERC20BridgeSource.UniswapV3]),
+                    createFakeFillWithFlags(SOURCE_FLAGS[ERC20BridgeSource.MultiHop]),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            expect(path.hasTwoHop()).to.be.true();
         });
     });
 

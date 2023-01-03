@@ -398,6 +398,8 @@ export const FEE_QUOTE_SOURCES_BY_CHAIN_ID = valueByChainId<ERC20BridgeSource[]>
     [],
 );
 
+// NOTES: It seems unnecessary to use `bigint` over a `Set`.
+// Once `ERC20BridgeSource.Native` is broken into Limit, RFQ, OTC orders, consider using `Set`.
 // HACK(mzhu25): Limit, Rfq, and Otc orders need to be treated as different sources
 //               when computing the exchange proxy gas overhead.
 export const SOURCE_FLAGS: { [key in ERC20BridgeSource]: bigint } & {

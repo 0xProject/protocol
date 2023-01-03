@@ -442,7 +442,7 @@ export class MarketOperationUtils {
             pathPenaltyOpts: {
                 outputAmountPerEth,
                 inputAmountPerEth,
-                exchangeProxyOverhead: opts.exchangeProxyOverhead || (() => ZERO_AMOUNT),
+                exchangeProxyOverhead: opts.exchangeProxyOverhead,
             },
             inputAmount,
         });

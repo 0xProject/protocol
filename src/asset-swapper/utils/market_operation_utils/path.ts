@@ -10,7 +10,7 @@ import {
     Fill,
 } from '../../types';
 
-import { ZERO_AMOUNT } from './constants';
+import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
 import {
     createBridgeOrder,
@@ -58,6 +58,10 @@ export class Path {
         public readonly sourceFlags: bigint,
         protected readonly adjustedSize: PathSize,
     ) {}
+
+    public hasTwoHop(): boolean {
+        return (this.sourceFlags & SOURCE_FLAGS[ERC20BridgeSource.MultiHop]) > 0;
+    }
 
     public createOrders(): OptimizedOrder[] {
         const { makerToken, takerToken } = getMakerTakerTokens(this.context);
