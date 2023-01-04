@@ -31,7 +31,9 @@ import {
     NativeFillData,
     OptimizedLimitOrder,
     OptimizedOrder,
+    IPath,
 } from '../../src/asset-swapper/types';
+import { Path } from '../../src/asset-swapper/utils/market_operation_utils/path';
 
 import { chaiSetup } from './utils/chai_setup';
 import { getRandomAmount, getRandomSignature } from './utils/utils';
@@ -118,6 +120,11 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             makerToken: MAKER_TOKEN,
             takerToken: TAKER_TOKEN,
             orders: [order],
+            path: {
+                createOrders: () => [order],
+                createSlippedOrders: (_maxSlippage: number) => [order],
+                hasTwoHop: () => false,
+            } as IPath,
             makerTokenDecimals: 18,
             takerTokenDecimals: 18,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
@@ -151,12 +158,23 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
     }
 
     function getRandomTwoHopQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
+        const firstHopOrder = getRandomOptimizedMarketOrder(
+            { makerToken: INTERMEDIATE_TOKEN },
+            { makerToken: INTERMEDIATE_TOKEN },
+        );
+        const secondHopOrder = getRandomOptimizedMarketOrder(
+            { takerToken: INTERMEDIATE_TOKEN },
+            { takerToken: INTERMEDIATE_TOKEN },
+        );
         return {
             ...getRandomQuote(side),
-            orders: [
-                getRandomOptimizedMarketOrder({ makerToken: INTERMEDIATE_TOKEN }, { makerToken: INTERMEDIATE_TOKEN }),
-                getRandomOptimizedMarketOrder({ takerToken: INTERMEDIATE_TOKEN }, { takerToken: INTERMEDIATE_TOKEN }),
-            ],
+            orders: [firstHopOrder, secondHopOrder],
+            path: {
+                createOrders: () => [firstHopOrder, secondHopOrder],
+                createSlippedOrders: (_maxSlippage: number) => [firstHopOrder, secondHopOrder],
+                hasTwoHop: () => true,
+            } as unknown as Path,
+
             isTwoHop: true,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
         } as any;

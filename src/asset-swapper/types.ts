@@ -236,6 +236,12 @@ export interface ExchangeProxyContractOpts {
     shouldSellEntireBalance: boolean;
 }
 
+export interface IPath {
+    hasTwoHop(): boolean;
+    createOrders(): OptimizedOrder[];
+    createSlippedOrders(maxSlippage: number): OptimizedOrder[];
+}
+
 /**
  * takerToken: Address of the taker asset.
  * makerToken: Address of the maker asset.
@@ -248,15 +254,16 @@ interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
-    // TODO(kyu-c): replace `orders` with a `Path`
+    // TODO(kyu-c): replace its usage with `path.createOrders`.
     orders: OptimizedOrder[];
+    path: IPath;
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
     sourceBreakdown: SwapQuoteOrdersBreakdown;
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
-    // TODO(kyu-c): remove and derive from `Path`
+    // TODO(kyu-c): replace its usage with `path.hasTwoHop`
     isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;

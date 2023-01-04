@@ -1,6 +1,8 @@
 import { BigNumber, NULL_ADDRESS, NULL_BYTES } from '@0x/utils';
 
 import { MarketOperation, RfqOrderFields, SwapQuote } from '../../src/asset-swapper';
+import { IPath } from '../../src/asset-swapper/types';
+import { Path } from '../../src/asset-swapper/utils/market_operation_utils/path';
 
 export const rfqtIndicativeQuoteResponse = {
     makerAmount: '100000000000000000',
@@ -41,6 +43,7 @@ export const randomSellQuote: SwapQuote = {
     makerToken: '0xb9302bbc853c3e3480a1eefc2bb6bf4cdca809e6',
     takerToken: '0x5471a5833768d1151d34701eba1c9123d1ba2f8a',
     orders: [],
+    path: undefined as unknown as IPath,
     bestCaseQuoteInfo,
     worstCaseQuoteInfo: {
         feeTakerTokenAmount: new BigNumber('556208982260696635'),

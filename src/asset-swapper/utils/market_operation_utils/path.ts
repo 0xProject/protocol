@@ -8,9 +8,10 @@ import {
     ERC20BridgeSource,
     ExchangeProxyOverhead,
     Fill,
+    IPath,
 } from '../../types';
 
-import { SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
+import { MAX_UINT256, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
 import { ethToOutputAmount } from './fills';
 import {
     createBridgeOrder,
@@ -32,7 +33,7 @@ export interface PathPenaltyOpts {
     exchangeProxyOverhead: ExchangeProxyOverhead;
 }
 
-export class Path {
+export class Path implements IPath {
     public static create(
         context: PathContext,
         fills: readonly Fill[],
@@ -79,6 +80,38 @@ export class Path {
             } else {
                 return [createBridgeOrder(normalizedFill, makerToken, takerToken, this.context.side)];
             }
+        });
+    }
+
+    /**
+     * Returns `OptimizedOrder`s with slippage applied (Native orders do not have slippage).
+     * @param maxSlippage maximum slippage. It must be [0, 1].
+     * @returns orders with slippage applied.
+     */
+    public createSlippedOrders(maxSlippage: number): OptimizedOrder[] {
+        if (maxSlippage < 0 || maxSlippage > 1) {
+            throw new Error(`slippage must be [0, 1]. Given: ${maxSlippage}`);
+        }
+
+        return this.createOrders().map((order) => {
+            if (order.source === ERC20BridgeSource.Native || maxSlippage === 0) {
+                return order;
+            }
+
+            return {
+                ...order,
+                ...(this.context.side === MarketOperation.Sell
+                    ? {
+                          makerAmount: order.makerAmount.eq(MAX_UINT256)
+                              ? MAX_UINT256
+                              : order.makerAmount.times(1 - maxSlippage).integerValue(BigNumber.ROUND_DOWN),
+                      }
+                    : {
+                          takerAmount: order.takerAmount.eq(MAX_UINT256)
+                              ? MAX_UINT256
+                              : order.takerAmount.times(1 + maxSlippage).integerValue(BigNumber.ROUND_UP),
+                      }),
+            };
         });
     }
 

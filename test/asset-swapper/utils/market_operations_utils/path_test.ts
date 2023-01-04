@@ -28,7 +28,7 @@ describe('Path', () => {
                     inputToken: 'fake-input-token',
                     outputToken: 'fake-output-token',
                 },
-                [createFakeFill({ input: ONE_ETHER, adjustedOutput: ONE_ETHER.times(990) })],
+                [createFakeBridgeFill({ input: ONE_ETHER, adjustedOutput: ONE_ETHER.times(990) })],
                 ONE_ETHER,
                 {
                     inputAmountPerEth: new BigNumber(1),
@@ -49,11 +49,11 @@ describe('Path', () => {
                     outputToken: 'fake-output-token',
                 },
                 [
-                    createFakeFill({
+                    createFakeBridgeFill({
                         input: ONE_ETHER,
                         adjustedOutput: ONE_ETHER.times(990),
                     }),
-                    createFakeFill({
+                    createFakeBridgeFill({
                         input: ONE_ETHER,
                         output: ONE_ETHER.times(1000),
                         adjustedOutput: ONE_ETHER.times(990),
@@ -271,16 +271,10 @@ describe('Path', () => {
                             firstHopSource: {
                                 source: ERC20BridgeSource.Curve,
                                 fillData: { fakeFillData: 'curve' },
-                                encodeCall: () => '',
-                                handleCallResults: () => [new BigNumber(0)],
-                                handleRevert: () => [new BigNumber(0)],
                             },
                             secondHopSource: {
                                 source: ERC20BridgeSource.BalancerV2,
                                 fillData: { fakeFillData: 'balancer v2' },
-                                encodeCall: () => '',
-                                handleCallResults: () => [new BigNumber(0)],
-                                handleRevert: () => [new BigNumber(0)],
                             },
                             intermediateToken: 'fake-usdt-address',
                         },
@@ -332,18 +326,201 @@ describe('Path', () => {
             ]);
         });
     });
+
+    describe('createSlippedOrders()', () => {
+        describe('Invalid `maxSlippage`', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
+                [createFakeBridgeFill({ input: ONE_ETHER, adjustedOutput: ONE_ETHER.times(990) })],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => ONE_ETHER.times(0.01), // 10 * 10e18 output amount
+                },
+            );
+
+            [-1, -0.01, 1.01, 2].forEach((maxSlippage) => {
+                it(`Throws an error when maxSlippage is ${maxSlippage}`, () => {
+                    expect(() => path.createSlippedOrders(maxSlippage)).to.throw('slippage must be [0, 1]');
+                });
+            });
+        });
+
+        it('Does not apply slippage to native orders (sell)', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-input-token',
+                    outputToken: 'fake-output-token',
+                },
+                [
+                    createFakeNativeFill({
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                    }),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createSlippedOrders(0.1);
+
+            expect(orders).to.have.lengthOf(1);
+            expect(orders[0].takerAmount).to.be.bignumber.eq(ONE_ETHER);
+            expect(orders[0].makerAmount).to.be.bignumber.eq(ONE_ETHER.times(1000)); // not affected.
+        });
+
+        it('Returns a slipped single bridge order (sell)', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-weth-address',
+                    outputToken: 'fake-usdc-address',
+                },
+                [
+                    createFakeBridgeFill({
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        source: ERC20BridgeSource.UniswapV2,
+                    }),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createSlippedOrders(0.01);
+            expect(orders).to.have.lengthOf(1);
+            expect(orders[0].takerAmount).to.be.bignumber.eq(ONE_ETHER);
+            expect(orders[0].makerAmount).to.be.bignumber.eq(ONE_ETHER.times(990)); // 1000 * 0.99
+        });
+
+        it('Do not slip when max slippage is 0 (sell)', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-weth-address',
+                    outputToken: 'fake-usdc-address',
+                },
+                [
+                    createFakeBridgeFill({
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        source: ERC20BridgeSource.UniswapV2,
+                    }),
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createSlippedOrders(0);
+            expect(orders).to.have.lengthOf(1);
+            expect(orders[0].takerAmount).to.be.bignumber.eq(ONE_ETHER);
+            expect(orders[0].makerAmount).to.be.bignumber.eq(ONE_ETHER.times(1000));
+        });
+
+        it('Returns slipped orders for a two hop order (sell)', () => {
+            const path = Path.create(
+                {
+                    side: MarketOperation.Sell,
+                    inputToken: 'fake-weth-address',
+                    outputToken: 'fake-usdc-address',
+                },
+                [
+                    {
+                        input: ONE_ETHER,
+                        output: ONE_ETHER.times(1000),
+                        adjustedOutput: ONE_ETHER.times(990),
+                        gas: 0,
+                        source: ERC20BridgeSource.MultiHop,
+                        type: FillQuoteTransformerOrderType.Bridge,
+                        fillData: {
+                            firstHopSource: {
+                                source: ERC20BridgeSource.Curve,
+                                fillData: { fakeFillData: 'curve' },
+                            },
+                            secondHopSource: {
+                                source: ERC20BridgeSource.BalancerV2,
+                                fillData: { fakeFillData: 'balancer v2' },
+                            },
+                            intermediateToken: 'fake-usdt-address',
+                        },
+                        sourcePathId: 'fake-path-id',
+                        flags: BigInt(0),
+                    },
+                ],
+                ONE_ETHER,
+                {
+                    inputAmountPerEth: new BigNumber(1),
+                    outputAmountPerEth: new BigNumber(1000),
+                    exchangeProxyOverhead: () => new BigNumber(0),
+                },
+            );
+
+            const orders = path.createSlippedOrders(0.01);
+            expect(orders).to.have.lengthOf(2);
+
+            const [firstHopOrder, secondHopOrder] = orders;
+            expect(firstHopOrder.takerAmount).to.be.bignumber.eq(ONE_ETHER);
+            expect(firstHopOrder.makerAmount).to.be.bignumber.eq(new BigNumber(0)); // Preserve 0
+
+            expect(secondHopOrder.takerAmount).to.be.bignumber.eq(MAX_UINT256); // Preserve max
+            expect(secondHopOrder.makerAmount).to.be.bignumber.eq(ONE_ETHER.times(990));
+        });
+    });
 });
 
-function createFakeFill(params: { input: BigNumber; output?: BigNumber; adjustedOutput: BigNumber }): Fill {
+function createFakeBridgeFill(params: {
+    input: BigNumber;
+    output?: BigNumber;
+    adjustedOutput?: BigNumber;
+    source?: ERC20BridgeSource;
+}): Fill {
+    const { input, output, adjustedOutput, source } = params;
+    return {
+        input,
+        output: output || new BigNumber(0),
+        adjustedOutput: adjustedOutput || new BigNumber(0),
+        gas: 42,
+        source: source || ERC20BridgeSource.UniswapV3,
+        type: FillQuoteTransformerOrderType.Bridge,
+        fillData: {},
+        sourcePathId: 'fake-path-id',
+        flags: BigInt(0),
+    };
+}
+
+function createFakeNativeFill(params: { input: BigNumber; output?: BigNumber; adjustedOutput?: BigNumber }): Fill {
     const { input, output, adjustedOutput } = params;
     return {
         input,
         output: output || new BigNumber(0),
-        adjustedOutput,
-        gas: 42,
-        source: ERC20BridgeSource.UniswapV3,
-        type: FillQuoteTransformerOrderType.Bridge,
-        fillData: {},
+        adjustedOutput: adjustedOutput || new BigNumber(0),
+        gas: 0,
+        source: ERC20BridgeSource.Native,
+        type: FillQuoteTransformerOrderType.Otc,
+        fillData: {
+            order: {
+                takerToken: 'fake-taker-token',
+                makerToken: 'fake-maker-token',
+            },
+        },
         sourcePathId: 'fake-path-id',
         flags: BigInt(0),
     };

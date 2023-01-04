@@ -21,7 +21,6 @@ import {
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
-    MarketOperation,
     MarketSellSwapQuote,
     SwapQuote,
     SwapQuoteConsumerBase,
@@ -41,7 +40,6 @@ import {
     NativeOtcOrderFillData,
     NativeRfqOrderFillData,
     OptimizedMarketBridgeOrder,
-    OptimizedOrder,
 } from '../types';
 
 import {
@@ -143,7 +141,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             ethAmount = ethAmount.plus(sellAmount);
         }
 
-        const slippedOrders = slipNonNativeOrders(quote);
+        const maxSlippage = getMaxQuoteSlippageRate(quote);
+        const slippedOrders = quote.path.createSlippedOrders(maxSlippage);
 
         // VIP routes.
         if (
@@ -725,32 +724,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 .getABIEncodedTransactionData();
         }
     }
-}
-
-function slipNonNativeOrders(quote: MarketSellSwapQuote | MarketBuySwapQuote): OptimizedOrder[] {
-    const slippage = getMaxQuoteSlippageRate(quote);
-    if (slippage === 0) {
-        return quote.orders;
-    }
-    return quote.orders.map((o) => {
-        if (o.source === ERC20BridgeSource.Native) {
-            return o;
-        }
-        return {
-            ...o,
-            ...(quote.type === MarketOperation.Sell
-                ? {
-                      makerAmount: o.makerAmount.eq(MAX_UINT256)
-                          ? MAX_UINT256
-                          : o.makerAmount.times(1 - slippage).integerValue(BigNumber.ROUND_DOWN),
-                  }
-                : {
-                      takerAmount: o.takerAmount.eq(MAX_UINT256)
-                          ? MAX_UINT256
-                          : o.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
-                  }),
-        };
-    });
 }
 
 function getMaxQuoteSlippageRate(quote: MarketBuySwapQuote | MarketSellSwapQuote): number {

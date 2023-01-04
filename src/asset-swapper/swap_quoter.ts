@@ -358,6 +358,7 @@ function createSwapQuote(
         takerToken,
         gasPrice,
         orders: optimizedOrders,
+        path,
         bestCaseQuoteInfo,
         worstCaseQuoteInfo,
         sourceBreakdown,
