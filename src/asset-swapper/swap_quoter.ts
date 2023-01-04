@@ -343,11 +343,10 @@ function createSwapQuote(
         makerAmountPerEth,
         priceComparisonsReport,
     } = optimizerResult;
-    const isTwoHop = path.hasTwoHop();
     const optimizedOrders = path.createOrders();
 
     // Calculate quote info
-    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = isTwoHop
+    const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = path.hasTwoHop()
         ? calculateTwoHopQuoteInfo(optimizedOrders, operation, gasSchedule, slippage)
         : calculateQuoteInfo(optimizedOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
 
@@ -368,7 +367,6 @@ function createSwapQuote(
         makerAmountPerEth,
         quoteReport,
         extendedQuoteReportSources,
-        isTwoHop,
         priceComparisonsReport,
         blockNumber,
     };

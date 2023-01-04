@@ -129,7 +129,6 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             takerTokenDecimals: 18,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
             sourceBreakdown: {} as any,
-            isTwoHop: false,
             bestCaseQuoteInfo: {
                 makerAmount: makerTokenFillAmount,
                 takerAmount: takerTokenFillAmount,
@@ -445,9 +444,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         });
         it('Uses two `FillQuoteTransformer`s if given two-hop sell quote', async () => {
             const quote = getRandomTwoHopQuote(MarketOperation.Sell) as MarketSellSwapQuote;
-            const callInfo = await consumer.getCalldataOrThrowAsync(quote, {
-                extensionContractOpts: { isTwoHop: true },
-            });
+            const callInfo = await consumer.getCalldataOrThrowAsync(quote);
             const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);

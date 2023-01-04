@@ -31,7 +31,7 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    if (quote.isTwoHop) {
+    if (quote.path.hasTwoHop()) {
         return false;
     }
     if (quote.orders.map((o) => o.type).includes(FillQuoteTransformerOrderType.Limit)) {
@@ -56,7 +56,7 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    if (!quote.isTwoHop) {
+    if (!quote.path.hasTwoHop()) {
         return false;
     }
     const [firstHopOrder, secondHopOrder] = quote.orders;

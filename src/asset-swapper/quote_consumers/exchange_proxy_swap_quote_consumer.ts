@@ -395,9 +395,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         // If it's two hop we have an intermediate token this is needed to encode the individual FQT
         // and we also want to ensure no dust amount is left in the flash wallet
-        const intermediateToken = quote.isTwoHop ? slippedOrders[0].makerToken : NULL_ADDRESS;
+        const intermediateToken = quote.path.hasTwoHop() ? slippedOrders[0].makerToken : NULL_ADDRESS;
         // This transformer will fill the quote.
-        if (quote.isTwoHop) {
+        if (quote.path.hasTwoHop()) {
             const [firstHopOrder, secondHopOrder] = slippedOrders;
             transforms.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
@@ -518,7 +518,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         // Return any unspent sell tokens.
         const payTakerTokens = [sellToken];
         // Return any unspent intermediate tokens for two-hop swaps.
-        if (quote.isTwoHop) {
+        if (quote.path.hasTwoHop()) {
             payTakerTokens.push(intermediateToken);
         }
         // Return any unspent ETH. If ETH is the buy token, it will

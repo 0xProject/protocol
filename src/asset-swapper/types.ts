@@ -263,8 +263,6 @@ interface SwapQuoteBase {
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
     priceComparisonsReport?: PriceComparisonsReport;
-    // TODO(kyu-c): replace its usage with `path.hasTwoHop`
-    isTwoHop: boolean;
     makerTokenDecimals: number;
     takerTokenDecimals: number;
     takerAmountPerEth: BigNumber;
