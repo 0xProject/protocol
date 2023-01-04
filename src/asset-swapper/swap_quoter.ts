@@ -436,7 +436,6 @@ function calculateTwoHopQuoteInfo(
             makerAmount: secondHopOrder.makerAmount,
             takerAmount: firstHopOrder.takerAmount,
             totalTakerAmount: firstHopOrder.takerAmount,
-            feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
             slippage: 0,
@@ -452,7 +451,6 @@ function calculateTwoHopQuoteInfo(
             totalTakerAmount: isSell
                 ? firstHopOrder.takerAmount
                 : firstHopOrder.takerAmount.times(1 + slippage).integerValue(BigNumber.ROUND_UP),
-            feeTakerTokenAmount: constants.ZERO_AMOUNT,
             protocolFeeInWeiAmount: constants.ZERO_AMOUNT,
             gas,
             slippage,
@@ -486,7 +484,6 @@ function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuot
         makerAmount: fr.totalMakerAssetAmount,
         takerAmount: fr.takerAssetAmount,
         totalTakerAmount: fr.totalTakerAssetAmount,
-        feeTakerTokenAmount: fr.takerFeeTakerAssetAmount,
         protocolFeeInWeiAmount: fr.protocolFeeAmount,
         gas: fr.gas,
         slippage,

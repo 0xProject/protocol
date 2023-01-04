@@ -289,7 +289,6 @@ export interface MarketBuySwapQuote extends SwapQuoteBase {
 export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
 
 /**
- * feeTakerTokenAmount: The amount of takerAsset reserved for paying takerFees when swapping for desired assets.
  * takerTokenAmount: The amount of takerAsset swapped for desired makerAsset.
  * totalTakerTokenAmount: The total amount of takerAsset required to complete the swap (filling orders, and paying takerFees).
  * makerTokenAmount: The amount of makerAsset that will be acquired through the swap.
@@ -298,7 +297,6 @@ export type SwapQuote = MarketBuySwapQuote | MarketSellSwapQuote;
  * slippage: Amount of slippage to allow for.
  */
 export interface SwapQuoteInfo {
-    feeTakerTokenAmount: BigNumber;
     takerAmount: BigNumber;
     totalTakerAmount: BigNumber;
     makerAmount: BigNumber;

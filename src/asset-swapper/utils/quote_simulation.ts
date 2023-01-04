@@ -1,5 +1,6 @@
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
+import * as _ from 'lodash';
 
 import { constants } from '../constants';
 import { MarketOperation, GasSchedule, NativeLimitOrderFillData, OptimizedOrder } from '../types';
@@ -148,9 +149,7 @@ export function fillQuoteOrders(
             break;
         }
         const { source, fillData } = fo.order;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        const gas = gasSchedule[source] === undefined ? 0 : gasSchedule[source]!(fillData);
-        result.gas += new BigNumber(gas).toNumber();
+        result.gas += gasSchedule[source](fillData);
         result.inputBySource[source] = result.inputBySource[source] || ZERO_AMOUNT;
 
         const filledInput = solveForInputFillAmount(
@@ -299,12 +298,6 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(fills: OptimizedOrder[], gasSchedule: GasSchedule): number {
-    let gasUsed = 0;
-    for (const f of fills) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        const fee = gasSchedule[f.source] === undefined ? 0 : gasSchedule[f.source]!(f.fillData);
-        gasUsed += new BigNumber(fee).toNumber();
-    }
-    return gasUsed;
+function getTotalGasUsedByFills(orders: OptimizedOrder[], gasSchedule: GasSchedule): number {
+    return _.sum(orders.map((order) => gasSchedule[order.source](order.fillData)));
 }

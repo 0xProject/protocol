@@ -44,7 +44,6 @@ export const randomSellQuote: SwapQuote = {
     path: undefined as unknown as IPath,
     bestCaseQuoteInfo,
     worstCaseQuoteInfo: {
-        feeTakerTokenAmount: new BigNumber('556208982260696635'),
         makerAmount: new BigNumber('195425597817301501'),
         gas: 277671,
         protocolFeeInWeiAmount: new BigNumber('526097088876239888'),
