@@ -11,6 +11,7 @@ import {
     OptimizedOtcOrder,
     OptimizedRfqOrder,
     OptimizedLimitOrder,
+    IPath,
 } from '../types';
 import {
     createBridgeDataForBridgeOrder,
@@ -34,7 +35,12 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     if (quote.path.hasTwoHop()) {
         return false;
     }
-    if (quote.orders.map((o) => o.type).includes(FillQuoteTransformerOrderType.Limit)) {
+    if (
+        quote.path
+            .createOrders()
+            .map((o) => o.type)
+            .includes(FillQuoteTransformerOrderType.Limit)
+    ) {
         return false;
     }
     // Use Multiplex if the non-fallback sources are a subset of
@@ -59,7 +65,7 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
     if (!quote.path.hasTwoHop()) {
         return false;
     }
-    const [firstHopOrder, secondHopOrder] = quote.orders;
+    const [firstHopOrder, secondHopOrder] = quote.path.createOrders();
     return (
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(firstHopOrder.source) &&
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(secondHopOrder.source)
@@ -71,18 +77,20 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
  */
 
 export function isDirectSwapCompatible(
-    quote: SwapQuote,
+    path: IPath,
     opts: ExchangeProxyContractOpts,
     directSources: ERC20BridgeSource[],
 ): boolean {
     if (requiresTransformERC20(opts)) {
         return false;
     }
+
+    const orders = path.createOrders();
     // Must be a single order.
-    if (quote.orders.length !== 1) {
+    if (orders.length !== 1) {
         return false;
     }
-    const order = quote.orders[0];
+    const order = orders[0];
     if (!directSources.includes(order.source)) {
         return false;
     }

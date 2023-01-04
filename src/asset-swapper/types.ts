@@ -254,8 +254,6 @@ interface SwapQuoteBase {
     takerToken: string;
     makerToken: string;
     gasPrice: BigNumber;
-    // TODO(kyu-c): replace its usage with `path.createOrders`.
-    orders: OptimizedOrder[];
     path: IPath;
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;

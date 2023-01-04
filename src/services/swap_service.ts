@@ -484,7 +484,7 @@ export class SwapService implements ISwapService {
             buyAmount: makerAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAmount,
             sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
-            orders: swapQuote.orders,
+            orders: swapQuote.path.createOrders(),
             allowanceTarget,
             decodedUniqueId,
             extendedQuoteReportSources,

@@ -201,7 +201,7 @@ interface SwapQuoteParamsBase {
 // GET /swap/quote
 export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransaction, BasePriceResponse {
     guaranteedPrice: BigNumber;
-    // orders: SignedOrder[];
+    // TODO(kyu-c): It seems `orders` must not be optional. Investigate and change its type.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     orders?: any;
     from?: string;

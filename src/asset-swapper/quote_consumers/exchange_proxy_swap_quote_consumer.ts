@@ -147,7 +147,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         // VIP routes.
         if (
             this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.SushiSwap])
+            isDirectSwapCompatible(quote.path, optsWithDefaults, [
+                ERC20BridgeSource.UniswapV2,
+                ERC20BridgeSource.SushiSwap,
+            ])
         ) {
             const source = slippedOrders[0].source;
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
@@ -177,7 +180,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (
             this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
+            isDirectSwapCompatible(quote.path, optsWithDefaults, [ERC20BridgeSource.UniswapV3])
         ) {
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
             let _calldataHexString;
@@ -205,7 +208,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (
             this.chainId === ChainId.BSC &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [
+            isDirectSwapCompatible(quote.path, optsWithDefaults, [
                 ERC20BridgeSource.PancakeSwap,
                 ERC20BridgeSource.PancakeSwapV2,
                 ERC20BridgeSource.BakerySwap,
@@ -241,7 +244,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (
             this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote, optsWithDefaults, [ERC20BridgeSource.Curve]) &&
+            isDirectSwapCompatible(quote.path, optsWithDefaults, [ERC20BridgeSource.Curve]) &&
             // Curve VIP cannot currently support WETH buy/sell as the functionality needs to WITHDRAW or DEPOSIT
             // into WETH prior/post the trade.
             // ETH buy/sell is supported
@@ -277,16 +280,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             [ChainId.Mainnet, ChainId.Polygon].includes(this.chainId) &&
             !isToETH &&
             !isFromETH &&
-            quote.orders.every((o) => o.type === FillQuoteTransformerOrderType.Rfq) &&
+            slippedOrders.every((o) => o.type === FillQuoteTransformerOrderType.Rfq) &&
             !requiresTransformERC20(optsWithDefaults)
         ) {
-            const rfqOrdersData = quote.orders.map((o) => o.fillData as NativeRfqOrderFillData);
+            const rfqOrdersData = slippedOrders.map((o) => o.fillData as NativeRfqOrderFillData);
             const fillAmountPerOrder = (() => {
                 // Don't think order taker amounts are clipped to actual sell amount
                 // (the last one might be too large) so figure them out manually.
                 let remaining = sellAmount;
                 const fillAmounts = [];
-                for (const o of quote.orders) {
+                for (const o of slippedOrders) {
                     const fillAmount = BigNumber.min(o.takerAmount, remaining);
                     fillAmounts.push(fillAmount);
                     remaining = remaining.minus(fillAmount);
@@ -294,7 +297,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                 return fillAmounts;
             })();
             const callData =
-                quote.orders.length === 1
+                slippedOrders.length === 1
                     ? this._exchangeProxy
                           .fillRfqOrder(rfqOrdersData[0].order, rfqOrdersData[0].signature, fillAmountPerOrder[0])
                           .getABIEncodedTransactionData()
@@ -319,11 +322,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         // if we have more than one otc order we want to batch fill them through multiplex
         if (
             [ChainId.Mainnet, ChainId.PolygonMumbai].includes(this.chainId) && // @todo goerli and polygon?
-            quote.orders.every((o) => o.type === FillQuoteTransformerOrderType.Otc) &&
+            slippedOrders.every((o) => o.type === FillQuoteTransformerOrderType.Otc) &&
             !requiresTransformERC20(optsWithDefaults) &&
-            quote.orders.length === 1
+            slippedOrders.length === 1
         ) {
-            const otcOrdersData = quote.orders.map((o) => o.fillData as NativeOtcOrderFillData);
+            const otcOrdersData = slippedOrders.map((o) => o.fillData as NativeOtcOrderFillData);
 
             let callData;
 
@@ -355,10 +358,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexBatchFillCalldata(
-                    { ...quote, orders: slippedOrders },
-                    optsWithDefaults,
-                ),
+                calldataHexString: this._encodeMultiplexBatchFillCalldata(quote, optsWithDefaults),
                 ethAmount,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
@@ -368,10 +368,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
         if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(
-                    { ...quote, orders: slippedOrders },
-                    optsWithDefaults,
-                ),
+                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
                 toAddress: this._exchangeProxy.address,
                 allowanceTarget: this._exchangeProxy.address,
@@ -562,8 +559,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 
     private _encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
+        const maxSlippage = getMaxQuoteSlippageRate(quote);
+        const slippedOrders = quote.path.createSlippedOrders(maxSlippage);
         const subcalls = [];
-        for_loop: for (const [i, order] of quote.orders.entries()) {
+        for_loop: for (const [i, order] of slippedOrders.entries()) {
             switch_statement: switch (order.source) {
                 case ERC20BridgeSource.Native:
                     if (
@@ -619,7 +618,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                         side: FillQuoteTransformerSide.Sell,
                         sellToken: quote.takerToken,
                         buyToken: quote.makerToken,
-                        ...getFQTTransformerDataFromOptimizedOrders(quote.orders.slice(i)),
+                        ...getFQTTransformerDataFromOptimizedOrders(slippedOrders.slice(i)),
                         refundReceiver: NULL_ADDRESS,
                         fillAmount: MAX_UINT256,
                     });
@@ -635,7 +634,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
                     ];
                     subcalls.push({
                         id: MultiplexSubcall.TransformERC20,
-                        sellAmount: BigNumber.sum(...quote.orders.slice(i).map((o) => o.takerAmount)),
+                        sellAmount: BigNumber.sum(...slippedOrders.slice(i).map((o) => o.takerAmount)),
                         data: multiplexTransformERC20Encoder.encode({
                             transformations,
                         }),
@@ -671,8 +670,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     }
 
     private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
+        const maxSlippage = getMaxQuoteSlippageRate(quote);
         const subcalls = [];
-        const [firstHopOrder, secondHopOrder] = quote.orders;
+        const [firstHopOrder, secondHopOrder] = quote.path.createSlippedOrders(maxSlippage);
         const intermediateToken = firstHopOrder.makerToken;
         const tokens = [quote.takerToken, intermediateToken, quote.makerToken];
 

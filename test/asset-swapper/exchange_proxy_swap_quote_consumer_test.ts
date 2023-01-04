@@ -119,7 +119,6 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             gasPrice: getRandomInteger(1, 1e9),
             makerToken: MAKER_TOKEN,
             takerToken: TAKER_TOKEN,
-            orders: [order],
             path: {
                 createOrders: () => [order],
                 createSlippedOrders: (_maxSlippage: number) => [order],
@@ -167,7 +166,6 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
         );
         return {
             ...getRandomQuote(side),
-            orders: [firstHopOrder, secondHopOrder],
             path: {
                 createOrders: () => [firstHopOrder, secondHopOrder],
                 createSlippedOrders: (_maxSlippage: number) => [firstHopOrder, secondHopOrder],
@@ -260,9 +258,9 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
             expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(quote.takerTokenFillAmount);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.orders));
+            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.createOrders()));
             expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.orders as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
+                (quote.path.createOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
             );
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
@@ -291,9 +289,9 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Buy);
             expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(quote.makerTokenFillAmount);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.orders));
+            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.createOrders()));
             expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.orders as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
+                (quote.path.createOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
             );
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
@@ -463,7 +461,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
                 callArgs.transformations[2].deploymentNonce.toNumber() ===
                     consumer.transformerNonces.payTakerTransformer,
             );
-            const [firstHopOrder, secondHopOrder] = quote.orders;
+            const [firstHopOrder, secondHopOrder] = quote.path.createOrders();
             const firstHopFillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(firstHopFillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
             expect(firstHopFillQuoteTransformerData.fillAmount).to.bignumber.eq(firstHopOrder.takerAmount);
@@ -509,9 +507,9 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
             expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(MAX_UINT256);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.orders));
+            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.createOrders()));
             expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.orders as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
+                (quote.path.createOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
             );
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
