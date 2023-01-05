@@ -37,7 +37,7 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     }
     if (
         quote.path
-            .createOrders()
+            .getOrders()
             .map((o) => o.type)
             .includes(FillQuoteTransformerOrderType.Limit)
     ) {
@@ -65,7 +65,7 @@ export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: Exchan
     if (!quote.path.hasTwoHop()) {
         return false;
     }
-    const [firstHopOrder, secondHopOrder] = quote.path.createOrders();
+    const [firstHopOrder, secondHopOrder] = quote.path.getOrders();
     return (
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(firstHopOrder.source) &&
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(secondHopOrder.source)
@@ -85,7 +85,7 @@ export function isDirectSwapCompatible(
         return false;
     }
 
-    const orders = path.createOrders();
+    const orders = path.getOrders();
     // Must be a single order.
     if (orders.length !== 1) {
         return false;

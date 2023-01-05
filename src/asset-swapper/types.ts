@@ -238,8 +238,8 @@ export interface ExchangeProxyContractOpts {
 
 export interface IPath {
     hasTwoHop(): boolean;
-    createOrders(): OptimizedOrder[];
-    createSlippedOrders(maxSlippage: number): OptimizedOrder[];
+    getOrders(): readonly OptimizedOrder[];
+    getSlippedOrders(maxSlippage: number): OptimizedOrder[];
 }
 
 /**

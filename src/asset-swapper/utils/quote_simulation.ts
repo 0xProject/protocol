@@ -62,7 +62,7 @@ const EMPTY_QUOTE_INTERMEDIATE_FILL_RESULT = {
 };
 
 interface QuoteFillInfo {
-    orders: OptimizedOrder[];
+    orders: readonly OptimizedOrder[];
     fillAmount: BigNumber;
     gasPrice: BigNumber;
     side: MarketOperation;
@@ -298,6 +298,6 @@ function fromIntermediateQuoteFillResult(ir: IntermediateQuoteFillResult, quoteI
     };
 }
 
-function getTotalGasUsedByFills(orders: OptimizedOrder[], gasSchedule: GasSchedule): number {
+function getTotalGasUsedByFills(orders: readonly OptimizedOrder[], gasSchedule: GasSchedule): number {
     return _.sum(orders.map((order) => gasSchedule[order.source](order.fillData)));
 }

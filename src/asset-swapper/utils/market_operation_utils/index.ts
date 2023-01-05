@@ -627,7 +627,7 @@ export class MarketOperationUtils {
 
                     // Phase 2 Routing
                     const phase1OptimalSources = optimizerResult
-                        ? optimizerResult.path.createOrders().map((o) => o.source)
+                        ? optimizerResult.path.getOrders().map((o) => o.source)
                         : [];
                     const phase2MarketSideLiquidity: MarketSideLiquidity = {
                         ...marketSideLiquidity,
@@ -742,7 +742,7 @@ export class MarketOperationUtils {
                     // Phase 2 Routing
                     // Optimization: Filter by what is already currently in the Phase1 output as it doesn't
                     // seem possible that inclusion of RFQT could impact the sources chosen from Phase 1.
-                    const phase1OptimalSources = optimizerResult?.path.createOrders().map((o) => o.source) || [];
+                    const phase1OptimalSources = optimizerResult?.path.getOrders().map((o) => o.source) || [];
                     const phase2MarketSideLiquidity: MarketSideLiquidity = {
                         ...marketSideLiquidity,
                         quotes: {

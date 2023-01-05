@@ -142,7 +142,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
         }
 
         const maxSlippage = getMaxQuoteSlippageRate(quote);
-        const slippedOrders = quote.path.createSlippedOrders(maxSlippage);
+        const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
 
         // VIP routes.
         if (
@@ -560,7 +560,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
     private _encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
         const maxSlippage = getMaxQuoteSlippageRate(quote);
-        const slippedOrders = quote.path.createSlippedOrders(maxSlippage);
+        const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
         const subcalls = [];
         for_loop: for (const [i, order] of slippedOrders.entries()) {
             switch_statement: switch (order.source) {
@@ -672,7 +672,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
     private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
         const maxSlippage = getMaxQuoteSlippageRate(quote);
         const subcalls = [];
-        const [firstHopOrder, secondHopOrder] = quote.path.createSlippedOrders(maxSlippage);
+        const [firstHopOrder, secondHopOrder] = quote.path.getSlippedOrders(maxSlippage);
         const intermediateToken = firstHopOrder.makerToken;
         const tokens = [quote.takerToken, intermediateToken, quote.makerToken];
 

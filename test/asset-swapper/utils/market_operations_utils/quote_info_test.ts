@@ -171,10 +171,10 @@ describe('QuoteInfo', () => {
     });
 });
 
-function createFakePath(params: { orders: OptimizedOrder[]; hasTwoHop: boolean }): IPath {
+function createFakePath(params: { orders: readonly OptimizedOrder[]; hasTwoHop: boolean }): IPath {
     return {
-        createOrders: () => params.orders,
-        createSlippedOrders: (_maxSlippage: number) => [], // unused
+        getOrders: () => params.orders,
+        getSlippedOrders: (_maxSlippage: number) => [], // unused
         hasTwoHop: () => params.hasTwoHop,
     };
 }

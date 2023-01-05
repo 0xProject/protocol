@@ -31,21 +31,14 @@ export function calculateQuoteInfo(params: {
 
     // NOTES: until multihop+multiplex is supported a path will have single hop order(s) xor a two hop order.
     if (path.hasTwoHop()) {
-        return calculateTwoHopQuoteInfo(path.createOrders(), operation, gasSchedule, slippage);
+        return calculateTwoHopQuoteInfo(path.getOrders(), operation, gasSchedule, slippage);
     }
 
-    return calculateSingleHopQuoteInfo(
-        path.createOrders(),
-        operation,
-        assetFillAmount,
-        gasPrice,
-        gasSchedule,
-        slippage,
-    );
+    return calculateSingleHopQuoteInfo(path.getOrders(), operation, assetFillAmount, gasPrice, gasSchedule, slippage);
 }
 
 function calculateSingleHopQuoteInfo(
-    optimizedOrders: OptimizedOrder[],
+    optimizedOrders: readonly OptimizedOrder[],
     operation: MarketOperation,
     assetFillAmount: BigNumber,
     gasPrice: BigNumber,
@@ -76,7 +69,7 @@ function calculateSingleHopQuoteInfo(
 }
 
 function calculateTwoHopQuoteInfo(
-    optimizedOrders: OptimizedOrder[],
+    optimizedOrders: readonly OptimizedOrder[],
     operation: MarketOperation,
     gasSchedule: GasSchedule,
     slippage: number,

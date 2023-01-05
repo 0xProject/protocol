@@ -49,11 +49,11 @@ describe('PathOptimizer', () => {
                 inputAmount: ONE_ETHER.times(4),
             });
 
-            // UniswapV3 is the best path.
+            // UniswapV2 is the best path.
             const path = pathOptimizer.findOptimalPathFromSamples(
                 [
                     createDexSamples({
-                        source: ERC20BridgeSource.UniswapV3,
+                        source: ERC20BridgeSource.UniswapV2,
                         inputsInEther: [1, 2, 3, 4],
                         outputsInEther: [2, 4, 6, 8],
                     }),
@@ -75,7 +75,7 @@ describe('PathOptimizer', () => {
             expect(path.fills).lengthOf(1);
 
             const fill = path?.fills[0];
-            expect(fill.source).eq(ERC20BridgeSource.UniswapV3);
+            expect(fill.source).eq(ERC20BridgeSource.UniswapV2);
             expect(fill.input).bignumber.eq(ONE_ETHER.times(4));
             expect(fill.output).bignumber.eq(ONE_ETHER.times(8));
         });
@@ -99,7 +99,7 @@ describe('PathOptimizer', () => {
             const path = pathOptimizer.findOptimalPathFromSamples(
                 [
                     createDexSamples({
-                        source: ERC20BridgeSource.UniswapV3,
+                        source: ERC20BridgeSource.UniswapV2,
                         inputsInEther: [1, 2, 3, 4],
                         outputsInEther: [2, 4, 6, 8],
                     }),
@@ -202,7 +202,7 @@ describe('PathOptimizer', () => {
             const path = pathOptimizer.findOptimalPathFromSamples(
                 [
                     createDexSamples({
-                        source: ERC20BridgeSource.UniswapV3,
+                        source: ERC20BridgeSource.UniswapV2,
                         inputsInEther: [1, 2, 3, 4],
                         outputsInEther: [2, 4, 6, 7],
                     }),
@@ -224,7 +224,7 @@ describe('PathOptimizer', () => {
             expect(path.fills).lengthOf(2);
             const fill0 = path.fills[0];
             const fill1 = path.fills[1];
-            expect(fill0.source).eq(ERC20BridgeSource.UniswapV3);
+            expect(fill0.source).eq(ERC20BridgeSource.UniswapV2);
             expect(fill1.source).eq(ERC20BridgeSource.SushiSwap);
 
             const inputTotal = fill0.input.plus(fill1.input);
@@ -305,11 +305,11 @@ describe('PathOptimizer', () => {
                 inputAmount: ONE_ETHER.times(4),
             });
 
-            // The best route involves utilizing both Uniswap V3 and NativeOrder
+            // The best route involves utilizing both Uniswap V2 and NativeOrder
             const path = pathOptimizer.findOptimalPathFromSamples(
                 [
                     createDexSamples({
-                        source: ERC20BridgeSource.UniswapV3,
+                        source: ERC20BridgeSource.UniswapV2,
                         inputsInEther: [1, 2, 3, 4],
                         outputsInEther: [2, 4, 5, 7],
                     }),
@@ -331,7 +331,7 @@ describe('PathOptimizer', () => {
             expect(path.fills).lengthOf(2);
             const fill0 = path.fills[0];
             const fill1 = path.fills[1];
-            expect(fill0.source).eq(ERC20BridgeSource.UniswapV3);
+            expect(fill0.source).eq(ERC20BridgeSource.UniswapV2);
             expect(fill1.source).eq(ERC20BridgeSource.Native);
 
             const inputTotal = fill0.input.plus(fill1.input);
