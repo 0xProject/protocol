@@ -9,6 +9,7 @@ import {
     ExchangeProxyOverhead,
     Fill,
     IPath,
+    OptimizedOrdersByType,
 } from '../../types';
 
 import { MAX_UINT256, SOURCE_FLAGS, ZERO_AMOUNT } from './constants';
@@ -44,7 +45,7 @@ export class Path implements IPath {
         return new Path(
             context,
             fills,
-            createOrders(fills, context),
+            createOrdersByType(fills, context),
             targetInput,
             pathPenaltyOpts,
             sourceFlags,
@@ -55,7 +56,7 @@ export class Path implements IPath {
     private constructor(
         private readonly context: PathContext,
         public readonly fills: readonly Fill[],
-        private readonly orders: readonly OptimizedOrder[],
+        private readonly ordersByType: OptimizedOrdersByType,
         protected readonly targetInput: BigNumber,
         public readonly pathPenaltyOpts: PathPenaltyOpts,
         public readonly sourceFlags: bigint,
@@ -66,8 +67,17 @@ export class Path implements IPath {
         return (this.sourceFlags & SOURCE_FLAGS[ERC20BridgeSource.MultiHop]) > 0;
     }
 
+    public getOrdersByType(): OptimizedOrdersByType {
+        return this.ordersByType;
+    }
+
     public getOrders(): readonly OptimizedOrder[] {
-        return this.orders;
+        const twoHopOrders = _.flatMap(this.ordersByType.twoHopOrders, ({ firstHopOrder, secondHopOrder }) => [
+            firstHopOrder,
+            secondHopOrder,
+        ]);
+
+        return [...this.ordersByType.nativeOrders, ...this.ordersByType.bridgeOrders, ...twoHopOrders];
     }
 
     /**
@@ -183,21 +193,22 @@ function mergeSourceFlags(flags: bigint[]): bigint {
     return flags.reduce((mergedFlags, currentFlags) => mergedFlags | currentFlags, BigInt(0));
 }
 
-function createOrders(fills: readonly Fill[], context: PathContext): readonly OptimizedOrder[] {
+function createOrdersByType(fills: readonly Fill[], context: PathContext): OptimizedOrdersByType {
+    // Internal BigInt flag field is not supported JSON and is tricky to remove upstream.
+    const normalizedFills = fills.map((fill) => _.omit(fill, 'flags') as Fill);
+
+    const nativeOrders = normalizedFills
+        .filter((fill) => fill.source === ERC20BridgeSource.Native)
+        .map((fill) => createNativeOptimizedOrder(fill as Fill<NativeFillData>, context.side));
+
+    const twoHopOrders = normalizedFills
+        .filter((fill) => fill.source === ERC20BridgeSource.MultiHop)
+        .map((fill) => createOrdersFromTwoHopSample(fill as Fill<MultiHopFillData>, context));
+
     const { makerToken, takerToken } = getMakerTakerTokens(context);
-    return _.flatMap(fills, (fill) => {
-        // Internal BigInt flag field is not supported JSON and is tricky to remove upstream.
-        const normalizedFill = _.omit(fill, 'flags') as Fill;
-        if (fill.source === ERC20BridgeSource.Native) {
-            return [createNativeOptimizedOrder(normalizedFill as Fill<NativeFillData>, context.side)];
-        } else if (fill.source === ERC20BridgeSource.MultiHop) {
-            const [firstHopOrder, secondHopOrder] = createOrdersFromTwoHopSample(
-                normalizedFill as Fill<MultiHopFillData>,
-                context,
-            );
-            return [firstHopOrder, secondHopOrder];
-        } else {
-            return [createBridgeOrder(normalizedFill, makerToken, takerToken, context.side)];
-        }
-    });
+    const bridgeOrders = normalizedFills
+        .filter((fill) => fill.source !== ERC20BridgeSource.Native && fill.source !== ERC20BridgeSource.MultiHop)
+        .map((fill) => createBridgeOrder(fill, makerToken, takerToken, context.side));
+
+    return { nativeOrders, twoHopOrders, bridgeOrders };
 }

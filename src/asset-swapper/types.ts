@@ -745,7 +745,13 @@ export interface OptimizedOtcOrder extends OptimizedMarketOrderBase<NativeOtcOrd
 
 export type OptimizedNativeOrder = OptimizedLimitOrder | OptimizedRfqOrder | OptimizedOtcOrder;
 
-export type OptimizedOrder = OptimizedMarketBridgeOrder<FillData> | OptimizedNativeOrder;
+export type OptimizedOrder = OptimizedMarketBridgeOrder | OptimizedNativeOrder;
+
+export interface OptimizedOrdersByType {
+    nativeOrders: readonly OptimizedNativeOrder[];
+    twoHopOrders: readonly { firstHopOrder: OptimizedOrder; secondHopOrder: OptimizedOrder }[];
+    bridgeOrders: readonly OptimizedMarketBridgeOrder[];
+}
 
 // TODO: `SignedNativeOrder` should be `SignedLimitOrder`.
 export abstract class Orderbook {

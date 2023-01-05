@@ -51,7 +51,7 @@ import {
 export function createOrdersFromTwoHopSample(
     sample: DexSample<MultiHopFillData>,
     pathContext: PathContext,
-): [OptimizedOrder, OptimizedOrder] {
+): { firstHopOrder: OptimizedOrder; secondHopOrder: OptimizedOrder } {
     const { side } = pathContext;
     const { makerToken, takerToken } = getMakerTakerTokens(pathContext);
     const { firstHopSource, secondHopSource, intermediateToken } = sample.fillData;
@@ -78,10 +78,10 @@ export function createOrdersFromTwoHopSample(
         flags: BigInt(0),
         gas: 1,
     };
-    return [
-        createBridgeOrder(firstHopFill, intermediateToken, takerToken, side),
-        createBridgeOrder(secondHopFill, makerToken, intermediateToken, side),
-    ];
+    return {
+        firstHopOrder: createBridgeOrder(firstHopFill, intermediateToken, takerToken, side),
+        secondHopOrder: createBridgeOrder(secondHopFill, makerToken, intermediateToken, side),
+    };
 }
 
 export function getErc20BridgeSourceToBridgeSource(source: ERC20BridgeSource): string {
