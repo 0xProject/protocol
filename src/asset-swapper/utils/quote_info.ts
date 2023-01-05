@@ -6,7 +6,7 @@ import {
     MarketOperation,
     OptimizedOrder,
     SwapQuoteInfo,
-    SwapQuoteOrdersBreakdown,
+    SwapQuoteSourceBreakdown,
 } from '../types';
 import { QuoteFillResult, simulateBestCaseFill, simulateWorstCaseFill } from './quote_simulation';
 import * as _ from 'lodash';
@@ -15,7 +15,14 @@ import { constants } from '../constants';
 interface QuoteInfo {
     bestCaseQuoteInfo: SwapQuoteInfo;
     worstCaseQuoteInfo: SwapQuoteInfo;
-    sourceBreakdown: SwapQuoteOrdersBreakdown;
+    sourceBreakdown: SwapQuoteSourceBreakdown;
+}
+
+interface MultiHopFill {
+    amount: BigNumber;
+    // intermediateToken should be an array but keeping it as a string for backward compatibility
+    intermediateToken: string;
+    hops: ERC20BridgeSource[];
 }
 
 export function calculateQuoteInfo(params: {
@@ -29,14 +36,33 @@ export function calculateQuoteInfo(params: {
     const { path, operation, assetFillAmount, gasPrice, gasSchedule, slippage } = params;
     const { nativeOrders, bridgeOrders, twoHopOrders } = path.getOrdersByType();
     const singleHopOrders = [...nativeOrders, ...bridgeOrders];
-    // TODO: generalize calculateQuoteInfo to handle a mix multihop+multiplex.
 
-    // NOTES: until multihop+multiplex is supported a path will have either single hop order(s) or a single two hop order.
-    if (path.hasTwoHop()) {
-        return calculateTwoHopQuoteInfo(twoHopOrders[0], operation, gasSchedule, slippage);
-    }
+    const singleHopQuoteInfo = calculateSingleHopQuoteInfo(
+        singleHopOrders,
+        operation,
+        assetFillAmount,
+        gasPrice,
+        gasSchedule,
+        slippage,
+    );
+    const twoHopQuoteInfos = twoHopOrders.map((order) =>
+        calculateTwoHopQuoteInfo(order, operation, gasSchedule, slippage),
+    );
 
-    return calculateSingleHopQuoteInfo(singleHopOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
+    return {
+        bestCaseQuoteInfo: mergeSwapQuoteInfos(
+            singleHopQuoteInfo.bestCaseQuoteInfo,
+            ...twoHopQuoteInfos.map((info) => info.bestCaseQuoteInfo),
+        ),
+        worstCaseQuoteInfo: mergeSwapQuoteInfos(
+            singleHopQuoteInfo.worstCaseQuoteInfo,
+            ...twoHopQuoteInfos.map((info) => info.worstCaseQuoteInfo),
+        ),
+        sourceBreakdown: calculateSwapQuoteOrdersBreakdown(
+            singleHopQuoteInfo.fillAmountBySource,
+            twoHopQuoteInfos.map((info) => info.multiHopFill),
+        ),
+    };
 }
 
 function calculateSingleHopQuoteInfo(
@@ -46,7 +72,11 @@ function calculateSingleHopQuoteInfo(
     gasPrice: BigNumber,
     gasSchedule: GasSchedule,
     slippage: number,
-): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
+): {
+    bestCaseQuoteInfo: SwapQuoteInfo;
+    worstCaseQuoteInfo: SwapQuoteInfo;
+    fillAmountBySource: { [source: string]: BigNumber };
+} {
     const bestCaseFillResult = simulateBestCaseFill({
         gasPrice,
         orders: optimizedOrders,
@@ -66,7 +96,7 @@ function calculateSingleHopQuoteInfo(
     return {
         bestCaseQuoteInfo: fillResultsToQuoteInfo(bestCaseFillResult, 0),
         worstCaseQuoteInfo: fillResultsToQuoteInfo(worstCaseFillResult, slippage),
-        sourceBreakdown: getSwapQuoteOrdersBreakdown(bestCaseFillResult.fillAmountBySource),
+        fillAmountBySource: bestCaseFillResult.fillAmountBySource,
     };
 }
 
@@ -75,7 +105,7 @@ function calculateTwoHopQuoteInfo(
     operation: MarketOperation,
     gasSchedule: GasSchedule,
     slippage: number,
-): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
+): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; multiHopFill: MultiHopFill } {
     const { firstHopOrder, secondHopOrder } = twoHopOrder;
     const gas = new BigNumber(
         gasSchedule[ERC20BridgeSource.MultiHop]({
@@ -109,28 +139,51 @@ function calculateTwoHopQuoteInfo(
             gas,
             slippage,
         },
-        sourceBreakdown: {
-            [ERC20BridgeSource.MultiHop]: {
-                proportion: new BigNumber(1),
-                intermediateToken: secondHopOrder.takerToken,
-                hops: [firstHopOrder.source, secondHopOrder.source],
-            },
+        multiHopFill: {
+            amount: firstHopOrder.takerAmount,
+            intermediateToken: secondHopOrder.takerToken,
+            hops: [firstHopOrder.source, secondHopOrder.source],
         },
     };
 }
+function mergeSwapQuoteInfos(...swapQuoteInfos: readonly SwapQuoteInfo[]): SwapQuoteInfo {
+    if (swapQuoteInfos.length == 0) {
+        throw new Error('swapQuoteInfos.length should be at least one');
+    }
+    const slippages = _.uniq(swapQuoteInfos.map((info) => info.slippage));
+    if (slippages.length != 1) {
+        throw new Error(`slippages of swapQuoteInfos vary: ${slippages}`);
+    }
 
-function getSwapQuoteOrdersBreakdown(fillAmountBySource: { [source: string]: BigNumber }): SwapQuoteOrdersBreakdown {
-    const totalFillAmount = BigNumber.sum(...Object.values(fillAmountBySource));
-    const breakdown: SwapQuoteOrdersBreakdown = {};
-    Object.entries(fillAmountBySource).forEach(([s, fillAmount]) => {
-        const source = s as keyof SwapQuoteOrdersBreakdown;
-        if (source === ERC20BridgeSource.MultiHop) {
-            // TODO jacob has a different breakdown
-        } else {
-            breakdown[source] = fillAmount.div(totalFillAmount);
-        }
-    });
-    return breakdown;
+    const slippage = swapQuoteInfos[0].slippage;
+    return {
+        takerAmount: BigNumber.sum(...swapQuoteInfos.map((info) => info.takerAmount)),
+        totalTakerAmount: BigNumber.sum(...swapQuoteInfos.map((info) => info.totalTakerAmount)),
+        makerAmount: BigNumber.sum(...swapQuoteInfos.map((info) => info.makerAmount)),
+        protocolFeeInWeiAmount: BigNumber.sum(...swapQuoteInfos.map((info) => info.protocolFeeInWeiAmount)),
+        gas: _.sum(swapQuoteInfos.map((info) => info.gas)),
+        // fillAmountBySource:
+        slippage,
+    };
+}
+
+function calculateSwapQuoteOrdersBreakdown(
+    fillAmountBySource: { [source: string]: BigNumber },
+    multihopFills: MultiHopFill[],
+): SwapQuoteSourceBreakdown {
+    const totalFillAmount = BigNumber.sum(
+        ...Object.values(fillAmountBySource),
+        ...multihopFills.map((fill) => fill.amount),
+    );
+
+    return {
+        singleSource: _.mapValues(fillAmountBySource, (amount) => amount.div(totalFillAmount)),
+        multihop: multihopFills.map((fill) => ({
+            proportion: fill.amount.div(totalFillAmount),
+            intermediateToken: fill.intermediateToken,
+            hops: fill.hops,
+        })),
+    };
 }
 
 function fillResultsToQuoteInfo(fr: QuoteFillResult, slippage: number): SwapQuoteInfo {

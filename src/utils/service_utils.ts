@@ -5,7 +5,7 @@ import {
     ERC20BridgeSource,
     SELL_SOURCE_FILTER_BY_CHAIN_ID,
     SwapQuote,
-    SwapQuoteOrdersBreakdown,
+    SwapQuoteSourceBreakdown,
 } from '../asset-swapper';
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, GASLESS_SWAP_FEE_ENABLED } from '../config';
 import {
@@ -69,31 +69,31 @@ export const serviceUtils = {
         const affiliatedData = `${data}${encodedAffiliateData.slice(2)}`;
         return { affiliatedData, decodedUniqueId: `${randomNumber}-${timestampInSeconds}` };
     },
-    convertSourceBreakdownToArray(sourceBreakdown: SwapQuoteOrdersBreakdown): GetSwapQuoteResponseLiquiditySource[] {
-        const defaultSourceBreakdown: SwapQuoteOrdersBreakdown = Object.assign(
-            {},
-            // TODO Jacob SELL is a superset of BUY, but may not always be
-            ...Object.values(SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources).map((s) => ({ [s]: ZERO })),
+    convertToLiquiditySources(sourceBreakdown: SwapQuoteSourceBreakdown): GetSwapQuoteResponseLiquiditySource[] {
+        const toExternalFormat = (source: string) => (source === ERC20BridgeSource.Native ? '0x' : source);
+
+        // TODO Jacob SELL is a superset of BUY, but may not always be
+        const allSingleSources = SELL_SOURCE_FILTER_BY_CHAIN_ID[CHAIN_ID].sources.filter(
+            (source) => source !== ERC20BridgeSource.MultiHop,
+        );
+        const defaultSingleSourceBreakdown = Object.fromEntries(
+            allSingleSources.map((source) => [source, new BigNumber(0)]),
         );
 
-        return Object.entries({ ...defaultSourceBreakdown, ...sourceBreakdown }).reduce<
-            GetSwapQuoteResponseLiquiditySource[]
-        >((acc, [source, breakdown]) => {
-            let obj;
-            if (source === ERC20BridgeSource.MultiHop && !BigNumber.isBigNumber(breakdown)) {
-                obj = {
-                    ...breakdown,
-                    name: ERC20BridgeSource.MultiHop,
-                    proportion: new BigNumber(breakdown.proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
-                };
-            } else {
-                obj = {
-                    name: source === ERC20BridgeSource.Native ? '0x' : source,
-                    proportion: new BigNumber((breakdown as BigNumber).toPrecision(PERCENTAGE_SIG_DIGITS)),
-                };
-            }
-            return [...acc, obj];
-        }, []);
+        const singleSourceBreakdown = { ...defaultSingleSourceBreakdown, ...sourceBreakdown.singleSource };
+
+        const singleSourceLiquiditySources = Object.entries(singleSourceBreakdown).map(([source, proportion]) => ({
+            name: toExternalFormat(source),
+            proportion: new BigNumber(proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
+        }));
+        const multihopLiquiditySources = sourceBreakdown.multihop.map((breakdown) => ({
+            name: ERC20BridgeSource.MultiHop,
+            proportion: new BigNumber(breakdown.proportion.toPrecision(PERCENTAGE_SIG_DIGITS)),
+            intermediateToken: breakdown.intermediateToken,
+            hops: breakdown.hops.map(toExternalFormat),
+        }));
+
+        return [...singleSourceLiquiditySources, ...multihopLiquiditySources];
     },
     getAffiliateFeeAmounts(quote: SwapQuote, fee: AffiliateFee): AffiliateFeeAmounts {
         if (fee.feeType === AffiliateFeeType.None || fee.recipient === NULL_ADDRESS || fee.recipient === '') {

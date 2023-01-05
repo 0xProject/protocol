@@ -381,7 +381,7 @@ export class SwapService implements ISwapService {
         let conservativeBestCaseGasEstimate = new BigNumber(worstCaseGas).plus(affiliateFeeGasCost);
 
         // Cannot eth_gasEstimate for /price when RFQ Native liquidity is included
-        const isNativeIncluded = swapQuote.sourceBreakdown.Native !== undefined;
+        const isNativeIncluded = swapQuote.sourceBreakdown.singleSource.Native !== undefined;
         const isQuote = endpoint === 'quote';
         const canEstimateGas = isQuote || !isNativeIncluded;
 
@@ -413,7 +413,7 @@ export class SwapService implements ISwapService {
                         accuracy: realGasEstimate.minus(fauxGasEstimate).dividedBy(realGasEstimate).toFixed(4),
                         buyToken,
                         sellToken,
-                        sources: Object.keys(swapQuote.sourceBreakdown),
+                        sources: _.uniq(swapQuote.path.getOrders().map((o) => o.source)),
                     },
                     'Improved gas estimate',
                 );
@@ -483,7 +483,7 @@ export class SwapService implements ISwapService {
             sellTokenAddress: isETHSell ? ETH_TOKEN_ADDRESS : sellToken,
             buyAmount: makerAmount.minus(buyTokenFeeAmount),
             sellAmount: totalTakerAmount,
-            sources: serviceUtils.convertSourceBreakdownToArray(sourceBreakdown),
+            sources: serviceUtils.convertToLiquiditySources(sourceBreakdown),
             orders: swapQuote.path.getOrders(),
             allowanceTarget,
             decodedUniqueId,

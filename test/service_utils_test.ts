@@ -2,7 +2,7 @@ import { expect, randomAddress } from '@0x/contracts-test-utils';
 import { BigNumber } from '@0x/utils';
 import 'mocha';
 
-import { AffiliateFeeType } from '../src/asset-swapper';
+import { AffiliateFeeType, ERC20BridgeSource } from '../src/asset-swapper';
 import { AFFILIATE_FEE_TRANSFORMER_GAS, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS, ZERO } from '../src/constants';
 import { serviceUtils } from '../src/utils/service_utils';
 
@@ -32,6 +32,71 @@ describe(SUITE_NAME, () => {
             expect(timestampFromCallData).to.be.lessThan(currentTime.getTime() / 1000 + 3);
             // ID is a 10-digit hex number
             expect(randomId).to.match(/[0-9A-Fa-f]{10}/);
+        });
+    });
+
+    // NOTES: the tests runs with Ganache chain id.
+    describe('convertToLiquiditySources', () => {
+        it('returns the correct liquidity sources for multiple single sources', () => {
+            const liquiditySources = serviceUtils.convertToLiquiditySources({
+                singleSource: {
+                    [ERC20BridgeSource.Native]: new BigNumber(0.5),
+                    [ERC20BridgeSource.UniswapV3]: new BigNumber(0.5),
+                },
+                multihop: [],
+            });
+
+            expect(liquiditySources).to.be.deep.eq([
+                {
+                    name: '0x',
+                    proportion: new BigNumber(0.5),
+                },
+                {
+                    name: ERC20BridgeSource.UniswapV3,
+                    proportion: new BigNumber(0.5),
+                },
+            ]);
+        });
+
+        it('returns the correct liquidity sources for a mix of a single source and multihop sources', () => {
+            const liquiditySources = serviceUtils.convertToLiquiditySources({
+                singleSource: {
+                    [ERC20BridgeSource.Native]: new BigNumber(0.2),
+                },
+                multihop: [
+                    {
+                        proportion: new BigNumber(0.3),
+                        intermediateToken: 'intermediate-token-a',
+                        hops: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.Curve],
+                    },
+
+                    {
+                        proportion: new BigNumber(0.4),
+                        intermediateToken: 'intermediate-token-b',
+                        hops: [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Curve],
+                    },
+                ],
+            });
+
+            expect(liquiditySources).to.be.deep.eq([
+                {
+                    name: '0x',
+                    proportion: new BigNumber(0.2),
+                },
+                {
+                    name: ERC20BridgeSource.MultiHop,
+                    proportion: new BigNumber(0.3),
+                    intermediateToken: 'intermediate-token-a',
+                    hops: [ERC20BridgeSource.UniswapV2, ERC20BridgeSource.Curve],
+                },
+
+                {
+                    name: ERC20BridgeSource.MultiHop,
+                    proportion: new BigNumber(0.4),
+                    intermediateToken: 'intermediate-token-b',
+                    hops: [ERC20BridgeSource.BalancerV2, ERC20BridgeSource.Curve],
+                },
+            ]);
         });
     });
     describe('getAffiliateFeeAmounts', () => {

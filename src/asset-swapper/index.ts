@@ -30,7 +30,7 @@ export {
     SignedNativeOrder,
     SwapQuote,
     SwapQuoteGetOutputOpts,
-    SwapQuoteOrdersBreakdown,
+    SwapQuoteSourceBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterError,
     SwapQuoterOpts,

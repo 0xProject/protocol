@@ -45,7 +45,7 @@ export function isMultiplexBatchFillCompatible(quote: SwapQuote, opts: ExchangeP
     }
     // Use Multiplex if the non-fallback sources are a subset of
     // {UniswapV2, Sushiswap, RFQ, PLP, UniswapV3}
-    const nonFallbackSources = Object.keys(quote.sourceBreakdown);
+    const nonFallbackSources = quote.path.getOrders().map((o) => o.source);
     return nonFallbackSources.every((source) => MULTIPLEX_BATCH_FILL_SOURCES.includes(source as ERC20BridgeSource));
 }
 

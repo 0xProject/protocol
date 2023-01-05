@@ -51,7 +51,7 @@ export const randomSellQuote: SwapQuote = {
         totalTakerAmount: new BigNumber('858719009621193719'),
         slippage: 0,
     },
-    sourceBreakdown: {},
+    sourceBreakdown: { singleSource: {}, multihop: [] },
     takerTokenFillAmount: new BigNumber('401019713908867904'),
     makerTokenDecimals: 18,
     takerTokenDecimals: 18,
