@@ -27,14 +27,16 @@ export function calculateQuoteInfo(params: {
     slippage: number;
 }): QuoteInfo {
     const { path, operation, assetFillAmount, gasPrice, gasSchedule, slippage } = params;
+    const { nativeOrders, bridgeOrders, twoHopOrders } = path.getOrdersByType();
+    const singleHopOrders = [...nativeOrders, ...bridgeOrders];
     // TODO: generalize calculateQuoteInfo to handle a mix multihop+multiplex.
 
-    // NOTES: until multihop+multiplex is supported a path will have single hop order(s) xor a two hop order.
+    // NOTES: until multihop+multiplex is supported a path will have either single hop order(s) or a single two hop order.
     if (path.hasTwoHop()) {
-        return calculateTwoHopQuoteInfo(path.getOrders(), operation, gasSchedule, slippage);
+        return calculateTwoHopQuoteInfo(twoHopOrders[0], operation, gasSchedule, slippage);
     }
 
-    return calculateSingleHopQuoteInfo(path.getOrders(), operation, assetFillAmount, gasPrice, gasSchedule, slippage);
+    return calculateSingleHopQuoteInfo(singleHopOrders, operation, assetFillAmount, gasPrice, gasSchedule, slippage);
 }
 
 function calculateSingleHopQuoteInfo(
@@ -69,12 +71,12 @@ function calculateSingleHopQuoteInfo(
 }
 
 function calculateTwoHopQuoteInfo(
-    optimizedOrders: readonly OptimizedOrder[],
+    twoHopOrder: { firstHopOrder: OptimizedOrder; secondHopOrder: OptimizedOrder },
     operation: MarketOperation,
     gasSchedule: GasSchedule,
     slippage: number,
 ): { bestCaseQuoteInfo: SwapQuoteInfo; worstCaseQuoteInfo: SwapQuoteInfo; sourceBreakdown: SwapQuoteOrdersBreakdown } {
-    const [firstHopOrder, secondHopOrder] = optimizedOrders;
+    const { firstHopOrder, secondHopOrder } = twoHopOrder;
     const gas = new BigNumber(
         gasSchedule[ERC20BridgeSource.MultiHop]({
             firstHopSource: _.pick(firstHopOrder, 'source', 'fillData'),

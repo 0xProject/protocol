@@ -7,7 +7,7 @@ import {
     GasSchedule,
     IPath,
     MarketOperation,
-    OptimizedOrder,
+    OptimizedOrdersByType,
 } from '../../../../src/asset-swapper/types';
 import { MAX_UINT256, ONE_ETHER } from '../../../../src/asset-swapper/utils/market_operation_utils/constants';
 import { calculateQuoteInfo } from '../../../../src/asset-swapper/utils/quote_info';
@@ -32,38 +32,42 @@ describe('QuoteInfo', () => {
     describe('calculateQuoteInfo()', () => {
         it('Returns quote info for single hop orders (sell)', async () => {
             const path = createFakePath({
-                orders: [
-                    {
-                        type: FillQuoteTransformerOrderType.Bridge,
-                        source: ERC20BridgeSource.UniswapV2,
-                        makerToken: 'fake-usdc-address',
-                        takerToken: 'fake-weth-address',
-                        takerAmount: ONE_ETHER,
-                        makerAmount: ONE_ETHER.times(1000),
-                        fillData: {},
-                        fill: {
-                            input: ONE_ETHER,
-                            output: ONE_ETHER.times(1000),
-                            adjustedOutput: ONE_ETHER.times(990),
-                            gas: 0,
+                ordersByType: {
+                    nativeOrders: [],
+                    bridgeOrders: [
+                        {
+                            type: FillQuoteTransformerOrderType.Bridge,
+                            source: ERC20BridgeSource.UniswapV2,
+                            makerToken: 'fake-usdc-address',
+                            takerToken: 'fake-weth-address',
+                            takerAmount: ONE_ETHER,
+                            makerAmount: ONE_ETHER.times(1000),
+                            fillData: {},
+                            fill: {
+                                input: ONE_ETHER,
+                                output: ONE_ETHER.times(1000),
+                                adjustedOutput: ONE_ETHER.times(990),
+                                gas: 0,
+                            },
                         },
-                    },
-                    {
-                        type: FillQuoteTransformerOrderType.Bridge,
-                        source: ERC20BridgeSource.Curve,
-                        makerToken: 'fake-usdc-address',
-                        takerToken: 'fake-weth-address',
-                        takerAmount: ONE_ETHER,
-                        makerAmount: ONE_ETHER.times(1000),
-                        fillData: {},
-                        fill: {
-                            input: ONE_ETHER,
-                            output: ONE_ETHER.times(1000),
-                            adjustedOutput: ONE_ETHER.times(990),
-                            gas: 0,
+                        {
+                            type: FillQuoteTransformerOrderType.Bridge,
+                            source: ERC20BridgeSource.Curve,
+                            makerToken: 'fake-usdc-address',
+                            takerToken: 'fake-weth-address',
+                            takerAmount: ONE_ETHER,
+                            makerAmount: ONE_ETHER.times(1000),
+                            fillData: {},
+                            fill: {
+                                input: ONE_ETHER,
+                                output: ONE_ETHER.times(1000),
+                                adjustedOutput: ONE_ETHER.times(990),
+                                gas: 0,
+                            },
                         },
-                    },
-                ],
+                    ],
+                    twoHopOrders: [],
+                },
                 hasTwoHop: false,
             });
 
@@ -100,38 +104,44 @@ describe('QuoteInfo', () => {
 
         it('Returns quote info for a two hop order (sell)', async () => {
             const path = createFakePath({
-                orders: [
-                    {
-                        type: FillQuoteTransformerOrderType.Bridge,
-                        source: ERC20BridgeSource.Curve,
-                        takerToken: 'fake-weth-address',
-                        makerToken: 'fake-usdt-address',
-                        takerAmount: ONE_ETHER,
-                        makerAmount: new BigNumber(0),
-                        fillData: {},
-                        fill: {
-                            input: ONE_ETHER,
-                            output: new BigNumber(0),
-                            adjustedOutput: new BigNumber(0),
-                            gas: 1,
+                ordersByType: {
+                    nativeOrders: [],
+                    twoHopOrders: [
+                        {
+                            firstHopOrder: {
+                                type: FillQuoteTransformerOrderType.Bridge,
+                                source: ERC20BridgeSource.Curve,
+                                takerToken: 'fake-weth-address',
+                                makerToken: 'fake-usdt-address',
+                                takerAmount: ONE_ETHER,
+                                makerAmount: new BigNumber(0),
+                                fillData: {},
+                                fill: {
+                                    input: ONE_ETHER,
+                                    output: new BigNumber(0),
+                                    adjustedOutput: new BigNumber(0),
+                                    gas: 1,
+                                },
+                            },
+                            secondHopOrder: {
+                                type: FillQuoteTransformerOrderType.Bridge,
+                                source: ERC20BridgeSource.BalancerV2,
+                                takerToken: 'fake-usdt-address',
+                                makerToken: 'fake-usdc-address',
+                                takerAmount: MAX_UINT256,
+                                makerAmount: ONE_ETHER.times(1000),
+                                fillData: {},
+                                fill: {
+                                    input: MAX_UINT256,
+                                    output: ONE_ETHER.times(1000),
+                                    adjustedOutput: ONE_ETHER.times(1000),
+                                    gas: 1,
+                                },
+                            },
                         },
-                    },
-                    {
-                        type: FillQuoteTransformerOrderType.Bridge,
-                        source: ERC20BridgeSource.BalancerV2,
-                        takerToken: 'fake-usdt-address',
-                        makerToken: 'fake-usdc-address',
-                        takerAmount: MAX_UINT256,
-                        makerAmount: ONE_ETHER.times(1000),
-                        fillData: {},
-                        fill: {
-                            input: MAX_UINT256,
-                            output: ONE_ETHER.times(1000),
-                            adjustedOutput: ONE_ETHER.times(1000),
-                            gas: 1,
-                        },
-                    },
-                ],
+                    ],
+                    bridgeOrders: [],
+                },
                 hasTwoHop: true,
             });
 
@@ -171,10 +181,12 @@ describe('QuoteInfo', () => {
     });
 });
 
-function createFakePath(params: { orders: readonly OptimizedOrder[]; hasTwoHop: boolean }): IPath {
+function createFakePath(params: { ordersByType: OptimizedOrdersByType; hasTwoHop: boolean }): IPath {
     return {
-        getOrders: () => params.orders,
-        getSlippedOrders: (_maxSlippage: number) => [], // unused
+        getOrdersByType: () => params.ordersByType,
         hasTwoHop: () => params.hasTwoHop,
+        // unused
+        getOrders: () => [],
+        getSlippedOrders: () => [],
     };
 }

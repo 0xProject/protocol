@@ -238,6 +238,7 @@ export interface ExchangeProxyContractOpts {
 
 export interface IPath {
     hasTwoHop(): boolean;
+    getOrdersByType(): OptimizedOrdersByType;
     getOrders(): readonly OptimizedOrder[];
     getSlippedOrders(maxSlippage: number): OptimizedOrder[];
 }
