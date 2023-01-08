@@ -157,7 +157,6 @@
         "./contracts/src/vendor/v3/IERC20Bridge.sol",
         "./contracts/src/vendor/v3/IStaking.sol",
         "./contracts/test/ITestSimpleFunctionRegistryFeature.sol",
-        "./contracts/test/TestBridge.sol",
         "./contracts/test/TestCallTarget.sol",
         "./contracts/test/TestDelegateCaller.sol",
         "./contracts/test/TestFeeCollectorController.sol",

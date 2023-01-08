@@ -152,7 +152,6 @@ import * as PermissionlessTransformerDeployer from '../test/generated-artifacts/
 import * as PolygonBridgeAdapter from '../test/generated-artifacts/PolygonBridgeAdapter.json';
 import * as PositiveSlippageFeeTransformer from '../test/generated-artifacts/PositiveSlippageFeeTransformer.json';
 import * as SimpleFunctionRegistryFeature from '../test/generated-artifacts/SimpleFunctionRegistryFeature.json';
-import * as TestBridge from '../test/generated-artifacts/TestBridge.json';
 import * as TestCallTarget from '../test/generated-artifacts/TestCallTarget.json';
 import * as TestCurve from '../test/generated-artifacts/TestCurve.json';
 import * as TestDelegateCaller from '../test/generated-artifacts/TestDelegateCaller.json';
@@ -364,7 +363,6 @@ export const artifacts = {
     IERC20Bridge: IERC20Bridge as ContractArtifact,
     IStaking: IStaking as ContractArtifact,
     ITestSimpleFunctionRegistryFeature: ITestSimpleFunctionRegistryFeature as ContractArtifact,
-    TestBridge: TestBridge as ContractArtifact,
     TestCallTarget: TestCallTarget as ContractArtifact,
     TestDelegateCaller: TestDelegateCaller as ContractArtifact,
     TestFeeCollectorController: TestFeeCollectorController as ContractArtifact,
