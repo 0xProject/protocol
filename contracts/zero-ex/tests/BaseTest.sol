@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2022 ZeroEx Intl.
+  Copyright 2023 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -19,25 +19,16 @@
 
 pragma solidity ^0.6.5;
 
-import "./BaseTest.sol";
-import "../contracts/src/external/FlashWallet.sol";
-import "./mocks/TestCallTarget.sol";
+import "forge-std/Test.sol";
 
-contract FlashWalletTest is BaseTest {
-    address public owner = account1;
-    FlashWallet public wallet;
-    TestCallTarget public callTarget;
+contract BaseTest is Test {
+    address payable internal account1 = payable(vm.addr(1));
+    address payable internal account2 = payable(vm.addr(2));
+    address payable internal account3 = payable(vm.addr(3));
 
-    function setUp() public {
-        vm.startPrank(owner);
-
-        wallet = new FlashWallet();
-        callTarget = new TestCallTarget();
-
-        vm.stopPrank();
-    }
-
-    function testOwnedByDeployer() public {
-        assertEq(wallet.owner(), account1);
+    constructor() public {
+        vm.deal(account1, 1e20);
+        vm.deal(account2, 1e20);
+        vm.deal(account3, 1e20);
     }
 }

@@ -38,10 +38,6 @@ blockchainTests.resets('FlashWallet', env => {
     const TARGET_RETURN_VALUE = hexUtils.rightPad('0x12345678');
     const REVERTING_DATA = '0x1337';
 
-    it('owned by deployer', () => {
-        return expect(wallet.owner().callAsync()).to.eventually.eq(owner);
-    });
-
     describe('executeCall()', () => {
         it('non-owner cannot call executeCall()', async () => {
             const notOwner = randomAddress();
