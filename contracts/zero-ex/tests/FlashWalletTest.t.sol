@@ -21,7 +21,7 @@ pragma solidity ^0.6;
 
 import "forge-std/Test.sol";
 
-contract ContractTest is Test {
+contract FlashWalletTest is Test {
     function setUp() public {}
 
     function testExample() public {
