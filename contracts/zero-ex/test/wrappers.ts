@@ -150,8 +150,6 @@ export * from '../test/generated-wrappers/permissionless_transformer_deployer';
 export * from '../test/generated-wrappers/polygon_bridge_adapter';
 export * from '../test/generated-wrappers/positive_slippage_fee_transformer';
 export * from '../test/generated-wrappers/simple_function_registry_feature';
-export * from '../test/generated-wrappers/test_bridge';
-export * from '../test/generated-wrappers/test_call_target';
 export * from '../test/generated-wrappers/test_curve';
 export * from '../test/generated-wrappers/test_delegate_caller';
 export * from '../test/generated-wrappers/test_fee_collector_controller';
