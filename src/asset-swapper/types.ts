@@ -157,16 +157,8 @@ export interface CalldataInfo {
  * Interface that varying SwapQuoteConsumers adhere to (exchange consumer, router consumer, forwarder consumer, coordinator consumer)
  * getCalldataOrThrow: Get CalldataInfo to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
  */
-export interface SwapQuoteConsumerBase {
+export interface SwapQuoteConsumer {
     getCalldataOrThrowAsync(quote: SwapQuote, opts: Partial<SwapQuoteGetOutputOpts>): Promise<CalldataInfo>;
-}
-
-/**
- * chainId: The chainId that the desired orders should be for.
- */
-export interface SwapQuoteConsumerOpts {
-    chainId: number;
-    contractAddresses?: ContractAddresses;
 }
 
 /**

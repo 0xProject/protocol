@@ -32,6 +32,7 @@ import {
     SwapQuoterOpts,
     ZERO_AMOUNT,
 } from '../asset-swapper';
+import { ExchangeProxySwapQuoteConsumer } from '../asset-swapper/quote_consumers/exchange_proxy_swap_quote_consumer';
 import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_ENDPOINT,
@@ -230,7 +231,7 @@ export class SwapService implements ISwapService {
         }
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, this._swapQuoterOpts);
 
-        this._swapQuoteConsumer = new SwapQuoteConsumer(this._swapQuoterOpts);
+        this._swapQuoteConsumer = ExchangeProxySwapQuoteConsumer.create(CHAIN_ID);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;

@@ -12,7 +12,6 @@ export {
 } from '@0x/protocol-utils';
 export { BlockParamLiteral, SupportedProvider } from 'ethereum-types';
 export { artifacts } from '../artifacts';
-export { SwapQuoteConsumer } from './quote_consumers/swap_quote_consumer';
 export { SwapQuoter } from './swap_quoter';
 export {
     AffiliateFeeAmount,
@@ -29,6 +28,7 @@ export {
     SamplerOverrides,
     SignedNativeOrder,
     SwapQuote,
+    SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
     SwapQuoteSourceBreakdown,
     SwapQuoteRequestOpts,

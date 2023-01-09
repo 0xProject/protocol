@@ -1,4 +1,4 @@
-import { ChainId, ContractAddresses } from '@0x/contract-addresses';
+import { ChainId, ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
@@ -13,7 +13,6 @@ import {
     findTransformerNonce,
 } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
-import * as _ from 'lodash';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
 import {
@@ -23,8 +22,7 @@ import {
     MarketBuySwapQuote,
     MarketSellSwapQuote,
     SwapQuote,
-    SwapQuoteConsumerBase,
-    SwapQuoteConsumerOpts,
+    SwapQuoteConsumer,
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/utils';
@@ -74,8 +72,7 @@ const FAKE_PROVIDER = {
     },
 };
 
-export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
-    public readonly chainId: ChainId;
+export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
     public readonly transformerNonces: {
         wethTransformer: number;
         payTakerTransformer: number;
@@ -86,8 +83,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
 
     private readonly _exchangeProxy: IZeroExContract;
 
-    constructor(public readonly contractAddresses: ContractAddresses, options: Partial<SwapQuoteConsumerOpts> = {}) {
-        const { chainId } = _.merge({}, constants.DEFAULT_SWAP_QUOTER_OPTS, options);
+    public static create(chainId: ChainId): SwapQuoteConsumer {
+        const contractAddresses = getContractAddressesForChainOrThrow(chainId);
+        return new ExchangeProxySwapQuoteConsumer(chainId, contractAddresses);
+    }
+
+    constructor(private readonly chainId: ChainId, private readonly contractAddresses: ContractAddresses) {
         assert.isNumber('chainId', chainId);
         this.chainId = chainId;
         this.contractAddresses = contractAddresses;
