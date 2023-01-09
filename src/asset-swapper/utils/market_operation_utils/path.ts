@@ -81,35 +81,34 @@ export class Path implements IPath {
     }
 
     /**
+     * Returns `OptimizedOrdersByType` with slippage applied (Native orders do not have slippage).
+     * @param maxSlippage maximum slippage. It must be [0, 1].
+     * @returns orders by type by with slippage applied when applicable.
+     */
+    public getSlippedOrdersByType(maxSlippage: number): OptimizedOrdersByType {
+        checkSlippage(maxSlippage);
+
+        const { nativeOrders, twoHopOrders, bridgeOrders } = this.getOrdersByType();
+        const slipOrder = createSlipOrderFunction(maxSlippage, this.context.side);
+        return {
+            nativeOrders: nativeOrders,
+            twoHopOrders: twoHopOrders.map((twoHopOrder) => ({
+                firstHopOrder: slipOrder(twoHopOrder.firstHopOrder),
+                secondHopOrder: slipOrder(twoHopOrder.secondHopOrder),
+            })),
+            bridgeOrders: bridgeOrders.map(createSlipOrderFunction(maxSlippage, this.context.side)),
+        };
+    }
+
+    /**
      * Returns `OptimizedOrder`s with slippage applied (Native orders do not have slippage).
      * @param maxSlippage maximum slippage. It must be [0, 1].
      * @returns orders with slippage applied.
      */
     public getSlippedOrders(maxSlippage: number): OptimizedOrder[] {
-        if (maxSlippage < 0 || maxSlippage > 1) {
-            throw new Error(`slippage must be [0, 1]. Given: ${maxSlippage}`);
-        }
-
-        return this.getOrders().map((order) => {
-            if (order.source === ERC20BridgeSource.Native || maxSlippage === 0) {
-                return order;
-            }
-
-            return {
-                ...order,
-                ...(this.context.side === MarketOperation.Sell
-                    ? {
-                          makerAmount: order.makerAmount.eq(MAX_UINT256)
-                              ? MAX_UINT256
-                              : order.makerAmount.times(1 - maxSlippage).integerValue(BigNumber.ROUND_DOWN),
-                      }
-                    : {
-                          takerAmount: order.takerAmount.eq(MAX_UINT256)
-                              ? MAX_UINT256
-                              : order.takerAmount.times(1 + maxSlippage).integerValue(BigNumber.ROUND_UP),
-                      }),
-            };
-        });
+        checkSlippage(maxSlippage);
+        const slipOrder = createSlipOrderFunction(maxSlippage, this.context.side);
+        return this.getOrders().map(slipOrder);
     }
 
     /**
@@ -211,4 +210,36 @@ function createOrdersByType(fills: readonly Fill[], context: PathContext): Optim
         .map((fill) => createBridgeOrder(fill, makerToken, takerToken, context.side));
 
     return { nativeOrders, twoHopOrders, bridgeOrders };
+}
+
+function checkSlippage(maxSlippage: number) {
+    if (maxSlippage < 0 || maxSlippage > 1) {
+        throw new Error(`slippage must be [0, 1]. Given: ${maxSlippage}`);
+    }
+}
+
+function createSlipOrderFunction<O extends OptimizedOrder>(
+    maxSlippage: number,
+    side: MarketOperation,
+): (order: O) => O {
+    return (order: O) => {
+        if (order.source === ERC20BridgeSource.Native || maxSlippage === 0) {
+            return order;
+        }
+
+        return {
+            ...order,
+            ...(side === MarketOperation.Sell
+                ? {
+                      makerAmount: order.makerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : order.makerAmount.times(1 - maxSlippage).integerValue(BigNumber.ROUND_DOWN),
+                  }
+                : {
+                      takerAmount: order.takerAmount.eq(MAX_UINT256)
+                          ? MAX_UINT256
+                          : order.takerAmount.times(1 + maxSlippage).integerValue(BigNumber.ROUND_UP),
+                  }),
+        };
+    };
 }
