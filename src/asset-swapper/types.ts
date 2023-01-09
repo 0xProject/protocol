@@ -156,11 +156,9 @@ export interface CalldataInfo {
 /**
  * Interface that varying SwapQuoteConsumers adhere to (exchange consumer, router consumer, forwarder consumer, coordinator consumer)
  * getCalldataOrThrow: Get CalldataInfo to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
- * executeSwapQuoteOrThrowAsync: Executes a web3 transaction to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
  */
 export interface SwapQuoteConsumerBase {
     getCalldataOrThrowAsync(quote: SwapQuote, opts: Partial<SwapQuoteGetOutputOpts>): Promise<CalldataInfo>;
-    executeSwapQuoteOrThrowAsync(quote: SwapQuote, opts: Partial<SwapQuoteExecutionOpts>): Promise<string>;
 }
 
 /**
@@ -177,17 +175,6 @@ export interface SwapQuoteConsumerOpts {
 export interface SwapQuoteGetOutputOpts {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
     extensionContractOpts?: ExchangeProxyContractOpts | any;
-}
-
-/**
- * ethAmount: The amount of eth sent with the execution of a swap.
- * takerAddress: The address to perform the buy. Defaults to the first available address from the provider.
- * gasLimit: The amount of gas to send with a transaction (in Gwei). Defaults to an eth_estimateGas rpc call.
- */
-export interface SwapQuoteExecutionOpts extends SwapQuoteGetOutputOpts {
-    ethAmount?: BigNumber;
-    takerAddress?: string;
-    gasLimit?: number;
 }
 
 export enum AffiliateFeeType {

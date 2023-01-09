@@ -25,7 +25,6 @@ import {
     SwapQuote,
     SwapQuoteConsumerBase,
     SwapQuoteConsumerOpts,
-    SwapQuoteExecutionOpts,
     SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/utils';
@@ -549,13 +548,6 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumerBase {
             allowanceTarget: this._exchangeProxy.address,
             gasOverhead,
         };
-    }
-
-    public async executeSwapQuoteOrThrowAsync(
-        _quote: SwapQuote,
-        _opts: Partial<SwapQuoteExecutionOpts>,
-    ): Promise<string> {
-        throw new Error('Execution not supported for Exchange Proxy quotes');
     }
 
     private _encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
