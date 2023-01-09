@@ -176,8 +176,8 @@ contracts/treasury/test/generated-wrappers/
 # foundry artifacts
 contracts/zero-ex/foundry-artifacts/
 
-# foundry cache 
-contracts/zero-ex/foundry-cache/
+# foundry cache
+contracts/zero-ex/cache/
 
 # typechain wrappers
 contracts/zero-ex/typechain-wrappers/
