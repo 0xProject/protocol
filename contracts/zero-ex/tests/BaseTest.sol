@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2022 ZeroEx Intl.
+  Copyright 2023 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -17,14 +17,18 @@
 
 */
 
-pragma solidity ^0.6;
+pragma solidity ^0.6.5;
 
 import "forge-std/Test.sol";
 
-contract ContractTest is Test {
-    function setUp() public {}
+contract BaseTest is Test {
+    address payable internal account1 = payable(vm.addr(1));
+    address payable internal account2 = payable(vm.addr(2));
+    address payable internal account3 = payable(vm.addr(3));
 
-    function testExample() public {
-        assertTrue(true);
+    constructor() public {
+        vm.deal(account1, 1e20);
+        vm.deal(account2, 1e20);
+        vm.deal(account3, 1e20);
     }
 }
