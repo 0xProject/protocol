@@ -234,7 +234,6 @@
         "test/generated-artifacts/TestUniswapV3Pool.json",
         "test/generated-artifacts/TestWeth.json",
         "test/generated-artifacts/TestWethTransformerHost.json",
-        "test/generated-artifacts/TestZeroExFeature.json",
         "test/generated-artifacts/TransformERC20Feature.json",
         "test/generated-artifacts/Transformer.json",
         "test/generated-artifacts/TransformerDeployer.json",
