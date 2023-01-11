@@ -35,7 +35,7 @@ contract TestZeroExFeature is FixinCommon {
         emit NotPayableFnCalled();
     }
 
-    function unimplmentedFn() external {}
+    function unimplementedFn() external {}
 
     function internalFn() external onlySelf {}
 }
