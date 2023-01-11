@@ -73,7 +73,7 @@ const FAKE_PROVIDER = {
 };
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
-    public readonly transformerNonces: {
+    private readonly transformerNonces: {
         wethTransformer: number;
         payTakerTransformer: number;
         fillQuoteTransformer: number;
@@ -81,18 +81,17 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         positiveSlippageFeeTransformer: number;
     };
 
-    private readonly _exchangeProxy: IZeroExContract;
+    private readonly exchangeProxy: IZeroExContract;
 
     public static create(chainId: ChainId): SwapQuoteConsumer {
+        assert.isNumber('chainId', chainId);
         const contractAddresses = getContractAddressesForChainOrThrow(chainId);
         return new ExchangeProxySwapQuoteConsumer(chainId, contractAddresses);
     }
 
     constructor(private readonly chainId: ChainId, private readonly contractAddresses: ContractAddresses) {
-        assert.isNumber('chainId', chainId);
-        this.chainId = chainId;
         this.contractAddresses = contractAddresses;
-        this._exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
+        this.exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
         this.transformerNonces = {
             wethTransformer: findTransformerNonce(
                 contractAddresses.transformers.wethTransformer,
@@ -117,10 +116,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         };
     }
 
-    public async getCalldataOrThrowAsync(
+    public getCalldataOrThrow(
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
         opts: Partial<SwapQuoteGetOutputOpts> = {},
-    ): Promise<CalldataInfo> {
+    ): CalldataInfo {
         const optsWithDefaults: ExchangeProxyContractOpts = {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts.extensionContractOpts,
@@ -155,7 +154,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             const source = slippedOrders[0].source;
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             return {
-                calldataHexString: this._exchangeProxy
+                calldataHexString: this.exchangeProxy
                     .sellToUniswap(
                         fillData.tokenAddressPath.map((a, i) => {
                             if (i === 0 && isFromETH) {
@@ -172,8 +171,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -185,23 +184,23 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<FinalUniswapV3FillData>).fillData;
             let _calldataHexString;
             if (isFromETH) {
-                _calldataHexString = this._exchangeProxy
+                _calldataHexString = this.exchangeProxy
                     .sellEthForTokenToUniswapV3(fillData.uniswapPath, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             } else if (isToETH) {
-                _calldataHexString = this._exchangeProxy
+                _calldataHexString = this.exchangeProxy
                     .sellTokenForEthToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             } else {
-                _calldataHexString = this._exchangeProxy
+                _calldataHexString = this.exchangeProxy
                     .sellTokenForTokenToUniswapV3(fillData.uniswapPath, sellAmount, minBuyAmount, NULL_ADDRESS)
                     .getABIEncodedTransactionData();
             }
             return {
                 calldataHexString: _calldataHexString,
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -219,7 +218,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             const source = slippedOrders[0].source;
             const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
             return {
-                calldataHexString: this._exchangeProxy
+                calldataHexString: this.exchangeProxy
                     .sellToPancakeSwap(
                         fillData.tokenAddressPath.map((a, i) => {
                             if (i === 0 && isFromETH) {
@@ -236,8 +235,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -252,7 +251,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         ) {
             const fillData = slippedOrders[0].fillData as CurveFillData;
             return {
-                calldataHexString: this._exchangeProxy
+                calldataHexString: this.exchangeProxy
                     .sellToLiquidityProvider(
                         isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                         isToETH ? ETH_TOKEN_ADDRESS : buyToken,
@@ -269,8 +268,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                     )
                     .getABIEncodedTransactionData(),
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -298,10 +297,10 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             })();
             const callData =
                 slippedOrders.length === 1
-                    ? this._exchangeProxy
+                    ? this.exchangeProxy
                           .fillRfqOrder(rfqOrdersData[0].order, rfqOrdersData[0].signature, fillAmountPerOrder[0])
                           .getABIEncodedTransactionData()
-                    : this._exchangeProxy
+                    : this.exchangeProxy
                           .batchFillRfqOrders(
                               rfqOrdersData.map((d) => d.order),
                               rfqOrdersData.map((d) => d.signature),
@@ -312,8 +311,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             return {
                 calldataHexString: callData,
                 ethAmount: ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -332,26 +331,26 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
 
             // if the otc orders takerToken is the native asset
             if (isFromETH) {
-                callData = this._exchangeProxy
+                callData = this.exchangeProxy
                     .fillOtcOrderWithEth(otcOrdersData[0].order, otcOrdersData[0].signature)
                     .getABIEncodedTransactionData();
             }
             // if the otc orders makerToken is the native asset
             else if (isToETH) {
-                callData = this._exchangeProxy
+                callData = this.exchangeProxy
                     .fillOtcOrderForEth(otcOrdersData[0].order, otcOrdersData[0].signature, sellAmount)
                     .getABIEncodedTransactionData();
             } else {
                 // if the otc order contains 2 erc20 tokens
-                callData = this._exchangeProxy
+                callData = this.exchangeProxy
                     .fillOtcOrder(otcOrdersData[0].order, otcOrdersData[0].signature, sellAmount)
                     .getABIEncodedTransactionData();
             }
             return {
                 calldataHexString: callData,
                 ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -360,8 +359,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             return {
                 calldataHexString: this._encodeMultiplexBatchFillCalldata(quote, optsWithDefaults),
                 ethAmount,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -370,8 +369,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             return {
                 calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
-                toAddress: this._exchangeProxy.address,
-                allowanceTarget: this._exchangeProxy.address,
+                toAddress: this.exchangeProxy.address,
+                allowanceTarget: this.exchangeProxy.address,
                 gasOverhead: ZERO_AMOUNT,
             };
         }
@@ -532,7 +531,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             }),
         });
         const TO_ETH_ADDRESS = this.chainId === ChainId.Celo ? this.contractAddresses.etherToken : ETH_TOKEN_ADDRESS;
-        const calldataHexString = this._exchangeProxy
+        const calldataHexString = this.exchangeProxy
             .transformERC20(
                 isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
                 isToETH ? TO_ETH_ADDRESS : buyToken,
@@ -545,8 +544,8 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         return {
             calldataHexString,
             ethAmount,
-            toAddress: this._exchangeProxy.address,
-            allowanceTarget: this._exchangeProxy.address,
+            toAddress: this.exchangeProxy.address,
+            allowanceTarget: this.exchangeProxy.address,
             gasOverhead,
         };
     }
@@ -637,11 +636,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             }
         }
         if (opts.isFromETH) {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexBatchSellEthForToken(quote.makerToken, subcalls, quote.worstCaseQuoteInfo.makerAmount)
                 .getABIEncodedTransactionData();
         } else if (opts.isToETH) {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexBatchSellTokenForEth(
                     quote.takerToken,
                     subcalls,
@@ -650,7 +649,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                 )
                 .getABIEncodedTransactionData();
         } else {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexBatchSellTokenForToken(
                     quote.takerToken,
                     quote.makerToken,
@@ -694,11 +693,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             }
         }
         if (opts.isFromETH) {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexMultiHopSellEthForToken(tokens, subcalls, quote.worstCaseQuoteInfo.makerAmount)
                 .getABIEncodedTransactionData();
         } else if (opts.isToETH) {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexMultiHopSellTokenForEth(
                     tokens,
                     subcalls,
@@ -707,7 +706,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                 )
                 .getABIEncodedTransactionData();
         } else {
-            return this._exchangeProxy
+            return this.exchangeProxy
                 .multiplexMultiHopSellTokenForToken(
                     tokens,
                     subcalls,

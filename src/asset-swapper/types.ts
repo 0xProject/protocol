@@ -158,7 +158,7 @@ export interface CalldataInfo {
  * getCalldataOrThrow: Get CalldataInfo to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
  */
 export interface SwapQuoteConsumer {
-    getCalldataOrThrowAsync(quote: SwapQuote, opts: Partial<SwapQuoteGetOutputOpts>): Promise<CalldataInfo>;
+    getCalldataOrThrow(quote: SwapQuote, opts: Partial<SwapQuoteGetOutputOpts>): CalldataInfo;
 }
 
 /**

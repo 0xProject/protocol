@@ -364,7 +364,7 @@ export class SwapService implements ISwapService {
         } = serviceUtils.getAffiliateFeeAmounts(swapQuote, affiliateFee);
 
         // Grab the encoded version of the swap quote
-        const { to, value, data, decodedUniqueId, gasOverhead } = await this._getSwapQuotePartialTransactionAsync(
+        const { to, value, data, decodedUniqueId, gasOverhead } = this.getSwapQuotePartialTransaction(
             swapQuote,
             isETHSell,
             isETHBuy,
@@ -694,7 +694,7 @@ export class SwapService implements ISwapService {
         return gasEstimate;
     }
 
-    private async _getSwapQuotePartialTransactionAsync(
+    private getSwapQuotePartialTransaction(
         swapQuote: SwapQuote,
         isFromETH: boolean,
         isToETH: boolean,
@@ -702,7 +702,7 @@ export class SwapService implements ISwapService {
         shouldSellEntireBalance: boolean,
         affiliateAddress: string | undefined,
         affiliateFee: AffiliateFeeAmount,
-    ): Promise<SwapQuoteResponsePartialTransaction & { gasOverhead: BigNumber }> {
+    ): SwapQuoteResponsePartialTransaction & { gasOverhead: BigNumber } {
         const opts: Partial<SwapQuoteGetOutputOpts> = {
             extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, shouldSellEntireBalance, affiliateFee },
         };
@@ -712,7 +712,7 @@ export class SwapService implements ISwapService {
             ethAmount: value,
             toAddress: to,
             gasOverhead,
-        } = await this._swapQuoteConsumer.getCalldataOrThrowAsync(swapQuote, opts);
+        } = this._swapQuoteConsumer.getCalldataOrThrow(swapQuote, opts);
 
         const { affiliatedData, decodedUniqueId } = serviceUtils.attributeCallData(data, affiliateAddress);
         return {
