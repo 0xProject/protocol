@@ -174,7 +174,7 @@ contract UniswapV3Sampler {
                 }
 
                 // quoter requires path to be reversed for buys.
-                bytes memory uniswapPath = _toUniswapPath(reversedPath, _reversePoolPath(poolPaths[j]));
+                bytes memory uniswapPath = _toUniswapPath(reversedPath, poolPaths[j]);
                 try quoter.quoteExactOutput{gas: QUOTE_GAS}(uniswapPath, makerTokenAmounts[i]) returns (
                     uint256 sellAmount,
                     uint160[] memory /* sqrtPriceX96AfterList */,
@@ -184,7 +184,7 @@ contract UniswapV3Sampler {
                     if (topSellAmount == 0 || topSellAmount >= sellAmount) {
                         topSellAmount = sellAmount;
                         // But the output path should still be encoded for sells.
-                        uniswapPaths[i] = _toUniswapPath(path, poolPaths[j]);
+                        uniswapPaths[i] = _toUniswapPath(path, _reversePoolPath(poolPaths[j]));
                         uniswapGasUsed[i] = gasUsed;
                     }
                 } catch {}
