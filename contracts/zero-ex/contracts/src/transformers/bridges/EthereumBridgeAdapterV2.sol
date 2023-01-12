@@ -19,15 +19,27 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
 import "./EthereumBridgeAdapterGroup1.sol";
 import "./IBridgeAdapter.sol";
 
-contract EthereumBridgeAdapterV2 is AbstractBridgeAdapter(1, "Ethereum") {
+contract EthereumBridgeAdapterV2 is IBridgeAdapter {
     IBridgeAdapter private immutable adapter1;
     uint256 private constant ADAPTER_1_LENGTH = 33;
 
     constructor(IEtherTokenV06 weth) public {
-        adapter1 = EthereumBridgeAdapterGroup1(weth); 
+        uint256 expectedChainId = 1;
+        string memory expectedChainName = "Ethereum";
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        // Allow testing on Ganache
+        if (chainId != expectedChainId && chainId != 1337) {
+            revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
+        }
+
+        adapter1 = new EthereumBridgeAdapterGroup1(weth); 
     }
 
     function trade(
@@ -42,11 +54,10 @@ contract EthereumBridgeAdapterV2 is AbstractBridgeAdapter(1, "Ethereum") {
         }
     }
 
-    function isSupportedSource(bytes32 source) external returns (bool isSupported) {
-        uint128 protocolId = uint128(uint256(order.source) >> 128);
+    function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
+        uint128 protocolId = uint128(uint256(source) >> 128);
         if (protocolId < ADAPTER_1_LENGTH) {
           return adapter1.isSupportedSource(source);
         }
-
     }
 }

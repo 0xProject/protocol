@@ -55,6 +55,8 @@
         "test/generated-artifacts/ERC165Feature.json",
         "test/generated-artifacts/ERC721OrdersFeature.json",
         "test/generated-artifacts/EthereumBridgeAdapter.json",
+        "test/generated-artifacts/EthereumBridgeAdapterGroup1.json",
+        "test/generated-artifacts/EthereumBridgeAdapterV2.json",
         "test/generated-artifacts/FantomBridgeAdapter.json",
         "test/generated-artifacts/FeeCollector.json",
         "test/generated-artifacts/FeeCollectorController.json",
