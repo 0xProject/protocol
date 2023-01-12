@@ -195,7 +195,6 @@ export * from '../test/generated-wrappers/test_uniswap_v3_feature';
 export * from '../test/generated-wrappers/test_uniswap_v3_pool';
 export * from '../test/generated-wrappers/test_weth';
 export * from '../test/generated-wrappers/test_weth_transformer_host';
-export * from '../test/generated-wrappers/test_zero_ex_feature';
 export * from '../test/generated-wrappers/transform_erc20_feature';
 export * from '../test/generated-wrappers/transformer';
 export * from '../test/generated-wrappers/transformer_deployer';
