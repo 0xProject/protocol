@@ -96,6 +96,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: ./contracts/zero-ex/
           path-to-lcov: ./contracts/zero-ex/lcov.info
 
 
