@@ -190,7 +190,6 @@
         "./contracts/test/TestTransformerHost.sol",
         "./contracts/test/TestUniswapV3Feature.sol",
         "./contracts/test/TestWethTransformerHost.sol",
-        "./contracts/test/TestZeroExFeature.sol",
         "./contracts/test/integration/TestCurve.sol",
         "./contracts/test/integration/TestLiquidityProvider.sol",
         "./contracts/test/integration/TestMooniswap.sol",

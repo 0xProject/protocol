@@ -18,8 +18,11 @@
 */
 
 pragma solidity ^0.6.5;
+pragma experimental ABIEncoderV2;
 
 import "forge-std/Test.sol";
+import "../contracts/src/ZeroEx.sol";
+import "../contracts/src/migrations/InitialMigration.sol";
 
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
@@ -30,5 +33,20 @@ contract BaseTest is Test {
         vm.deal(account1, 1e20);
         vm.deal(account2, 1e20);
         vm.deal(account3, 1e20);
+    }
+
+    function getZeroExTestProxy(address payable owner) public returns (ZeroEx zeroEx) {
+        InitialMigration migrator = new InitialMigration(owner);
+        zeroEx = new ZeroEx(address(migrator));
+        SimpleFunctionRegistryFeature registry = new SimpleFunctionRegistryFeature();
+        OwnableFeature ownable = new OwnableFeature();
+
+        vm.startPrank(owner);
+        migrator.initializeZeroEx(
+            owner,
+            zeroEx,
+            InitialMigration.BootstrapFeatures({registry: registry, ownable: ownable})
+        );
+        vm.stopPrank();
     }
 }
