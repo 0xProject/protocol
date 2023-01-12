@@ -3,9 +3,9 @@ import 'mocha';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { GasPriceUtils } from '../../src/asset-swapper';
+import { GasPriceUtils } from '../../../../src/asset-swapper';
 
-import { chaiSetup } from './utils/chai_setup';
+import { chaiSetup } from '../chai_setup';
 chaiSetup.configure();
 const expect = chai.expect;
 
