@@ -12,6 +12,7 @@
         "no-inline-assembly": "off",
         "quotes": ["error", "double"],
         "no-empty-blocks": "off",
-        "compiler-version": "off"
+        "compiler-version": "off",
+        "func-name-mixedcase": "off"
     }
 }
