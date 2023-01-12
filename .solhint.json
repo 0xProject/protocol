@@ -8,11 +8,10 @@
         "code-complexity": "off",
         "const-name-snakecase": "error",
         "function-max-lines": "off",
-        "max-line-length": ["error", 120],
+        "max-line-length": ["warn", 120],
         "no-inline-assembly": "off",
         "quotes": ["error", "double"],
         "no-empty-blocks": "off",
-        "compiler-version": "off",
-        "func-name-mixedcase": "off"
+        "compiler-version": "off"
     }
 }
