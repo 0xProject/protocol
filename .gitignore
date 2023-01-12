@@ -117,23 +117,6 @@ contracts/zero-ex/test/generated-artifacts/
 contracts/treasury/generated-artifacts/
 contracts/treasury/test/generated-artifacts/
 
-# generated truffle contract artifacts/
-contracts/broker/build/
-contracts/erc20-bridge-sampler/build/
-contracts/staking/build/
-contracts/coordinator/build/
-contracts/exchange/build/
-contracts/asset-proxy/build/
-contracts/multisig/build/
-contracts/utils/build/
-contracts/exchange-libs/build/
-contracts/erc20/build/
-contracts/erc721/build/
-contracts/erc1155/build/
-contracts/extensions/build/
-contracts/exchange-forwarder/build/
-contracts/dev-utils/build/
-
 # generated contract wrappers
 contracts/broker/generated-wrappers/
 contracts/broker/test/generated-wrappers/

@@ -33,7 +33,6 @@
         "test:ci": "yarn test",
         "contracts:gen": "contracts-gen generate",
         "contracts:copy": "contracts-gen copy",
-        "compile:truffle": "truffle compile",
         "docs:md": "ts-doc-gen --sourceDir='$PROJECT_FILES' --output=$MD_FILE_DIR --fileExtension=mdx --tsconfig=./typedoc-tsconfig.json",
         "docs:json": "typedoc --excludePrivate --excludeExternals --excludeProtected --ignoreCompilerErrors --target ES5 --tsconfig typedoc-tsconfig.json --json $JSON_FILE_PATH $PROJECT_FILES",
         "publish:private": "yarn build && gitpkg publish",
@@ -79,7 +78,6 @@
         "npm-run-all": "^4.1.2",
         "prompts": "^2.4.0",
         "shx": "^0.2.2",
-        "truffle": "^5.0.32",
         "typechain": "^8.0.0",
         "typedoc": "~0.16.11",
         "typescript": "4.6.3"
