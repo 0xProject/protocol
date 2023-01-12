@@ -21,7 +21,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "../../contracts/src/fixins/FixinCommon.sol";
-import "../../contracts//src/ZeroEx.sol";
+import "../../contracts/src/ZeroEx.sol";
 
 contract TestZeroExFeature is FixinCommon {
     event PayableFnCalled(uint256 value);
