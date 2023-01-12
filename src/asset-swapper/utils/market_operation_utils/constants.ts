@@ -1082,6 +1082,9 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdj
             DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
         ).build(),
         [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
+        [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder(
+            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+        ).build(),
         [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism])
             .tap((builder) => {
                 // Synthetix Atomic Swap
