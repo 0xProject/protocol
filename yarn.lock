@@ -959,21 +959,6 @@
     web3-eth-abi "^1.0.0-beta.24"
     yargs "^17.5.1"
 
-"@0x/sol-coverage@^4.0.46":
-  version "4.0.46"
-  resolved "https://registry.yarnpkg.com/@0x/sol-coverage/-/sol-coverage-4.0.46.tgz#6e2db4031289ca48a7f0da732c3c73d13a5b1704"
-  integrity sha512-pmgfEiuh76tr5QXlw1Q3ZCvMEX3mCrJDnvwJzd3aGVKVUXuwb9LNdE03imFv71VscUj+YtDlE8BxFxF1d62vRg==
-  dependencies:
-    "@0x/sol-tracing-utils" "^7.3.2"
-    "@0x/subproviders" "^7.0.0"
-    "@0x/typescript-typings" "^5.3.2"
-    "@types/minimatch" "^3.0.3"
-    "@types/node" "12.12.54"
-    ethereum-types "^3.7.1"
-    lodash "^4.17.21"
-    minimatch "^3.0.4"
-    web3-provider-engine "16.0.4"
-
 "@0x/sol-profiler@^4.1.36":
   version "4.1.36"
   resolved "https://registry.yarnpkg.com/@0x/sol-profiler/-/sol-profiler-4.1.36.tgz#c478f7e4ecf73472697a8777bb0d1ebe5f602e10"
