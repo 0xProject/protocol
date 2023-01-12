@@ -93,5 +93,7 @@
     "resolutions": {
         "**/bignumber.js": "^9.0.2"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.8.0"
+    }
 }
