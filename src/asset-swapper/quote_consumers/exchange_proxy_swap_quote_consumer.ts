@@ -671,7 +671,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         const { nativeOrders, bridgeOrders, twoHopOrders } = quote.path.getSlippedOrdersByType(maxSlippage);
         // Should have been checked with `isMultiplexMultiHopFillCompatible`.
         assert.assert(
-            nativeOrders.length !== 0 && bridgeOrders.length !== 0,
+            nativeOrders.length === 0 && bridgeOrders.length === 0,
             'non-multihop should not go through multiplexMultihop',
         );
         assert.assert(twoHopOrders.length === 1, 'multiplexMultiHop only supports single multihop order ');
