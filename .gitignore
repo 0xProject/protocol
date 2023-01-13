@@ -97,6 +97,11 @@ out/
 # typechain wrappers
 contracts/zero-ex/typechain-wrappers/
 
+# foundry packages
+contracts/governance/lib/forge-std
+contracts/governance/cache
+contracts/governance/out
+
 # Doc README copy
 packages/*/docs/README.md
 
