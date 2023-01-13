@@ -942,169 +942,168 @@ export const WOOFI_SUPPORTED_TOKENS = new Set([
     POLYGON_TOKENS.WOO,
 ]);
 
-export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID = valueByChainId<string[]>(
-    {
-        [ChainId.Mainnet]: [
-            MAINNET_TOKENS.WETH,
-            MAINNET_TOKENS.USDT,
-            MAINNET_TOKENS.DAI,
-            MAINNET_TOKENS.USDC,
-            MAINNET_TOKENS.WBTC,
-        ],
-        [ChainId.BSC]: [
-            BSC_TOKENS.WBNB,
-            BSC_TOKENS.BUSD,
-            BSC_TOKENS.DAI,
-            BSC_TOKENS.USDC,
-            BSC_TOKENS.WETH,
-            BSC_TOKENS.USDT,
-            BSC_TOKENS.WEX,
-        ],
-        [ChainId.Goerli]: [
-            getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
-            '0x11fe4b6ae13d2a6055c8d9cf65c55bac32b5d844', // DAI
-            '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
-        ],
-        [ChainId.PolygonMumbai]: [
-            getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
-            '0xe6b8a5cf854791412c1f6efc7caf629f5df1c747', // USDC
-        ],
-        [ChainId.Polygon]: [
-            POLYGON_TOKENS.WMATIC,
-            POLYGON_TOKENS.WETH,
-            POLYGON_TOKENS.USDC,
-            POLYGON_TOKENS.DAI,
-            POLYGON_TOKENS.USDT,
-            POLYGON_TOKENS.WBTC,
-        ],
-        [ChainId.Avalanche]: [
-            AVALANCHE_TOKENS.WAVAX,
-            AVALANCHE_TOKENS.WETH,
-            AVALANCHE_TOKENS.WBTC,
-            AVALANCHE_TOKENS.DAI,
-            AVALANCHE_TOKENS.USDT,
-            AVALANCHE_TOKENS.USDC,
-            AVALANCHE_TOKENS.nUSD,
-            AVALANCHE_TOKENS.nETH,
-            AVALANCHE_TOKENS.aWETH,
-            AVALANCHE_TOKENS.MIM,
-        ],
-        [ChainId.Fantom]: [
-            FANTOM_TOKENS.WFTM,
-            FANTOM_TOKENS.WETH,
-            FANTOM_TOKENS.DAI,
-            FANTOM_TOKENS.USDC,
-            FANTOM_TOKENS.nUSD,
-            FANTOM_TOKENS.nETH,
-            FANTOM_TOKENS.MIM,
-        ],
-        [ChainId.Celo]: [
-            CELO_TOKENS.WCELO,
-            CELO_TOKENS.mCUSD,
-            CELO_TOKENS.WETHv1,
-            CELO_TOKENS.amCUSD,
-            CELO_TOKENS.WBTC,
-            CELO_TOKENS.cUSD,
-        ],
-        [ChainId.Optimism]: [
-            OPTIMISM_TOKENS.WETH,
-            OPTIMISM_TOKENS.DAI,
-            OPTIMISM_TOKENS.USDC,
-            OPTIMISM_TOKENS.USDT,
-            OPTIMISM_TOKENS.nETH,
-            OPTIMISM_TOKENS.sWETH,
-        ],
-        [ChainId.Arbitrum]: [
-            ARBITRUM_TOKENS.USDC,
-            ARBITRUM_TOKENS.USDT,
-            ARBITRUM_TOKENS.WETH,
-            ARBITRUM_TOKENS.WBTC,
-            ARBITRUM_TOKENS.FRAX,
-            ARBITRUM_TOKENS.MIM,
-        ],
-    },
-    [],
-);
+export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID: Record<ChainId, string[]> = {
+    [ChainId.Mainnet]: [
+        MAINNET_TOKENS.WETH,
+        MAINNET_TOKENS.USDT,
+        MAINNET_TOKENS.DAI,
+        MAINNET_TOKENS.USDC,
+        MAINNET_TOKENS.WBTC,
+    ],
+    [ChainId.BSC]: [
+        BSC_TOKENS.WBNB,
+        BSC_TOKENS.BUSD,
+        BSC_TOKENS.DAI,
+        BSC_TOKENS.USDC,
+        BSC_TOKENS.WETH,
+        BSC_TOKENS.USDT,
+        BSC_TOKENS.WEX,
+    ],
+    [ChainId.Goerli]: [
+        getContractAddressesForChainOrThrow(ChainId.Goerli).etherToken,
+        '0x11fe4b6ae13d2a6055c8d9cf65c55bac32b5d844',
+        '0x07865c6e87b9f70255377e024ace6630c1eaa37f', // USDC
+    ],
+    [ChainId.PolygonMumbai]: [
+        getContractAddressesForChainOrThrow(ChainId.PolygonMumbai).etherToken,
+        '0xe6b8a5cf854791412c1f6efc7caf629f5df1c747', // USDC
+    ],
+    [ChainId.Polygon]: [
+        POLYGON_TOKENS.WMATIC,
+        POLYGON_TOKENS.WETH,
+        POLYGON_TOKENS.USDC,
+        POLYGON_TOKENS.DAI,
+        POLYGON_TOKENS.USDT,
+        POLYGON_TOKENS.WBTC,
+    ],
+    [ChainId.Avalanche]: [
+        AVALANCHE_TOKENS.WAVAX,
+        AVALANCHE_TOKENS.WETH,
+        AVALANCHE_TOKENS.WBTC,
+        AVALANCHE_TOKENS.DAI,
+        AVALANCHE_TOKENS.USDT,
+        AVALANCHE_TOKENS.USDC,
+        AVALANCHE_TOKENS.nUSD,
+        AVALANCHE_TOKENS.nETH,
+        AVALANCHE_TOKENS.aWETH,
+        AVALANCHE_TOKENS.MIM,
+    ],
+    [ChainId.Fantom]: [
+        FANTOM_TOKENS.WFTM,
+        FANTOM_TOKENS.WETH,
+        FANTOM_TOKENS.DAI,
+        FANTOM_TOKENS.USDC,
+        FANTOM_TOKENS.nUSD,
+        FANTOM_TOKENS.nETH,
+        FANTOM_TOKENS.MIM,
+    ],
+    [ChainId.Celo]: [
+        CELO_TOKENS.WCELO,
+        CELO_TOKENS.mCUSD,
+        CELO_TOKENS.WETHv1,
+        CELO_TOKENS.amCUSD,
+        CELO_TOKENS.WBTC,
+        CELO_TOKENS.cUSD,
+    ],
+    [ChainId.Optimism]: [
+        OPTIMISM_TOKENS.WETH,
+        OPTIMISM_TOKENS.DAI,
+        OPTIMISM_TOKENS.USDC,
+        OPTIMISM_TOKENS.USDT,
+        OPTIMISM_TOKENS.nETH,
+        OPTIMISM_TOKENS.sWETH,
+    ],
+    [ChainId.Arbitrum]: [
+        ARBITRUM_TOKENS.USDC,
+        ARBITRUM_TOKENS.USDT,
+        ARBITRUM_TOKENS.WETH,
+        ARBITRUM_TOKENS.WBTC,
+        ARBITRUM_TOKENS.FRAX,
+        ARBITRUM_TOKENS.MIM,
+    ],
+    [ChainId.Ganache]: [],
+};
 
 // Note be careful here as a UNION is performed when finding intermediary tokens
 // attaching to a default intermediary token (stables or ETH etc) can have a large impact
-export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID = valueByChainId<TokenAdjacencyGraph>(
-    {
-        [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet])
-            .tap((builder) => {
-                // Convex and Curve
-                builder.addBidirectional(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV);
-                // Convex and FXS
-                builder.addBidirectional(MAINNET_TOKENS.cvxFXS, MAINNET_TOKENS.FXS);
-                // FEI TRIBE liquid in UniV2
-                builder.addBidirectional(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE);
-                // FRAX ecosystem
-                builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.FXS);
-                builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.OHM);
-                // REDACTED CARTEL
-                builder.addBidirectional(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY);
-                // Lido
-                builder.addBidirectional(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH);
-                // Compound
-                builder.addBidirectional(MAINNET_TOKENS.cUSDC, MAINNET_TOKENS.USDC);
-                builder.addBidirectional(MAINNET_TOKENS.cDAI, MAINNET_TOKENS.DAI);
-                builder.addBidirectional(MAINNET_TOKENS.cWBTC, MAINNET_TOKENS.WBTC);
+export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID: Record<ChainId, TokenAdjacencyGraph> = {
+    [ChainId.Mainnet]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Mainnet])
+        .tap((builder) => {
+            // Convex and Curve
+            builder.addBidirectional(MAINNET_TOKENS.cvxCRV, MAINNET_TOKENS.CRV);
+            // Convex and FXS
+            builder.addBidirectional(MAINNET_TOKENS.cvxFXS, MAINNET_TOKENS.FXS);
+            // FEI TRIBE liquid in UniV2
+            builder.addBidirectional(MAINNET_TOKENS.FEI, MAINNET_TOKENS.TRIBE);
+            // FRAX ecosystem
+            builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.FXS);
+            builder.addBidirectional(MAINNET_TOKENS.FRAX, MAINNET_TOKENS.OHM);
+            // REDACTED CARTEL
+            builder.addBidirectional(MAINNET_TOKENS.OHMV2, MAINNET_TOKENS.BTRFLY);
+            // Lido
+            builder.addBidirectional(MAINNET_TOKENS.stETH, MAINNET_TOKENS.wstETH);
+            // Compound
+            builder.addBidirectional(MAINNET_TOKENS.cUSDC, MAINNET_TOKENS.USDC);
+            builder.addBidirectional(MAINNET_TOKENS.cDAI, MAINNET_TOKENS.DAI);
+            builder.addBidirectional(MAINNET_TOKENS.cWBTC, MAINNET_TOKENS.WBTC);
 
-                // Synthetix Atomic Swap
-                builder.addCompleteSubgraph([
-                    MAINNET_TOKENS.sBTC,
-                    MAINNET_TOKENS.sETH,
-                    MAINNET_TOKENS.sUSD,
-                    MAINNET_TOKENS.sEUR,
-                    MAINNET_TOKENS.sJPY,
-                    MAINNET_TOKENS.sGBP,
-                    MAINNET_TOKENS.sAUD,
-                    MAINNET_TOKENS.sKRW,
-                    MAINNET_TOKENS.sCHF,
-                ]);
-            })
-            .build(),
-        [ChainId.BSC]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC]).build(),
-        [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
-            .tap((builder) => {
-                builder.addBidirectional(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY);
-            })
-            .build(),
-        [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche])
-            .tap((builder) => {
-                // Synapse nETH/aWETH pool
-                builder.addBidirectional(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH);
-                // Trader Joe MAG/MIM pool
-                builder.addBidirectional(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG);
-            })
-            .build(),
-        [ChainId.Fantom]: new TokenAdjacencyGraphBuilder(
-            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom],
-        ).build(),
-        [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
-        [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder(
-            DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
-        ).build(),
-        [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism])
-            .tap((builder) => {
-                // Synthetix Atomic Swap
-                builder.addCompleteSubgraph([
-                    OPTIMISM_TOKENS.sAAVE,
-                    OPTIMISM_TOKENS.sAVAX,
-                    OPTIMISM_TOKENS.sBTC,
-                    OPTIMISM_TOKENS.sETH,
-                    OPTIMISM_TOKENS.sEUR,
-                    OPTIMISM_TOKENS.sLINK,
-                    OPTIMISM_TOKENS.sMATIC,
-                    OPTIMISM_TOKENS.sSOL,
-                    OPTIMISM_TOKENS.sUNI,
-                    OPTIMISM_TOKENS.sUSD,
-                ]);
-            })
-            .build(),
-    },
-    TokenAdjacencyGraph.getEmptyGraph(),
-);
+            // Synthetix Atomic Swap
+            builder.addCompleteSubgraph([
+                MAINNET_TOKENS.sBTC,
+                MAINNET_TOKENS.sETH,
+                MAINNET_TOKENS.sUSD,
+                MAINNET_TOKENS.sEUR,
+                MAINNET_TOKENS.sJPY,
+                MAINNET_TOKENS.sGBP,
+                MAINNET_TOKENS.sAUD,
+                MAINNET_TOKENS.sKRW,
+                MAINNET_TOKENS.sCHF,
+            ]);
+        })
+        .build(),
+    [ChainId.BSC]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.BSC]).build(),
+    [ChainId.Polygon]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Polygon])
+        .tap((builder) => {
+            builder.addBidirectional(POLYGON_TOKENS.QUICK, POLYGON_TOKENS.ANY);
+        })
+        .build(),
+    [ChainId.Avalanche]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Avalanche])
+        .tap((builder) => {
+            // Synapse nETH/aWETH pool
+            builder.addBidirectional(AVALANCHE_TOKENS.aWETH, AVALANCHE_TOKENS.nETH);
+            // Trader Joe MAG/MIM pool
+            builder.addBidirectional(AVALANCHE_TOKENS.MIM, AVALANCHE_TOKENS.MAG);
+        })
+        .build(),
+    [ChainId.Fantom]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Fantom]).build(),
+    [ChainId.Celo]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Celo]).build(),
+    [ChainId.Arbitrum]: new TokenAdjacencyGraphBuilder(
+        DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Arbitrum],
+    ).build(),
+    [ChainId.Optimism]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Optimism])
+        .tap((builder) => {
+            // Synthetix Atomic Swap
+            builder.addCompleteSubgraph([
+                OPTIMISM_TOKENS.sAAVE,
+                OPTIMISM_TOKENS.sAVAX,
+                OPTIMISM_TOKENS.sBTC,
+                OPTIMISM_TOKENS.sETH,
+                OPTIMISM_TOKENS.sEUR,
+                OPTIMISM_TOKENS.sLINK,
+                OPTIMISM_TOKENS.sMATIC,
+                OPTIMISM_TOKENS.sSOL,
+                OPTIMISM_TOKENS.sUNI,
+                OPTIMISM_TOKENS.sUSD,
+            ]);
+        })
+        .build(),
+    // Testnets:
+    [ChainId.Goerli]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Goerli]).build(),
+    [ChainId.Ganache]: new TokenAdjacencyGraphBuilder(DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.Ganache]).build(),
+    [ChainId.PolygonMumbai]: new TokenAdjacencyGraphBuilder(
+        DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.PolygonMumbai],
+    ).build(),
+};
 
 // TODO (rhinodavid): this constant is being used for reasons other than fees
 // (see swap_handlers). Needs to be rethought or at least renamed.
