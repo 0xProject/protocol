@@ -29,7 +29,6 @@ export {
     SignedNativeOrder,
     SwapQuote,
     SwapQuoteConsumer,
-    SwapQuoteGetOutputOpts,
     SwapQuoteSourceBreakdown,
     SwapQuoteRequestOpts,
     SwapQuoterError,

@@ -26,13 +26,13 @@ import {
     RfqFirmQuoteValidator,
     SwapQuote,
     SwapQuoteConsumer,
-    SwapQuoteGetOutputOpts,
     SwapQuoter,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
     ZERO_AMOUNT,
 } from '../asset-swapper';
 import { ExchangeProxySwapQuoteConsumer } from '../asset-swapper/quote_consumers/exchange_proxy_swap_quote_consumer';
+import { ExchangeProxyContractOpts } from '../asset-swapper/types';
 import {
     ALT_RFQ_MM_API_KEY,
     ALT_RFQ_MM_ENDPOINT,
@@ -703,8 +703,12 @@ export class SwapService implements ISwapService {
         affiliateAddress: string | undefined,
         affiliateFee: AffiliateFeeAmount,
     ): SwapQuoteResponsePartialTransaction & { gasOverhead: BigNumber } {
-        const opts: Partial<SwapQuoteGetOutputOpts> = {
-            extensionContractOpts: { isFromETH, isToETH, isMetaTransaction, shouldSellEntireBalance, affiliateFee },
+        const opts: Partial<ExchangeProxyContractOpts> = {
+            isFromETH,
+            isToETH,
+            isMetaTransaction,
+            shouldSellEntireBalance,
+            affiliateFee,
         };
 
         const {

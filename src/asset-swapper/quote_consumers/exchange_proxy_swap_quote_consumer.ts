@@ -23,7 +23,6 @@ import {
     MarketSellSwapQuote,
     SwapQuote,
     SwapQuoteConsumer,
-    SwapQuoteGetOutputOpts,
 } from '../types';
 import { assert } from '../utils/utils';
 import {
@@ -54,6 +53,12 @@ import {
     isMultiplexMultiHopFillCompatible,
     requiresTransformERC20,
 } from './quote_consumer_utils';
+
+// Transformation of `TransformERC20` feature.
+interface ERC20Transformation {
+    deploymentNonce: number;
+    data: string;
+}
 
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
@@ -118,11 +123,11 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
 
     public getCalldataOrThrow(
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
-        opts: Partial<SwapQuoteGetOutputOpts> = {},
+        opts: Partial<ExchangeProxyContractOpts> = {},
     ): CalldataInfo {
         const optsWithDefaults: ExchangeProxyContractOpts = {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-            ...opts.extensionContractOpts,
+            ...opts,
         };
         const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = optsWithDefaults;
 
@@ -375,12 +380,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             };
         }
 
-        // Build up the transforms.
-        const transforms = [];
+        // Build up the transformations.
+        const transformations = [] as ERC20Transformation[];
         // Create a WETH wrapper if coming from ETH.
         // Don't add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
         if (isFromETH && this.chainId !== ChainId.Celo) {
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
                     token: ETH_TOKEN_ADDRESS,
@@ -395,7 +400,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         // This transformer will fill the quote.
         if (quote.path.hasTwoHop()) {
             const [firstHopOrder, secondHopOrder] = slippedOrders;
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
                     side: FillQuoteTransformerSide.Sell,
@@ -406,7 +411,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                     fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
                 }),
             });
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
                     side: FillQuoteTransformerSide.Sell,
@@ -419,7 +424,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             });
         } else {
             const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.fillQuoteTransformer,
                 data: encodeFillQuoteTransformerData({
                     side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
@@ -434,7 +439,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         // Create a WETH unwrapper if going to ETH.
         // Dont add the wethTransformer on CELO. There is no wrap/unwrap logic for CELO.
         if (isToETH && this.chainId !== ChainId.Celo) {
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.wethTransformer,
                 data: encodeWethTransformerData({
                     token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
@@ -458,7 +463,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             // In the event makerAmountPerEth is unknown, we only allow for positive slippage which is greater than
             // the best case amount
             bestCaseAmountWithSurplus = BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount);
-            transforms.push({
+            transformations.push({
                 deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
                 data: encodePositiveSlippageFeeTransformerData({
                     token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
@@ -471,7 +476,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         } else if (feeType === AffiliateFeeType.PercentageFee && feeRecipient !== NULL_ADDRESS) {
             // This transformer pays affiliate fees.
             if (buyTokenFeeAmount.isGreaterThan(0)) {
-                transforms.push({
+                transformations.push({
                     deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
                     data: encodeAffiliateFeeTransformerData({
                         fees: [
@@ -491,7 +496,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             }
         } else if (feeType === AffiliateFeeType.GaslessFee && feeRecipient !== NULL_ADDRESS) {
             if (buyTokenFeeAmount.isGreaterThan(0)) {
-                transforms.push({
+                transformations.push({
                     deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
                     data: encodeAffiliateFeeTransformerData({
                         fees: [
@@ -523,7 +528,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             payTakerTokens.push(ETH_TOKEN_ADDRESS);
         }
         // The final transformer will send all funds to the taker.
-        transforms.push({
+        transformations.push({
             deploymentNonce: this.transformerNonces.payTakerTransformer,
             data: encodePayTakerTransformerData({
                 tokens: payTakerTokens,
@@ -537,7 +542,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                 isToETH ? TO_ETH_ADDRESS : buyToken,
                 shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
                 minBuyAmount,
-                transforms,
+                transformations,
             )
             .getABIEncodedTransactionData();
 

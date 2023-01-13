@@ -9,7 +9,6 @@ import {
     OrderPrunerOpts,
     OrderPrunerPermittedFeeTypes,
     RfqRequestOpts,
-    SwapQuoteGetOutputOpts,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
 } from './types';
@@ -70,10 +69,6 @@ const DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS: ExchangeProxyContractOpts 
     shouldSellEntireBalance: false,
 };
 
-const DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS: SwapQuoteGetOutputOpts = {
-    extensionContractOpts: DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-};
-
 const DEFAULT_SWAP_QUOTE_REQUEST_OPTS: SwapQuoteRequestOpts = {
     ...DEFAULT_GET_MARKET_ORDERS_OPTS,
 };
@@ -108,7 +103,6 @@ export const constants = {
     DEFAULT_SWAP_QUOTER_OPTS,
     DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID,
     DEFAULT_SWAP_QUOTE_REQUEST_OPTS,
-    DEFAULT_EXCHANGE_PROXY_SWAP_QUOTE_GET_OPTS,
     DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
     DEFAULT_PER_PAGE,
     DEFAULT_RFQT_REQUEST_OPTS,

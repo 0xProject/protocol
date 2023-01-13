@@ -158,15 +158,7 @@ export interface CalldataInfo {
  * getCalldataOrThrow: Get CalldataInfo to swap for tokens with provided SwapQuote. Throws if invalid SwapQuote is provided.
  */
 export interface SwapQuoteConsumer {
-    getCalldataOrThrow(quote: SwapQuote, opts: Partial<SwapQuoteGetOutputOpts>): CalldataInfo;
-}
-
-/**
- * Represents the options provided to a generic SwapQuoteConsumer
- */
-export interface SwapQuoteGetOutputOpts {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-    extensionContractOpts?: ExchangeProxyContractOpts | any;
+    getCalldataOrThrow(quote: SwapQuote, opts: Partial<ExchangeProxyContractOpts>): CalldataInfo;
 }
 
 export enum AffiliateFeeType {
