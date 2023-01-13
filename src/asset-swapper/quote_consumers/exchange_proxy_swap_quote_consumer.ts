@@ -362,7 +362,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
 
         if (this.chainId === ChainId.Mainnet && isMultiplexBatchFillCompatible(quote, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexBatchFillCalldata(quote, optsWithDefaults),
+                calldataHexString: this.encodeMultiplexBatchFillCalldata(quote, optsWithDefaults),
                 ethAmount,
                 toAddress: this.exchangeProxy.address,
                 allowanceTarget: this.exchangeProxy.address,
@@ -370,9 +370,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             };
         }
 
-        if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote, optsWithDefaults)) {
+        if (this.chainId === ChainId.Mainnet && isMultiplexMultiHopFillCompatible(quote.path, optsWithDefaults)) {
             return {
-                calldataHexString: this._encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
+                calldataHexString: this.encodeMultiplexMultiHopFillCalldata(quote, optsWithDefaults),
                 ethAmount,
                 toAddress: this.exchangeProxy.address,
                 allowanceTarget: this.exchangeProxy.address,
@@ -555,7 +555,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         };
     }
 
-    private _encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
+    private encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
         const maxSlippage = getMaxQuoteSlippageRate(quote);
         const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
         const subcalls = [];
@@ -666,13 +666,20 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         }
     }
 
-    private _encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
+    private encodeMultiplexMultiHopFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
         const maxSlippage = getMaxQuoteSlippageRate(quote);
-        const subcalls = [];
-        const [firstHopOrder, secondHopOrder] = quote.path.getSlippedOrders(maxSlippage);
+        const { nativeOrders, bridgeOrders, twoHopOrders } = quote.path.getSlippedOrdersByType(maxSlippage);
+        // Should have been checked with `isMultiplexMultiHopFillCompatible`.
+        assert.assert(
+            nativeOrders.length !== 0 && bridgeOrders.length !== 0,
+            'non-multihop should not go through multiplexMultihop',
+        );
+        assert.assert(twoHopOrders.length === 1, 'multiplexMultiHop only supports single multihop order ');
+
+        const { firstHopOrder, secondHopOrder } = twoHopOrders[0];
         const intermediateToken = firstHopOrder.makerToken;
         const tokens = [quote.takerToken, intermediateToken, quote.makerToken];
-
+        const subcalls = [];
         for (const order of [firstHopOrder, secondHopOrder]) {
             switch (order.source) {
                 case ERC20BridgeSource.UniswapV2:

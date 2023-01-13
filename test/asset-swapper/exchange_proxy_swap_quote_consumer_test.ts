@@ -31,8 +31,8 @@ import {
     NativeFillData,
     OptimizedLimitOrder,
     OptimizedOrder,
+    IPath,
 } from '../../src/asset-swapper/types';
-import { Path } from '../../src/asset-swapper/utils/market_operation_utils/path';
 
 import { chaiSetup } from './utils/chai_setup';
 import { getRandomAmount, getRandomSignature } from './utils/utils';
@@ -125,6 +125,7 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
 
     function getRandomQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
         const order = getRandomOptimizedMarketOrder();
+        const ordersByType = { nativeOrders: [order], twoHopOrders: [], bridgeOrders: [] };
         const makerTokenFillAmount = order.makerAmount;
         const takerTokenFillAmount = order.takerAmount;
         return {
@@ -132,9 +133,10 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             makerToken: MAKER_TOKEN,
             takerToken: TAKER_TOKEN,
             path: {
-                getOrdersByType: () => ({ nativeOrders: [order], twoHopOrders: [], bridgeOrders: [] }),
                 getOrders: () => [order],
-                getSlippedOrders: (_maxSlippage: number) => [order],
+                getOrdersByType: () => ordersByType,
+                getSlippedOrders: () => [order],
+                getSlippedOrdersByType: () => ordersByType,
                 hasTwoHop: () => false,
             },
             makerTokenDecimals: 18,
@@ -175,17 +177,22 @@ describe('ExchangeProxySwapQuoteConsumer', () => {
             { takerToken: INTERMEDIATE_TOKEN },
             { takerToken: INTERMEDIATE_TOKEN },
         );
+        const ordersByType = {
+            twoHopOrders: [{ firstHopOrder, secondHopOrder }],
+            nativeOrders: [],
+            bridgeOrders: [],
+        };
+
         return {
             ...getRandomQuote(side),
             path: {
                 getOrders: () => [firstHopOrder, secondHopOrder],
                 getSlippedOrders: (_maxSlippage: number) => [firstHopOrder, secondHopOrder],
+                getOrdersByType: () => ordersByType,
+                getSlippedOrdersByType: () => ordersByType,
                 hasTwoHop: () => true,
-            } as unknown as Path,
-
-            isTwoHop: true,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-        } as any;
+            } as IPath,
+        };
     }
 
     function getRandomSellQuote(): MarketSellSwapQuote {

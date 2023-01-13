@@ -56,16 +56,25 @@ const MULTIPLEX_MULTIHOP_FILL_SOURCES = [
 ];
 
 /**
- * Returns true iff a quote can be filled via `MultiplexFeature.multiHopFill`.
+ * Returns true if a path can be filled via `MultiplexFeature.multiplexMultiHop*`.
  */
-export function isMultiplexMultiHopFillCompatible(quote: SwapQuote, opts: ExchangeProxyContractOpts): boolean {
+export function isMultiplexMultiHopFillCompatible(path: IPath, opts: ExchangeProxyContractOpts): boolean {
     if (requiresTransformERC20(opts)) {
         return false;
     }
-    if (!quote.path.hasTwoHop()) {
+    const { bridgeOrders, nativeOrders, twoHopOrders } = path.getOrdersByType();
+
+    // Path shouldn't have any other type of order.
+    if (bridgeOrders.length !== 0 || nativeOrders.length !== 0) {
         return false;
     }
-    const [firstHopOrder, secondHopOrder] = quote.path.getOrders();
+
+    // MultiplexFeature only supports single two hop order.
+    if (twoHopOrders.length !== 1) {
+        return false;
+    }
+
+    const { firstHopOrder, secondHopOrder } = twoHopOrders[0];
     return (
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(firstHopOrder.source) &&
         MULTIPLEX_MULTIHOP_FILL_SOURCES.includes(secondHopOrder.source)

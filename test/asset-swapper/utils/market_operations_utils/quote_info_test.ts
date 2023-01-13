@@ -329,5 +329,8 @@ function createFakePath(params: { ordersByType: OptimizedOrdersByType }): IPath 
         hasTwoHop: () => false,
         getOrders: () => [],
         getSlippedOrders: () => [],
+        getSlippedOrdersByType: () => {
+            throw new Error('Unimplemented');
+        },
     };
 }
