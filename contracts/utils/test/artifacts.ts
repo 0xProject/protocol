@@ -7,7 +7,6 @@ import { ContractArtifact } from 'ethereum-types';
 
 import * as AuthorizableV06 from '../test/generated-artifacts/AuthorizableV06.json';
 import * as AuthorizableV08 from '../test/generated-artifacts/AuthorizableV08.json';
-import * as D18 from '../test/generated-artifacts/D18.json';
 import * as DeploymentConstants from '../test/generated-artifacts/DeploymentConstants.json';
 import * as IAuthorizableV06 from '../test/generated-artifacts/IAuthorizableV06.json';
 import * as IAuthorizableV08 from '../test/generated-artifacts/IAuthorizableV08.json';
@@ -70,7 +69,6 @@ import * as TestReentrancyGuard from '../test/generated-artifacts/TestReentrancy
 import * as TestRefundable from '../test/generated-artifacts/TestRefundable.json';
 import * as TestRefundableReceiver from '../test/generated-artifacts/TestRefundableReceiver.json';
 export const artifacts = {
-    D18: D18 as ContractArtifact,
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     LibAddress: LibAddress as ContractArtifact,
     LibAddressArray: LibAddressArray as ContractArtifact,

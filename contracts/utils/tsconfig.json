@@ -25,7 +25,6 @@
         "generated-artifacts/Refundable.json",
         "test/generated-artifacts/AuthorizableV06.json",
         "test/generated-artifacts/AuthorizableV08.json",
-        "test/generated-artifacts/D18.json",
         "test/generated-artifacts/DeploymentConstants.json",
         "test/generated-artifacts/IAuthorizableV06.json",
         "test/generated-artifacts/IAuthorizableV08.json",
