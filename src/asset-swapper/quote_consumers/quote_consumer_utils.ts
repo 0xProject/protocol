@@ -1,4 +1,6 @@
-import { FillQuoteTransformerData, FillQuoteTransformerOrderType } from '@0x/protocol-utils';
+import { ContractAddresses } from '@0x/contract-addresses';
+import { IZeroExContract } from '@0x/contract-wrappers';
+import { FillQuoteTransformerData, FillQuoteTransformerOrderType, findTransformerNonce } from '@0x/protocol-utils';
 
 import {
     ExchangeProxyContractOpts,
@@ -17,6 +19,7 @@ import {
     createBridgeDataForBridgeOrder,
     getErc20BridgeSourceToBridgeSource,
 } from '../utils/market_operation_utils/orders';
+import { TransformerNonces } from './types';
 
 const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.UniswapV2,
@@ -24,6 +27,15 @@ const MULTIPLEX_BATCH_FILL_SOURCES = [
     ERC20BridgeSource.Native,
     ERC20BridgeSource.UniswapV3,
 ];
+
+export function createExchangeProxyWithoutProvider(exchangeProxyAddress: string): IZeroExContract {
+    const fakeProvider = {
+        sendAsync(): void {
+            return;
+        },
+    };
+    return new IZeroExContract(exchangeProxyAddress, fakeProvider);
+}
 
 /**
  * Returns true iff a quote can be filled via `MultiplexFeature.batchFill`.
@@ -183,7 +195,7 @@ export function getFQTTransformerDataFromOptimizedOrders(
 }
 
 /**
- * Returns true if swap quote must go through `tranformERC20`.
+ * Returns true if swap quote must go through `transformERC20`.
  */
 export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean {
     // Is a mtx.
@@ -199,4 +211,29 @@ export function requiresTransformERC20(opts: ExchangeProxyContractOpts): boolean
         return true;
     }
     return false;
+}
+
+export function getTransformerNonces(contractAddresses: ContractAddresses): TransformerNonces {
+    return {
+        wethTransformer: findTransformerNonce(
+            contractAddresses.transformers.wethTransformer,
+            contractAddresses.exchangeProxyTransformerDeployer,
+        ),
+        payTakerTransformer: findTransformerNonce(
+            contractAddresses.transformers.payTakerTransformer,
+            contractAddresses.exchangeProxyTransformerDeployer,
+        ),
+        fillQuoteTransformer: findTransformerNonce(
+            contractAddresses.transformers.fillQuoteTransformer,
+            contractAddresses.exchangeProxyTransformerDeployer,
+        ),
+        affiliateFeeTransformer: findTransformerNonce(
+            contractAddresses.transformers.affiliateFeeTransformer,
+            contractAddresses.exchangeProxyTransformerDeployer,
+        ),
+        positiveSlippageFeeTransformer: findTransformerNonce(
+            contractAddresses.transformers.positiveSlippageFeeTransformer,
+            contractAddresses.exchangeProxyTransformerDeployer,
+        ),
+    };
 }

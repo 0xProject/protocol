@@ -231,7 +231,7 @@ export class SwapService implements ISwapService {
         }
         this._swapQuoter = new SwapQuoter(this._provider, orderbook, this._swapQuoterOpts);
 
-        this._swapQuoteConsumer = ExchangeProxySwapQuoteConsumer.create(CHAIN_ID);
+        this._swapQuoteConsumer = ExchangeProxySwapQuoteConsumer.create(CHAIN_ID, contractAddresses);
         this._web3Wrapper = new Web3Wrapper(this._provider);
 
         this._contractAddresses = contractAddresses;

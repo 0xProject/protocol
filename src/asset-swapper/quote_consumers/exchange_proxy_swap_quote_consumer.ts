@@ -1,4 +1,4 @@
-import { ChainId, ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ChainId, ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
     encodeAffiliateFeeTransformerData,
@@ -10,7 +10,6 @@ import {
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
-    findTransformerNonce,
 } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
@@ -46,13 +45,16 @@ import {
     multiplexUniswapEncoder,
 } from './multiplex_encoders';
 import {
+    createExchangeProxyWithoutProvider,
     getFQTTransformerDataFromOptimizedOrders,
+    getTransformerNonces,
     isBuyQuote,
     isDirectSwapCompatible,
     isMultiplexBatchFillCompatible,
     isMultiplexMultiHopFillCompatible,
     requiresTransformERC20,
 } from './quote_consumer_utils';
+import { TransformerNonces } from './types';
 
 // Transformation of `TransformERC20` feature.
 interface ERC20Transformation {
@@ -71,55 +73,20 @@ const PANCAKE_SWAP_FORKS = [
     ERC20BridgeSource.SushiSwap,
     ERC20BridgeSource.ApeSwap,
 ];
-const FAKE_PROVIDER = {
-    sendAsync(): void {
-        return;
-    },
-};
 
 export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
-    private readonly transformerNonces: {
-        wethTransformer: number;
-        payTakerTransformer: number;
-        fillQuoteTransformer: number;
-        affiliateFeeTransformer: number;
-        positiveSlippageFeeTransformer: number;
-    };
-
-    private readonly exchangeProxy: IZeroExContract;
-
-    public static create(chainId: ChainId): SwapQuoteConsumer {
-        assert.isNumber('chainId', chainId);
-        const contractAddresses = getContractAddressesForChainOrThrow(chainId);
-        return new ExchangeProxySwapQuoteConsumer(chainId, contractAddresses);
+    public static create(chainId: ChainId, contractAddresses: ContractAddresses): ExchangeProxySwapQuoteConsumer {
+        const exchangeProxy = createExchangeProxyWithoutProvider(contractAddresses.exchangeProxy);
+        const transformerNonces = getTransformerNonces(contractAddresses);
+        return new ExchangeProxySwapQuoteConsumer(chainId, contractAddresses, exchangeProxy, transformerNonces);
     }
 
-    constructor(private readonly chainId: ChainId, private readonly contractAddresses: ContractAddresses) {
-        this.contractAddresses = contractAddresses;
-        this.exchangeProxy = new IZeroExContract(contractAddresses.exchangeProxy, FAKE_PROVIDER);
-        this.transformerNonces = {
-            wethTransformer: findTransformerNonce(
-                contractAddresses.transformers.wethTransformer,
-                contractAddresses.exchangeProxyTransformerDeployer,
-            ),
-            payTakerTransformer: findTransformerNonce(
-                contractAddresses.transformers.payTakerTransformer,
-                contractAddresses.exchangeProxyTransformerDeployer,
-            ),
-            fillQuoteTransformer: findTransformerNonce(
-                contractAddresses.transformers.fillQuoteTransformer,
-                contractAddresses.exchangeProxyTransformerDeployer,
-            ),
-            affiliateFeeTransformer: findTransformerNonce(
-                contractAddresses.transformers.affiliateFeeTransformer,
-                contractAddresses.exchangeProxyTransformerDeployer,
-            ),
-            positiveSlippageFeeTransformer: findTransformerNonce(
-                contractAddresses.transformers.positiveSlippageFeeTransformer,
-                contractAddresses.exchangeProxyTransformerDeployer,
-            ),
-        };
-    }
+    private constructor(
+        private readonly chainId: ChainId,
+        private readonly contractAddresses: ContractAddresses,
+        private readonly exchangeProxy: IZeroExContract,
+        private readonly transformerNonces: TransformerNonces,
+    ) {}
 
     public getCalldataOrThrow(
         quote: MarketBuySwapQuote | MarketSellSwapQuote,
