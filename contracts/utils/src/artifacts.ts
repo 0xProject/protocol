@@ -8,7 +8,6 @@ import { ContractArtifact } from 'ethereum-types';
 import * as IOwnable from '../generated-artifacts/IOwnable.json';
 import * as LibBytes from '../generated-artifacts/LibBytes.json';
 import * as LibBytesRichErrors from '../generated-artifacts/LibBytesRichErrors.json';
-import * as LibFractions from '../generated-artifacts/LibFractions.json';
 import * as LibMathRichErrors from '../generated-artifacts/LibMathRichErrors.json';
 import * as LibOwnableRichErrors from '../generated-artifacts/LibOwnableRichErrors.json';
 import * as LibReentrancyGuardRichErrors from '../generated-artifacts/LibReentrancyGuardRichErrors.json';
@@ -21,7 +20,6 @@ export const artifacts = {
     IOwnable: IOwnable as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
-    LibFractions: LibFractions as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibReentrancyGuardRichErrors: LibReentrancyGuardRichErrors as ContractArtifact,
     LibRichErrors: LibRichErrors as ContractArtifact,
