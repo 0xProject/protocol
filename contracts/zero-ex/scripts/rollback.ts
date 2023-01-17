@@ -10,7 +10,7 @@ import * as prompts from 'prompts';
 
 import * as wrappers from '../src/wrappers';
 
-const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/mzhu25/zeroex-migrations';
+const SUBGRAPH_URL = 'https://api.thegraph.com/subgraphs/name/0xeng/zeroex-features-mainnet';
 
 const ownableFeature = new wrappers.OwnableFeatureContract(constants.NULL_ADDRESS, new Web3ProviderEngine());
 const simpleFunctionRegistryFeature = new wrappers.SimpleFunctionRegistryFeatureContract(
@@ -18,6 +18,7 @@ const simpleFunctionRegistryFeature = new wrappers.SimpleFunctionRegistryFeature
     new Web3ProviderEngine(),
 );
 const DO_NOT_ROLLBACK = [
+    ownableFeature.getSelector('owner'),
     ownableFeature.getSelector('migrate'),
     ownableFeature.getSelector('transferOwnership'),
     simpleFunctionRegistryFeature.getSelector('rollback'),
