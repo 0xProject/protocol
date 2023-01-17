@@ -57,8 +57,6 @@ import * as TestLibEIP712 from '../test/generated-artifacts/TestLibEIP712.json';
 import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
 import * as TestLibRichErrors from '../test/generated-artifacts/TestLibRichErrors.json';
 import * as TestLibSafeMath from '../test/generated-artifacts/TestLibSafeMath.json';
-import * as TestLogDecoding from '../test/generated-artifacts/TestLogDecoding.json';
-import * as TestLogDecodingDownstream from '../test/generated-artifacts/TestLogDecodingDownstream.json';
 import * as TestOwnable from '../test/generated-artifacts/TestOwnable.json';
 import * as TestReentrancyGuard from '../test/generated-artifacts/TestReentrancyGuard.json';
 import * as TestRefundable from '../test/generated-artifacts/TestRefundable.json';
@@ -121,8 +119,6 @@ export const artifacts = {
     TestLibMath: TestLibMath as ContractArtifact,
     TestLibRichErrors: TestLibRichErrors as ContractArtifact,
     TestLibSafeMath: TestLibSafeMath as ContractArtifact,
-    TestLogDecoding: TestLogDecoding as ContractArtifact,
-    TestLogDecodingDownstream: TestLogDecodingDownstream as ContractArtifact,
     TestOwnable: TestOwnable as ContractArtifact,
     TestReentrancyGuard: TestReentrancyGuard as ContractArtifact,
     TestRefundable: TestRefundable as ContractArtifact,

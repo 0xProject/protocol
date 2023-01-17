@@ -72,8 +72,6 @@
         "test/generated-artifacts/TestLibMath.json",
         "test/generated-artifacts/TestLibRichErrors.json",
         "test/generated-artifacts/TestLibSafeMath.json",
-        "test/generated-artifacts/TestLogDecoding.json",
-        "test/generated-artifacts/TestLogDecodingDownstream.json",
         "test/generated-artifacts/TestOwnable.json",
         "test/generated-artifacts/TestReentrancyGuard.json",
         "test/generated-artifacts/TestRefundable.json",
