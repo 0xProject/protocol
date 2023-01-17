@@ -6,7 +6,6 @@
 import { ContractArtifact } from 'ethereum-types';
 
 import * as IOwnable from '../generated-artifacts/IOwnable.json';
-import * as LibAuthorizableRichErrors from '../generated-artifacts/LibAuthorizableRichErrors.json';
 import * as LibBytes from '../generated-artifacts/LibBytes.json';
 import * as LibBytesRichErrors from '../generated-artifacts/LibBytesRichErrors.json';
 import * as LibEIP1271 from '../generated-artifacts/LibEIP1271.json';
@@ -23,7 +22,6 @@ import * as Ownable from '../generated-artifacts/Ownable.json';
 import * as ReentrancyGuard from '../generated-artifacts/ReentrancyGuard.json';
 export const artifacts = {
     IOwnable: IOwnable as ContractArtifact,
-    LibAuthorizableRichErrors: LibAuthorizableRichErrors as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
     LibEIP1271: LibEIP1271 as ContractArtifact,

@@ -4,7 +4,6 @@
     "include": ["./src/**/*", "./test/**/*", "./generated-wrappers/**/*"],
     "files": [
         "generated-artifacts/IOwnable.json",
-        "generated-artifacts/LibAuthorizableRichErrors.json",
         "generated-artifacts/LibBytes.json",
         "generated-artifacts/LibBytesRichErrors.json",
         "generated-artifacts/LibEIP1271.json",
@@ -27,7 +26,6 @@
         "test/generated-artifacts/IOwnable.json",
         "test/generated-artifacts/IOwnableV06.json",
         "test/generated-artifacts/IOwnableV08.json",
-        "test/generated-artifacts/LibAuthorizableRichErrors.json",
         "test/generated-artifacts/LibAuthorizableRichErrorsV06.json",
         "test/generated-artifacts/LibAuthorizableRichErrorsV08.json",
         "test/generated-artifacts/LibBytes.json",

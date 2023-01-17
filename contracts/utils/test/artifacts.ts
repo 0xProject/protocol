@@ -13,7 +13,6 @@ import * as IAuthorizableV08 from '../test/generated-artifacts/IAuthorizableV08.
 import * as IOwnable from '../test/generated-artifacts/IOwnable.json';
 import * as IOwnableV06 from '../test/generated-artifacts/IOwnableV06.json';
 import * as IOwnableV08 from '../test/generated-artifacts/IOwnableV08.json';
-import * as LibAuthorizableRichErrors from '../test/generated-artifacts/LibAuthorizableRichErrors.json';
 import * as LibAuthorizableRichErrorsV06 from '../test/generated-artifacts/LibAuthorizableRichErrorsV06.json';
 import * as LibAuthorizableRichErrorsV08 from '../test/generated-artifacts/LibAuthorizableRichErrorsV08.json';
 import * as LibBytes from '../test/generated-artifacts/LibBytes.json';
@@ -62,7 +61,6 @@ import * as TestRefundable from '../test/generated-artifacts/TestRefundable.json
 import * as TestRefundableReceiver from '../test/generated-artifacts/TestRefundableReceiver.json';
 export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
-    LibAuthorizableRichErrors: LibAuthorizableRichErrors as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
     LibEIP1271: LibEIP1271 as ContractArtifact,
