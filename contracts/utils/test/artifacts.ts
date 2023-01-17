@@ -50,14 +50,11 @@ import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.js
 import * as ReentrancyGuardV06 from '../test/generated-artifacts/ReentrancyGuardV06.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
-import * as TestLibEIP712 from '../test/generated-artifacts/TestLibEIP712.json';
 import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
 import * as TestLibRichErrors from '../test/generated-artifacts/TestLibRichErrors.json';
 import * as TestLibSafeMath from '../test/generated-artifacts/TestLibSafeMath.json';
 import * as TestOwnable from '../test/generated-artifacts/TestOwnable.json';
 import * as TestReentrancyGuard from '../test/generated-artifacts/TestReentrancyGuard.json';
-import * as TestRefundable from '../test/generated-artifacts/TestRefundable.json';
-import * as TestRefundableReceiver from '../test/generated-artifacts/TestRefundableReceiver.json';
 export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
@@ -109,12 +106,9 @@ export const artifacts = {
 =======
 >>>>>>> bf542a443 (Remove contracts/utils LibAddress contracts)
     TestLibBytes: TestLibBytes as ContractArtifact,
-    TestLibEIP712: TestLibEIP712 as ContractArtifact,
     TestLibMath: TestLibMath as ContractArtifact,
     TestLibRichErrors: TestLibRichErrors as ContractArtifact,
     TestLibSafeMath: TestLibSafeMath as ContractArtifact,
     TestOwnable: TestOwnable as ContractArtifact,
     TestReentrancyGuard: TestReentrancyGuard as ContractArtifact,
-    TestRefundable: TestRefundable as ContractArtifact,
-    TestRefundableReceiver: TestRefundableReceiver as ContractArtifact,
 };
