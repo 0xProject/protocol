@@ -5,7 +5,6 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as _ from 'lodash';
 
 import { constants } from './constants';
-import { coverage } from './coverage';
 import { profiler } from './profiler';
 import { revertTrace } from './revert_trace';
 
@@ -39,11 +38,7 @@ const enabledSubproviderCount = _.filter(
     _.identity.bind(_),
 ).length;
 if (enabledSubproviderCount > 1) {
-    throw new Error(`Only one of coverage, profiler, or revert trace subproviders can be enabled at a time`);
-}
-if (isCoverageEnabled) {
-    const coverageSubprovider = coverage.getCoverageSubproviderSingleton();
-    prependSubprovider(provider, coverageSubprovider);
+    throw new Error(`Only one of profiler or revert trace subproviders can be enabled at a time`);
 }
 if (isProfilerEnabled) {
     const profilerSubprovider = profiler.getProfilerSubproviderSingleton();

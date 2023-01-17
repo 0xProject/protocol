@@ -13,15 +13,10 @@
         "build": "tsc -b",
         "build:ci": "yarn build",
         "test": "yarn run_mocha",
-        "test:coverage": "run-s build run_mocha coverage:report:text coverage:report:lcov",
         "run_mocha": "mocha --require source-map-support/register --require make-promises-safe 'lib/test/**/*.js' --timeout 100000 --bail --exit",
         "clean": "shx rm -rf lib",
         "lint": "eslint src test",
         "fix": "eslint --fix src test",
-        "coverage:report:text": "istanbul report text",
-        "coverage:report:html": "istanbul report html && open coverage/index.html",
-        "profiler:report:html": "istanbul report html && open coverage/index.html",
-        "coverage:report:lcov": "istanbul report lcov",
         "test:ci": "yarn test"
     },
     "repository": {
@@ -50,7 +45,6 @@
         "@0x/dev-utils": "^5.0.0",
         "@0x/json-schemas": "^6.4.4",
         "@0x/order-utils": "^10.4.28",
-        "@0x/sol-coverage": "^4.0.46",
         "@0x/sol-profiler": "^4.1.36",
         "@0x/sol-trace": "^3.0.46",
         "@0x/subproviders": "^7.0.0",
