@@ -46,7 +46,6 @@ import * as Ownable from '../test/generated-artifacts/Ownable.json';
 import * as OwnableV06 from '../test/generated-artifacts/OwnableV06.json';
 import * as OwnableV08 from '../test/generated-artifacts/OwnableV08.json';
 import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.json';
-import * as ReentrancyGuardV06 from '../test/generated-artifacts/ReentrancyGuardV06.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
 import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
@@ -74,7 +73,6 @@ export const artifacts = {
     LibMathV06: LibMathV06 as ContractArtifact,
     LibSafeMathV06: LibSafeMathV06 as ContractArtifact,
     OwnableV06: OwnableV06 as ContractArtifact,
-    ReentrancyGuardV06: ReentrancyGuardV06 as ContractArtifact,
     LibAuthorizableRichErrorsV06: LibAuthorizableRichErrorsV06 as ContractArtifact,
     LibBytesRichErrorsV06: LibBytesRichErrorsV06 as ContractArtifact,
     LibMathRichErrorsV06: LibMathRichErrorsV06 as ContractArtifact,

@@ -57,7 +57,6 @@
         "test/generated-artifacts/OwnableV06.json",
         "test/generated-artifacts/OwnableV08.json",
         "test/generated-artifacts/ReentrancyGuard.json",
-        "test/generated-artifacts/ReentrancyGuardV06.json",
         "test/generated-artifacts/ReentrancyGuardV08.json",
         "test/generated-artifacts/TestLibBytes.json",
         "test/generated-artifacts/TestLibMath.json",
