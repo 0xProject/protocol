@@ -5,8 +5,6 @@
  */
 import { ContractArtifact } from 'ethereum-types';
 
-import * as Authorizable from '../generated-artifacts/Authorizable.json';
-import * as IAuthorizable from '../generated-artifacts/IAuthorizable.json';
 import * as IOwnable from '../generated-artifacts/IOwnable.json';
 import * as LibAddress from '../generated-artifacts/LibAddress.json';
 import * as LibAddressArray from '../generated-artifacts/LibAddressArray.json';
@@ -28,8 +26,6 @@ import * as Ownable from '../generated-artifacts/Ownable.json';
 import * as ReentrancyGuard from '../generated-artifacts/ReentrancyGuard.json';
 import * as Refundable from '../generated-artifacts/Refundable.json';
 export const artifacts = {
-    Authorizable: Authorizable as ContractArtifact,
-    IAuthorizable: IAuthorizable as ContractArtifact,
     IOwnable: IOwnable as ContractArtifact,
     LibAddress: LibAddress as ContractArtifact,
     LibAddressArray: LibAddressArray as ContractArtifact,
