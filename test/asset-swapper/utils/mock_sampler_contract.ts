@@ -28,6 +28,8 @@ type SampleBuysUniswapHandler = (
     makerTokenAmounts: BigNumber[],
 ) => SampleResults;
 type SampleUniswapV2Handler = (router: string, path: string[], assetAmounts: BigNumber[]) => SampleResults;
+type SampleUniswapV3Handler = (quoter: string, path: string[], assetAmounts: BigNumber[]) => UniswapV3SampleResults;
+type UniswapV3SampleResults = [string[], BigNumber[], BigNumber[]];
 
 const DUMMY_PROVIDER = {
     sendAsync: (..._args: any[]): any => {
@@ -40,8 +42,10 @@ interface Handlers {
     getLimitOrderFillableTakerAssetAmounts: GetOrderFillableAssetAmountHandler;
     sampleSellsFromUniswap: SampleSellsUniswapHandler;
     sampleSellsFromUniswapV2: SampleUniswapV2Handler;
+    sampleSellsFromUniswapV3: SampleUniswapV3Handler;
     sampleBuysFromUniswap: SampleBuysUniswapHandler;
     sampleBuysFromUniswapV2: SampleUniswapV2Handler;
+    sampleBuysFromUniswapV3: SampleUniswapV3Handler;
 }
 
 export class MockSamplerContract extends ERC20BridgeSamplerContract {

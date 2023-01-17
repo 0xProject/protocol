@@ -3,6 +3,7 @@ import { LimitOrderFields } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 import { formatBytes32String } from '@ethersproject/strings';
 import * as _ from 'lodash';
+import { UniswapV3Sampler } from '../../../samplers/uniswapv3_sampler';
 
 import { ERC20BridgeSamplerContract } from '../../../wrappers';
 import { SamplerCallResult, SignedNativeOrder, ERC20BridgeSource, FeeSchedule } from '../../types';
@@ -91,7 +92,6 @@ import {
     SourceQuoteOperation,
     SynthetixFillData,
     UniswapV2FillData,
-    UniswapV3FillData,
     VelodromeFillData,
     WOOFiFillData,
 } from './types';
@@ -127,6 +127,7 @@ export class SamplerOperations {
             handleRevert: (_callResults) => result,
         };
     }
+    private readonly uniswapV3Sampler: UniswapV3Sampler;
 
     constructor(
         public readonly chainId: ChainId,
@@ -166,6 +167,8 @@ export class SamplerOperations {
         bancorServiceFn()
             .then((service) => (this._bancorService = service))
             .catch(/* do nothing */);
+
+        this.uniswapV3Sampler = new UniswapV3Sampler(this.chainId, this._samplerContract);
     }
 
     public getTokenDecimals(tokens: string[]): BatchedOperation<BigNumber[]> {
@@ -709,62 +712,6 @@ export class SamplerOperations {
                     callResults,
                 );
                 fillData.poolAddress = poolAddress;
-                return samples;
-            },
-        });
-    }
-
-    public getUniswapV3SellQuotes(
-        router: string,
-        quoter: string,
-        tokenAddressPath: string[],
-        takerFillAmounts: BigNumber[],
-        source: ERC20BridgeSource = ERC20BridgeSource.UniswapV3,
-    ): SourceQuoteOperation<UniswapV3FillData> {
-        return new SamplerContractOperation({
-            source,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleSellsFromUniswapV3,
-            params: [quoter, tokenAddressPath, takerFillAmounts],
-            callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, gasUsed, samples] = this._samplerContract.getABIDecodedReturnData<
-                    [string[], BigNumber[], BigNumber[]]
-                >('sampleSellsFromUniswapV3', callResults);
-                fillData.router = router;
-                fillData.tokenAddressPath = tokenAddressPath;
-                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
-                    uniswapPath,
-                    inputAmount: takerFillAmounts[i],
-                    gasUsed: gasUsed[i].toNumber(),
-                }));
-                return samples;
-            },
-        });
-    }
-
-    public getUniswapV3BuyQuotes(
-        router: string,
-        quoter: string,
-        tokenAddressPath: string[],
-        makerFillAmounts: BigNumber[],
-        source: ERC20BridgeSource = ERC20BridgeSource.UniswapV3,
-    ): SourceQuoteOperation<UniswapV3FillData> {
-        return new SamplerContractOperation({
-            source,
-            contract: this._samplerContract,
-            function: this._samplerContract.sampleBuysFromUniswapV3,
-            params: [quoter, tokenAddressPath, makerFillAmounts],
-            callback: (callResults: string, fillData: UniswapV3FillData): BigNumber[] => {
-                const [paths, gasUsed, samples] = this._samplerContract.getABIDecodedReturnData<
-                    [string[], BigNumber[], BigNumber[]]
-                >('sampleBuysFromUniswapV3', callResults);
-                fillData.router = router;
-                fillData.tokenAddressPath = tokenAddressPath;
-                fillData.pathAmounts = paths.map((uniswapPath, i) => ({
-                    uniswapPath,
-                    inputAmount: makerFillAmounts[i],
-                    gasUsed: gasUsed[i].toNumber(),
-                }));
                 return samples;
             },
         });
@@ -1755,7 +1702,7 @@ export class SamplerOperations {
                         return [
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
-                        ].map((path) => this.getUniswapV3SellQuotes(router, quoter, path, takerFillAmounts));
+                        ].map((path) => this.uniswapV3Sampler.createSampleSellsOperation(path, takerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
                         if (!this._isLidoSupported(takerToken, makerToken)) {
@@ -2095,7 +2042,7 @@ export class SamplerOperations {
                         return [
                             [takerToken, makerToken],
                             ...intermediateTokens.map((t) => [takerToken, t, makerToken]),
-                        ].map((path) => this.getUniswapV3BuyQuotes(router, quoter, path, makerFillAmounts));
+                        ].map((path) => this.uniswapV3Sampler.createSampleBuysOperation(path, makerFillAmounts));
                     }
                     case ERC20BridgeSource.Lido: {
                         if (!this._isLidoSupported(takerToken, makerToken)) {

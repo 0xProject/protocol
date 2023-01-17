@@ -7,6 +7,7 @@ import { SignedLimitOrder, ERC20BridgeSource } from '../../src/asset-swapper/typ
 
 import { DexOrderSampler, getSampleAmounts } from '../../src/asset-swapper/utils/market_operation_utils/sampler';
 import { TokenAdjacencyGraphBuilder } from '../../src/asset-swapper/utils/token_adjacency_graph';
+import { UniswapV3Sampler } from '../../src/samplers/uniswapv3_sampler';
 
 import { MockSamplerContract } from './utils/mock_sampler_contract';
 import { generatePseudoRandomSalt } from './utils/utils';
@@ -192,6 +193,75 @@ describe('DexSampler tests', () => {
                 ),
             );
             expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
+        });
+
+        it('getUniswapV3SellQuotes()', async () => {
+            const expectedTakerToken = randomAddress();
+            const expectedMakerToken = randomAddress();
+            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(10e18), 10);
+            const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
+            const expectedGasUsageAmounts = new Array(10).fill(new BigNumber(10e6));
+            const sampler = new MockSamplerContract({
+                sampleSellsFromUniswapV3: (_router, path, fillAmounts) => {
+                    expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
+                    expect(fillAmounts).to.deep.eq(expectedTakerFillAmounts);
+
+                    // NOTE: in the actual uniV3 sampler, the returned path(s) will be an array of the same length as the length of the amounts array.
+                    // Each element will be something like: [token0, token0token1PairFee, token1].
+                    // Just return path, since this is not testing the validity of the sampler result.
+                    return [path, expectedGasUsageAmounts, expectedMakerFillAmounts];
+                },
+            });
+            const dexOrderSampler = new DexOrderSampler(
+                chainId,
+                sampler,
+                undefined,
+                undefined,
+                undefined,
+                async () => undefined,
+            );
+            const uniswapV3Sampler = new UniswapV3Sampler(ChainId.Mainnet, sampler);
+
+            const [fillableAmounts] = await dexOrderSampler.executeAsync(
+                uniswapV3Sampler.createSampleSellsOperation(
+                    [expectedTakerToken, expectedMakerToken],
+                    expectedTakerFillAmounts,
+                ),
+            );
+            expect(fillableAmounts).to.deep.eq(expectedMakerFillAmounts);
+        });
+
+        it('getUniswapV3BuyQuotes()', async () => {
+            const expectedTakerToken = randomAddress();
+            const expectedMakerToken = randomAddress();
+            const expectedTakerFillAmounts = getSampleAmounts(new BigNumber(10e18), 10);
+            const expectedMakerFillAmounts = getSampleAmounts(new BigNumber(100e18), 10);
+            const expectedGasUsageAmounts = Array.from({ length: 10 }, (_, __) => new BigNumber(10e6));
+            const sampler = new MockSamplerContract({
+                sampleBuysFromUniswapV3: (_router, path, fillAmounts) => {
+                    expect(path).to.deep.eq([expectedTakerToken, expectedMakerToken]);
+                    expect(fillAmounts).to.deep.eq(expectedMakerFillAmounts);
+
+                    return [path, expectedGasUsageAmounts, expectedTakerFillAmounts];
+                },
+            });
+            const dexOrderSampler = new DexOrderSampler(
+                chainId,
+                sampler,
+                undefined,
+                undefined,
+                undefined,
+                async () => undefined,
+            );
+            const uniswapV3Sampler = new UniswapV3Sampler(ChainId.Mainnet, sampler);
+
+            const [fillableAmounts] = await dexOrderSampler.executeAsync(
+                uniswapV3Sampler.createSampleBuysOperation(
+                    [expectedTakerToken, expectedMakerToken],
+                    expectedMakerFillAmounts,
+                ),
+            );
+            expect(fillableAmounts).to.deep.eq(expectedTakerFillAmounts);
         });
 
         it('getUniswapBuyQuotes()', async () => {
