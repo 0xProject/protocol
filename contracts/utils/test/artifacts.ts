@@ -22,7 +22,6 @@ import * as LibBytesRichErrorsV08 from '../test/generated-artifacts/LibBytesRich
 import * as LibBytesV06 from '../test/generated-artifacts/LibBytesV06.json';
 import * as LibBytesV08 from '../test/generated-artifacts/LibBytesV08.json';
 import * as LibFractions from '../test/generated-artifacts/LibFractions.json';
-import * as LibMath from '../test/generated-artifacts/LibMath.json';
 import * as LibMathRichErrors from '../test/generated-artifacts/LibMathRichErrors.json';
 import * as LibMathRichErrorsV06 from '../test/generated-artifacts/LibMathRichErrorsV06.json';
 import * as LibMathRichErrorsV08 from '../test/generated-artifacts/LibMathRichErrorsV08.json';
@@ -48,7 +47,6 @@ import * as OwnableV08 from '../test/generated-artifacts/OwnableV08.json';
 import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
-import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
 import * as TestLibRichErrors from '../test/generated-artifacts/TestLibRichErrors.json';
 import * as TestLibSafeMath from '../test/generated-artifacts/TestLibSafeMath.json';
 import * as TestOwnable from '../test/generated-artifacts/TestOwnable.json';
@@ -58,7 +56,6 @@ export const artifacts = {
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
     LibFractions: LibFractions as ContractArtifact,
-    LibMath: LibMath as ContractArtifact,
     LibMathRichErrors: LibMathRichErrors as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibReentrancyGuardRichErrors: LibReentrancyGuardRichErrors as ContractArtifact,
@@ -96,10 +93,7 @@ export const artifacts = {
     LibSafeMathRichErrorsV08: LibSafeMathRichErrorsV08 as ContractArtifact,
     IAuthorizableV08: IAuthorizableV08 as ContractArtifact,
     IOwnableV08: IOwnableV08 as ContractArtifact,
-    TestLibAddress: TestLibAddress as ContractArtifact,
-    TestLibAddressArray: TestLibAddressArray as ContractArtifact,
     TestLibBytes: TestLibBytes as ContractArtifact,
-    TestLibMath: TestLibMath as ContractArtifact,
     TestLibRichErrors: TestLibRichErrors as ContractArtifact,
     TestLibSafeMath: TestLibSafeMath as ContractArtifact,
     TestOwnable: TestOwnable as ContractArtifact,
