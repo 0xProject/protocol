@@ -51,7 +51,6 @@ import * as OwnableV08 from '../test/generated-artifacts/OwnableV08.json';
 import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.json';
 import * as ReentrancyGuardV06 from '../test/generated-artifacts/ReentrancyGuardV06.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
-import * as Refundable from '../test/generated-artifacts/Refundable.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
 import * as TestLibEIP712 from '../test/generated-artifacts/TestLibEIP712.json';
 import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
@@ -78,7 +77,6 @@ export const artifacts = {
     LibSafeMathRichErrors: LibSafeMathRichErrors as ContractArtifact,
     Ownable: Ownable as ContractArtifact,
     ReentrancyGuard: ReentrancyGuard as ContractArtifact,
-    Refundable: Refundable as ContractArtifact,
     IOwnable: IOwnable as ContractArtifact,
     AuthorizableV06: AuthorizableV06 as ContractArtifact,
     LibBytesV06: LibBytesV06 as ContractArtifact,

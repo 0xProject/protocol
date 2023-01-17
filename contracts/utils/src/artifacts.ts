@@ -21,7 +21,6 @@ import * as LibSafeMath from '../generated-artifacts/LibSafeMath.json';
 import * as LibSafeMathRichErrors from '../generated-artifacts/LibSafeMathRichErrors.json';
 import * as Ownable from '../generated-artifacts/Ownable.json';
 import * as ReentrancyGuard from '../generated-artifacts/ReentrancyGuard.json';
-import * as Refundable from '../generated-artifacts/Refundable.json';
 export const artifacts = {
     IOwnable: IOwnable as ContractArtifact,
     LibAuthorizableRichErrors: LibAuthorizableRichErrors as ContractArtifact,
@@ -39,5 +38,4 @@ export const artifacts = {
     LibSafeMathRichErrors: LibSafeMathRichErrors as ContractArtifact,
     Ownable: Ownable as ContractArtifact,
     ReentrancyGuard: ReentrancyGuard as ContractArtifact,
-    Refundable: Refundable as ContractArtifact,
 };
