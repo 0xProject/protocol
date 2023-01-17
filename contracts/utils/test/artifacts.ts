@@ -22,7 +22,6 @@ import * as LibBytesRichErrorsV08 from '../test/generated-artifacts/LibBytesRich
 import * as LibBytesV06 from '../test/generated-artifacts/LibBytesV06.json';
 import * as LibBytesV08 from '../test/generated-artifacts/LibBytesV08.json';
 import * as LibEIP1271 from '../test/generated-artifacts/LibEIP1271.json';
-import * as LibEIP712 from '../test/generated-artifacts/LibEIP712.json';
 import * as LibFractions from '../test/generated-artifacts/LibFractions.json';
 import * as LibMath from '../test/generated-artifacts/LibMath.json';
 import * as LibMathRichErrors from '../test/generated-artifacts/LibMathRichErrors.json';
@@ -64,7 +63,6 @@ export const artifacts = {
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
     LibEIP1271: LibEIP1271 as ContractArtifact,
-    LibEIP712: LibEIP712 as ContractArtifact,
     LibFractions: LibFractions as ContractArtifact,
     LibMath: LibMath as ContractArtifact,
     LibMathRichErrors: LibMathRichErrors as ContractArtifact,
