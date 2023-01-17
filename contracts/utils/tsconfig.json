@@ -78,7 +78,6 @@
         "test/generated-artifacts/ReentrancyGuardV06.json",
         "test/generated-artifacts/ReentrancyGuardV08.json",
         "test/generated-artifacts/Refundable.json",
-        "test/generated-artifacts/TestAuthorizable.json",
         "test/generated-artifacts/TestLibAddress.json",
         "test/generated-artifacts/TestLibAddressArray.json",
         "test/generated-artifacts/TestLibBytes.json",

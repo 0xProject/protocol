@@ -58,7 +58,6 @@ import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.js
 import * as ReentrancyGuardV06 from '../test/generated-artifacts/ReentrancyGuardV06.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
 import * as Refundable from '../test/generated-artifacts/Refundable.json';
-import * as TestAuthorizable from '../test/generated-artifacts/TestAuthorizable.json';
 import * as TestLibAddress from '../test/generated-artifacts/TestLibAddress.json';
 import * as TestLibAddressArray from '../test/generated-artifacts/TestLibAddressArray.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
@@ -126,7 +125,6 @@ export const artifacts = {
     LibSafeMathRichErrorsV08: LibSafeMathRichErrorsV08 as ContractArtifact,
     IAuthorizableV08: IAuthorizableV08 as ContractArtifact,
     IOwnableV08: IOwnableV08 as ContractArtifact,
-    TestAuthorizable: TestAuthorizable as ContractArtifact,
     TestLibAddress: TestLibAddress as ContractArtifact,
     TestLibAddressArray: TestLibAddressArray as ContractArtifact,
     TestLibBytes: TestLibBytes as ContractArtifact,
