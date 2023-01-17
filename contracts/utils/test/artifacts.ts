@@ -21,7 +21,6 @@ import * as LibBytesRichErrorsV06 from '../test/generated-artifacts/LibBytesRich
 import * as LibBytesRichErrorsV08 from '../test/generated-artifacts/LibBytesRichErrorsV08.json';
 import * as LibBytesV06 from '../test/generated-artifacts/LibBytesV06.json';
 import * as LibBytesV08 from '../test/generated-artifacts/LibBytesV08.json';
-import * as LibEIP1271 from '../test/generated-artifacts/LibEIP1271.json';
 import * as LibFractions from '../test/generated-artifacts/LibFractions.json';
 import * as LibMath from '../test/generated-artifacts/LibMath.json';
 import * as LibMathRichErrors from '../test/generated-artifacts/LibMathRichErrors.json';
@@ -59,7 +58,6 @@ export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
-    LibEIP1271: LibEIP1271 as ContractArtifact,
     LibFractions: LibFractions as ContractArtifact,
     LibMath: LibMath as ContractArtifact,
     LibMathRichErrors: LibMathRichErrors as ContractArtifact,
@@ -86,7 +84,6 @@ export const artifacts = {
     LibSafeMathRichErrorsV06: LibSafeMathRichErrorsV06 as ContractArtifact,
     IAuthorizableV06: IAuthorizableV06 as ContractArtifact,
     IOwnableV06: IOwnableV06 as ContractArtifact,
-<<<<<<< HEAD
     AuthorizableV08: AuthorizableV08 as ContractArtifact,
     LibBytesV08: LibBytesV08 as ContractArtifact,
     LibMathV08: LibMathV08 as ContractArtifact,
@@ -103,8 +100,6 @@ export const artifacts = {
     IOwnableV08: IOwnableV08 as ContractArtifact,
     TestLibAddress: TestLibAddress as ContractArtifact,
     TestLibAddressArray: TestLibAddressArray as ContractArtifact,
-=======
->>>>>>> bf542a443 (Remove contracts/utils LibAddress contracts)
     TestLibBytes: TestLibBytes as ContractArtifact,
     TestLibMath: TestLibMath as ContractArtifact,
     TestLibRichErrors: TestLibRichErrors as ContractArtifact,
