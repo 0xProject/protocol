@@ -19,8 +19,6 @@ export * from '../test/generated-wrappers/lib_bytes_rich_errors_v06';
 export * from '../test/generated-wrappers/lib_bytes_rich_errors_v08';
 export * from '../test/generated-wrappers/lib_bytes_v06';
 export * from '../test/generated-wrappers/lib_bytes_v08';
-export * from '../test/generated-wrappers/lib_fractions';
-export * from '../test/generated-wrappers/lib_math_rich_errors';
 export * from '../test/generated-wrappers/lib_math_rich_errors_v06';
 export * from '../test/generated-wrappers/lib_math_rich_errors_v08';
 export * from '../test/generated-wrappers/lib_math_v06';

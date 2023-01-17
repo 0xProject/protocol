@@ -21,7 +21,6 @@ import * as LibBytesRichErrorsV06 from '../test/generated-artifacts/LibBytesRich
 import * as LibBytesRichErrorsV08 from '../test/generated-artifacts/LibBytesRichErrorsV08.json';
 import * as LibBytesV06 from '../test/generated-artifacts/LibBytesV06.json';
 import * as LibBytesV08 from '../test/generated-artifacts/LibBytesV08.json';
-import * as LibMathRichErrors from '../test/generated-artifacts/LibMathRichErrors.json';
 import * as LibMathRichErrorsV06 from '../test/generated-artifacts/LibMathRichErrorsV06.json';
 import * as LibMathRichErrorsV08 from '../test/generated-artifacts/LibMathRichErrorsV08.json';
 import * as LibMathV06 from '../test/generated-artifacts/LibMathV06.json';
@@ -54,7 +53,6 @@ export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
-    LibMathRichErrors: LibMathRichErrors as ContractArtifact,
     LibOwnableRichErrors: LibOwnableRichErrors as ContractArtifact,
     LibReentrancyGuardRichErrors: LibReentrancyGuardRichErrors as ContractArtifact,
     LibRichErrors: LibRichErrors as ContractArtifact,
