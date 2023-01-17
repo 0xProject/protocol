@@ -1,21 +1,17 @@
 import { ChainId, ContractAddresses } from '@0x/contract-addresses';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import {
-    encodeAffiliateFeeTransformerData,
     encodeCurveLiquidityProviderData,
     encodeFillQuoteTransformerData,
     encodePayTakerTransformerData,
-    encodePositiveSlippageFeeTransformerData,
-    encodeWethTransformerData,
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
 } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 
-import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../constants';
+import { constants } from '../constants';
 import {
-    AffiliateFeeType,
     CalldataInfo,
     ExchangeProxyContractOpts,
     MarketBuySwapQuote,
@@ -47,20 +43,16 @@ import {
 import {
     createExchangeProxyWithoutProvider,
     getFQTTransformerDataFromOptimizedOrders,
+    getMaxQuoteSlippageRate,
     getTransformerNonces,
-    isBuyQuote,
     isDirectSwapCompatible,
     isMultiplexBatchFillCompatible,
     isMultiplexMultiHopFillCompatible,
     requiresTransformERC20,
 } from './quote_consumer_utils';
 import { TransformerNonces } from './types';
-
-// Transformation of `TransformERC20` feature.
-interface ERC20Transformation {
-    deploymentNonce: number;
-    data: string;
-}
+import { FeatureRuleRegistryImpl } from './feature_rules/feature_rule_registry';
+import { FeatureRuleRegistry } from './feature_rules/types';
 
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
@@ -78,14 +70,16 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
     public static create(chainId: ChainId, contractAddresses: ContractAddresses): ExchangeProxySwapQuoteConsumer {
         const exchangeProxy = createExchangeProxyWithoutProvider(contractAddresses.exchangeProxy);
         const transformerNonces = getTransformerNonces(contractAddresses);
-        return new ExchangeProxySwapQuoteConsumer(chainId, contractAddresses, exchangeProxy, transformerNonces);
+        // NOTES: consider injecting registry instead of relying on FeatureRuleRegistryImpl.
+        const featureRuleRegistry = FeatureRuleRegistryImpl.create(chainId, contractAddresses);
+        return new ExchangeProxySwapQuoteConsumer(chainId, exchangeProxy, transformerNonces, featureRuleRegistry);
     }
 
     private constructor(
         private readonly chainId: ChainId,
-        private readonly contractAddresses: ContractAddresses,
         private readonly exchangeProxy: IZeroExContract,
         private readonly transformerNonces: TransformerNonces,
+        private readonly featureRuleRegistry: FeatureRuleRegistry,
     ) {}
 
     public getCalldataOrThrow(
@@ -96,7 +90,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
             ...opts,
         };
-        const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = optsWithDefaults;
+        const { isFromETH, isToETH } = optsWithDefaults;
 
         const sellToken = quote.takerToken;
         const buyToken = quote.makerToken;
@@ -105,7 +99,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             quote.bestCaseQuoteInfo.totalTakerAmount,
             quote.worstCaseQuoteInfo.totalTakerAmount,
         );
-        let minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
+        const minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
         let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
 
         if (isFromETH) {
@@ -347,179 +341,9 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
             };
         }
 
-        // Build up the transformations.
-        const transformations = [] as ERC20Transformation[];
-        // Create a WETH wrapper if coming from ETH.
-        // Don't add the wethTransformer to CELO. There is no wrap/unwrap logic for CELO.
-        if (isFromETH && this.chainId !== ChainId.Celo) {
-            transformations.push({
-                deploymentNonce: this.transformerNonces.wethTransformer,
-                data: encodeWethTransformerData({
-                    token: ETH_TOKEN_ADDRESS,
-                    amount: shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                }),
-            });
-        }
+        // TODO(kyu-c): move the rest of the feature calldata generation logic to the rule/registry.
 
-        // If it's two hop we have an intermediate token this is needed to encode the individual FQT
-        // and we also want to ensure no dust amount is left in the flash wallet
-        const intermediateToken = quote.path.hasTwoHop() ? slippedOrders[0].makerToken : NULL_ADDRESS;
-        // This transformer will fill the quote.
-        if (quote.path.hasTwoHop()) {
-            const [firstHopOrder, secondHopOrder] = slippedOrders;
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
-                }),
-            });
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    buyToken,
-                    sellToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([secondHopOrder]),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: MAX_UINT256,
-                }),
-            });
-        } else {
-            const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken,
-                    ...getFQTTransformerDataFromOptimizedOrders(slippedOrders),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
-                }),
-            });
-        }
-        // Create a WETH unwrapper if going to ETH.
-        // Dont add the wethTransformer on CELO. There is no wrap/unwrap logic for CELO.
-        if (isToETH && this.chainId !== ChainId.Celo) {
-            transformations.push({
-                deploymentNonce: this.transformerNonces.wethTransformer,
-                data: encodeWethTransformerData({
-                    token: NATIVE_FEE_TOKEN_BY_CHAIN_ID[this.chainId],
-                    amount: MAX_UINT256,
-                }),
-            });
-        }
-
-        const { feeType, buyTokenFeeAmount, sellTokenFeeAmount, recipient: feeRecipient } = affiliateFee;
-        let gasOverhead = ZERO_AMOUNT;
-        if (feeType === AffiliateFeeType.PositiveSlippageFee && feeRecipient !== NULL_ADDRESS) {
-            // bestCaseAmountWithSurplus is used to cover gas cost of sending positive slipapge fee to fee recipient
-            // this helps avoid sending dust amounts which are not worth the gas cost to transfer
-            let bestCaseAmountWithSurplus = quote.bestCaseQuoteInfo.makerAmount
-                .plus(
-                    POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
-                        quote.makerAmountPerEth,
-                    ),
-                )
-                .integerValue();
-            // In the event makerAmountPerEth is unknown, we only allow for positive slippage which is greater than
-            // the best case amount
-            bestCaseAmountWithSurplus = BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount);
-            transformations.push({
-                deploymentNonce: this.transformerNonces.positiveSlippageFeeTransformer,
-                data: encodePositiveSlippageFeeTransformerData({
-                    token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                    bestCaseAmount: BigNumber.max(bestCaseAmountWithSurplus, quote.bestCaseQuoteInfo.makerAmount),
-                    recipient: feeRecipient,
-                }),
-            });
-            // This may not be visible at eth_estimateGas time, so we explicitly add overhead
-            gasOverhead = POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS;
-        } else if (feeType === AffiliateFeeType.PercentageFee && feeRecipient !== NULL_ADDRESS) {
-            // This transformer pays affiliate fees.
-            if (buyTokenFeeAmount.isGreaterThan(0)) {
-                transformations.push({
-                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
-                    data: encodeAffiliateFeeTransformerData({
-                        fees: [
-                            {
-                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                                amount: buyTokenFeeAmount,
-                                recipient: feeRecipient,
-                            },
-                        ],
-                    }),
-                });
-                // Adjust the minimum buy amount by the fee.
-                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
-            }
-            if (sellTokenFeeAmount.isGreaterThan(0)) {
-                throw new Error('Affiliate fees denominated in sell token are not yet supported');
-            }
-        } else if (feeType === AffiliateFeeType.GaslessFee && feeRecipient !== NULL_ADDRESS) {
-            if (buyTokenFeeAmount.isGreaterThan(0)) {
-                transformations.push({
-                    deploymentNonce: this.transformerNonces.affiliateFeeTransformer,
-                    data: encodeAffiliateFeeTransformerData({
-                        fees: [
-                            {
-                                token: isToETH ? ETH_TOKEN_ADDRESS : buyToken,
-                                amount: buyTokenFeeAmount,
-                                recipient: feeRecipient,
-                            },
-                        ],
-                    }),
-                });
-                // Adjust the minimum buy amount by the fee.
-                minBuyAmount = BigNumber.max(0, minBuyAmount.minus(buyTokenFeeAmount));
-            }
-            if (sellTokenFeeAmount.isGreaterThan(0)) {
-                throw new Error('Affiliate fees denominated in sell token are not yet supported');
-            }
-        }
-
-        // Return any unspent sell tokens.
-        const payTakerTokens = [sellToken];
-        // Return any unspent intermediate tokens for two-hop swaps.
-        if (quote.path.hasTwoHop()) {
-            payTakerTokens.push(intermediateToken);
-        }
-        // Return any unspent ETH. If ETH is the buy token, it will
-        // be returned in TransformERC20Feature rather than PayTakerTransformer.
-        if (!isToETH) {
-            payTakerTokens.push(ETH_TOKEN_ADDRESS);
-        }
-        // The final transformer will send all funds to the taker.
-        transformations.push({
-            deploymentNonce: this.transformerNonces.payTakerTransformer,
-            data: encodePayTakerTransformerData({
-                tokens: payTakerTokens,
-                amounts: [],
-            }),
-        });
-        const TO_ETH_ADDRESS = this.chainId === ChainId.Celo ? this.contractAddresses.etherToken : ETH_TOKEN_ADDRESS;
-        const calldataHexString = this.exchangeProxy
-            .transformERC20(
-                isFromETH ? ETH_TOKEN_ADDRESS : sellToken,
-                isToETH ? TO_ETH_ADDRESS : buyToken,
-                shouldSellEntireBalance ? MAX_UINT256 : sellAmount,
-                minBuyAmount,
-                transformations,
-            )
-            .getABIEncodedTransactionData();
-
-        return {
-            calldataHexString,
-            ethAmount,
-            toAddress: this.exchangeProxy.address,
-            allowanceTarget: this.exchangeProxy.address,
-            gasOverhead,
-        };
+        return this.featureRuleRegistry.getTransformErc20Rule().createCalldata(quote, optsWithDefaults);
     }
 
     private encodeMultiplexBatchFillCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): string {
@@ -695,8 +519,4 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
                 .getABIEncodedTransactionData();
         }
     }
-}
-
-function getMaxQuoteSlippageRate(quote: MarketBuySwapQuote | MarketSellSwapQuote): number {
-    return quote.worstCaseQuoteInfo.slippage;
 }

@@ -118,9 +118,10 @@ export function isDirectSwapCompatible(
     return true;
 }
 
-/**
- * Whether a quote is a market buy or not.
- */
+export function getMaxQuoteSlippageRate(quote: SwapQuote): number {
+    return quote.worstCaseQuoteInfo.slippage;
+}
+
 export function isBuyQuote(quote: SwapQuote): quote is MarketBuySwapQuote {
     return quote.type === MarketOperation.Buy;
 }
