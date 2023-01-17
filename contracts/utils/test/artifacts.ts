@@ -13,9 +13,6 @@ import * as IAuthorizableV08 from '../test/generated-artifacts/IAuthorizableV08.
 import * as IOwnable from '../test/generated-artifacts/IOwnable.json';
 import * as IOwnableV06 from '../test/generated-artifacts/IOwnableV06.json';
 import * as IOwnableV08 from '../test/generated-artifacts/IOwnableV08.json';
-import * as LibAddress from '../test/generated-artifacts/LibAddress.json';
-import * as LibAddressArray from '../test/generated-artifacts/LibAddressArray.json';
-import * as LibAddressArrayRichErrors from '../test/generated-artifacts/LibAddressArrayRichErrors.json';
 import * as LibAuthorizableRichErrors from '../test/generated-artifacts/LibAuthorizableRichErrors.json';
 import * as LibAuthorizableRichErrorsV06 from '../test/generated-artifacts/LibAuthorizableRichErrorsV06.json';
 import * as LibAuthorizableRichErrorsV08 from '../test/generated-artifacts/LibAuthorizableRichErrorsV08.json';
@@ -55,8 +52,6 @@ import * as ReentrancyGuard from '../test/generated-artifacts/ReentrancyGuard.js
 import * as ReentrancyGuardV06 from '../test/generated-artifacts/ReentrancyGuardV06.json';
 import * as ReentrancyGuardV08 from '../test/generated-artifacts/ReentrancyGuardV08.json';
 import * as Refundable from '../test/generated-artifacts/Refundable.json';
-import * as TestLibAddress from '../test/generated-artifacts/TestLibAddress.json';
-import * as TestLibAddressArray from '../test/generated-artifacts/TestLibAddressArray.json';
 import * as TestLibBytes from '../test/generated-artifacts/TestLibBytes.json';
 import * as TestLibEIP712 from '../test/generated-artifacts/TestLibEIP712.json';
 import * as TestLibMath from '../test/generated-artifacts/TestLibMath.json';
@@ -70,9 +65,6 @@ import * as TestRefundable from '../test/generated-artifacts/TestRefundable.json
 import * as TestRefundableReceiver from '../test/generated-artifacts/TestRefundableReceiver.json';
 export const artifacts = {
     DeploymentConstants: DeploymentConstants as ContractArtifact,
-    LibAddress: LibAddress as ContractArtifact,
-    LibAddressArray: LibAddressArray as ContractArtifact,
-    LibAddressArrayRichErrors: LibAddressArrayRichErrors as ContractArtifact,
     LibAuthorizableRichErrors: LibAuthorizableRichErrors as ContractArtifact,
     LibBytes: LibBytes as ContractArtifact,
     LibBytesRichErrors: LibBytesRichErrors as ContractArtifact,
@@ -105,6 +97,7 @@ export const artifacts = {
     LibSafeMathRichErrorsV06: LibSafeMathRichErrorsV06 as ContractArtifact,
     IAuthorizableV06: IAuthorizableV06 as ContractArtifact,
     IOwnableV06: IOwnableV06 as ContractArtifact,
+<<<<<<< HEAD
     AuthorizableV08: AuthorizableV08 as ContractArtifact,
     LibBytesV08: LibBytesV08 as ContractArtifact,
     LibMathV08: LibMathV08 as ContractArtifact,
@@ -121,6 +114,8 @@ export const artifacts = {
     IOwnableV08: IOwnableV08 as ContractArtifact,
     TestLibAddress: TestLibAddress as ContractArtifact,
     TestLibAddressArray: TestLibAddressArray as ContractArtifact,
+=======
+>>>>>>> bf542a443 (Remove contracts/utils LibAddress contracts)
     TestLibBytes: TestLibBytes as ContractArtifact,
     TestLibEIP712: TestLibEIP712 as ContractArtifact,
     TestLibMath: TestLibMath as ContractArtifact,
