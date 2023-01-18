@@ -1,4 +1,4 @@
-import { Orderbook, SignedNativeOrder } from '../asset-swapper';
+import { Orderbook, SignedLimitOrder } from '../asset-swapper';
 
 export class NoOpOrderbook extends Orderbook {
     constructor() {
@@ -8,15 +8,15 @@ export class NoOpOrderbook extends Orderbook {
     public async getOrdersAsync(
         _makerToken: string,
         _takerToken: string,
-        _pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[]> {
+        _pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[]> {
         return [];
     }
     public async getBatchOrdersAsync(
         _makerTokens: string[],
         _takerToken: string,
-        _pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[][]> {
+        _pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[][]> {
         return [];
     }
     public async destroyAsync(): Promise<void> {

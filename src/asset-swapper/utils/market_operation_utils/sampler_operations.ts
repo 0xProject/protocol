@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import { UniswapV3Sampler } from '../../../samplers/uniswapv3_sampler';
 
 import { ERC20BridgeSamplerContract } from '../../../wrappers';
-import { SamplerCallResult, SignedNativeOrder, ERC20BridgeSource, FeeSchedule } from '../../types';
+import { SamplerCallResult, ERC20BridgeSource, FeeSchedule, SignedLimitOrder } from '../../types';
 import { TokenAdjacencyGraph } from '../token_adjacency_graph';
 
 import { AaveReservesCache, AaveV3Reserve, AaveV2Reserve } from './aave_reserves_cache';
@@ -217,7 +217,7 @@ export class SamplerOperations {
     }
 
     public getLimitOrderFillableTakerAmounts(
-        orders: SignedNativeOrder[],
+        orders: SignedLimitOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         // Skip checking empty or invalid orders on-chain, returning a constant
@@ -236,7 +236,7 @@ export class SamplerOperations {
     }
 
     public getLimitOrderFillableMakerAmounts(
-        orders: SignedNativeOrder[],
+        orders: SignedLimitOrder[],
         exchangeAddress: string,
     ): BatchedOperation<BigNumber[]> {
         // Skip checking empty or invalid orders on-chain, returning a constant

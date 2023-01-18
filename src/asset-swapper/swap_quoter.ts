@@ -15,7 +15,6 @@ import {
     MarketOperation,
     OrderPrunerPermittedFeeTypes,
     RfqRequestOpts,
-    SignedNativeOrder,
     SwapQuote,
     SwapQuoteRequestOpts,
     SwapQuoterOpts,
@@ -36,6 +35,7 @@ import { GasPriceUtils } from './utils/gas_price_utils';
 import { QuoteRequestor } from './utils/quote_requestor';
 import { assert } from './utils/utils';
 import { calculateQuoteInfo } from './utils/quote_info';
+import { SignedLimitOrder } from '../asset-swapper';
 
 export class SwapQuoter {
     public readonly provider: ZeroExProvider;
@@ -230,7 +230,7 @@ export class SwapQuoter {
         makerToken: string,
         takerToken: string,
         opts: GetMarketOrdersOpts,
-    ): Promise<SignedNativeOrder[]> {
+    ): Promise<SignedLimitOrder[]> {
         const requestFilters = new SourceFilters([], opts.excludedSources, opts.includedSources);
         const sourceFilter = side === MarketOperation.Sell ? this._sellSources : this._buySources;
         const quoteFilter = sourceFilter.merge(requestFilters);
@@ -242,7 +242,7 @@ export class SwapQuoter {
         return await this.orderbook.getOrdersAsync(makerToken, takerToken, this._limitOrderPruningFn);
     }
 
-    private readonly _limitOrderPruningFn = (limitOrder: SignedNativeOrder) => {
+    private readonly _limitOrderPruningFn = (limitOrder: SignedLimitOrder) => {
         const order = new LimitOrder(limitOrder.order);
         const isOpenOrder = order.taker === constants.NULL_ADDRESS;
         const willOrderExpire = order.willExpire(this.expiryBufferMs / constants.ONE_SECOND_MS);

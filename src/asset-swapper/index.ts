@@ -27,6 +27,7 @@ export {
     RfqRequestOpts,
     SamplerOverrides,
     SignedNativeOrder,
+    SignedLimitOrder,
     SwapQuote,
     SwapQuoteConsumer,
     SwapQuoteSourceBreakdown,

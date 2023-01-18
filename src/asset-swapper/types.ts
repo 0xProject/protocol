@@ -729,18 +729,17 @@ export interface OptimizedOrdersByType {
     bridgeOrders: readonly OptimizedMarketBridgeOrder[];
 }
 
-// TODO: `SignedNativeOrder` should be `SignedLimitOrder`.
 export abstract class Orderbook {
     public abstract getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[]>;
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[]>;
     public abstract getBatchOrdersAsync(
         makerTokens: string[],
         takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[][]>;
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[][]>;
     public async destroyAsync(): Promise<void> {
         return;
     }

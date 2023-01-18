@@ -10,12 +10,12 @@ import {
     AssetSwapperContractAddresses,
     MarketOperation,
     NativeOrderWithFillableAmounts,
-    SignedNativeOrder,
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     ExtendedQuoteReportSources,
     PriceComparisonsReport,
     QuoteReport,
+    SignedLimitOrder,
 } from '../../types';
 import { getAltMarketInfo } from '../alt_mm_implementation_utils';
 import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../quote_requestor';
@@ -147,7 +147,7 @@ export class MarketOperationUtils {
      * Gets the liquidity available for a market sell operation
      * @param makerToken Maker token address
      * @param takerToken Taker token address
-     * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
+     * @param limitOrders Native limit orders.
      * @param takerAmount Amount of taker asset to sell.
      * @param opts Options object.
      * @return MarketSideLiquidity.
@@ -155,7 +155,7 @@ export class MarketOperationUtils {
     public async getMarketSellLiquidityAsync(
         makerToken: string,
         takerToken: string,
-        nativeOrders: SignedNativeOrder[],
+        limitOrders: SignedLimitOrder[],
         takerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -174,7 +174,7 @@ export class MarketOperationUtils {
             this._sampler.getGasLeft(),
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableTakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            this._sampler.getLimitOrderFillableTakerAmounts(limitOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> maker token price.
             this._sampler.getBestNativeTokenSellRate(
                 this._feeSources,
@@ -248,7 +248,7 @@ export class MarketOperationUtils {
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
 
         const isRfqSupported = !!(_opts.rfqt && !isTxOriginContract);
-        const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
+        const limitOrdersWithFillableAmounts = limitOrders.map((order, i) => ({
             ...order,
             ...getNativeAdjustedFillableAmountsFromTakerAmount(order, orderFillableTakerAmounts[i]),
         }));
@@ -278,7 +278,7 @@ export class MarketOperationUtils {
      * Gets the liquidity available for a market buy operation
      * @param makerToken Maker token address
      * @param takerToken Taker token address
-     * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
+     * @param limitOrders Native limit orders
      * @param makerAmount Amount of maker asset to buy.
      * @param opts Options object.
      * @return MarketSideLiquidity.
@@ -286,7 +286,7 @@ export class MarketOperationUtils {
     public async getMarketBuyLiquidityAsync(
         makerToken: string,
         takerToken: string,
-        nativeOrders: SignedNativeOrder[],
+        limitOrders: SignedLimitOrder[],
         makerAmount: BigNumber,
         opts?: Partial<GetMarketOrdersOpts>,
     ): Promise<MarketSideLiquidity> {
@@ -305,7 +305,7 @@ export class MarketOperationUtils {
             this._sampler.getGasLeft(),
             this._sampler.getTokenDecimals([makerToken, takerToken]),
             // Get native order fillable amounts.
-            this._sampler.getLimitOrderFillableMakerAmounts(nativeOrders, this.contractAddresses.exchangeProxy),
+            this._sampler.getLimitOrderFillableMakerAmounts(limitOrders, this.contractAddresses.exchangeProxy),
             // Get ETH -> makerToken token price.
             this._sampler.getBestNativeTokenSellRate(
                 this._feeSources,
@@ -378,7 +378,7 @@ export class MarketOperationUtils {
         const [makerTokenDecimals, takerTokenDecimals] = tokenDecimals;
         const isRfqSupported = !isTxOriginContract;
 
-        const limitOrdersWithFillableAmounts = nativeOrders.map((order, i) => ({
+        const limitOrdersWithFillableAmounts = limitOrders.map((order, i) => ({
             ...order,
             ...getNativeAdjustedFillableAmountsFromMakerAmount(order, orderFillableMakerAmounts[i]),
         }));
@@ -466,13 +466,10 @@ export class MarketOperationUtils {
         };
     }
 
-    /**
-     * @param nativeOrders: Assumes LimitOrders not RfqOrders
-     */
     public async getOptimizerResultAsync(
         makerToken: string,
         takerToken: string,
-        nativeOrders: SignedNativeOrder[],
+        limitOrders: SignedLimitOrder[],
         amount: BigNumber,
         side: MarketOperation,
         opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
@@ -492,7 +489,7 @@ export class MarketOperationUtils {
             marketSideLiquidity = await this.getMarketSellLiquidityAsync(
                 makerToken,
                 takerToken,
-                nativeOrders,
+                limitOrders,
                 amount,
                 _opts,
             );
@@ -500,7 +497,7 @@ export class MarketOperationUtils {
             marketSideLiquidity = await this.getMarketBuyLiquidityAsync(
                 makerToken,
                 takerToken,
-                nativeOrders,
+                limitOrders,
                 amount,
                 _opts,
             );

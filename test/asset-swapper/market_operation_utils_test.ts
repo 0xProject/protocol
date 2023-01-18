@@ -78,21 +78,21 @@ const MAKER_URI = 'https://foo.bar';
 /**
  * gets the orders required for a market sell operation by (potentially) merging native orders with
  * generated bridge orders.
- * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
+ * @param limitOrders Native limit orders.
  * @param takerAmount Amount of taker asset to sell.
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
 async function getMarketSellOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: SignedNativeOrder[],
+    limitOrders: SignedLimitOrder[],
     takerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
     return utils.getOptimizerResultAsync(
         MAKER_TOKEN,
         TAKER_TOKEN,
-        nativeOrders,
+        limitOrders,
         takerAmount,
         MarketOperation.Sell,
         opts,
@@ -102,25 +102,18 @@ async function getMarketSellOrdersAsync(
 /**
  * gets the orders required for a market buy operation by (potentially) merging native orders with
  * generated bridge orders.
- * @param nativeOrders Native orders. Assumes LimitOrders not RfqOrders
+ * @param limitOrders Native limit orders.
  * @param makerAmount Amount of maker asset to buy.
  * @param opts Options object.
  * @return object with optimized orders and a QuoteReport
  */
 async function getMarketBuyOrdersAsync(
     utils: MarketOperationUtils,
-    nativeOrders: SignedNativeOrder[],
+    limitOrders: SignedLimitOrder[],
     makerAmount: BigNumber,
     opts: Partial<GetMarketOrdersOpts> & { gasPrice: BigNumber },
 ): Promise<OptimizerResultWithReport> {
-    return utils.getOptimizerResultAsync(
-        MAKER_TOKEN,
-        TAKER_TOKEN,
-        nativeOrders,
-        makerAmount,
-        MarketOperation.Buy,
-        opts,
-    );
+    return utils.getOptimizerResultAsync(MAKER_TOKEN, TAKER_TOKEN, limitOrders, makerAmount, MarketOperation.Buy, opts);
 }
 
 function toRfqClientV1Price(order: SignedLimitOrder): RfqClientV1Price {

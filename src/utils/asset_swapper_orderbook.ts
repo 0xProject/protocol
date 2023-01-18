@@ -1,4 +1,4 @@
-import { FillQuoteTransformerOrderType, Orderbook, SignedNativeOrder } from '../asset-swapper';
+import { FillQuoteTransformerOrderType, Orderbook, SignedLimitOrder } from '../asset-swapper';
 import { DEFAULT_PAGE, DEFAULT_PER_PAGE } from '../constants';
 import { OrderBookService } from '../services/orderbook_service';
 import { SRAOrder } from '../types';
@@ -11,8 +11,8 @@ export class AssetSwapperOrderbook extends Orderbook {
     public async getOrdersAsync(
         makerToken: string,
         takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[]> {
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[]> {
         const apiOrders = await this.orderbookService.getOrdersAsync(
             DEFAULT_PAGE,
             DEFAULT_PER_PAGE,
@@ -30,14 +30,14 @@ export class AssetSwapperOrderbook extends Orderbook {
     public async getBatchOrdersAsync(
         makerTokens: string[],
         takerToken: string,
-        pruneFn?: (o: SignedNativeOrder) => boolean,
-    ): Promise<SignedNativeOrder[][]> {
+        pruneFn?: (o: SignedLimitOrder) => boolean,
+    ): Promise<SignedLimitOrder[][]> {
         const apiOrders = await this.orderbookService.getBatchOrdersAsync(DEFAULT_PAGE, DEFAULT_PER_PAGE, makerTokens, [
             takerToken,
         ]);
         const orders = apiOrders.records.map(apiOrderToOrderbookOrder);
         const pruned = pruneFn ? orders.filter(pruneFn) : orders;
-        const groupedByMakerToken: SignedNativeOrder[][] = makerTokens.map((token) =>
+        const groupedByMakerToken: SignedLimitOrder[][] = makerTokens.map((token) =>
             pruned.filter((o) => o.order.makerToken === token),
         );
         return groupedByMakerToken;
@@ -47,7 +47,7 @@ export class AssetSwapperOrderbook extends Orderbook {
     }
 }
 
-function apiOrderToOrderbookOrder(apiOrder: SRAOrder): SignedNativeOrder {
+function apiOrderToOrderbookOrder(apiOrder: SRAOrder): SignedLimitOrder {
     const { signature, ...orderRest } = apiOrder.order;
 
     return {
