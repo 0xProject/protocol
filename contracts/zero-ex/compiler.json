@@ -116,7 +116,6 @@
         "./contracts/src/transformers/bridges/CeloBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/EthereumBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/EthereumBridgeAdapterGroup1.sol",
-        "./contracts/src/transformers/bridges/EthereumBridgeAdapterV2.sol",
         "./contracts/src/transformers/bridges/FantomBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/IBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/OptimismBridgeAdapter.sol",
