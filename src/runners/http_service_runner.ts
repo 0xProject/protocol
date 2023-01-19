@@ -11,12 +11,12 @@ import {
     SENTRY_SAMPLE_RATE,
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
-import { META_TRANSACTION_PATH, ORDERBOOK_PATH, SRA_PATH, SWAP_PATH } from '../constants';
+import { META_TRANSACTION_V1_PATH, ORDERBOOK_PATH, SRA_PATH, SWAP_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { addressNormalizer } from '../middleware/address_normalizer';
 import { errorHandler } from '../middleware/error_handling';
-import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
+import { createMetaTransactionV1Router } from '../routers/meta_transaction_router';
 import { createOrderBookRouter } from '../routers/orderbook_router';
 import { createSRARouter } from '../routers/sra_router';
 import { createSwapRouter } from '../routers/swap_router';
@@ -76,7 +76,7 @@ export async function runHttpServiceAsync(
             app: app,
             dsn: SENTRY_DSN,
             environment: SENTRY_ENVIRONMENT,
-            paths: [SRA_PATH, ORDERBOOK_PATH, META_TRANSACTION_PATH, SWAP_PATH],
+            paths: [SRA_PATH, ORDERBOOK_PATH, META_TRANSACTION_V1_PATH, SWAP_PATH],
             sampleRate: SENTRY_SAMPLE_RATE,
             tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
         };
@@ -104,7 +104,7 @@ export async function runHttpServiceAsync(
 
     // metatxn http service
     if (dependencies.metaTransactionService) {
-        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
+        app.use(META_TRANSACTION_V1_PATH, createMetaTransactionV1Router(dependencies.metaTransactionService));
     } else {
         logger.error(`API running without meta transactions service`);
     }

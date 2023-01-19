@@ -22,7 +22,7 @@ import {
 } from '../errors';
 import { logger } from '../logger';
 import { schemas } from '../schemas';
-import { MetaTransactionPriceResponse, MetaTransactionQuoteRequestParams, IMetaTransactionService } from '../types';
+import { MetaTransactionV1PriceResponse, MetaTransactionV1QuoteRequestParams, IMetaTransactionService } from '../types';
 import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { parseUtils } from '../utils/parse_utils';
 import { schemaUtils } from '../utils/schema_utils';
@@ -42,11 +42,11 @@ export class MetaTransactionHandlers {
     /**
      * Handler for the /meta_transaction/v1/quote endpoint
      */
-    public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+    public async getV1QuoteAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema);
 
         // parse query params
-        const params = parseRequestParams(req);
+        const params = parseV1RequestParams(req);
         const { buyTokenAddress, sellTokenAddress } = params;
         const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
 
@@ -56,7 +56,7 @@ export class MetaTransactionHandlers {
         }
 
         try {
-            const metaTransactionQuote = await this._metaTransactionService.getMetaTransactionQuoteAsync({
+            const metaTransactionQuote = await this._metaTransactionService.getMetaTransactionV1QuoteAsync({
                 ...params,
                 isETHBuy,
                 isETHSell: false,
@@ -104,10 +104,10 @@ export class MetaTransactionHandlers {
     /**
      * Handler for the /meta_transaction/v1/price endpoint
      */
-    public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
+    public async getV1PriceAsync(req: express.Request, res: express.Response): Promise<void> {
         schemaUtils.validateSchema(req.query, schemas.metaTransactionQuoteRequestSchema);
         // parse query params
-        const params = parseRequestParams(req);
+        const params = parseV1RequestParams(req);
         const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
@@ -117,14 +117,14 @@ export class MetaTransactionHandlers {
         const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
 
         try {
-            const metaTransactionPriceCalculation = await this._metaTransactionService.getMetaTransactionPriceAsync({
+            const metaTransactionPriceCalculation = await this._metaTransactionService.getMetaTransactionV1PriceAsync({
                 ...params,
                 from: params.takerAddress,
                 isETHBuy,
                 isETHSell: false,
             });
 
-            const metaTransactionPriceResponse: MetaTransactionPriceResponse = {
+            const metaTransactionPriceResponse: MetaTransactionV1PriceResponse = {
                 ..._.omit(metaTransactionPriceCalculation, 'orders', 'quoteReport', 'estimatedGasTokenRefund'),
                 value: metaTransactionPriceCalculation.protocolFee,
                 gas: metaTransactionPriceCalculation.estimatedGas,
@@ -169,7 +169,7 @@ export class MetaTransactionHandlers {
     }
 }
 
-function parseRequestParams(req: express.Request): MetaTransactionQuoteRequestParams {
+function parseV1RequestParams(req: express.Request): MetaTransactionV1QuoteRequestParams {
     const affiliateAddress = req.query.affiliateAddress as string | undefined;
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);

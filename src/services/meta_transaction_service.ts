@@ -7,12 +7,12 @@ import { ContractAddresses, AffiliateFeeType, NATIVE_FEE_TOKEN_BY_CHAIN_ID } fro
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, KAFKA_BROKERS, META_TX_EXPIRATION_BUFFER_MS } from '../config';
 import { AFFILIATE_DATA_SELECTOR, NULL_ADDRESS, ONE_GWEI, ONE_SECOND_MS, ZERO } from '../constants';
 import {
-    MetaTransactionQuoteParams,
+    MetaTransactionV1QuoteParams,
     GetSwapQuoteResponse,
-    MetaTransactionQuoteResponse,
+    MetaTransactionV1QuoteResponse,
     AffiliateFee,
     IMetaTransactionService,
-    MetaTransactionQuoteResult,
+    MetaTransactionV1QuoteResult,
 } from '../types';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
@@ -37,13 +37,15 @@ export class MetaTransactionService implements IMetaTransactionService {
         this._swapService = swapService;
     }
 
-    public async getMetaTransactionPriceAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResult> {
+    public async getMetaTransactionV1PriceAsync(
+        params: MetaTransactionV1QuoteParams,
+    ): Promise<MetaTransactionV1QuoteResult> {
         return this._getMetaTransactionQuoteAsync(params, 'price');
     }
 
-    public async getMetaTransactionQuoteAsync(
-        params: MetaTransactionQuoteParams,
-    ): Promise<MetaTransactionQuoteResponse> {
+    public async getMetaTransactionV1QuoteAsync(
+        params: MetaTransactionV1QuoteParams,
+    ): Promise<MetaTransactionV1QuoteResponse> {
         const quote = await this._getMetaTransactionQuoteAsync(params, 'quote');
 
         const commonQuoteFields = {
@@ -108,9 +110,9 @@ export class MetaTransactionService implements IMetaTransactionService {
     }
 
     private async _getMetaTransactionQuoteAsync(
-        params: MetaTransactionQuoteParams,
+        params: MetaTransactionV1QuoteParams,
         endpoint: 'price' | 'quote',
-    ): Promise<MetaTransactionQuoteResult> {
+    ): Promise<MetaTransactionV1QuoteResult> {
         const wrappedNativeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
 
         const affiliateFee: AffiliateFee = {

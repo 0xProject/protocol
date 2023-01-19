@@ -11,11 +11,11 @@ import {
     SENTRY_SAMPLE_RATE,
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
-import { META_TRANSACTION_PATH } from '../constants';
+import { META_TRANSACTION_V1_PATH } from '../constants';
 import { rootHandler } from '../handlers/root_handler';
 import { logger } from '../logger';
 import { errorHandler } from '../middleware/error_handling';
-import { createMetaTransactionRouter } from '../routers/meta_transaction_router';
+import { createMetaTransactionV1Router } from '../routers/meta_transaction_router';
 import { SentryInit, SentryOptions } from '../sentry';
 import { HttpServiceConfig, AppDependencies } from '../types';
 import { providerUtils } from '../utils/provider_utils';
@@ -61,7 +61,7 @@ async function runHttpServiceAsync(
             app: app,
             dsn: SENTRY_DSN,
             environment: SENTRY_ENVIRONMENT,
-            paths: [META_TRANSACTION_PATH],
+            paths: [META_TRANSACTION_V1_PATH],
             sampleRate: SENTRY_SAMPLE_RATE,
             tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
         };
@@ -74,7 +74,7 @@ async function runHttpServiceAsync(
     app.get('/', rootHandler);
 
     if (dependencies.metaTransactionService) {
-        app.use(META_TRANSACTION_PATH, createMetaTransactionRouter(dependencies.metaTransactionService));
+        app.use(META_TRANSACTION_V1_PATH, createMetaTransactionV1Router(dependencies.metaTransactionService));
     } else {
         logger.error(`Could not run meta transaction service, exiting`);
         process.exit(1);

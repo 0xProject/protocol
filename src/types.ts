@@ -249,7 +249,7 @@ export type GetSwapPriceResponse = BasePriceResponse;
 /**
  * Response type for /meta_transaction/v1/quote endpoint
  */
-export interface MetaTransactionQuoteResponse extends BasePriceResponse {
+export interface MetaTransactionV1QuoteResponse extends BasePriceResponse {
     metaTransactionHash: string;
     metaTransaction: ExchangeProxyMetaTransaction;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
@@ -259,7 +259,7 @@ export interface MetaTransactionQuoteResponse extends BasePriceResponse {
 /**
  * Response type for the /meta_transaction/v1/price endpoint
  */
-export type MetaTransactionPriceResponse = BasePriceResponse;
+export type MetaTransactionV1PriceResponse = BasePriceResponse;
 
 // Request params
 
@@ -267,7 +267,7 @@ export type MetaTransactionPriceResponse = BasePriceResponse;
  * Request type for /meta_transaction/v1/price and /meta_transaction/v1/quote.
  * Reflected in `meta_transaction_quote_request_schema.json`.
  */
-export interface MetaTransactionQuoteRequestParams extends SwapQuoteParamsBase {
+export interface MetaTransactionV1QuoteRequestParams extends SwapQuoteParamsBase {
     buyTokenAddress: string;
     integratorId: string;
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
@@ -278,7 +278,7 @@ export interface MetaTransactionQuoteRequestParams extends SwapQuoteParamsBase {
 /**
  * Parameters for the Meta Transaction Service price and quote functions.
  */
-export interface MetaTransactionQuoteParams extends SwapQuoteParamsBase {
+export interface MetaTransactionV1QuoteParams extends SwapQuoteParamsBase {
     buyTokenAddress: string;
     from: string;
     integratorId: string;
@@ -337,7 +337,7 @@ export interface Integrator {
     slippageModel?: boolean;
 }
 
-export interface MetaTransactionQuoteResult extends QuoteBase {
+export interface MetaTransactionV1QuoteResult extends QuoteBase {
     buyTokenAddress: string;
     callData: string;
     sellTokenAddress: string;
@@ -345,8 +345,8 @@ export interface MetaTransactionQuoteResult extends QuoteBase {
 }
 
 export interface IMetaTransactionService {
-    getMetaTransactionPriceAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResult>;
-    getMetaTransactionQuoteAsync(params: MetaTransactionQuoteParams): Promise<MetaTransactionQuoteResponse>;
+    getMetaTransactionV1PriceAsync(params: MetaTransactionV1QuoteParams): Promise<MetaTransactionV1QuoteResult>;
+    getMetaTransactionV1QuoteAsync(params: MetaTransactionV1QuoteParams): Promise<MetaTransactionV1QuoteResponse>;
 }
 
 export interface IOrderBookService {
