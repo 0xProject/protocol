@@ -13,6 +13,9 @@ import {
     AffiliateFee,
     IMetaTransactionService,
     MetaTransactionV1QuoteResult,
+    MetaTransactionV2QuoteParams,
+    MetaTransactionV2QuoteResponse,
+    MetaTransactionV2QuoteResult,
 } from '../types';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { SwapService } from './swap_service';
@@ -35,6 +38,60 @@ export class MetaTransactionService implements IMetaTransactionService {
     constructor(swapService: SwapService, contractAddresses: ContractAddresses) {
         this._exchangeProxyAddress = contractAddresses.exchangeProxy;
         this._swapService = swapService;
+    }
+
+    /**
+     * Get meta-transaction v2 price. The function is currently a copy of (with minor modifications) `getMetaTransactionPriceAsync` for scaffolding.
+     */
+    public async getMetaTransactionV2PriceAsync(
+        params: MetaTransactionV2QuoteParams,
+    ): Promise<MetaTransactionV2QuoteResult> {
+        return this._getMetaTransactionV2QuoteAsync(params, 'price');
+    }
+
+    /**
+     * Get meta-transaction v2 quote. The function is currently a copy of (with minor modifications) `getMetaTransactionQuoteAsync` for scaffolding.
+     */
+    public async getMetaTransactionV2QuoteAsync(
+        params: MetaTransactionV2QuoteParams,
+    ): Promise<MetaTransactionV2QuoteResponse> {
+        const quote = await this._getMetaTransactionV2QuoteAsync(params, 'quote');
+
+        const commonQuoteFields = {
+            chainId: quote.chainId,
+            price: quote.price,
+            estimatedPriceImpact: quote.estimatedPriceImpact,
+            sellTokenAddress: params.sellTokenAddress,
+            buyTokenAddress: params.buyTokenAddress,
+            buyAmount: quote.buyAmount,
+            sellAmount: quote.sellAmount,
+            sources: quote.sources,
+            gasPrice: quote.gasPrice,
+            estimatedGas: quote.estimatedGas,
+            gas: quote.estimatedGas,
+            protocolFee: quote.protocolFee,
+            minimumProtocolFee: quote.minimumProtocolFee,
+            value: quote.protocolFee,
+            allowanceTarget: quote.allowanceTarget,
+            sellTokenToEthRate: quote.sellTokenToEthRate,
+            buyTokenToEthRate: quote.buyTokenToEthRate,
+        };
+
+        // Generate meta-transaction
+        // TODO(vic): Update to meta-transaction v2 when it's ready
+        const metaTransaction = this._generateExchangeProxyMetaTransaction(
+            quote.callData,
+            quote.taker,
+            normalizeGasPrice(quote.gasPrice),
+            ZERO, // protocol fee
+        );
+
+        const metaTransactionHash = getExchangeProxyMetaTransactionHash(metaTransaction);
+        return {
+            ...commonQuoteFields,
+            metaTransaction,
+            metaTransactionHash,
+        };
     }
 
     public async getMetaTransactionV1PriceAsync(
@@ -106,6 +163,79 @@ export class MetaTransactionService implements IMetaTransactionService {
                 chainId: CHAIN_ID,
                 verifyingContract: this._exchangeProxyAddress,
             },
+        };
+    }
+
+    /**
+     * Internal function to get meta-transaction v2 quote. The function is currently a copy of (with minor modifications) `_getMetaTransactionQuoteAsync` for scaffolding.
+     */
+    private async _getMetaTransactionV2QuoteAsync(
+        params: MetaTransactionV2QuoteParams,
+        endpoint: 'price' | 'quote',
+    ): Promise<MetaTransactionV2QuoteResult> {
+        const wrappedNativeToken = NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID];
+
+        const quoteParams = {
+            ...params,
+            // NOTE: Internally all ETH trades are for WETH, we just wrap/unwrap automatically
+            buyToken: params.isETHBuy ? wrappedNativeToken : params.buyTokenAddress,
+            endpoint,
+            isMetaTransaction: true,
+            isUnwrap: false,
+            isWrap: false,
+            sellToken: params.sellTokenAddress,
+            shouldSellEntireBalance: false,
+            skipValidation: true,
+        };
+
+        const quote = await this._swapService.calculateSwapQuoteAsync(quoteParams);
+
+        // Quote Report
+        if (endpoint === 'quote' && quote.extendedQuoteReportSources && kafkaProducer) {
+            const quoteId = getQuoteIdFromSwapQuote(quote);
+            publishQuoteReport(
+                {
+                    quoteId,
+                    taker: params.takerAddress,
+                    quoteReportSources: quote.extendedQuoteReportSources,
+                    submissionBy: 'gaslessSwapAmm',
+                    decodedUniqueId: params.quoteUniqueId ? params.quoteUniqueId : quote.decodedUniqueId,
+                    buyTokenAddress: quote.buyTokenAddress,
+                    sellTokenAddress: quote.sellTokenAddress,
+                    buyAmount: params.buyAmount,
+                    sellAmount: params.sellAmount,
+                    integratorId: params.integratorId,
+                    blockNumber: quote.blockNumber,
+                    slippage: params.slippagePercentage,
+                    estimatedGas: quote.estimatedGas,
+                    enableSlippageProtection: false,
+                    expectedSlippage: quote.expectedSlippage,
+                    estimatedPriceImpact: quote.estimatedPriceImpact,
+                    priceImpactProtectionPercentage: params.priceImpactProtectionPercentage,
+                },
+                true,
+                kafkaProducer,
+            );
+        }
+
+        return {
+            chainId: quote.chainId,
+            price: quote.price,
+            estimatedPriceImpact: quote.estimatedPriceImpact,
+            gasPrice: quote.gasPrice,
+            protocolFee: quote.protocolFee,
+            sources: quote.sources,
+            buyAmount: quote.buyAmount,
+            sellAmount: quote.sellAmount,
+            estimatedGas: quote.estimatedGas,
+            allowanceTarget: quote.allowanceTarget,
+            sellTokenToEthRate: quote.sellTokenToEthRate,
+            buyTokenToEthRate: quote.buyTokenToEthRate,
+            callData: quote.data,
+            minimumProtocolFee: quote.protocolFee,
+            buyTokenAddress: params.buyTokenAddress,
+            sellTokenAddress: params.sellTokenAddress,
+            taker: params.takerAddress,
         };
     }
 

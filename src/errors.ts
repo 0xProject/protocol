@@ -62,6 +62,7 @@ export enum ValidationErrorReasons {
     FeeRecipientMissing = 'FEE_RECIPIENT_MISSING',
     MinSlippageTooLow = 'MINIMUM_SLIPPAGE_IS_TOO_LOW',
     PriceImpactTooHigh = 'PRICE_IMPACT_TOO_HIGH',
+    InvalidGaslessFeeType = 'INVALID_GASLESS_FEE_TYPE',
 }
 
 export class ExpiredOrderError extends AlertError {

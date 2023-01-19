@@ -257,9 +257,26 @@ export interface MetaTransactionV1QuoteResponse extends BasePriceResponse {
 }
 
 /**
+ * Response type for /meta_transaction/v2/quote endpoint
+ */
+export interface MetaTransactionV2QuoteResponse extends BasePriceResponse {
+    metaTransactionHash: string;
+    // TODO(vic): Update to MetaTransactionV2 when it's ready
+    metaTransaction: ExchangeProxyMetaTransaction;
+    fees?: GaslessFees;
+}
+
+/**
  * Response type for the /meta_transaction/v1/price endpoint
  */
 export type MetaTransactionV1PriceResponse = BasePriceResponse;
+
+/**
+ * Response type for the /meta_transaction/v2/price endpoint
+ */
+export interface MetaTransactionV2PriceResponse extends BasePriceResponse {
+    fees?: GaslessFees;
+}
 
 // Request params
 
@@ -276,7 +293,14 @@ export interface MetaTransactionV1QuoteRequestParams extends SwapQuoteParamsBase
 }
 
 /**
- * Parameters for the Meta Transaction Service price and quote functions.
+ * Request type for /meta_transaction/v2/price and /meta_transaction/v2/quote
+ */
+export interface MetaTransactionV2QuoteRequestParams extends MetaTransactionV1QuoteRequestParams {
+    feeConfigs?: GaslessFeeConfigs;
+}
+
+/**
+ * Parameters for the V1 Meta Transaction Service price and quote functions.
  */
 export interface MetaTransactionV1QuoteParams extends SwapQuoteParamsBase {
     buyTokenAddress: string;
@@ -287,6 +311,13 @@ export interface MetaTransactionV1QuoteParams extends SwapQuoteParamsBase {
     quoteUniqueId?: string; // ID to use for the quote report `decodedUniqueId`
     sellTokenAddress: string;
     takerAddress: string;
+}
+
+/**
+ * Parameters for the V2 Meta Transaction Service price and quote functions.
+ */
+export interface MetaTransactionV2QuoteParams extends MetaTransactionV1QuoteParams {
+    feeConfigs?: GaslessFeeConfigs;
 }
 
 /** End /swap types */
@@ -344,9 +375,15 @@ export interface MetaTransactionV1QuoteResult extends QuoteBase {
     taker: string;
 }
 
+export interface MetaTransactionV2QuoteResult extends MetaTransactionV1QuoteResult {
+    fees?: GaslessFees;
+}
+
 export interface IMetaTransactionService {
     getMetaTransactionV1PriceAsync(params: MetaTransactionV1QuoteParams): Promise<MetaTransactionV1QuoteResult>;
     getMetaTransactionV1QuoteAsync(params: MetaTransactionV1QuoteParams): Promise<MetaTransactionV1QuoteResponse>;
+    getMetaTransactionV2PriceAsync(params: MetaTransactionV2QuoteParams): Promise<MetaTransactionV2QuoteResult>;
+    getMetaTransactionV2QuoteAsync(params: MetaTransactionV2QuoteParams): Promise<MetaTransactionV2QuoteResponse>;
 }
 
 export interface IOrderBookService {
@@ -435,4 +472,59 @@ export interface RfqtV2Request {
     takerAddress: string;
     takerToken: string;
     txOrigin: string;
+}
+
+interface GaslessFeeConfigBase {
+    feeRecipient: string | null;
+}
+
+interface VolumeBasedFeeConfig extends GaslessFeeConfigBase {
+    type: 'volume';
+    volumePercentage: BigNumber;
+}
+
+interface GasFeeConfig extends GaslessFeeConfigBase {
+    type: 'gas';
+}
+
+interface IntegratorShareFeeConfig extends GaslessFeeConfigBase {
+    type: 'integrator_share';
+    integratorSharePercentage: BigNumber;
+}
+
+// Gasless fee configs passed to /meta_transaction/v2/price and /meta_transaction/v2/quote
+export interface GaslessFeeConfigs {
+    integratorFee?: VolumeBasedFeeConfig;
+    zeroexFee?: VolumeBasedFeeConfig | IntegratorShareFeeConfig;
+    gasFee?: GasFeeConfig;
+}
+
+interface GaslessFeeBase {
+    feeToken: string;
+    feeAmount: BigNumber;
+    feeRecipient: string | null;
+}
+
+interface VolumeBasedFee extends GaslessFeeBase {
+    type: 'volume';
+    volumePercentage: BigNumber;
+}
+
+interface GasFee extends GaslessFeeBase {
+    type: 'gas';
+    gasPrice: BigNumber;
+    estimatedGas: BigNumber;
+    feeTokenAmountPerBaseUnitNativeToken: BigNumber;
+}
+
+interface IntegratorShareFee extends GaslessFeeBase {
+    type: 'integrator_share';
+    integratorSharePercentage: BigNumber;
+}
+
+// Gasless fees returned to the caller of /meta_transaction/v2/price and /meta_transaction/v2/quote
+interface GaslessFees {
+    integratorFee?: VolumeBasedFee;
+    zeroexFee?: VolumeBasedFee | IntegratorShareFee;
+    gasFee?: GasFee;
 }

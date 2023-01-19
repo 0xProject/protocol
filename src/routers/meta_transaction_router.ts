@@ -15,3 +15,14 @@ export const createMetaTransactionV1Router = (metaTransactionService: IMetaTrans
 
     return router;
 };
+
+export const createMetaTransactionV2Router = (metaTransactionService: IMetaTransactionService): express.Router => {
+    const router = express.Router();
+    const handlers = new MetaTransactionHandlers(metaTransactionService);
+
+    // V2 handlers
+    router.get('', asyncHandler(MetaTransactionHandlers.rootAsync.bind(MetaTransactionHandlers)));
+    router.post('/price', asyncHandler(handlers.getV2PriceAsync.bind(handlers)));
+    router.post('/quote', asyncHandler(handlers.getV2QuoteAsync.bind(handlers)));
+    return router;
+};

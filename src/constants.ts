@@ -33,6 +33,7 @@ export const DEFAULT_META_TX_MIN_ALLOWED_SLIPPAGE = 0.001;
 export const SRA_PATH = '/sra/v4';
 export const SWAP_PATH = '/swap/v1';
 export const META_TRANSACTION_V1_PATH = '/meta_transaction/v1';
+export const META_TRANSACTION_V2_PATH = '/meta_transaction/v2';
 export const METRICS_PATH = '/metrics';
 export const ORDERBOOK_PATH = '/orderbook/v1';
 export const HEALTHCHECK_PATH = '/healthz';
