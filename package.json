@@ -94,6 +94,6 @@
         "**/bignumber.js": "^9.0.2"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "^4.8.0"
+        "@openzeppelin/contracts": "^4.8.1"
     }
 }
