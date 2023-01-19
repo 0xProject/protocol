@@ -82,6 +82,16 @@ contract EthereumBridgeAdapterGroup1 is
         MixinUniswap(weth)
     {}
 
+
+    // function trade(
+    //     BridgeOrder memory order,
+    //     IERC20TokenV06 sellToken,
+    //     IERC20TokenV06 buyToken,
+    //     uint256 sellAmount
+    // ) public override returns (uint256 boughtAmount) {
+    //     (boughtAmount, ) = _trade(order, sellToken, buyToken, sellAmount, false);
+    // }
+
     function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,

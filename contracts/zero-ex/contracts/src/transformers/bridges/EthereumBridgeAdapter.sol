@@ -50,7 +50,17 @@ contract EthereumBridgeAdapter is IBridgeAdapter {
     ) public override returns (uint256 boughtAmount) {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
         if (protocolId < ADAPTER_1_LENGTH) {
-          return adapter1.trade(order, sellToken, buyToken, sellAmount);
+          (bool success, bytes memory resultData) = address(adapter1).delegatecall(abi.encodeWithSelector(
+              IBridgeAdapter.trade.selector,
+              order,
+              sellToken,
+              buyToken,
+              sellAmount
+            )
+          );
+          if (success) {
+            return abi.decode(resultData, (uint256));
+          } 
         }
         revert("unknown protocolId");
     }
