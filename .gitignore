@@ -64,6 +64,7 @@ typings/
 
 # built library using in commonjs module syntax
 lib/
+
 # UMD bundles that export the global variable
 _bundles
 
@@ -98,7 +99,6 @@ out/
 contracts/zero-ex/typechain-wrappers/
 
 # foundry packages
-contracts/governance/lib/forge-std
 contracts/governance/cache
 contracts/governance/out
 

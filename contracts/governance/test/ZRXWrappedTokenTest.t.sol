@@ -45,7 +45,5 @@ contract ZRXWrappedTokenTest is BaseTest {
         wToken.depositFor(account2, 1e18);
     }
 
-    function testShouldBeAbleToUnwrapToZRX() public {
-
-    }
+    function testShouldBeAbleToUnwrapToZRX() public {}
 }
