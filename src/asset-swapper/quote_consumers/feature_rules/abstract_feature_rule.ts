@@ -12,7 +12,7 @@ export abstract class AbstractFeatureRule implements FeatureRule {
             quote.worstCaseQuoteInfo.totalTakerAmount,
         );
 
-        const ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount.plus(opts.isFromETH ? 0 : sellAmount);
+        const ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount.plus(opts.isFromETH ? sellAmount : 0);
         const maxSlippage = getMaxQuoteSlippageRate(quote);
 
         return {

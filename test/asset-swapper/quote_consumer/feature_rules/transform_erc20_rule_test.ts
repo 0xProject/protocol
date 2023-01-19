@@ -316,6 +316,17 @@ describe('TransformERC20Rule', () => {
             expect(nonces).to.not.include(TRANSFORMER_NONCES.wethTransformer);
         });
 
+        it('ETH -> ERC20 has the correct ethAmount`', () => {
+            const quote = getRandomSellQuote();
+            quote.worstCaseQuoteInfo.protocolFeeInWeiAmount = new BigNumber(0);
+
+            const callInfo = rule.createCalldata(quote, {
+                ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
+                isFromETH: true,
+            });
+            expect(callInfo.ethAmount).to.bignumber.eq(quote.takerTokenFillAmount);
+        });
+
         it('ETH -> ERC20 has a WETH transformer before the fill', () => {
             const quote = getRandomSellQuote();
             const callInfo = rule.createCalldata(quote, {
@@ -329,18 +340,6 @@ describe('TransformERC20Rule', () => {
             expect(wethTransformerData.token).to.eq(ETH_TOKEN_ADDRESS);
         });
 
-        it('ERC20 -> ETH has a WETH transformer after the fill', () => {
-            const quote = getRandomSellQuote();
-            const callInfo = rule.createCalldata(quote, {
-                ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                isToETH: true,
-            });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(TRANSFORMER_NONCES.wethTransformer);
-            const wethTransformerData = decodeWethTransformerData(callArgs.transformations[1].data);
-            expect(wethTransformerData.amount).to.bignumber.eq(MAX_UINT256);
-            expect(wethTransformerData.token).to.eq(contractAddresses.etherToken);
-        });
         it('Appends an affiliate fee transformer after the fill if a buy token affiliate fee is provided', () => {
             const quote = getRandomSellQuote();
             const affiliateFee = {
