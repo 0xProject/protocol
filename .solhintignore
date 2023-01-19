@@ -1,4 +1,9 @@
 contracts/erc20/contracts/src/ZRXToken.sol
-node_modules
-foundry-artifacts
-**/deps
+node_modules/
+lib
+deps
+generated-artifacts/
+generated-wrappers/
+foundry-artifacts/
+out/
+cache/
