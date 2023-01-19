@@ -135,3 +135,22 @@ jobs:
                   path: ./contracts/zero-ex/lcov.info
                   min_coverage: 6.98
                   exclude: '**/tests'
+
+            - name: Run Forge build on governance contracts
+                working-directory: contracts/governance
+                run: |
+                forge --version
+                forge build --sizes
+
+            - name: Run Forge tests on governance contracts
+                working-directory: contracts/governance
+                run: |
+                forge test -vvv --gas-report
+
+            - name: Run Forge coverage on governance contracts
+                working-directory: contracts/governance
+                run: |
+                forge coverage --report lcov
+
+
+
