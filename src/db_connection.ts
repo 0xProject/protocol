@@ -1,5 +1,6 @@
 import { Connection, createConnection } from 'typeorm';
-import { getOrmConfig } from './ormconfig';
+
+import ormConfig from './ormconfig';
 
 let connection: Connection | undefined;
 
@@ -8,7 +9,6 @@ export async function getDBConnection(): Promise<Connection | undefined> {
         return connection;
     }
 
-    const ormConfig = getOrmConfig();
     if (ormConfig === undefined) {
         return undefined;
     }

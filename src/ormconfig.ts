@@ -33,33 +33,31 @@ const entities = [
     OrderWatcherSignedOrderEntity,
 ];
 
-const config: ConnectionOptions = {
-    type: 'postgres',
-    entities,
-    synchronize: false,
-    logging: true,
-    logger: 'debug',
-    extra: {
-        max: 15,
-        statement_timeout: 10000,
-    },
-    migrations: ['./lib/migrations/*.js'],
-    ...(POSTGRES_READ_REPLICA_URIS
-        ? {
-              replication: {
-                  master: { url: POSTGRES_URI },
-                  slaves: POSTGRES_READ_REPLICA_URIS.map((r) => ({ url: r })),
+const config: ConnectionOptions | undefined =
+    POSTGRES_URI === undefined
+        ? undefined
+        : {
+              type: 'postgres',
+              entities,
+              synchronize: false,
+              logging: true,
+              logger: 'debug',
+              extra: {
+                  max: 15,
+                  statement_timeout: 10000,
               },
-          }
-        : { url: POSTGRES_URI }),
-    cli: {
-        migrationsDir: 'migrations',
-    },
-};
+              migrations: ['./lib/migrations/*.js'],
+              ...(POSTGRES_READ_REPLICA_URIS
+                  ? {
+                        replication: {
+                            master: { url: POSTGRES_URI },
+                            slaves: POSTGRES_READ_REPLICA_URIS.map((r) => ({ url: r })),
+                        },
+                    }
+                  : { url: POSTGRES_URI }),
+              cli: {
+                  migrationsDir: 'migrations',
+              },
+          };
 
-export function getOrmConfig(): ConnectionOptions | undefined {
-    if (POSTGRES_URI === undefined) {
-        return undefined;
-    }
-    return config;
-}
+export default config;
