@@ -109,40 +109,12 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         const maxSlippage = getMaxQuoteSlippageRate(quote);
         const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
 
-        // VIP routes.
-        if (
-            this.chainId === ChainId.Mainnet &&
-            isDirectSwapCompatible(quote.path, optsWithDefaults, [
-                ERC20BridgeSource.UniswapV2,
-                ERC20BridgeSource.SushiSwap,
-            ])
-        ) {
-            const source = slippedOrders[0].source;
-            const fillData = (slippedOrders[0] as OptimizedMarketBridgeOrder<UniswapV2FillData>).fillData;
-            return {
-                calldataHexString: this.exchangeProxy
-                    .sellToUniswap(
-                        fillData.tokenAddressPath.map((a, i) => {
-                            if (i === 0 && isFromETH) {
-                                return ETH_TOKEN_ADDRESS;
-                            }
-                            if (i === fillData.tokenAddressPath.length - 1 && isToETH) {
-                                return ETH_TOKEN_ADDRESS;
-                            }
-                            return a;
-                        }),
-                        sellAmount,
-                        minBuyAmount,
-                        source === ERC20BridgeSource.SushiSwap,
-                    )
-                    .getABIEncodedTransactionData(),
-                ethAmount: isFromETH ? sellAmount : ZERO_AMOUNT,
-                toAddress: this.exchangeProxy.address,
-                allowanceTarget: this.exchangeProxy.address,
-                gasOverhead: ZERO_AMOUNT,
-            };
+        const uniswapV2Rule = this.featureRuleRegistry.getUniswapV2Rule();
+        if (uniswapV2Rule.isCompatible(quote, optsWithDefaults)) {
+            return uniswapV2Rule.createCalldata(quote, optsWithDefaults);
         }
 
+        // VIP routes.
         if (
             this.chainId === ChainId.Mainnet &&
             isDirectSwapCompatible(quote.path, optsWithDefaults, [ERC20BridgeSource.UniswapV3])

@@ -10,18 +10,17 @@ import {
 } from '@0x/protocol-utils';
 import { AffiliateFeeType, CalldataInfo, ExchangeProxyContractOpts, SwapQuote } from '../../types';
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../../constants';
-import { FeatureRule } from './types';
 import { BigNumber } from '@0x/utils';
 import {
     createExchangeProxyWithoutProvider,
     getFQTTransformerDataFromOptimizedOrders,
-    getMaxQuoteSlippageRate,
     getTransformerNonces,
     isBuyQuote,
 } from '../quote_consumer_utils';
 import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '../../utils/market_operation_utils/constants';
 import { IZeroExContract } from '@0x/contract-wrappers';
 import { TransformerNonces } from '../types';
+import { AbstractFeatureRule } from './abstract_feature_rule';
 
 // Transformation of `TransformERC20` feature.
 interface ERC20Transformation {
@@ -32,7 +31,7 @@ interface ERC20Transformation {
 const { NULL_ADDRESS, ZERO_AMOUNT } = constants;
 const MAX_UINT256 = new BigNumber(2).pow(256).minus(1);
 
-export class TransformERC20Rule implements FeatureRule {
+export class TransformERC20Rule extends AbstractFeatureRule {
     public static create(chainId: ChainId, contractAddresses: ContractAddresses): TransformERC20Rule {
         return new TransformERC20Rule(
             chainId,
@@ -47,7 +46,9 @@ export class TransformERC20Rule implements FeatureRule {
         private readonly contractAddresses: ContractAddresses,
         private readonly exchangeProxy: IZeroExContract,
         private readonly transformerNonces: TransformerNonces,
-    ) {}
+    ) {
+        super();
+    }
 
     // TransformERC20 is the most generic feature that is compatible with all kinds of swaps.
     public isCompatible(): boolean {
@@ -57,21 +58,11 @@ export class TransformERC20Rule implements FeatureRule {
     public createCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): CalldataInfo {
         // TODO(kyu-c): further breakdown calldata creation logic.
         const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
-        const sellToken = quote.takerToken;
-        const buyToken = quote.makerToken;
-        // Take the bounds from the worst case
-        const sellAmount = BigNumber.max(
-            quote.bestCaseQuoteInfo.totalTakerAmount,
-            quote.worstCaseQuoteInfo.totalTakerAmount,
-        );
-        let minBuyAmount = quote.worstCaseQuoteInfo.makerAmount;
-        let ethAmount = quote.worstCaseQuoteInfo.protocolFeeInWeiAmount;
 
-        if (isFromETH) {
-            ethAmount = ethAmount.plus(sellAmount);
-        }
+        const swapContext = this.getSwapContext(quote, opts);
+        const { sellToken, buyToken, sellAmount, ethAmount, maxSlippage } = swapContext;
+        let minBuyAmount = swapContext.minBuyAmount;
 
-        const maxSlippage = getMaxQuoteSlippageRate(quote);
         const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
 
         // Build up the transformations.
