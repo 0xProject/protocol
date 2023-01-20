@@ -27,7 +27,7 @@ import {
     MetaTransactionV1PriceResponse,
     MetaTransactionV1QuoteRequestParams,
     IMetaTransactionService,
-    GaslessFeeConfigs,
+    FeeConfigs,
     MetaTransactionV2QuoteRequestParams,
     MetaTransactionV2PriceResponse,
 } from '../types';
@@ -456,8 +456,8 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
 /**
  * Parse the fee config param.
  */
-function _parseFeeConfigs(req: express.Request): GaslessFeeConfigs | undefined {
-    let parsedFeeConfigs: GaslessFeeConfigs | undefined;
+function _parseFeeConfigs(req: express.Request): FeeConfigs | undefined {
+    let parsedFeeConfigs: FeeConfigs | undefined;
 
     if (req.body.feeConfigs) {
         const feeConfigs = req.body.feeConfigs;

@@ -263,7 +263,7 @@ export interface MetaTransactionV2QuoteResponse extends BasePriceResponse {
     metaTransactionHash: string;
     // TODO(vic): Update to MetaTransactionV2 when it's ready
     metaTransaction: ExchangeProxyMetaTransaction;
-    fees?: GaslessFees;
+    fees?: Fees;
 }
 
 /**
@@ -275,7 +275,7 @@ export type MetaTransactionV1PriceResponse = BasePriceResponse;
  * Response type for the /meta_transaction/v2/price endpoint
  */
 export interface MetaTransactionV2PriceResponse extends BasePriceResponse {
-    fees?: GaslessFees;
+    fees?: Fees;
 }
 
 // Request params
@@ -296,7 +296,7 @@ export interface MetaTransactionV1QuoteRequestParams extends SwapQuoteParamsBase
  * Request type for /meta_transaction/v2/price and /meta_transaction/v2/quote
  */
 export interface MetaTransactionV2QuoteRequestParams extends MetaTransactionV1QuoteRequestParams {
-    feeConfigs?: GaslessFeeConfigs;
+    feeConfigs?: FeeConfigs;
 }
 
 /**
@@ -317,7 +317,7 @@ export interface MetaTransactionV1QuoteParams extends SwapQuoteParamsBase {
  * Parameters for the V2 Meta Transaction Service price and quote functions.
  */
 export interface MetaTransactionV2QuoteParams extends MetaTransactionV1QuoteParams {
-    feeConfigs?: GaslessFeeConfigs;
+    feeConfigs?: FeeConfigs;
 }
 
 /** End /swap types */
@@ -376,7 +376,7 @@ export interface MetaTransactionV1QuoteResult extends QuoteBase {
 }
 
 export interface MetaTransactionV2QuoteResult extends MetaTransactionV1QuoteResult {
-    fees?: GaslessFees;
+    fees?: Fees;
 }
 
 export interface IMetaTransactionService {
@@ -474,56 +474,56 @@ export interface RfqtV2Request {
     txOrigin: string;
 }
 
-interface GaslessFeeConfigBase {
+interface FeeConfigBase {
     feeRecipient: string | null;
 }
 
-interface VolumeBasedFeeConfig extends GaslessFeeConfigBase {
+export interface VolumeBasedFeeConfig extends FeeConfigBase {
     type: 'volume';
     volumePercentage: BigNumber;
 }
 
-interface GasFeeConfig extends GaslessFeeConfigBase {
+export interface GasFeeConfig extends FeeConfigBase {
     type: 'gas';
 }
 
-interface IntegratorShareFeeConfig extends GaslessFeeConfigBase {
+export interface IntegratorShareFeeConfig extends FeeConfigBase {
     type: 'integrator_share';
     integratorSharePercentage: BigNumber;
 }
 
-// Gasless fee configs passed to /meta_transaction/v2/price and /meta_transaction/v2/quote
-export interface GaslessFeeConfigs {
+// Fee configs passed to /meta_transaction/v2/price and /meta_transaction/v2/quote
+export interface FeeConfigs {
     integratorFee?: VolumeBasedFeeConfig;
     zeroexFee?: VolumeBasedFeeConfig | IntegratorShareFeeConfig;
     gasFee?: GasFeeConfig;
 }
 
-interface GaslessFeeBase {
+interface FeeBase {
     feeToken: string;
     feeAmount: BigNumber;
     feeRecipient: string | null;
 }
 
-interface VolumeBasedFee extends GaslessFeeBase {
+export interface VolumeBasedFee extends FeeBase {
     type: 'volume';
     volumePercentage: BigNumber;
 }
 
-interface GasFee extends GaslessFeeBase {
+export interface GasFee extends FeeBase {
     type: 'gas';
     gasPrice: BigNumber;
     estimatedGas: BigNumber;
     feeTokenAmountPerBaseUnitNativeToken: BigNumber;
 }
 
-interface IntegratorShareFee extends GaslessFeeBase {
+export interface IntegratorShareFee extends FeeBase {
     type: 'integrator_share';
     integratorSharePercentage: BigNumber;
 }
 
-// Gasless fees returned to the caller of /meta_transaction/v2/price and /meta_transaction/v2/quote
-interface GaslessFees {
+// Fees returned to the caller of /meta_transaction/v2/price and /meta_transaction/v2/quote
+export interface Fees {
     integratorFee?: VolumeBasedFee;
     zeroexFee?: VolumeBasedFee | IntegratorShareFee;
     gasFee?: GasFee;
