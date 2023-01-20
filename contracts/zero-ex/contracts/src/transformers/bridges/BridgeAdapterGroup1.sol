@@ -71,7 +71,7 @@ contract BridgeAdapterGroup1 is
     MixinZeroExBridge
 {
     constructor(
-        IEtherTokenV06 weth,
+        IEtherTokenV06 weth
     )
         public
         MixinBancor(weth)
