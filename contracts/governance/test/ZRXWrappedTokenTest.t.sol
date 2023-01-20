@@ -20,7 +20,7 @@ pragma solidity ^0.8.17;
 
 import "./BaseTest.sol";
 import "../src/ZRXWrappedToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract ZRXWrappedTokenTest is BaseTest {
     IERC20 public token;
@@ -29,19 +29,17 @@ contract ZRXWrappedTokenTest is BaseTest {
 
     function setUp() public {
         vm.startPrank(account1);
-
         token = IERC20(createZRXToken());
         token.transfer(account2, 100e18);
         token.transfer(account3, 100e18);
 
         wToken = new ZRXWrappedToken(token);
-
-        vm.stopPrank(account1);
+        vm.stopPrank();
     }
 
     function testShouldBeAbleToWrapZRX() public {
         vm.startPrank(account2);
-        token.approve(wToken.address, 1e18);
+        token.approve(address(wToken), 1e18);
         wToken.depositFor(account2, 1e18);
     }
 

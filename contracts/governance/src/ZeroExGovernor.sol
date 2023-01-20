@@ -18,12 +18,12 @@
 */
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/governance/Governor.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
-import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
+import "@openzeppelin/governance/Governor.sol";
+import "@openzeppelin/governance/extensions/GovernorSettings.sol";
+import "@openzeppelin/governance/extensions/GovernorCountingSimple.sol";
+import "@openzeppelin/governance/extensions/GovernorVotes.sol";
+import "@openzeppelin/governance/extensions/GovernorVotesQuorumFraction.sol";
+import "@openzeppelin/governance/extensions/GovernorTimelockControl.sol";
 
 /// @custom:security-contact security@0xproject.com
 contract ZeroExGovernor is

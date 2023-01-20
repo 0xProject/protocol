@@ -33,11 +33,12 @@ contract BaseTest is Test {
     }
 
     function createZRXToken() internal returns (address) {
-        bytes memory _bytecode = abi.encodePacked(vm.getCode("../../erc20/generated-artifacts/ZRXToken.json"));
+        bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
         address _address;
         assembly {
             _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
         }
+        console.log(address(_address));
         return address(_address);
     }
 }
