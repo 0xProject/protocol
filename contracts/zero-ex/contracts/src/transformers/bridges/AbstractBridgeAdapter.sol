@@ -23,16 +23,6 @@ pragma experimental ABIEncoderV2;
 import "./IBridgeAdapter.sol";
 
 abstract contract AbstractBridgeAdapter is IBridgeAdapter {
-    constructor(uint256 expectedChainId, string memory expectedChainName) public {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        // Allow testing on Ganache
-        if (chainId != expectedChainId && chainId != 1337) {
-            revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
-        }
-    }
 
     function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
         BridgeOrder memory placeholderOrder;

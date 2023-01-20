@@ -46,7 +46,7 @@ import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
 contract EthereumBridgeAdapterGroup1 is
-    AbstractBridgeAdapter(1, "Ethereum"),
+    AbstractBridgeAdapter,
     MixinAaveV2,
     MixinBalancer,
     MixinBalancerV2Batch,
@@ -71,7 +71,7 @@ contract EthereumBridgeAdapterGroup1 is
     MixinZeroExBridge
 {
     constructor(
-        IEtherTokenV06 weth
+        IEtherTokenV06 weth,
     )
         public
         MixinBancor(weth)
@@ -81,16 +81,6 @@ contract EthereumBridgeAdapterGroup1 is
         MixinLido(weth)
         MixinUniswap(weth)
     {}
-
-
-    // function trade(
-    //     BridgeOrder memory order,
-    //     IERC20TokenV06 sellToken,
-    //     IERC20TokenV06 buyToken,
-    //     uint256 sellAmount
-    // ) public override returns (uint256 boughtAmount) {
-    //     (boughtAmount, ) = _trade(order, sellToken, buyToken, sellAmount, false);
-    // }
 
     function _trade(
         BridgeOrder memory order,

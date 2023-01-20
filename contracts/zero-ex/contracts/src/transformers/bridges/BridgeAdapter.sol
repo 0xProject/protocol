@@ -23,13 +23,11 @@ pragma experimental ABIEncoderV2;
 import "./EthereumBridgeAdapterGroup1.sol";
 import "./IBridgeAdapter.sol";
 
-contract EthereumBridgeAdapter is IBridgeAdapter {
+contract BridgeAdapter is IBridgeAdapter {
     IBridgeAdapter private immutable adapter1;
     uint256 private constant ADAPTER_1_LENGTH = 33;
 
-    constructor(IEtherTokenV06 weth) public {
-        uint256 expectedChainId = 1;
-        string memory expectedChainName = "Ethereum";
+    constructor(IEtherTokenV06 weth, uint256 expectedChainId, string memory expectedChainName) public {
         uint256 chainId;
         assembly {
             chainId := chainid()
@@ -39,7 +37,7 @@ contract EthereumBridgeAdapter is IBridgeAdapter {
             revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
         }
 
-        adapter1 = new EthereumBridgeAdapterGroup1(weth); 
+        adapter1 = new BridgeAdapterGroup1(weth); 
     }
 
     function trade(
