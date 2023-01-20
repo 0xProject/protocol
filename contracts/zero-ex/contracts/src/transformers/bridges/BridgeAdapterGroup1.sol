@@ -45,7 +45,7 @@ import "./mixins/MixinUniswapV2.sol";
 import "./mixins/MixinUniswapV3.sol";
 import "./mixins/MixinZeroExBridge.sol";
 
-contract EthereumBridgeAdapterGroup1 is
+contract BridgeAdapterGroup1 is
     AbstractBridgeAdapter,
     MixinAaveV2,
     MixinBalancer,

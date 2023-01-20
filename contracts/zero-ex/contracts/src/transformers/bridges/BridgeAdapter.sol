@@ -20,7 +20,7 @@
 
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
-import "./EthereumBridgeAdapterGroup1.sol";
+import "./BridgeAdapterGroup1.sol";
 import "./IBridgeAdapter.sol";
 
 contract BridgeAdapter is IBridgeAdapter {
