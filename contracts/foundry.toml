@@ -6,7 +6,9 @@ libs = ["lib"]
 remappings = [
     '@0x/contracts-utils/=../node_modules/@0x/contracts-utils/',
     '@0x/contracts-erc20/=../node_modules/@0x/contracts-erc20/',
-    '@0x/contracts-zero-ex/=../node_modules/@0x/contracts-zero-ex/'
+    '@0x/contracts-zero-ex/=../node_modules/@0x/contracts-zero-ex/',
+    '@uniswap/v3-core/=../node_modules/@uniswap/v3-core/',
+    '@uniswap/v3-periphery/=../node_modules/@uniswap/v3-periphery/'
 ]
 allow_paths = ["../node_modules"]
 cache_path = 'foundry-cache'
