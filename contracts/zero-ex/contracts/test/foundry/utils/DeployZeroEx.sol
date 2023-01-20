@@ -66,7 +66,6 @@ contract DeployZeroEx is Test {
         BatchFillNativeOrdersFeature batchFillNativeOrdersFeature;
         OtcOrdersFeature otcOrdersFeature;
         UniswapFeature uniswapFeature;
-        // UniswapV3Feature
         FundRecoveryFeature fundRecoveryFeature;
         TransformERC20Feature transformERC20Feature;
         MetaTransactionsFeature metaTransactionsFeature;
@@ -87,9 +86,7 @@ contract DeployZeroEx is Test {
         TransformerDeployer transformerDeployer;
         FeeCollectorController feeCollectorController;
         IStaking staking; // address(0)
-        // Features
         Features features;
-        // Transformers
         Transformers transformers;
         IEtherTokenV06 weth;
     }

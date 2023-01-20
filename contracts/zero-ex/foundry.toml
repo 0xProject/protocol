@@ -12,7 +12,6 @@ remappings = [
     '@0x/contract-addresses/=../../packages/contract-addresses',
     'samplers/=contracts/test/samplers',
 ]
-cache_path = 'foundry-cache'
 optimizer_runs = 1000000
 fs_permissions = [
     { access = "read-write", path = "./contracts/test/foundry/addresses" },

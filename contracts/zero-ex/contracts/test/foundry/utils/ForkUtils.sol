@@ -188,10 +188,6 @@ contract ForkUtils is Test {
         assembly {
             chainId := chainid()
         }
-        if (chainId == uint256(address(0))) {
-            //ERROR: chainId not mapped
-            revert("CHAIN ID NOT MAPPED");
-        }
         if (chainId == 1) {
             return IBridgeAdapter(new EthereumBridgeAdapter(weth));
         } else if (chainId == 56) {
@@ -206,6 +202,10 @@ contract ForkUtils is Test {
             return IBridgeAdapter(new OptimismBridgeAdapter(weth));
         } else if (chainId == 42161) {
             return IBridgeAdapter(new ArbitrumBridgeAdapter(weth));
+        }
+        else {
+            //ERROR: chainId not mapped
+            revert("CHAIN ID NOT MAPPED");
         }
     }
 
