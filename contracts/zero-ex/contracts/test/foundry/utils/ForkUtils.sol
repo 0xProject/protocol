@@ -138,7 +138,7 @@ contract ForkUtils is Test {
     function readLiquiditySourceAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/SourceAddresses.json")
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/sourceAddresses.json")
         );
         sourcesJson = vm.readFile(path);
         return vm.readFile(path);
@@ -168,7 +168,7 @@ contract ForkUtils is Test {
     function readTokens() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/TokenAddresses.json")
+            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/tokenAddresses.json")
         );
         tokensJson = vm.readFile(path);
         return vm.readFile(path);

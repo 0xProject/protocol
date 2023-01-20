@@ -96,6 +96,20 @@ contract DeployZeroEx is Test {
 
     ZeroExDeployed ZERO_EX_DEPLOYED;
 
+    struct ZeroExDeployConfiguration {
+        address uniswapFactory;
+        address sushiswapFactory;
+        bytes32 uniswapPairInitCodeHash;
+        bytes32 sushiswapPairInitCodeHash;
+        bool logDeployed;
+    }
+
+    ZeroExDeployConfiguration ZERO_EX_DEPLOY_CONFIG;
+
+    constructor(ZeroExDeployConfiguration memory configuration) public {
+        ZERO_EX_DEPLOY_CONFIG = configuration;
+    }
+
     function getDeployedZeroEx() public returns (ZeroExDeployed memory) {
         if (!isDeployed) {
             deployZeroEx();
@@ -195,10 +209,10 @@ contract DeployZeroEx is Test {
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth,
             ILiquidityProviderSandbox(address(0)),
-            address(0), // uniswapFactory
-            address(0), // sushiswapFactory
-            bytes32(0), // uniswapPairInitCodeHash
-            bytes32(0) // sushiswapPairInitCodeHash
+            ZERO_EX_DEPLOY_CONFIG.uniswapFactory,
+            ZERO_EX_DEPLOY_CONFIG.sushiswapFactory,
+            ZERO_EX_DEPLOY_CONFIG.uniswapPairInitCodeHash,
+            ZERO_EX_DEPLOY_CONFIG.sushiswapPairInitCodeHash
         );
 
         initialMigration.initializeZeroEx(
@@ -300,7 +314,9 @@ contract DeployZeroEx is Test {
 
         ZERO_EX_DEPLOYED.zeroEx = IZERO_EX;
         isDeployed = true;
-        logDeployedZeroEx();
+        if (ZERO_EX_DEPLOY_CONFIG.logDeployed)
+            logDeployedZeroEx();
+
         return ZERO_EX_DEPLOYED;
     }
 }
