@@ -20,12 +20,17 @@
 
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
-import "./BridgeAdapterGroup1.sol";
 import "./IBridgeAdapter.sol";
+import "./BridgeProtocols.sol";
+import "./BridgeAdapterGroup1.sol";
+import "./BridgeAdapterGroup2.sol";
+
 
 contract BridgeAdapter is IBridgeAdapter {
     IBridgeAdapter private immutable adapter1;
-    uint256 private constant ADAPTER_1_LENGTH = 33;
+    IBridgeAdapter private immutable adapter2;
+    uint256 private constant ADAPTER_1_LAST_PROTOCOL_ID = 26;
+    uint256 private constant ADAPTER_2_LAST_PROTOCOL_ID = 32;
 
     constructor(IEtherTokenV06 weth, uint256 expectedChainId, string memory expectedChainName) public {
         uint256 chainId;
@@ -38,6 +43,7 @@ contract BridgeAdapter is IBridgeAdapter {
         }
 
         adapter1 = new BridgeAdapterGroup1(weth); 
+        adapter2 = new BridgeAdapterGroup2(weth);
     }
 
     function trade(
@@ -47,27 +53,37 @@ contract BridgeAdapter is IBridgeAdapter {
       uint256 sellAmount
     ) public override returns (uint256 boughtAmount) {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
-        if (protocolId < ADAPTER_1_LENGTH) {
-          (bool success, bytes memory resultData) = address(adapter1).delegatecall(abi.encodeWithSelector(
-              IBridgeAdapter.trade.selector,
-              order,
-              sellToken,
-              buyToken,
-              sellAmount
-            )
-          );
-          if (success) {
-            return abi.decode(resultData, (uint256));
-          } 
+
+        IBridgeAdapter adapter;
+        if (protocolId <= ADAPTER_1_LAST_PROTOCOL_ID) {
+          adapter = adapter1;
+        } else if (protocolId <= ADAPTER_2_LAST_PROTOCOL_ID) {
+          adapter = adapter2;
+        } else {
+          revert("unknown protocolId");
         }
-        revert("unknown protocolId");
+
+        (bool success, bytes memory resultData) = address(adapter).delegatecall(abi.encodeWithSelector(
+            IBridgeAdapter.trade.selector,
+            order,
+            sellToken,
+            buyToken,
+            sellAmount
+          )
+        );
+        if (success) {
+          return abi.decode(resultData, (uint256));
+        } 
     }
 
     function isSupportedSource(bytes32 source) external override returns (bool isSupported) {
         uint128 protocolId = uint128(uint256(source) >> 128);
-        if (protocolId < ADAPTER_1_LENGTH) {
+        if (protocolId <= ADAPTER_1_LAST_PROTOCOL_ID) {
           return adapter1.isSupportedSource(source);
+        } else if (protocolId <= ADAPTER_2_LAST_PROTOCOL_ID) {
+          return adapter2.isSupportedSource(source);
+        } else {
+          revert("unknown protocolId");
         }
-        revert("unknown protocolId");
     }
 }

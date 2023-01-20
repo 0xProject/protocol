@@ -82,8 +82,12 @@ contract MixinAaveV3 {
 
     bool private immutable _isL2;
 
-    constructor(bool isL2) public {
-        _isL2 = isL2;
+    constructor() public {
+        uint256 chain;
+        assembly { 
+            chain := chainid()
+        }
+        _isL2 = (chain == 42161 || chain == 10); // is arbitrum or optimism
     }
 
     function _tradeAaveV3(

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /*
 
-  Copyright 2022 ZeroEx Intl.
+  Copyright 2023 ZeroEx Intl.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -22,25 +22,29 @@ pragma experimental ABIEncoderV2;
 
 import "./AbstractBridgeAdapter.sol";
 import "./BridgeProtocols.sol";
-import "./mixins/MixinBalancerV2Batch.sol";
-import "./mixins/MixinCurve.sol";
-import "./mixins/MixinCurveV2.sol";
-import "./mixins/MixinNerve.sol";
-import "./mixins/MixinUniswapV2.sol";
-import "./mixins/MixinWOOFi.sol";
-import "./mixins/MixinZeroExBridge.sol";
 
-contract FantomBridgeAdapter is
-    AbstractBridgeAdapter(250, "Fantom"),
-    MixinBalancerV2Batch,
-    MixinCurve,
-    MixinCurveV2,
-    MixinNerve,
-    MixinUniswapV2,
+import "./mixins/MixinPlatypus.sol"; //27
+import "./mixins/MixinBancorV3.sol"; //28
+import "./mixins/MixinSolidly.sol"; //29
+import "./mixins/MixinSynthetix.sol"; //30
+import "./mixins/MixinWOOFi.sol"; //31
+import "./mixins/MixinAaveV3.sol"; //32
+
+contract BridgeAdapterGroup2 is 
+    AbstractBridgeAdapter,
+    MixinPlatypus,
+    MixinBancorV3,
+    MixinSolidly,
+    MixinSynthetix,
     MixinWOOFi,
-    MixinZeroExBridge
+    MixinAaveV3
 {
-    constructor(IEtherTokenV06 weth) public MixinCurve(weth) {}
+    constructor(
+        IEtherTokenV06 weth
+    )
+        public
+        MixinBancorV3(weth)
+    { }
 
     function _trade(
         BridgeOrder memory order,
@@ -50,42 +54,37 @@ contract FantomBridgeAdapter is
         bool dryRun
     ) internal override returns (uint256 boughtAmount, bool supportedSource) {
         uint128 protocolId = uint128(uint256(order.source) >> 128);
-        if (protocolId == BridgeProtocols.CURVE) {
+        if (protocolId == BridgeProtocols.PLATYPUS) { //27
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurve(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.CURVEV2) {
+            boughtAmount = _tradePlatypus(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.BANCORV3) { //28
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeCurveV2(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.UNISWAPV2) {
+            boughtAmount = _tradeBancorV3(buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.SOLIDLY) { //29
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeUniswapV2(buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.BALANCERV2BATCH) {
+            boughtAmount = _tradeSolidly(sellToken, buyToken, sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.SYNTHETIX) { //30
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeBalancerV2Batch(sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.NERVE) {
-            if (dryRun) {
-                return (0, true);
-            }
-            boughtAmount = _tradeNerve(sellToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.WOOFI) {
+            boughtAmount = _tradeSynthetix(sellAmount, order.bridgeData);
+        } else if (protocolId == BridgeProtocols.WOOFI) { //31
             if (dryRun) {
                 return (0, true);
             }
             boughtAmount = _tradeWOOFi(sellToken, buyToken, sellAmount, order.bridgeData);
-        } else if (protocolId == BridgeProtocols.UNKNOWN) {
+        } else if (protocolId == BridgeProtocols.AAVEV3) {
             if (dryRun) {
                 return (0, true);
             }
-            boughtAmount = _tradeZeroExBridge(sellToken, buyToken, sellAmount, order.bridgeData);
-        }
+            boughtAmount = _tradeAaveV3(sellToken, buyToken, sellAmount, order.bridgeData);
+        } 
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
