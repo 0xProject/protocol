@@ -32,16 +32,7 @@ contract BridgeAdapter is IBridgeAdapter {
     uint256 private constant ADAPTER_1_LAST_PROTOCOL_ID = 26;
     uint256 private constant ADAPTER_2_LAST_PROTOCOL_ID = 32;
 
-    constructor(IEtherTokenV06 weth, uint256 expectedChainId, string memory expectedChainName) public {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        // Allow testing on Ganache
-        if (chainId != expectedChainId && chainId != 1337) {
-            revert(string(abi.encodePacked(expectedChainName, "BridgeAdapter.constructor: wrong chain ID")));
-        }
-
+    constructor(IEtherTokenV06 weth) public {
         adapter1 = new BridgeAdapterGroup1(weth); 
         adapter2 = new BridgeAdapterGroup2(weth);
     }
