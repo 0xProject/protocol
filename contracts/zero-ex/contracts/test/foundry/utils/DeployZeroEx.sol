@@ -314,8 +314,9 @@ contract DeployZeroEx is Test {
 
         ZERO_EX_DEPLOYED.zeroEx = IZERO_EX;
         isDeployed = true;
-        if (ZERO_EX_DEPLOY_CONFIG.logDeployed)
+        if (ZERO_EX_DEPLOY_CONFIG.logDeployed) {
             logDeployedZeroEx();
+        }
 
         return ZERO_EX_DEPLOYED;
     }
