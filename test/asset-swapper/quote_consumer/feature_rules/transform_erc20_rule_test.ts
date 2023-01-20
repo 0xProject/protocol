@@ -1,11 +1,13 @@
-import { getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
+import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
 import { constants as contractConstants, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
 import {
+    BridgeProtocol,
     decodeAffiliateFeeTransformerData,
     decodeFillQuoteTransformerData,
     decodePayTakerTransformerData,
     decodePositiveSlippageFeeTransformerData,
     decodeWethTransformerData,
+    encodeBridgeSourceId,
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerLimitOrderInfo,
     FillQuoteTransformerOrderType,
@@ -14,7 +16,7 @@ import {
     LimitOrderFields,
     ZERO,
 } from '@0x/protocol-utils';
-import { AbiEncoder, BigNumber, hexUtils } from '@0x/utils';
+import { BigNumber, hexUtils } from '@0x/utils';
 import * as chai from 'chai';
 import * as _ from 'lodash';
 import 'mocha';
@@ -33,6 +35,12 @@ import {
     OptimizedOrder,
     IPath,
 } from '../../../../src/asset-swapper/types';
+import { decodeTransformERC20, getTransformerNonces } from '../../test_utils/decoders';
+import {
+    createSimpleBuySwapQuoteWithBridgeOrder,
+    createSimpleSellSwapQuoteWithBridgeOrder,
+    ONE_ETHER,
+} from '../../test_utils/test_data';
 
 import { chaiSetup } from '../../utils/chai_setup';
 import { getRandomAmount, getRandomSignature } from '../../utils/utils';
@@ -49,29 +57,25 @@ describe('TransformERC20Rule', () => {
     const MAKER_TOKEN = randomAddress();
     const INTERMEDIATE_TOKEN = randomAddress();
     const TRANSFORMER_DEPLOYER = randomAddress();
-    const TRANSFORMER_NONCES = {
+    const NONCES = {
         wethTransformer: 1,
         payTakerTransformer: 2,
         fillQuoteTransformer: 3,
         affiliateFeeTransformer: 4,
         positiveSlippageFeeTransformer: 5,
     };
-    const contractAddresses = {
+    const contractAddresses: ContractAddresses = {
         ...getContractAddressesForChainOrThrow(CHAIN_ID),
         exchangeProxy: randomAddress(),
-        exchangeProxyAllowanceTarget: randomAddress(),
         exchangeProxyTransformerDeployer: TRANSFORMER_DEPLOYER,
         transformers: {
-            wethTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, TRANSFORMER_NONCES.wethTransformer),
-            payTakerTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, TRANSFORMER_NONCES.payTakerTransformer),
-            fillQuoteTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, TRANSFORMER_NONCES.fillQuoteTransformer),
-            affiliateFeeTransformer: getTransformerAddress(
-                TRANSFORMER_DEPLOYER,
-                TRANSFORMER_NONCES.affiliateFeeTransformer,
-            ),
+            wethTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, NONCES.wethTransformer),
+            payTakerTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, NONCES.payTakerTransformer),
+            fillQuoteTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, NONCES.fillQuoteTransformer),
+            affiliateFeeTransformer: getTransformerAddress(TRANSFORMER_DEPLOYER, NONCES.affiliateFeeTransformer),
             positiveSlippageFeeTransformer: getTransformerAddress(
                 TRANSFORMER_DEPLOYER,
-                TRANSFORMER_NONCES.positiveSlippageFeeTransformer,
+                NONCES.positiveSlippageFeeTransformer,
             ),
         },
     };
@@ -193,14 +197,6 @@ describe('TransformERC20Rule', () => {
         };
     }
 
-    function getRandomSellQuote(): MarketSellSwapQuote {
-        return getRandomQuote(MarketOperation.Sell) as MarketSellSwapQuote;
-    }
-
-    function getRandomBuyQuote(): MarketBuySwapQuote {
-        return getRandomQuote(MarketOperation.Buy) as MarketBuySwapQuote;
-    }
-
     type PlainOrder = Exclude<LimitOrderFields, ['chainId', 'exchangeAddress']>;
 
     function cleanOrders(orders: readonly OptimizedOrder[]): PlainOrder[] {
@@ -227,245 +223,275 @@ describe('TransformERC20Rule', () => {
         );
     }
 
-    const transformERC20Encoder = AbiEncoder.createMethod('transformERC20', [
-        { type: 'address', name: 'inputToken' },
-        { type: 'address', name: 'outputToken' },
-        { type: 'uint256', name: 'inputTokenAmount' },
-        { type: 'uint256', name: 'minOutputTokenAmount' },
-        {
-            type: 'tuple[]',
-            name: 'transformations',
-            components: [
-                { type: 'uint32', name: 'deploymentNonce' },
-                { type: 'bytes', name: 'data' },
-            ],
-        },
-    ]);
-
-    interface TransformERC20Args {
-        inputToken: string;
-        outputToken: string;
-        inputTokenAmount: BigNumber;
-        minOutputTokenAmount: BigNumber;
-        transformations: {
-            deploymentNonce: BigNumber;
-            data: string;
-        }[];
-    }
-
     describe('createCalldata()', () => {
-        it('can produce a sell quote', () => {
-            const quote = getRandomSellQuote();
-            const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+        const UNI_V2_SELL_QUOTE = createSimpleSellSwapQuoteWithBridgeOrder({
+            source: ERC20BridgeSource.UniswapV2,
+            takerToken: TAKER_TOKEN,
+            makerToken: MAKER_TOKEN,
+            takerAmount: ONE_ETHER,
+            makerAmount: ONE_ETHER.times(2),
+            slippage: 0,
+        });
+
+        it('can produce a sell calldata', () => {
+            const callInfo = rule.createCalldata(
+                UNI_V2_SELL_QUOTE,
+                constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
+            );
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
-            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(UNI_V2_SELL_QUOTE.worstCaseQuoteInfo.totalTakerAmount);
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(UNI_V2_SELL_QUOTE.worstCaseQuoteInfo.makerAmount);
+
             expect(callArgs.transformations).to.be.length(2);
-            expect(callArgs.transformations[0].deploymentNonce.toNumber()).to.be.eq(3);
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.be.eq(2);
+            expect(callArgs.transformations[0].deploymentNonce.toNumber()).to.be.eq(NONCES.fillQuoteTransformer);
+            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.be.eq(NONCES.payTakerTransformer);
+
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
-            expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(quote.takerTokenFillAmount);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.getOrders()));
-            expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.path.getOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
-            );
+            expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(UNI_V2_SELL_QUOTE.takerTokenFillAmount);
+            expect(fillQuoteTransformerData.bridgeOrders).to.be.lengthOf(1);
+
+            const bridgeOrder = fillQuoteTransformerData.bridgeOrders[0];
+            expect(bridgeOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
+
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
-        it('can produce a buy quote', () => {
-            const quote = getRandomBuyQuote();
+        it('can produce a buy calldata', () => {
+            const quote = createSimpleBuySwapQuoteWithBridgeOrder({
+                source: ERC20BridgeSource.UniswapV2,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER,
+                makerAmount: ONE_ETHER.times(2),
+                slippage: 0,
+            });
+
             const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
-            expect(callArgs.transformations).to.be.length(2);
-            expect(callArgs.transformations[0].deploymentNonce.toNumber()).to.be.eq(
-                TRANSFORMER_NONCES.fillQuoteTransformer,
-            );
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.be.eq(
-                TRANSFORMER_NONCES.payTakerTransformer,
-            );
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Buy);
             expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(quote.makerTokenFillAmount);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.getOrders()));
-            expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.path.getOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
-            );
+
+            const bridgeOrder = fillQuoteTransformerData.bridgeOrders[0];
+            expect(bridgeOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
+
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
         it('ERC20 -> ERC20 does not have a WETH transformer', () => {
-            const quote = getRandomSellQuote();
-            const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            const nonces = callArgs.transformations.map((t) => t.deploymentNonce);
-            expect(nonces).to.not.include(TRANSFORMER_NONCES.wethTransformer);
+            const callInfo = rule.createCalldata(
+                UNI_V2_SELL_QUOTE,
+                constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
+            );
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+
+            const nonces = callArgs.transformations.map((t) => t.deploymentNonce.toNumber());
+            expect(nonces).to.not.include(NONCES.wethTransformer);
         });
 
         it('ETH -> ERC20 has the correct ethAmount`', () => {
-            const quote = getRandomSellQuote();
-            quote.worstCaseQuoteInfo.protocolFeeInWeiAmount = new BigNumber(0);
-
-            const callInfo = rule.createCalldata(quote, {
+            const callInfo = rule.createCalldata(UNI_V2_SELL_QUOTE, {
                 ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
                 isFromETH: true,
             });
-            expect(callInfo.ethAmount).to.bignumber.eq(quote.takerTokenFillAmount);
+
+            expect(callInfo.ethAmount).to.bignumber.eq(UNI_V2_SELL_QUOTE.takerTokenFillAmount);
         });
 
         it('ETH -> ERC20 has a WETH transformer before the fill', () => {
-            const quote = getRandomSellQuote();
-            const callInfo = rule.createCalldata(quote, {
+            const callInfo = rule.createCalldata(UNI_V2_SELL_QUOTE, {
                 ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
                 isFromETH: true,
             });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[0].deploymentNonce.toNumber()).to.eq(TRANSFORMER_NONCES.wethTransformer);
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.wethTransformer,
+                NONCES.fillQuoteTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const wethTransformerData = decodeWethTransformerData(callArgs.transformations[0].data);
-            expect(wethTransformerData.amount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
+            expect(wethTransformerData.amount).to.bignumber.eq(UNI_V2_SELL_QUOTE.worstCaseQuoteInfo.totalTakerAmount);
             expect(wethTransformerData.token).to.eq(ETH_TOKEN_ADDRESS);
         });
 
-        it('Appends an affiliate fee transformer after the fill if a buy token affiliate fee is provided', () => {
-            const quote = getRandomSellQuote();
-            const affiliateFee = {
-                recipient: randomAddress(),
-                buyTokenFeeAmount: getRandomAmount(),
-                sellTokenFeeAmount: ZERO_AMOUNT,
-                feeType: AffiliateFeeType.PercentageFee,
-            };
+        it('ERC20 -> ETH has a WETH transformer after the fill', () => {
+            const callInfo = rule.createCalldata(UNI_V2_SELL_QUOTE, {
+                ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
+                isToETH: true,
+            });
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.wethTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+            const wethTransformerData = decodeWethTransformerData(callArgs.transformations[1].data);
+            expect(wethTransformerData.amount).to.bignumber.eq(MAX_UINT256);
+            expect(wethTransformerData.token).to.eq(contractAddresses.etherToken);
+        });
+
+        it('Appends an affiliate fee transformer when buyTokenFeeAmount is provided (Gasless)', () => {
+            const recipient = randomAddress();
+
             const callInfo = rule.createCalldata(
-                quote,
+                UNI_V2_SELL_QUOTE,
 
                 {
                     ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                    affiliateFee,
+                    affiliateFee: {
+                        recipient,
+                        buyTokenFeeAmount: ONE_ETHER.times(0.01),
+                        sellTokenFeeAmount: ZERO_AMOUNT,
+                        feeType: AffiliateFeeType.PercentageFee,
+                    },
                 },
             );
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(
-                TRANSFORMER_NONCES.affiliateFeeTransformer,
-            );
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.affiliateFeeTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const affiliateFeeTransformerData = decodeAffiliateFeeTransformerData(callArgs.transformations[1].data);
             expect(affiliateFeeTransformerData.fees).to.deep.equal([
-                { token: MAKER_TOKEN, amount: affiliateFee.buyTokenFeeAmount, recipient: affiliateFee.recipient },
+                { token: MAKER_TOKEN, amount: ONE_ETHER.times(0.01), recipient },
             ]);
         });
-        it('Appends an affiliate fee transformer if conversion to native token is known', () => {
-            const quote = getRandomSellQuote();
-            quote.takerAmountPerEth = new BigNumber(0.5);
-            const affiliateFee = {
-                recipient: randomAddress(),
-                buyTokenFeeAmount: getRandomAmount(),
-                sellTokenFeeAmount: ZERO,
-                feeType: AffiliateFeeType.GaslessFee,
-            };
+
+        it('Appends an affiliate fee transformer when buyTokenFeeAmount is provided (Gasless) ', () => {
+            const recipient = randomAddress();
+            const quote = { ...UNI_V2_SELL_QUOTE, takerAmountPerEth: new BigNumber(0.5) };
+
             const callInfo = rule.createCalldata(quote, {
                 ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                affiliateFee,
+                affiliateFee: {
+                    recipient,
+                    buyTokenFeeAmount: ONE_ETHER.times(0.01),
+                    sellTokenFeeAmount: ZERO,
+                    feeType: AffiliateFeeType.GaslessFee,
+                },
             });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(
-                TRANSFORMER_NONCES.affiliateFeeTransformer,
-            );
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.affiliateFeeTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const affiliateFeeTransformerData = decodeAffiliateFeeTransformerData(callArgs.transformations[1].data);
             expect(affiliateFeeTransformerData.fees).to.deep.equal([
-                { token: MAKER_TOKEN, amount: affiliateFee.buyTokenFeeAmount, recipient: affiliateFee.recipient },
+                { token: MAKER_TOKEN, amount: ONE_ETHER.times(0.01), recipient },
             ]);
         });
-        it('Appends an affiliate fee transformer if conversion to native token is unknown of 0.1%', () => {
-            const quote = getRandomSellQuote();
-            quote.takerAmountPerEth = new BigNumber(0);
-            const affiliateFee = {
-                recipient: randomAddress(),
-                buyTokenFeeAmount: getRandomAmount(),
-                sellTokenFeeAmount: ZERO,
-                feeType: AffiliateFeeType.GaslessFee,
-            };
-            const callInfo = rule.createCalldata(quote, {
-                ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                affiliateFee,
-            });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(
-                TRANSFORMER_NONCES.affiliateFeeTransformer,
-            );
-            const affiliateFeeTransformerData = decodeAffiliateFeeTransformerData(callArgs.transformations[1].data);
-            expect(affiliateFeeTransformerData.fees).to.deep.equal([
-                { token: MAKER_TOKEN, amount: affiliateFee.buyTokenFeeAmount, recipient: affiliateFee.recipient },
-            ]);
-        });
+
         it('Appends a positive slippage affiliate fee transformer after the fill if the positive slippage fee feeType is specified', () => {
-            const quote = getRandomSellQuote();
-            const affiliateFee = {
-                recipient: randomAddress(),
-                buyTokenFeeAmount: ZERO_AMOUNT,
-                sellTokenFeeAmount: ZERO_AMOUNT,
-                feeType: AffiliateFeeType.PositiveSlippageFee,
-            };
+            const gasPrice = 20_000_000_000;
+            const makerAmountPerEth = new BigNumber(2);
+            const quote = createSimpleSellSwapQuoteWithBridgeOrder({
+                source: ERC20BridgeSource.UniswapV2,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER,
+                makerAmount: ONE_ETHER.times(2),
+                makerAmountPerEth,
+                gasPrice,
+                slippage: 0,
+            });
+            const recipient = randomAddress();
+
             const callInfo = rule.createCalldata(quote, {
                 ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                affiliateFee,
+                affiliateFee: {
+                    recipient,
+                    buyTokenFeeAmount: ZERO_AMOUNT,
+                    sellTokenFeeAmount: ZERO_AMOUNT,
+                    feeType: AffiliateFeeType.PositiveSlippageFee,
+                },
             });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.eq(
-                TRANSFORMER_NONCES.positiveSlippageFeeTransformer,
-            );
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.positiveSlippageFeeTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const positiveSlippageFeeTransformerData = decodePositiveSlippageFeeTransformerData(
                 callArgs.transformations[1].data,
             );
-            const bestCaseAmount = quote.bestCaseQuoteInfo.makerAmount.plus(
-                POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(quote.gasPrice).multipliedBy(
-                    quote.makerAmountPerEth,
-                ),
+
+            const gasOverhead = POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS.multipliedBy(gasPrice).multipliedBy(
+                quote.makerAmountPerEth,
             );
             expect(positiveSlippageFeeTransformerData).to.deep.equal({
                 token: MAKER_TOKEN,
-                bestCaseAmount,
-                recipient: affiliateFee.recipient,
+                bestCaseAmount: ONE_ETHER.times(2).plus(gasOverhead),
+                recipient,
             });
         });
+
         it('Throws if a sell token affiliate fee is provided', () => {
-            const quote = getRandomSellQuote();
-            const affiliateFee = {
-                recipient: randomAddress(),
-                buyTokenFeeAmount: ZERO_AMOUNT,
-                sellTokenFeeAmount: getRandomAmount(),
-                feeType: AffiliateFeeType.PercentageFee,
-            };
             expect(() =>
-                rule.createCalldata(quote, {
+                rule.createCalldata(UNI_V2_SELL_QUOTE, {
                     ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
-                    affiliateFee,
+                    affiliateFee: {
+                        recipient: randomAddress(),
+                        buyTokenFeeAmount: ZERO_AMOUNT,
+                        sellTokenFeeAmount: getRandomAmount(),
+                        feeType: AffiliateFeeType.PercentageFee,
+                    },
                 }),
             ).to.throw('Affiliate fees denominated in sell token are not yet supported');
         });
+
         it('Uses two `FillQuoteTransformer`s if given two-hop sell quote', () => {
+            // TODO(kyu-c): move away from random test data.
             const quote = getRandomTwoHopQuote(MarketOperation.Sell) as MarketSellSwapQuote;
+
             const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
             expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
-            expect(callArgs.transformations).to.be.length(3);
-            expect(callArgs.transformations[0].deploymentNonce.toNumber() === TRANSFORMER_NONCES.fillQuoteTransformer);
-            expect(callArgs.transformations[1].deploymentNonce.toNumber() === TRANSFORMER_NONCES.fillQuoteTransformer);
-            expect(callArgs.transformations[2].deploymentNonce.toNumber() === TRANSFORMER_NONCES.payTakerTransformer);
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.fillQuoteTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const [firstHopOrder, secondHopOrder] = quote.path.getOrders();
             const firstHopFillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(firstHopFillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
@@ -490,36 +516,36 @@ describe('TransformERC20Rule', () => {
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, INTERMEDIATE_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
-        it('allows selling the entire balance for CFL', () => {
-            const quote = getRandomSellQuote();
+        it('Uses max amount for when shouldSellEntireBalance', () => {
+            const quote = createSimpleSellSwapQuoteWithBridgeOrder({
+                source: ERC20BridgeSource.UniswapV2,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER,
+                makerAmount: ONE_ETHER.times(2),
+                slippage: 0,
+            });
+
             const callInfo = rule.createCalldata(quote, {
                 ...constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS,
                 shouldSellEntireBalance: true,
             });
-            const callArgs = transformERC20Encoder.decode(callInfo.calldataHexString) as TransformERC20Args;
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
             expect(callArgs.inputTokenAmount).to.bignumber.eq(MAX_UINT256);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
-            expect(callArgs.transformations).to.be.length(2);
-            expect(callArgs.transformations[0].deploymentNonce.toNumber()).to.be.eq(
-                TRANSFORMER_NONCES.fillQuoteTransformer,
-            );
-            expect(callArgs.transformations[1].deploymentNonce.toNumber()).to.be.eq(
-                TRANSFORMER_NONCES.payTakerTransformer,
-            );
+
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer,
+                NONCES.payTakerTransformer,
+            ]);
+
             const fillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(fillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
-            expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(MAX_UINT256);
-            expect(fillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders(quote.path.getOrders()));
-            expect(fillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq(
-                (quote.path.getOrders() as OptimizedLimitOrder[]).map((o) => o.fillData.signature),
-            );
             expect(fillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(fillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
-            const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[1].data);
-            expect(payTakerTransformerData.amounts).to.deep.eq([]);
-            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, ETH_TOKEN_ADDRESS]);
+            expect(fillQuoteTransformerData.fillAmount).to.bignumber.eq(MAX_UINT256);
         });
     });
 });
