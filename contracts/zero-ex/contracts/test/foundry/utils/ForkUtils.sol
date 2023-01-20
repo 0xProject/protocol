@@ -153,7 +153,7 @@ contract ForkUtils is Test {
 
     function readAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
-        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
+        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/Addresses.json"));
         addressesJson = vm.readFile(path);
         return vm.readFile(path);
     }
@@ -265,7 +265,7 @@ contract ForkUtils is Test {
     function _setup() public {
         //get our addresses.json file that defines contract addresses for each chain we are currently deployed on
         string memory root = vm.projectRoot();
-        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/addresses.json"));
+        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/Addresses.json"));
         json = vm.readFile(path);
         createForks();
 
