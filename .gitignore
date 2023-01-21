@@ -63,7 +63,15 @@ typings/
 .env
 
 # built library using in commonjs module syntax
-lib/
+contracts/erc20/lib/
+contracts/test-utils/lib/
+contracts/treasury/lib/
+contracts/utils/lib/
+contracts/zero-ex/lib/
+packages/contract-addresses/lib/
+packages/contract-artifacts/lib/
+packages/contract-wrappers/lib/
+packages/protocol-utils/lib/
 
 # UMD bundles that export the global variable
 _bundles
