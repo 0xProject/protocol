@@ -37,6 +37,22 @@ contract ZRXWrappedTokenTest is BaseTest {
         vm.stopPrank();
     }
 
+    function testShouldReturnCorrectSymbol() public {
+        string memory wZRXSymbol = wToken.symbol();
+        assertEq(wZRXSymbol, "wZRX");
+    }
+
+    function testShouldReturnCorrectName() public {
+        string memory wZRXName = wToken.name();
+        assertEq(wZRXName, "Wrapped ZRX");
+    }
+
+    function shouldReturnCorrectNumberOfDecimals() public {
+        // TODO: decimals is set to 0
+        uint8 wZRXDecimals = wToken.decimals();
+        assertEq(wZRXDecimals, 18);
+    }
+
     function testShouldBeAbleToWrapZRX() public {
         vm.startPrank(account2);
 
