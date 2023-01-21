@@ -40,9 +40,52 @@ contract ZRXWrappedTokenTest is BaseTest {
     function testShouldBeAbleToWrapZRX() public {
         vm.startPrank(account2);
 
+        // Approve the wrapped token and deposit 1e18 ZRX
         token.approve(address(wToken), 1e18);
         wToken.depositFor(account2, 1e18);
+
+        // Check the token balances even out
+        uint256 wTokenBalance = wToken.balanceOf(account2);
+        assertEq(wTokenBalance, 1e18);
+        uint256 tokenBalance = token.balanceOf(account2);
+        assertEq(tokenBalance, 100e18 - wTokenBalance);
     }
 
-    function testShouldBeAbleToUnwrapToZRX() public {}
+    function testShouldBeAbleToUnwrapToZRX() public {
+        vm.startPrank(account2);
+
+        // Approve the wrapped token and deposit 1e18 ZRX
+        token.approve(address(wToken), 1e18);
+        wToken.depositFor(account2, 1e18);
+
+        // Withdraw 1e6 wZRX back to ZRX to own account
+        wToken.withdrawTo(account2, 1e6);
+
+        // Check token balances even out
+        uint256 wTokenBalance = wToken.balanceOf(account2);
+        assertEq(wTokenBalance, 1e18 - 1e6);
+        uint256 tokenBalance = token.balanceOf(account2);
+        assertEq(tokenBalance, 100e18 - wTokenBalance);
+    }
+
+    function testShouldBeAbleToUnwrapToZRXToAnotherAccount() public {
+        vm.startPrank(account2);
+
+        // Approve the wrapped token and deposit 1e18 ZRX
+        token.approve(address(wToken), 1e18);
+        wToken.depositFor(account2, 1e18);
+
+        // Withdraw 1e7 wZRX back to ZRX to account4 (which owns no tokens to start with)
+        wToken.withdrawTo(account4, 1e7);
+
+        // Check token balances even out
+        uint256 wTokenBalance2 = wToken.balanceOf(account2);
+        assertEq(wTokenBalance2, 1e18 - 1e7);
+
+        uint256 tokenBalance4 = token.balanceOf(account4);
+        assertEq(tokenBalance4, 1e7);
+
+        uint256 tokenBalance2 = token.balanceOf(account2);
+        assertEq(tokenBalance2, 100e18 - wTokenBalance2 - tokenBalance4);
+    }
 }

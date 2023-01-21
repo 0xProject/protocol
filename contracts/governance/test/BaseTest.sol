@@ -27,11 +27,13 @@ contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
     address payable internal account2 = payable(vm.addr(2));
     address payable internal account3 = payable(vm.addr(3));
+    address payable internal account4 = payable(vm.addr(4));
 
     constructor() public {
         vm.deal(account1, 1e20);
         vm.deal(account2, 1e20);
         vm.deal(account3, 1e20);
+        vm.deal(account4, 1e20);
     }
 
     function createZRXToken() internal returns (address) {
