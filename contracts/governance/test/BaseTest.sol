@@ -20,6 +20,8 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
+import "@openzeppelin/token/ERC20/ERC20.sol";
+import "./ZRXMock.sol";
 
 contract BaseTest is Test {
     address payable internal account1 = payable(vm.addr(1));
@@ -33,12 +35,14 @@ contract BaseTest is Test {
     }
 
     function createZRXToken() internal returns (address) {
-        bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
-        address _address;
-        assembly {
-            _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
-        }
-        console.log(address(_address));
-        return address(_address);
+        // Use this once https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry is resolved
+        // bytes memory _bytecode = abi.encodePacked(vm.getCode("./ZRXToken.json"));
+        // address _address;
+        // assembly {
+        //     _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+        // }
+        // return address(_address);
+
+        return address(new ZRXMock());
     }
 }

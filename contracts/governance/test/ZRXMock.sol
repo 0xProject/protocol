@@ -16,33 +16,16 @@
   limitations under the License.
 
 */
+
 pragma solidity ^0.8.17;
 
-import "./BaseTest.sol";
-import "../src/ZRXWrappedToken.sol";
+import "forge-std/Test.sol";
 import "@openzeppelin/token/ERC20/ERC20.sol";
 
-contract ZRXWrappedTokenTest is BaseTest {
-    IERC20 public token;
-    ZRXWrappedToken public wToken;
-    address public voter1 = account1;
-
-    function setUp() public {
-        vm.startPrank(account1);
-        token = IERC20(createZRXToken());
-        token.transfer(account2, 100e18);
-        token.transfer(account3, 100e18);
-
-        wToken = new ZRXWrappedToken(token);
-        vm.stopPrank();
+// TODO remove this contract and work with an instance of ZRX compiled with 0.4
+// when the following is resolved https://linear.app/0xproject/issue/PRO-44/zrx-artifact-is-incompatible-with-foundry
+contract ZRXMock is ERC20 {
+    constructor() ERC20("0x Protocol Token", "ZRX") {
+        _mint(msg.sender, 10 ** 27);
     }
-
-    function testShouldBeAbleToWrapZRX() public {
-        vm.startPrank(account2);
-
-        token.approve(address(wToken), 1e18);
-        wToken.depositFor(account2, 1e18);
-    }
-
-    function testShouldBeAbleToUnwrapToZRX() public {}
 }
