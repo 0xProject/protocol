@@ -152,5 +152,12 @@ jobs:
                 run: |
                 forge coverage --report lcov
 
+      - name: Upload the coverage report to Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: ./contracts/governance/
+          path-to-lcov: ./contracts/governance/lcov.info
+
 
 
