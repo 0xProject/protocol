@@ -27,8 +27,8 @@ import "@openzeppelin/token/ERC20/ERC20.sol";
 contract ZeroExGovernorTest is BaseTest {
     IERC20 public token;
     ZRXWrappedToken public wToken;
-    ZeroExTimelock public zeroExTimelock;
-    ZeroExGovernor public zeroExGovernor;
+    ZeroExTimelock public timelock;
+    ZeroExGovernor public governor;
 
     function setUp() public {
         vm.startPrank(account1);
@@ -40,9 +40,37 @@ contract ZeroExGovernorTest is BaseTest {
 
         address[] memory proposers = new address[](0);
         address[] memory executors = new address[](0);
-        zeroExTimelock = new ZeroExTimelock(7 days, proposers, executors);
+        timelock = new ZeroExTimelock(7 days, proposers, executors);
 
-        zeroExGovernor = new ZeroExGovernor(wToken, zeroExTimelock);
+        governor = new ZeroExGovernor(wToken, timelock);
         vm.stopPrank();
+    }
+
+    function testShouldReturnCorrectName() public {
+        assertEq(governor.name(), "ZeroExGovernor");
+    }
+
+    function testShouldReturnCorrectVotingDelay() public {
+        assertEq(governor.votingDelay(), 21600);
+    }
+
+    function testShouldReturnCorrectVotingPeriod() public {
+        assertEq(governor.votingPeriod(), 50400);
+    }
+
+    function testShouldReturnCorrectProposalThreshold() public {
+        assertEq(governor.proposalThreshold(), 0);
+    }
+
+    function testShouldReturnCorrectQuorum() public {
+        assertEq(governor.quorumNumerator(), 10);
+    }
+
+    function testShouldReturnCorrectToken() public {
+        assertEq(address(governor.token()), address(wToken));
+    }
+
+    function testShouldReturnCorrectTimelock() public {
+        assertEq(address(governor.timelock()), address(timelock));
     }
 }
