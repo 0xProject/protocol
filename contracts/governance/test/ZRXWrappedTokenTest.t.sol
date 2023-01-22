@@ -25,7 +25,6 @@ import "@openzeppelin/token/ERC20/ERC20.sol";
 contract ZRXWrappedTokenTest is BaseTest {
     IERC20 public token;
     ZRXWrappedToken public wToken;
-    address public voter1 = account1;
 
     function setUp() public {
         vm.startPrank(account1);
