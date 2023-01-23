@@ -49,7 +49,6 @@ export * from '../test/generated-wrappers/lib_safe_math_rich_errors';
 export * from '../test/generated-wrappers/lib_safe_math_rich_errors_v06';
 export * from '../test/generated-wrappers/lib_safe_math_rich_errors_v08';
 export * from '../test/generated-wrappers/lib_safe_math_v06';
-export * from '../test/generated-wrappers/lib_safe_math_v08';
 export * from '../test/generated-wrappers/ownable';
 export * from '../test/generated-wrappers/ownable_v06';
 export * from '../test/generated-wrappers/ownable_v08';

@@ -19,12 +19,38 @@
 
 pragma solidity ^0.8;
 
-import "./LibSafeMathV08.sol";
 import "./errors/LibRichErrorsV08.sol";
 import "./errors/LibMathRichErrorsV08.sol";
+import "./errors/LibSafeMathRichErrorsV08.sol";
 
 library LibMathV08 {
-    using LibSafeMathV08 for uint256;
+    function max256(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a >= b ? a : b;
+    }
+
+    function min256(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
+
+    function max128(uint128 a, uint128 b) internal pure returns (uint128) {
+        return a >= b ? a : b;
+    }
+
+    function min128(uint128 a, uint128 b) internal pure returns (uint128) {
+        return a < b ? a : b;
+    }
+
+    function safeDowncastToUint128(uint256 a) internal pure returns (uint128) {
+        if (a > type(uint128).max) {
+            LibRichErrorsV08.rrevert(
+                LibSafeMathRichErrorsV08.Uint256DowncastError(
+                    LibSafeMathRichErrorsV08.DowncastErrorCodes.VALUE_TOO_LARGE_TO_DOWNCAST_TO_UINT128,
+                    a
+                )
+            );
+        }
+        return uint128(a);
+    }
 
     /// @dev Calculates partial value given a numerator and denominator rounded down.
     ///      Reverts if rounding error is >= 0.1%
@@ -41,7 +67,7 @@ library LibMathV08 {
             LibRichErrorsV08.rrevert(LibMathRichErrorsV08.RoundingError(numerator, denominator, target));
         }
 
-        partialAmount = numerator.safeMul(target).safeDiv(denominator);
+        partialAmount = numerator * target / denominator;
         return partialAmount;
     }
 
@@ -63,7 +89,7 @@ library LibMathV08 {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
+        partialAmount = (numerator * target + (denominator - 1))/denominator;
 
         return partialAmount;
     }
@@ -78,7 +104,7 @@ library LibMathV08 {
         uint256 denominator,
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
-        partialAmount = numerator.safeMul(target).safeDiv(denominator);
+        partialAmount = numerator * target / denominator;
         return partialAmount;
     }
 
@@ -95,7 +121,7 @@ library LibMathV08 {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = numerator.safeMul(target).safeAdd(denominator.safeSub(1)).safeDiv(denominator);
+        partialAmount = (numerator * target + (denominator - 1))/denominator;
 
         return partialAmount;
     }
@@ -141,7 +167,7 @@ library LibMathV08 {
         // so we have a rounding error iff:
         //        1000 * remainder  >=  numerator * target
         uint256 remainder = mulmod(target, numerator, denominator);
-        isError = remainder.safeMul(1000) >= numerator.safeMul(target);
+        isError = remainder * 1000 >= numerator * target;
         return isError;
     }
 
@@ -168,8 +194,8 @@ library LibMathV08 {
         }
         // Compute remainder as before
         uint256 remainder = mulmod(target, numerator, denominator);
-        remainder = denominator.safeSub(remainder) % denominator;
-        isError = remainder.safeMul(1000) >= numerator.safeMul(target);
+        remainder = denominator - remainder % denominator;
+        isError = remainder * 1000 >= numerator * target;
         return isError;
     }
 }

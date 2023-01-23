@@ -71,7 +71,6 @@
         "test/generated-artifacts/LibSafeMathRichErrorsV06.json",
         "test/generated-artifacts/LibSafeMathRichErrorsV08.json",
         "test/generated-artifacts/LibSafeMathV06.json",
-        "test/generated-artifacts/LibSafeMathV08.json",
         "test/generated-artifacts/Ownable.json",
         "test/generated-artifacts/OwnableV06.json",
         "test/generated-artifacts/OwnableV08.json",

@@ -51,7 +51,6 @@ import * as LibSafeMathRichErrors from '../test/generated-artifacts/LibSafeMathR
 import * as LibSafeMathRichErrorsV06 from '../test/generated-artifacts/LibSafeMathRichErrorsV06.json';
 import * as LibSafeMathRichErrorsV08 from '../test/generated-artifacts/LibSafeMathRichErrorsV08.json';
 import * as LibSafeMathV06 from '../test/generated-artifacts/LibSafeMathV06.json';
-import * as LibSafeMathV08 from '../test/generated-artifacts/LibSafeMathV08.json';
 import * as Ownable from '../test/generated-artifacts/Ownable.json';
 import * as OwnableV06 from '../test/generated-artifacts/OwnableV06.json';
 import * as OwnableV08 from '../test/generated-artifacts/OwnableV08.json';
@@ -116,7 +115,6 @@ export const artifacts = {
     AuthorizableV08: AuthorizableV08 as ContractArtifact,
     LibBytesV08: LibBytesV08 as ContractArtifact,
     LibMathV08: LibMathV08 as ContractArtifact,
-    LibSafeMathV08: LibSafeMathV08 as ContractArtifact,
     OwnableV08: OwnableV08 as ContractArtifact,
     ReentrancyGuardV08: ReentrancyGuardV08 as ContractArtifact,
     LibAuthorizableRichErrorsV08: LibAuthorizableRichErrorsV08 as ContractArtifact,
