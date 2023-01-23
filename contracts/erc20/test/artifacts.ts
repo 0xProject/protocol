@@ -11,10 +11,13 @@ import * as DummyNoReturnERC20Token from '../test/generated-artifacts/DummyNoRet
 import * as ERC20Token from '../test/generated-artifacts/ERC20Token.json';
 import * as IERC20Token from '../test/generated-artifacts/IERC20Token.json';
 import * as IERC20TokenV06 from '../test/generated-artifacts/IERC20TokenV06.json';
+import * as IERC20TokenV08 from '../test/generated-artifacts/IERC20TokenV08.json';
 import * as IEtherToken from '../test/generated-artifacts/IEtherToken.json';
 import * as IEtherTokenV06 from '../test/generated-artifacts/IEtherTokenV06.json';
+import * as IEtherTokenV08 from '../test/generated-artifacts/IEtherTokenV08.json';
 import * as LibERC20Token from '../test/generated-artifacts/LibERC20Token.json';
 import * as LibERC20TokenV06 from '../test/generated-artifacts/LibERC20TokenV06.json';
+import * as LibERC20TokenV08 from '../test/generated-artifacts/LibERC20TokenV08.json';
 import * as MintableERC20Token from '../test/generated-artifacts/MintableERC20Token.json';
 import * as TestLibERC20Token from '../test/generated-artifacts/TestLibERC20Token.json';
 import * as TestLibERC20TokenTarget from '../test/generated-artifacts/TestLibERC20TokenTarget.json';
@@ -36,6 +39,9 @@ export const artifacts = {
     IEtherTokenV06: IEtherTokenV06 as ContractArtifact,
     LibERC20TokenV06: LibERC20TokenV06 as ContractArtifact,
     WETH9V06: WETH9V06 as ContractArtifact,
+    IERC20TokenV08: IERC20TokenV08 as ContractArtifact,
+    IEtherTokenV08: IEtherTokenV08 as ContractArtifact,
+    LibERC20TokenV08: LibERC20TokenV08 as ContractArtifact,
     DummyERC20Token: DummyERC20Token as ContractArtifact,
     DummyMultipleReturnERC20Token: DummyMultipleReturnERC20Token as ContractArtifact,
     DummyNoReturnERC20Token: DummyNoReturnERC20Token as ContractArtifact,
