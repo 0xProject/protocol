@@ -32,7 +32,7 @@ library LibERC20TokenV08 {
     /// @param spender The address that receives an allowance.
     /// @param allowance The allowance to set.
     function compatApprove(IERC20TokenV08 token, address spender, uint256 allowance) internal {
-        bytes memory callData = abi.encodeWithSelector(token.approve.selector, spender, allowance);
+        bytes memory callData = abi.encodeCall(token.approve, (spender, allowance));
         _callWithOptionalBooleanResult(address(token), callData);
     }
 
@@ -54,7 +54,7 @@ library LibERC20TokenV08 {
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
     function compatTransfer(IERC20TokenV08 token, address to, uint256 amount) internal {
-        bytes memory callData = abi.encodeWithSelector(token.transfer.selector, to, amount);
+        bytes memory callData = abi.encodeCall(token.transfer, (to, amount));
         _callWithOptionalBooleanResult(address(token), callData);
     }
 
@@ -65,7 +65,7 @@ library LibERC20TokenV08 {
     /// @param to The address that receives the tokens
     /// @param amount Number of tokens to transfer.
     function compatTransferFrom(IERC20TokenV08 token, address from, address to, uint256 amount) internal {
-        bytes memory callData = abi.encodeWithSelector(token.transferFrom.selector, from, to, amount);
+        bytes memory callData = abi.encodeCall(token.transferFrom, (from, to, amount));
         _callWithOptionalBooleanResult(address(token), callData);
     }
 
@@ -77,7 +77,7 @@ library LibERC20TokenV08 {
         tokenDecimals = 18;
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(DECIMALS_CALL_DATA);
         if (didSucceed && resultData.length >= 32) {
-            tokenDecimals = uint8(LibBytesV08.readUint256(resultData, 0));
+            tokenDecimals = abi.decode(resultData, (uint8));
         }
     }
 
@@ -93,10 +93,10 @@ library LibERC20TokenV08 {
         address spender
     ) internal view returns (uint256 allowance_) {
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(
-            abi.encodeWithSelector(token.allowance.selector, owner, spender)
+            abi.encodeCall(token.allowance, (owner, spender))
         );
         if (didSucceed && resultData.length >= 32) {
-            allowance_ = LibBytesV08.readUint256(resultData, 0);
+            allowance_ = abi.decode(resultData, (uint256));
         }
     }
 
@@ -107,10 +107,10 @@ library LibERC20TokenV08 {
     /// @return balance The token balance of an owner.
     function compatBalanceOf(IERC20TokenV08 token, address owner) internal view returns (uint256 balance) {
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(
-            abi.encodeWithSelector(token.balanceOf.selector, owner)
+            abi.encodeCall(token.balanceOf.selector, (owner))
         );
         if (didSucceed && resultData.length >= 32) {
-            balance = LibBytesV08.readUint256(resultData, 0);
+            balance = abi.decode(resultData, (uint256));
         }
     }
 
@@ -128,21 +128,14 @@ library LibERC20TokenV08 {
         // If we get back 0 returndata, this may be a non-standard ERC-20 that
         // does not return a boolean. Check that it at least contains code.
         if (resultData.length == 0) {
-            uint256 size;
-            assembly {
-                size := extcodesize(target)
-            }
-            require(size > 0, "invalid token address, contains no code");
+            require(target.code.length > 0, "invalid token address, contains no code");
             return;
         }
         // If we get back at least 32 bytes, we know the target address
         // contains code, and we assume it is a token that returned a boolean
         // success value, which must be true.
         if (resultData.length >= 32) {
-            uint256 result = LibBytesV08.readUint256(resultData, 0);
-            if (result == 1) {
-                return;
-            } else {
+            if (!abi.decode(resultData, (bool))) {
                 LibRichErrorsV08.rrevert(resultData);
             }
         }
