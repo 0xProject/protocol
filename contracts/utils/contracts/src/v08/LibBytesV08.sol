@@ -31,7 +31,7 @@ library LibBytesV08 {
     ///         points to the header of the byte array which contains
     ///         the length.
     function rawAddress(bytes memory input) internal pure returns (uint256 memoryAddress) {
-        assembly {
+        assembly ("memory-safe") {
             memoryAddress := input
         }
         return memoryAddress;
@@ -41,7 +41,7 @@ library LibBytesV08 {
     /// @param input Byte array to lookup.
     /// @return memoryAddress Memory address of the contents of the byte array.
     function contentAddress(bytes memory input) internal pure returns (uint256 memoryAddress) {
-        assembly {
+        assembly ("memory-safe") {
             memoryAddress := add(input, 32)
         }
         return memoryAddress;
@@ -240,7 +240,7 @@ library LibBytesV08 {
         // Store last byte.
         result = b[b.length - 1];
 
-        assembly {
+        assembly ("memory-safe") {
             // Decrement length of byte array.
             let newLen := sub(mload(b), 1)
             mstore(b, newLen)
@@ -254,9 +254,7 @@ library LibBytesV08 {
     /// @return equal True if arrays are the same. False otherwise.
     function equals(bytes memory lhs, bytes memory rhs) internal pure returns (bool equal) {
         // Keccak gas cost is 30 + numWords * 6. This is a cheap way to compare.
-        // We early exit on unequal lengths, but keccak would also correctly
-        // handle this.
-        return lhs.length == rhs.length && keccak256(lhs) == keccak256(rhs);
+        return keccak256(lhs) == keccak256(rhs);
     }
 
     /// @dev Reads an address from a position in a byte array.
@@ -280,11 +278,10 @@ library LibBytesV08 {
         index += 20;
 
         // Read address from array memory
-        assembly {
+        assembly ("memory-safe") {
             // 1. Add index to address of bytes array
             // 2. Load 32-byte word from memory
-            // 3. Apply 20-byte mask to obtain address
-            result := and(mload(add(b, index)), 0xffffffffffffffffffffffffffffffffffffffff)
+            result := mload(add(b, index))
         }
         return result;
     }
@@ -310,7 +307,7 @@ library LibBytesV08 {
         index += 20;
 
         // Store address into array memory
-        assembly {
+        assembly ("memory-safe") {
             // The address occupies 20 bytes and mstore stores 32 bytes.
             // First fetch the 32-byte word where we'll be storing the address, then
             // apply a mask so we have only the bytes in the word that the address will not occupy.
@@ -352,7 +349,7 @@ library LibBytesV08 {
         index += 32;
 
         // Read the bytes32 from array memory
-        assembly {
+        assembly ("memory-safe") {
             result := mload(add(b, index))
         }
         return result;
@@ -377,7 +374,7 @@ library LibBytesV08 {
         index += 32;
 
         // Read the bytes32 from array memory
-        assembly {
+        assembly ("memory-safe") {
             mstore(add(b, index), input)
         }
     }
@@ -418,11 +415,8 @@ library LibBytesV08 {
         index += 32;
 
         // Read the bytes4 from array memory
-        assembly {
+        assembly ("memory-safe") {
             result := mload(add(b, index))
-            // Solidity does not require us to clean the trailing bytes.
-            // We do it anyway
-            result := and(result, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
         }
         return result;
     }

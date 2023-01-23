@@ -35,7 +35,7 @@ library LibRichErrorsV08 {
     /// @dev Reverts an encoded rich revert reason `errorData`.
     /// @param errorData ABI encoded error data.
     function rrevert(bytes memory errorData) internal pure {
-        assembly {
+        assembly ("memory-safe") {
             revert(add(errorData, 0x20), mload(errorData))
         }
     }
