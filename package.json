@@ -139,6 +139,7 @@
         "graphql-request": "^3.4.0",
         "heartbeats": "^5.0.1",
         "http-status-codes": "^2.2.0",
+        "immutable": "^4.2.2",
         "json-rpc-error": "^2.0.0",
         "kafkajs": "^1.15.0",
         "lodash": "^4.17.15",

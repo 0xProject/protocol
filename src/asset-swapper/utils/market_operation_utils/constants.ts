@@ -2,9 +2,9 @@ import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addre
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { formatBytes32String, parseBytes32String } from '@ethersproject/strings';
+import { Set } from 'immutable';
 
 import { TokenAdjacencyGraph, TokenAdjacencyGraphBuilder } from '../token_adjacency_graph';
-
 import { IdentityFillAdjustor } from './identity_fill_adjustor';
 import { SourceFilters } from './source_filters';
 import {
@@ -682,7 +682,7 @@ const ARBITRUM_TOKENS = {
     VST: '0x64343594ab9b56e99087bfa6f2335db24c2d1f17',
 };
 
-export const REBASING_TOKENS = new Set<string>([MAINNET_TOKENS.stETH]);
+export const REBASING_TOKENS = Set.of(MAINNET_TOKENS.stETH);
 
 const CURVE_POOLS = {
     compound: '0xa2b47e3d5c44877cca798226b7b8118f9bfb7a56', // 0.Compound
@@ -913,7 +913,7 @@ export const WOOFI_POOL_BY_CHAIN_ID = valueByChainId<string>(
     NULL_ADDRESS,
 );
 
-export const WOOFI_SUPPORTED_TOKENS = new Set([
+export const WOOFI_SUPPORTED_TOKENS = Set.of(
     BSC_TOKENS.USDT,
     BSC_TOKENS.WBNB,
     BSC_TOKENS.WOO,
@@ -934,7 +934,7 @@ export const WOOFI_SUPPORTED_TOKENS = new Set([
     POLYGON_TOKENS.WBTC,
     POLYGON_TOKENS.WETH,
     POLYGON_TOKENS.WOO,
-]);
+);
 
 export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID: Record<ChainId, string[]> = {
     [ChainId.Mainnet]: [
@@ -2611,23 +2611,23 @@ export const SYNTHETIX_CURRENCY_KEYS_BY_CHAIN_ID = valueByChainId<Map<string, st
 
 export const VIP_ERC20_BRIDGE_SOURCES_BY_CHAIN_ID = valueByChainId<Set<ERC20BridgeSource>>(
     {
-        [ChainId.Mainnet]: new Set([
+        [ChainId.Mainnet]: Set.of(
             ERC20BridgeSource.UniswapV2,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.UniswapV3,
             ERC20BridgeSource.Curve,
             ERC20BridgeSource.Native,
-        ]),
-        [ChainId.BSC]: new Set([
+        ),
+        [ChainId.BSC]: Set.of(
             ERC20BridgeSource.PancakeSwap,
             ERC20BridgeSource.PancakeSwapV2,
             ERC20BridgeSource.BakerySwap,
             ERC20BridgeSource.SushiSwap,
             ERC20BridgeSource.ApeSwap,
             ERC20BridgeSource.Native,
-        ]),
+        ),
     },
-    new Set(),
+    Set.of(),
 );
 
 const uniswapV2CloneGasSchedule = (fillData?: FillData) => {
