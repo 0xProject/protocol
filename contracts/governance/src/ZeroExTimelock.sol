@@ -28,6 +28,7 @@ contract ZeroExTimelock is TimelockController {
     constructor(
         uint256 minDelay,
         address[] memory proposers,
-        address[] memory executors
-    ) TimelockController(minDelay, proposers, executors, address(0)) {}
+        address[] memory executors,
+        address admin
+    ) TimelockController(minDelay, proposers, executors, admin) {}
 }
