@@ -13,7 +13,7 @@ import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
-contract SwapEthForERC20OnUniswap is Test, ForkUtils, TestUtils {
+contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/
@@ -26,7 +26,7 @@ contract SwapEthForERC20OnUniswap is Test, ForkUtils, TestUtils {
                                  Dispatch
     //////////////////////////////////////////////////////////////*/
 
-    function testSwapEthForERC20OnUniswap() public {
+    function test_swapEthForERC20OnUniswap() public {
         log_string("SwapEthForERC20OnUniswap");
         /* */
         for (uint256 i = 0; i < chains.length; i++) {

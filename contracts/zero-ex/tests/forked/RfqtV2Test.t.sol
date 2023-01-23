@@ -13,7 +13,7 @@ import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
-contract SwapNativeToERC20RFQTv2 is Test, ForkUtils, TestUtils {
+contract RfqtV2Test is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/
@@ -25,7 +25,7 @@ contract SwapNativeToERC20RFQTv2 is Test, ForkUtils, TestUtils {
                                  Dispatch
     //////////////////////////////////////////////////////////////*/
 
-    function testSwapEthForUSDTThroughFqtOtcs() public {
+    function test_swapEthForUSDTThroughFqtOtcs() public {
         log_string("SwapEthForUSDTThroughFqtOtc");
         /* */
         for (uint256 i = 0; i < 1; i++) {

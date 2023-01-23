@@ -20,7 +20,7 @@ import "src/transformers/bridges/FantomBridgeAdapter.sol";
 import "src/transformers/bridges/CeloBridgeAdapter.sol";
 import "src/features/OtcOrdersFeature.sol";
 
-contract SwapEthToWeth is Test, ForkUtils, TestUtils {
+contract WrapEthTest is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Rpc Setup
     //////////////////////////////////////////////////////////////*/
@@ -28,7 +28,7 @@ contract SwapEthToWeth is Test, ForkUtils, TestUtils {
         _setup();
     }
 
-    function testTransformERC20Forked() public {
+    function test_transformERC20Forked() public {
         log_string("TransformERC20Tests");
         for (uint256 i = 0; i < chains.length; i++) {
             vm.selectFork(forkIds[chains[i]]);
