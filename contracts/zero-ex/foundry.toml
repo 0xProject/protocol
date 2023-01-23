@@ -9,12 +9,11 @@ remappings = [
     '@0x/contracts-utils/=../utils/',
     '@0x/contracts-erc20/=../erc20/',
     'src/=./contracts/src',
-    '@0x/contract-addresses/=../../packages/contract-addresses',
     'samplers/=contracts/test/samplers',
     'utils/=./tests/utils',
 ]
 optimizer_runs = 1000000
-fs_permissions = [{ access = "read-write", path = "./contracts/" }]
+fs_permissions = [{ access = "read", path = "./" }]
 verbosity = 3
 
 [profile.local]

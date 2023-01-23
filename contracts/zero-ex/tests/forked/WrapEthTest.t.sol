@@ -39,12 +39,12 @@ contract WrapEthTest is Test, ForkUtils, TestUtils {
 
     function logAddresses(string memory chainName, string memory chainId) public {
         bytes memory details = json.parseRaw(chainId);
-        addresses = abi.decode(details, (Addresses));
+        addresses = abi.decode(details, (ContractAddresses));
     }
 
     function _wrapNativeToken(string memory chainName, string memory chainId) public onlyForked {
         bytes memory details = json.parseRaw(chainId);
-        addresses = abi.decode(details, (Addresses));
+        addresses = abi.decode(details, (ContractAddresses));
 
         vm.deal(address(this), 1e19);
 
@@ -59,12 +59,12 @@ contract WrapEthTest is Test, ForkUtils, TestUtils {
         emit log_named_uint(
             "       Deployer nonce",
             _findTransformerNonce(
-                address(addresses.wethTransformer),
+                address(addresses.transformers.wethTransformer),
                 address(addresses.exchangeProxyTransformerDeployer)
             )
         );
         transformations[0].deploymentNonce = _findTransformerNonce(
-            address(addresses.wethTransformer),
+            address(addresses.transformers.wethTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
         transformations[0].data = abi.encode(LibERC20Transformer.ETH_TOKEN_ADDRESS, 1e18);

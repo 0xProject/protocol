@@ -53,7 +53,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
 
     function swapWithOtcOrder(
         TokenAddresses memory tokens,
-        Addresses memory addresses,
+        ContractAddresses memory addresses,
         LiquiditySources memory sources
     ) public onlyForked {
         IZERO_EX = IZeroEx(addresses.exchangeProxy);
@@ -67,7 +67,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
 
         // Use our cheeky search helper to find the nonce rather than hardcode it
         transformations[0].deploymentNonce = _findTransformerNonce(
-            address(addresses.wethTransformer),
+            address(addresses.transformers.wethTransformer),
             address(addresses.exchangeProxyTransformerDeployer)
         );
         emit log_named_uint("           WethTransformer nonce", transformations[0].deploymentNonce);

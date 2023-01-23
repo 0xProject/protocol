@@ -39,6 +39,30 @@ import "src/transformers/bridges/CeloBridgeAdapter.sol";
 import "src/IZeroEx.sol";
 
 //contract-addresses/addresses.json interfaces
+struct Transformers {
+    address affiliateFeeTransformer;
+    address fillQuoteTransformer;
+    address payTakerTransformer;
+    address positiveSlippageFeeTransformer;
+    address wethTransformer;
+}
+struct ContractAddresses {
+    address erc20BridgeProxy;
+    address erc20BridgeSampler;
+    address etherToken;
+    address payable exchangeProxy;
+    address exchangeProxyFlashWallet;
+    address exchangeProxyGovernor;
+    address exchangeProxyLiquidityProviderSandbox;
+    address exchangeProxyTransformerDeployer;
+    address staking;
+    address stakingProxy;
+    Transformers transformers;
+    address zeroExGovernor;
+    address zrxToken;
+    address zrxTreasury;
+    address zrxVault;
+}
 //need to be alphebetized in solidity but not in addresses.json
 struct Addresses {
     address affiliateFeeTransformer;
@@ -97,7 +121,8 @@ contract ForkUtils is Test {
     FillQuoteTransformer fillQuoteTransformer;
 
     TokenAddresses tokens;
-    Addresses addresses;
+    Transformers transformers;
+    ContractAddresses addresses;
     LiquiditySources sources;
 
     uint256 forkBlock = 15_000_000;
@@ -138,7 +163,7 @@ contract ForkUtils is Test {
     function readLiquiditySourceAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/SourceAddresses.json")
+            abi.encodePacked(root, "/", "tests/addresses/SourceAddresses.json")
         );
         sourcesJson = vm.readFile(path);
         return vm.readFile(path);
@@ -153,22 +178,22 @@ contract ForkUtils is Test {
 
     function readAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
-        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/Addresses.json"));
+        string memory path = string(abi.encodePacked(root, "/", "tests/addresses/ContractAddresses.json"));
         addressesJson = vm.readFile(path);
         return vm.readFile(path);
     }
 
-    //retrieve the 0xProtocol contract addresses from addresses.json
-    function getContractAddresses(uint index) public returns (Addresses memory addresses) {
+    //retrieve the 0x Protocol contract addresses from addresses.json
+    function getContractAddresses(uint index) public returns (ContractAddresses memory addresses) {
         readAddresses();
         bytes memory contractAddresses = addressesJson.parseRaw(indexChainIds[index]);
-        return abi.decode(contractAddresses, (Addresses));
+        return abi.decode(contractAddresses, (ContractAddresses));
     }
 
     function readTokens() internal returns (string memory) {
         string memory root = vm.projectRoot();
         string memory path = string(
-            abi.encodePacked(root, "/", "contracts/test/foundry/addresses/TokenAddresses.json")
+            abi.encodePacked(root, "/", "tests/addresses/TokenAddresses.json")
         );
         tokensJson = vm.readFile(path);
         return vm.readFile(path);
@@ -205,7 +230,7 @@ contract ForkUtils is Test {
         }
         else {
             //ERROR: chainId not mapped
-            revert("CHAIN ID NOT MAPPED");
+            revert("ChainId not supported");
         }
     }
 
@@ -214,11 +239,11 @@ contract ForkUtils is Test {
         string memory chainName,
         string memory chainId,
         TokenAddresses memory tokens,
-        Addresses memory addresses,
+        ContractAddresses memory addresses,
         LiquiditySources memory sources
     ) public {
         log_named_string("   Using contract addresses on chain", chainName);
-        vm.label(addresses.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
+        vm.label(addresses.transformers.affiliateFeeTransformer, "zeroEx/affiliateFeeTransformer");
         vm.label(addresses.erc20BridgeProxy, "zeroEx/erc20BridgeProxy");
         vm.label(addresses.erc20BridgeSampler, "zeroEx/erc20BridgeSampler");
         vm.label(addresses.etherToken, "zeroEx/etherToken");
@@ -227,12 +252,12 @@ contract ForkUtils is Test {
         vm.label(addresses.exchangeProxyGovernor, "zeroEx/exchangeProxyGovernor");
         vm.label(addresses.exchangeProxyLiquidityProviderSandbox, "zeroEx/exchangeProxyLiquidityProviderSandbox");
         vm.label(addresses.exchangeProxyTransformerDeployer, "zeroEx/exchangeProxyTransformerDeployer");
-        vm.label(addresses.fillQuoteTransformer, "zeroEx/fillQuoteTransformer");
-        vm.label(addresses.payTakerTransformer, "zeroEx/payTakerTransformer");
-        vm.label(addresses.positiveSlippageFeeTransformer, "zeroEx/positiveSlippageFeeTransformer");
+        vm.label(addresses.transformers.fillQuoteTransformer, "zeroEx/fillQuoteTransformer");
+        vm.label(addresses.transformers.payTakerTransformer, "zeroEx/payTakerTransformer");
+        vm.label(addresses.transformers.positiveSlippageFeeTransformer, "zeroEx/positiveSlippageFeeTransformer");
         vm.label(addresses.staking, "zeroEx/staking");
         vm.label(addresses.stakingProxy, "zeroEx/stakingProxy");
-        vm.label(addresses.wethTransformer, "zeroEx/wethTransformer");
+        vm.label(addresses.transformers.wethTransformer, "zeroEx/wethTransformer");
         vm.label(addresses.zeroExGovernor, "zeroEx/zeroExGovernor");
         vm.label(addresses.zrxToken, "zeroEx/zrxToken");
         vm.label(addresses.zrxTreasury, "zeroEx/zrxTreasury");
@@ -265,7 +290,7 @@ contract ForkUtils is Test {
     function _setup() public {
         //get our addresses.json file that defines contract addresses for each chain we are currently deployed on
         string memory root = vm.projectRoot();
-        string memory path = string(abi.encodePacked(root, "/", "contracts/test/foundry/addresses/Addresses.json"));
+        string memory path = string(abi.encodePacked(root, "/", "tests/addresses/ContractAddresses.json"));
         json = vm.readFile(path);
         createForks();
 
@@ -273,7 +298,7 @@ contract ForkUtils is Test {
             chainsByChainId[chains[i]] = chainIds[i];
             indexChainsByChain[chains[i]] = indexChainIds[i];
             bytes memory details = json.parseRaw(indexChainIds[i]);
-            addresses = abi.decode(details, (Addresses));
+            addresses = abi.decode(details, (ContractAddresses));
         }
     }
 
