@@ -99,6 +99,7 @@ contract MixinUniswap {
         WETH = weth;
     }
 
+    //·solhint-disable-next-line·function-max-lines
     function _tradeUniswap(
         IERC20TokenV06 sellToken,
         IERC20TokenV06 buyToken,

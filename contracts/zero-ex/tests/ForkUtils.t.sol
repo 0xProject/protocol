@@ -28,9 +28,7 @@ contract ForkUtilsTest is Test, ForkUtils, TestUtils {
         _setup();
     }
 
-    function test_transformERC20Forked() public {
-        
-    }
+    function test_transformERC20Forked() public {}
 
     function logAddresses(string memory chainName, string memory chainId) public {
         bytes memory details = json.parseRaw(chainId);

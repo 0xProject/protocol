@@ -37,6 +37,7 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
 
     constructor() public TransformERC20Feature() {}
 
+    /* solhint-disable function-max-lines */
     function _transformERC20(
         TransformERC20Args memory args
     ) public payable override returns (uint256 outputTokenAmount) {
@@ -101,4 +102,5 @@ contract TestMetaTransactionsTransformERC20Feature is TransformERC20Feature {
         );
         return 1337;
     }
+    /* solhint-enable function-max-lines */
 }

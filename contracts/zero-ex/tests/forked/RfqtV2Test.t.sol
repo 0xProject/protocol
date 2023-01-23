@@ -50,7 +50,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Settlement
     //////////////////////////////////////////////////////////////*/
-
+    /* solhint-disable function-max-lines */
     function swapWithOtcOrder(
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
@@ -158,6 +158,7 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         assert(tokens.USDC.balanceOf(address(this)) > 0);
     }
 
+    /* solhint-enable function-max-lines */
     function encodeExpiryAndNonce(address maker) public returns (uint256) {
         uint256 expiry = (block.timestamp + 120) << 192;
         uint256 bucket = 0 << 128;

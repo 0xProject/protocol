@@ -162,6 +162,7 @@ contract FillQuoteTransformer is Transformer {
     ///      to this call. `buyToken` and excess ETH will be transferred back to the caller.
     /// @param context Context information.
     /// @return magicBytes The success bytes (`LibERC20Transformer.TRANSFORMER_SUCCESS`).
+    /* solhint-disable function-max-lines */
     function transform(TransformContext calldata context) external override returns (bytes4 magicBytes) {
         TransformData memory data = abi.decode(context.data, (TransformData));
         FillState memory state;
@@ -275,6 +276,8 @@ contract FillQuoteTransformer is Transformer {
         }
         return LibERC20Transformer.TRANSFORMER_SUCCESS;
     }
+
+    /* solhint-enable function-max-lines */
 
     // Fill a single bridge order.
     function _fillBridgeOrder(

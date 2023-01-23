@@ -162,9 +162,7 @@ contract ForkUtils is Test {
     //read the uniswapV2 router addresses from file
     function readLiquiditySourceAddresses() internal returns (string memory) {
         string memory root = vm.projectRoot();
-        string memory path = string(
-            abi.encodePacked(root, "/", "tests/addresses/SourceAddresses.json")
-        );
+        string memory path = string(abi.encodePacked(root, "/", "tests/addresses/SourceAddresses.json"));
         sourcesJson = vm.readFile(path);
         return vm.readFile(path);
     }
@@ -192,9 +190,7 @@ contract ForkUtils is Test {
 
     function readTokens() internal returns (string memory) {
         string memory root = vm.projectRoot();
-        string memory path = string(
-            abi.encodePacked(root, "/", "tests/addresses/TokenAddresses.json")
-        );
+        string memory path = string(abi.encodePacked(root, "/", "tests/addresses/TokenAddresses.json"));
         tokensJson = vm.readFile(path);
         return vm.readFile(path);
     }
@@ -227,8 +223,7 @@ contract ForkUtils is Test {
             return IBridgeAdapter(new OptimismBridgeAdapter(weth));
         } else if (chainId == 42161) {
             return IBridgeAdapter(new ArbitrumBridgeAdapter(weth));
-        }
-        else {
+        } else {
             //ERROR: chainId not mapped
             revert("ChainId not supported");
         }

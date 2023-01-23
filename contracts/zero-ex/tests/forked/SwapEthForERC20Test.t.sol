@@ -50,7 +50,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
     /*//////////////////////////////////////////////////////////////
                                  Settlement
     //////////////////////////////////////////////////////////////*/
-
+    /* solhint-disable function-max-lines */
     function swapOnUniswap(
         TokenAddresses memory tokens,
         ContractAddresses memory addresses,
@@ -166,6 +166,8 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             log_string("    Liquidity Source Not available on this chain");
         }
     }
+
+    /* solhint-enable function-max-lines */
 
     /*//////////////////////////////////////////////////////////////
                             Sampler Dispatch

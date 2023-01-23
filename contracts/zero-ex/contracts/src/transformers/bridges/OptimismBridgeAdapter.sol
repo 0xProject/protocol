@@ -41,6 +41,7 @@ contract OptimismBridgeAdapter is
 {
     constructor(IEtherTokenV06 weth) public MixinCurve(weth) MixinAaveV3(true) {}
 
+    /* solhint-disable function-max-lines */
     function _trade(
         BridgeOrder memory order,
         IERC20TokenV06 sellToken,
@@ -98,4 +99,5 @@ contract OptimismBridgeAdapter is
 
         emit BridgeFill(order.source, sellToken, buyToken, sellAmount, boughtAmount);
     }
+    /* solhint-enable function-max-lines */
 }
