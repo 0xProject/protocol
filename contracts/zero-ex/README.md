@@ -79,15 +79,10 @@ FANTOM_RPC_URL=https://fantom-mainnet......
 MAINNET_RPC_URL=https://eth-mainnet......
 OPTIMISM_RPC_URL=https://opt-mainnet......
 POLYGON_RPC_URL=https://polygon-mainnet......
-
-FOUNDRY_PROFILE=forked 
-//or 
-FOUNDRY_PROFILE=local
-
 ```
 
 ```bash
 git submodule update --init --recursive
 foundryup
-yarn forge
+yarn test:integration
 ```
