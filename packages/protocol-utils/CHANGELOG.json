@@ -1,603 +1,612 @@
 [
-    {
-        "timestamp": 1670879498,
-        "version": "11.17.3",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1669235113,
-        "version": "11.17.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1668477029,
-        "version": "11.17.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "11.17.0",
-        "changes": [
-            {
-                "note": "Rename Velodrome to Solidly"
-            }
-        ],
-        "timestamp": 1667607537
-    },
-    {
-        "timestamp": 1667427402,
-        "version": "11.16.17",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1666645023,
-        "version": "11.16.16",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1666381417,
-        "version": "11.16.15",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "11.16.14",
-        "changes": [
-            {
-                "note": "Fix FQT Otc encoding logic",
-                "pr": "596"
-            }
-        ],
-        "timestamp": 1665670315
-    },
-    {
-        "timestamp": 1665531940,
-        "version": "11.16.13",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "11.16.12",
-        "changes": [
-            {
-                "note": "tslint -> eslint",
-                "pr": "582"
-            }
-        ],
-        "timestamp": 1665013355
-    },
-    {
-        "timestamp": 1663786955,
-        "version": "11.16.11",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1662998180,
-        "version": "11.16.10",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1662559804,
-        "version": "11.16.9",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1662147076,
-        "version": "11.16.8",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "11.16.7",
-        "changes": [
-            {
-                "note": "Add otc order info to transformer_utils",
-                "pr": "565"
-            }
-        ],
-        "timestamp": 1662046042
-    },
-    {
-        "timestamp": 1661462289,
-        "version": "11.16.6",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1661459661,
-        "version": "11.16.5",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1661145612,
-        "version": "11.16.4",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1660093941,
-        "version": "11.16.3",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1660073235,
-        "version": "11.16.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1659750766,
-        "version": "11.16.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "11.16.0",
-        "changes": [
-            {
-                "note": "Add Synthetix support`",
-                "pr": 518
-            }
-        ],
-        "timestamp": 1658950329
-    },
-    {
-        "version": "11.15.0",
-        "changes": [
-            {
-                "note": "Add Velodrome support",
-                "pr": 494
-            }
-        ],
-        "timestamp": 1655244958
-    },
-    {
-        "version": "11.14.0",
-        "changes": [
-            {
-                "note": "Adds Support for BancorV3 on Ethereum",
-                "pr": 492
-            }
-        ],
-        "timestamp": 1654284040
-    },
-    {
-        "version": "11.13.0",
-        "changes": [
-            {
-                "note": "Added Support for GMX and Platypus on Avalanche",
-                "pr": 478
-            }
-        ],
-        "timestamp": 1652919697
-    },
-    {
-        "version": "11.12.0",
-        "changes": [
-            {
-                "note": "Add `BalancerV2Batch` to `BridgeProtocol` enum",
-                "pr": 462
-            }
-        ],
-        "timestamp": 1650611093
-    },
-    {
-        "timestamp": 1648739346,
-        "version": "1.11.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1646225739,
-        "version": "1.11.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.11.0",
-        "changes": [
-            {
-                "note": "Add utils and errors for NFT orders",
-                "pr": 429
-            },
-            {
-                "note": "Update getTypeHash to support nested structs",
-                "pr": 429
-            }
-        ],
-        "timestamp": 1645569128
-    },
-    {
-        "timestamp": 1640364306,
-        "version": "1.10.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.10.0",
-        "changes": [
-            {
-                "note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
-                "pr": 321
-            }
-        ],
-        "timestamp": 1638390144
-    },
-    {
-        "timestamp": 1637102971,
-        "version": "1.9.5",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1635903615,
-        "version": "1.9.4",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1634668033,
-        "version": "1.9.3",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1633374058,
-        "version": "1.9.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1632957537,
-        "version": "1.9.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.9.0",
-        "changes": [
-            {
-                "note": "Add 'TreasuryVote' class"
-            }
-        ],
-        "timestamp": 1631710679
-    },
-    {
-        "timestamp": 1630459879,
-        "version": "1.8.4",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1629353596,
-        "version": "1.8.3",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1629079369,
-        "version": "1.8.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1628665757,
-        "version": "1.8.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.8.0",
-        "changes": [
-            {
-                "note": "Add `Clipper`"
-            }
-        ],
-        "timestamp": 1628225642
-    },
-    {
-        "timestamp": 1624356181,
-        "version": "1.7.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1623382456,
-        "version": "1.7.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.7.0",
-        "changes": [
-            {
-                "note": "Add utils for OtcOrders",
-                "pr": 244
-            }
-        ],
-        "timestamp": 1622609597
-    },
-    {
-        "timestamp": 1621944788,
-        "version": "1.6.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1621600614,
-        "version": "1.6.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.6.0",
-        "changes": [
-            {
-                "note": "Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum",
-                "pr": 206
-            },
-            {
-                "note": "Add UniswapV3 bridge protocol IDs and remove invalid ones",
-                "pr": 197
-            }
-        ],
-        "timestamp": 1620214333
-    },
-    {
-        "timestamp": 1619596077,
-        "version": "1.5.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.5.0",
-        "changes": [
-            {
-                "note": "Add support for orderSignerRegistry in getSignatureWithProviderAsync()",
-                "pr": 195
-            }
-        ],
-        "timestamp": 1619481586
-    },
-    {
-        "timestamp": 1618259868,
-        "version": "1.4.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.4.0",
-        "changes": [
-            {
-                "note": "Added Smoothy, Component, Saddle",
-                "pr": 182
-            },
-            {
-                "note": "Added Nerve",
-                "pr": 181
-            }
-        ],
-        "timestamp": 1617311315
-    },
-    {
-        "timestamp": 1616005394,
-        "version": "1.3.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.3.0",
-        "changes": [
-            {
-                "note": "Add VIP utils",
-                "pr": 127
-            },
-            {
-                "note": "Add `DodoV2` and `Linkswap` BridgeSource",
-                "pr": 152
-            }
-        ],
-        "timestamp": 1614141718
-    },
-    {
-        "version": "1.2.0",
-        "changes": [
-            {
-                "note": "Update transformer utils for V4 FQT",
-                "pr": 104
-            }
-        ],
-        "timestamp": 1612950500
-    },
-    {
-        "version": "1.1.5",
-        "changes": [
-            {
-                "note": "Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()`",
-                "pr": 124
-            }
-        ],
-        "timestamp": 1611648096
-    },
-    {
-        "timestamp": 1610510890,
-        "version": "1.1.4",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1609802516,
-        "version": "1.1.3",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1608692071,
-        "version": "1.1.2",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "timestamp": 1608245516,
-        "version": "1.1.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.1.0",
-        "changes": [
-            {
-                "note": "Add the `MetaTransaction` class for EP mtxs",
-                "pr": 90
-            }
-        ],
-        "timestamp": 1608149382
-    },
-    {
-        "timestamp": 1607485227,
-        "version": "1.0.1",
-        "changes": [
-            {
-                "note": "Dependencies updated"
-            }
-        ]
-    },
-    {
-        "version": "1.0.0",
-        "changes": [
-            {
-                "note": "Package created",
-                "pr": 76
-            }
-        ]
-    }
+	{
+		"timestamp": 1674517560,
+		"version": "11.17.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1670879498,
+		"version": "11.17.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1669235113,
+		"version": "11.17.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1668477029,
+		"version": "11.17.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.17.0",
+		"changes": [
+			{
+				"note": "Rename Velodrome to Solidly"
+			}
+		],
+		"timestamp": 1667607537
+	},
+	{
+		"timestamp": 1667427402,
+		"version": "11.16.17",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1666645023,
+		"version": "11.16.16",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1666381417,
+		"version": "11.16.15",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.16.14",
+		"changes": [
+			{
+				"note": "Fix FQT Otc encoding logic",
+				"pr": "596"
+			}
+		],
+		"timestamp": 1665670315
+	},
+	{
+		"timestamp": 1665531940,
+		"version": "11.16.13",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.16.12",
+		"changes": [
+			{
+				"note": "tslint -> eslint",
+				"pr": "582"
+			}
+		],
+		"timestamp": 1665013355
+	},
+	{
+		"timestamp": 1663786955,
+		"version": "11.16.11",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1662998180,
+		"version": "11.16.10",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1662559804,
+		"version": "11.16.9",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1662147076,
+		"version": "11.16.8",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.16.7",
+		"changes": [
+			{
+				"note": "Add otc order info to transformer_utils",
+				"pr": "565"
+			}
+		],
+		"timestamp": 1662046042
+	},
+	{
+		"timestamp": 1661462289,
+		"version": "11.16.6",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1661459661,
+		"version": "11.16.5",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1661145612,
+		"version": "11.16.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1660093941,
+		"version": "11.16.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1660073235,
+		"version": "11.16.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1659750766,
+		"version": "11.16.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "11.16.0",
+		"changes": [
+			{
+				"note": "Add Synthetix support`",
+				"pr": 518
+			}
+		],
+		"timestamp": 1658950329
+	},
+	{
+		"version": "11.15.0",
+		"changes": [
+			{
+				"note": "Add Velodrome support",
+				"pr": 494
+			}
+		],
+		"timestamp": 1655244958
+	},
+	{
+		"version": "11.14.0",
+		"changes": [
+			{
+				"note": "Adds Support for BancorV3 on Ethereum",
+				"pr": 492
+			}
+		],
+		"timestamp": 1654284040
+	},
+	{
+		"version": "11.13.0",
+		"changes": [
+			{
+				"note": "Added Support for GMX and Platypus on Avalanche",
+				"pr": 478
+			}
+		],
+		"timestamp": 1652919697
+	},
+	{
+		"version": "11.12.0",
+		"changes": [
+			{
+				"note": "Add `BalancerV2Batch` to `BridgeProtocol` enum",
+				"pr": 462
+			}
+		],
+		"timestamp": 1650611093
+	},
+	{
+		"timestamp": 1648739346,
+		"version": "1.11.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1646225739,
+		"version": "1.11.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.11.0",
+		"changes": [
+			{
+				"note": "Add utils and errors for NFT orders",
+				"pr": 429
+			},
+			{
+				"note": "Update getTypeHash to support nested structs",
+				"pr": 429
+			}
+		],
+		"timestamp": 1645569128
+	},
+	{
+		"timestamp": 1640364306,
+		"version": "1.10.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.10.0",
+		"changes": [
+			{
+				"note": "Add `AaveV2` and `Compound` deposit/withdrawal liquidity source",
+				"pr": 321
+			}
+		],
+		"timestamp": 1638390144
+	},
+	{
+		"timestamp": 1637102971,
+		"version": "1.9.5",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1635903615,
+		"version": "1.9.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1634668033,
+		"version": "1.9.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1633374058,
+		"version": "1.9.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1632957537,
+		"version": "1.9.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.9.0",
+		"changes": [
+			{
+				"note": "Add 'TreasuryVote' class"
+			}
+		],
+		"timestamp": 1631710679
+	},
+	{
+		"timestamp": 1630459879,
+		"version": "1.8.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1629353596,
+		"version": "1.8.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1629079369,
+		"version": "1.8.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1628665757,
+		"version": "1.8.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.8.0",
+		"changes": [
+			{
+				"note": "Add `Clipper`"
+			}
+		],
+		"timestamp": 1628225642
+	},
+	{
+		"timestamp": 1624356181,
+		"version": "1.7.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1623382456,
+		"version": "1.7.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.7.0",
+		"changes": [
+			{
+				"note": "Add utils for OtcOrders",
+				"pr": 244
+			}
+		],
+		"timestamp": 1622609597
+	},
+	{
+		"timestamp": 1621944788,
+		"version": "1.6.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1621600614,
+		"version": "1.6.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.6.0",
+		"changes": [
+			{
+				"note": "Add BalancerV2, remove Smoothy, Component and Saddle in BridgeProtocol enum",
+				"pr": 206
+			},
+			{
+				"note": "Add UniswapV3 bridge protocol IDs and remove invalid ones",
+				"pr": 197
+			}
+		],
+		"timestamp": 1620214333
+	},
+	{
+		"timestamp": 1619596077,
+		"version": "1.5.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.5.0",
+		"changes": [
+			{
+				"note": "Add support for orderSignerRegistry in getSignatureWithProviderAsync()",
+				"pr": 195
+			}
+		],
+		"timestamp": 1619481586
+	},
+	{
+		"timestamp": 1618259868,
+		"version": "1.4.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.4.0",
+		"changes": [
+			{
+				"note": "Added Smoothy, Component, Saddle",
+				"pr": 182
+			},
+			{
+				"note": "Added Nerve",
+				"pr": 181
+			}
+		],
+		"timestamp": 1617311315
+	},
+	{
+		"timestamp": 1616005394,
+		"version": "1.3.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.3.0",
+		"changes": [
+			{
+				"note": "Add VIP utils",
+				"pr": 127
+			},
+			{
+				"note": "Add `DodoV2` and `Linkswap` BridgeSource",
+				"pr": 152
+			}
+		],
+		"timestamp": 1614141718
+	},
+	{
+		"version": "1.2.0",
+		"changes": [
+			{
+				"note": "Update transformer utils for V4 FQT",
+				"pr": 104
+			}
+		],
+		"timestamp": 1612950500
+	},
+	{
+		"version": "1.1.5",
+		"changes": [
+			{
+				"note": "Use `Web3Wrapper.signTypedDataAsync()` instead of removed `Web3Wrapper.signTypedDataV4Async()`",
+				"pr": 124
+			}
+		],
+		"timestamp": 1611648096
+	},
+	{
+		"timestamp": 1610510890,
+		"version": "1.1.4",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1609802516,
+		"version": "1.1.3",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1608692071,
+		"version": "1.1.2",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"timestamp": 1608245516,
+		"version": "1.1.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.1.0",
+		"changes": [
+			{
+				"note": "Add the `MetaTransaction` class for EP mtxs",
+				"pr": 90
+			}
+		],
+		"timestamp": 1608149382
+	},
+	{
+		"timestamp": 1607485227,
+		"version": "1.0.1",
+		"changes": [
+			{
+				"note": "Dependencies updated"
+			}
+		]
+	},
+	{
+		"version": "1.0.0",
+		"changes": [
+			{
+				"note": "Package created",
+				"pr": 76
+			}
+		]
+	}
 ]
