@@ -67,7 +67,7 @@ library LibMathV08 {
             LibRichErrorsV08.rrevert(LibMathRichErrorsV08.RoundingError(numerator, denominator, target));
         }
 
-        partialAmount = numerator * target / denominator;
+        partialAmount = (numerator * target) / denominator;
         return partialAmount;
     }
 
@@ -89,7 +89,7 @@ library LibMathV08 {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = (numerator * target + (denominator - 1))/denominator;
+        partialAmount = (numerator * target + (denominator - 1)) / denominator;
 
         return partialAmount;
     }
@@ -104,7 +104,7 @@ library LibMathV08 {
         uint256 denominator,
         uint256 target
     ) internal pure returns (uint256 partialAmount) {
-        partialAmount = numerator * target / denominator;
+        partialAmount = (numerator * target) / denominator;
         return partialAmount;
     }
 
@@ -121,7 +121,7 @@ library LibMathV08 {
         // safeDiv computes `floor(a / b)`. We use the identity (a, b integer):
         //       ceil(a / b) = floor((a + b - 1) / b)
         // To implement `ceil(a / b)` using safeDiv.
-        partialAmount = (numerator * target + (denominator - 1))/denominator;
+        partialAmount = (numerator * target + (denominator - 1)) / denominator;
 
         return partialAmount;
     }
@@ -194,7 +194,7 @@ library LibMathV08 {
         }
         // Compute remainder as before
         uint256 remainder = mulmod(target, numerator, denominator);
-        remainder = denominator - remainder % denominator;
+        remainder = denominator - (remainder % denominator);
         isError = remainder * 1000 >= numerator * target;
         return isError;
     }

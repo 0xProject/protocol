@@ -107,7 +107,7 @@ library LibERC20TokenV08 {
     /// @return balance The token balance of an owner.
     function compatBalanceOf(IERC20TokenV08 token, address owner) internal view returns (uint256 balance) {
         (bool didSucceed, bytes memory resultData) = address(token).staticcall(
-            abi.encodeCall(token.balanceOf.selector, (owner))
+            abi.encodeCall(token.balanceOf, (owner))
         );
         if (didSucceed && resultData.length >= 32) {
             balance = abi.decode(resultData, (uint256));
