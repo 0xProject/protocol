@@ -129,6 +129,7 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
     ]),
     [ChainId.Polygon]: new SourceFilters([
+        ERC20BridgeSource.Native,
         ERC20BridgeSource.SushiSwap,
         ERC20BridgeSource.QuickSwap,
         ERC20BridgeSource.Dfyn,
@@ -279,6 +280,7 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.WOOFi,
     ]),
     [ChainId.Polygon]: new SourceFilters([
+        ERC20BridgeSource.Native,
         ERC20BridgeSource.SushiSwap,
         ERC20BridgeSource.QuickSwap,
         ERC20BridgeSource.Dfyn,
