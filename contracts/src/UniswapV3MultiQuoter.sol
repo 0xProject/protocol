@@ -128,6 +128,58 @@ contract UniswapV3MultiQuoter {
         }
     }
 
+    /// @notice Returns the amounts in received for a given set of exact output swaps without executing the swap
+    /// @param factory The factory contract managing UniswapV3 pools
+    /// @param path The path of the swap, i.e. each token pair and the pool fee. Path must be provided in reverse order
+    /// @param amountsOut The amounts out of the last token to receive
+    /// @return amountsIn The amounts of the first token swap
+    /// @return gasEstimate The estimates of the gas that the swap consumes
+    function quoteExactMultiOutput(
+        IUniswapV3Factory factory,
+        bytes memory path,
+        uint256[] memory amountsOut
+    ) public returns (uint256[] memory amountsIn, uint256[] memory gasEstimate) {
+        for (uint256 i = 0; i < amountsOut.length - 1; ++i) {
+            require(
+                amountsOut[i] <= amountsOut[i + 1],
+                "UniswapV3MultiQuoter/amountsOut must be monotonically increasing"
+            );
+        }
+
+        gasEstimate = new uint256[](amountsOut.length);
+
+        while (true) {
+            (address tokenOut, address tokenIn, uint24 fee) = path.decodeFirstPool();
+            bool zeroForOne = tokenIn < tokenOut;
+            IUniswapV3Pool pool = factory.getPool(tokenIn, tokenOut, fee);
+
+            // multiswap only accepts int256[] for output amounts
+            int256[] memory amounts = new int256[](amountsOut.length);
+            for (uint256 i = 0; i < amountsOut.length; ++i) {
+                amounts[i] = -int256(amountsOut[i]);
+            }
+
+            MultiSwapResult memory result = multiswap(
+                pool,
+                zeroForOne,
+                amounts,
+                zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1
+            );
+
+            for (uint256 i = 0; i < amountsOut.length; ++i) {
+                amountsOut[i] = zeroForOne ? uint256(result.amounts0[i]) : uint256(result.amounts1[i]);
+                gasEstimate[i] += result.gasEstimates[i];
+            }
+
+            // decide whether to continue or terminate
+            if (path.hasMultiplePools()) {
+                path = path.skipToken();
+            } else {
+                return (amountsOut, gasEstimate);
+            }
+        }
+    }
+
     /// @notice swap multiple amounts of token0 for token1 or token1 for token1
     /// @dev The results of multiswap includes slight rounding issues resulting from rounding up/rounding down in SqrtPriceMath library
     /// @param pool The UniswapV3 pool to simulate each of the swap amounts for

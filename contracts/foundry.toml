@@ -1,7 +1,8 @@
 [profile.default]
 src = 'src'
 out = 'foundry-artifacts'
-test = 'test/foundry'
+test = 'test'
+path_pattern = '*.t.sol'
 libs = ["lib"]
 remappings = [
     '@0x/contracts-utils/=../node_modules/@0x/contracts-utils/',
