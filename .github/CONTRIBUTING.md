@@ -89,15 +89,3 @@ A few of our coding conventions are not yet enforced by the linter/auto-formatte
 1.  If you _must_ cast a variable to any - try to type it back as fast as possible. (e.g., `const cw = ((zeroEx as any)._contractWrappers as ContractWrappers);`). This ensures subsequent code is type-safe.
 1.  Our enum conventions coincide with the recommended TypeScript conventions, using capitalized keys, and all-caps snake-case values. Eg `GetStats = 'GET_STATS'`
 1.  All public, exported methods/functions/classes must have associated Javadoc-style comments.
-
-### Fix `submit-coverage` CI failure
-
-If you simply fork the repo and then create a PR from it, your PR will fail the `submit-coverage` check on CI. This is because the 0x CircleCI configuration sets the `COVERALLS_REPO_TOKEN` environment variable to the token for `0xProject/0x-tools`, but when running the check against your fork the token needs to match your repo's name `your-username/0x-tools`.
-
-To facilitate this check, after creating your fork, but before creating the branch for your PR, do the following:
-
-1.  Log in to [coveralls.io](https://coveralls.io/), go to `Add Repos`, and enable your fork. Then go to the settings for that repo, and copy the `Repo Token` identifier.
-2.  Log in to [CircleCI](https://circleci.com/login), go to `Add Projects`, click the `Set Up Project` button corresponding to your fork, and then click `Start Building`. (Aside from step 3 below, no actual set up is needed, since it will use the `.circleci/config.yml` file in 0x-tools, so you can ignore all of the instruction/explanation given on the page with the `Start Building` button.)
-3.  In CircleCI, configure your project to add an environment variable, with name `COVERALLS_REPO_TOKEN`, and for the value paste in the `Repo Token` you copied in step 1.
-
-Now, when you push to your branch, CircleCI will automatically run all of the checks in your own instance, and the coverage check will work since it has the proper `Repo Token`, and the PR will magically refer to your own checks rather than running them in the 0x CircleCI instance.

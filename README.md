@@ -8,7 +8,7 @@ This repository is a monorepo including the 0x protocol smart contracts and nume
 
 [website-url]: https://0x.org
 
-[![Coverage Status](https://coveralls.io/repos/github/0xProject/0x-monorepo/badge.svg?branch=development)](https://coveralls.io/github/0xProject/0x-monorepo?branch=development)
+[![Coverage Status](https://coveralls.io/repos/github/0xProject/protocol/badge.svg?branch=development)](https://coveralls.io/github/0xProject/protocol?branch=development)
 [![Discord](https://img.shields.io/badge/chat-discord.chat-yellow.svg?style=flat)](https://discordapp.com/invite/d3FTX3M)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 

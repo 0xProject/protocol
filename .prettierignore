@@ -87,6 +87,10 @@ deps
 /contracts/exchange-forwarder/build/
 /packages/asset-swapper/
 /packages/contract-wrappers/src/generated-wrappers/
+generated-artifacts/
+generated-wrappers/
+foundry-artifacts/
+out/
+cache/
 package.json
-packages/*/docs
-docs/
+packages

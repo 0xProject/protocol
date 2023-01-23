@@ -14,7 +14,6 @@
         "ganache": "ganache-cli -p 8545 --gasLimit 10000000 --networkId 50 -m \"${npm_package_config_mnemonic}\"",
         "prettier": "prettier --write '**/*.{ts,tsx,json,sol}' --config .prettierrc",
         "prettier:ci": "prettier --list-different '**/*.{ts,tsx,json,sol}' --config .prettierrc",
-        "report_coverage": "lcov-result-merger './packages/*/coverage/lcov.info' | coveralls",
         "test:installation": "node ./node_modules/@0x/monorepo-scripts/lib/test_installation.js",
         "test:installation:local": "IS_LOCAL_PUBLISH=true node ./node_modules/@0x/monorepo-scripts/lib/test_installation.js",
         "test:publish:ci": "yarn npm-cli-login -u test -p test -e test@example.com -r http://localhost:4873 && IS_LOCAL_PUBLISH=true run-s script:publish test:installation:local",
@@ -34,7 +33,7 @@
         "watch:ts": "tsc -b -w",
         "clean": "wsrun --fast-exit -r --parallel --exclude-missing -p $PKG -c clean",
         "contracts:watch": "wsrun --parallel --exclude-missing -p $PKG -c watch",
-        "lint:contracts": "npx solhint contracts/**/*.sol",
+        "lint:contracts": "yarn solhint 'contracts/**/*.sol'",
         "remove_node_modules": "lerna clean --yes; rm -rf node_modules",
         "rebuild": "run-s clean build",
         "test": "wsrun --fast-exit --serial --exclude-missing -p $(echo $(echo ${npm_package_config_contractsPackages} ${npm_package_config_nonContractPackages} | tr ' ' '\n' | sort | uniq) ${npm_package_config_ignoreTestsForPackages} | tr ' ' '\n' | sort | uniq -u | tr '\n' ' ') -c test",
@@ -49,9 +48,18 @@
         "bundlewatch": "bundlewatch",
         "lint:ts": "wsrun --fast-exit --parallel --exclude-missing -p $PKG -c lint",
         "lint": "yarn lint:ts && yarn lint:contracts",
-        "upgrade_tools": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/abi-gen|@0x/assert|@0x/base-contract|@0x/contracts-gen|@0x/dev-utils|@0x/json-schemas|@0x/monorepo-scripts|@0x/sol-compiler|@0x/sol-coverage|@0x/sol-doc|@0x/sol-profiler|@0x/sol-resolver|@0x/sol-trace|@0x/sol-tracing-utils|@0x/subproviders|@0x/types|@0x/typescript-typings|@0x/utils|@0x/verdaccio|@0x/web3-wrapper|ethereum-types'",
+        "upgrade_tools": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js -p '@0x/abi-gen|@0x/assert|@0x/base-contract|@0x/contracts-gen|@0x/dev-utils|@0x/json-schemas|@0x/monorepo-scripts|@0x/sol-compiler|@0x/sol-doc|@0x/sol-profiler|@0x/sol-resolver|@0x/sol-trace|@0x/sol-tracing-utils|@0x/subproviders|@0x/types|@0x/typescript-typings|@0x/utils|@0x/verdaccio|@0x/web3-wrapper|ethereum-types'",
         "upgrade_deps": "node node_modules/@0x/monorepo-scripts/lib/upgrade_deps.js",
         "verdaccio": "docker run --rm -i -p 4873:4873 0xorg/verdaccio"
+    },
+    "lint-staged": {
+        "**/*.{ts,tsx,json}": [
+            "prettier --write"
+        ],
+        "**/*.sol": [
+            "prettier --write",
+            "solhint --fix"
+        ]
     },
     "config": {
         "contractsPackages": "@0x/contracts-erc20 @0x/contracts-test-utils @0x/contracts-utils @0x/contracts-zero-ex @0x/contracts-treasury",
@@ -70,8 +78,9 @@
         "check-md": "^1.0.2",
         "coveralls": "^3.0.0",
         "ganache-cli": "6.12.2",
-        "lcov-result-merger": "^3.0.0",
+        "husky": "^8.0.3",
         "lerna": "^3.0.0-beta.25",
+        "lint-staged": "^13.1.0",
         "npm-run-all": "^4.1.2",
         "prettier": "2.7.1",
         "prettier-plugin-solidity": "^1.0.0",

@@ -76,11 +76,25 @@ jobs:
         with:
           version: nightly
 
-      - name: Run foundry tests for zero ex contracts only
+      - name: Run Forge build
         working-directory: contracts/zero-ex
         run: |
           forge --version
           forge build --sizes
+
+      - name: Run Forge tests
+        working-directory: contracts/zero-ex
+        run: |
           forge test -vvv --gas-report
-      
-      
+
+      - name: Run Forge coverage
+        working-directory: contracts/zero-ex
+        run: |
+          forge coverage --report lcov
+
+      - name: Upload the coverage report to Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          base-path: ./contracts/zero-ex/
+          path-to-lcov: ./contracts/zero-ex/lcov.info

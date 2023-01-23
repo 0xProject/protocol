@@ -6,7 +6,7 @@ Governor
 
     This page is tailored for Exchange V4. For information on governance over past exhcange versions, see `this specification <https://github.com/0xProject/0x-protocol-specification/blob/master/v3/zero-ex-governor.md>`_.
 
-The ``ZeroExGovernor`` is a time-locked multi-signature wallet that has permission to perform administrative functions within the protocol. Functions are timelocked (see below). Many functions that can be used to mitigate damage in case of emergencies (for example, if a vulnerability is discovered that puts user funds at risk) do not have a timelock. 
+The ``ZeroExGovernor`` is a time-locked multi-signature wallet that has permission to perform administrative functions within the protocol. Functions are timelocked (see below). Many functions that can be used to mitigate damage in case of emergencies (for example, if a vulnerability is discovered that puts user funds at risk) do not have a timelock.
 
 The ``ZeroExGovernor`` is able to perform the following functions within the protocol:
 
@@ -52,7 +52,7 @@ The ``ZeroExGovernor`` can also manage authorizations all permissioned contracts
 Administering Systems
 =======================
 
-The governor owns all permissioned, trusted contracts under the 0x Protocol. Any ``onlyOwner`` function can be executed by the governor. The governor requires 2/3 signatures and is timelocked. 
+The governor owns all permissioned, trusted contracts under the 0x Protocol. Any ``onlyOwner`` function can be executed by the governor. The governor requires 2/3 signatures and is timelocked.
 
 
 Timelocks
@@ -62,16 +62,16 @@ Function timelocks are represented in days, where one day is equivalent to 86,40
 .. csv-table::
     :header: "Contract", "Function", "Selector", "Timelock"
 
-    AllowanceTarget, ``addAuthorizedAddress``, ``42f1181e``, 1 day
+    AllowanceTarget, ``addAuthorizedAddress``, ``42f1181e``, 2 days
     AllowanceTarget, ``removeAuthorizedAddress``, ``70712939``, 0 days
     AllowanceTarget, ``removeAuthorizedAddressAtIndex``, ``9ad26744``, 0 days
-    Governor, ``registerFunctionCall``, ``751ad560``, 1 day
-    ExchangeProxy, ``extend``, ``6eb224cb``, 1 day
-    ExchangeProxy, ``migrate``, ``261fe679``, 1 day
+    Governor, ``registerFunctionCall``, ``751ad560``, 2 days
+    ExchangeProxy, ``extend``, ``6eb224cb``, 2 days
+    ExchangeProxy, ``migrate``, ``261fe679``, 2 days
     ExchangeProxy, ``rollback``, ``9db64a40``, 0 days
-    ExchangeProxy, ``setQuoteSigner``, ``<deprecation in progress>``, 1 day
-    ExchangeProxy, ``setTransformerDeployer``, ``87c96419``, 1 day
-    ExchangeProxy, ``transferOwnership``, ``f2fde38b``, 1 day
+    ExchangeProxy, ``setQuoteSigner``, ``<deprecation in progress>``, 2 days
+    ExchangeProxy, ``setTransformerDeployer``, ``87c96419``, 2 days
+    ExchangeProxy, ``transferOwnership``, ``f2fde38b``, 2 days
     StakingProxy, ``addExchangeAddress``, ``8a2e271a``, 14 days
     StakingProxy, ``removeExchangeAddress``, ``01e28d84``, 14 days
     StakingProxy, ``attachStakingContract``, ``66615d56``, 14 days
