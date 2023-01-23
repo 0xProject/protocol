@@ -103,4 +103,36 @@ contract ZRXWrappedTokenTest is BaseTest {
         uint256 tokenBalance2 = token.balanceOf(account2);
         assertEq(tokenBalance2, 100e18 - wTokenBalance2 - tokenBalance4);
     }
+
+    function testShouldBeAbleToSelfDelegateVotingPower() public {
+        // Check voting power initially is 0
+        uint256 votingPowerAccount2 = wToken.getVotes(account2);
+        assertEq(votingPowerAccount2, 0);
+
+        // Wrap ZRX and delegate voting power to themselves
+        vm.startPrank(account2);
+        token.approve(address(wToken), 100e18);
+        wToken.depositFor(account2, 100e18);
+        wToken.delegate(account2);
+
+        // Check voting power is now = token balance
+        votingPowerAccount2 = wToken.getVotes(account2);
+        assertEq(votingPowerAccount2, 100e18);
+    }
+
+    function testShouldBeAbleToDelegateVotingPowerToAnotherAccount() public {
+        // Check voting power initially is 0
+        uint256 votingPowerAccount3 = wToken.getVotes(account3);
+        assertEq(votingPowerAccount3, 0);
+
+        // Account 2 wraps ZRX and delegates voting power to account3
+        vm.startPrank(account2);
+        token.approve(address(wToken), 10e18);
+        wToken.depositFor(account2, 10e18);
+        wToken.delegate(account3);
+
+        // Check voting power is now = token balance
+        votingPowerAccount3 = wToken.getVotes(account3);
+        assertEq(votingPowerAccount3, 10e18);
+    }
 }
