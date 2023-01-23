@@ -258,7 +258,7 @@ export class ExchangeProxySwapQuoteConsumer implements SwapQuoteConsumer {
         // OTC orders
         // if we have more than one otc order we want to batch fill them through multiplex
         if (
-            [ChainId.Mainnet, ChainId.PolygonMumbai].includes(this.chainId) && // @todo goerli and polygon?
+            [ChainId.Mainnet, ChainId.Polygon, ChainId.PolygonMumbai].includes(this.chainId) && // @todo goerli?
             slippedOrders.every((o) => o.type === FillQuoteTransformerOrderType.Otc) &&
             !requiresTransformERC20(optsWithDefaults) &&
             slippedOrders.length === 1
