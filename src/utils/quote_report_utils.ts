@@ -249,8 +249,8 @@ export const quoteReportUtils = {
         }
         return null;
     },
-    async publishRfqtV2FeeEvent(logOpts: RfqtV2FeeEventLogOptions, kafkaProducer: Producer, quoteReportTopic?: string) {
-        if (kafkaProducer && quoteReportTopic) {
+    async publishRfqtV2FeeEvent(logOpts: RfqtV2FeeEventLogOptions, kafkaProducer: Producer, feeEventTopic?: string) {
+        if (kafkaProducer && feeEventTopic) {
             const createdAt = Date.now();
             logger.info(`Generating and pushing RFQt V2 Quote Report`);
 
@@ -274,7 +274,7 @@ export const quoteReportUtils = {
                 };
 
                 kafkaProducer.send({
-                    topic: quoteReportTopic,
+                    topic: feeEventTopic,
                     messages: [
                         {
                             value: JSON.stringify(quoteReport),

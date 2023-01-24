@@ -89,9 +89,7 @@ if (require.main === module) {
         const redis = new Redis(REDIS_URI);
         redisInstances.push(redis);
 
-        const chainsConfigurationsWithGaslessSwap = CHAIN_CONFIGURATIONS.filter(
-            (c) => c.gaslessSwapServiceConfiguration,
-        );
+        const chainsConfigurationsWithGaslessSwap = CHAIN_CONFIGURATIONS.filter((c) => c.gasless);
 
         const rfqmServices = await buildRfqmServicesAsync(
             /* asWorker = */ false,
@@ -106,7 +104,7 @@ if (require.main === module) {
         const gaslessSwapServices = await chainsConfigurationsWithGaslessSwap.reduce(
             async (resultPromise, chainConfiguration) => {
                 const result: Map<number, GaslessSwapService> = await resultPromise;
-                const { gaslessSwapServiceConfiguration, chainId } = chainConfiguration;
+                const { gasless: gaslessSwapServiceConfiguration, chainId } = chainConfiguration;
                 // Chains without this configuration are already filtered out in
                 // chainsConfigurationsWithGaslessSwap, but let's make the type checker happy
                 if (!gaslessSwapServiceConfiguration) {

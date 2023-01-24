@@ -1,64 +1,85 @@
 {
     "id": "/chainConfigurationSchema",
     "properties": {
-        "enableAccessList": {
-            "type": "boolean"
-        },
-        "enableMakerBalanceCache": {
-            "type": "boolean"
-        },
-        "gasStationUrl": {
-            "type": "string"
-        },
-        "initialMaxPriorityFeePerGasGwei": {
-            "type": "number"
-        },
-        "maxFeePerGasCapGwei": {
+        "chainId": {
             "type": "number"
         },
         "name": {
             "type": "string"
         },
-        "registryAddress": {
+        "gasStationUrl": {
             "type": "string"
         },
-        "rpcUrl": {
+        "registryAddress": {
             "type": "string"
         },
         "sqsUrl": {
             "type": "string"
         },
-        "quoteReportTopic": {
-            "type": "string"
-        },
-        "rfqtFeeEventTopic": {
+        "rpcUrl": {
             "type": "string"
         },
         "zeroExClientBaseUrl": {
             "type": "string"
         },
-        "feeModelVersion": {
-            "type": "number"
-        },
-        "rfqtFeeModelVersion": {
-            "type": "number"
-        },
         "exchangeProxyContractAddressOverride": {
             "type": "string"
         },
-        "rfqmWorkerTransactionWatcherSleepTimeMs": {
-            "type": "number"
+        "enableMakerBalanceCache": {
+            "type": "boolean"
+        },
+        "gasless": {
+            "properties": {
+                "metaTransactionServiceUrl": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "rfqm": {
+            "properties": {
+                "minExpiryDurationMs": {
+                    "type": "number"
+                },
+                "quoteReportTopic": {
+                    "type": "string"
+                },
+                "feeModelVersion": {
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "rfqt": {
+            "properties": {
+                "minExpiryDurationMs": {
+                    "type": "number"
+                },
+                "feeEventTopic": {
+                    "type": "string"
+                },
+                "feeModelVersion": {
+                    "type": "number"
+                }
+            },
+            "type": "object"
+        },
+        "worker": {
+            "initialMaxPriorityFeePerGasGwei": {
+                "type": "number"
+            },
+            "maxFeePerGasCapGwei": {
+                "type": "number"
+            },
+            "transactionWatcherSleepTimeMs": {
+                "type": "number"
+            },
+            "enableAccessList": {
+                "type": "boolean"
+            },
+            "type": "object"
         }
     },
-    "required": [
-        "gasStationUrl",
-        "initialMaxPriorityFeePerGasGwei",
-        "maxFeePerGasCapGwei",
-        "name",
-        "registryAddress",
-        "rpcUrl",
-        "sqsUrl",
-        "zeroExClientBaseUrl"
-    ],
+    "required": ["chainId", "name", "gasStationUrl", "registryAddress", "rpcUrl", "sqsUrl", "zeroExClientBaseUrl"],
     "type": "object"
 }

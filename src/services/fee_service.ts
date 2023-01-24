@@ -2,7 +2,7 @@
 import { TokenMetadata } from '@0x/token-metadata';
 import { BigNumber } from '@0x/utils';
 
-import { BPS_TO_RATIO, RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../core/constants';
+import { BPS_TO_RATIO, ZERO } from '../core/constants';
 import {
     ConversionRates,
     DefaultFeeDetailsDeprecated,
@@ -153,6 +153,7 @@ export class FeeService {
         private readonly _gasStationAttendant: GasStationAttendant,
         private readonly _tokenPriceOracle: TokenPriceOracle,
         private readonly _zeroExApiClient: ZeroExApiClient,
+        private readonly _minExpiryDurationMs: number,
     ) {}
 
     /**
@@ -444,7 +445,7 @@ export class FeeService {
             takerToken,
             makerToken,
             assetFillAmount,
-            RFQM_MINIMUM_EXPIRY_DURATION_MS,
+            this._minExpiryDurationMs,
         );
 
         const wasUnableToFetchMakerQuote: boolean = bestMakerQuoteWithGasFee === null;

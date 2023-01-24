@@ -23,7 +23,7 @@ export const BPS_TO_RATIO = 0.0001;
 
 // RFQM Service
 export const KEEP_ALIVE_TTL = ONE_MINUTE_MS * 5;
-export const DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS = ONE_SECOND_MS * 15;
+export const DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS = ONE_SECOND_MS * 15;
 export const RFQM_NUM_BUCKETS = 1000;
 
 // API namespaces
@@ -50,9 +50,7 @@ export const ETH_DECIMALS = 18;
 export const GWEI_DECIMALS = 9;
 
 // RFQ quote minimum expiry
-// TODO: make threshold configurable by chain
-export const RFQM_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
-export const RFQT_MINIMUM_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
+export const DEFAULT_MIN_EXPIRY_DURATION_MS = ONE_MINUTE_MS;
 
 export const RFQ_ALLOWANCE_TARGET = '0xdef1c0ded9bec7f1a1670819833240f027b25eff';
 export const RFQM_TX_GAS_ESTIMATE = 165e3;

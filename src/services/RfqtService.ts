@@ -12,7 +12,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer as KafkaProducer } from 'kafkajs';
 
 import { Integrator } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQT_MINIMUM_EXPIRY_DURATION_MS } from '../core/constants';
+import { NULL_ADDRESS, ONE_SECOND_MS } from '../core/constants';
 import { feeToStoredFee } from '../core/fee_utils';
 import {
     Fee,
@@ -131,6 +131,7 @@ export class RfqtService {
         >,
         // Used for RFQt v2 requests
         private readonly _quoteServerClient: QuoteServerClient,
+        private readonly _minExpiryDurationMs: number,
         private readonly _blockchainUtils: RfqBlockchainUtils,
         private readonly _tokenMetadataManager: TokenMetadataManager,
         private readonly _contractAddresses: AssetSwapperContractAddresses,
@@ -138,7 +139,7 @@ export class RfqtService {
         private readonly _feeModelVersion: FeeModelVersion,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _kafkaProducer?: KafkaProducer,
-        private readonly _quoteReportTopic?: string,
+        private readonly _feeEventTopic?: string,
     ) {
         this._nativeTokenSymbol = nativeTokenSymbol(this._chainId);
         this._nativeTokenAddress = getTokenAddressFromSymbol(this._nativeTokenSymbol, this._chainId);
@@ -398,7 +399,7 @@ export class RfqtService {
                         fee: storedFee,
                     },
                     this._kafkaProducer,
-                    this._quoteReportTopic,
+                    this._feeEventTopic,
                 );
             } catch (e) {
                 logger.error(
@@ -485,7 +486,7 @@ export class RfqtService {
         });
 
         // Filter out invalid prices
-        const validatedPrices = validateV2Prices(prices, quoteContext, RFQT_MINIMUM_EXPIRY_DURATION_MS, now);
+        const validatedPrices = validateV2Prices(prices, quoteContext, this._minExpiryDurationMs, now);
 
         return validatedPrices;
     }

@@ -5,7 +5,12 @@ import { BigNumber } from '@0x/utils';
 import { anything, instance, mock, when } from 'ts-mockito';
 
 import { DEFAULT_FEE_MODEL_CONFIGURATION, FeeModelConfiguration } from '../../src/config';
-import { BPS_TO_RATIO, RFQM_TX_OTC_ORDER_GAS_ESTIMATE, ZERO } from '../../src/core/constants';
+import {
+    BPS_TO_RATIO,
+    DEFAULT_MIN_EXPIRY_DURATION_MS,
+    RFQM_TX_OTC_ORDER_GAS_ESTIMATE,
+    ZERO,
+} from '../../src/core/constants';
 import {
     calculateDefaultFeeAmount,
     calculatePriceImprovementAmount,
@@ -67,6 +72,7 @@ const buildFeeService = (overrides: {
         instance(overrides?.gasStationAttendantMock || gasStationAttendantMock),
         instance(overrides?.tokenPriceOracleMock || tokenPriceOracleMock),
         instance(overrides?.zeroExApiClientMock || zeroExApiClientMock),
+        DEFAULT_MIN_EXPIRY_DURATION_MS,
     );
 };
 

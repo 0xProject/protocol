@@ -17,7 +17,7 @@ import { Counter } from 'prom-client';
 import { Producer } from 'sqs-producer';
 
 import { ENABLE_LLR_COOLDOWN, RFQM_MAINTENANCE_MODE } from '../config';
-import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_MINIMUM_EXPIRY_DURATION_MS, RFQM_NUM_BUCKETS } from '../core/constants';
+import { NULL_ADDRESS, ONE_SECOND_MS, RFQM_NUM_BUCKETS } from '../core/constants';
 import { MetaTransactionSubmissionEntity, RfqmV2TransactionSubmissionEntity } from '../entities';
 import { RfqmV2JobApprovalOpts, RfqmV2JobConstructorOpts } from '../entities/RfqmV2JobEntity';
 import {
@@ -226,6 +226,7 @@ export class RfqmService {
         private readonly _dbUtils: RfqmDbUtils,
         private readonly _sqsProducer: Producer,
         private readonly _quoteServerClient: QuoteServerClient,
+        private readonly _minExpiryDurationMs: number,
         private readonly _cacheClient: CacheClient,
         private readonly _rfqMakerBalanceCacheService: RfqMakerBalanceCacheService,
         private readonly _rfqMakerManager: RfqMakerManager,
@@ -295,7 +296,7 @@ export class RfqmService {
             takerToken,
             makerToken,
             assetFillAmount,
-            RFQM_MINIMUM_EXPIRY_DURATION_MS,
+            this._minExpiryDurationMs,
         );
 
         const isLiquidityAvailable = bestQuote !== null;
@@ -421,7 +422,7 @@ export class RfqmService {
             takerToken,
             makerToken,
             assetFillAmount,
-            RFQM_MINIMUM_EXPIRY_DURATION_MS,
+            this._minExpiryDurationMs,
             quotedMakerBalances,
         );
 
@@ -841,7 +842,7 @@ export class RfqmService {
 
         // validate that the expiration window is long enough to fill quote
         const currentTimeMs = new Date().getTime();
-        if (!order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + RFQM_MINIMUM_EXPIRY_DURATION_MS)) {
+        if (!order.expiry.times(ONE_SECOND_MS).isGreaterThan(currentTimeMs + this._minExpiryDurationMs)) {
             throw new ValidationError([
                 {
                     field: 'expiryAndNonce',

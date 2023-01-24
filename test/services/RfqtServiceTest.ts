@@ -9,7 +9,7 @@ import { BigNumber } from '@0x/utils';
 import { AxiosInstance } from 'axios';
 
 import { Integrator } from '../../src/config';
-import { NULL_ADDRESS, ONE_SECOND_MS } from '../../src/core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, NULL_ADDRESS, ONE_SECOND_MS } from '../../src/core/constants';
 import { RfqMaker } from '../../src/entities';
 import { QuoteRequestor } from '../../src/quoteRequestor/QuoteRequestor';
 import { FeeService } from '../../src/services/fee_service';
@@ -73,6 +73,7 @@ const mockFeeService = jest.mocked(
         {} as GasStationAttendant,
         {} as TokenPriceOracle,
         {} as ZeroExApiClient,
+        DEFAULT_MIN_EXPIRY_DURATION_MS,
     ),
 );
 const mockRfqBlockchainUtils = jest.mocked({} as RfqBlockchainUtils);
@@ -99,6 +100,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -186,6 +188,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -318,6 +321,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -393,6 +397,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -482,6 +487,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -564,6 +570,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -644,6 +651,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -703,6 +711,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -776,6 +785,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,
@@ -844,6 +854,7 @@ describe('Rfqt Service', () => {
                     mockRfqMakerManager,
                     mockQuoteRequestor,
                     mockQuoteServerClient,
+                    DEFAULT_MIN_EXPIRY_DURATION_MS,
                     mockRfqBlockchainUtils,
                     mockTokenMetadataManager,
                     mockContractAddresses,

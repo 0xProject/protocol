@@ -10,7 +10,7 @@ import { Producer } from 'sqs-producer';
 import { Connection } from 'typeorm';
 
 import { Integrator } from '../../src/config';
-import { ZERO } from '../../src/core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, ZERO } from '../../src/core/constants';
 import { MetaTransactionJobEntity } from '../../src/entities';
 import { RfqmJobStatus } from '../../src/entities/types';
 import { GaslessSwapService } from '../../src/services/GaslessSwapService';
@@ -116,6 +116,7 @@ const mockRfqmService = jest.mocked(
         {} as RfqmDbUtils,
         {} as Producer,
         {} as QuoteServerClient,
+        DEFAULT_MIN_EXPIRY_DURATION_MS,
         {} as CacheClient,
         {} as RfqMakerBalanceCacheService,
         {} as RfqMakerManager,

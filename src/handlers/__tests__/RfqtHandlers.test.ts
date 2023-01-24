@@ -23,6 +23,7 @@ import { RfqMakerManager } from '../../utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../utils/TokenMetadataManager';
 import { RfqtHandlers } from '../RfqtHandlers';
 import { RfqBlockchainUtils } from '../../utils/rfq_blockchain_utils';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS } from '../../core/constants';
 
 jest.mock('../../services/RfqtService', () => {
     return {
@@ -54,6 +55,7 @@ const mockRfqtService = jest.mocked(
         {} as RfqMakerManager,
         {} as QuoteRequestor,
         {} as QuoteServerClient,
+        DEFAULT_MIN_EXPIRY_DURATION_MS,
         {} as RfqBlockchainUtils,
         {} as TokenMetadataManager,
         {} as ContractAddresses,

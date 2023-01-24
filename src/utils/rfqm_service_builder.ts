@@ -28,7 +28,8 @@ import {
     ZERO_EX_API_KEY,
 } from '../config';
 import {
-    DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+    DEFAULT_MIN_EXPIRY_DURATION_MS,
+    DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
     KEEP_ALIVE_TTL,
     PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
 } from '../core/constants';
@@ -164,8 +165,13 @@ export async function buildRfqmServiceAsync(
     chain: ChainConfiguration,
     redis: Redis,
 ): Promise<RfqmService> {
+    const { rfqm: rfqmConfiguration, chainId } = chain;
+    if (!rfqmConfiguration) {
+        throw new Error(`RFQm Service for chain ${chainId} does not exist`);
+    }
+
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
-    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
 
     const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
     const provider: SupportedProvider = rpcProvider;
@@ -186,7 +192,7 @@ export async function buildRfqmServiceAsync(
         ethersProvider,
     );
 
-    const tokenMetadataManager = new TokenMetadataManager(chain.chainId, rfqBlockchainUtils);
+    const tokenMetadataManager = new TokenMetadataManager(chainId, rfqBlockchainUtils);
 
     const sqsProducer = Producer.create({
         queueUrl: chain.sqsUrl,
@@ -200,20 +206,21 @@ export async function buildRfqmServiceAsync(
 
     const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
 
-    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chainId);
     if (feeTokenMetadata === undefined) {
-        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
+        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chainId} could not be found!`);
     }
 
     const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
 
     const feeService = new FeeService(
-        chain.chainId,
+        chainId,
         feeTokenMetadata,
         configManager,
         gasStationAttendant,
         tokenPriceOracle,
         zeroExApiClient,
+        rfqmConfiguration.minExpiryDurationMs || DEFAULT_MIN_EXPIRY_DURATION_MS,
     );
 
     const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(
@@ -222,21 +229,22 @@ export async function buildRfqmServiceAsync(
     );
 
     return new RfqmService(
-        chain.chainId,
+        chainId,
         feeService,
-        chain.feeModelVersion || 0,
+        rfqmConfiguration.feeModelVersion || 0,
         contractAddresses,
         chain.registryAddress,
         rfqBlockchainUtils,
         rfqmDbUtils,
         sqsProducer,
         quoteServerClient,
+        rfqmConfiguration.minExpiryDurationMs || DEFAULT_MIN_EXPIRY_DURATION_MS,
         cacheClient,
         rfqMakerBalanceCacheService,
         rfqMakerManager,
         tokenMetadataManager,
         kafkaProducer,
-        chain.quoteReportTopic,
+        rfqmConfiguration.quoteReportTopic,
     );
 }
 
@@ -250,10 +258,15 @@ export async function buildWorkerServiceAsync(
     redis: Redis,
     workerIndex: number,
 ): Promise<WorkerService> {
+    const { worker: workerConfiguration, chainId } = chain;
+    if (!workerConfiguration) {
+        throw new Error(`Worker Service for chain ${chainId} does not exist`);
+    }
+
     let provider: SupportedProvider;
 
     // ether.js Provider coexists with web3 provider during migration away from 0x/web3-wrapper.
-    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+    const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
     let ethersWallet: Wallet | undefined;
 
     const rpcProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
@@ -296,9 +309,9 @@ export async function buildWorkerServiceAsync(
 
     const gasStationAttendant = getGasStationAttendant(chain, axiosInstance, protocolFeeUtils);
 
-    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+    const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chainId);
     if (feeTokenMetadata === undefined) {
-        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`);
+        throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chainId} could not be found!`);
     }
 
     const rfqMakerBalanceCacheService = new RfqMakerBalanceCacheService(
@@ -307,19 +320,19 @@ export async function buildWorkerServiceAsync(
     );
 
     return new WorkerService(
-        chain.chainId,
+        chainId,
         gasStationAttendant,
         chain.registryAddress,
         rfqBlockchainUtils,
         rfqmDbUtils,
         quoteServerClient,
-        chain.rfqmWorkerTransactionWatcherSleepTimeMs || DEFAULT_RFQM_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
+        workerConfiguration.transactionWatcherSleepTimeMs || DEFAULT_WORKER_TRANSACTION_WATCHER_SLEEP_TIME_MS,
         cacheClient,
         rfqMakerBalanceCacheService,
         rfqMakerManager,
-        chain.initialMaxPriorityFeePerGasGwei,
-        chain.maxFeePerGasCapGwei,
-        chain.enableAccessList,
+        workerConfiguration.initialMaxPriorityFeePerGasGwei,
+        workerConfiguration.maxFeePerGasCapGwei,
+        workerConfiguration.enableAccessList,
     );
 }
 

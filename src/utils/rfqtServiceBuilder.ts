@@ -19,7 +19,11 @@ import {
     RFQ_PROXY_PORT,
     ZERO_EX_API_KEY,
 } from '../config';
-import { KEEP_ALIVE_TTL, PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS } from '../core/constants';
+import {
+    DEFAULT_MIN_EXPIRY_DURATION_MS,
+    KEEP_ALIVE_TTL,
+    PROTOCOL_FEE_UTILS_POLLING_INTERVAL_IN_MS,
+} from '../core/constants';
 import { RefreshingQuoteRequestor } from '../quoteRequestor/RefreshingQuoteRequestor';
 import { FeeService } from '../services/fee_service';
 import { RfqtService } from '../services/RfqtService';
@@ -67,12 +71,17 @@ export async function buildRfqtServicesAsync(
             : undefined;
     const services = await Promise.all(
         chainConfigurations.map(async (chain) => {
-            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chain.chainId);
+            const { rfqt: rfqtConfiguration, chainId } = chain;
+            if (!rfqtConfiguration) {
+                throw new Error(`RFQt Service for chain ${chainId} does not exist`);
+            }
+
+            const rfqMakerManager = new RfqMakerManager(configManager, rfqMakerDbUtils, chainId);
             await rfqMakerManager.initializeAsync();
             const quoteRequestor = new RefreshingQuoteRequestor(rfqMakerManager, axiosInstance, altRfqOptions);
             const quoteServerClient = new QuoteServerClient(axiosInstance);
-            const contractAddresses = getContractAddressesForChainOrThrow(chain.chainId);
-            const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chain.chainId);
+            const contractAddresses = getContractAddressesForChainOrThrow(chainId);
+            const ethersProvider = new providers.JsonRpcProvider(chain.rpcUrl, chainId);
             const provider: SupportedProvider = providerUtils.createWeb3Provider(chain.rpcUrl);
 
             const balanceChecker = new BalanceChecker(provider);
@@ -82,7 +91,7 @@ export async function buildRfqtServicesAsync(
                 balanceChecker,
                 ethersProvider,
             );
-            const tokenMetadataManager = new TokenMetadataManager(chain.chainId, rfqBlockchainUtils);
+            const tokenMetadataManager = new TokenMetadataManager(chainId, rfqBlockchainUtils);
 
             const balanceCheckUtils = new RfqBalanceCheckUtils(balanceChecker, contractAddresses.exchangeProxy);
             const cacheClient = new CacheClient(redis);
@@ -90,11 +99,9 @@ export async function buildRfqtServicesAsync(
 
             const kafkaProducer = getKafkaProducer();
 
-            const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chain.chainId);
+            const feeTokenMetadata = getTokenMetadataIfExists(contractAddresses.etherToken, chainId);
             if (feeTokenMetadata === undefined) {
-                throw new Error(
-                    `Fee token ${contractAddresses.etherToken} on chain ${chain.chainId} could not be found!`,
-                );
+                throw new Error(`Fee token ${contractAddresses.etherToken} on chain ${chainId} could not be found!`);
             }
 
             const protocolFeeUtils = ProtocolFeeUtils.getInstance(
@@ -105,27 +112,29 @@ export async function buildRfqtServicesAsync(
             const tokenPriceOracle = new TokenPriceOracle(axiosInstance, DEFINED_FI_API_KEY, DEFINED_FI_ENDPOINT);
             const zeroExApiClient = new ZeroExApiClient(Axios.create(), ZERO_EX_API_KEY, chain);
             const feeService = new FeeService(
-                chain.chainId,
+                chainId,
                 feeTokenMetadata,
                 configManager,
                 gasStationAttendant,
                 tokenPriceOracle,
                 zeroExApiClient,
+                rfqtConfiguration.minExpiryDurationMs || DEFAULT_MIN_EXPIRY_DURATION_MS,
             );
 
             return new RfqtService(
-                chain.chainId,
+                chainId,
                 rfqMakerManager,
                 quoteRequestor,
                 quoteServerClient,
+                rfqtConfiguration.minExpiryDurationMs || DEFAULT_MIN_EXPIRY_DURATION_MS,
                 rfqBlockchainUtils,
                 tokenMetadataManager,
                 contractAddresses,
                 feeService,
-                chain.rfqtFeeModelVersion || 0,
+                rfqtConfiguration.feeModelVersion || 0,
                 rfqMakerBalanceCacheService,
                 kafkaProducer,
-                chain.rfqtFeeEventTopic,
+                rfqtConfiguration.feeEventTopic,
             );
         }),
     );

@@ -63,18 +63,8 @@ export interface ChainConfiguration {
     rpcUrl: string;
     sqsUrl: string;
     zeroExClientBaseUrl: string;
-    // The value of the "tip" the worker will use when it starts
-    // submitting transactions
-    initialMaxPriorityFeePerGasGwei: number;
-    // The max fee per gas (in gwei) the worker is willing to pay for a transaction
-    maxFeePerGasCapGwei: number;
-    quoteReportTopic?: string;
-    rfqtFeeEventTopic?: string;
-    enableAccessList?: boolean;
     // Enables caching for maker balances on observed tokens
     enableMakerBalanceCache?: boolean;
-    feeModelVersion?: FeeModelVersion;
-    rfqtFeeModelVersion?: FeeModelVersion;
     // Use this config to override the 0x Exchange Proxy contract address.
     // There might be a case when we want a different exchange
     // proxy contract than what is defined from @0x/contract-addresses repo.
@@ -82,14 +72,33 @@ export interface ChainConfiguration {
     // i.e. testing a new feature that hasn't been deployed to the official
     // contract yet
     exchangeProxyContractAddressOverride?: string;
-    // Use this config to change the sleep time between a transacion's on-chain status check.
-    // You should set the sleep time close to the chain's block time.
-    // The smaller sleep time, the more frequent a transaction is checked to see it has been
-    // settled on-chain but it also consumes more RPC calls.
-    rfqmWorkerTransactionWatcherSleepTimeMs?: number;
-    // Configuration for the gasless swap service. If no configuration is present,
-    // the chain will not have the gasless swap service active.
-    gaslessSwapServiceConfiguration?: { metaTransactionServiceUrl: string };
+    // Service configuration needs to be present to run the corresponding service.
+    gasless?: {
+        metaTransactionServiceUrl: string;
+    };
+    rfqm?: {
+        minExpiryDurationMs?: number;
+        quoteReportTopic?: string;
+        feeModelVersion?: FeeModelVersion;
+    };
+    rfqt?: {
+        minExpiryDurationMs?: number;
+        feeEventTopic?: string;
+        feeModelVersion?: FeeModelVersion;
+    };
+    worker?: {
+        // The value of the "tip" the worker will use when it starts
+        // submitting transactions
+        initialMaxPriorityFeePerGasGwei: number;
+        // The max fee per gas (in gwei) the worker is willing to pay for a transaction
+        maxFeePerGasCapGwei: number;
+        // Use this config to change the sleep time between a transacion's on-chain status check.
+        // You should set the sleep time close to the chain's block time.
+        // The smaller sleep time, the more frequent a transaction is checked to see it has been
+        // settled on-chain but it also consumes more RPC calls.
+        transactionWatcherSleepTimeMs?: number;
+        enableAccessList?: boolean;
+    };
 }
 
 export type ChainConfigurations = ChainConfiguration[];

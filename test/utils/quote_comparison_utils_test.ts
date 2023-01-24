@@ -8,7 +8,7 @@ import { OtcOrder } from '@0x/protocol-utils';
 import { BigNumber } from '@0x/utils';
 import { expect } from 'chai';
 
-import { RFQM_MINIMUM_EXPIRY_DURATION_MS, ZERO } from '../../src/core/constants';
+import { DEFAULT_MIN_EXPIRY_DURATION_MS, ZERO } from '../../src/core/constants';
 import { FirmOtcQuote, IndicativeQuote } from '../../src/core/types';
 import { getBestQuote } from '../../src/utils/quote_comparison_utils';
 
@@ -37,7 +37,7 @@ describe('Quote Comparison Utils', () => {
         const makerToken = 'DAI';
         const takerToken = 'SUSD';
         const assetFillAmount = new BigNumber(100);
-        const validityWindowMs = RFQM_MINIMUM_EXPIRY_DURATION_MS;
+        const validityWindowMs = DEFAULT_MIN_EXPIRY_DURATION_MS;
         const inThirtySeconds = new BigNumber(Math.round((Date.now() + ONE_SECOND_MS * 30) / ONE_SECOND_MS));
 
         describe('IndicativeQuotes when selling', () => {

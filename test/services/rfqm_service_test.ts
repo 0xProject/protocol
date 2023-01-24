@@ -13,7 +13,13 @@ import { Producer } from 'sqs-producer';
 import { anything, capture, instance, mock, spy, verify, when } from 'ts-mockito';
 
 import { Integrator } from '../../src/config';
-import { ETH_DECIMALS, ONE_MINUTE_MS, ONE_SECOND_MS, ZERO } from '../../src/core/constants';
+import {
+    DEFAULT_MIN_EXPIRY_DURATION_MS,
+    ETH_DECIMALS,
+    ONE_MINUTE_MS,
+    ONE_SECOND_MS,
+    ZERO,
+} from '../../src/core/constants';
 import { RfqmV2JobEntity, RfqmV2QuoteEntity, RfqmV2TransactionSubmissionEntity } from '../../src/entities';
 import {
     RfqmJobStatus,
@@ -181,6 +187,7 @@ const buildRfqmServiceForUnitTest = (
         overrides.dbUtils || dbUtilsMock,
         overrides.producer || sqsMock,
         overrides.quoteServerClient || quoteServerClientMock,
+        DEFAULT_MIN_EXPIRY_DURATION_MS,
         overrides.cacheClient || instance(cacheClientMock),
         overrides.rfqMakerBalanceCacheService || rfqMakerBalanceCacheService,
         overrides.rfqMakerManager || rfqMakerManagerMock,
