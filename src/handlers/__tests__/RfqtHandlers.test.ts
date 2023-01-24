@@ -101,7 +101,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set('Content-type', 'application/json')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 'liger' })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -126,7 +126,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set('Content-type', 'application/json')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -194,7 +194,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 21 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -237,7 +237,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -277,7 +277,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -353,7 +353,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -396,7 +396,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -436,7 +436,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -527,7 +527,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV1QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -554,7 +554,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set('Content-type', 'application/json')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({ makerToken: '0xmakertoken' });
 
             expect(response.body.error).toContain('missing parameter');
@@ -568,7 +568,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set('Content-type', 'application/json')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 'liger' })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -593,7 +593,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set('Content-type', 'application/json')
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -661,7 +661,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 21 })
                 .send({
                     altRfqAssetOfferings: {},
                     assetFillAmount: new BigNumber(100),
@@ -703,7 +703,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,
@@ -741,7 +741,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,
@@ -825,7 +825,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2PricesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,
@@ -867,7 +867,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,
@@ -906,7 +906,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,
@@ -1005,7 +1005,7 @@ describe('RfqtHandlers', () => {
                     .post('/', asyncHandler(rfqtHandlers.getV2QuotesAsync.bind(rfqtHandlers))),
             )
                 .post('/')
-                .set({ 'Content-type': 'application/json' })
+                .set({ 'Content-type': 'application/json', '0x-chain-id': 1337 })
                 .send({
                     assetFillAmount: new BigNumber(100),
                     chainId: 1337,

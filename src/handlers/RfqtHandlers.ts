@@ -256,7 +256,6 @@ export class RfqtHandlers {
         if (
             !body.altRfqAssetOfferings ||
             !body.assetFillAmount ||
-            !body.chainId ||
             !body.makerToken ||
             !body.marketOperation ||
             !body.takerToken ||
@@ -267,9 +266,9 @@ export class RfqtHandlers {
             throw new Error('Received request with missing parameters');
         }
 
-        const { assetFillAmount, chainId, comparisonPrice, marketOperation, integratorId } = request.body;
+        const { assetFillAmount, comparisonPrice, marketOperation, integratorId } = request.body;
 
-        const parsedChainId = parseInt(chainId.toString(), 10);
+        const parsedChainId = this._extractChainId(request);
         if (Number.isNaN(parsedChainId)) {
             throw new Error('Chain ID is invalid');
         }
@@ -301,23 +300,16 @@ export class RfqtHandlers {
      * Extract chainId from request parameters.
      */
     private _extractChainId<TRequest extends TypedRequest<RfqtV2Request>>(request: TRequest): number {
-        const { body } = request;
-
-        // Doing this before destructuring the body, otherwise the error
-        // thrown will be something like:
-        // 'Cannot destructure property 'chainId' of 'request.body' as it is undefined.'
-        if (!body.chainId) {
-            throw new Error('Received request with missing parameter chainId ');
+        const chainIdFromHeader = request.header('0x-chain-id');
+        if (chainIdFromHeader === undefined) {
+            throw new Error('Chain ID is not provided');
+        } else {
+            const parsedChainId = parseInt(chainIdFromHeader, 10);
+            if (Number.isNaN(parsedChainId)) {
+                throw new Error('Chain ID is invalid');
+            }
+            return parsedChainId;
         }
-
-        const { chainId } = request.body;
-
-        const parsedChainId = parseInt(chainId.toString(), 10);
-        if (Number.isNaN(parsedChainId)) {
-            throw new Error('Chain ID is invalid');
-        }
-
-        return parsedChainId;
     }
 
     /**
