@@ -4,7 +4,7 @@ import { Counter } from 'prom-client';
 import { ONE_SECOND_MS } from '../core/constants';
 import { logger } from '../logger';
 import { QuoteContext } from '../services/types';
-import { RfqtV2Prices } from '../core/types';
+import { RfqtV2Price } from '../core/types';
 
 const ORDER_FULLY_FILLABLE = new Counter({
     name: 'rfqt_order_fully_fillable',
@@ -33,11 +33,11 @@ const ORDER_NOT_FILLABLE = new Counter({
  * @returns Array of valid prices
  */
 export function validateV2Prices(
-    prices: RfqtV2Prices,
+    prices: RfqtV2Price[],
     quoteContext: QuoteContext,
     validityWindowMs: number,
     now: Date = new Date(),
-): RfqtV2Prices {
+): RfqtV2Price[] {
     // calculate minimum expiry threshold
     const nowSeconds = new BigNumber(now.getTime()).div(ONE_SECOND_MS);
     const validityWindowS = new BigNumber(validityWindowMs).div(ONE_SECOND_MS);
@@ -59,7 +59,7 @@ export function validateV2Prices(
  * @returns Array of maker and taker fillable amounts
  */
 export function getRfqtV2FillableAmounts(
-    prices: RfqtV2Prices,
+    prices: RfqtV2Price[],
     chainId: number,
     quotedMakerBalances?: BigNumber[],
 ): { fillableMakerAmount: BigNumber; fillableTakerAmount: BigNumber }[] {

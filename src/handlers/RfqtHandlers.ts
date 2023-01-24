@@ -11,7 +11,7 @@ import { logger } from '../logger';
 import { V4RFQIndicativeQuoteMM } from '../quoteRequestor/QuoteRequestor';
 import { RfqtService } from '../services/RfqtService';
 import { FirmQuoteContext, QuoteContext } from '../services/types';
-import { RfqtV2Prices, RfqtV2Quotes, RfqtV2Request } from '../core/types';
+import { RfqtV2Price, RfqtV2Quote, RfqtV2Request } from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqtServices } from '../utils/rfqtServiceBuilder';
 
@@ -175,7 +175,7 @@ export class RfqtHandlers {
         req: TypedRequest<RfqtV2Request>,
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        res: express.Response<{ prices: RfqtV2Prices } | { error: any }>,
+        res: express.Response<{ prices: RfqtV2Price[] } | { error: any }>,
     ): Promise<void> {
         let quoteContext: QuoteContext;
         let service: RfqtService;
@@ -212,7 +212,7 @@ export class RfqtHandlers {
         req: TypedRequest<RfqtV2Request>,
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        res: express.Response<{ quotes: RfqtV2Quotes } | { error: any }>,
+        res: express.Response<{ quotes: RfqtV2Quote[] } | { error: any }>,
     ): Promise<void> {
         let quoteContext: FirmQuoteContext;
         let service: RfqtService;

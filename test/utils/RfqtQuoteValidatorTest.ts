@@ -3,7 +3,7 @@ import { Integrator } from '../../src/config';
 import { ONE_MINUTE_MS, ONE_SECOND_MS } from '../../src/core/constants';
 import { QuoteContext } from '../../src/services/types';
 
-import { RfqtV2Prices } from '../../src/core/types';
+import { RfqtV2Price } from '../../src/core/types';
 import { getRfqtV2FillableAmounts, validateV2Prices } from '../../src/utils/RfqtQuoteValidator';
 
 describe('Rfqt Quote Validator', () => {
@@ -35,7 +35,7 @@ describe('Rfqt Quote Validator', () => {
         txOrigin: '0xtakeraddress',
     };
     const nowTimeS = new BigNumber(Date.now()).div(ONE_SECOND_MS);
-    const validPrices: RfqtV2Prices = [
+    const validPrices: RfqtV2Price[] = [
         {
             expiry: nowTimeS.plus(75),
             makerAddress: '0xmaker1',
@@ -61,7 +61,7 @@ describe('Rfqt Quote Validator', () => {
 
     describe('validateV2Prices', () => {
         it('filters fetched prices for the wrong pair', () => {
-            const prices: RfqtV2Prices = [
+            const prices: RfqtV2Price[] = [
                 ...validPrices,
                 {
                     expiry: nowTimeS.plus(75),
@@ -79,7 +79,7 @@ describe('Rfqt Quote Validator', () => {
         });
 
         it('filters fetched prices with tight expiration windows', () => {
-            const prices: RfqtV2Prices = [
+            const prices: RfqtV2Price[] = [
                 ...validPrices,
                 {
                     expiry: nowTimeS.plus(59),

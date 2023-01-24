@@ -125,7 +125,7 @@ export interface RfqtV2Request {
  * Format of response payload which is sent to 0x API
  * from 0x RFQ API for the RFQt v2 `prices` endpoint
  */
-export type RfqtV2Prices = {
+export type RfqtV2Price = {
     expiry: BigNumber;
     makerAddress: string;
     makerAmount: BigNumber;
@@ -134,13 +134,13 @@ export type RfqtV2Prices = {
     makerUri: string;
     takerAmount: BigNumber;
     takerToken: string;
-}[];
+};
 
 /**
  * Format of response payload which is sent to 0x API
  * from 0x RFQ API for the RFQt v2 `quotes` endpoint
  */
-export type RfqtV2Quotes = {
+export type RfqtV2Quote = {
     fillableMakerAmount: BigNumber;
     fillableTakerAmount: BigNumber;
     fillableTakerFeeAmount: BigNumber;
@@ -148,7 +148,7 @@ export type RfqtV2Quotes = {
     makerUri: string;
     order: OtcOrder;
     signature: Signature;
-}[];
+};
 
 export type QuoteServerPriceParams = RequireOnlyOne<
     {

@@ -3,7 +3,7 @@ import { BigNumber } from '@0x/utils';
 import { Producer } from 'kafkajs';
 
 import { logger } from '../logger';
-import { FirmOtcQuote, IndicativeQuote, RfqtV2Quotes, StoredFee } from '../core/types';
+import { FirmOtcQuote, IndicativeQuote, RfqtV2Quote, StoredFee } from '../core/types';
 
 import { numberUtils } from './number_utils';
 
@@ -121,7 +121,7 @@ interface RfqtV2FeeEventLogOptions {
     sellTokenAddress: string;
     integratorId: string;
     blockNumber?: number;
-    quotes: RfqtV2Quotes;
+    quotes: RfqtV2Quote[];
     fee: StoredFee;
 }
 

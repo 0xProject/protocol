@@ -16,7 +16,7 @@ import { QuoteRequestor, V4RFQIndicativeQuoteMM } from '../../quoteRequestor/Quo
 import { FeeService } from '../../services/fee_service';
 import { RfqtService } from '../../services/RfqtService';
 import { RfqMakerBalanceCacheService } from '../../services/rfq_maker_balance_cache_service';
-import { RfqtV2Prices, RfqtV2Quotes } from '../../core/types';
+import { RfqtV2Price, RfqtV2Quote } from '../../core/types';
 import { ConfigManager } from '../../utils/config_manager';
 import { QuoteServerClient } from '../../utils/quote_server_client';
 import { RfqMakerManager } from '../../utils/rfq_maker_manager';
@@ -791,7 +791,7 @@ describe('RfqtHandlers', () => {
         });
 
         it('returns prices from RFQt Service', async () => {
-            const prices: RfqtV2Prices = [
+            const prices: RfqtV2Price[] = [
                 {
                     makerId: 'maker1',
                     makerUri: 'http://maker-uri',
@@ -957,7 +957,7 @@ describe('RfqtHandlers', () => {
         });
 
         it('returns quotes from RFQt Service', async () => {
-            const quotes: RfqtV2Quotes = [
+            const quotes: RfqtV2Quote[] = [
                 {
                     fillableMakerAmount: new BigNumber(1234),
                     fillableTakerAmount: new BigNumber(9876),

@@ -19,8 +19,8 @@ import {
     FeeModelVersion,
     QuoteServerPriceParams,
     RequireOnlyOne,
-    RfqtV2Prices,
-    RfqtV2Quotes,
+    RfqtV2Price,
+    RfqtV2Quote,
     StoredFee,
 } from '../core/types';
 import { logger } from '../logger';
@@ -262,7 +262,7 @@ export class RfqtService {
      * Note that by this point, 0x API should be sending the null address
      * as the `takerAddress` and the taker's address as the `txOrigin`.
      */
-    public async getV2PricesAsync(quoteContext: QuoteContext, now: Date = new Date()): Promise<RfqtV2Prices> {
+    public async getV2PricesAsync(quoteContext: QuoteContext, now: Date = new Date()): Promise<RfqtV2Price[]> {
         const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
         return this._getV2PricesInternalAsync(quoteContext, fee, now);
     }
@@ -277,7 +277,7 @@ export class RfqtService {
      *  2. Valid prices are then sent to the market makers' `/sign`
      *     endpoint to get a signed quote
      */
-    public async getV2QuotesAsync(quoteContext: FirmQuoteContext, now: Date = new Date()): Promise<RfqtV2Quotes> {
+    public async getV2QuotesAsync(quoteContext: FirmQuoteContext, now: Date = new Date()): Promise<RfqtV2Quote[]> {
         const { feeWithDetails: fee } = await this._feeService.calculateFeeAsync(quoteContext);
         const storedFee: StoredFee = feeToStoredFee(fee);
 
@@ -438,7 +438,7 @@ export class RfqtService {
         quoteContext: QuoteContext,
         fee: Fee,
         now: Date = new Date(),
-    ): Promise<RfqtV2Prices> {
+    ): Promise<RfqtV2Price[]> {
         const { integrator, makerToken, takerToken } = quoteContext;
         // Fetch the makers active on this pair
         const makers = this._rfqMakerManager.getRfqtV2MakersForPair(makerToken, takerToken).filter((m) => {
@@ -495,7 +495,7 @@ export class RfqtService {
      * into an v2 order
      */
     private _v2priceToOrder(
-        price: RfqtV2Prices[0],
+        price: RfqtV2Price,
         txOrigin: string,
         nonce: BigNumber,
         nonceBucket: BigNumber = new BigNumber(0),
