@@ -1026,6 +1026,9 @@ export class RfqmService {
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             takerAddress: takerAddress!,
+            // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            trader: takerAddress!,
             txOrigin: this._registryAddress,
             takerTokenDecimals,
             makerTokenDecimals,

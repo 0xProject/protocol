@@ -350,6 +350,7 @@ describe('Rfqt Service', () => {
                       "chainId": "1337",
                       "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                      "gasless": "false",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
                       "sellTokenAddress": "0x2",
@@ -423,6 +424,7 @@ describe('Rfqt Service', () => {
                       "chainId": "1337",
                       "feeAmount": "100",
                       "feeToken": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082",
+                      "gasless": "false",
                       "integratorId": "integrator-id",
                       "protocolVersion": "4",
                       "sellAmountBaseUnits": "1000",
@@ -611,6 +613,7 @@ describe('Rfqt Service', () => {
                     makerToken,
                     isSelling: false,
                     takerAddress,
+                    trader: takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
                 };
@@ -669,6 +672,7 @@ describe('Rfqt Service', () => {
                     makerToken,
                     isSelling: false,
                     takerAddress,
+                    trader: takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
                 };
@@ -727,6 +731,7 @@ describe('Rfqt Service', () => {
                     makerToken,
                     isSelling: false,
                     takerAddress,
+                    trader: takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
                 };
@@ -804,6 +809,7 @@ describe('Rfqt Service', () => {
                     makerToken,
                     isSelling: false,
                     takerAddress: NULL_ADDRESS,
+                    trader: takerAddress,
                     takerToken,
                     txOrigin: takerAddress,
                 };

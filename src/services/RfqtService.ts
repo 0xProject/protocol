@@ -80,6 +80,8 @@ function transformRfqtV2PricesParameters(p: QuoteContext, fee: Fee, chainId: num
         integratorId: p.integrator.integratorId,
         takerAddress: p.takerAddress,
         txOrigin: p.txOrigin,
+        trader: p.trader,
+        gasless: p.workflow === 'gasless-rfqt',
         protocolVersion: '4', //hardcode - will break some MMs if missing!
     };
 

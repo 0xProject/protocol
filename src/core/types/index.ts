@@ -110,13 +110,15 @@ export interface Eip712DataField {
 export interface RfqtV2Request {
     assetFillAmount: BigNumber;
     chainId: number;
+    gasless?: boolean; // whether or not the request is for gasless RFQt
+    integratorId: string;
+    intentOnFilling: boolean;
     makerToken: string;
     marketOperation: MarketOperation;
-    takerToken: string;
     takerAddress: string; // expect this to be NULL_ADDRESS
-    txOrigin?: string; // expect this to be the taker address, can be missing for /price but not /quote
-    intentOnFilling: boolean;
-    integratorId: string;
+    takerToken: string;
+    trader?: string; // this is the actual trader. Optional only during Gasless RFQt rollout. Intent is to be required in the long term
+    txOrigin?: string; // expect this to be the taker address, except for gasless RFQt where it will be the registry, can be missing for /price but not /quote
 }
 
 /**

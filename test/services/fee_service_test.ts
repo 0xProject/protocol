@@ -138,6 +138,7 @@ describe('FeeService', () => {
                 takerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             });
 
@@ -206,6 +207,7 @@ describe('FeeService', () => {
                 takerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             });
 
@@ -268,6 +270,7 @@ describe('FeeService', () => {
                 takerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             });
 
@@ -439,6 +442,7 @@ describe('FeeService', () => {
                 takerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             });
 
@@ -590,6 +594,7 @@ describe('FeeService', () => {
                 makerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             });
 
@@ -697,6 +702,7 @@ describe('FeeService', () => {
                 assetFillAmount,
                 takerAmount: assetFillAmount,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             };
 
@@ -992,6 +998,7 @@ describe('FeeService', () => {
                 takerAmount: assetFillAmount,
                 isFirm: true,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             };
 
@@ -1145,6 +1152,7 @@ describe('FeeService', () => {
                     takerAmount: assetFillAmount,
                     isFirm: true,
                     takerAddress,
+                    trader: takerAddress,
                     integrator,
                 },
                 async () => {
@@ -1257,6 +1265,7 @@ describe('FeeService', () => {
                     takerAmount: assetFillAmount,
                     isFirm: true,
                     takerAddress,
+                    trader: takerAddress,
                     integrator,
                 },
                 async () => {
@@ -1357,6 +1366,7 @@ describe('FeeService', () => {
                 assetFillAmount,
                 takerAmount: assetFillAmount,
                 takerAddress,
+                trader: takerAddress,
                 integrator,
             };
 

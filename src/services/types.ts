@@ -167,7 +167,7 @@ export interface CleanupJobsResponse {
  * variables, and configuration information.
  */
 interface QuoteContextBase {
-    workflow: 'rfqm' | 'rfqt';
+    workflow: 'rfqm' | 'rfqt' | 'gasless-rfqt';
     chainId: number;
     isFirm: boolean;
     takerAmount?: BigNumber;
@@ -190,6 +190,7 @@ interface QuoteContextBase {
  */
 interface IndicativeQuoteContext extends QuoteContextBase {
     isFirm: false;
+    trader?: string;
     takerAddress?: string;
     txOrigin?: string;
 }
@@ -199,6 +200,7 @@ interface IndicativeQuoteContext extends QuoteContextBase {
  */
 export interface FirmQuoteContext extends QuoteContextBase {
     isFirm: true;
+    trader: string;
     takerAddress: string;
     txOrigin: string;
 }

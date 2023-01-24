@@ -333,6 +333,7 @@ export class RfqtHandlers {
             !body.marketOperation ||
             !body.takerToken ||
             !body.takerAddress ||
+            // TODO: add body.trader to these checks once we've rolled out completely
             typeof body.intentOnFilling !== 'boolean' ||
             !body.integratorId
         ) {
@@ -342,6 +343,8 @@ export class RfqtHandlers {
         const {
             takerToken,
             makerToken,
+            trader,
+            gasless,
             takerAddress,
             txOrigin,
             assetFillAmount: assetFillAmountStr,
@@ -379,12 +382,13 @@ export class RfqtHandlers {
         const makerTokenDecimals = await service.getTokenDecimalsAsync(makerToken);
 
         return {
-            workflow: 'rfqt',
+            workflow: gasless ? 'gasless-rfqt' : 'rfqt',
             chainId,
             isFirm,
             takerToken,
             makerToken,
             originalMakerToken: makerToken,
+            trader,
             takerAddress,
             txOrigin,
             takerAmount,
