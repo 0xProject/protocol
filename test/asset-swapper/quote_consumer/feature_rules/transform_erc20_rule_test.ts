@@ -1,5 +1,5 @@
 import { ContractAddresses, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { constants as contractConstants, getRandomInteger, randomAddress } from '@0x/contracts-test-utils';
+import { constants as contractConstants, randomAddress } from '@0x/contracts-test-utils';
 import {
     BridgeProtocol,
     decodeAffiliateFeeTransformerData,
@@ -9,46 +9,31 @@ import {
     decodeWethTransformerData,
     encodeBridgeSourceId,
     ETH_TOKEN_ADDRESS,
-    FillQuoteTransformerLimitOrderInfo,
-    FillQuoteTransformerOrderType,
     FillQuoteTransformerSide,
     getTransformerAddress,
-    LimitOrderFields,
     ZERO,
 } from '@0x/protocol-utils';
-import { BigNumber, hexUtils } from '@0x/utils';
+import { BigNumber } from '@0x/utils';
 import * as chai from 'chai';
-import * as _ from 'lodash';
 import 'mocha';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../../../../src/asset-swapper/constants';
 import { TransformERC20Rule } from '../../../../src/asset-swapper/quote_consumers/feature_rules/transform_erc20_rule';
-import {
-    AffiliateFeeType,
-    MarketBuySwapQuote,
-    MarketOperation,
-    MarketSellSwapQuote,
-    ERC20BridgeSource,
-    Fill,
-    NativeFillData,
-    OptimizedLimitOrder,
-    OptimizedOrder,
-    IPath,
-} from '../../../../src/asset-swapper/types';
+import { AffiliateFeeType, ERC20BridgeSource } from '../../../../src/asset-swapper/types';
 import { decodeTransformERC20, getTransformerNonces } from '../../test_utils/decoders';
 import {
     createSimpleBuySwapQuoteWithBridgeOrder,
     createSimpleSellSwapQuoteWithBridgeOrder,
+    createTwoHopSellQuote,
     ONE_ETHER,
 } from '../../test_utils/test_data';
 
 import { chaiSetup } from '../../utils/chai_setup';
-import { getRandomAmount, getRandomSignature } from '../../utils/utils';
+import { getRandomAmount } from '../../utils/utils';
 
 chaiSetup.configure();
 const expect = chai.expect;
 
-const { NULL_ADDRESS } = constants;
 const { MAX_UINT256, ZERO_AMOUNT } = contractConstants;
 
 describe('TransformERC20Rule', () => {
@@ -81,147 +66,6 @@ describe('TransformERC20Rule', () => {
     };
 
     const rule = TransformERC20Rule.create(CHAIN_ID, contractAddresses);
-
-    // TODO: move away from random test data.
-    function getRandomOrder(orderFields?: Partial<LimitOrderFields>): LimitOrderFields {
-        return {
-            chainId: CHAIN_ID,
-            verifyingContract: contractAddresses.exchangeProxy,
-            expiry: getRandomInteger(1, 2e9),
-            feeRecipient: randomAddress(),
-            sender: randomAddress(),
-            pool: hexUtils.random(32),
-            maker: randomAddress(),
-            makerAmount: getRandomAmount(),
-            takerAmount: getRandomAmount(),
-            takerTokenFeeAmount: getRandomAmount(),
-            salt: getRandomAmount(2e9),
-            taker: NULL_ADDRESS,
-            makerToken: MAKER_TOKEN,
-            takerToken: TAKER_TOKEN,
-            ...orderFields,
-        };
-    }
-
-    function getRandomOptimizedMarketOrder(
-        optimizerFields?: Partial<OptimizedLimitOrder>,
-        orderFields?: Partial<LimitOrderFields>,
-    ): OptimizedLimitOrder {
-        const order = getRandomOrder(orderFields);
-        return {
-            source: ERC20BridgeSource.Native,
-            fillData: {
-                order,
-                signature: getRandomSignature(),
-                maxTakerTokenFillAmount: order.takerAmount,
-            },
-            type: FillQuoteTransformerOrderType.Limit,
-            makerToken: order.makerToken,
-            takerToken: order.takerToken,
-            makerAmount: order.makerAmount,
-            takerAmount: order.takerAmount,
-            fill: {} as Fill<NativeFillData>,
-            ...optimizerFields,
-        };
-    }
-
-    function getRandomQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
-        const order = getRandomOptimizedMarketOrder();
-        const ordersByType = { nativeOrders: [order], twoHopOrders: [], bridgeOrders: [] };
-        const makerTokenFillAmount = order.makerAmount;
-        const takerTokenFillAmount = order.takerAmount;
-        return {
-            gasPrice: getRandomInteger(1, 1e9),
-            makerToken: MAKER_TOKEN,
-            takerToken: TAKER_TOKEN,
-            path: {
-                getOrders: () => [order],
-                getOrdersByType: () => ordersByType,
-                getSlippedOrders: () => [order],
-                getSlippedOrdersByType: () => ordersByType,
-                hasTwoHop: () => false,
-            },
-            makerTokenDecimals: 18,
-            takerTokenDecimals: 18,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-            sourceBreakdown: {} as any,
-            bestCaseQuoteInfo: {
-                makerAmount: makerTokenFillAmount,
-                takerAmount: takerTokenFillAmount,
-                totalTakerAmount: takerTokenFillAmount,
-                gas: Math.floor(Math.random() * 8e6),
-                protocolFeeInWeiAmount: getRandomAmount(),
-                slippage: 0,
-            },
-            worstCaseQuoteInfo: {
-                makerAmount: makerTokenFillAmount,
-                takerAmount: takerTokenFillAmount,
-                totalTakerAmount: takerTokenFillAmount,
-                gas: Math.floor(Math.random() * 8e6),
-                protocolFeeInWeiAmount: getRandomAmount(),
-                slippage: 0,
-            },
-            makerAmountPerEth: getRandomInteger(1, 1e9),
-            takerAmountPerEth: getRandomInteger(1, 1e9),
-            ...(side === MarketOperation.Buy
-                ? { type: MarketOperation.Buy, makerTokenFillAmount }
-                : { type: MarketOperation.Sell, takerTokenFillAmount }),
-            blockNumber: 1337420,
-        };
-    }
-
-    function getRandomTwoHopQuote(side: MarketOperation): MarketBuySwapQuote | MarketSellSwapQuote {
-        const firstHopOrder = getRandomOptimizedMarketOrder(
-            { makerToken: INTERMEDIATE_TOKEN },
-            { makerToken: INTERMEDIATE_TOKEN },
-        );
-        const secondHopOrder = getRandomOptimizedMarketOrder(
-            { takerToken: INTERMEDIATE_TOKEN },
-            { takerToken: INTERMEDIATE_TOKEN },
-        );
-        const ordersByType = {
-            twoHopOrders: [{ firstHopOrder, secondHopOrder }],
-            nativeOrders: [],
-            bridgeOrders: [],
-        };
-
-        return {
-            ...getRandomQuote(side),
-            path: {
-                getOrders: () => [firstHopOrder, secondHopOrder],
-                getSlippedOrders: (_maxSlippage: number) => [firstHopOrder, secondHopOrder],
-                getOrdersByType: () => ordersByType,
-                getSlippedOrdersByType: () => ordersByType,
-                hasTwoHop: () => true,
-            } as IPath,
-        };
-    }
-
-    type PlainOrder = Exclude<LimitOrderFields, ['chainId', 'exchangeAddress']>;
-
-    function cleanOrders(orders: readonly OptimizedOrder[]): PlainOrder[] {
-        return orders.map(
-            (o) =>
-                _.omit(
-                    {
-                        ...o.fillData,
-                        order: _.omit((o.fillData as FillQuoteTransformerLimitOrderInfo).order, [
-                            'chainId',
-                            'verifyingContract',
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-                        ]) as any,
-                    },
-                    [
-                        'fillableMakerAssetAmount',
-                        'fillableTakerAssetAmount',
-                        'fillableTakerFeeAmount',
-                        'fills',
-                        'chainId',
-                        'verifyingContract',
-                    ],
-                ) as PlainOrder,
-        );
-    }
 
     describe('createCalldata()', () => {
         const UNI_V2_SELL_QUOTE = createSimpleSellSwapQuoteWithBridgeOrder({
@@ -476,41 +320,49 @@ describe('TransformERC20Rule', () => {
         });
 
         it('Uses two `FillQuoteTransformer`s if given two-hop sell quote', () => {
-            // TODO(kyu-c): move away from random test data.
-            const quote = getRandomTwoHopQuote(MarketOperation.Sell) as MarketSellSwapQuote;
+            const quote = createTwoHopSellQuote({
+                takerToken: TAKER_TOKEN,
+                intermediateToken: INTERMEDIATE_TOKEN,
+                makerToken: MAKER_TOKEN,
+                firstHopSource: ERC20BridgeSource.UniswapV2,
+                secondHopSource: ERC20BridgeSource.SushiSwap,
+                takerAmount: ONE_ETHER,
+                makerAmount: ONE_ETHER.times(2),
+            });
 
             const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
 
             const callArgs = decodeTransformERC20(callInfo.calldataHexString);
             expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
             expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
-            expect(callArgs.inputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.totalTakerAmount);
-            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(quote.worstCaseQuoteInfo.makerAmount);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(ONE_ETHER);
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(ONE_ETHER.times(2));
             expect(getTransformerNonces(callArgs)).to.deep.eq([
                 NONCES.fillQuoteTransformer,
                 NONCES.fillQuoteTransformer,
                 NONCES.payTakerTransformer,
             ]);
 
-            const [firstHopOrder, secondHopOrder] = quote.path.getOrders();
             const firstHopFillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
             expect(firstHopFillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
-            expect(firstHopFillQuoteTransformerData.fillAmount).to.bignumber.eq(firstHopOrder.takerAmount);
-            expect(firstHopFillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders([firstHopOrder]));
-            expect(firstHopFillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq([
-                (firstHopOrder as OptimizedLimitOrder).fillData.signature,
-            ]);
             expect(firstHopFillQuoteTransformerData.sellToken).to.eq(TAKER_TOKEN);
             expect(firstHopFillQuoteTransformerData.buyToken).to.eq(INTERMEDIATE_TOKEN);
+            expect(firstHopFillQuoteTransformerData.fillAmount).to.bignumber.eq(ONE_ETHER);
+            expect(firstHopFillQuoteTransformerData.bridgeOrders).to.be.lengthOf(1);
+
+            const firstHopOrder = firstHopFillQuoteTransformerData.bridgeOrders[0];
+            expect(firstHopOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
             const secondHopFillQuoteTransformerData = decodeFillQuoteTransformerData(callArgs.transformations[1].data);
             expect(secondHopFillQuoteTransformerData.side).to.eq(FillQuoteTransformerSide.Sell);
-            expect(secondHopFillQuoteTransformerData.fillAmount).to.bignumber.eq(contractConstants.MAX_UINT256);
-            expect(secondHopFillQuoteTransformerData.limitOrders).to.deep.eq(cleanOrders([secondHopOrder]));
-            expect(secondHopFillQuoteTransformerData.limitOrders.map((o) => o.signature)).to.deep.eq([
-                (secondHopOrder as OptimizedLimitOrder).fillData.signature,
-            ]);
             expect(secondHopFillQuoteTransformerData.sellToken).to.eq(INTERMEDIATE_TOKEN);
             expect(secondHopFillQuoteTransformerData.buyToken).to.eq(MAKER_TOKEN);
+            expect(secondHopFillQuoteTransformerData.fillAmount).to.bignumber.eq(MAX_UINT256);
+            expect(secondHopFillQuoteTransformerData.bridgeOrders).to.be.lengthOf(1);
+
+            const secondHopOrder = secondHopFillQuoteTransformerData.bridgeOrders[0];
+            expect(secondHopOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap'));
+
             const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[2].data);
             expect(payTakerTransformerData.amounts).to.deep.eq([]);
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, INTERMEDIATE_TOKEN, ETH_TOKEN_ADDRESS]);
