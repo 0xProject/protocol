@@ -8,7 +8,14 @@ import {
     ETH_TOKEN_ADDRESS,
     FillQuoteTransformerSide,
 } from '@0x/protocol-utils';
-import { AffiliateFeeType, CalldataInfo, ExchangeProxyContractOpts, SwapQuote } from '../../types';
+import {
+    AffiliateFeeType,
+    CalldataInfo,
+    ExchangeProxyContractOpts,
+    MarketOperation,
+    SwapQuote,
+    TwoHopOrder,
+} from '../../types';
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../../constants';
 import { BigNumber } from '@0x/utils';
 import {
@@ -21,6 +28,7 @@ import { NATIVE_FEE_TOKEN_BY_CHAIN_ID } from '../../utils/market_operation_utils
 import { IZeroExContract } from '@0x/contract-wrappers';
 import { TransformerNonces } from '../types';
 import { AbstractFeatureRule } from './abstract_feature_rule';
+import * as _ from 'lodash';
 
 // Transformation of `TransformERC20` feature.
 interface ERC20Transformation {
@@ -57,13 +65,11 @@ export class TransformERC20Rule extends AbstractFeatureRule {
 
     public createCalldata(quote: SwapQuote, opts: ExchangeProxyContractOpts): CalldataInfo {
         // TODO(kyu-c): further breakdown calldata creation logic.
-        const { refundReceiver, affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
+        const { affiliateFee, isFromETH, isToETH, shouldSellEntireBalance } = opts;
 
         const swapContext = this.getSwapContext(quote, opts);
-        const { sellToken, buyToken, sellAmount, ethAmount, maxSlippage } = swapContext;
+        const { sellToken, buyToken, sellAmount, ethAmount } = swapContext;
         let minBuyAmount = swapContext.minBuyAmount;
-
-        const slippedOrders = quote.path.getSlippedOrders(maxSlippage);
 
         // Build up the transformations.
         const transformations = [] as ERC20Transformation[];
@@ -79,48 +85,8 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             });
         }
 
-        // If it's two hop we have an intermediate token this is needed to encode the individual FQT
-        // and we also want to ensure no dust amount is left in the flash wallet
-        const intermediateToken = quote.path.hasTwoHop() ? slippedOrders[0].makerToken : NULL_ADDRESS;
-        // This transformer will fill the quote.
-        if (quote.path.hasTwoHop()) {
-            const [firstHopOrder, secondHopOrder] = slippedOrders;
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
-                }),
-            });
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: FillQuoteTransformerSide.Sell,
-                    buyToken,
-                    sellToken: intermediateToken,
-                    ...getFQTTransformerDataFromOptimizedOrders([secondHopOrder]),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: MAX_UINT256,
-                }),
-            });
-        } else {
-            const fillAmount = isBuyQuote(quote) ? quote.makerTokenFillAmount : quote.takerTokenFillAmount;
-            transformations.push({
-                deploymentNonce: this.transformerNonces.fillQuoteTransformer,
-                data: encodeFillQuoteTransformerData({
-                    side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
-                    sellToken,
-                    buyToken,
-                    ...getFQTTransformerDataFromOptimizedOrders(slippedOrders),
-                    refundReceiver: refundReceiver || NULL_ADDRESS,
-                    fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
-                }),
-            });
-        }
+        transformations.push(...this.createFillQuoteTransformations(quote, opts));
+
         // Create a WETH unwrapper if going to ETH.
         // Dont add the wethTransformer on CELO. There is no wrap/unwrap logic for CELO.
         if (isToETH && this.chainId !== ChainId.Celo) {
@@ -201,25 +167,8 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             }
         }
 
-        // Return any unspent sell tokens.
-        const payTakerTokens = [sellToken];
-        // Return any unspent intermediate tokens for two-hop swaps.
-        if (quote.path.hasTwoHop()) {
-            payTakerTokens.push(intermediateToken);
-        }
-        // Return any unspent ETH. If ETH is the buy token, it will
-        // be returned in TransformERC20Feature rather than PayTakerTransformer.
-        if (!isToETH) {
-            payTakerTokens.push(ETH_TOKEN_ADDRESS);
-        }
-        // The final transformer will send all funds to the taker.
-        transformations.push({
-            deploymentNonce: this.transformerNonces.payTakerTransformer,
-            data: encodePayTakerTransformerData({
-                tokens: payTakerTokens,
-                amounts: [],
-            }),
-        });
+        transformations.push(this.createPayTakerTransformation(quote, opts));
+
         const TO_ETH_ADDRESS = this.chainId === ChainId.Celo ? this.contractAddresses.etherToken : ETH_TOKEN_ADDRESS;
         const calldataHexString = this.exchangeProxy
             .transformERC20(
@@ -239,4 +188,124 @@ export class TransformERC20Rule extends AbstractFeatureRule {
             gasOverhead,
         };
     }
+
+    private createFillQuoteTransformations(quote: SwapQuote, opts: ExchangeProxyContractOpts): ERC20Transformation[] {
+        const transformations = [...this.createTwoHopTransformations(quote, opts)];
+
+        const nonTwoHopTransformation = this.createNonTwoHopTransformation(quote, opts);
+        if (nonTwoHopTransformation !== undefined) {
+            transformations.push(nonTwoHopTransformation);
+        }
+
+        return transformations;
+    }
+
+    private createTwoHopTransformations(quote: SwapQuote, opts: ExchangeProxyContractOpts): ERC20Transformation[] {
+        // This transformer will fill the quote.
+        // TODO: handle `shouldSellEntireBalance` outside.
+        const { refundReceiver, shouldSellEntireBalance } = opts;
+        const { sellToken, buyToken, maxSlippage } = this.getSwapContext(quote, opts);
+        const slippedTwoHopOrders = quote.path.getSlippedOrdersByType(maxSlippage).twoHopOrders;
+
+        return _.flatMap(slippedTwoHopOrders, ({ firstHopOrder, secondHopOrder }) => {
+            const intermediateToken = firstHopOrder.makerToken;
+            return [
+                {
+                    deploymentNonce: this.transformerNonces.fillQuoteTransformer,
+                    data: encodeFillQuoteTransformerData({
+                        side: FillQuoteTransformerSide.Sell,
+                        sellToken,
+                        buyToken: intermediateToken,
+                        ...getFQTTransformerDataFromOptimizedOrders([firstHopOrder]),
+                        refundReceiver: refundReceiver || NULL_ADDRESS,
+                        fillAmount:
+                            !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : firstHopOrder.takerAmount,
+                    }),
+                },
+                {
+                    deploymentNonce: this.transformerNonces.fillQuoteTransformer,
+                    data: encodeFillQuoteTransformerData({
+                        side: FillQuoteTransformerSide.Sell,
+                        buyToken,
+                        sellToken: intermediateToken,
+                        ...getFQTTransformerDataFromOptimizedOrders([secondHopOrder]),
+                        refundReceiver: refundReceiver || NULL_ADDRESS,
+                        fillAmount: MAX_UINT256,
+                    }),
+                },
+            ];
+        });
+    }
+
+    private createNonTwoHopTransformation(
+        quote: SwapQuote,
+        opts: ExchangeProxyContractOpts,
+    ): ERC20Transformation | undefined {
+        const { refundReceiver, shouldSellEntireBalance } = opts;
+        const { sellToken, buyToken, maxSlippage } = this.getSwapContext(quote, opts);
+        const slippedOrdersByType = quote.path.getSlippedOrdersByType(maxSlippage);
+
+        const fillAmount = getNonTwoHopFillAmount(quote);
+        const nonTwoHopOrders = [...slippedOrdersByType.nativeOrders, ...slippedOrdersByType.bridgeOrders];
+
+        if (nonTwoHopOrders.length === 0) {
+            return undefined;
+        }
+
+        // TODO: handle `shouldSellEntireBalance` outside.
+        return {
+            deploymentNonce: this.transformerNonces.fillQuoteTransformer,
+            data: encodeFillQuoteTransformerData({
+                side: isBuyQuote(quote) ? FillQuoteTransformerSide.Buy : FillQuoteTransformerSide.Sell,
+                sellToken,
+                buyToken,
+                ...getFQTTransformerDataFromOptimizedOrders(nonTwoHopOrders),
+                refundReceiver: refundReceiver || NULL_ADDRESS,
+                fillAmount: !isBuyQuote(quote) && shouldSellEntireBalance ? MAX_UINT256 : fillAmount,
+            }),
+        };
+    }
+
+    private createPayTakerTransformation(quote: SwapQuote, opts: ExchangeProxyContractOpts): ERC20Transformation {
+        const { sellToken } = this.getSwapContext(quote, opts);
+        // Return any unspent sell tokens (including intermediate tokens from two hops if any).
+        const payTakerTokens = [sellToken, ...getIntermediateTokens(quote.path.getOrdersByType().twoHopOrders)];
+
+        // Return any unspent ETH. If ETH is the buy token, it will
+        // be returned in TransformERC20Feature rather than PayTakerTransformer.
+        if (!opts.isToETH) {
+            payTakerTokens.push(ETH_TOKEN_ADDRESS);
+        }
+        // The final transformer will send all funds to the taker.
+        return {
+            deploymentNonce: this.transformerNonces.payTakerTransformer,
+            data: encodePayTakerTransformerData({
+                tokens: payTakerTokens,
+                amounts: [],
+            }),
+        };
+    }
+}
+
+function getIntermediateTokens(twoHopOrders: readonly TwoHopOrder[]): string[] {
+    return twoHopOrders.map((twoHopOrder) => twoHopOrder.firstHopOrder.makerToken);
+}
+
+function getNonTwoHopFillAmount(quote: SwapQuote): BigNumber {
+    const twoHopFillAmount = getTwoHopFillAmount(quote.type, quote.path.getOrdersByType().twoHopOrders);
+
+    if (isBuyQuote(quote)) {
+        return quote.makerTokenFillAmount.minus(twoHopFillAmount);
+    }
+
+    return quote.takerTokenFillAmount.minus(twoHopFillAmount);
+}
+
+function getTwoHopFillAmount(side: MarketOperation, twoHopOrders: readonly TwoHopOrder[]): BigNumber {
+    // BigNumber.sum() is NaN...
+    if (side === MarketOperation.Sell) {
+        return BigNumber.sum(new BigNumber(0), ...twoHopOrders.map(({ firstHopOrder }) => firstHopOrder.takerAmount));
+    }
+
+    return BigNumber.sum(new BigNumber(0), ...twoHopOrders.map(({ secondHopOrder }) => secondHopOrder.makerAmount));
 }

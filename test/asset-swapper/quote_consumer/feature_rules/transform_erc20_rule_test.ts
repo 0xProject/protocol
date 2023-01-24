@@ -19,11 +19,12 @@ import 'mocha';
 
 import { constants, POSITIVE_SLIPPAGE_FEE_TRANSFORMER_GAS } from '../../../../src/asset-swapper/constants';
 import { TransformERC20Rule } from '../../../../src/asset-swapper/quote_consumers/feature_rules/transform_erc20_rule';
-import { AffiliateFeeType, ERC20BridgeSource } from '../../../../src/asset-swapper/types';
+import { AffiliateFeeType, ERC20BridgeSource, MarketOperation } from '../../../../src/asset-swapper/types';
 import { decodeTransformERC20, getTransformerNonces } from '../../test_utils/decoders';
 import {
     createSimpleBuySwapQuoteWithBridgeOrder,
     createSimpleSellSwapQuoteWithBridgeOrder,
+    createSwapQuote,
     createTwoHopSellQuote,
     ONE_ETHER,
 } from '../../test_utils/test_data';
@@ -319,7 +320,7 @@ describe('TransformERC20Rule', () => {
             ).to.throw('Affiliate fees denominated in sell token are not yet supported');
         });
 
-        it('Uses two `FillQuoteTransformer`s if given two-hop sell quote', () => {
+        it('Uses two `FillQuoteTransformer`s when given a two-hop sell quote', () => {
             const quote = createTwoHopSellQuote({
                 takerToken: TAKER_TOKEN,
                 intermediateToken: INTERMEDIATE_TOKEN,
@@ -368,7 +369,186 @@ describe('TransformERC20Rule', () => {
             expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, INTERMEDIATE_TOKEN, ETH_TOKEN_ADDRESS]);
         });
 
-        it('Uses max amount for when shouldSellEntireBalance', () => {
+        it('Returns calldata for a quote with a mix of single hop order and a two hop order', () => {
+            // 70% single-hop and 3o% two-hop
+            const quote = createSwapQuote({
+                side: MarketOperation.Sell,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER.times(100),
+                makerAmount: ONE_ETHER.times(200),
+                createPathParams: {
+                    bridgeOrderParams: [
+                        {
+                            takerToken: TAKER_TOKEN,
+                            makerToken: MAKER_TOKEN,
+                            source: ERC20BridgeSource.UniswapV2,
+                            takerAmount: ONE_ETHER.times(70),
+                            makerAmount: ONE_ETHER.times(140),
+                        },
+                    ],
+                    twoHopOrderParams: [
+                        {
+                            takerToken: TAKER_TOKEN,
+                            intermediateToken: INTERMEDIATE_TOKEN,
+                            makerToken: MAKER_TOKEN,
+                            takerAmount: ONE_ETHER.times(30),
+                            makerAmount: ONE_ETHER.times(60),
+                            firstHopSource: ERC20BridgeSource.UniswapV2,
+                            secondHopSource: ERC20BridgeSource.SushiSwap,
+                        },
+                    ],
+                },
+            });
+
+            const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
+            expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(ONE_ETHER.times(100));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(ONE_ETHER.times(200));
+
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer, // two-hop
+                NONCES.fillQuoteTransformer, // two-hop
+                NONCES.fillQuoteTransformer, // single-hop
+                NONCES.payTakerTransformer,
+            ]);
+
+            const firstHopFqtData = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
+            expect(firstHopFqtData.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(firstHopFqtData.sellToken).to.eq(TAKER_TOKEN);
+            expect(firstHopFqtData.buyToken).to.eq(INTERMEDIATE_TOKEN);
+            expect(firstHopFqtData.fillAmount).to.bignumber.eq(ONE_ETHER.times(30));
+            expect(firstHopFqtData.bridgeOrders).to.be.lengthOf(1);
+            const firstHopOrder = firstHopFqtData.bridgeOrders[0];
+            expect(firstHopOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
+            const secondHopFqtData = decodeFillQuoteTransformerData(callArgs.transformations[1].data);
+            expect(secondHopFqtData.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(secondHopFqtData.sellToken).to.eq(INTERMEDIATE_TOKEN);
+            expect(secondHopFqtData.buyToken).to.eq(MAKER_TOKEN);
+            expect(secondHopFqtData.fillAmount).to.bignumber.eq(MAX_UINT256);
+            expect(secondHopFqtData.bridgeOrders).to.be.lengthOf(1);
+            const secondHopOrder = secondHopFqtData.bridgeOrders[0];
+            expect(secondHopOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap'));
+
+            const singeHopFqtData = decodeFillQuoteTransformerData(callArgs.transformations[2].data);
+            expect(singeHopFqtData.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(singeHopFqtData.fillAmount).to.bignumber.eq(ONE_ETHER.times(70));
+            expect(singeHopFqtData.bridgeOrders).to.be.lengthOf(1);
+            const bridgeOrder = singeHopFqtData.bridgeOrders[0];
+            expect(bridgeOrder.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
+            expect(singeHopFqtData.sellToken).to.eq(TAKER_TOKEN);
+            expect(singeHopFqtData.buyToken).to.eq(MAKER_TOKEN);
+
+            const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[3].data);
+            expect(payTakerTransformerData.amounts).to.deep.eq([]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([TAKER_TOKEN, INTERMEDIATE_TOKEN, ETH_TOKEN_ADDRESS]);
+        });
+
+        it('Returns calldata for a quote with two two-hop orders', () => {
+            const INTERMEDIATE_TOKEN_A = randomAddress();
+            const INTERMEDIATE_TOKEN_B = randomAddress();
+
+            // 60% two-hop A, 4o% two-hop B
+            const quote = createSwapQuote({
+                side: MarketOperation.Sell,
+                takerToken: TAKER_TOKEN,
+                makerToken: MAKER_TOKEN,
+                takerAmount: ONE_ETHER.times(100),
+                makerAmount: ONE_ETHER.times(200),
+                createPathParams: {
+                    twoHopOrderParams: [
+                        {
+                            takerToken: TAKER_TOKEN,
+                            intermediateToken: INTERMEDIATE_TOKEN_A,
+                            makerToken: MAKER_TOKEN,
+                            takerAmount: ONE_ETHER.times(60),
+                            makerAmount: ONE_ETHER.times(120),
+                            firstHopSource: ERC20BridgeSource.UniswapV2,
+                            secondHopSource: ERC20BridgeSource.SushiSwap,
+                        },
+                        {
+                            takerToken: TAKER_TOKEN,
+                            intermediateToken: INTERMEDIATE_TOKEN_B,
+                            makerToken: MAKER_TOKEN,
+                            takerAmount: ONE_ETHER.times(40),
+                            makerAmount: ONE_ETHER.times(80),
+                            firstHopSource: ERC20BridgeSource.Dodo,
+                            secondHopSource: ERC20BridgeSource.SushiSwap,
+                        },
+                    ],
+                },
+            });
+
+            const callInfo = rule.createCalldata(quote, constants.DEFAULT_EXCHANGE_PROXY_EXTENSION_CONTRACT_OPTS);
+
+            const callArgs = decodeTransformERC20(callInfo.calldataHexString);
+            expect(callArgs.inputToken).to.eq(TAKER_TOKEN);
+            expect(callArgs.outputToken).to.eq(MAKER_TOKEN);
+            expect(callArgs.inputTokenAmount).to.bignumber.eq(ONE_ETHER.times(100));
+            expect(callArgs.minOutputTokenAmount).to.bignumber.eq(ONE_ETHER.times(200));
+
+            expect(getTransformerNonces(callArgs)).to.deep.eq([
+                NONCES.fillQuoteTransformer, // two-hop A
+                NONCES.fillQuoteTransformer, // two-hop A
+                NONCES.fillQuoteTransformer, // two-hop B
+                NONCES.fillQuoteTransformer, // two-hop B
+                NONCES.payTakerTransformer,
+            ]);
+
+            // Two-Hop A
+            const firstHopFqtDataA = decodeFillQuoteTransformerData(callArgs.transformations[0].data);
+            expect(firstHopFqtDataA.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(firstHopFqtDataA.sellToken).to.eq(TAKER_TOKEN);
+            expect(firstHopFqtDataA.buyToken).to.eq(INTERMEDIATE_TOKEN_A);
+            expect(firstHopFqtDataA.fillAmount).to.bignumber.eq(ONE_ETHER.times(60));
+            expect(firstHopFqtDataA.bridgeOrders).to.be.lengthOf(1);
+            const firstHopOrderA = firstHopFqtDataA.bridgeOrders[0];
+            expect(firstHopOrderA.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'UniswapV2'));
+
+            const secondHopFqtDataA = decodeFillQuoteTransformerData(callArgs.transformations[1].data);
+            expect(secondHopFqtDataA.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(secondHopFqtDataA.sellToken).to.eq(INTERMEDIATE_TOKEN_A);
+            expect(secondHopFqtDataA.buyToken).to.eq(MAKER_TOKEN);
+            expect(secondHopFqtDataA.fillAmount).to.bignumber.eq(MAX_UINT256);
+            expect(secondHopFqtDataA.bridgeOrders).to.be.lengthOf(1);
+            const secondHopOrderA = secondHopFqtDataA.bridgeOrders[0];
+            expect(secondHopOrderA.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap'));
+
+            // Two-Hop B
+            const firstHopFqtDataB = decodeFillQuoteTransformerData(callArgs.transformations[2].data);
+            expect(firstHopFqtDataB.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(firstHopFqtDataB.sellToken).to.eq(TAKER_TOKEN);
+            expect(firstHopFqtDataB.buyToken).to.eq(INTERMEDIATE_TOKEN_B);
+            expect(firstHopFqtDataB.fillAmount).to.bignumber.eq(ONE_ETHER.times(40));
+            expect(firstHopFqtDataB.bridgeOrders).to.be.lengthOf(1);
+            const firstHopOrderB = firstHopFqtDataB.bridgeOrders[0];
+            expect(firstHopOrderB.source).to.eq(encodeBridgeSourceId(BridgeProtocol.Dodo, 'Dodo'));
+
+            const secondHopFqtDataB = decodeFillQuoteTransformerData(callArgs.transformations[3].data);
+            expect(secondHopFqtDataB.side).to.eq(FillQuoteTransformerSide.Sell);
+            expect(secondHopFqtDataB.sellToken).to.eq(INTERMEDIATE_TOKEN_B);
+            expect(secondHopFqtDataB.buyToken).to.eq(MAKER_TOKEN);
+            expect(secondHopFqtDataB.fillAmount).to.bignumber.eq(MAX_UINT256);
+            expect(secondHopFqtDataB.bridgeOrders).to.be.lengthOf(1);
+            const secondHopOrderB = secondHopFqtDataB.bridgeOrders[0];
+            expect(secondHopOrderB.source).to.eq(encodeBridgeSourceId(BridgeProtocol.UniswapV2, 'SushiSwap'));
+
+            const payTakerTransformerData = decodePayTakerTransformerData(callArgs.transformations[4].data);
+            expect(payTakerTransformerData.amounts).to.deep.eq([]);
+            expect(payTakerTransformerData.tokens).to.deep.eq([
+                TAKER_TOKEN,
+                INTERMEDIATE_TOKEN_A,
+                INTERMEDIATE_TOKEN_B,
+                ETH_TOKEN_ADDRESS,
+            ]);
+        });
+
+        it('Uses max amount for when shouldSellEntireBalance is true (single hop)', () => {
             const quote = createSimpleSellSwapQuoteWithBridgeOrder({
                 source: ERC20BridgeSource.UniswapV2,
                 takerToken: TAKER_TOKEN,

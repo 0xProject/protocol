@@ -723,9 +723,14 @@ export type OptimizedNativeOrder = OptimizedLimitOrder | OptimizedRfqOrder | Opt
 
 export type OptimizedOrder = OptimizedMarketBridgeOrder | OptimizedNativeOrder;
 
+export interface TwoHopOrder {
+    firstHopOrder: OptimizedOrder;
+    secondHopOrder: OptimizedOrder;
+}
+
 export interface OptimizedOrdersByType {
     nativeOrders: readonly OptimizedNativeOrder[];
-    twoHopOrders: readonly { firstHopOrder: OptimizedOrder; secondHopOrder: OptimizedOrder }[];
+    twoHopOrders: readonly TwoHopOrder[];
     bridgeOrders: readonly OptimizedMarketBridgeOrder[];
 }
 
