@@ -151,6 +151,7 @@ const MAX_FEE_PER_GAS_MULTIPLIER = 1.1; // Increase multiplier in max fee per ga
 // During recovery, we may not be able to successfully execute
 // `estimateGasForAsync`. In this case we use this value.
 const MAX_GAS_ESTIMATE = 500_000;
+const SIMULATION_MAX_GAS_MULTIPLIER = 2; // Multiplier of configured max fee when performing transaction simulation
 
 // How often the worker should publish a heartbeat
 const WORKER_HEARTBEAT_FREQUENCY_MS = ONE_SECOND_MS * 30; // tslint:disable-line: custom-no-magic-numbers
@@ -944,7 +945,9 @@ export class WorkerService {
                     const gasFees: GasFees = {
                         maxFeePerGas: BigNumber.min(
                             gasPriceEstimate.multipliedBy(2).plus(initialMaxPriorityFeePerGas),
-                            this._maxFeePerGasCapWei,
+                            // If the max fee is less than the base fee, simulations will fail (unlike submissions, which may sit in the mempool).
+                            // An extra multiplier mitigates, but does not solve, the issue.
+                            this._maxFeePerGasCapWei.multipliedBy(SIMULATION_MAX_GAS_MULTIPLIER),
                         ),
                         maxPriorityFeePerGas: initialMaxPriorityFeePerGas,
                     };
