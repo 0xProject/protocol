@@ -58,7 +58,6 @@ import {
 import {
     GasEstimationError,
     InsufficientFundsError,
-    ServiceDisabledError,
     ValidationError,
     ValidationErrorCodes,
     ValidationErrorReasons,
@@ -267,11 +266,6 @@ export class SwapService implements ISwapService {
         } = params;
 
         let _rfqt: GetMarketOrdersRfqOpts | undefined;
-
-        if (rfqt && !this._rfqClient.isRfqtEnabled()) {
-            throw new ServiceDisabledError('RFQt Service is not available');
-        }
-
         // Only enable RFQT if there's an API key and either (a) it's a
         // forwarder transaction (isETHSell===true), (b) there's a taker
         // address present, or (c) it's an indicative quote.

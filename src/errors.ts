@@ -31,11 +31,6 @@ export class GasEstimationError extends BadRequestError<APIErrorCodes> {
     public generalErrorCode = APIErrorCodes.GasEstimationFailed;
 }
 
-export class ServiceDisabledError extends BadRequestError<APIErrorCodes> {
-    public statusCode = StatusCodes.BAD_REQUEST;
-    public generalErrorCode = APIErrorCodes.ServiceDisabled;
-}
-
 export enum APIErrorCodes {
     OrderSubmissionDisabled = 102,
     UnableToSubmitOnBehalfOfTaker = 106,
