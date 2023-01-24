@@ -51,14 +51,6 @@ const toOtcOrder = (obj: any): OtcOrder => {
 };
 
 export class RfqClient {
-    private static isRolledOut(request: RfqtV2Request): boolean {
-        return isHashSmallEnough({
-            message:
-                `${request.txOrigin}-${request.takerToken}-${request.makerToken}-${request.assetFillAmount}-${request.marketOperation}`.toLowerCase(),
-            threshold: RFQ_CLIENT_ROLLOUT_PERCENT / 100,
-        });
-    }
-
     constructor(private readonly _rfqApiUrl: string, private readonly _axiosInstance: AxiosInstance) {}
 
     /**
@@ -131,11 +123,6 @@ export class RfqClient {
      * Communicates to an RFQ Client to fetch available v2 prices
      */
     public async getV2PricesAsync(request: RfqtV2Request): Promise<RfqtV2Price[]> {
-        // Short circuit if not rolled out
-        if (!RfqClient.isRolledOut(request)) {
-            return [];
-        }
-
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/internal/rfqt/v2/prices`, request, {
                 timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 2,
@@ -168,10 +155,6 @@ export class RfqClient {
      * Communicates to an RFQ Client to fetch available signed v2 quotes
      */
     public async getV2QuotesAsync(request: RfqtV2Request): Promise<RfqtV2Quote[]> {
-        // Short circuit if not rolled out
-        if (!RfqClient.isRolledOut(request)) {
-            return [];
-        }
         try {
             const response = await this._axiosInstance.post(`${this._rfqApiUrl}/internal/rfqt/v2/quotes`, request, {
                 timeout: RFQT_REQUEST_MAX_RESPONSE_MS * 2,
@@ -202,5 +185,12 @@ export class RfqClient {
             logger.error({ errorMessage: error.message }, 'Encountered an error fetching for /internal/rfqt/v2/quotes');
             return [];
         }
+    }
+
+    /**
+     * Returns true if RFQt service is available
+     */
+    public isRfqtEnabled(): boolean {
+        return this._rfqApiUrl.length !== 0;
     }
 }
