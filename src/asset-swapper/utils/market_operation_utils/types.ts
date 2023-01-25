@@ -275,7 +275,7 @@ export interface PlatypusFillData extends FillData {
 }
 
 export interface WOOFiFillData extends FillData {
-    poolAddress: string;
+    router: string;
     takerToken: string;
     makerToken: string;
     // Only needed for gas estimation
