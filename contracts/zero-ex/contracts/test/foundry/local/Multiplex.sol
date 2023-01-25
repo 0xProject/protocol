@@ -29,14 +29,20 @@ import "src/features/multiplex/MultiplexFeature.sol";
 import "../utils/ForkUtils.sol";
 import "../utils/TestUtils.sol";
 import "../utils/DeployZeroEx.sol";
+import "../../TestMintTokenERC20Transformer.sol";
 import "../../tokens/TestMintableERC20Token.sol";
 import "../../integration/TestUniswapV2Factory.sol";
 import "../../integration/TestUniswapV2Pool.sol";
+import "../../integration/TestUniswapV3Factory.sol";
+import "../../integration/TestUniswapV3Pool.sol";
+import "../../integration/TestLiquidityProvider.sol";
 
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
 
 contract Multiplex is Test, ForkUtils, TestUtils {
     uint256 private constant MAX_UINT256 = 2 ** 256 - 1;
+    uint256 private constant HIGH_BIT = 2 ** 255;
+    uint24 private constant POOL_FEE = 1234;
 
     DeployZeroEx.ZeroExDeployed private zeroExDeployed;
     IERC20TokenV06 private shib;
@@ -46,6 +52,9 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
     TestUniswapV2Factory private sushiFactory;
     TestUniswapV2Factory private uniV2Factory;
+    TestUniswapV3Factory private uniV3Factory;
+    TestLiquidityProvider private liquidityProvider;
+    uint256 private transformerNonce;
 
     address private signerAddress;
     uint256 private signerKey;
@@ -63,16 +72,24 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
         sushiFactory = new TestUniswapV2Factory();
         uniV2Factory = new TestUniswapV2Factory();
+        uniV3Factory = new TestUniswapV3Factory();
+        liquidityProvider = new TestLiquidityProvider();
 
         zeroExDeployed = new DeployZeroEx(
             DeployZeroEx.ZeroExDeployConfiguration({
                 uniswapFactory: address(uniV2Factory),
                 sushiswapFactory: address(sushiFactory),
+                uniswapV3Factory: address(uniV3Factory),
                 uniswapPairInitCodeHash: uniV2Factory.POOL_INIT_CODE_HASH(),
                 sushiswapPairInitCodeHash: sushiFactory.POOL_INIT_CODE_HASH(),
+                uniswapV3PoolInitCodeHash: uniV3Factory.POOL_INIT_CODE_HASH(),
                 logDeployed: false
             })
         ).deployZeroEx();
+
+        transformerNonce = zeroExDeployed.transformerDeployer.nonce();
+        vm.prank(zeroExDeployed.transformerDeployer.authorities(0));
+        zeroExDeployed.transformerDeployer.deploy(type(TestMintTokenERC20Transformer).creationCode);
 
         shib = IERC20TokenV06(address(new TestMintableERC20Token()));
         dai = IERC20TokenV06(address(new TestMintableERC20Token()));
@@ -121,7 +138,8 @@ contract Multiplex is Test, ForkUtils, TestUtils {
     }
 
     function makeRfqSubcall(
-        LibNativeOrder.RfqOrder memory order
+        LibNativeOrder.RfqOrder memory order,
+        uint256 sellAmount
     ) private view returns (IMultiplexFeature.BatchSellSubcall memory) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             signerKey,
@@ -132,9 +150,15 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         return
             IMultiplexFeature.BatchSellSubcall({
                 id: IMultiplexFeature.MultiplexSubcall.RFQ,
-                sellAmount: order.takerAmount,
+                sellAmount: sellAmount,
                 data: abi.encode(order, sig)
             });
+    }
+
+    function makeRfqSubcall(
+        LibNativeOrder.RfqOrder memory order
+    ) private view returns (IMultiplexFeature.BatchSellSubcall memory) {
+        return makeRfqSubcall(order, order.takerAmount);
     }
 
     function makeOtcSubcall(
@@ -154,6 +178,17 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             });
     }
 
+    function makeUniswapV2MultiHopSubcall(
+        address[] memory tokens,
+        bool isSushi
+    ) private pure returns (IMultiplexFeature.MultiHopSellSubcall memory) {
+        return
+            IMultiplexFeature.MultiHopSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.UniswapV2,
+                data: abi.encode(tokens, isSushi)
+            });
+    }
+
     function makeUniswapV2BatchSubcall(
         address[] memory tokens,
         uint256 sellAmount,
@@ -165,6 +200,96 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                 sellAmount: sellAmount,
                 data: abi.encode(tokens, isSushi)
             });
+    }
+
+    function encodePathUniswapV3(address[] memory tokens) private pure returns (bytes memory path) {
+        path = new bytes(tokens.length * 23 - 3);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            assembly {
+                let p := add(add(path, 32), mul(i, 23))
+                if gt(i, 0) {
+                    mstore(sub(p, 3), shl(232, POOL_FEE))
+                }
+
+                let a := add(add(tokens, 32), mul(i, 32))
+                mstore(p, shl(96, mload(a)))
+            }
+        }
+    }
+
+    function makeUniswapV3MultiHopSubcall(
+        address[] memory tokens
+    ) private pure returns (IMultiplexFeature.MultiHopSellSubcall memory) {
+        return
+            IMultiplexFeature.MultiHopSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.UniswapV3,
+                data: encodePathUniswapV3(tokens)
+            });
+    }
+
+    function makeUniswapV3BatchSubcall(
+        address[] memory tokens,
+        uint256 sellAmount
+    ) private pure returns (IMultiplexFeature.BatchSellSubcall memory) {
+        return
+            IMultiplexFeature.BatchSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.UniswapV3,
+                sellAmount: sellAmount,
+                data: encodePathUniswapV3(tokens)
+            });
+    }
+
+    function makeLiquidityProviderBatchSubcall(
+        uint256 sellAmount
+    ) private view returns (IMultiplexFeature.BatchSellSubcall memory) {
+        return
+            IMultiplexFeature.BatchSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.LiquidityProvider,
+                sellAmount: sellAmount,
+                data: abi.encode(address(liquidityProvider), hex"")
+            });
+    }
+
+    function makeTransformERC20Subcall(
+        IERC20TokenV06 inputToken,
+        IERC20TokenV06 outputToken,
+        uint256 sellAmount,
+        uint256 mintAmount
+    ) private view returns (IMultiplexFeature.BatchSellSubcall memory) {
+        ITransformERC20Feature.Transformation[] memory transformations = new ITransformERC20Feature.Transformation[](1);
+        transformations[0] = ITransformERC20Feature.Transformation(
+            uint32(transformerNonce),
+            abi.encode(address(inputToken), address(outputToken), 0, mintAmount, 0)
+        );
+
+        return
+            IMultiplexFeature.BatchSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.TransformERC20,
+                sellAmount: sellAmount,
+                data: abi.encode(transformations)
+            });
+    }
+
+    function makeNestedMultiHopSubcall(
+        address[] memory tokens,
+        IMultiplexFeature.MultiHopSellSubcall[] memory calls,
+        uint256 sellAmount
+    ) private pure returns (IMultiplexFeature.BatchSellSubcall memory) {
+        return
+            IMultiplexFeature.BatchSellSubcall({
+                id: IMultiplexFeature.MultiplexSubcall.MultiHopSell,
+                sellAmount: sellAmount,
+                data: abi.encode(tokens, calls)
+            });
+    }
+
+    function makeArray(
+        IMultiplexFeature.MultiHopSellSubcall memory first,
+        IMultiplexFeature.MultiHopSellSubcall memory second
+    ) private pure returns (IMultiplexFeature.MultiHopSellSubcall[] memory subcalls) {
+        subcalls = new IMultiplexFeature.MultiHopSellSubcall[](2);
+        subcalls[0] = first;
+        subcalls[1] = second;
     }
 
     function makeArray(
@@ -183,6 +308,17 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         subcalls[1] = second;
     }
 
+    function makeArray(
+        IMultiplexFeature.BatchSellSubcall memory first,
+        IMultiplexFeature.BatchSellSubcall memory second,
+        IMultiplexFeature.BatchSellSubcall memory third
+    ) private pure returns (IMultiplexFeature.BatchSellSubcall[] memory subcalls) {
+        subcalls = new IMultiplexFeature.BatchSellSubcall[](3);
+        subcalls[0] = first;
+        subcalls[1] = second;
+        subcalls[2] = third;
+    }
+
     function makeArray(address first) private pure returns (address[] memory addresses) {
         addresses = new address[](1);
         addresses[0] = first;
@@ -192,6 +328,13 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         addresses = new address[](2);
         addresses[0] = first;
         addresses[1] = second;
+    }
+
+    function makeArray(address first, address second, address third) private pure returns (address[] memory addresses) {
+        addresses = new address[](3);
+        addresses[0] = first;
+        addresses[1] = second;
+        addresses[2] = third;
     }
 
     function mintTo(address token, address recipient, uint256 amount) private {
@@ -216,6 +359,22 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
         (uint112 balance0, uint112 balance1) = tokenA < tokenB ? (balanceA, balanceB) : (balanceB, balanceA);
         pool.setReserves(balance0, balance1, 0);
+    }
+
+    function createUniswapV3Pool(
+        TestUniswapV3Factory factory,
+        IERC20TokenV06 tokenA,
+        IERC20TokenV06 tokenB,
+        uint112 balanceA,
+        uint112 balanceB
+    ) private returns (TestUniswapV3Pool pool) {
+        pool = factory.createPool(tokenA, tokenB, POOL_FEE);
+        mintTo(address(tokenA), address(pool), balanceA);
+        mintTo(address(tokenB), address(pool), balanceB);
+    }
+
+    function encodeFractionalFillAmount(uint256 frac) private pure returns (uint256) {
+        return HIGH_BIT + (frac * 1e16);
     }
 
     // TODO refactor these out into some test utility contract
@@ -246,7 +405,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
     //// batch sells
 
-    function testMultiplexBatchSellTokenForToken() public {
+    function test_MultiplexBatchSellTokenForToken() public {
         describe("MultiplexBatchSellTokenForToken");
 
         ////
@@ -346,7 +505,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO
+                // TODO verify rfqOrder was filled
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -375,7 +534,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO
+                // TODO verify otcOrder was filled
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -405,7 +564,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO
+                // TODO verify rfqOrder expired, verify fallback to uniswapV2 transferred correctly
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -416,7 +575,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
 
         ////
         {
-            it("expired OTC, fallback(UniswapV2)", true);
+            it("expired OTC, fallback(UniswapV2)");
 
             LibNativeOrder.OtcOrder memory otcOrder = makeTestOtcOrder();
             createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
@@ -435,7 +594,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO
+                // TODO verify otcOrder expired, verify fallback to uniswapV2 transferred correctly
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -444,13 +603,139 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             }
         }
 
-        // expired RFQ, fallback(TransformERC20)
+        ////
+        {
+            it("expired RFQ, fallback(TransformERC20)");
 
-        // LiquidityProvider, UniV3, Sushiswap
+            LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
+            mintTo(address(rfqOrder.takerToken), rfqOrder.taker, rfqOrder.takerAmount);
+            rfqOrder.expiry = 0;
 
-        // proportional fill amounts
+            try
+                zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
+                    rfqOrder.takerToken,
+                    zrx,
+                    makeArray(
+                        makeRfqSubcall(rfqOrder),
+                        makeTransformERC20Subcall(dai, zrx, rfqOrder.takerAmount, 5e17)
+                    ),
+                    rfqOrder.takerAmount,
+                    0
+                )
+            {
+                // TODO verify rfqOrder expired, verify fallback to transformERC20 transferred correctly
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
 
-        // RFQ, MultiHop(UniV3, UniV2)
+        ////
+        {
+            it("LiquidityProvider, UniV3, Sushiswap");
+
+            createUniswapV2Pool(sushiFactory, dai, zrx, 10e18, 10e18);
+            createUniswapV3Pool(uniV3Factory, dai, zrx, 10e18, 10e18);
+
+            address[] memory tokens = makeArray(address(dai), address(zrx));
+            IMultiplexFeature.BatchSellSubcall memory lpSubcall = makeLiquidityProviderBatchSubcall(4e17);
+            IMultiplexFeature.BatchSellSubcall memory uniV3Subcall = makeUniswapV3BatchSubcall(tokens, 5e17);
+            IMultiplexFeature.BatchSellSubcall memory sushiswapSubcall = makeUniswapV2BatchSubcall(tokens, 6e17, true);
+            uint256 sellAmount = lpSubcall.sellAmount + uniV3Subcall.sellAmount + sushiswapSubcall.sellAmount;
+
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
+                    dai,
+                    zrx,
+                    makeArray(lpSubcall, uniV3Subcall, sushiswapSubcall),
+                    sellAmount,
+                    0
+                )
+            {
+                // TODO verify all the tokens were transferred to/from the correct places
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("proportional fill amounts");
+
+            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+
+            uint256 sellAmount = 1e18;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
+                    dai,
+                    zrx,
+                    makeArray(
+                        makeRfqSubcall(makeTestRfqOrder(), encodeFractionalFillAmount(42)),
+                        makeUniswapV2BatchSubcall(
+                            makeArray(address(dai), address(zrx)),
+                            encodeFractionalFillAmount(100),
+                            false
+                        )
+                    ),
+                    sellAmount,
+                    0
+                )
+            {
+                // TODO verify correct proportions were transferred
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
+
+        ////
+        {
+            it("RFQ, MultiHop(UniV3, UniV2)", true);
+
+            createUniswapV2Pool(uniV2Factory, shib, zrx, 10e18, 10e18);
+            createUniswapV3Pool(uniV3Factory, dai, shib, 10e18, 10e18);
+
+            IMultiplexFeature.BatchSellSubcall memory rfqSubcall = makeRfqSubcall(makeTestRfqOrder());
+            IMultiplexFeature.BatchSellSubcall memory multiHopSubcall = makeNestedMultiHopSubcall(
+                makeArray(address(dai), address(shib), address(zrx)),
+                makeArray(
+                    makeUniswapV3MultiHopSubcall(makeArray(address(dai), address(shib))),
+                    makeUniswapV2MultiHopSubcall(makeArray(address(shib), address(zrx)), false)
+                ),
+                5e17
+            );
+
+            uint256 sellAmount = rfqSubcall.sellAmount + multiHopSubcall.sellAmount;
+            mintTo(address(dai), address(this), sellAmount);
+
+            try
+                zeroExDeployed.zeroEx.multiplexBatchSellTokenForToken(
+                    dai,
+                    zrx,
+                    makeArray(rfqSubcall, multiHopSubcall),
+                    sellAmount,
+                    0
+                )
+            {
+                // TODO verify all the tokens were transferred to/from the correct places
+            } catch Error(string memory reason) {
+                fail("reverted");
+                fail(reason);
+            } catch {
+                fail("low-level revert");
+            }
+        }
     }
 
     function testMultiplexBatchSellEthForToken() public {

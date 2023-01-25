@@ -38,8 +38,9 @@ contract WrapEth is Test, ForkUtils, TestUtils {
     DeployZeroEx.ZeroExDeployed zeroExDeployed;
 
     function setUp() public {
-        zeroExDeployed = new DeployZeroEx(DeployZeroEx.ZeroExDeployConfiguration(address(0), address(0), 0, 0, true))
-            .deployZeroEx();
+        zeroExDeployed = new DeployZeroEx(
+            DeployZeroEx.ZeroExDeployConfiguration(address(0), address(0), address(0), 0, 0, 0, true)
+        ).deployZeroEx();
 
         vm.deal(address(this), 1e19);
     }

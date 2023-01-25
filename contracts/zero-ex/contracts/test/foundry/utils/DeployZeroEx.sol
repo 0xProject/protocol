@@ -36,9 +36,11 @@ import "src/features/MetaTransactionsFeature.sol";
 import "src/features/nft_orders/ERC1155OrdersFeature.sol";
 import "src/features/nft_orders/ERC721OrdersFeature.sol";
 import "src/features/UniswapFeature.sol";
+import "src/features/UniswapV3Feature.sol";
 import "src/features/multiplex/MultiplexFeature.sol";
 import "src/external/TransformerDeployer.sol";
 import "src/external/FeeCollectorController.sol";
+import "src/external/LiquidityProviderSandbox.sol";
 import "src/transformers/WethTransformer.sol";
 import "src/transformers/FillQuoteTransformer.sol";
 import "src/transformers/PayTakerTransformer.sol";
@@ -66,7 +68,7 @@ contract DeployZeroEx is Test {
         BatchFillNativeOrdersFeature batchFillNativeOrdersFeature;
         OtcOrdersFeature otcOrdersFeature;
         UniswapFeature uniswapFeature;
-        // UniswapV3Feature
+        UniswapV3Feature uniswapV3Feature;
         FundRecoveryFeature fundRecoveryFeature;
         TransformERC20Feature transformERC20Feature;
         MetaTransactionsFeature metaTransactionsFeature;
@@ -99,8 +101,10 @@ contract DeployZeroEx is Test {
     struct ZeroExDeployConfiguration {
         address uniswapFactory;
         address sushiswapFactory;
+        address uniswapV3Factory;
         bytes32 uniswapPairInitCodeHash;
         bytes32 sushiswapPairInitCodeHash;
+        bytes32 uniswapV3PoolInitCodeHash;
         bool logDeployed;
     }
 
@@ -132,6 +136,7 @@ contract DeployZeroEx is Test {
         );
         emit log_named_address("OtcOrdersFeature", address(ZERO_EX_DEPLOYED.features.otcOrdersFeature));
         emit log_named_address("UniswapFeature", address(ZERO_EX_DEPLOYED.features.uniswapFeature));
+        emit log_named_address("UniswapV3Feature", address(ZERO_EX_DEPLOYED.features.uniswapV3Feature));
         emit log_named_address("FundRecoveryFeature", address(ZERO_EX_DEPLOYED.features.fundRecoveryFeature));
         emit log_named_address("MetaTransactionsFeature", address(ZERO_EX_DEPLOYED.features.metaTransactionsFeature));
         emit log_named_address("ERC1155OrdersFeature", address(ZERO_EX_DEPLOYED.features.erc1155OrdersFeature));
@@ -195,6 +200,11 @@ contract DeployZeroEx is Test {
         ZERO_EX_DEPLOYED.features.batchFillNativeOrdersFeature = new BatchFillNativeOrdersFeature(address(ZERO_EX));
         ZERO_EX_DEPLOYED.features.otcOrdersFeature = new OtcOrdersFeature(address(ZERO_EX), ZERO_EX_DEPLOYED.weth);
         ZERO_EX_DEPLOYED.features.uniswapFeature = new UniswapFeature(ZERO_EX_DEPLOYED.weth);
+        ZERO_EX_DEPLOYED.features.uniswapV3Feature = new UniswapV3Feature(
+            ZERO_EX_DEPLOYED.weth,
+            ZERO_EX_DEPLOY_CONFIG.uniswapV3Factory,
+            ZERO_EX_DEPLOY_CONFIG.uniswapV3PoolInitCodeHash
+        );
         ZERO_EX_DEPLOYED.features.fundRecoveryFeature = new FundRecoveryFeature();
         ZERO_EX_DEPLOYED.features.metaTransactionsFeature = new MetaTransactionsFeature(address(ZERO_EX));
         ZERO_EX_DEPLOYED.features.erc1155OrdersFeature = new ERC1155OrdersFeature(
@@ -208,7 +218,7 @@ contract DeployZeroEx is Test {
         ZERO_EX_DEPLOYED.features.multiplexFeature = new MultiplexFeature(
             address(ZERO_EX),
             ZERO_EX_DEPLOYED.weth,
-            ILiquidityProviderSandbox(address(0)),
+            new LiquidityProviderSandbox(address(ZERO_EX)),
             ZERO_EX_DEPLOY_CONFIG.uniswapFactory,
             ZERO_EX_DEPLOY_CONFIG.sushiswapFactory,
             ZERO_EX_DEPLOY_CONFIG.uniswapPairInitCodeHash,
@@ -249,6 +259,11 @@ contract DeployZeroEx is Test {
         IZERO_EX.migrate(
             address(ZERO_EX_DEPLOYED.features.uniswapFeature),
             abi.encodeWithSelector(UniswapFeature.migrate.selector),
+            address(this)
+        );
+        IZERO_EX.migrate(
+            address(ZERO_EX_DEPLOYED.features.uniswapV3Feature),
+            abi.encodeWithSelector(UniswapV3Feature.migrate.selector),
             address(this)
         );
         IZERO_EX.migrate(
