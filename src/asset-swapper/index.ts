@@ -56,14 +56,12 @@ export { UniswapV2FillData } from './utils/market_operation_utils/types';
 
 export {
     ERC20BridgeSource,
-    GasSchedule,
     Fill,
     FillAdjustor,
     FillData,
     GetMarketOrdersRfqOpts,
     QuoteReport,
     ExtendedQuoteReportSources,
-    PriceComparisonsReport,
 } from './types';
 
 export { TokenAdjacencyGraph } from './utils/token_adjacency_graph';

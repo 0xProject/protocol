@@ -259,7 +259,6 @@ export class SwapService implements ISwapService {
             rfqt,
             affiliateAddress,
             affiliateFee,
-            includePriceComparisons,
             skipValidation,
             shouldSellEntireBalance,
             enableSlippageProtection,
@@ -324,7 +323,6 @@ export class SwapService implements ISwapService {
             includedSources,
             rfqt: _rfqt,
             shouldGenerateQuoteReport,
-            shouldIncludePriceComparisonsReport: !!includePriceComparisons,
             fillAdjustor:
                 enableSlippageProtection && this.slippageModelManager
                     ? new SlippageModelFillAdjustor(
@@ -361,8 +359,7 @@ export class SwapService implements ISwapService {
             protocolFeeInWeiAmount: bestCaseProtocolFee,
         } = swapQuote.bestCaseQuoteInfo;
         const { protocolFeeInWeiAmount: protocolFee, gas: worstCaseGas } = swapQuote.worstCaseQuoteInfo;
-        const { gasPrice, sourceBreakdown, quoteReport, priceComparisonsReport, extendedQuoteReportSources } =
-            swapQuote;
+        const { gasPrice, sourceBreakdown, quoteReport, extendedQuoteReportSources } = swapQuote;
 
         const {
             gasCost: affiliateFeeGasCost,
@@ -499,7 +496,6 @@ export class SwapService implements ISwapService {
             sellTokenToEthRate,
             buyTokenToEthRate,
             quoteReport,
-            priceComparisonsReport,
             blockNumber: swapQuote.blockNumber,
         };
 

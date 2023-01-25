@@ -12,7 +12,6 @@ import {
     ERC20BridgeSource,
     ExtendedQuoteReportSources,
     LimitOrderFields,
-    PriceComparisonsReport,
     QuoteReport,
     RfqRequestOpts,
     Signature,
@@ -164,17 +163,6 @@ interface BasePriceResponse extends QuoteBase {
     buyTokenAddress: string;
     value: BigNumber;
     gas: BigNumber;
-    priceComparisons?: SourceComparison[];
-}
-
-export interface SourceComparison {
-    name: ERC20BridgeSource | '0x';
-    price: BigNumber | null;
-    gas: BigNumber | null;
-    savingsInEth: BigNumber | null;
-    buyAmount: BigNumber | null;
-    sellAmount: BigNumber | null;
-    expectedSlippage: BigNumber | null;
 }
 
 export type AffiliateFee =
@@ -194,7 +182,6 @@ interface SwapQuoteParamsBase {
     includedSources?: ERC20BridgeSource[];
     affiliateAddress?: string;
     affiliateFee: AffiliateFee;
-    includePriceComparisons?: boolean;
     priceImpactProtectionPercentage: number;
 }
 
@@ -207,7 +194,6 @@ export interface GetSwapQuoteResponse extends SwapQuoteResponsePartialTransactio
     from?: string;
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
-    priceComparisonsReport?: PriceComparisonsReport;
     expectedSlippage?: BigNumber | null;
     blockNumber: number | undefined;
 }
@@ -410,7 +396,7 @@ export interface IOrderBookService {
     addPersistentOrdersAsync(signedOrders: SignedLimitOrder[]): Promise<void>;
 }
 
-export interface ISlippageModelManager {
+interface ISlippageModelManager {
     initializeAsync(): Promise<void>;
     calculateExpectedSlippage(
         buyToken: string,

@@ -202,9 +202,9 @@ function _nativeDataToId(data: { signature: Signature }): string {
 
 /**
  * Generates a report sample for a DEX source
- * NOTE: this is used for the QuoteReport and quote price comparison data
+ * NOTE: this is used for the QuoteReport.
  */
-export function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
+function dexSampleToReportSource(ds: DexSample, marketOperation: MarketOperation): BridgeQuoteReportEntry {
     const liquiditySource = ds.source;
 
     if (liquiditySource === ERC20BridgeSource.Native) {
@@ -243,9 +243,9 @@ function isDexSampleFilter(ds: DexSample, amount: BigNumber): boolean {
 
 /**
  * Generates a report sample for a MultiHop source
- * NOTE: this is used for the QuoteReport and quote price comparison data
+ * NOTE: this is used for the QuoteReport.
  */
-export function multiHopSampleToReportSource(
+function multiHopSampleToReportSource(
     ds: DexSample<MultiHopFillData>,
     marketOperation: MarketOperation,
 ): MultiHopQuoteReportEntry {
@@ -306,9 +306,9 @@ function _isRFQOrderfromType(orderType: FillQuoteTransformerOrderType) {
 
 /**
  * Generates a report entry for a native order
- * NOTE: this is used for the QuoteReport and quote price comparison data
+ * NOTE: this is used for the QuoteReport.
  */
-export function nativeOrderToReportEntry(
+function nativeOrderToReportEntry(
     type: FillQuoteTransformerOrderType,
     fillData: NativeFillData,
     fillableAmount: BigNumber,

@@ -1,6 +1,5 @@
 import { isAPIError, isRevertError } from '@0x/api-utils';
 import { isNativeSymbolOrAddress, isNativeWrappedSymbolOrAddress } from '@0x/token-metadata';
-import { MarketOperation } from '@0x/types';
 import { BigNumber, NULL_ADDRESS } from '@0x/utils';
 import * as express from 'express';
 import { StatusCodes } from 'http-status-codes';
@@ -46,7 +45,6 @@ import { ISwapService, GetSwapPriceResponse, GetSwapQuoteParams, GetSwapQuoteRes
 import { findTokenAddressOrThrowApiError } from '../utils/address_utils';
 import { estimateArbitrumL1CalldataGasCost } from '../utils/l2_gas_utils';
 import { parseUtils } from '../utils/parse_utils';
-import { priceComparisonUtils } from '../utils/price_comparison_utils';
 import { publishQuoteReport } from '../utils/quote_report_utils';
 import { schemaUtils } from '../utils/schema_utils';
 import { GasPriceUtils } from '../asset-swapper';
@@ -180,20 +178,8 @@ export class SwapHandlers {
             },
             'quoteReport',
             'extendedQuoteReportSources',
-            'priceComparisonsReport',
             'blockNumber',
         );
-        if (params.includePriceComparisons && quote.priceComparisonsReport) {
-            const side = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
-            const priceComparisons = priceComparisonUtils.getPriceComparisonFromQuote(
-                CHAIN_ID,
-                side,
-                quote,
-                this._swapService.slippageModelManager,
-                params.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-            );
-            response.priceComparisons = priceComparisons?.map((sc) => priceComparisonUtils.renameNative(sc));
-        }
         const duration = (new Date().getTime() - begin) / ONE_SECOND_MS;
 
         HTTP_SWAP_RESPONSE_TIME.observe(duration);
@@ -248,19 +234,6 @@ export class SwapHandlers {
             'buyTokenToEthRate',
             'expectedSlippage',
         );
-
-        if (params.includePriceComparisons && quote.priceComparisonsReport) {
-            const marketSide = params.sellAmount ? MarketOperation.Sell : MarketOperation.Buy;
-            response.priceComparisons = priceComparisonUtils
-                .getPriceComparisonFromQuote(
-                    CHAIN_ID,
-                    marketSide,
-                    quote,
-                    this._swapService.slippageModelManager,
-                    params.slippagePercentage || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE,
-                )
-                ?.map((sc) => priceComparisonUtils.renameNative(sc));
-        }
 
         if (quote.extendedQuoteReportSources && kafkaProducer) {
             const quoteId = getQuoteIdFromSwapQuote(quote);
@@ -400,7 +373,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         skipValidation = false;
     }
 
-    const includePriceComparisons = req.query.includePriceComparisons === 'true' ? true : false;
     // Whether the entire callers balance should be sold, used for contracts where the
     // amount available is non-deterministic
     const shouldSellEntireBalance = req.query.shouldSellEntireBalance === 'true' ? true : false;
@@ -557,7 +529,6 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         endpoint,
         excludedSources,
         gasPrice,
-        includePriceComparisons,
         includedSources,
         integrator,
         isETHBuy: isNativeBuy,

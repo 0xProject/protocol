@@ -2921,7 +2921,6 @@ export const DEFAULT_GET_MARKET_ORDERS_OPTS: Omit<GetMarketOrdersOpts, 'gasPrice
     exchangeProxyOverhead: () => ZERO_AMOUNT,
     allowFallback: true,
     shouldGenerateQuoteReport: true,
-    shouldIncludePriceComparisonsReport: false,
     tokenAdjacencyGraph: TokenAdjacencyGraph.getEmptyGraph(),
     neonRouterNumSamples: 14,
     fillAdjustor: new IdentityFillAdjustor(),

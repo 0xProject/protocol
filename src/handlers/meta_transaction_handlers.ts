@@ -354,8 +354,6 @@ function parseV1RequestParams(req: express.Request): MetaTransactionV1QuoteReque
             ? undefined
             : parseUtils.parseStringArrForERC20BridgeSources((req.query.includedSources as string).split(','));
 
-    const includePriceComparisons = false;
-
     return {
         takerAddress,
         sellTokenAddress,
@@ -365,7 +363,6 @@ function parseV1RequestParams(req: express.Request): MetaTransactionV1QuoteReque
         slippagePercentage,
         excludedSources,
         includedSources,
-        includePriceComparisons,
         affiliateFee,
         affiliateAddress,
         integratorId,
@@ -431,7 +428,6 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
             ? undefined
             : parseUtils.parseStringArrForERC20BridgeSources((req.body.includedSources as string).split(','));
 
-    const includePriceComparisons = false;
     const parsedFeeConfigs = _parseFeeConfigs(req);
 
     return {
@@ -443,7 +439,6 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
         slippagePercentage,
         excludedSources,
         includedSources,
-        includePriceComparisons,
         affiliateFee,
         affiliateAddress,
         integratorId,

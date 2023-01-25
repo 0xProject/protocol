@@ -13,7 +13,6 @@ import {
     ERC20BridgeSource,
     GetMarketOrdersOpts,
     ExtendedQuoteReportSources,
-    PriceComparisonsReport,
     QuoteReport,
     SignedLimitOrder,
 } from '../../types';
@@ -26,13 +25,7 @@ import {
     getNativeAdjustedMakerFillAmount,
 } from '../utils';
 
-import {
-    dexSampleToReportSource,
-    generateExtendedQuoteReportSources,
-    generateQuoteReport,
-    multiHopSampleToReportSource,
-    nativeOrderToReportEntry,
-} from './../quote_report_generator';
+import { generateExtendedQuoteReportSources, generateQuoteReport } from './../quote_report_generator';
 import { getComparisonPrices } from './comparison_price';
 import {
     BUY_SOURCE_FILTER_BY_CHAIN_ID,
@@ -66,7 +59,6 @@ interface OptimizerResult {
 export interface OptimizerResultWithReport extends OptimizerResult {
     quoteReport?: QuoteReport;
     extendedQuoteReportSources?: ExtendedQuoteReportSources;
-    priceComparisonsReport?: PriceComparisonsReport;
 }
 
 export class MarketOperationUtils {
@@ -108,28 +100,6 @@ export class MarketOperationUtils {
             comparisonPrice,
             quoteRequestor,
         );
-    }
-
-    private static _computePriceComparisonsReport(
-        quoteRequestor: QuoteRequestor | undefined,
-        marketSideLiquidity: MarketSideLiquidity,
-        comparisonPrice?: BigNumber | undefined,
-    ): PriceComparisonsReport {
-        const { side, quotes } = marketSideLiquidity;
-        const dexSources = _.flatten(quotes.dexQuotes).map((quote) => dexSampleToReportSource(quote, side));
-        const multiHopSources = quotes.twoHopQuotes.map((quote) => multiHopSampleToReportSource(quote, side));
-        const nativeSources = quotes.nativeOrders.map((order) =>
-            nativeOrderToReportEntry(
-                order.type,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: fix me!
-                order as any,
-                order.fillableTakerAmount,
-                comparisonPrice,
-                quoteRequestor,
-            ),
-        );
-
-        return { dexSources, multiHopSources, nativeSources };
     }
 
     constructor(
@@ -787,15 +757,7 @@ export class MarketOperationUtils {
                 wholeOrderPrice,
             );
 
-        let priceComparisonsReport: PriceComparisonsReport | undefined;
-        if (_opts.shouldIncludePriceComparisonsReport) {
-            priceComparisonsReport = MarketOperationUtils._computePriceComparisonsReport(
-                _opts.rfqt ? _opts.rfqt.quoteRequestor : undefined,
-                marketSideLiquidity,
-                wholeOrderPrice,
-            );
-        }
-        return { ...optimizerResult, quoteReport, extendedQuoteReportSources, priceComparisonsReport };
+        return { ...optimizerResult, quoteReport, extendedQuoteReportSources };
     }
 
     private async _refreshPoolCacheIfRequiredAsync(takerToken: string, makerToken: string): Promise<void> {

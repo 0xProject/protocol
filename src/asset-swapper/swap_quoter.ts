@@ -333,14 +333,7 @@ function createSwapQuote(
     gasSchedule: GasSchedule,
     slippage: number,
 ): SwapQuote {
-    const {
-        path,
-        quoteReport,
-        extendedQuoteReportSources,
-        takerAmountPerEth,
-        makerAmountPerEth,
-        priceComparisonsReport,
-    } = optimizerResult;
+    const { path, quoteReport, extendedQuoteReportSources, takerAmountPerEth, makerAmountPerEth } = optimizerResult;
     const { bestCaseQuoteInfo, worstCaseQuoteInfo, sourceBreakdown } = calculateQuoteInfo({
         path,
         operation,
@@ -366,7 +359,6 @@ function createSwapQuote(
         makerAmountPerEth,
         quoteReport,
         extendedQuoteReportSources,
-        priceComparisonsReport,
         blockNumber,
     };
 
