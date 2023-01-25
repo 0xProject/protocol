@@ -10,6 +10,12 @@
             "options": {
                 "singleQuote": false
             }
+        },
+        {
+            "files": "*.yml",
+            "options": {
+                "tabWidth": 2
+            }
         }
     ]
 }
