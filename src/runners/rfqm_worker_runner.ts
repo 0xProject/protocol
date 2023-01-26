@@ -21,10 +21,10 @@ import {
     SENTRY_ENVIRONMENT,
     SENTRY_TRACES_SAMPLE_RATE,
 } from '../config';
+import { GaslessTypes } from '../core/types';
 import { MetaTransactionJobEntity, RfqmV2JobEntity } from '../entities';
 import { getDbDataSourceAsync } from '../getDbDataSourceAsync';
 import { logger } from '../logger';
-import { RfqmTypes } from '../services/types';
 import { WorkerService } from '../services/WorkerService';
 import { ConfigManager } from '../utils/config_manager';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
@@ -185,25 +185,27 @@ export function createGaslessSwapWorker(
             }
 
             const messageBody = JSON.parse(message.Body);
-            const type = messageBody.type as RfqmTypes;
+            const type = messageBody.type as GaslessTypes;
             let identifier;
             let kind: (RfqmV2JobEntity | MetaTransactionJobEntity)['kind'];
 
             switch (type) {
-                case RfqmTypes.OtcOrder:
+                case GaslessTypes.OtcOrder:
                     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                     // eslint-disable-next-line no-case-declarations
                     const { orderHash } = messageBody;
                     identifier = orderHash;
                     kind = 'rfqm_v2_job';
                     break;
-                case RfqmTypes.MetaTransaction:
+                case GaslessTypes.MetaTransaction:
                     // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
                     // eslint-disable-next-line no-case-declarations
                     const { id } = messageBody;
                     identifier = id;
                     kind = 'meta_transaction_job';
                     break;
+                case GaslessTypes.MetaTransactionV2:
+                    throw new Error('MetaTransaction V2 job is not supported yet');
                 default:
                     ((_x: never) => {
                         throw new Error('unreachable');

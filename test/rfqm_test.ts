@@ -37,8 +37,7 @@ import {
 import { FeeService } from '../src/services/fee_service';
 import { RfqmService } from '../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../src/services/rfq_maker_balance_cache_service';
-import { RfqmTypes } from '../src/services/types';
-import { GaslessApprovalTypes, PermitEip712Types, StoredFee } from '../src/core/types';
+import { GaslessApprovalTypes, GaslessTypes, PermitEip712Types, StoredFee } from '../src/core/types';
 import { CacheClient } from '../src/utils/cache_client';
 import { ConfigManager } from '../src/utils/config_manager';
 import { QuoteServerClient } from '../src/utils/quote_server_client';
@@ -810,7 +809,7 @@ describe('RFQM Integration', () => {
 
             const expectedPrice = '0.5';
             expect(appResponse.body.price).to.equal(expectedPrice);
-            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
+            expect(appResponse.body.type).to.equal(GaslessTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
             expect(appResponse.body.approval).to.equal(undefined);
@@ -862,7 +861,7 @@ describe('RFQM Integration', () => {
 
             const expectedPrice = '2';
             expect(appResponse.body.price).to.equal(expectedPrice);
-            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
+            expect(appResponse.body.type).to.equal(GaslessTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
             expect(appResponse.body.approval).to.equal(undefined);
@@ -926,7 +925,7 @@ describe('RFQM Integration', () => {
                 eip712: MOCK_EXECUTE_META_TRANSACTION_APPROVAL.eip712,
             };
             expect(appResponse.body.price).to.equal(expectedPrice);
-            expect(appResponse.body.type).to.equal(RfqmTypes.OtcOrder);
+            expect(appResponse.body.type).to.equal(GaslessTypes.OtcOrder);
             expect(appResponse.body.orderHash).to.match(/^0x[0-9a-fA-F]+/);
             expect(appResponse.body.order.maker).to.equal(MARKET_MAKER_2_ADDR);
             expect(appResponse.body.approval).to.eql(expectedApproval);
@@ -1088,7 +1087,7 @@ describe('RFQM Integration', () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .send({ type: GaslessTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
@@ -1117,7 +1116,7 @@ describe('RFQM Integration', () => {
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
                 .send({
-                    type: RfqmTypes.OtcOrder,
+                    type: GaslessTypes.OtcOrder,
                     order,
                     signature: takerSignature,
                 })
@@ -1169,7 +1168,7 @@ describe('RFQM Integration', () => {
 
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .send({ type: GaslessTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.CREATED)
@@ -1178,7 +1177,7 @@ describe('RFQM Integration', () => {
             // try to submit again
             await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: takerSignature })
+                .send({ type: GaslessTypes.OtcOrder, order, signature: takerSignature })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -1206,7 +1205,7 @@ describe('RFQM Integration', () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
+                .send({ type: GaslessTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
@@ -1234,7 +1233,7 @@ describe('RFQM Integration', () => {
 
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit`)
-                .send({ type: RfqmTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
+                .send({ type: GaslessTypes.OtcOrder, order, signature: RANDOM_VALID_SIGNATURE })
                 .set('0x-api-key', API_KEY)
                 .set('0x-chain-id', '1337')
                 .expect(HttpStatus.BAD_REQUEST)
@@ -1326,7 +1325,7 @@ describe('RFQM Integration', () => {
             const appResponse = await request(app)
                 .post(`${RFQM_PATH}/submit-with-approval`)
                 .send({
-                    trade: { type: RfqmTypes.OtcOrder, order, signature: takerSignature },
+                    trade: { type: GaslessTypes.OtcOrder, order, signature: takerSignature },
                     approval: {
                         type: GaslessApprovalTypes.Permit,
                         eip712: approval.eip712,

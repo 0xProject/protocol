@@ -33,13 +33,13 @@ import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balanc
 import {
     ApprovalResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
-    RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../../src/services/types';
 import {
     ExecuteMetaTransactionEip712Context,
     FeeModelVersion,
     GaslessApprovalTypes,
+    GaslessTypes,
     IndicativeQuote,
     PermitEip712Context,
 } from '../../src/core/types';
@@ -245,7 +245,7 @@ describe('RfqmService HTTP Logic', () => {
             when(dbUtilsMock.findV2JobsWithStatusesAsync(anything())).thenResolve([existingJob]);
             when(dbUtilsMock.findV2QuoteByOrderHashAsync(otcOrder.getHash())).thenResolve(quote);
             const params: OtcOrderSubmitRfqmSignedQuoteParams = {
-                type: RfqmTypes.OtcOrder,
+                type: GaslessTypes.OtcOrder,
                 order: otcOrder,
                 signature: {
                     r: '',
@@ -346,7 +346,7 @@ describe('RfqmService HTTP Logic', () => {
             });
 
             const submitParams: OtcOrderSubmitRfqmSignedQuoteParams = {
-                type: RfqmTypes.OtcOrder,
+                type: GaslessTypes.OtcOrder,
                 order: newOtcOrder,
                 signature: ethSignHashWithKey(newOtcOrder.getHash(), takerPrivateKey),
             };
@@ -403,7 +403,7 @@ describe('RfqmService HTTP Logic', () => {
                     },
                 },
                 trade: {
-                    type: RfqmTypes.OtcOrder,
+                    type: GaslessTypes.OtcOrder,
                     order: otcOrder,
                     signature: {
                         r: '',
@@ -412,7 +412,7 @@ describe('RfqmService HTTP Logic', () => {
                         signatureType: SignatureType.EthSign,
                     },
                 },
-                kind: RfqmTypes.OtcOrder,
+                kind: GaslessTypes.OtcOrder,
             };
             const blockchainUtilsMock = mock(RfqBlockchainUtils);
             when(blockchainUtilsMock.generateApprovalCalldataAsync(anything(), anything(), anything())).thenResolve(
@@ -483,9 +483,9 @@ describe('RfqmService HTTP Logic', () => {
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<
                 ExecuteMetaTransactionEip712Context | PermitEip712Context
             > = {
-                kind: RfqmTypes.OtcOrder,
+                kind: GaslessTypes.OtcOrder,
                 trade: {
-                    type: RfqmTypes.OtcOrder,
+                    type: GaslessTypes.OtcOrder,
                     order: otcOrder,
                     signature: ethSignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
@@ -567,7 +567,7 @@ describe('RfqmService HTTP Logic', () => {
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<ExecuteMetaTransactionEip712Context> = {
                 trade: {
-                    type: RfqmTypes.OtcOrder,
+                    type: GaslessTypes.OtcOrder,
                     order: otcOrder,
                     signature: ethSignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
@@ -576,7 +576,7 @@ describe('RfqmService HTTP Logic', () => {
                     eip712: eip712Context,
                     signature: eip712SignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
-                kind: RfqmTypes.OtcOrder,
+                kind: GaslessTypes.OtcOrder,
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');
@@ -660,7 +660,7 @@ describe('RfqmService HTTP Logic', () => {
             });
             const submitParams: SubmitRfqmSignedQuoteWithApprovalParams<PermitEip712Context> = {
                 trade: {
-                    type: RfqmTypes.OtcOrder,
+                    type: GaslessTypes.OtcOrder,
                     order: otcOrder,
                     signature: ethSignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
@@ -669,7 +669,7 @@ describe('RfqmService HTTP Logic', () => {
                     eip712: eip712Context,
                     signature: eip712SignHashWithKey(otcOrder.getHash(), takerPrivateKey),
                 },
-                kind: RfqmTypes.OtcOrder,
+                kind: GaslessTypes.OtcOrder,
             };
             const result = await service.submitTakerSignedOtcOrderWithApprovalAsync(submitParams);
             expect(result.type).to.equal('otc');
@@ -1214,7 +1214,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.price.toNumber()).to.equal(1.01);
@@ -1274,7 +1274,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.buyAmount.toNumber()).to.equal(101); // result is scaled
                 expect(res?.price.toNumber()).to.equal(1.01);
@@ -1395,7 +1395,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.price.toNumber()).to.equal(1.01);
@@ -1465,7 +1465,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
 
                 expect(res?.sellAmount).to.equal(sellAmount);
                 expect(res?.price.toNumber()).to.equal(1.01);
@@ -1527,7 +1527,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
                 expect(res?.price.toNumber()).to.equal(0.8);
                 expect(res?.orderHash).to.match(/^0x[0-9a-fA-F]+/);
@@ -1586,7 +1586,7 @@ describe('RfqmService HTTP Logic', () => {
                 });
 
                 expect(res).to.exist; // tslint:disable-line: no-unused-expression
-                expect(res?.type).to.equal(RfqmTypes.OtcOrder);
+                expect(res?.type).to.equal(GaslessTypes.OtcOrder);
                 expect(res?.buyAmount.toNumber()).to.equal(buyAmount.toNumber());
                 expect(res?.sellAmount.toNumber()).to.equal(80); // result is scaled
                 expect(res?.price.toNumber()).to.equal(0.8);

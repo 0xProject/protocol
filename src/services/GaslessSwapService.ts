@@ -12,7 +12,7 @@ import { ONE_MINUTE_S, ONE_SECOND_MS } from '../core/constants';
 import { MetaTransactionJobConstructorOpts } from '../entities/MetaTransactionJobEntity';
 import { RfqmJobStatus } from '../entities/types';
 import { logger } from '../logger';
-import { ExecuteMetaTransactionEip712Context, PermitEip712Context } from '../core/types';
+import { ExecuteMetaTransactionEip712Context, GaslessTypes, PermitEip712Context } from '../core/types';
 import { getQuoteAsync } from '../utils/MetaTransactionClient';
 import { RfqmDbUtils } from '../utils/rfqm_db_utils';
 import { HealthCheckResult } from '../utils/rfqm_health_check';
@@ -26,7 +26,6 @@ import {
     FetchIndicativeQuoteResponse,
     MetaTransactionQuoteResponse,
     OtcOrderRfqmQuoteResponse,
-    RfqmTypes,
     StatusResponse,
     SubmitMetaTransactionSignedQuoteParams,
     SubmitMetaTransactionSignedQuoteResponse,
@@ -270,7 +269,7 @@ export class GaslessSwapService {
                     approval: approval ?? undefined,
                     metaTransaction: ammQuote.metaTransaction,
                     metaTransactionHash: ammQuote.metaTransaction.getHash(),
-                    type: RfqmTypes.MetaTransaction,
+                    type: GaslessTypes.MetaTransaction,
                     allowanceTarget: this._blockchainUtils.getExchangeProxyAddress(),
                     liquiditySource: 'amm',
                 };
@@ -317,7 +316,7 @@ export class GaslessSwapService {
             : SubmitMetaTransactionSignedQuoteResponse
     > {
         // OtcOrder
-        if (params.kind === RfqmTypes.OtcOrder) {
+        if (params.kind === GaslessTypes.OtcOrder) {
             const otcOrderResult = await this._rfqmService.submitTakerSignedOtcOrderWithApprovalAsync(params);
             return otcOrderResult as T extends SubmitRfqmSignedQuoteWithApprovalParams<
                 ExecuteMetaTransactionEip712Context | PermitEip712Context
@@ -482,7 +481,7 @@ export class GaslessSwapService {
 
         try {
             const { id } = await this._dbUtils.writeMetaTransactionJobAsync(jobOptions);
-            await this._enqueueJobAsync(id, RfqmTypes.MetaTransaction);
+            await this._enqueueJobAsync(id, GaslessTypes.MetaTransaction);
         } catch (error) {
             ZEROG_GASLESSS_SWAP_SERVICE_ERRORS.labels(
                 this._chainId.toString(),
@@ -496,7 +495,7 @@ export class GaslessSwapService {
 
         const result: SubmitMetaTransactionSignedQuoteResponse = {
             metaTransactionHash: metaTransaction.getHash(),
-            type: RfqmTypes.MetaTransaction,
+            type: GaslessTypes.MetaTransaction,
         };
 
         return result as T extends SubmitRfqmSignedQuoteWithApprovalParams<
@@ -524,7 +523,7 @@ export class GaslessSwapService {
         return this._rfqmService.getTokenDecimalsAsync(tokenAddress);
     }
 
-    private async _enqueueJobAsync(id: string, type: RfqmTypes): Promise<void> {
+    private async _enqueueJobAsync(id: string, type: GaslessTypes): Promise<void> {
         await this._sqsProducer.send({
             groupId: id,
             id,

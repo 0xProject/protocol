@@ -7,13 +7,9 @@ import {
     ExecuteMetaTransactionEip712Context,
     FeeModelVersion,
     GaslessApprovalTypes,
+    GaslessTypes,
     PermitEip712Context,
 } from '../core/types';
-
-export enum RfqmTypes {
-    MetaTransaction = 'metatransaction',
-    OtcOrder = 'otc',
-}
 
 export interface FetchIndicativeQuoteParams extends FetchQuoteParamsBase {
     takerAddress?: string;
@@ -43,7 +39,11 @@ export interface FetchQuoteParamsBase {
     sellAmount?: BigNumber;
     sellToken: string;
     sellTokenDecimals: number;
+    // fields specific to gasless endpoints
     slippagePercentage?: BigNumber;
+    feeType?: 'volume';
+    feeSellTokenPercentage?: BigNumber;
+    feeRecipient?: string;
 }
 
 export interface BaseRfqmQuoteResponse {
@@ -57,7 +57,7 @@ export interface BaseRfqmQuoteResponse {
 }
 
 export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
-    type: RfqmTypes.OtcOrder;
+    type: GaslessTypes.OtcOrder;
     order: OtcOrder;
     orderHash: string;
     approval?: ApprovalResponse;
@@ -71,7 +71,7 @@ export interface OtcOrderRfqmQuoteResponse extends BaseRfqmQuoteResponse {
  * and no allowance already exists.
  */
 export interface MetaTransactionQuoteResponse extends BaseRfqmQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
+    type: GaslessTypes.MetaTransaction;
     metaTransaction: MetaTransaction;
     metaTransactionHash: string;
     approval?: ApprovalResponse;
@@ -85,7 +85,7 @@ export interface ApprovalResponse {
 }
 
 export interface OtcOrderSubmitRfqmSignedQuoteParams {
-    type: RfqmTypes.OtcOrder;
+    type: GaslessTypes.OtcOrder;
     order: OtcOrder;
     signature: Signature;
 }
@@ -101,12 +101,12 @@ export interface SubmitMetaTransactionSignedQuoteParams<
     // Used to distinguish between `SubmitRfqmSignedQuoteWithApprovalParams` during type check.
     // Note that this information is in `trade`, but TypeScript does not narrow types based
     // on nested values.
-    kind: RfqmTypes.MetaTransaction;
-    trade: { metaTransaction: MetaTransaction; signature: Signature; type: RfqmTypes.MetaTransaction };
+    kind: GaslessTypes.MetaTransaction;
+    trade: { metaTransaction: MetaTransaction; signature: Signature; type: GaslessTypes.MetaTransaction };
 }
 
 export interface OtcOrderSubmitRfqmSignedQuoteResponse {
-    type: RfqmTypes.OtcOrder;
+    type: GaslessTypes.OtcOrder;
     orderHash: string;
 }
 
@@ -125,17 +125,17 @@ export interface SubmitRfqmSignedQuoteWithApprovalParams<
     // Used to distinguish between `SubmitMetaTransactionSignedQuoteParams` during type check.
     // Note that this information is in `trade`, but TypeScript does not narrow types based
     // on nested values.
-    kind: RfqmTypes.OtcOrder;
+    kind: GaslessTypes.OtcOrder;
     trade: OtcOrderSubmitRfqmSignedQuoteParams;
 }
 
 export interface SubmitRfqmSignedQuoteWithApprovalResponse {
-    type: RfqmTypes.OtcOrder;
+    type: GaslessTypes.OtcOrder;
     orderHash: string;
 }
 
 export interface SubmitMetaTransactionSignedQuoteResponse {
-    type: RfqmTypes.MetaTransaction;
+    type: GaslessTypes.MetaTransaction;
     metaTransactionHash: string;
 }
 

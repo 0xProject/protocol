@@ -16,10 +16,14 @@ import {
     FetchQuoteParamsBase,
     OtcOrderRfqmQuoteResponse,
     OtcOrderSubmitRfqmSignedQuoteParams,
-    RfqmTypes,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../core/types';
+import {
+    ExecuteMetaTransactionEip712Context,
+    GaslessApprovalTypes,
+    GaslessTypes,
+    PermitEip712Context,
+} from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -377,11 +381,11 @@ export class RfqmHandlers {
         integrator: Integrator;
         params: OtcOrderSubmitRfqmSignedQuoteParams;
     } {
-        const type = req.body.type as RfqmTypes;
+        const type = req.body.type as GaslessTypes;
         const chainId = extractChainId(req);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
 
-        if (type === RfqmTypes.OtcOrder) {
+        if (type === GaslessTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(req.body.order as RawOtcOrderFields));
             const signature = stringsToSignature(req.body.signature as StringSignatureFields);
             return {
@@ -449,7 +453,7 @@ export class RfqmHandlers {
         // Parse trade params
         const tradeType = trade.type;
         let otcOrderSubmitRfqmSignedQuoteParams: OtcOrderSubmitRfqmSignedQuoteParams;
-        if (tradeType === RfqmTypes.OtcOrder) {
+        if (tradeType === GaslessTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(trade.order as RawOtcOrderFields));
             const signature = stringsToSignature(trade.signature as StringSignatureFields);
             otcOrderSubmitRfqmSignedQuoteParams = {
@@ -472,7 +476,7 @@ export class RfqmHandlers {
             integrator,
             params: {
                 ...parsedParams,
-                kind: RfqmTypes.OtcOrder, // Must be of type OtcOrder for this flow
+                kind: GaslessTypes.OtcOrder, // Must be of type OtcOrder for this flow
                 trade: otcOrderSubmitRfqmSignedQuoteParams,
             },
         };

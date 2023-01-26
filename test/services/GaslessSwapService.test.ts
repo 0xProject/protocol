@@ -17,12 +17,7 @@ import { GaslessSwapService } from '../../src/services/GaslessSwapService';
 import { FeeService } from '../../src/services/fee_service';
 import { RfqmService } from '../../src/services/rfqm_service';
 import { RfqMakerBalanceCacheService } from '../../src/services/rfq_maker_balance_cache_service';
-import {
-    ApprovalResponse,
-    FetchIndicativeQuoteResponse,
-    OtcOrderRfqmQuoteResponse,
-    RfqmTypes,
-} from '../../src/services/types';
+import { ApprovalResponse, FetchIndicativeQuoteResponse, OtcOrderRfqmQuoteResponse } from '../../src/services/types';
 import { BalanceChecker } from '../../src/utils/balance_checker';
 import { CacheClient } from '../../src/utils/cache_client';
 import { getQuoteAsync } from '../../src/utils/MetaTransactionClient';
@@ -31,6 +26,7 @@ import { RfqmDbUtils } from '../../src/utils/rfqm_db_utils';
 import { RfqBlockchainUtils } from '../../src/utils/rfq_blockchain_utils';
 import { RfqMakerManager } from '../../src/utils/rfq_maker_manager';
 import { TokenMetadataManager } from '../../src/utils/TokenMetadataManager';
+import { GaslessTypes } from '../../src/core/types';
 
 jest.mock('../../src/services/rfqm_service', () => {
     return {
@@ -186,7 +182,7 @@ describe('GaslessSwapService', () => {
         sellTokenAddress: '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
         gas: new BigNumber(1043459),
         price: new BigNumber(1800.054805),
-        type: RfqmTypes.OtcOrder,
+        type: GaslessTypes.OtcOrder,
         order: otcOrder,
         orderHash: otcOrder.getHash(),
     };
@@ -372,7 +368,7 @@ describe('GaslessSwapService', () => {
             });
 
             expect(result).not.toBeNull();
-            expect(result?.type).toEqual(RfqmTypes.OtcOrder);
+            expect(result?.type).toEqual(GaslessTypes.OtcOrder);
             expect(result).toMatchInlineSnapshot(`
                 Object {
                   "allowanceTarget": "0x12345",
@@ -421,8 +417,8 @@ describe('GaslessSwapService', () => {
             });
 
             expect(result).not.toBeNull();
-            expect(result?.type).toEqual(RfqmTypes.MetaTransaction);
-            if (result?.type !== RfqmTypes.MetaTransaction) {
+            expect(result?.type).toEqual(GaslessTypes.MetaTransaction);
+            if (result?.type !== GaslessTypes.MetaTransaction) {
                 // Refine type for further assertions
                 throw new Error('Result should be a meta transaction');
             }
@@ -639,10 +635,10 @@ describe('GaslessSwapService', () => {
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
-                        kind: RfqmTypes.MetaTransaction,
+                        kind: GaslessTypes.MetaTransaction,
                         trade: {
                             metaTransaction: expiredMetaTransaction,
-                            type: RfqmTypes.MetaTransaction,
+                            type: GaslessTypes.MetaTransaction,
                             signature: {
                                 r: '',
                                 s: '',
@@ -662,10 +658,10 @@ describe('GaslessSwapService', () => {
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
-                        kind: RfqmTypes.MetaTransaction,
+                        kind: GaslessTypes.MetaTransaction,
                         trade: {
                             metaTransaction,
-                            type: RfqmTypes.MetaTransaction,
+                            type: GaslessTypes.MetaTransaction,
                             signature: {
                                 r: '',
                                 s: '',
@@ -711,10 +707,10 @@ describe('GaslessSwapService', () => {
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
-                        kind: RfqmTypes.MetaTransaction,
+                        kind: GaslessTypes.MetaTransaction,
                         trade: {
                             metaTransaction,
-                            type: RfqmTypes.MetaTransaction,
+                            type: GaslessTypes.MetaTransaction,
                             signature: ethSignHashWithKey(metaTransaction.getHash(), takerPrivateKey),
                         },
                     },
@@ -730,10 +726,10 @@ describe('GaslessSwapService', () => {
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
-                        kind: RfqmTypes.MetaTransaction,
+                        kind: GaslessTypes.MetaTransaction,
                         trade: {
                             metaTransaction,
-                            type: RfqmTypes.MetaTransaction,
+                            type: GaslessTypes.MetaTransaction,
                             signature: ethSignHashWithKey(metaTransaction.getHash(), otherPrivateKey),
                         },
                     },
@@ -748,10 +744,10 @@ describe('GaslessSwapService', () => {
             await expect(() =>
                 gaslessSwapService.processSubmitAsync(
                     {
-                        kind: RfqmTypes.MetaTransaction,
+                        kind: GaslessTypes.MetaTransaction,
                         trade: {
                             metaTransaction,
-                            type: RfqmTypes.MetaTransaction,
+                            type: GaslessTypes.MetaTransaction,
                             signature: ethSignHashWithKey(metaTransaction.getHash(), takerPrivateKey),
                         },
                     },
@@ -770,10 +766,10 @@ describe('GaslessSwapService', () => {
 
             const result = await gaslessSwapService.processSubmitAsync(
                 {
-                    kind: RfqmTypes.MetaTransaction,
+                    kind: GaslessTypes.MetaTransaction,
                     trade: {
                         metaTransaction,
-                        type: RfqmTypes.MetaTransaction,
+                        type: GaslessTypes.MetaTransaction,
                         signature: ethSignHashWithKey(metaTransaction.getHash(), takerPrivateKey),
                     },
                 },
@@ -781,7 +777,7 @@ describe('GaslessSwapService', () => {
             );
 
             expect(result.metaTransactionHash).toEqual(metaTransaction.getHash());
-            expect(result.type).toEqual(RfqmTypes.MetaTransaction);
+            expect(result.type).toEqual(GaslessTypes.MetaTransaction);
             // tslint:disable-next-line: no-unbound-method
             expect(mockSqsProducer.send).toHaveBeenCalledWith({
                 body: '{"id":"id","type":"metatransaction"}',

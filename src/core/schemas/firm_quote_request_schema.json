@@ -25,6 +25,16 @@
         },
         "slippagePercentage": {
             "$ref": "/numberSchema"
+        },
+        "feeType": {
+            "type": "string",
+            "enum": ["volume"]
+        },
+        "feeSellTokenPercentage": {
+            "$ref": "/numberSchema"
+        },
+        "feeRecipient": {
+            "type": "string"
         }
     },
     "oneOf": [

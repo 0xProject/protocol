@@ -39,6 +39,7 @@ import {
     FeeModelVersion,
     FirmOtcQuote,
     GaslessApprovalTypes,
+    GaslessTypes,
     IndicativeQuote,
     PermitApproval,
     PermitEip712Context,
@@ -65,7 +66,6 @@ import {
     OtcOrderSubmitRfqmSignedQuoteParams,
     OtcOrderSubmitRfqmSignedQuoteResponse,
     QuoteContext,
-    RfqmTypes,
     StatusResponse,
     SubmitApprovalParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
@@ -525,7 +525,7 @@ export class RfqmService {
         RFQM_QUOTE_INSERTED.labels(integrator.integratorId, integrator.integratorId, makerUri).inc();
         return {
             quote: {
-                type: RfqmTypes.OtcOrder,
+                type: GaslessTypes.OtcOrder,
                 price: roundedPrice,
                 gas: feeWithDetails.details.gasPrice,
                 buyAmount,
@@ -967,7 +967,7 @@ export class RfqmService {
             await this._dbUtils.writeV2JobAsync(rfqmJobOpts);
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await this._enqueueJobAsync(quote.orderHash!, RfqmTypes.OtcOrder);
+            await this._enqueueJobAsync(quote.orderHash!, GaslessTypes.OtcOrder);
         } catch (error) {
             logger.error({ errorMessage: error.message }, 'Failed to queue the quote for submission.');
             throw new InternalServerError(
@@ -976,7 +976,7 @@ export class RfqmService {
         }
 
         return {
-            type: RfqmTypes.OtcOrder,
+            type: GaslessTypes.OtcOrder,
             // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             orderHash: quote.orderHash!,
@@ -1172,7 +1172,7 @@ export class RfqmService {
         return firmQuotesWithCorrectChainId;
     }
 
-    private async _enqueueJobAsync(orderHash: string, type: RfqmTypes): Promise<void> {
+    private async _enqueueJobAsync(orderHash: string, type: GaslessTypes): Promise<void> {
         await this._sqsProducer.send({
             // wait, it's all order hash?
             // always has been.

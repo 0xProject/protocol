@@ -20,11 +20,15 @@ import {
     FetchFirmQuoteParams,
     FetchIndicativeQuoteParams,
     FetchQuoteParamsBase,
-    RfqmTypes,
     SubmitMetaTransactionSignedQuoteParams,
     SubmitRfqmSignedQuoteWithApprovalParams,
 } from '../services/types';
-import { ExecuteMetaTransactionEip712Context, GaslessApprovalTypes, PermitEip712Context } from '../core/types';
+import {
+    ExecuteMetaTransactionEip712Context,
+    GaslessApprovalTypes,
+    GaslessTypes,
+    PermitEip712Context,
+} from '../core/types';
 import { ConfigManager } from '../utils/config_manager';
 import { HealthCheckResult, transformResultToShortResponse } from '../utils/rfqm_health_check';
 import {
@@ -37,6 +41,7 @@ import {
     stringsToSignature,
 } from '../utils/rfqm_request_utils';
 import { schemaUtils } from '../core/schema_utils';
+import { GASLESS_V1_PATH, ZERO_G_PATH, ZERO_G_ALIAS_PATH } from '../core/constants';
 
 // Minimum slippage allowed. This value should be kept consistent with the value set in 0x-api
 const MIN_ALLOWED_SLIPPAGE = 0.001; // 0.1%
@@ -72,7 +77,8 @@ export class GaslessSwapHandlers {
      * Handler for the /price endpoint
      */
     public async getPriceAsync(req: express.Request, res: express.Response): Promise<void> {
-        const { chainId, params } = await this._parsePriceParamsAsync(req);
+        const metaTransactionType = getMetaTransactionType(req.baseUrl);
+        const { chainId, params } = await this._parsePriceParamsAsync(req, metaTransactionType);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -103,8 +109,9 @@ export class GaslessSwapHandlers {
      * Handler for the /quote endpoint
      */
     public async getQuoteAsync(req: express.Request, res: express.Response): Promise<void> {
+        const metaTransactionType = getMetaTransactionType(req.baseUrl);
         // Parse request
-        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req);
+        const { chainId, params } = await this._parseFetchFirmQuoteParamsAsync(req, metaTransactionType);
         // Consistent with `rfqm_handlers`: not all requests are emitted if they fail parsing
         ZEROG_GASLESS_SWAP_REQUEST.inc({
             chainId,
@@ -201,13 +208,14 @@ export class GaslessSwapHandlers {
 
     private async _parseFetchFirmQuoteParamsAsync(
         req: express.Request,
+        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchFirmQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.firmQuoteRequestSchema as any);
         const takerAddress = req.query.takerAddress;
         const shouldCheckApproval = req.query.checkApproval === 'true' ? true : false;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, metaTransactionType);
         if (!addressUtils.isAddress(takerAddress as string)) {
             throw new ValidationError([
                 {
@@ -261,12 +269,13 @@ export class GaslessSwapHandlers {
 
     private async _parsePriceParamsAsync(
         req: express.Request,
+        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchIndicativeQuoteParams }> {
         // $eslint-fix-me https://github.com/rhinodavid/eslint-fix-me
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         schemaUtils.validateSchema(req.query, schemas.indicativeQuoteRequestSchema as any);
         const { takerAddress } = req.query;
-        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req);
+        const { chainId, params } = await this._parseIndicativeAndFirmQuoteSharedParamsAsync(req, metaTransactionType);
 
         return {
             chainId,
@@ -282,6 +291,7 @@ export class GaslessSwapHandlers {
      */
     private async _parseIndicativeAndFirmQuoteSharedParamsAsync(
         req: express.Request,
+        metaTransactionType: GaslessTypes,
     ): Promise<{ chainId: number; params: FetchQuoteParamsBase }> {
         const chainId = extractChainId(req, this._gaslessSwapServices);
         const { integrator } = this._validateApiKey(req.header('0x-api-key'), chainId);
@@ -335,14 +345,76 @@ export class GaslessSwapHandlers {
             req.query.slippagePercentage === undefined
                 ? undefined
                 : new BigNumber(req.query.slippagePercentage as string);
-        if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE) || slippagePercentage?.gt(1)) {
-            throw new ValidationError([
-                {
-                    field: 'slippagePercentage',
-                    code: ValidationErrorCodes.ValueOutOfRange,
-                    reason: `slippagePercentage ${slippagePercentage} is out of range`,
-                },
-            ]);
+
+        let feeType: 'volume' | undefined;
+        let feeSellTokenPercentage: BigNumber | undefined;
+        let feeRecipient: string | undefined;
+
+        if (metaTransactionType === GaslessTypes.MetaTransaction) {
+            if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE) || slippagePercentage?.gt(1)) {
+                throw new ValidationError([
+                    {
+                        field: 'slippagePercentage',
+                        code: ValidationErrorCodes.ValueOutOfRange,
+                        reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                    },
+                ]);
+            }
+        } else if (metaTransactionType === GaslessTypes.MetaTransactionV2) {
+            // slippage percentage of gasless v1 is on scale of 100 which is what percentage means (a fix from zero-g)
+            if (slippagePercentage?.lt(MIN_ALLOWED_SLIPPAGE * 100) || slippagePercentage?.gt(100)) {
+                throw new ValidationError([
+                    {
+                        field: 'slippagePercentage',
+                        code: ValidationErrorCodes.ValueOutOfRange,
+                        reason: `slippagePercentage ${slippagePercentage} is out of range`,
+                    },
+                ]);
+            }
+
+            if (req.query.feeType) {
+                if (req.query.feeType !== 'volume') {
+                    throw new ValidationError([
+                        {
+                            field: 'feeType',
+                            code: ValidationErrorCodes.IncorrectFormat,
+                            reason: `feeType ${req.query.feeType} is of wrong format`,
+                        },
+                    ]);
+                }
+
+                feeType = 'volume';
+                if (req.query.feeSellTokenPercentage === undefined) {
+                    throw new ValidationError([
+                        {
+                            field: 'feeSellTokenPercentage',
+                            code: ValidationErrorCodes.RequiredField,
+                            reason: `feeSellTokenPercentage is a required field when feeType ${feeType} is specified`,
+                        },
+                    ]);
+                }
+                feeSellTokenPercentage = new BigNumber(req.query.feeSellTokenPercentage as string);
+                if (feeSellTokenPercentage.lt(0) || feeSellTokenPercentage.gte(100)) {
+                    throw new ValidationError([
+                        {
+                            field: 'feeSellTokenPercentage',
+                            code: ValidationErrorCodes.ValueOutOfRange,
+                            reason: `feeSellTokenPercentage ${feeSellTokenPercentage} is out of range`,
+                        },
+                    ]);
+                }
+
+                if (req.query.feeRecipient === undefined) {
+                    throw new ValidationError([
+                        {
+                            field: 'feeRecipient',
+                            code: ValidationErrorCodes.RequiredField,
+                            reason: `feeRecipient is a required field when feeType ${feeType} is specified`,
+                        },
+                    ]);
+                }
+                feeRecipient = req.query.feeRecipient as string;
+            }
         }
 
         return {
@@ -357,6 +429,9 @@ export class GaslessSwapHandlers {
                 sellTokenDecimals,
                 affiliateAddress: affiliateAddress as string,
                 slippagePercentage,
+                feeType,
+                feeSellTokenPercentage,
+                feeRecipient,
             },
         };
     }
@@ -402,7 +477,7 @@ export class GaslessSwapHandlers {
         }
 
         // Parse trade params
-        if (trade.type === RfqmTypes.OtcOrder) {
+        if (trade.type === GaslessTypes.OtcOrder) {
             const order = new OtcOrder(stringsToOtcOrderFields(trade.order as RawOtcOrderFields));
             const signature = stringsToSignature(trade.signature as StringSignatureFields);
             parsedParams.trade = {
@@ -410,7 +485,7 @@ export class GaslessSwapHandlers {
                 order,
                 signature,
             };
-        } else if (trade.type === RfqmTypes.MetaTransaction) {
+        } else if (trade.type === GaslessTypes.MetaTransaction) {
             const metaTransaction = new MetaTransaction(
                 stringsToMetaTransactionFields(trade.metaTransaction as RawMetaTransactionFields),
             );
@@ -508,4 +583,19 @@ function validateNotNativeTokenOrThrow(token: string, chainId: number, field: st
     }
 
     return true;
+}
+
+/**
+ * Get the meta-transaction type to pass to service.
+ */
+function getMetaTransactionType(baseURL: string): GaslessTypes {
+    if (ZERO_G_PATH.includes(baseURL) || ZERO_G_ALIAS_PATH.includes(baseURL)) {
+        return GaslessTypes.MetaTransaction;
+    }
+    if (GASLESS_V1_PATH.includes(baseURL)) {
+        return GaslessTypes.MetaTransactionV2;
+    }
+
+    // This should never happen
+    throw new Error('Unknown gasless base URL');
 }

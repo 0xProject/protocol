@@ -36,6 +36,12 @@ export interface ERC20Owner {
     token: string;
 }
 
+export enum GaslessTypes {
+    MetaTransaction = 'metatransaction',
+    MetaTransactionV2 = 'metatransactionV2',
+    OtcOrder = 'otc',
+}
+
 /**
  * Approval is an object that encapsulates the EIP-712 context that will eventually be signed by takers
  * for gasless approvals. There are multiple flavors of these approval objects, which can be distinguished
