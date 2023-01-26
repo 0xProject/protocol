@@ -38,11 +38,65 @@ import "../../integration/TestUniswapV3Pool.sol";
 import "../../integration/TestLiquidityProvider.sol";
 
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
+import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract Multiplex is Test, ForkUtils, TestUtils {
+    using LibSafeMathV06 for uint256; // TODO
+
     uint256 private constant MAX_UINT256 = 2 ** 256 - 1;
     uint256 private constant HIGH_BIT = 2 ** 255;
     uint24 private constant POOL_FEE = 1234;
+
+    bytes32 private constant RFQ_ORDER_FILLED_SIG =
+        keccak256(
+            "RfqOrderFilled("
+            "bytes32,"
+            "address,"
+            "address,"
+            "address,"
+            "address,"
+            "uint128,"
+            "uint128,"
+            "bytes32"
+            ")"
+        );
+
+    bytes32 private constant OTC_ORDER_FILLED_SIG =
+        keccak256(
+            "OtcOrderFilled("
+            "bytes32,"
+            "address,"
+            "address,"
+            "address,"
+            "address,"
+            "uint128,"
+            "uint128"
+            ")"
+        );
+
+    bytes32 private constant EXPIRED_RFQ_ORDER_SIG =
+        keccak256(
+            "ExpiredRfqOrder("
+            "bytes32,"
+            "address,"
+            "uint64"
+            ")"
+        );
+
+    bytes32 private constant TRANSFER_SIG =
+        keccak256(
+            "Transfer("
+            "address,"
+            "address,"
+            "address,"
+            "uint256"
+            ")"
+        );
+
+    struct LogEntry {
+        bytes32[] topics;
+        bytes data;
+    }
 
     DeployZeroEx.ZeroExDeployed private zeroExDeployed;
     IERC20TokenV06 private shib;
@@ -132,7 +186,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             maker: signerAddress,
             taker: address(this),
             txOrigin: tx.origin,
-            expiryAndNonce: (uint64(block.timestamp + 60) << 192) | 1
+            expiryAndNonce: ((block.timestamp + 60) << 192) | 1
         });
         mintTo(address(order.makerToken), order.maker, order.makerAmount);
     }
@@ -337,6 +391,33 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         addresses[2] = third;
     }
 
+    function makeArray(LogEntry memory first) private pure returns (LogEntry[] memory entries) {
+        entries = new LogEntry[](1);
+        entries[0] = first;
+    }
+
+    function makeArray(LogEntry memory first, LogEntry memory second) private pure returns (LogEntry[] memory entries) {
+        entries = new LogEntry[](2);
+        entries[0] = first;
+        entries[1] = second;
+    }
+
+    function makeArray(
+        LogEntry memory first,
+        LogEntry memory second,
+        LogEntry memory third
+    ) private pure returns (LogEntry[] memory entries) {
+        entries = new LogEntry[](3);
+        entries[0] = first;
+        entries[1] = second;
+        entries[2] = third;
+    }
+
+    function makeArray(bytes32 first) private pure returns (bytes32[] memory data) {
+        data = new bytes32[](1);
+        data[0] = first;
+    }
+
     function mintTo(address token, address recipient, uint256 amount) private {
         if (token == address(weth)) {
             IEtherTokenV06(token).deposit{value: amount}();
@@ -377,28 +458,83 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         return HIGH_BIT + (frac * 1e16);
     }
 
+    // ripped from src/features/multiplex/MultiplexUniswapV2.sol
+    function computeUniswapOutputAmount(
+        address pairAddress,
+        address inputToken,
+        address outputToken,
+        uint256 inputAmount
+    ) private view returns (uint256 outputAmount) {
+        // Input amount should be non-zero.
+        require(inputAmount > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT");
+        // Query the reserves of the pair contract.
+        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pairAddress).getReserves();
+        // Reserves must be non-zero.
+        require(reserve0 > 0 && reserve1 > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY");
+        // Tokens are lexicographically sorted in the Uniswap contract.
+        (uint256 inputReserve, uint256 outputReserve) = inputToken < outputToken
+            ? (reserve0, reserve1)
+            : (reserve1, reserve0);
+        // Compute the output amount.
+        uint256 inputAmountWithFee = inputAmount.safeMul(997);
+        uint256 numerator = inputAmountWithFee.safeMul(outputReserve);
+        uint256 denominator = inputReserve.safeMul(1000).safeAdd(inputAmountWithFee);
+        return numerator / denominator;
+    }
+
+    function assertLogs(LogEntry[] memory expected) private {
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+
+        uint256 j = 0;
+        for (uint256 i = 0; i < entries.length && j < expected.length; i++) {
+            Vm.Log memory en = entries[i];
+            LogEntry memory ex = expected[j];
+
+            if (en.topics.length != ex.topics.length || !checkEq0(en.data, ex.data)) continue;
+
+            uint256 k = 0;
+            for (; k < en.topics.length; k++) {
+                if (en.topics[k] != ex.topics[k]) k = en.topics.length + 1;
+            }
+
+            if (k == en.topics.length) j++;
+        }
+
+        if (j != expected.length) {
+            fail("logs do not match expected");
+            for (uint256 i = 0; i < expected[j].topics.length; i++)
+                log_named_bytes32("expected topic", expected[j].topics[i]);
+            log_named_bytes("expected data", expected[j].data);
+        }
+    }
+
     // TODO refactor these out into some test utility contract
 
     uint256 private snapshot;
 
     function snap() private {
+        bool failed = failed();
         if (snapshot != 0) vm.revertTo(snapshot);
         snapshot = vm.snapshot();
+        if (failed) fail();
     }
 
     function describe(string memory message) private {
         log_string(message);
+        vm.recordLogs();
         snap();
     }
 
     function it(string memory message) private {
         log_string(string(abi.encodePacked("  ├─ ", message)));
+        vm.getRecordedLogs();
         snap();
     }
 
     function it(string memory message, bool last) private {
         if (last) {
             log_string(string(abi.encodePacked("  └─ ", message)));
+            vm.getRecordedLogs();
             snap();
         } else it(message);
     }
@@ -505,7 +641,23 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify rfqOrder was filled
+                assertLogs(
+                    makeArray(
+                        LogEntry({
+                            topics: makeArray(RFQ_ORDER_FILLED_SIG),
+                            data: abi.encode(
+                                zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(rfqOrder),
+                                rfqOrder.maker,
+                                rfqOrder.taker,
+                                rfqOrder.makerToken,
+                                rfqOrder.takerToken,
+                                rfqOrder.takerAmount,
+                                rfqOrder.makerAmount,
+                                rfqOrder.pool
+                            )
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -534,7 +686,22 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify otcOrder was filled
+                assertLogs(
+                    makeArray(
+                        LogEntry({
+                            topics: makeArray(OTC_ORDER_FILLED_SIG),
+                            data: abi.encode(
+                                zeroExDeployed.features.otcOrdersFeature.getOtcOrderHash(otcOrder),
+                                otcOrder.maker,
+                                otcOrder.taker,
+                                otcOrder.makerToken,
+                                otcOrder.takerToken,
+                                otcOrder.makerAmount,
+                                otcOrder.takerAmount
+                            )
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
@@ -548,7 +715,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             it("expired RFQ, fallback(UniswapV2)");
 
             LibNativeOrder.RfqOrder memory rfqOrder = makeTestRfqOrder();
-            createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
+            TestUniswapV2Pool uniV2Pool = createUniswapV2Pool(uniV2Factory, dai, zrx, 10e18, 10e18);
             mintTo(address(rfqOrder.takerToken), rfqOrder.taker, rfqOrder.takerAmount);
             rfqOrder.expiry = 0;
 
@@ -564,7 +731,37 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                     0
                 )
             {
-                // TODO verify rfqOrder expired, verify fallback to uniswapV2 transferred correctly
+                assertLogs(
+                    makeArray(
+                        LogEntry({
+                            topics: makeArray(EXPIRED_RFQ_ORDER_SIG),
+                            data: abi.encode(
+                                zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(rfqOrder),
+                                rfqOrder.maker,
+                                rfqOrder.expiry
+                            )
+                        }),
+                        LogEntry({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(dai, rfqOrder.taker, uniV2Pool, rfqOrder.takerAmount)
+                        }),
+                        LogEntry({
+                            topics: makeArray(TRANSFER_SIG),
+                            data: abi.encode(
+                                zrx,
+                                uniV2Pool,
+                                rfqOrder.taker,
+                                computeUniswapOutputAmount( // TODO shouldn't really check this
+                                    address(uniV2Pool),
+                                    address(rfqOrder.takerToken),
+                                    address(rfqOrder.makerToken),
+                                    rfqOrder.takerAmount
+                                )
+                            )
+                            // TODO maybe define a mask field to solve above
+                        })
+                    )
+                );
             } catch Error(string memory reason) {
                 fail("reverted");
                 fail(reason);
