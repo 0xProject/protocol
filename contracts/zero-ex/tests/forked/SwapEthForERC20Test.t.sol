@@ -1,3 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+  Copyright 2023 ZeroEx Intl.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 pragma solidity ^0.6;
 
 pragma experimental ABIEncoderV2;
@@ -14,21 +28,13 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
-    /*//////////////////////////////////////////////////////////////
-                                 Rpc Setup
-    //////////////////////////////////////////////////////////////*/
     function setUp() public {
         //get out addresses.json file that defines contract addresses for each chain we are currently deployed on
         _setup();
     }
 
-    /*//////////////////////////////////////////////////////////////
-                                 Dispatch
-    //////////////////////////////////////////////////////////////*/
-
     function test_swapEthForERC20OnUniswap() public {
         log_string("SwapEthForERC20OnUniswap");
-        /* */
         for (uint256 i = 0; i < chains.length; i++) {
             //skip fantom/avax failing test
             if (i == 3 || i == 4) {
@@ -47,9 +53,6 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         }
     }
 
-    /*//////////////////////////////////////////////////////////////
-                                 Settlement
-    //////////////////////////////////////////////////////////////*/
     /* solhint-disable function-max-lines */
     function swapOnUniswap(
         TokenAddresses memory tokens,
@@ -163,7 +166,7 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
             );
             assert(IERC20TokenV06(tokens.USDT).balanceOf(address(this)) > 0);
         } else {
-            log_string("    Liquidity Source Not available on this chain");
+            revert("Liquidity Source Not available on this chain");
         }
     }
 
@@ -192,8 +195,4 @@ contract SwapEthForERC20Test is Test, ForkUtils, TestUtils {
         log_named_address("        ", makerToken);
         return out;
     }
-
-    /*//////////////////////////////////////////////////////////////
-                                HELPERS
-    //////////////////////////////////////////////////////////////*/
 }

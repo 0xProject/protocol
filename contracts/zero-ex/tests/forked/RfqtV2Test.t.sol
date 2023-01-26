@@ -1,3 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
+/*
+  Copyright 2023 ZeroEx Intl.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 pragma solidity ^0.6;
 
 pragma experimental ABIEncoderV2;
@@ -14,16 +28,10 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract RfqtV2Test is Test, ForkUtils, TestUtils {
-    /*//////////////////////////////////////////////////////////////
-                                 Rpc Setup
-    //////////////////////////////////////////////////////////////*/
+
     function setUp() public {
         _setup();
     }
-
-    /*//////////////////////////////////////////////////////////////
-                                 Dispatch
-    //////////////////////////////////////////////////////////////*/
 
     function test_swapEthForUSDTThroughFqtOtcs() public {
         log_string("SwapEthForUSDTThroughFqtOtc");
@@ -47,9 +55,6 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         }
     }
 
-    /*//////////////////////////////////////////////////////////////
-                                 Settlement
-    //////////////////////////////////////////////////////////////*/
     /* solhint-disable function-max-lines */
     function swapWithOtcOrder(
         TokenAddresses memory tokens,
@@ -96,14 +101,6 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         fqtData.fillSequence[0] = FillQuoteTransformer.OrderType.Otc;
         // The amount to fill
         fqtData.fillAmount = 1e18;
-
-        /*//////////////////////////////////////////////////////////////
-                                Sampling
-        //////////////////////////////////////////////////////////////*/
-
-        /*//////////////////////////////////////////////////////////////
-                                BridgeAdapter
-        //////////////////////////////////////////////////////////////*/
 
         // Now let's set up an OTC fill
         fqtData.otcOrders = new FillQuoteTransformer.OtcOrderInfo[](1);
@@ -165,8 +162,4 @@ contract RfqtV2Test is Test, ForkUtils, TestUtils {
         uint256 nonce = vm.getNonce(maker);
         return expiry | bucket | nonce;
     }
-
-    /*//////////////////////////////////////////////////////////////
-                                HELPERS
-    //////////////////////////////////////////////////////////////*/
 }
