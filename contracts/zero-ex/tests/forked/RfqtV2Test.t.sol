@@ -28,7 +28,6 @@ import "src/transformers/bridges/BridgeProtocols.sol";
 import "src/features/OtcOrdersFeature.sol";
 
 contract RfqtV2Test is Test, ForkUtils, TestUtils {
-
     function setUp() public {
         _setup();
     }
