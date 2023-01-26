@@ -110,6 +110,7 @@
         "./contracts/src/transformers/Transformer.sol",
         "./contracts/src/transformers/WethTransformer.sol",
         "./contracts/src/transformers/bridges/AbstractBridgeAdapter.sol",
+        "./contracts/src/transformers/bridges/ArbitrumBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/AvalancheBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/BSCBridgeAdapter.sol",
         "./contracts/src/transformers/bridges/BridgeProtocols.sol",
