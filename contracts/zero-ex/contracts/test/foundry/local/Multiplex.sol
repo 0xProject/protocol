@@ -38,12 +38,9 @@ import "../../integration/TestUniswapV3Pool.sol";
 import "../../integration/TestLiquidityProvider.sol";
 
 import "@0x/contracts-erc20/contracts/src/v06/WETH9V06.sol";
-import "@0x/contracts-utils/contracts/src/v06/LibSafeMathV06.sol";
 
 contract Multiplex is Test, ForkUtils, TestUtils {
-    using LibSafeMathV06 for uint256; // TODO
-
-    uint256 private constant MAX_UINT256 = 2 ** 256 - 1;
+    uint256 private constant MAX_UINT256 = type(uint256).max;
     uint256 private constant HIGH_BIT = 2 ** 255;
     uint24 private constant POOL_FEE = 1234;
 
@@ -93,9 +90,10 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             ")"
         );
 
-    struct LogEntry {
+    struct LogDescription {
         bytes32[] topics;
         bytes data;
+        bytes dataMask;
     }
 
     DeployZeroEx.ZeroExDeployed private zeroExDeployed;
@@ -391,23 +389,26 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         addresses[2] = third;
     }
 
-    function makeArray(LogEntry memory first) private pure returns (LogEntry[] memory entries) {
-        entries = new LogEntry[](1);
+    function makeArray(LogDescription memory first) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](1);
         entries[0] = first;
     }
 
-    function makeArray(LogEntry memory first, LogEntry memory second) private pure returns (LogEntry[] memory entries) {
-        entries = new LogEntry[](2);
+    function makeArray(
+        LogDescription memory first,
+        LogDescription memory second
+    ) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](2);
         entries[0] = first;
         entries[1] = second;
     }
 
     function makeArray(
-        LogEntry memory first,
-        LogEntry memory second,
-        LogEntry memory third
-    ) private pure returns (LogEntry[] memory entries) {
-        entries = new LogEntry[](3);
+        LogDescription memory first,
+        LogDescription memory second,
+        LogDescription memory third
+    ) private pure returns (LogDescription[] memory entries) {
+        entries = new LogDescription[](3);
         entries[0] = first;
         entries[1] = second;
         entries[2] = third;
@@ -458,46 +459,51 @@ contract Multiplex is Test, ForkUtils, TestUtils {
         return HIGH_BIT + (frac * 1e16);
     }
 
-    // ripped from src/features/multiplex/MultiplexUniswapV2.sol
-    function computeUniswapOutputAmount(
-        address pairAddress,
-        address inputToken,
-        address outputToken,
-        uint256 inputAmount
-    ) private view returns (uint256 outputAmount) {
-        // Input amount should be non-zero.
-        require(inputAmount > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_INPUT_AMOUNT");
-        // Query the reserves of the pair contract.
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pairAddress).getReserves();
-        // Reserves must be non-zero.
-        require(reserve0 > 0 && reserve1 > 0, "MultiplexUniswapV2::_computeUniswapOutputAmount/INSUFFICIENT_LIQUIDITY");
-        // Tokens are lexicographically sorted in the Uniswap contract.
-        (uint256 inputReserve, uint256 outputReserve) = inputToken < outputToken
-            ? (reserve0, reserve1)
-            : (reserve1, reserve0);
-        // Compute the output amount.
-        uint256 inputAmountWithFee = inputAmount.safeMul(997);
-        uint256 numerator = inputAmountWithFee.safeMul(outputReserve);
-        uint256 denominator = inputReserve.safeMul(1000).safeAdd(inputAmountWithFee);
-        return numerator / denominator;
+    function describeLog(
+        bytes32[] memory topics,
+        bytes memory data,
+        bytes memory dataMask
+    ) private pure returns (LogDescription memory) {
+        assert(dataMask.length == 0 || dataMask.length == data.length);
+        return LogDescription(topics, data, dataMask);
     }
 
-    function assertLogs(LogEntry[] memory expected) private {
+    function describeLog(bytes32[] memory topics, bytes memory data) private pure returns (LogDescription memory) {
+        return describeLog(topics, data, hex"");
+    }
+
+    function assertLogs(LogDescription[] memory expected) private {
         Vm.Log[] memory entries = vm.getRecordedLogs();
 
         uint256 j = 0;
         for (uint256 i = 0; i < entries.length && j < expected.length; i++) {
             Vm.Log memory en = entries[i];
-            LogEntry memory ex = expected[j];
+            LogDescription memory ex = expected[j];
+            uint256 k;
 
-            if (en.topics.length != ex.topics.length || !checkEq0(en.data, ex.data)) continue;
+            if (en.topics.length != ex.topics.length || en.data.length != ex.data.length) continue;
 
-            uint256 k = 0;
-            for (; k < en.topics.length; k++) {
+            for (k = 0; k < en.data.length; k++) {
+                if (ex.dataMask.length > 0) {
+                    en.data[k] = en.data[k] & ex.dataMask[k];
+                    ex.data[k] = ex.data[k] & ex.dataMask[k];
+                }
+
+                if (en.data[k] != ex.data[k]) {
+                    k = en.data.length + 1;
+                    break;
+                }
+            }
+
+            if (k != en.data.length) continue;
+
+            for (k = 0; k < en.topics.length; k++) {
                 if (en.topics[k] != ex.topics[k]) k = en.topics.length + 1;
             }
 
-            if (k == en.topics.length) j++;
+            if (k != en.topics.length) continue;
+
+            j++;
         }
 
         if (j != expected.length) {
@@ -643,7 +649,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             {
                 assertLogs(
                     makeArray(
-                        LogEntry({
+                        describeLog({
                             topics: makeArray(RFQ_ORDER_FILLED_SIG),
                             data: abi.encode(
                                 zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(rfqOrder),
@@ -688,7 +694,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             {
                 assertLogs(
                     makeArray(
-                        LogEntry({
+                        describeLog({
                             topics: makeArray(OTC_ORDER_FILLED_SIG),
                             data: abi.encode(
                                 zeroExDeployed.features.otcOrdersFeature.getOtcOrderHash(otcOrder),
@@ -733,7 +739,7 @@ contract Multiplex is Test, ForkUtils, TestUtils {
             {
                 assertLogs(
                     makeArray(
-                        LogEntry({
+                        describeLog({
                             topics: makeArray(EXPIRED_RFQ_ORDER_SIG),
                             data: abi.encode(
                                 zeroExDeployed.features.nativeOrdersFeature.getRfqOrderHash(rfqOrder),
@@ -741,24 +747,14 @@ contract Multiplex is Test, ForkUtils, TestUtils {
                                 rfqOrder.expiry
                             )
                         }),
-                        LogEntry({
+                        describeLog({
                             topics: makeArray(TRANSFER_SIG),
                             data: abi.encode(dai, rfqOrder.taker, uniV2Pool, rfqOrder.takerAmount)
                         }),
-                        LogEntry({
+                        describeLog({
                             topics: makeArray(TRANSFER_SIG),
-                            data: abi.encode(
-                                zrx,
-                                uniV2Pool,
-                                rfqOrder.taker,
-                                computeUniswapOutputAmount( // TODO shouldn't really check this
-                                    address(uniV2Pool),
-                                    address(rfqOrder.takerToken),
-                                    address(rfqOrder.makerToken),
-                                    rfqOrder.takerAmount
-                                )
-                            )
-                            // TODO maybe define a mask field to solve above
+                            data: abi.encode(zrx, uniV2Pool, rfqOrder.taker, 0),
+                            dataMask: abi.encode(MAX_UINT256, MAX_UINT256, MAX_UINT256, 0)
                         })
                     )
                 );
