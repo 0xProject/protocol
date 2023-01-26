@@ -403,7 +403,7 @@ contract ForkUtils is Test {
         }
     }
 
-/// @dev Sample sell quotes from UniswapV3.
+    /// @dev Sample sell quotes from UniswapV3.
     /// @param quoter UniswapV3 Quoter contract.
     /// @param path Token route. Should be takerToken -> makerToken (at most two hops).
     /// @param takerTokenAmounts Taker token sell amount for each sample.
@@ -524,7 +524,6 @@ contract ForkUtils is Test {
         }
     }
 
-    /// @dev Returns `poolPaths` to sample against. The caller is responsible for not using path involinvg zero address(es).
     function _getPoolPaths(
         IUniswapV3QuoterV2 quoter,
         IERC20TokenV06[] memory path,
