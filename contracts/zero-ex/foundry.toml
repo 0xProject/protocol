@@ -14,7 +14,6 @@ remappings = [
 ]
 optimizer_runs = 1000000
 fs_permissions = [{ access = "read", path = "./" }]
-verbosity = 3
 
 [rpc_endpoints]
 arbitrum = "${ARBITRUM_RPC_URL}"
